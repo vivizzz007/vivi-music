@@ -351,7 +351,7 @@ fun SuggestionItem(
             .padding(end = SearchBarIconOffsetX)
     ) {
         Icon(
-            painterResource(if (online) R.drawable.search else R.drawable.history),
+            painterResource(if (online) R.drawable.search_icon else R.drawable.history),
             contentDescription = null,
             modifier = Modifier
                 .padding(horizontal = 16.dp)

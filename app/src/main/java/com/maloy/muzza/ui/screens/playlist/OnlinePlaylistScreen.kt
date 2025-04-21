@@ -716,7 +716,7 @@ fun OnlinePlaylistScreen(
                         }
                     ) {
                         Icon(
-                            painterResource(R.drawable.arrow_back),
+                            painterResource(R.drawable.back_icon),
                             contentDescription = null
                         )
                     }
@@ -760,7 +760,7 @@ fun OnlinePlaylistScreen(
                         onClick = { isSearching = true }
                     ) {
                         Icon(
-                            painterResource(R.drawable.search),
+                            painterResource(R.drawable.search_icon),
                             contentDescription = null
                         )
                     }

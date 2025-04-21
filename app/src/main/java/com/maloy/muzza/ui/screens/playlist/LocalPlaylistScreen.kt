@@ -416,7 +416,7 @@ fun LocalPlaylistScreen(
                                     modifier = Modifier.padding(horizontal = 6.dp)
                                 ) {
                                     Icon(
-                                        painter = painterResource(if (locked) R.drawable.lock else R.drawable.lock_open),
+                                        painter = painterResource(if (locked) R.drawable.lockon_icon else R.drawable.lockoff_icon ),
                                         contentDescription = null
                                     )
                                 }
@@ -544,7 +544,7 @@ fun LocalPlaylistScreen(
                                             modifier = Modifier.detectReorder(reorderableState)
                                         ) {
                                             Icon(
-                                                painter = painterResource(R.drawable.drag_handle),
+                                                painter = painterResource(R.drawable.twolines_icon),
                                                 contentDescription = null
                                             )
                                         }
@@ -662,7 +662,7 @@ fun LocalPlaylistScreen(
                         }
                     ) {
                         Icon(
-                            painterResource(R.drawable.arrow_back),
+                            painterResource(R.drawable.back_icon),
                             contentDescription = null
                         )
                     }
@@ -724,7 +724,7 @@ fun LocalPlaylistScreen(
                         onClick = { isSearching = true }
                     ) {
                         Icon(
-                            painterResource(R.drawable.search),
+                            painterResource(R.drawable.search_icon),
                             contentDescription = null
                         )
                     }

@@ -161,7 +161,7 @@ fun LyricsMenu(
         DefaultDialog(
             modifier = Modifier.verticalScroll(rememberScrollState()),
             onDismiss = { showSearchDialog = false },
-            icon = { Icon(painter = painterResource(R.drawable.search), contentDescription = null) },
+            icon = { Icon(painter = painterResource(R.drawable.search_icon), contentDescription = null) },
             title = { Text(stringResource(R.string.search_lyrics)) },
             buttons = {
                 TextButton(
@@ -346,7 +346,7 @@ fun LyricsMenu(
             viewModel.refetchLyrics(mediaMetadataProvider(), lyricsProvider())
         }
         GridMenuItem(
-            icon = R.drawable.search,
+            icon = R.drawable.search_icon,
             title = R.string.search,
         ) {
             showSearchDialog = true

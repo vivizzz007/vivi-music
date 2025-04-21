@@ -21,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.toLowerCase
@@ -157,7 +158,7 @@ fun LyricsSettings(
                 onLongClick = navController::backToMain
             ) {
                 Icon(
-                    Icons.AutoMirrored.Rounded.ArrowBack,
+                    painterResource(R.drawable.back_icon),
                     contentDescription = null
                 )
             }

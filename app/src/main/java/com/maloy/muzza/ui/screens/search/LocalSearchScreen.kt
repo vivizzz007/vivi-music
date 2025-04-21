@@ -258,7 +258,7 @@ fun LocalSearchScreen(
                     key = "no_result"
                 ) {
                     EmptyPlaceholder(
-                        icon = R.drawable.search,
+                        icon = R.drawable.search_icon,
                         text = stringResource(R.string.no_results_found),
                         modifier = Modifier.animateItem()
                     )

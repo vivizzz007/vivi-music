@@ -744,7 +744,7 @@ fun AutoPlaylistScreen(
                 ) {
                     Icon(
                         painter = painterResource(
-                            R.drawable.arrow_back
+                            R.drawable.back_icon
                         ),
                         contentDescription = null
                     )
@@ -756,7 +756,7 @@ fun AutoPlaylistScreen(
                         onClick = { isSearching = true }
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.search),
+                            painter = painterResource(R.drawable.search_icon),
                             contentDescription = null
                         )
                     }

@@ -1,4 +1,4 @@
-package com.vivimusic.lyrics
+package com.maloy.muzza.models
 
 import com.maloy.innertube.models.YTItem
 

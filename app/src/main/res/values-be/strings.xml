@@ -36,7 +36,7 @@
 
     <!-- Search -->
     <string name="search">Пошук</string>
-    <string name="search_yt_music">Пошук у Muzza</string>
+    <string name="search_yt_music">Пошук у Mu</string>
     <string name="search_library">Пошук у бібліятэцы…</string>
     <string name="filter_library">Library</string>
     <string name="filter_liked">Liked</string>

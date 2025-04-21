@@ -21,7 +21,7 @@ enum class AppDesignVariantType {
 }
 
 enum class SliderStyle {
-    DEFAULT, SQUIGGLY, COMPOSE
+    DEFAULT, COMPOSE
 }
 
 val SwipeSongToDismissKey = booleanPreferencesKey("swipe_song_to_dismiss")
@@ -183,9 +183,9 @@ enum class PlayerStyle {
 }
 
 enum class PlayerBackgroundStyle {
+    BLUR,
     DEFAULT,
     GRADIENT,
-    BLUR,
     BLURMOV,
     MONETBLACK,
 }

@@ -197,7 +197,7 @@ fun SetupWizard(
                                 .background(MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation))
                         ) {
                             Image(
-                                painter = painterResource(R.drawable.muzza_monochrome),
+                                painter = painterResource(R.drawable.ic_launcher_monochrome),
                                 contentDescription = null,
                                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground, BlendMode.SrcIn),
                                 modifier = Modifier

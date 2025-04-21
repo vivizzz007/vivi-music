@@ -100,6 +100,7 @@ import com.maloy.muzza.ui.menu.YouTubeAlbumMenu
 import com.maloy.muzza.ui.menu.YouTubeArtistMenu
 import com.maloy.muzza.ui.menu.YouTubePlaylistMenu
 import com.maloy.muzza.ui.menu.YouTubeSongMenu
+import com.maloy.muzza.ui.theme.pureBlack
 import com.maloy.muzza.ui.utils.SnapLayoutInfoProvider
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.HomeViewModel
@@ -746,7 +747,7 @@ fun HomeScreen(
         HideOnScrollFAB(
             visible = !quickPicks.isNullOrEmpty() || explorePage?.newReleaseAlbums?.isNotEmpty() == true,
             lazyListState = lazylistState,
-            icon = (R.drawable.casino),
+            icon = (R.drawable.latest_icon),
             onClick = {
                 if (Random.nextBoolean() && !quickPicks.isNullOrEmpty()) {
                     val song = quickPicks!!.random()

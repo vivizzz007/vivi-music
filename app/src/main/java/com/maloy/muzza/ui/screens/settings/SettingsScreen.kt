@@ -1,5 +1,7 @@
 package com.maloy.muzza.ui.screens.settings
 
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -68,147 +70,105 @@ fun SettingsScreen(
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
     val uriHandler = LocalUriHandler.current
-    val backgroundImages = listOf(R.drawable.cardbg, R.drawable.cardbg2, R.drawable.cardbg3, R.drawable.cardbg4, R.drawable.cardbg5, R.drawable.cardbg6, R.drawable.cardbg7, R.drawable.cardbg8, R.drawable.cardbg9, R.drawable.cardbg11, R.drawable.cardbg12, R.drawable.cardbg13, R.drawable.cardbg14, R.drawable.cardbg15, R.drawable.cardbg16, R.drawable.cardbg17, R.drawable.cardbg18, R.drawable.cardbg19, R.drawable.cardbg20, R.drawable.cardbg22, R.drawable.cardbg23, R.drawable.cardbg24, R.drawable.cardbg25, R.drawable.cardbg26, R.drawable.cardbg27, R.drawable.cardbg28, R.drawable.cardbg29)
-    var currentImageIndex by remember { mutableIntStateOf((0..backgroundImages.lastIndex).random()) }
-    fun changeBackgroundImage() {
-        currentImageIndex = (currentImageIndex + 1) % backgroundImages.size
-    }
-    val accountName by rememberPreference(AccountNameKey, "")
-    val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
-    val isLoggedIn =
-        remember(innerTubeCookie) {
-            "SAPISID" in parseCookieString(innerTubeCookie)
-        }
 
-    Column(
-        Modifier
-            .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
-            .verticalScroll(rememberScrollState())
-    ) {
-        Spacer(Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)))
-            Box(
-                modifier = Modifier
-                    .height(220.dp)
-                    .clip(RoundedCornerShape(25.dp))
-                    .background(color = Color.Transparent)
-                    .clickable { changeBackgroundImage() }
-        ) {
-            Image(
-                painter = painterResource(id = backgroundImages[currentImageIndex]),
-                contentDescription = "background",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .blur(0.5.dp)
+
+            Column(
+                Modifier
+                    .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
+                    .verticalScroll(rememberScrollState())
+
+
+            )
+
+
+            {
+                Spacer(
+                    Modifier.windowInsetsPadding(
+                        LocalPlayerAwareWindowInsets.current.only(
+                            WindowInsetsSides.Top
+                        )
+                    )
                 )
+                Box(
+                    modifier = Modifier
+                )
+                Spacer(Modifier.height(20.dp))
                 PreferenceEntry(
-                    title = {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                        ) {
-                            if (isLoggedIn) {
-                                Text(
-                                    stringResource(R.string.Hi),
-                                    color = Color.White,
-                                    fontSize = 20.sp,
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontFamily = FontFamily.SansSerif
-                                )
-                                Spacer(modifier = Modifier.height(3.dp))
-                                Text(
-                                    accountName.replace("@", ""),
-                                    color = Color.White,
-                                    fontSize = 20.sp,
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontFamily = FontFamily.Monospace
-                                )
-                            } else {
-                                Text(
-                                    stringResource(R.string.not_logged_in),
-                                    color = Color.White,
-                                    fontSize = 20.sp,
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontFamily = FontFamily.SansSerif
-                                )
-                            }
-                        }
-                    },
-                    description = null,
-                    onClick = { changeBackgroundImage() }
+                    title = { Text(stringResource(R.string.appearance)) },
+                    icon = { Icon(painterResource(R.drawable.theme_icon), null) },
+                    onClick = { navController.navigate("settings/appearance") }
                 )
+                Spacer(Modifier.height(20.dp))
+                PreferenceEntry(
+                    title = { Text(stringResource(R.string.account)) },
+                    icon = { Icon(painterResource(R.drawable.account_icon), null) },
+                    onClick = { navController.navigate("settings/account") }
+                )
+                Spacer(Modifier.height(20.dp))
+
+                PreferenceEntry(
+                    title = { Text(stringResource(R.string.content)) },
+                    icon = { Icon(painterResource(R.drawable.content_icon), null) },
+                    onClick = { navController.navigate("settings/content") }
+                )
+                Spacer(Modifier.height(20.dp))
+                PreferenceEntry(
+                    title = { Text(stringResource(R.string.player_and_audio)) },
+                    icon = { Icon(painterResource(R.drawable.play_icon), null) },
+                    onClick = { navController.navigate("settings/player") }
+                )
+                Spacer(Modifier.height(20.dp))
+                PreferenceEntry(
+                    title = { Text(stringResource(R.string.storage)) },
+                    icon = { Icon(painterResource(R.drawable.storage_icon), null) },
+                    onClick = { navController.navigate("settings/storage") }
+                )
+                Spacer(Modifier.height(20.dp))
+                PreferenceEntry(
+                    title = { Text(stringResource(R.string.privacy)) },
+                    icon = { Icon(painterResource(R.drawable.security_icon), null) },
+                    onClick = { navController.navigate("settings/privacy") }
+                )
+                Spacer(Modifier.height(20.dp))
+                PreferenceEntry(
+                    title = { Text(stringResource(R.string.backup_restore)) },
+                    icon = { Icon(painterResource(R.drawable.backups_icon), null) },
+                    onClick = { navController.navigate("settings/backup_restore") }
+                )
+                Spacer(Modifier.height(20.dp))
+                PreferenceEntry(
+                    title = { Text(stringResource(R.string.about)) },
+                    icon = { Icon(painterResource(R.drawable.info_icon), null) },
+                    onClick = { navController.navigate("settings/about") }
+                )
+
+                UpdateCard(uriHandler)
+                Spacer(Modifier.height(25.dp))
+                VersionCard(uriHandler)
+                Spacer(Modifier.height(25.dp))
+            }
+            TopAppBar(
+                title = { Text(stringResource(R.string.settings)) },
+                navigationIcon = {
+                    IconButton(
+                        onClick = navController::navigateUp,
+                        onLongClick = navController::backToMain
+                    ) {
+                        Icon(
+                            painterResource(R.drawable.back_icon),
+                            contentDescription = null
+                        )
+                    }
+                },
+                scrollBehavior = scrollBehavior
+            )
         }
 
-        Spacer(Modifier.height(25.dp))
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.appearance)) },
-            icon = { Icon(painterResource(R.drawable.palette), null) },
-            onClick = { navController.navigate("settings/appearance") }
-        )
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.account)) },
-            icon = { Icon(painterResource(R.drawable.person), null) },
-            onClick = { navController.navigate("settings/account") }
-        )
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.content)) },
-            icon = { Icon(painterResource(R.drawable.language), null) },
-            onClick = { navController.navigate("settings/content") }
-        )
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.player_and_audio)) },
-            icon = { Icon(painterResource(R.drawable.play), null) },
-            onClick = { navController.navigate("settings/player") }
-        )
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.storage)) },
-            icon = { Icon(painterResource(R.drawable.storage), null) },
-            onClick = { navController.navigate("settings/storage") }
-        )
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.privacy)) },
-            icon = { Icon(painterResource(R.drawable.security), null) },
-            onClick = { navController.navigate("settings/privacy") }
-        )
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.backup_restore)) },
-            icon = { Icon(painterResource(R.drawable.restore), null) },
-            onClick = { navController.navigate("settings/backup_restore") }
-        )
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.about)) },
-            icon = { Icon(painterResource(R.drawable.info), null) },
-            onClick = { navController.navigate("settings/about") }
-        )
-
-        UpdateCard(uriHandler)
-        Spacer(Modifier.height(25.dp))
-        VersionCard(uriHandler)
-        Spacer(Modifier.height(25.dp))
-    }
-    TopAppBar(
-        title = { Text(stringResource(R.string.settings)) },
-        navigationIcon = {
-            IconButton(
-                onClick = navController::navigateUp,
-                onLongClick = navController::backToMain
-            ) {
-                Icon(
-                    painterResource(R.drawable.arrow_back),
-                    contentDescription = null
-                )
-            }
-        },
-        scrollBehavior = scrollBehavior
-    )
-}
 
 @Composable
 fun VersionCard(uriHandler: UriHandler) {
-    Spacer(Modifier.height(25.dp))
+    Spacer(Modifier.height(20.dp))
     ElevatedCard(
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 6.dp
-        ),
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
@@ -218,7 +178,7 @@ fun VersionCard(uriHandler: UriHandler) {
 
             ),
         shape = RoundedCornerShape(38.dp),
-        onClick = { uriHandler.openUri("https://github.com/Maloy-Android/Muzza/releases/latest") }
+        onClick = { uriHandler.openUri("https://drive.google.com/drive/folders/1iY6PIdVYAu6PnUTM2VBDODt6STEvdJMy?usp=sharing") }
     ) {
         Column(
             modifier = Modifier
@@ -226,9 +186,10 @@ fun VersionCard(uriHandler: UriHandler) {
                 .padding(20.dp),
             verticalArrangement = Arrangement.Center
         ) {
-            Spacer(Modifier.height(3.dp))
+            Spacer(Modifier.height(5.dp))
+
             Text(
-                text = BuildConfig.VERSION_NAME,
+                text = "FOR UPDATE - CLICK HERE",
                 style = MaterialTheme.typography.bodyLarge.copy(
                     fontSize = 17.sp,
                     fontFamily = FontFamily.Monospace
@@ -241,7 +202,6 @@ fun VersionCard(uriHandler: UriHandler) {
         }
     }
 }
-
 @Composable
 fun UpdateCard(uriHandler: UriHandler) {
     var showUpdateCard by remember { mutableStateOf(false) }
@@ -258,21 +218,19 @@ fun UpdateCard(uriHandler: UriHandler) {
     }
 
     if (showUpdateCard) {
-        Spacer(Modifier.height(25.dp))
+        Spacer(Modifier.height(85.dp))
         ElevatedCard(
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = 6.dp
-            ),
+
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
-                .height(120.dp),
+                .height(150.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             ),
             shape = RoundedCornerShape(38.dp),
             onClick = {
-                uriHandler.openUri("https://github.com/Maloy-Android/Muzza/releases/latest")
+                uriHandler.openUri("https://drive.google.com/drive/folders/1iY6PIdVYAu6PnUTM2VBDODt6STEvdJMy?usp=sharing")
             }
         ) {
             Column(
@@ -280,7 +238,7 @@ fun UpdateCard(uriHandler: UriHandler) {
                     .padding(20.dp),
                 verticalArrangement = Arrangement.Center
             ) {
-                Spacer(Modifier.height(3.dp))
+                Spacer(Modifier.height(5.dp))
                 Text(
                     text = "${stringResource(R.string.NewVersion)} $latestVersion",
                     style = MaterialTheme.typography.bodyLarge.copy(
@@ -296,7 +254,7 @@ fun UpdateCard(uriHandler: UriHandler) {
 
 suspend fun checkForUpdates(): String? = withContext(Dispatchers.IO) {
     try {
-        val url = URL("https://api.github.com/repos/Maloy-Android/Muzza/releases/latest")
+        val url = URL("https://drive.google.com/drive/folders/1iY6PIdVYAu6PnUTM2VBDODt6STEvdJMy?usp=sharing")
         val connection = url.openConnection()
         connection.connect()
         val json = connection.getInputStream().bufferedReader().use { it.readText() }
@@ -320,3 +278,4 @@ fun isNewerVersion(remoteVersion: String, currentVersion: String): Boolean {
     }
     return false
 }
+

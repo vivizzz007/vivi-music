@@ -199,7 +199,7 @@ fun OnlineSearchResult(
             if (searchSummary?.summaries?.isEmpty() == true) {
                 item {
                     EmptyPlaceholder(
-                        icon = R.drawable.search,
+                        icon = R.drawable.search_icon,
                         text = stringResource(R.string.no_results_found),
                         modifier = Modifier.animateItem()
                     )
@@ -225,7 +225,7 @@ fun OnlineSearchResult(
             if (itemsPage?.items?.isEmpty() == true) {
                 item {
                     EmptyPlaceholder(
-                        icon = R.drawable.search,
+                        icon = R.drawable.search_icon,
                         text = stringResource(R.string.no_results_found),
                         modifier = Modifier.animateItem()
                     )

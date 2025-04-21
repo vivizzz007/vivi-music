@@ -14,22 +14,22 @@ sealed class Screens(
 ) {
     data object Home : Screens(
         titleId = R.string.home,
-        iconIdInactive = R.drawable.home_outlined,
-        iconIdActive = R.drawable.home_filled,
+        iconIdInactive = R.drawable.home_icon,
+        iconIdActive = R.drawable.home_icon,
         route = "home"
     )
 
     data object Explore : Screens(
         titleId = R.string.explore,
-        iconIdInactive = R.drawable.explore_outlined,
-        iconIdActive = R.drawable.explore_filled,
+        iconIdInactive = R.drawable.explore_icon,
+        iconIdActive = R.drawable.explore_icon,
         route = "Explore"
     )
 
     data object Library : Screens(
         titleId = R.string.filter_library,
-        iconIdInactive = R.drawable.library_music_outlined,
-        iconIdActive = R.drawable.library_music_filled,
+        iconIdInactive = R.drawable.library_icon,
+        iconIdActive = R.drawable.library_icon,
         route = "library"
     )
 

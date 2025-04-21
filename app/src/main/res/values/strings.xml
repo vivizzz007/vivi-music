@@ -1,11 +1,11 @@
 <resources>
 
     <!-- Setup wizard -->
-    <string name="welcome_to_muzza">Welcome to Muzza</string>
-    <string name="yt_music_fingertips">YouTube Music at your fingertips</string>
-    <string name="ytm_account_sync">YouTube-Music account synchronization</string>
-    <string name="ad_free_playback">AD free playback</string>
-    <string name="fos_info">Free open source app</string>
+    <string name="welcome_to_muzza">Welcome to VIVI</string>
+    <string name="yt_music_fingertips">YouTube Music</string>
+    <string name="ytm_account_sync">YouTube-Music account sync</string>
+    <string name="ad_free_playback">AD free music</string>
+    <string name="fos_info"> open source app</string>
     <string name="i_have_a_backup">I have a backup</string>
     <string name="skip">Skip</string>
     <string name="back">Back</string>
@@ -59,7 +59,7 @@
 
     <!-- Search -->
     <string name="search">Search</string>
-    <string name="search_yt_music">Search Muzza</string>
+    <string name="search_yt_music">Search in vivi</string>
     <string name="search_library">Search library…</string>
     <string name="SearchHistory">Search History</string>
     <string name="Sujestions">Suggestions</string>
@@ -259,7 +259,7 @@
     <!-- Notifications settings -->
     <string name="notifications">Notifications</string>
     <string name="keep_alive_title">Prevent system killing app</string>
-    <string name="keep_alive_description">Use a foreground notification to prevent Muzza from being randomly closed by the system.</string>
+    <string name="keep_alive_description">Use a foreground notification to prevent vivi from being randomly closed by the system.</string>
     <string name="notifications_settings">Notifications settings</string>
 
     <!-- Settings -->
@@ -275,9 +275,9 @@
     <string name="pure_black">Pure black</string>
     <string name="app_design_variant">App design</string>
     <string name="listen_youtube_music">Listen on YouTube Music</string>
-    <string name="visit_muzza">Visit Muzza</string>
+    <string name="visit_muzza">Visit vivi</string>
     <string name="artist">Artist</string>
-    <string name="listen_to_muzza">Listen to Muzza</string>
+    <string name="listen_to_muzza">Listen to vivi</string>
     <string name="enable_swipe_thumbnail">Enable swipe on thumbnail to change song</string>
     <string name="customize_navigation_tabs">Customize navigation tabs</string>
     <string name="player">Player</string>
@@ -316,20 +316,20 @@
     <string name="closepopup">Close</string>
     <string name="NewVersion">New version available</string>
     <string name="Hi">Hello Again</string>
-    <string name="Donate">Donate</string>
+    <string name="Donate">donate</string>
     <string name="Telegramchanel">Official Channel</string>
     <string name="web_site">Website</string>
     <string name="web_site_info">Official website ❯</string>
     <string name="code">Source code</string>
     <string name="code_text">Access the source code of the app ❯</string>
-    <string name="bugs">Issues</string>
-    <string name="bugs_text">Bugs or Problems? Report them here ❯</string>
+    <string name="bugs">change log</string>
+    <string name="bugs_text">change log for vivi music❯</string>
     <string name="help">Help</string>
     <string name="help_text">Contact Dev ❯</string>
     <string name="contribution">Contribution ?</string>
     <string name="contribution_text">If you want to contribute, click here ❯</string>
-    <string name="donate_help">Please support me with a donation to further developing Muzza ❯</string>
-    <string name="telegram_info">Official channel with new news and Muzza development process ❯</string>
+    <string name="donate_help">Please support me with a donation to further developing vivi ❯</string>
+    <string name="telegram_info">Official channel with new news and vivi development process ❯</string>
     <string name="my_channel">My Telegram channel</string>
     <string name="my_channel_info">A channel about my life ❯</string>
     <string name="Developer">Developer ❯</string>
@@ -434,7 +434,7 @@
     <string name="restore_failed">Failed to restore backup</string>
 
     <string name="discord_integration">Discord Integration</string>
-    <string name="discord_information">Muzza uses the KizzyRPC library to set your Discord account\'s status. This involves using the Discord Gateway connection, which may be considered a violation of Discord\'s TOS. However, there are no known cases of user accounts being suspended for this reason. Use at your own risk.\n\nMuzza will only extract your token, and everything else is stored locally.</string>
+    <string name="discord_information">vivi uses the KizzyRPC library to set your Discord account\'s status. This involves using the Discord Gateway connection, which may be considered a violation of Discord\'s TOS. However, there are no known cases of user accounts being suspended for this reason. Use at your own risk.\n\nvivi will only extract your token, and everything else is stored locally.</string>
     <string name="dismiss">Dismiss</string>
     <string name="options">Options</string>
     <string name="preview">Preview</string>
@@ -455,7 +455,7 @@
     </plurals>
     <string name="appwidget_text">EXAMPLE</string>
     <string name="add_widget">Add widget</string>
-    <string name="app_widget_description">Muzza</string>
+    <string name="app_widget_description">vivi</string>
     <string name="not_internet">No Internet Connection</string>
     <string name="internet_required">It looks like you have no Internet connection. Please check your network.</string>
     <string name="downloadspage">Go to downloads</string>

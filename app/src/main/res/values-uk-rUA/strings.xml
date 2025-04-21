@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Setup wizard -->
-    <string name="welcome_to_muzza">Ласкаво просимо до Muzza</string>
+    <string name="welcome_to_muzza">Ласкаво просимо до vivi</string>
     <string name="yt_music_fingertips">YouTube-Music завжди під рукою</string>
     <string name="ytm_account_sync">Синхронізація з аккаунтом YouTube-Music</string>
     <string name="ad_free_playback">Відтворення без реклами</string>

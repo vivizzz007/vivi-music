@@ -15,7 +15,7 @@
     <string name="last_week">الأسبوع الماضي</string>
     <string name="most_played_artists">الفنانون الأكثر استماعًا</string>
     <string name="most_played_albums">الألبومات الأكثر استماعًا</string>
-    <string name="search_yt_music">ابحث في Muzza</string>
+    <string name="search_yt_music">ابحث في VIVI</string>
     <string name="search_library">ابحث في المكتبة…</string>
     <string name="filter_liked">مفضلة</string>
     <string name="filter_downloaded">تم تنزيلها</string>
@@ -302,9 +302,9 @@
     <string name="restore_failed">فشل في استعادة النسخة الاحتياطية</string>
     <string name="options">خيارات</string>
     <string name="preview">معاينة</string>
-    <string name="discord_information">Muzza يستخدم مكتبة KizzyRPC لتعيين حالة حساب Discord الخاص بك. هذا يتضمن استخدام اتصال Discord Gateway، والذي قد يعتبر انتهاكًا لشروط خدمة Discord. مع ذلك، لا توجد حالات معروفة لتعطيل حسابات المستخدمين لهذا السبب. استخدم على مسؤوليتك الخاصة.
+    <string name="discord_information"> يستخدم مكتبة KizzyRPC لتعيين حالة حساب Discord الخاص بك. هذا يتضمن استخدام اتصال Discord Gateway، والذي قد يعتبر انتهاكًا لشروط خدمة Discord. مع ذلك، لا توجد حالات معروفة لتعطيل حسابات المستخدمين لهذا السبب. استخدم على مسؤوليتك الخاصةVIVI.
 \n
-\nسيقوم Muzza فقط باستخراج رمز الوصول الخاص بك، وسيتم تخزين كل شيء آخر محليًا.</string>
+\nسيقوم  فقط باستخراج رمز الوصول الخاص بك، وسيتم تخزين كل شيء آخر محليًاVIVI.</string>
     <string name="dismiss">صرف</string>
     <string name="enable_discord_rpc">فعل Rich Presence</string>
     <string name="new_version_available">نسخة جديدة متوفرة</string>

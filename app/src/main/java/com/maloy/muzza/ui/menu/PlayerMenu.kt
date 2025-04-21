@@ -453,13 +453,7 @@ fun PlayerMenu(
             }
             onDismiss()
         }
-        SleepTimerGridMenu(
-            sleepTimerTimeLeft = sleepTimerTimeLeft,
-            enabled = sleepTimerEnabled,
-        ) {
-            if (sleepTimerEnabled) playerConnection.service.sleepTimer.clear()
-            else showSleepTimerDialog = true
-        }
+
         GridMenuItem(
             icon = R.drawable.speed,
             title = R.string.tempo_and_pitch

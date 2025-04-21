@@ -198,7 +198,7 @@ fun AboutScreen(
                 .background(MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation))
         ) {
             Image(
-                painter = painterResource(R.drawable.muzza_monochrome),
+                painter = painterResource(R.drawable.ic_launcher_monochrome),
                 contentDescription = null,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground, BlendMode.SrcIn),
                 modifier = Modifier
@@ -218,7 +218,7 @@ fun AboutScreen(
             verticalAlignment = Alignment.Top,
         ) {
             Text(
-                text = "Muzza",
+                text = "VIVI",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
@@ -227,7 +227,7 @@ fun AboutScreen(
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = BuildConfig.VERSION_NAME,
+                text = "BETA-V-1.1.5",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.secondary
             )
@@ -276,31 +276,13 @@ fun AboutScreen(
             }
         }
 
-        Spacer(Modifier.height(4.dp))
-
-        CardItem(
-            icon = R.drawable.person,
-            title = stringResource(R.string.my_channel),
-            subtitle = stringResource(R.string.my_channel_info),
-            onClick = { uriHandler.openUri("https://t.me/maloybegoniadev") }
-        )
-
-        Spacer(Modifier.height(20.dp))
-
-        CardItem(
-            icon = R.drawable.language,
-            title = stringResource(R.string.web_site),
-            subtitle = stringResource(R.string.web_site_info),
-            onClick = { uriHandler.openUri("https://maloy-android.github.io/Muzza-Website/") }
-        )
-
         Spacer(Modifier.height(20.dp))
 
         CardItem(
             icon = R.drawable.telegram,
             title = stringResource(R.string.Telegramchanel),
             subtitle = stringResource(R.string.telegram_info),
-            onClick = { uriHandler.openUri("https://t.me/appmuzzaupdatesnews") }
+            onClick = { uriHandler.openUri("https://drive.google.com/file/d/10LtEMQE3oohz7ZAZ4di3brxujJYj11em/view?usp=drive_link") }
         )
 
         Spacer(Modifier.height(20.dp))
@@ -309,7 +291,7 @@ fun AboutScreen(
             icon = R.drawable.donate,
             title = stringResource(R.string.Donate),
             subtitle = stringResource(R.string.donate_help),
-            onClick = { uriHandler.openUri("https://www.tbank.ru/cf/HsHAuwTNf6") }
+            onClick = { uriHandler.openUri("https://drive.google.com/file/d/10LtEMQE3oohz7ZAZ4di3brxujJYj11em/view?usp=drive_link") }
         )
 
         Spacer(Modifier.height(20.dp))
@@ -318,7 +300,7 @@ fun AboutScreen(
             icon = R.drawable.codigo,
             title = stringResource(R.string.code),
             subtitle = stringResource(R.string.code_text),
-            onClick = { uriHandler.openUri("https://github.com/Maloy-Android/Muzza") }
+            onClick = { uriHandler.openUri("https://drive.google.com/file/d/10LtEMQE3oohz7ZAZ4di3brxujJYj11em/view?usp=drive_link") }
         )
 
         Spacer(Modifier.height(20.dp))
@@ -327,16 +309,7 @@ fun AboutScreen(
             icon = R.drawable.bug_report,
             title = stringResource(R.string.bugs),
             subtitle = stringResource(R.string.bugs_text),
-            onClick = { uriHandler.openUri("https://github.com/Maloy-Android/Muzza/issues") }
-        )
-
-        Spacer(Modifier.height(20.dp))
-
-        CardItem(
-            icon = R.drawable.help,
-            title = stringResource(R.string.help),
-            subtitle = stringResource(R.string.help_text),
-            onClick = { uriHandler.openUri("https://wa.me/9022340312") }
+            onClick = { uriHandler.openUri("https://drive.google.com/file/d/1of0nSYdb4Zal6qu7_8cGdjh4Ye4nPTrz/view?usp=drive_link") }
         )
 
         Spacer(Modifier.height(20.dp))
@@ -360,7 +333,6 @@ fun AboutScreen(
             }
         }
         UserCards(uriHandler)
-        ContributionCard(uriHandler)
     }
 
     TopAppBar(
@@ -371,7 +343,7 @@ fun AboutScreen(
                 onLongClick = navController::backToMain
             ) {
                 Icon(
-                    painterResource(R.drawable.arrow_back),
+                    painterResource(R.drawable.back_icon),
                     contentDescription = null
                 )
             }
@@ -384,10 +356,10 @@ fun AboutScreen(
 fun UserCards(uriHandler: UriHandler) {
     Column {
         UserCard(
-            imageUrl = "https://avatars.githubusercontent.com/u/177887593?s=400&u=f142ae1721c32c43c955bb53a46ab0e97e717148&v=4",
-            name = "Maloy-Android (@MaloyBegonia)",
-            role = "Hello , i'm MaloyBegonia beginner developer from Russia , supported languages (Java , kotlin , makefile , linux user , web designer , roms builder) ",
-            onClick = { uriHandler.openUri("https://github.com/Maloy-Android") }
+            imageUrl = "https://i.gadgets360cdn.com/products/large/call-of-duty-modern-warfare-3-cover-image-1200x675-1692331943.jpg",
+            name = "vivi-MUSIC",
+            role = "Hello , i'm VIVIDH P ASHOKAN a beginner developer from India  ",
+            onClick = { uriHandler.openUri("https://drive.google.com/file/d/10LtEMQE3oohz7ZAZ4di3brxujJYj11em/view?usp=drive_link") }
         )
     }
 }
@@ -447,71 +419,3 @@ fun CardItem(
 
 
 
-@Composable
-fun ContributionCard(uriHandler: UriHandler) {
-    val shimmerBrush = shimmerEffect()
-
-    Spacer(Modifier.height(24.dp))
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(140.dp)
-            .padding(horizontal = 16.dp)
-            .clickable { uriHandler.openUri("https://github.com/Maloy-Android/Muzza/pulls") }
-            .shadow(elevation = 8.dp, shape = RoundedCornerShape(20.dp)),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
-        ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
-        shape = RoundedCornerShape(20.dp)
-    ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(20.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(64.dp)
-                        .background(
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                            shape = CircleShape
-                        )
-                        .padding(12.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.extension),
-                        contentDescription = null,
-                        modifier = Modifier.size(40.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-                Spacer(modifier = Modifier.width(20.dp))
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.contribution),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = stringResource(R.string.contribution_text),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(shimmerBrush)
-            )
-        }
-    }
-}

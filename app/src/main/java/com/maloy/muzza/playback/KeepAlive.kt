@@ -50,7 +50,7 @@ class KeepAlive : Service() {
         )
         val builder = NotificationCompat.Builder(this, KEEP_ALIVE_CHANNEL_ID)
             .setContentTitle("Keep alive")
-            .setSmallIcon(R.drawable.small_icon)
+            .setSmallIcon(R.drawable.music_library_ic_icon)
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_MIN)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)

@@ -129,7 +129,7 @@ fun PrivacySettings(
 
         SwitchPreference(
             title = { Text(stringResource(R.string.pause_listen_history)) },
-            icon = { Icon(painterResource(R.drawable.history), null) },
+            icon = { Icon(painterResource(R.drawable.history_icon), null) },
             checked = pauseListenHistory,
             onCheckedChange = onPauseListenHistoryChange
         )
@@ -174,7 +174,7 @@ fun PrivacySettings(
                 onLongClick = navController::backToMain
             ) {
                 Icon(
-                    painterResource(R.drawable.arrow_back),
+                    painterResource(R.drawable.back_icon),
                     contentDescription = null
                 )
             }

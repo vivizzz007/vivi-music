@@ -92,7 +92,7 @@ fun AppearanceSettings(
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
     val (appDesignVariant, onAppDesignVariantChange) = rememberEnumPreference(AppDesignVariantKey, defaultValue = AppDesignVariantType.NEW)
-    val (dynamicTheme, onDynamicThemeChange) = rememberPreference(DynamicThemeKey, defaultValue = true)
+    val (dynamicTheme, onDynamicThemeChange) = rememberPreference(DynamicThemeKey, defaultValue = false)
     val (darkMode, onDarkModeChange) = rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
     val (pureBlack, onPureBlackChange) = rememberPreference(PureBlackKey, defaultValue = false)
     val (swipeSongToDismiss, onSwipeSongToDismissChange) = rememberPreference(SwipeSongToDismissKey, defaultValue = true)
@@ -104,7 +104,7 @@ fun AppearanceSettings(
     val (swipeThumbnail, onSwipeThumbnailChange) = rememberPreference(SwipeThumbnailKey, defaultValue = true)
     val (slimNav, onSlimNavChange) = rememberPreference(SlimNavBarKey, defaultValue = true)
     val (thumbnailCornerRadius, onThumbnailCornerRadius) = rememberPreference (ThumbnailCornerRadiusV2Key , defaultValue = 6)
-    val (playerStyle, onPlayerStyle) = rememberEnumPreference (PlayerStyleKey , defaultValue = PlayerStyle.OLD)
+    val (playerStyle, onPlayerStyle) = rememberEnumPreference (PlayerStyleKey , defaultValue = PlayerStyle.NEW)
 
     val isSystemInDarkTheme = isSystemInDarkTheme()
     val useDarkTheme = remember(darkMode, isSystemInDarkTheme) {
@@ -114,7 +114,7 @@ fun AppearanceSettings(
     val (playerBackground, onPlayerBackgroundChange) =
         rememberEnumPreference(
             PlayerBackgroundStyleKey,
-            defaultValue = PlayerBackgroundStyle.DEFAULT,
+            defaultValue = PlayerBackgroundStyle.BLUR,
         )
 
 
@@ -168,6 +168,7 @@ fun AppearanceSettings(
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -182,49 +183,6 @@ fun AppearanceSettings(
                         )
                         .clickable {
                             onSliderStyleChange(SliderStyle.DEFAULT)
-                            showSliderOptionDialog = false
-                        }
-                        .padding(16.dp)
-                ) {
-                    var sliderValue by remember {
-                        mutableFloatStateOf(0.5f)
-                    }
-                    Slider(
-                        value = sliderValue,
-                        valueRange = 0f..1f,
-                        onValueChange = {
-                            sliderValue = it
-                        },
-                        thumb = { Spacer(modifier = Modifier.size(0.dp)) },
-                        track = { sliderState ->
-                            PlayerSliderTrack(
-                                sliderState = sliderState,
-                                colors = SliderDefaults.colors()
-                            )
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .pointerInput(Unit) {
-                                detectTapGestures(
-                                    onPress = {}
-                                )
-                            }
-                    )
-                }
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                    modifier = Modifier
-                        .aspectRatio(1f)
-                        .weight(1f)
-                        .clip(RoundedCornerShape(16.dp))
-                        .border(
-                            1.dp,
-                            if (sliderStyle == SliderStyle.SQUIGGLY) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
-                            RoundedCornerShape(16.dp)
-                        )
-                        .clickable {
-                            onSliderStyleChange(SliderStyle.SQUIGGLY)
                             showSliderOptionDialog = false
                         }
                         .padding(16.dp)
@@ -288,14 +246,14 @@ fun AppearanceSettings(
 
         SwitchPreference(
             title = { Text(stringResource(R.string.enable_dynamic_theme)) },
-            icon = { Icon(painterResource(R.drawable.palette), null) },
+            icon = { Icon(painterResource(R.drawable.theme_icon), null) },
             checked = dynamicTheme,
             onCheckedChange = onDynamicThemeChange
         )
 
         EnumListPreference(
             title = { Text(stringResource(R.string.dark_theme)) },
-            icon = { Icon(painterResource(R.drawable.dark_mode), null) },
+            icon = { Icon(painterResource(R.drawable.darkmode_icon), null) },
             selectedValue = darkMode,
             onValueSelected = onDarkModeChange,
             valueText = {
@@ -310,7 +268,7 @@ fun AppearanceSettings(
         AnimatedVisibility(useDarkTheme) {
             SwitchPreference(
                 title = { Text(stringResource(R.string.pure_black)) },
-                icon = { Icon(painterResource(R.drawable.contrast), null) },
+                icon = { Icon(painterResource(R.drawable.contrast_icon), null) },
                 checked = pureBlack,
                 onCheckedChange = onPureBlackChange
             )
@@ -318,7 +276,9 @@ fun AppearanceSettings(
 
         EnumListPreference(
             title = { Text(stringResource(R.string.app_design_variant)) },
-            icon = { Icon(Icons.Rounded.DesignServices,null) },
+            icon =
+                { Icon(painterResource(R.drawable.design_icon),null)
+                   },
             selectedValue = appDesignVariant,
             onValueSelected = onAppDesignVariantChange,
             valueText = {
@@ -335,7 +295,7 @@ fun AppearanceSettings(
 
         ListPreference(
             title = { Text(stringResource(R.string.player_style)) },
-            icon = { Icon(painterResource(R.drawable.play), null) },
+            icon = { Icon(painterResource(R.drawable.play_icon), null) },
             selectedValue = playerStyle,
             values = listOf(PlayerStyle.OLD, PlayerStyle.NEW),
             valueText = {
@@ -350,7 +310,7 @@ fun AppearanceSettings(
 
         EnumListPreference(
             title = { Text(stringResource(R.string.player_background_style)) },
-            icon = { Icon(painterResource(R.drawable.gradient), null) },
+            icon = { Icon(painterResource(R.drawable.music_icon), null) },
             selectedValue = playerBackground,
             onValueSelected = onPlayerBackgroundChange,
             valueText = {
@@ -366,7 +326,7 @@ fun AppearanceSettings(
 
         SwitchPreference(
             title = { Text(stringResource(R.string.enable_swipe_thumbnail)) },
-            icon = { Icon(painterResource(R.drawable.swipe), null) },
+            icon = { Icon(painterResource(R.drawable.swipe_icon), null) },
             checked = swipeThumbnail,
             onCheckedChange = onSwipeThumbnailChange,
         )
@@ -381,11 +341,11 @@ fun AppearanceSettings(
         PreferenceEntry(
             title = { Text(stringResource(R.string.player_slider_style)) },
             description = when (sliderStyle) {
+
                 SliderStyle.DEFAULT -> stringResource(R.string.default_)
-                SliderStyle.SQUIGGLY -> stringResource(R.string.squiggly)
                 SliderStyle.COMPOSE -> stringResource(R.string.compose)
             },
-            icon = { Icon(painterResource(R.drawable.sliders), null) },
+            icon = { Icon(painterResource(R.drawable.slider_icon), null) },
             onClick = {
                 showSliderOptionDialog = true
             }
@@ -491,7 +451,7 @@ fun AppearanceSettings(
                 onLongClick = navController::backToMain
             ) {
                 Icon(
-                    painterResource(R.drawable.arrow_back),
+                    painterResource(R.drawable.back_icon),
                     contentDescription = null
                 )
             }

@@ -210,7 +210,7 @@ class MusicService : MediaLibraryService(),
         setMediaNotificationProvider(
             DefaultMediaNotificationProvider(this, { NOTIFICATION_ID }, CHANNEL_ID, R.string.music_player)
                 .apply {
-                    setSmallIcon(R.drawable.small_icon)
+                    setSmallIcon(R.drawable.music_library_ic_icon)
                 }
         )
         if (dataStore.get(KeepAliveKey, false)) {

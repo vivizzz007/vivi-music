@@ -252,7 +252,7 @@ fun StatsScreen(
                 onLongClick = navController::backToMain
             ) {
                 Icon(
-                    painterResource(R.drawable.arrow_back),
+                    painterResource(R.drawable.back_icon),
                     contentDescription = null
                 )
             }

@@ -277,7 +277,7 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val inSelectMode = navBackStackEntry?.savedStateHandle?.getStateFlow("inSelectMode", false)?.collectAsState()
-            val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)
+            val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = false)
             val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
             val pureBlack by rememberPreference(PureBlackKey, defaultValue = false)
             val isSystemInDarkTheme = isSystemInDarkTheme()
@@ -726,7 +726,7 @@ class MainActivity : ComponentActivity() {
                                         }
                                     ) {
                                         Icon(
-                                            painter = painterResource(R.drawable.search),
+                                            painter = painterResource(R.drawable.search_icon),
                                             contentDescription = stringResource(R.string.search)
                                         )
                                     }
@@ -743,7 +743,7 @@ class MainActivity : ComponentActivity() {
                                             }
                                         ) {
                                             Icon(
-                                                painter = painterResource(R.drawable.settings),
+                                                painter = painterResource(R.drawable.setting_icon),
                                                 contentDescription = stringResource(R.string.settings),
                                                 modifier = Modifier.size(24.dp)
                                             )
@@ -796,9 +796,9 @@ class MainActivity : ComponentActivity() {
                                         Icon(
                                             painterResource(
                                                 if (active || !navigationItems.fastAny { it.route == navBackStackEntry?.destination?.route }) {
-                                                    R.drawable.arrow_back
+                                                    R.drawable.back_icon
                                                 } else {
-                                                    R.drawable.search
+                                                    R.drawable.search_icon
                                                 }
                                             ),
                                             contentDescription = null
@@ -1122,7 +1122,7 @@ fun SettingsIconWithUpdateBadge(
             }
         ) {
             Icon(
-                painter = painterResource(R.drawable.settings),
+                painter = painterResource(R.drawable.setting_icon),
                 contentDescription = "Configuración"
             )
         }
