@@ -1,11 +1,11 @@
-package com.maloy.innertube.pages
+package com.music.innertube.pages
 
-import com.maloy.innertube.models.Album
-import com.maloy.innertube.models.Artist
-import com.maloy.innertube.models.MusicResponsiveListItemRenderer
-import com.maloy.innertube.models.MusicShelfRenderer
-import com.maloy.innertube.models.SongItem
-import com.maloy.innertube.models.getItems
+import com.music.innertube.models.Album
+import com.music.innertube.models.Artist
+import com.music.innertube.models.MusicResponsiveListItemRenderer
+import com.music.innertube.models.MusicShelfRenderer
+import com.music.innertube.models.SongItem
+import com.music.innertube.models.getItems
 
 data class HistoryPage(
     val sections: List<HistorySection>?,

@@ -2,11 +2,11 @@ package com.music.vivi.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.maloy.muzza.db.MusicDatabase
-import com.maloy.muzza.db.entities.LyricsEntity
-import com.maloy.muzza.lyrics.LyricsHelper
-import com.maloy.muzza.lyrics.LyricsResult
-import com.maloy.muzza.models.MediaMetadata
+import com.music.vivi.db.MusicDatabase
+import com.music.vivi.db.entities.LyricsEntity
+import com.music.vivi.lyrics.LyricsHelper
+import com.music.vivi.lyrics.LyricsResult
+import com.music.vivi.models.MediaMetadata
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

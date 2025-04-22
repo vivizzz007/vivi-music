@@ -29,7 +29,7 @@
     <string name="most_played_albums">播放次数最多的专辑</string>
     <!-- Search -->
     <string name="search">搜索</string>
-    <string name="search_yt_music">搜索 Muzza</string>
+    <string name="search_yt_music">搜索 vivi</string>
     <string name="search_library">搜索媒体库…</string>
     <string name="filter_library">媒体库</string>
     <string name="filter_liked">喜欢</string>
@@ -285,7 +285,7 @@
     <string name="auto_load_more_desc">如果可能，在播放队列快结束时自动添加更多歌曲</string>
     <string name="auto_skip_next_on_error">发生错误时自动跳到下一首歌曲</string>
     <string name="stop_music_on_task_clear">任务清除时停止音乐</string>
-    <string name="discord_information">Muzza 使用 KizzyRPC 库来设置您的 Discord 账号的状态。这会用到 Discord 网关连接，可能会违反 Discord 的服务条款。不过，目前还没有因此原因暂停用户账号的情况。使用风险自负。
+    <string name="discord_information">vivi 使用 KizzyRPC 库来设置您的 Discord 账号的状态。这会用到 Discord 网关连接，可能会违反 Discord 的服务条款。不过，目前还没有因此原因暂停用户账号的情况。使用风险自负。
 \n
-\nMuzza 只提取您的令牌，其他内容都存储在本地。</string>
+\nvivi 只提取您的令牌，其他内容都存储在本地。</string>
 </resources>

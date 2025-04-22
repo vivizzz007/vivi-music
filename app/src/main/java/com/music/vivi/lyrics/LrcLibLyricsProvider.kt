@@ -1,14 +1,12 @@
 package com.music.vivi.lyrics
 
 import android.content.Context
-import com.maloy.lrclib.LrcLib
-import com.maloy.muzza.constants.EnableLrcLibKey
-import com.maloy.muzza.utils.dataStore
-import com.maloy.muzza.utils.get
+import com.music.lrclib.LrcLib
+import com.music.vivi.constants.EnableLrcLibKey
+import com.music.vivi.utils.dataStore
+import com.music.vivi.utils.get
 
-/**
- * Source: https://github.com/Malopieds/Muzza
- */
+
 object LrcLibLyricsProvider : LyricsProvider {
     override val name = "LrcLib"
 

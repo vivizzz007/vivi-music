@@ -3,7 +3,7 @@ package com.music.vivi.ui.screens
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
-import com.maloy.muzza.R
+import com.music.vivi.R
 
 @Immutable
 sealed class Screens(

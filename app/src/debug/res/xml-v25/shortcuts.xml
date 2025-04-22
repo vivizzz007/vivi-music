@@ -6,9 +6,9 @@
         android:icon="@drawable/shortcut_songs"
         android:shortcutShortLabel="@string/songs">
         <intent
-            android:targetClass="com.maloy.muzza.MainActivity"
-            android:targetPackage="com.maloy.muzza"
-            android:action="com.maloy.muzza.action.SONGS" />
+            android:targetClass="com.music.vivi.MainActivity"
+            android:targetPackage="com.music.vivi"
+            android:action="com.music.vivi.action.SONGS" />
     </shortcut>
     <shortcut
         android:shortcutId="artists"
@@ -16,9 +16,9 @@
         android:icon="@drawable/shortcut_artists"
         android:shortcutShortLabel="@string/artists">
         <intent
-            android:targetClass="com.maloy.muzza.MainActivity"
-            android:targetPackage="com.maloy.muzza"
-            android:action="com.maloy.muzza.action.ARTISTS" />
+            android:targetClass="com.music.vivi.MainActivity"
+            android:targetPackage="com.music.vivi"
+            android:action="com.music.vivi.action.ARTISTS" />
     </shortcut>
     <shortcut
         android:shortcutId="albums"
@@ -26,9 +26,9 @@
         android:icon="@drawable/shortcut_albums"
         android:shortcutShortLabel="@string/albums">
         <intent
-            android:targetClass="com.maloy.muzza.MainActivity"
-            android:targetPackage="com.maloy.muzza"
-            android:action="com.maloy.muzza.action.ALBUMS" />
+            android:targetClass="com.music.vivi.MainActivity"
+            android:targetPackage="com.music.vivi"
+            android:action="com.music.vivi.action.ALBUMS" />
     </shortcut>
     <shortcut
         android:shortcutId="playlists"
@@ -36,8 +36,8 @@
         android:icon="@drawable/shortcut_playlists"
         android:shortcutShortLabel="@string/filter_playlists">
         <intent
-            android:targetClass="com.maloy.muzza.MainActivity"
-            android:targetPackage="com.maloy.muzza"
-            android:action="com.maloy.muzza.action.PLAYLISTS" />
+            android:targetClass="com.music.vivi.MainActivity"
+            android:targetPackage="com.music.vivi"
+            android:action="com.music.vivi.action.PLAYLISTS" />
     </shortcut>
 </shortcuts>

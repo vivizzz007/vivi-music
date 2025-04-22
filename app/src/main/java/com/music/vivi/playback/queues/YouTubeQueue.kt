@@ -1,10 +1,10 @@
 package com.music.vivi.playback.queues
 
 import androidx.media3.common.MediaItem
-import com.maloy.innertube.YouTube
-import com.maloy.innertube.models.WatchEndpoint
-import com.maloy.muzza.extensions.toMediaItem
-import com.maloy.muzza.models.MediaMetadata
+import com.music.innertube.YouTube
+import com.music.innertube.models.WatchEndpoint
+import com.music.vivi.extensions.toMediaItem
+import com.music.vivi.models.MediaMetadata
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 

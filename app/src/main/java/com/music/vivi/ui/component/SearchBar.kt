@@ -81,7 +81,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.util.lerp
-import com.maloy.muzza.constants.AppBarHeight
+import com.music.vivi.constants.AppBarHeight
 import kotlin.math.max
 import kotlin.math.roundToInt
 

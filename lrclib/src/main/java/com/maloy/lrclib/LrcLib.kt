@@ -1,7 +1,7 @@
-package com.maloy.lrclib
+package com.music.lrclib
 
-import com.maloy.lrclib.models.Track
-import com.maloy.lrclib.models.bestMatchingFor
+import com.music.lrclib.models.Track
+import com.music.lrclib.models.bestMatchingFor
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -12,9 +12,7 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import kotlin.math.abs
 
-/**
- * Source: https://github.com/Malopieds/Muzza
- */
+
 object LrcLib {
     private val client by lazy {
         HttpClient {

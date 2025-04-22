@@ -25,17 +25,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.core.app.ActivityCompat
 import androidx.navigation.NavController
-import com.maloy.muzza.LocalPlayerAwareWindowInsets
-import com.maloy.muzza.NotificationPermissionPreference
-import com.maloy.muzza.R
-import com.maloy.muzza.constants.KeepAliveKey
-import com.maloy.muzza.playback.KeepAlive
-import com.maloy.muzza.ui.component.IconButton
-import com.maloy.muzza.ui.component.PreferenceGroupTitle
-import com.maloy.muzza.ui.component.SwitchPreference
-import com.maloy.muzza.ui.utils.backToMain
-import com.maloy.muzza.utils.rememberPreference
-import com.maloy.muzza.utils.reportException
+import com.music.vivi.LocalPlayerAwareWindowInsets
+import com.music.vivi.NotificationPermissionPreference
+import com.music.vivi.R
+import com.music.vivi.constants.KeepAliveKey
+import com.music.vivi.playback.KeepAlive
+import com.music.vivi.ui.component.IconButton
+import com.music.vivi.ui.component.PreferenceGroupTitle
+import com.music.vivi.ui.component.SwitchPreference
+import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.utils.rememberPreference
+import com.music.vivi.utils.reportException
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

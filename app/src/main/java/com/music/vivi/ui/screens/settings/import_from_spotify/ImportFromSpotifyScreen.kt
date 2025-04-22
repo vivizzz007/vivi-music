@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -78,10 +79,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.maloy.muzza.R
-import com.maloy.muzza.ui.screens.settings.import_from_spotify.model.Playlist
-import com.maloy.muzza.ui.utils.backToMain
-import com.maloy.muzza.viewmodels.ImportFromSpotifyViewModel
+import com.music.vivi.R
+import com.music.vivi.ui.screens.settings.import_from_spotify.model.Playlist
+import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.viewmodels.ImportFromSpotifyViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -675,7 +676,7 @@ fun ImportFromSpotifyScreen(
     TopAppBar(
         title = { Text(stringResource(R.string.import_from_spotify)) },
         navigationIcon = {
-            com.maloy.muzza.ui.component.IconButton(
+            com.music.vivi.ui.component.IconButton(
                 onClick = navController::navigateUp,
                 onLongClick = navController::backToMain
             ) {

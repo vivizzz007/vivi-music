@@ -31,14 +31,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.maloy.muzza.LocalPlayerAwareWindowInsets
-import com.maloy.muzza.R
-import com.maloy.muzza.ui.component.IconButton
-import com.maloy.muzza.ui.component.NavigationTitle
-import com.maloy.muzza.ui.component.shimmer.ListItemPlaceHolder
-import com.maloy.muzza.ui.component.shimmer.ShimmerHost
-import com.maloy.muzza.ui.utils.backToMain
-import com.maloy.muzza.viewmodels.MoodAndGenresViewModel
+import com.music.vivi.LocalPlayerAwareWindowInsets
+import com.music.vivi.R
+import com.music.vivi.ui.component.IconButton
+import com.music.vivi.ui.component.NavigationTitle
+import com.music.vivi.ui.component.shimmer.ListItemPlaceHolder
+import com.music.vivi.ui.component.shimmer.ShimmerHost
+import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.viewmodels.MoodAndGenresViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

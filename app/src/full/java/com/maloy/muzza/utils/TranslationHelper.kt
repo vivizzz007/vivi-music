@@ -1,4 +1,4 @@
-package com.maloy.muzza.utils
+package com.music.vivi.utils
 
 import android.util.LruCache
 import com.github.houbb.opencc4j.util.ZhConverterUtil
@@ -9,8 +9,8 @@ import com.google.mlkit.nl.translate.TranslateLanguage
 import com.google.mlkit.nl.translate.TranslateRemoteModel
 import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.TranslatorOptions
-import com.maloy.muzza.db.entities.LyricsEntity
-import com.maloy.muzza.lyrics.LyricsUtils
+import com.music.vivi.db.entities.LyricsEntity
+import com.music.vivi.lyrics.LyricsUtils
 import kotlinx.coroutines.tasks.await
 import java.util.Locale
 

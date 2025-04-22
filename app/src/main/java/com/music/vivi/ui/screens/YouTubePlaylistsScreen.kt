@@ -23,17 +23,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.maloy.muzza.LocalPlayerAwareWindowInsets
-import com.maloy.muzza.R
-import com.maloy.muzza.constants.GridThumbnailHeight
-import com.maloy.muzza.ui.component.IconButton
-import com.maloy.muzza.ui.component.LocalMenuState
-import com.maloy.muzza.ui.component.YouTubeGridItem
-import com.maloy.muzza.ui.component.shimmer.GridItemPlaceHolder
-import com.maloy.muzza.ui.component.shimmer.ShimmerHost
-import com.maloy.muzza.ui.menu.YouTubePlaylistMenu
-import com.maloy.muzza.ui.utils.backToMain
-import com.maloy.muzza.viewmodels.YouTubePlaylistsViewModel
+import com.music.vivi.LocalPlayerAwareWindowInsets
+import com.music.vivi.R
+import com.music.vivi.constants.GridThumbnailHeight
+import com.music.vivi.ui.component.IconButton
+import com.music.vivi.ui.component.LocalMenuState
+import com.music.vivi.ui.component.YouTubeGridItem
+import com.music.vivi.ui.component.shimmer.GridItemPlaceHolder
+import com.music.vivi.ui.component.shimmer.ShimmerHost
+import com.music.vivi.ui.menu.YouTubePlaylistMenu
+import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.viewmodels.YouTubePlaylistsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable

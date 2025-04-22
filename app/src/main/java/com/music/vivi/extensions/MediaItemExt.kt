@@ -3,10 +3,10 @@ package com.music.vivi.extensions
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata.MEDIA_TYPE_MUSIC
-import com.maloy.innertube.models.SongItem
-import com.maloy.muzza.db.entities.Song
-import com.maloy.muzza.models.MediaMetadata
-import com.maloy.muzza.models.toMediaMetadata
+import com.music.innertube.models.SongItem
+import com.music.vivi.db.entities.Song
+import com.music.vivi.models.MediaMetadata
+import com.music.vivi.models.toMediaMetadata
 
 val MediaItem.metadata: MediaMetadata?
     get() = localConfiguration?.tag as? MediaMetadata

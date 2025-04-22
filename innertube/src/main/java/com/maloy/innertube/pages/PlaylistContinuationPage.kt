@@ -1,6 +1,6 @@
-package com.maloy.innertube.pages
+package com.music.innertube.pages
 
-import com.maloy.innertube.models.SongItem
+import com.music.innertube.models.SongItem
 
 data class PlaylistContinuationPage(
     val songs: List<SongItem>,

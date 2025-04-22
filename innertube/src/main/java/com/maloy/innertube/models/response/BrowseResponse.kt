@@ -1,17 +1,17 @@
-package com.maloy.innertube.models.response
+package com.music.innertube.models.response
 
-import com.maloy.innertube.models.Button
-import com.maloy.innertube.models.Continuation
-import com.maloy.innertube.models.GridRenderer
-import com.maloy.innertube.models.Menu
-import com.maloy.innertube.models.MusicShelfRenderer
-import com.maloy.innertube.models.ResponseContext
-import com.maloy.innertube.models.Runs
-import com.maloy.innertube.models.SectionListRenderer
-import com.maloy.innertube.models.SubscriptionButton
-import com.maloy.innertube.models.Tabs
-import com.maloy.innertube.models.ThumbnailRenderer
-import com.maloy.innertube.models.Thumbnails
+import com.music.innertube.models.Button
+import com.music.innertube.models.Continuation
+import com.music.innertube.models.GridRenderer
+import com.music.innertube.models.Menu
+import com.music.innertube.models.MusicShelfRenderer
+import com.music.innertube.models.ResponseContext
+import com.music.innertube.models.Runs
+import com.music.innertube.models.SectionListRenderer
+import com.music.innertube.models.SubscriptionButton
+import com.music.innertube.models.Tabs
+import com.music.innertube.models.ThumbnailRenderer
+import com.music.innertube.models.Thumbnails
 import kotlinx.serialization.Serializable
 
 @Serializable

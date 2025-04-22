@@ -1,4 +1,4 @@
-¡La aplicación Music ahora se llama Muzza!
+¡La aplicación Music ahora se llama vivi!
 
 - Rediseño del reproductor
 - Rediseño de la cola

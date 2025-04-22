@@ -1,7 +1,7 @@
 package com.music.vivi.playback.queues
 
 import androidx.media3.common.MediaItem
-import com.maloy.muzza.models.MediaMetadata
+import com.music.vivi.models.MediaMetadata
 
 class ListQueue(
     val title: String? = null,

@@ -1,12 +1,12 @@
-package com.maloy.innertube.models.response
+package com.music.innertube.models.response
 
-import com.maloy.innertube.models.ResponseContext
-import com.maloy.innertube.models.Thumbnails
+import com.music.innertube.models.ResponseContext
+import com.music.innertube.models.Thumbnails
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * PlayerResponse with [com.maloy.innertube.models.YouTubeClient.ANDROID_MUSIC] client
+ * PlayerResponse with [com.music.innertube.models.YouTubeClient.ANDROID_MUSIC] client
  */
 @Serializable
 data class PlayerResponse(

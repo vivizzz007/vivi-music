@@ -10,9 +10,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
-import com.maloy.muzza.constants.ListItemHeight
-import com.maloy.muzza.constants.ListThumbnailSize
-import com.maloy.muzza.constants.ThumbnailCornerRadius
+import com.music.vivi.constants.ListItemHeight
+import com.music.vivi.constants.ListThumbnailSize
+import com.music.vivi.constants.ThumbnailCornerRadius
 
 @Composable
 fun ListItemPlaceHolder(

@@ -2,9 +2,9 @@ package com.music.vivi.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.maloy.innertube.YouTube
-import com.maloy.innertube.pages.MoodAndGenres
-import com.maloy.muzza.utils.reportException
+import com.music.innertube.YouTube
+import com.music.innertube.pages.MoodAndGenres
+import com.music.vivi.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch

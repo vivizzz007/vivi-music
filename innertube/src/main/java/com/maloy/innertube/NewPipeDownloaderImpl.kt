@@ -1,4 +1,4 @@
-package com.maloy.innertube
+package com.music.innertube
 
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody

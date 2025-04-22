@@ -34,7 +34,7 @@
 
     <!-- Search -->
     <string name="search">Zoeken</string>
-    <string name="search_yt_music">Zoeken via Muzza</string>
+    <string name="search_yt_music">Zoeken via vivi</string>
     <string name="search_library">Zoeken in bibliotheek</string>
     <string name="filter_library">Bibliotheek</string>
     <string name="filter_liked">Geliked</string>

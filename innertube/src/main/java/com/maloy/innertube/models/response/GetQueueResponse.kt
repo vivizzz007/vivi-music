@@ -1,6 +1,6 @@
-package com.maloy.innertube.models.response
+package com.music.innertube.models.response
 
-import com.maloy.innertube.models.PlaylistPanelRenderer
+import com.music.innertube.models.PlaylistPanelRenderer
 import kotlinx.serialization.Serializable
 
 @Serializable

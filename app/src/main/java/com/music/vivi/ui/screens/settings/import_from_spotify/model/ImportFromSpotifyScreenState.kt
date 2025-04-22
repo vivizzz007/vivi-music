@@ -1,6 +1,6 @@
 package com.music.vivi.ui.screens.settings.import_from_spotify.model
 
-import com.maloy.muzza.models.spotify.playlists.SpotifyPlaylistItem
+import com.music.vivi.models.spotify.playlists.SpotifyPlaylistItem
 
 data class ImportFromSpotifyScreenState(
     val isRequesting: Boolean,

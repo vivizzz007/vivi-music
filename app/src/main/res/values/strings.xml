@@ -1,7 +1,7 @@
 <resources>
 
     <!-- Setup wizard -->
-    <string name="welcome_to_muzza">Welcome to VIVI</string>
+    <string name="welcome_to_vivi">Welcome to VIVI</string>
     <string name="yt_music_fingertips">YouTube Music</string>
     <string name="ytm_account_sync">YouTube-Music account sync</string>
     <string name="ad_free_playback">AD free music</string>
@@ -275,9 +275,9 @@
     <string name="pure_black">Pure black</string>
     <string name="app_design_variant">App design</string>
     <string name="listen_youtube_music">Listen on YouTube Music</string>
-    <string name="visit_muzza">Visit vivi</string>
+    <string name="visit_vivi">Visit vivi</string>
     <string name="artist">Artist</string>
-    <string name="listen_to_muzza">Listen to vivi</string>
+    <string name="listen_to_vivi">Listen to vivi</string>
     <string name="enable_swipe_thumbnail">Enable swipe on thumbnail to change song</string>
     <string name="customize_navigation_tabs">Customize navigation tabs</string>
     <string name="player">Player</string>

@@ -2,7 +2,7 @@
 
 package com.music.vivi.lyrics
 
-import com.maloy.muzza.ui.component.animateScrollDuration
+import com.music.vivi.ui.component.animateScrollDuration
 import kotlin.math.pow
 
 object LyricsUtils {
