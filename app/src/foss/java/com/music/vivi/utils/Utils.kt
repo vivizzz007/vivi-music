@@ -1,4 +1,4 @@
-package com.maloy.muzza.utils
+package com.music.vivi.utils
 
 fun reportException(throwable: Throwable) {
     throwable.printStackTrace()
