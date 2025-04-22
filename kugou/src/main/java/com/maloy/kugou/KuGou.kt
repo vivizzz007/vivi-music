@@ -1,9 +1,9 @@
-package com.maloy.kugou
+package com.music.kugou
 
 import com.github.houbb.opencc4j.util.ZhConverterUtil
-import com.maloy.kugou.models.DownloadLyricsResponse
-import com.maloy.kugou.models.SearchLyricsResponse
-import com.maloy.kugou.models.SearchSongResponse
+import com.music.kugou.models.DownloadLyricsResponse
+import com.music.kugou.models.SearchLyricsResponse
+import com.music.kugou.models.SearchSongResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.compression.ContentEncoding
