@@ -32,7 +32,7 @@
     <string name="most_played_albums">Najczęściej słuchane albumy</string>
     <!-- Search -->
     <string name="search">Szukaj</string>
-    <string name="search_yt_music">Szukaj w Muzza</string>
+    <string name="search_yt_music">Szukaj w VIVI</string>
     <string name="search_library">Szukaj w bibliotece…</string>
     <string name="filter_library">Biblioteka</string>
     <string name="filter_liked">Polubione</string>
@@ -308,9 +308,9 @@
     <string name="disable_screenshot">Wyłącz zrzut ekranu</string>
     <string name="hide_explicit">Ukryj wulgarne treści</string>
     <string name="discord_integration">Integracja z Discordem</string>
-    <string name="discord_information">Muzza korzysta z biblioteki KizzyRPC, aby móc ustawić status Twojego konta Discord. Wiąże się to z wykorzystaniem połączenia Discord Gateway, co może być uznane za naruszenie Warunków korzystania z usługi Discord. Nie ma jednak znanych przypadków zawieszania kont użytkowników z tego powodu. Używasz na własne ryzyko.
+    <string name="discord_information">VIVI korzysta z biblioteki KizzyRPC, aby móc ustawić status Twojego konta Discord. Wiąże się to z wykorzystaniem połączenia Discord Gateway, co może być uznane za naruszenie Warunków korzystania z usługi Discord. Nie ma jednak znanych przypadków zawieszania kont użytkowników z tego powodu. Używasz na własne ryzyko.
 \n
-\nMuzza wyodrębni tylko Twój token, a wszystkie inne dane będą przechowywane lokalnie.</string>
+\nVIVI wyodrębni tylko Twój token, a wszystkie inne dane będą przechowywane lokalnie.</string>
     <string name="dismiss">Odrzuć</string>
     <string name="options">Opcje</string>
     <string name="preview">Podgląd</string>

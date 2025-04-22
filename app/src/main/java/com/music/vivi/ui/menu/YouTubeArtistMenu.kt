@@ -19,15 +19,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.maloy.innertube.models.ArtistItem
-import com.maloy.muzza.LocalDatabase
-import com.maloy.muzza.LocalPlayerConnection
-import com.maloy.muzza.R
-import com.maloy.muzza.db.entities.ArtistEntity
-import com.maloy.muzza.playback.queues.YouTubeQueue
-import com.maloy.muzza.ui.component.GridMenu
-import com.maloy.muzza.ui.component.GridMenuItem
-import com.maloy.muzza.ui.component.YouTubeListItem
+import com.music.innertube.models.ArtistItem
+import com.music.vivi.LocalDatabase
+import com.music.vivi.LocalPlayerConnection
+import com.music.vivi.R
+import com.music.vivi.db.entities.ArtistEntity
+import com.music.vivi.playback.queues.YouTubeQueue
+import com.music.vivi.ui.component.GridMenu
+import com.music.vivi.ui.component.GridMenuItem
+import com.music.vivi.ui.component.YouTubeListItem
 import java.time.LocalDateTime
 
 @Composable

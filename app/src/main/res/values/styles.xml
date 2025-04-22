@@ -12,12 +12,12 @@
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
 
-    <style name="Widget.Muzza.AppWidget.Container" parent="android:Widget">
+    <style name="Widget.vivi.AppWidget.Container." parent="android:Widget">
         <item name="android:id">@android:id/background</item>
         <item name="android:background">?android:attr/colorBackground</item>
     </style>
 
-    <style name="Widget.Muzza.AppWidget.InnerView" parent="android:Widget">
+    <style name="Widget.vivi.AppWidget.Container.." parent="android:Widget">
         <item name="android:background">?android:attr/colorBackground</item>
         <item name="android:textColor">?android:attr/textColorPrimary</item>
     </style>

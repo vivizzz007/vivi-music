@@ -34,17 +34,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.maloy.muzza.LocalPlayerAwareWindowInsets
-import com.maloy.muzza.LocalPlayerConnection
-import com.maloy.muzza.R
-import com.maloy.muzza.ui.component.LocalMenuState
-import com.maloy.muzza.ui.component.NavigationTitle
-import com.maloy.muzza.ui.component.YouTubeGridItem
-import com.maloy.muzza.ui.component.shimmer.GridItemPlaceHolder
-import com.maloy.muzza.ui.component.shimmer.ShimmerHost
-import com.maloy.muzza.ui.component.shimmer.TextPlaceholder
-import com.maloy.muzza.ui.menu.YouTubeAlbumMenu
-import com.maloy.muzza.viewmodels.ExploreViewModel
+import com.music.vivi.LocalPlayerAwareWindowInsets
+import com.music.vivi.LocalPlayerConnection
+import com.music.vivi.R
+import com.music.vivi.ui.component.LocalMenuState
+import com.music.vivi.ui.component.NavigationTitle
+import com.music.vivi.ui.component.YouTubeGridItem
+import com.music.vivi.ui.component.shimmer.GridItemPlaceHolder
+import com.music.vivi.ui.component.shimmer.ShimmerHost
+import com.music.vivi.ui.component.shimmer.TextPlaceholder
+import com.music.vivi.ui.menu.YouTubeAlbumMenu
+import com.music.vivi.viewmodels.ExploreViewModel
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

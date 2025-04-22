@@ -25,19 +25,19 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.maloy.muzza.LocalDatabase
-import com.maloy.muzza.LocalPlayerAwareWindowInsets
-import com.maloy.muzza.R
-import com.maloy.muzza.constants.DisableScreenshotKey
-import com.maloy.muzza.constants.PauseListenHistoryKey
-import com.maloy.muzza.constants.PauseSearchHistoryKey
-import com.maloy.muzza.ui.component.DefaultDialog
-import com.maloy.muzza.ui.component.IconButton
-import com.maloy.muzza.ui.component.PreferenceEntry
-import com.maloy.muzza.ui.component.PreferenceGroupTitle
-import com.maloy.muzza.ui.component.SwitchPreference
-import com.maloy.muzza.ui.utils.backToMain
-import com.maloy.muzza.utils.rememberPreference
+import com.music.vivi.LocalDatabase
+import com.music.vivi.LocalPlayerAwareWindowInsets
+import com.music.vivi.R
+import com.music.vivi.constants.DisableScreenshotKey
+import com.music.vivi.constants.PauseListenHistoryKey
+import com.music.vivi.constants.PauseSearchHistoryKey
+import com.music.vivi.ui.component.DefaultDialog
+import com.music.vivi.ui.component.IconButton
+import com.music.vivi.ui.component.PreferenceEntry
+import com.music.vivi.ui.component.PreferenceGroupTitle
+import com.music.vivi.ui.component.SwitchPreference
+import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.utils.rememberPreference
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -1,10 +1,10 @@
 package com.music.vivi.extensions
 
 import android.content.Context
-import com.maloy.muzza.constants.LikedAutoDownloadKey
-import com.maloy.muzza.constants.LikedAutodownloadMode
-import com.maloy.muzza.utils.dataStore
-import com.maloy.muzza.utils.get
+import com.music.vivi.constants.LikedAutoDownloadKey
+import com.music.vivi.constants.LikedAutodownloadMode
+import com.music.vivi.utils.dataStore
+import com.music.vivi.utils.get
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow

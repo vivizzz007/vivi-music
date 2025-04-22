@@ -2,15 +2,15 @@ package com.music.vivi.utils
 
 import android.net.ConnectivityManager
 import androidx.media3.common.PlaybackException
-import com.maloy.innertube.YouTube
-import com.maloy.innertube.models.YouTubeClient
-import com.maloy.innertube.models.YouTubeClient.Companion.IOS
-import com.maloy.innertube.models.YouTubeClient.Companion.WEB_CREATOR
-import com.maloy.innertube.models.YouTubeClient.Companion.WEB_REMIX
-import com.maloy.innertube.models.response.PlayerResponse
-import com.maloy.innertube.pages.NewPipeUtils
-import com.maloy.muzza.constants.AudioQuality
-import com.maloy.muzza.db.entities.FormatEntity
+import com.music.innertube.YouTube
+import com.music.innertube.models.YouTubeClient
+import com.music.innertube.models.YouTubeClient.Companion.IOS
+import com.music.innertube.models.YouTubeClient.Companion.WEB_CREATOR
+import com.music.innertube.models.YouTubeClient.Companion.WEB_REMIX
+import com.music.innertube.models.response.PlayerResponse
+import com.music.innertube.pages.NewPipeUtils
+import com.music.vivi.constants.AudioQuality
+import com.music.vivi.db.entities.FormatEntity
 import okhttp3.OkHttpClient
 
 object YTPlayerUtils {
@@ -22,7 +22,7 @@ object YTPlayerUtils {
      * Do not use other clients for this because it can result in inconsistent metadata.
      * For example other clients can have different normalization targets (loudnessDb).
      *
-     * [com.maloy.innertube.models.YouTubeClient.WEB_REMIX] should be preferred here because currently it is the only client which provides:
+     * [com.music.innertube.models.YouTubeClient.WEB_REMIX] should be preferred here because currently it is the only client which provides:
      * - the correct metadata (like loudnessDb)
      * - premium formats
      */

@@ -1,12 +1,12 @@
-package com.maloy.innertube
+package com.music.innertube
 
-import com.maloy.innertube.YouTube.SearchFilter.Companion.FILTER_ALBUM
-import com.maloy.innertube.YouTube.SearchFilter.Companion.FILTER_ARTIST
-import com.maloy.innertube.YouTube.SearchFilter.Companion.FILTER_COMMUNITY_PLAYLIST
-import com.maloy.innertube.YouTube.SearchFilter.Companion.FILTER_FEATURED_PLAYLIST
-import com.maloy.innertube.YouTube.SearchFilter.Companion.FILTER_SONG
-import com.maloy.innertube.YouTube.SearchFilter.Companion.FILTER_VIDEO
-import com.maloy.innertube.models.WatchEndpoint
+import com.music.innertube.YouTube.SearchFilter.Companion.FILTER_ALBUM
+import com.music.innertube.YouTube.SearchFilter.Companion.FILTER_ARTIST
+import com.music.innertube.YouTube.SearchFilter.Companion.FILTER_COMMUNITY_PLAYLIST
+import com.music.innertube.YouTube.SearchFilter.Companion.FILTER_FEATURED_PLAYLIST
+import com.music.innertube.YouTube.SearchFilter.Companion.FILTER_SONG
+import com.music.innertube.YouTube.SearchFilter.Companion.FILTER_VIDEO
+import com.music.innertube.models.WatchEndpoint
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.request.get

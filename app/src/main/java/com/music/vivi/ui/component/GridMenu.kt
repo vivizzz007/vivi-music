@@ -32,8 +32,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.media3.exoplayer.offline.Download
-import com.maloy.muzza.R
-import com.maloy.muzza.utils.makeTimeString
+import com.music.vivi.R
+import com.music.vivi.utils.makeTimeString
 
 val GridMenuItemHeight = 108.dp
 

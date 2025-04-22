@@ -8,8 +8,8 @@ import androidx.room.migration.AutoMigrationSpec
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteOpenHelper
-import com.maloy.muzza.db.entities.*
-import com.maloy.muzza.extensions.toSQLiteQuery
+import com.music.vivi.db.entities.*
+import com.music.vivi.extensions.toSQLiteQuery
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset

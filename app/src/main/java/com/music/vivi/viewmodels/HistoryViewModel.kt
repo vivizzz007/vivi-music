@@ -3,10 +3,10 @@ package com.music.vivi.viewmodels
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.maloy.innertube.YouTube
-import com.maloy.innertube.pages.HistoryPage
-import com.maloy.muzza.constants.HistorySource
-import com.maloy.muzza.db.MusicDatabase
+import com.music.innertube.YouTube
+import com.music.innertube.pages.HistoryPage
+import com.music.vivi.constants.HistorySource
+import com.music.vivi.db.MusicDatabase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

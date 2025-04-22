@@ -25,26 +25,26 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.toLowerCase
 import androidx.navigation.NavController
-import com.maloy.muzza.LocalPlayerAwareWindowInsets
-import com.maloy.muzza.R
-import com.maloy.muzza.constants.EnableKugouKey
-import com.maloy.muzza.constants.EnableLrcLibKey
-import com.maloy.muzza.constants.LyricFontSizeKey
-import com.maloy.muzza.constants.LyricTrimKey
-import com.maloy.muzza.constants.LyricsTextPositionKey
-import com.maloy.muzza.constants.MultilineLrcKey
-import com.maloy.muzza.constants.PreferredLyricsProvider
-import com.maloy.muzza.constants.PreferredLyricsProviderKey
-import com.maloy.muzza.ui.component.CounterDialog
-import com.maloy.muzza.ui.component.EnumListPreference
-import com.maloy.muzza.ui.component.IconButton
-import com.maloy.muzza.ui.component.ListPreference
-import com.maloy.muzza.ui.component.PreferenceEntry
-import com.maloy.muzza.ui.component.PreferenceGroupTitle
-import com.maloy.muzza.ui.component.SwitchPreference
-import com.maloy.muzza.ui.utils.backToMain
-import com.maloy.muzza.utils.rememberEnumPreference
-import com.maloy.muzza.utils.rememberPreference
+import com.music.vivi.LocalPlayerAwareWindowInsets
+import com.music.vivi.R
+import com.music.vivi.constants.EnableKugouKey
+import com.music.vivi.constants.EnableLrcLibKey
+import com.music.vivi.constants.LyricFontSizeKey
+import com.music.vivi.constants.LyricTrimKey
+import com.music.vivi.constants.LyricsTextPositionKey
+import com.music.vivi.constants.MultilineLrcKey
+import com.music.vivi.constants.PreferredLyricsProvider
+import com.music.vivi.constants.PreferredLyricsProviderKey
+import com.music.vivi.ui.component.CounterDialog
+import com.music.vivi.ui.component.EnumListPreference
+import com.music.vivi.ui.component.IconButton
+import com.music.vivi.ui.component.ListPreference
+import com.music.vivi.ui.component.PreferenceEntry
+import com.music.vivi.ui.component.PreferenceGroupTitle
+import com.music.vivi.ui.component.SwitchPreference
+import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.utils.rememberEnumPreference
+import com.music.vivi.utils.rememberPreference
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

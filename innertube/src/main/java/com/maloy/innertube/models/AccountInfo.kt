@@ -1,4 +1,4 @@
-package com.maloy.innertube.models
+package com.music.innertube.models
 
 data class AccountInfo(
     val name: String,

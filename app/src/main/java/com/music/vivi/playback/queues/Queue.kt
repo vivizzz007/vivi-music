@@ -1,8 +1,8 @@
 package com.music.vivi.playback.queues
 
 import androidx.media3.common.MediaItem
-import com.maloy.muzza.extensions.metadata
-import com.maloy.muzza.models.MediaMetadata
+import com.music.vivi.extensions.metadata
+import com.music.vivi.models.MediaMetadata
 
 interface Queue {
     val preloadItem: MediaMetadata?

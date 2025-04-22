@@ -1,10 +1,10 @@
 package com.music.vivi.lyrics
 
 import android.content.Context
-import com.maloy.kugou.KuGou
-import com.maloy.muzza.constants.EnableKugouKey
-import com.maloy.muzza.utils.dataStore
-import com.maloy.muzza.utils.get
+import com.music.kugou.KuGou
+import com.music.vivi.constants.EnableKugouKey
+import com.music.vivi.utils.dataStore
+import com.music.vivi.utils.get
 
 object KuGouLyricsProvider : LyricsProvider {
     override val name = "Kugou"

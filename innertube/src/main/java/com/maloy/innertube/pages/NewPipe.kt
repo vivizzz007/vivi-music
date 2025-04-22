@@ -1,8 +1,8 @@
-package com.maloy.innertube.pages
+package com.music.innertube.pages
 
-import com.maloy.innertube.YouTube
-import com.maloy.innertube.models.YouTubeClient
-import com.maloy.innertube.models.response.PlayerResponse
+import com.music.innertube.YouTube
+import com.music.innertube.models.YouTubeClient
+import com.music.innertube.models.response.PlayerResponse
 import io.ktor.http.URLBuilder
 import io.ktor.http.parseQueryString
 import okhttp3.OkHttpClient

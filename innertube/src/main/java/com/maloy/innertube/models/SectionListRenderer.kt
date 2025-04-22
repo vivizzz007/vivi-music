@@ -1,6 +1,6 @@
-package com.maloy.innertube.models
+package com.music.innertube.models
 
-import com.maloy.innertube.models.response.BrowseResponse
+import com.music.innertube.models.response.BrowseResponse
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonNames

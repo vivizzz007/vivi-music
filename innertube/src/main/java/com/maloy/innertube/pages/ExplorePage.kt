@@ -1,6 +1,6 @@
-package com.maloy.innertube.pages
+package com.music.innertube.pages
 
-import com.maloy.innertube.models.AlbumItem
+import com.music.innertube.models.AlbumItem
 
 data class ExplorePage(
     val newReleaseAlbums: List<AlbumItem>,

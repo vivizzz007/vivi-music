@@ -1,7 +1,7 @@
-package com.maloy.innertube.models.response
+package com.music.innertube.models.response
 
-import com.maloy.innertube.models.AccountInfo
-import com.maloy.innertube.models.Runs
+import com.music.innertube.models.AccountInfo
+import com.music.innertube.models.Runs
 import kotlinx.serialization.Serializable
 
 @Serializable

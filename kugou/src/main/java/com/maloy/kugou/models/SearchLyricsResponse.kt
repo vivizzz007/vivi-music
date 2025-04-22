@@ -1,4 +1,4 @@
-package com.maloy.kugou.models
+package com.music.kugou.models
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

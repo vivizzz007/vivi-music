@@ -45,16 +45,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.maloy.muzza.LocalDatabase
-import com.maloy.muzza.R
-import com.maloy.muzza.db.entities.LyricsEntity
-import com.maloy.muzza.models.MediaMetadata
-import com.maloy.muzza.ui.component.DefaultDialog
-import com.maloy.muzza.ui.component.GridMenu
-import com.maloy.muzza.ui.component.GridMenuItem
-import com.maloy.muzza.ui.component.ListDialog
-import com.maloy.muzza.ui.component.TextFieldDialog
-import com.maloy.muzza.viewmodels.LyricsMenuViewModel
+import com.music.vivi.LocalDatabase
+import com.music.vivi.R
+import com.music.vivi.db.entities.LyricsEntity
+import com.music.vivi.models.MediaMetadata
+import com.music.vivi.ui.component.DefaultDialog
+import com.music.vivi.ui.component.GridMenu
+import com.music.vivi.ui.component.GridMenuItem
+import com.music.vivi.ui.component.ListDialog
+import com.music.vivi.ui.component.TextFieldDialog
+import com.music.vivi.viewmodels.LyricsMenuViewModel
 
 
 @Composable

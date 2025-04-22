@@ -40,7 +40,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import com.maloy.muzza.R
+import com.music.vivi.R
 import kotlin.math.roundToInt
 
 @Composable

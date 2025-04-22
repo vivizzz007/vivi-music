@@ -1,7 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Setup wizard -->
-    <string name="welcome_to_muzza">Добро пожаловать в Muzza</string>
+    <string name="welcome_to_vivi">Добро пожаловать в vivi</string>
     <string name="yt_music_fingertips">YouTube-Music всегда под рукой</string>
     <string name="ytm_account_sync">Синхронизация с аккаунтом YouTube-Music</string>
     <string name="ad_free_playback">Воспроизведение без рекламы</string>
@@ -61,7 +61,7 @@
 
     <!-- Search -->
     <string name="search">Поиск</string>
-    <string name="search_yt_music">Поиск в Muzza</string>
+    <string name="search_yt_music">Поиск в vivi</string>
     <string name="SearchHistory">История поиска</string>
     <string name="Sujestions">Предложения</string>
     <string name="SearchResutls">Результаты поиска</string>
@@ -277,7 +277,7 @@
     <!-- Notifications settings -->
     <string name="notifications">Уведомления</string>
     <string name="keep_alive_title">Предотвратить закрытие приложения системой</string>
-    <string name="keep_alive_description">Используйте уведомление в фоновом режиме, чтобы предотвратить случайное закрытие Muzza системой.</string>
+    <string name="keep_alive_description">Используйте уведомление в фоновом режиме, чтобы предотвратить случайное закрытие vivi системой.</string>
     <string name="notifications_settings">Настройки уведомлений</string>
 
     <!-- Settings -->
@@ -287,9 +287,9 @@
     <string name="proxy">ПРОКСИ</string>
     <string name="enable_dynamic_theme">Включить динамическую тему</string>
     <string name="listen_youtube_music">Слушать в YouTube Music</string>
-    <string name="visit_muzza">Посетить Muzza</string>
+    <string name="visit_vivi">Посетить vivi</string>
     <string name="artist">Исполнитель</string>
-    <string name="listen_to_muzza">Слушать в Muzza</string>
+    <string name="listen_to_vivi">Слушать в vivi</string>
     <string name="player_style">Стиль плеера</string>
     <string name="player_style_old">Старый</string>
     <string name="player_style_new">Новый</string>
@@ -345,8 +345,8 @@
     <string name="help_text">Связаться с разработчиком ❯</string>
     <string name="contribution">Вклад?</string>
     <string name="contribution_text">Если вы хотите внести вклад, нажмите здесь ❯</string>
-    <string name="donate_help">Пожалуйста, поддержите меня пожертвованием для дальнейшей разработки Muzza ❯</string>
-    <string name="telegram_info">Официальный канал с новыми новостями и процессом разработки Muzza ❯</string>
+    <string name="donate_help">Пожалуйста, поддержите меня пожертвованием для дальнейшей разработки vivi ❯</string>
+    <string name="telegram_info">Официальный канал с новыми новостями и процессом разработки vivi ❯</string>
     <string name="my_channel">Мой Telegram канал</string>
     <string name="my_channel_info">Канал о моей жизни ❯</string>
     <string name="Developer">Разработчик ❯</string>
@@ -481,7 +481,7 @@
     <string name="restore_failed">Не удалось восстановить резервную копию</string>
 
     <string name="discord_integration">Интеграция с Discord</string>
-    <string name="discord_information">Muzza использует библиотеку KizzyRPC для установки статуса вашего аккаунта Discord. Это включает использование соединения через Discord Gateway, что может считаться нарушением условий использования Discord. Однако, на данный момент нет известных случаев блокировки учетных записей пользователей по этой причине. Используйте на свой страх и риск.\n\nMuzza будет извлекать только ваш токен, а все остальное хранится локально.</string>
+    <string name="discord_information">vivi использует библиотеку KizzyRPC для установки статуса вашего аккаунта Discord. Это включает использование соединения через Discord Gateway, что может считаться нарушением условий использования Discord. Однако, на данный момент нет известных случаев блокировки учетных записей пользователей по этой причине. Используйте на свой страх и риск.\n\nvivi будет извлекать только ваш токен, а все остальное хранится локально.</string>
     <string name="dismiss">Закрыть</string>
     <string name="options">Настройки</string>
     <string name="preview">Предпросмотр</string>

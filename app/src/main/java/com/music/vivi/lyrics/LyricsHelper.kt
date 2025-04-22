@@ -2,13 +2,13 @@ package com.music.vivi.lyrics
 
 import android.content.Context
 import android.util.LruCache
-import com.maloy.muzza.constants.PreferredLyricsProvider
-import com.maloy.muzza.constants.PreferredLyricsProviderKey
-import com.maloy.muzza.db.entities.LyricsEntity.Companion.LYRICS_NOT_FOUND
-import com.maloy.muzza.extensions.toEnum
-import com.maloy.muzza.models.MediaMetadata
-import com.maloy.muzza.utils.dataStore
-import com.maloy.muzza.utils.reportException
+import com.music.vivi.constants.PreferredLyricsProvider
+import com.music.vivi.constants.PreferredLyricsProviderKey
+import com.music.vivi.db.entities.LyricsEntity.Companion.LYRICS_NOT_FOUND
+import com.music.vivi.extensions.toEnum
+import com.music.vivi.models.MediaMetadata
+import com.music.vivi.utils.dataStore
+import com.music.vivi.utils.reportException
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map

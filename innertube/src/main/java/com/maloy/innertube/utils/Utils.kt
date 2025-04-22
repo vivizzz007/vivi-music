@@ -1,8 +1,8 @@
-package com.maloy.innertube.utils
+package com.music.innertube.utils
 
-import com.maloy.innertube.YouTube
-import com.maloy.innertube.pages.LibraryPage
-import com.maloy.innertube.pages.PlaylistPage
+import com.music.innertube.YouTube
+import com.music.innertube.pages.LibraryPage
+import com.vivi.innertube.pages.PlaylistPage
 import java.security.MessageDigest
 
 suspend fun Result<PlaylistPage>.completed() = runCatching {

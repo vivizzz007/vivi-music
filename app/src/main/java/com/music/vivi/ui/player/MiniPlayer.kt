@@ -42,12 +42,12 @@ import androidx.compose.ui.unit.sp
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import coil.compose.AsyncImage
-import com.maloy.muzza.LocalPlayerConnection
-import com.maloy.muzza.R
-import com.maloy.muzza.constants.MiniPlayerHeight
-import com.maloy.muzza.constants.ThumbnailCornerRadius
-import com.maloy.muzza.extensions.togglePlayPause
-import com.maloy.muzza.models.MediaMetadata
+import com.music.vivi.LocalPlayerConnection
+import com.music.vivi.R
+import com.music.vivi.constants.MiniPlayerHeight
+import com.music.vivi.constants.ThumbnailCornerRadius
+import com.music.vivi.extensions.togglePlayPause
+import com.music.vivi.models.MediaMetadata
 
 @Composable
 fun MiniPlayer(

@@ -107,68 +107,69 @@ import androidx.navigation.compose.rememberNavController
 import coil.imageLoader
 import coil.request.ImageRequest
 import com.valentinilk.shimmer.LocalShimmerTheme
-import com.maloy.innertube.YouTube
-import com.maloy.innertube.models.SongItem
-import com.maloy.innertube.models.WatchEndpoint
-import com.maloy.muzza.constants.AppBarHeight
-import com.maloy.muzza.constants.AppDesignVariantKey
-import com.maloy.muzza.constants.AppDesignVariantType
-import com.maloy.muzza.constants.ChipSortTypeKey
-import com.maloy.muzza.constants.DarkModeKey
-import com.maloy.muzza.constants.DefaultOpenTabKey
-import com.maloy.muzza.constants.DefaultOpenTabOldKey
-import com.maloy.muzza.constants.DisableScreenshotKey
-import com.maloy.muzza.constants.DynamicThemeKey
-import com.maloy.muzza.constants.FirstSetupPassed
-import com.maloy.muzza.constants.LibraryFilter
-import com.maloy.muzza.constants.MiniPlayerHeight
-import com.maloy.muzza.constants.NavigationBarAnimationSpec
-import com.maloy.muzza.constants.NavigationBarHeight
-import com.maloy.muzza.constants.PauseSearchHistoryKey
-import com.maloy.muzza.constants.PureBlackKey
-import com.maloy.muzza.constants.SearchSource
-import com.maloy.muzza.constants.SearchSourceKey
-import com.maloy.muzza.constants.SlimNavBarKey
-import com.maloy.muzza.constants.StopMusicOnTaskClearKey
-import com.maloy.muzza.db.MusicDatabase
-import com.maloy.muzza.db.entities.SearchHistory
-import com.maloy.muzza.extensions.toEnum
-import com.maloy.muzza.models.toMediaMetadata
-import com.maloy.muzza.playback.DownloadUtil
-import com.maloy.muzza.playback.MusicService
-import com.maloy.muzza.playback.MusicService.MusicBinder
-import com.maloy.muzza.playback.PlayerConnection
-import com.maloy.muzza.playback.queues.YouTubeQueue
-import com.maloy.muzza.ui.component.BottomSheetMenu
-import com.maloy.muzza.ui.component.LocalMenuState
-import com.maloy.muzza.ui.component.TopSearch
-import com.maloy.muzza.ui.component.rememberBottomSheetState
-import com.maloy.muzza.ui.component.shimmer.ShimmerTheme
-import com.maloy.muzza.ui.menu.YouTubeSongMenu
-import com.maloy.muzza.ui.player.BottomSheetPlayer
-import com.maloy.muzza.ui.screens.Screens
-import com.maloy.muzza.ui.screens.navigationBuilder
-import com.maloy.muzza.ui.screens.search.LocalSearchScreen
-import com.maloy.muzza.ui.screens.search.OnlineSearchScreen
-import com.maloy.muzza.ui.screens.settings.DarkMode
-import com.maloy.muzza.ui.screens.settings.NavigationTab
-import com.maloy.muzza.ui.screens.settings.NavigationTabOld
-import com.maloy.muzza.ui.screens.settings.updateLanguage
-import com.maloy.muzza.ui.theme.ColorSaver
-import com.maloy.muzza.ui.theme.DefaultThemeColor
-import com.maloy.muzza.ui.theme.MuzzaTheme
-import com.maloy.muzza.ui.theme.extractThemeColor
-import com.maloy.muzza.utils.SyncUtils
-import com.maloy.muzza.ui.utils.appBarScrollBehavior
-import com.maloy.muzza.ui.utils.backToMain
-import com.maloy.muzza.ui.utils.resetHeightOffset
-import com.maloy.muzza.utils.Updater
-import com.maloy.muzza.utils.dataStore
-import com.maloy.muzza.utils.get
-import com.maloy.muzza.utils.rememberEnumPreference
-import com.maloy.muzza.utils.rememberPreference
-import com.maloy.muzza.utils.reportException
-import com.maloy.muzza.utils.urlEncode
+import com.music.innertube.YouTube
+import com.music.innertube.models.SongItem
+import com.music.innertube.models.WatchEndpoint
+import com.music.vivi.constants.AppBarHeight
+import com.music.vivi.constants.AppDesignVariantKey
+import com.music.vivi.constants.AppDesignVariantType
+import com.music.vivi.constants.ChipSortTypeKey
+import com.music.vivi.constants.DarkModeKey
+import com.music.vivi.constants.DefaultOpenTabKey
+import com.music.vivi.constants.DefaultOpenTabOldKey
+import com.music.vivi.constants.DisableScreenshotKey
+import com.music.vivi.constants.DynamicThemeKey
+import com.music.vivi.constants.FirstSetupPassed
+import com.music.vivi.constants.LibraryFilter
+import com.music.vivi.constants.MiniPlayerHeight
+import com.music.vivi.constants.NavigationBarAnimationSpec
+import com.music.vivi.constants.NavigationBarHeight
+import com.music.vivi.constants.PauseSearchHistoryKey
+import com.music.vivi.constants.PureBlackKey
+import com.music.vivi.constants.SearchSource
+import com.music.vivi.constants.SearchSourceKey
+import com.music.vivi.constants.SlimNavBarKey
+import com.music.vivi.constants.StopMusicOnTaskClearKey
+import com.music.vivi.db.MusicDatabase
+import com.music.vivi.db.entities.SearchHistory
+import com.music.vivi.extensions.toEnum
+import com.music.vivi.models.toMediaMetadata
+import com.music.vivi.playback.DownloadUtil
+import com.music.vivi.playback.MusicService
+import com.music.vivi.playback.MusicService.MusicBinder
+import com.music.vivi.playback.PlayerConnection
+import com.music.vivi.playback.queues.YouTubeQueue
+import com.music.vivi.ui.component.BottomSheetMenu
+import com.music.vivi.ui.component.IconButton
+import com.music.vivi.ui.component.LocalMenuState
+import com.music.vivi.ui.component.TopSearch
+import com.music.vivi.ui.component.rememberBottomSheetState
+import com.music.vivi.ui.component.shimmer.ShimmerTheme
+import com.music.vivi.ui.menu.YouTubeSongMenu
+import com.music.vivi.ui.player.BottomSheetPlayer
+import com.music.vivi.ui.screens.Screens
+import com.music.vivi.ui.screens.navigationBuilder
+import com.music.vivi.ui.screens.search.LocalSearchScreen
+import com.music.vivi.ui.screens.search.OnlineSearchScreen
+import com.music.vivi.ui.screens.settings.DarkMode
+import com.music.vivi.ui.screens.settings.NavigationTab
+import com.music.vivi.ui.screens.settings.NavigationTabOld
+import com.music.vivi.ui.screens.settings.updateLanguage
+import com.music.vivi.ui.theme.ColorSaver
+import com.music.vivi.ui.theme.DefaultThemeColor
+import com.music.vivi.ui.theme.Themevivi
+import com.music.vivi.ui.theme.extractThemeColor
+import com.music.vivi.utils.SyncUtils
+import com.music.vivi.ui.utils.appBarScrollBehavior
+import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.ui.utils.resetHeightOffset
+import com.music.vivi.utils.Updater
+import com.music.vivi.utils.dataStore
+import com.music.vivi.utils.get
+import com.music.vivi.utils.rememberEnumPreference
+import com.music.vivi.utils.rememberPreference
+import com.music.vivi.utils.reportException
+import com.music.vivi.utils.urlEncode
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -311,7 +312,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            MuzzaTheme(
+            Themevivi(
                 darkTheme = useDarkTheme,
                 pureBlack = pureBlack,
                 themeColor = themeColor
@@ -839,9 +840,9 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 modifier =
-                                Modifier
-                                    .focusRequester(searchBarFocusRequester)
-                                    .align(Alignment.TopCenter),
+                                    Modifier
+                                        .focusRequester(searchBarFocusRequester)
+                                        .align(Alignment.TopCenter),
                                 focusRequester = searchBarFocusRequester
                             ) {
                                 Crossfade(
@@ -1008,11 +1009,11 @@ class MainActivity : ComponentActivity() {
     }
 
     companion object {
-        const val ACTION_SEARCH = "com.maloy.muzza.action.SEARCH"
-        const val ACTION_SONGS = "com.maloy.muzza.action.SONGS"
-        const val ACTION_ARTISTS = "com.maloy.muzza.action.ARTISTS"
-        const val ACTION_ALBUMS = "com.maloy.muzza.action.ALBUMS"
-        const val ACTION_PLAYLISTS = "com.maloy.muzza.action.PLAYLISTS"
+        const val ACTION_SEARCH = "com.music.vivi.action.SEARCH"
+        const val ACTION_SONGS = "com.music.vivi.action.SONGS"
+        const val ACTION_ARTISTS = "com.music.vivi.action.ARTISTS"
+        const val ACTION_ALBUMS = "com.music.vivi.action.ALBUMS"
+        const val ACTION_PLAYLISTS = "com.music.vivi.action.PLAYLISTS"
     }
 }
 
@@ -1129,7 +1130,7 @@ fun SettingsIconWithUpdateBadge(
 }
 suspend fun checkForUpdates(): String? = withContext(Dispatchers.IO) {
     try {
-        val url = URL("https://api.github.com/repos/Maloy-Android/Muzza/releases/latest")
+        val url = URL("https://drive.google.com/drive/folders/1iY6PIdVYAu6PnUTM2VBDODt6STEvdJMy?usp=sharing")
         val connection = url.openConnection()
         connection.connect()
         val json = connection.getInputStream().bufferedReader().use { it.readText() }

@@ -1,7 +1,7 @@
-package com.maloy.innertube.pages
+package com.music.innertube.pages
 
-import com.maloy.innertube.models.YTItem
-import com.maloy.innertube.models.filterExplicit
+import com.music.innertube.models.YTItem
+import com.music.innertube.models.filterExplicit
 
 data class BrowseResult(
     val title: String?,

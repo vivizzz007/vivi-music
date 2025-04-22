@@ -31,7 +31,7 @@
     <string name="most_played_albums">Álbuns mais tocados</string>
     <!-- Search -->
     <string name="search">Pesquisar</string>
-    <string name="search_yt_music">Pesquisar no Muzza</string>
+    <string name="search_yt_music">Pesquisar no vivi</string>
     <string name="search_library">Pesquisar na biblioteca…</string>
     <string name="filter_library">Biblioteca</string>
     <string name="filter_liked">Curtidos</string>
@@ -190,7 +190,7 @@
     <!-- Notifications settings -->
     <string name="notifications">Notificações</string>
     <string name="keep_alive_title">Impedir que o sistema mate o aplicativo</string>
-    <string name="keep_alive_description">Use uma notificação em primeiro plano para evitar que o Muzza seja fechado aleatoriamente pelo sistema.</string>
+    <string name="keep_alive_description">Use uma notificação em primeiro plano para evitar que o vivi seja fechado aleatoriamente pelo sistema.</string>
     <string name="notifications_settings">Configurações de notificações</string>
     
     <!-- Settings -->
@@ -280,17 +280,17 @@
     <string name="logout">Sair</string>
     <string name="enable_discord_rpc">Ativar Rich Presence</string>
     <string name="not_logged_in">Não logado</string>
-    <string name="discord_information">O Muzza usa a biblioteca KizzyRPC para definir o status da sua conta do Discord. Isto envolve o uso da conexão Discord Gateway, que pode ser considerado uma violação dos termos de serviço do Discord. Porém, não há nenhum caso conhecido de contas de usuários sendo suspensas por esta razão. Use por sua conta e risco.
+    <string name="discord_information">O vivi usa a biblioteca KizzyRPC para definir o status da sua conta do Discord. Isto envolve o uso da conexão Discord Gateway, que pode ser considerado uma violação dos termos de serviço do Discord. Porém, não há nenhum caso conhecido de contas de usuários sendo suspensas por esta razão. Use por sua conta e risco.
 \n
-\nO Muzza extrairá somente o seu token, e todo o resto é armazenado localmente.</string>
+\nO vivi extrairá somente o seu token, e todo o resto é armazenado localmente.</string>
     <string name="my_channel">Canal do Telegram</string>
     <string name="my_channel_info">Um canal sobre minha vida ❯</string>
     <string name="web_site">Website</string>
     <string name="web_site_info">Site oficial ❯</string>
     <string name="Telegramchanel">Canal Oficial</string>
-    <string name="telegram_info">Canal oficial com novas notícias e processo de desenvolvimento do Muzza ❯</string>
+    <string name="telegram_info">Canal oficial com novas notícias e processo de desenvolvimento do vivi ❯</string>
     <string name="Donate">Doação</string>
-    <string name="donate_help">Por favor, apoie-me com uma doação para ajudar a desenvolver ainda mais o Muzza ❯</string>
+    <string name="donate_help">Por favor, apoie-me com uma doação para ajudar a desenvolver ainda mais o vivi ❯</string>
     <string name="code">Source code</string>
     <string name="code_text">Acesse o código fonte do aplicativo ❯</string>
     <string name="bugs">Bugs</string>

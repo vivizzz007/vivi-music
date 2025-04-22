@@ -1,6 +1,6 @@
 package com.music.vivi.models.spotify.playlists
 
-import com.maloy.muzza.models.spotify.Tracks
+import com.music.vivi.models.spotify.Tracks
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

@@ -60,10 +60,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.maloy.muzza.R
-import com.maloy.muzza.constants.FirstSetupPassed
-import com.maloy.muzza.ui.screens.settings.shimmerEffect
-import com.maloy.muzza.utils.rememberPreference
+import com.music.vivi.R
+import com.music.vivi.constants.FirstSetupPassed
+import com.music.vivi.ui.screens.settings.shimmerEffect
+import com.music.vivi.utils.rememberPreference
 
 @Composable
 fun SetupWizard(
@@ -212,7 +212,7 @@ fun SetupWizard(
                         }
                         Column(verticalArrangement = Arrangement.Center) {
                             Text(
-                                text = stringResource(R.string.welcome_to_muzza),
+                                text = stringResource(R.string.welcome_to_vivi),
                                 style = MaterialTheme.typography.headlineLarge,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier

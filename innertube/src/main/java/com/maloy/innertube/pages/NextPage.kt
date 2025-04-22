@@ -1,14 +1,14 @@
-package com.maloy.innertube.pages
+package com.music.innertube.pages
 
-import com.maloy.innertube.models.Album
-import com.maloy.innertube.models.Artist
-import com.maloy.innertube.models.BrowseEndpoint
-import com.maloy.innertube.models.PlaylistPanelVideoRenderer
-import com.maloy.innertube.models.SongItem
-import com.maloy.innertube.models.WatchEndpoint
-import com.maloy.innertube.models.oddElements
-import com.maloy.innertube.models.splitBySeparator
-import com.maloy.innertube.utils.parseTime
+import com.music.innertube.models.Album
+import com.music.innertube.models.Artist
+import com.music.innertube.models.BrowseEndpoint
+import com.music.innertube.models.PlaylistPanelVideoRenderer
+import com.music.innertube.models.SongItem
+import com.music.innertube.models.WatchEndpoint
+import com.music.innertube.models.oddElements
+import com.music.innertube.models.splitBySeparator
+import com.music.innertube.utils.parseTime
 
 data class NextResult(
     val title: String? = null,

@@ -1,4 +1,4 @@
-Music is now renamed to Muzza!
+Music is now renamed to vivi!
 
 - Player redesign
 - Queue redesign

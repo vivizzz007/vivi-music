@@ -22,16 +22,16 @@ import androidx.media3.exoplayer.offline.Download.STATE_DOWNLOADING
 import androidx.media3.exoplayer.offline.Download.STATE_QUEUED
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
-import com.maloy.muzza.LocalDatabase
-import com.maloy.muzza.LocalDownloadUtil
-import com.maloy.muzza.LocalPlayerConnection
-import com.maloy.muzza.R
-import com.maloy.muzza.extensions.metadata
-import com.maloy.muzza.playback.ExoDownloadService
-import com.maloy.muzza.playback.queues.ListQueue
-import com.maloy.muzza.ui.component.DownloadGridMenu
-import com.maloy.muzza.ui.component.GridMenu
-import com.maloy.muzza.ui.component.GridMenuItem
+import com.music.vivi.LocalDatabase
+import com.music.vivi.LocalDownloadUtil
+import com.music.vivi.LocalPlayerConnection
+import com.music.vivi.R
+import com.music.vivi.extensions.metadata
+import com.music.vivi.playback.ExoDownloadService
+import com.music.vivi.playback.queues.ListQueue
+import com.music.vivi.ui.component.DownloadGridMenu
+import com.music.vivi.ui.component.GridMenu
+import com.music.vivi.ui.component.GridMenuItem
 
 @Composable
 fun QueueSelectionMenu(

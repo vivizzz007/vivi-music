@@ -17,12 +17,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.PlaybackException
-import com.maloy.muzza.R
-import com.maloy.muzza.constants.DarkModeKey
-import com.maloy.muzza.constants.PlayerBackgroundStyle
-import com.maloy.muzza.constants.PlayerBackgroundStyleKey
-import com.maloy.muzza.ui.screens.settings.DarkMode
-import com.maloy.muzza.utils.rememberEnumPreference
+import com.music.vivi.R
+import com.music.vivi.constants.DarkModeKey
+import com.music.vivi.constants.PlayerBackgroundStyle
+import com.music.vivi.constants.PlayerBackgroundStyleKey
+import com.music.vivi.ui.screens.settings.DarkMode
+import com.music.vivi.utils.rememberEnumPreference
 
 @Composable
 fun PlaybackError(
