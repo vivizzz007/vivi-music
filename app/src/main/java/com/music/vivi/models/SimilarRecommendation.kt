@@ -1,7 +1,7 @@
 package com.music.vivi.models
 
-import com.maloy.innertube.models.YTItem
-import com.maloy.muzza.db.entities.LocalItem
+import com.music.innertube.models.YTItem
+import com.music.vivi.db.entities.LocalItem
 
 data class SimilarRecommendation(
     val title: LocalItem,

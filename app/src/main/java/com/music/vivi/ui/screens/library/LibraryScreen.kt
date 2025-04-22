@@ -6,9 +6,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
-import com.maloy.muzza.constants.ChipSortTypeKey
-import com.maloy.muzza.constants.LibraryFilter
-import com.maloy.muzza.utils.rememberEnumPreference
+import com.music.vivi.constants.ChipSortTypeKey
+import com.music.vivi.constants.LibraryFilter
+import com.music.vivi.utils.rememberEnumPreference
 @Composable
 fun LibraryScreen(navController: NavController) {
     val filterType by rememberEnumPreference(ChipSortTypeKey, LibraryFilter.LIBRARY)

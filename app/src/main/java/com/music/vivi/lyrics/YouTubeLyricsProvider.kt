@@ -1,8 +1,8 @@
 package com.music.vivi.lyrics
 
 import android.content.Context
-import com.maloy.innertube.YouTube
-import com.maloy.innertube.models.WatchEndpoint
+import com.music.innertube.YouTube
+import com.music.innertube.models.WatchEndpoint
 
 object YouTubeLyricsProvider : LyricsProvider {
     override val name = "YouTube Music"

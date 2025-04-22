@@ -9,8 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
-import com.maloy.muzza.constants.GridThumbnailHeight
-import com.maloy.muzza.constants.ThumbnailCornerRadius
+import com.music.vivi.constants.GridThumbnailHeight
+import com.music.vivi.constants.ThumbnailCornerRadius
 
 @Composable
 fun GridItemPlaceHolder(

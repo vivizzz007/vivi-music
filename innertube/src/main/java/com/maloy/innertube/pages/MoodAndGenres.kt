@@ -1,9 +1,9 @@
-package com.maloy.innertube.pages
+package com.music.innertube.pages
 
-import com.maloy.innertube.models.BrowseEndpoint
-import com.maloy.innertube.models.GridRenderer
-import com.maloy.innertube.models.MusicNavigationButtonRenderer
-import com.maloy.innertube.models.SectionListRenderer
+import com.music.innertube.models.BrowseEndpoint
+import com.music.innertube.models.GridRenderer
+import com.music.innertube.models.MusicNavigationButtonRenderer
+import com.music.innertube.models.SectionListRenderer
 
 data class MoodAndGenres(
     val title: String,

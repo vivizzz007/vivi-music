@@ -1,9 +1,9 @@
 package com.music.vivi.models
 
 import androidx.compose.runtime.Immutable
-import com.maloy.innertube.models.SongItem
-import com.maloy.muzza.db.entities.*
-import com.maloy.muzza.ui.utils.resize
+import com.music.innertube.models.SongItem
+import com.music.vivi.db.entities.*
+import com.music.vivi.ui.utils.resize
 import java.io.Serializable
 
 @Immutable

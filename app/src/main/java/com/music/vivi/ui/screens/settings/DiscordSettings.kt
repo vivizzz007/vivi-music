@@ -48,19 +48,19 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.my.kizzy.rpc.KizzyRPC
-import com.maloy.muzza.LocalPlayerAwareWindowInsets
-import com.maloy.muzza.LocalPlayerConnection
-import com.maloy.muzza.R
-import com.maloy.muzza.constants.DiscordNameKey
-import com.maloy.muzza.constants.DiscordTokenKey
-import com.maloy.muzza.constants.DiscordUsernameKey
-import com.maloy.muzza.constants.EnableDiscordRPCKey
-import com.maloy.muzza.db.entities.Song
-import com.maloy.muzza.ui.component.IconButton
-import com.maloy.muzza.ui.component.PreferenceGroupTitle
-import com.maloy.muzza.ui.component.SwitchPreference
-import com.maloy.muzza.ui.utils.backToMain
-import com.maloy.muzza.utils.rememberPreference
+import com.music.vivi.LocalPlayerAwareWindowInsets
+import com.music.vivi.LocalPlayerConnection
+import com.music.vivi.R
+import com.music.vivi.constants.DiscordNameKey
+import com.music.vivi.constants.DiscordTokenKey
+import com.music.vivi.constants.DiscordUsernameKey
+import com.music.vivi.constants.EnableDiscordRPCKey
+import com.music.vivi.db.entities.Song
+import com.music.vivi.ui.component.IconButton
+import com.music.vivi.ui.component.PreferenceGroupTitle
+import com.music.vivi.ui.component.SwitchPreference
+import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -237,7 +237,7 @@ fun RichPresence(song: Song?) {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                text = stringResource(R.string.listen_to_muzza),
+                text = stringResource(R.string.listen_to_vivi),
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.ExtraBold
                 ),
@@ -352,14 +352,14 @@ fun RichPresence(song: Song?) {
 
             OutlinedButton(
                 onClick = {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/Maloy-Android/Muzza"))
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/vivizzz007/vivi-music.git"))
                     context.startActivity(intent)
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
-                    text = stringResource(R.string.visit_muzza),
+                    text = stringResource(R.string.visit_vivi),
                     style = MaterialTheme.typography.labelLarge
                 )
             }

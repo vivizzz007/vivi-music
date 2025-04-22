@@ -1,4 +1,4 @@
-package com.maloy.lrclib.models
+package com.music.lrclib.models
 
 import kotlinx.serialization.Serializable
 import kotlin.math.abs

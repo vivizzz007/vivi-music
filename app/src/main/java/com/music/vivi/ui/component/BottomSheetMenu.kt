@@ -34,7 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
-import com.maloy.muzza.ui.utils.top
+import com.music.vivi.ui.utils.top
 
 val LocalMenuState = compositionLocalOf { MenuState() }
 

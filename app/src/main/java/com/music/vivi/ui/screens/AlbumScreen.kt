@@ -77,34 +77,35 @@ import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.maloy.muzza.LocalDatabase
-import com.maloy.muzza.LocalDownloadUtil
-import com.maloy.muzza.LocalPlayerAwareWindowInsets
-import com.maloy.muzza.LocalPlayerConnection
-import com.maloy.muzza.R
-import com.maloy.muzza.constants.AlbumThumbnailSize
-import com.maloy.muzza.constants.ThumbnailCornerRadius
-import com.maloy.muzza.db.entities.Album
-import com.maloy.muzza.extensions.toMediaItem
-import com.maloy.muzza.extensions.togglePlayPause
-import com.maloy.muzza.playback.ExoDownloadService
-import com.maloy.muzza.playback.queues.LocalAlbumRadio
-import com.maloy.muzza.ui.component.AutoResizeText
-import com.maloy.muzza.ui.component.FontSizeRange
-import com.maloy.muzza.ui.component.LocalMenuState
-import com.maloy.muzza.ui.component.NavigationTitle
-import com.maloy.muzza.ui.component.SongListItem
-import com.maloy.muzza.ui.component.YouTubeGridItem
-import com.maloy.muzza.ui.component.shimmer.ButtonPlaceholder
-import com.maloy.muzza.ui.component.shimmer.ListItemPlaceHolder
-import com.maloy.muzza.ui.component.shimmer.ShimmerHost
-import com.maloy.muzza.ui.component.shimmer.TextPlaceholder
-import com.maloy.muzza.ui.menu.AlbumMenu
-import com.maloy.muzza.ui.menu.SongMenu
-import com.maloy.muzza.ui.menu.SongSelectionMenu
-import com.maloy.muzza.ui.menu.YouTubeAlbumMenu
-import com.maloy.muzza.ui.utils.backToMain
-import com.maloy.muzza.viewmodels.AlbumViewModel
+import com.music.vivi.LocalDatabase
+import com.music.vivi.LocalDownloadUtil
+import com.music.vivi.LocalPlayerAwareWindowInsets
+import com.music.vivi.LocalPlayerConnection
+import com.music.vivi.R
+import com.music.vivi.constants.AlbumThumbnailSize
+import com.music.vivi.constants.ThumbnailCornerRadius
+import com.music.vivi.db.entities.Album
+import com.music.vivi.extensions.toMediaItem
+import com.music.vivi.extensions.togglePlayPause
+import com.music.vivi.playback.ExoDownloadService
+import com.music.vivi.playback.queues.LocalAlbumRadio
+import com.music.vivi.ui.component.AutoResizeText
+import com.music.vivi.ui.component.FontSizeRange
+import com.music.vivi.ui.component.IconButton
+import com.music.vivi.ui.component.LocalMenuState
+import com.music.vivi.ui.component.NavigationTitle
+import com.music.vivi.ui.component.SongListItem
+import com.music.vivi.ui.component.YouTubeGridItem
+import com.music.vivi.ui.component.shimmer.ButtonPlaceholder
+import com.music.vivi.ui.component.shimmer.ListItemPlaceHolder
+import com.music.vivi.ui.component.shimmer.ShimmerHost
+import com.music.vivi.ui.component.shimmer.TextPlaceholder
+import com.music.vivi.ui.menu.AlbumMenu
+import com.music.vivi.ui.menu.SongMenu
+import com.music.vivi.ui.menu.SongSelectionMenu
+import com.music.vivi.ui.menu.YouTubeAlbumMenu
+import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.viewmodels.AlbumViewModel
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -184,178 +185,178 @@ fun AlbumScreen(
                 Column(
                     modifier = Modifier.padding(12.dp)
                 ) {
-                        AsyncImage(
-                            model = albumWithSongs.album.thumbnailUrl,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(AlbumThumbnailSize)
-                                .clip(RoundedCornerShape(ThumbnailCornerRadius))
-                                .align(alignment = Alignment.CenterHorizontally)
+                    AsyncImage(
+                        model = albumWithSongs.album.thumbnailUrl,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(AlbumThumbnailSize)
+                            .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                            .align(alignment = Alignment.CenterHorizontally)
+                    )
+
+                    Spacer(Modifier.height(12.dp))
+
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        AutoResizeText(
+                            text = albumWithSongs.album.title,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            fontSizeRange = FontSizeRange(16.sp, 22.sp)
                         )
+
+                        Text(buildAnnotatedString {
+                            withStyle(
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Normal,
+                                    color = MaterialTheme.colorScheme.onBackground
+                                ).toSpanStyle()
+                            ) {
+                                albumWithSongs.artists.fastForEachIndexed { index, artist ->
+                                    val link = LinkAnnotation.Clickable(artist.id) {
+                                        navController.navigate("artist/${artist.id}")
+                                    }
+                                    withLink(link) {
+                                        append(artist.name)
+                                    }
+                                    if (index != albumWithSongs.artists.lastIndex) {
+                                        append(", ")
+                                    }
+                                }
+                            }
+                        })
+
+                        if (albumWithSongs.album.year != null) {
+                            Text(
+                                text = albumWithSongs.album.year.toString(),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Normal
+                            )
+                        }
 
                         Spacer(Modifier.height(12.dp))
 
-                        Column(
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            AutoResizeText(
-                                text = albumWithSongs.album.title,
-                                fontWeight = FontWeight.Bold,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                                fontSizeRange = FontSizeRange(16.sp, 22.sp)
-                            )
-
-                            Text(buildAnnotatedString {
-                                withStyle(
-                                    style = MaterialTheme.typography.titleMedium.copy(
-                                        fontWeight = FontWeight.Normal,
-                                        color = MaterialTheme.colorScheme.onBackground
-                                    ).toSpanStyle()
-                                ) {
-                                    albumWithSongs.artists.fastForEachIndexed { index, artist ->
-                                        val link = LinkAnnotation.Clickable(artist.id) {
-                                            navController.navigate("artist/${artist.id}")
-                                        }
-                                        withLink(link) {
-                                            append(artist.name)
-                                        }
-                                        if (index != albumWithSongs.artists.lastIndex) {
-                                            append(", ")
-                                        }
+                            Button(
+                                onClick = {
+                                    database.query {
+                                        update(albumWithSongs.album.toggleLike())
                                     }
-                                }
-                            })
-
-                            if (albumWithSongs.album.year != null) {
-                                Text(
-                                    text = albumWithSongs.album.year.toString(),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Normal
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(4.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                            ) {
+                                Icon(
+                                    painter = painterResource(if (albumWithSongs.album.bookmarkedAt != null) R.drawable.favorite else R.drawable.favorite_border),
+                                    contentDescription = null
                                 )
                             }
 
-                            Spacer(Modifier.height(12.dp))
-
-                            Row(
-                                horizontalArrangement = Arrangement.SpaceEvenly,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Button(
-                                    onClick = {
-                                        database.query {
-                                            update(albumWithSongs.album.toggleLike())
-                                        }
-                                    },
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .padding(4.dp)
-                                        .clip(RoundedCornerShape(12.dp))
-                                ) {
-                                    Icon(
-                                        painter = painterResource(if (albumWithSongs.album.bookmarkedAt != null) R.drawable.favorite else R.drawable.favorite_border),
-                                        contentDescription = null
-                                    )
-                                }
-
-                                when (downloadState) {
-                                    Download.STATE_COMPLETED -> {
-                                        Button(
-                                            onClick = {
-                                                albumWithSongs.songs.forEach { song ->
-                                                    DownloadService.sendRemoveDownload(
-                                                        context,
-                                                        ExoDownloadService::class.java,
-                                                        song.id,
-                                                        false
-                                                    )
-                                                }
-                                            },
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .padding(4.dp)
-                                                .clip(RoundedCornerShape(12.dp))
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.offline),
-                                                contentDescription = null,
-                                            )
-                                        }
-                                    }
-
-                                    Download.STATE_DOWNLOADING -> {
-                                        Button(
-                                            onClick = {
-                                                albumWithSongs.songs.forEach { song ->
-                                                    DownloadService.sendRemoveDownload(
-                                                        context,
-                                                        ExoDownloadService::class.java,
-                                                        song.id,
-                                                        false
-                                                    )
-                                                }
+                            when (downloadState) {
+                                Download.STATE_COMPLETED -> {
+                                    Button(
+                                        onClick = {
+                                            albumWithSongs.songs.forEach { song ->
+                                                DownloadService.sendRemoveDownload(
+                                                    context,
+                                                    ExoDownloadService::class.java,
+                                                    song.id,
+                                                    false
+                                                )
                                             }
-                                        ) {
-                                            CircularProgressIndicator(
-                                                strokeWidth = 2.dp,
-                                                modifier = Modifier.size(24.dp),
-                                                color = MaterialTheme.colorScheme.surfaceContainer,
-                                            )
-                                        }
-                                    }
-
-                                    else -> {
-                                        Button(
-                                            onClick = {
-                                                albumWithSongs.songs.forEach { song ->
-                                                    val downloadRequest = DownloadRequest.Builder(
-                                                        song.id,
-                                                        song.id.toUri()
-                                                    )
-                                                        .setCustomCacheKey(song.id)
-                                                        .setData(song.song.title.toByteArray())
-                                                        .build()
-                                                    DownloadService.sendAddDownload(
-                                                        context,
-                                                        ExoDownloadService::class.java,
-                                                        downloadRequest,
-                                                        false
-                                                    )
-                                                }
-                                            },
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .padding(4.dp)
-                                                .clip(RoundedCornerShape(12.dp))
-                                                .background(MaterialTheme.colorScheme.background)
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.download),
-                                                contentDescription = null
-                                            )
-                                        }
+                                        },
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(4.dp)
+                                            .clip(RoundedCornerShape(12.dp))
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.offline),
+                                            contentDescription = null,
+                                        )
                                     }
                                 }
 
-                                Button(
-                                    onClick = {
-                                        playerConnection.addToQueue(
-                                            items = albumWithSongs.songs.map { it.toMediaItem() }
+                                Download.STATE_DOWNLOADING -> {
+                                    Button(
+                                        onClick = {
+                                            albumWithSongs.songs.forEach { song ->
+                                                DownloadService.sendRemoveDownload(
+                                                    context,
+                                                    ExoDownloadService::class.java,
+                                                    song.id,
+                                                    false
+                                                )
+                                            }
+                                        }
+                                    ) {
+                                        CircularProgressIndicator(
+                                            strokeWidth = 2.dp,
+                                            modifier = Modifier.size(24.dp),
+                                            color = MaterialTheme.colorScheme.surfaceContainer,
                                         )
-                                    },
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .padding(4.dp)
-                                        .clip(RoundedCornerShape(12.dp))
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.queue_music),
-                                        contentDescription = null
-                                    )
+                                    }
+                                }
+
+                                else -> {
+                                    Button(
+                                        onClick = {
+                                            albumWithSongs.songs.forEach { song ->
+                                                val downloadRequest = DownloadRequest.Builder(
+                                                    song.id,
+                                                    song.id.toUri()
+                                                )
+                                                    .setCustomCacheKey(song.id)
+                                                    .setData(song.song.title.toByteArray())
+                                                    .build()
+                                                DownloadService.sendAddDownload(
+                                                    context,
+                                                    ExoDownloadService::class.java,
+                                                    downloadRequest,
+                                                    false
+                                                )
+                                            }
+                                        },
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(4.dp)
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .background(MaterialTheme.colorScheme.background)
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.download),
+                                            contentDescription = null
+                                        )
+                                    }
                                 }
                             }
+
+                            Button(
+                                onClick = {
+                                    playerConnection.addToQueue(
+                                        items = albumWithSongs.songs.map { it.toMediaItem() }
+                                    )
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(4.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.queue_music),
+                                    contentDescription = null
+                                )
+                            }
                         }
+                    }
 
                     Spacer(Modifier.height(12.dp))
 
@@ -505,21 +506,21 @@ fun AlbumScreen(
                                 isPlaying = isPlaying,
                                 coroutineScope = scope,
                                 modifier =
-                                Modifier
-                                    .combinedClickable(
-                                        onClick = { navController.navigate("album/${item.id}") },
-                                        onLongClick = {
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            menuState.show {
-                                                YouTubeAlbumMenu(
-                                                    albumItem = item,
-                                                    navController = navController,
-                                                    onDismiss = menuState::dismiss,
-                                                )
-                                            }
-                                        },
-                                    )
-                                    .animateItem(),
+                                    Modifier
+                                        .combinedClickable(
+                                            onClick = { navController.navigate("album/${item.id}") },
+                                            onLongClick = {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                menuState.show {
+                                                    YouTubeAlbumMenu(
+                                                        albumItem = item,
+                                                        navController = navController,
+                                                        onDismiss = menuState::dismiss,
+                                                    )
+                                                }
+                                            },
+                                        )
+                                        .animateItem(),
                             )
                         }
                     }

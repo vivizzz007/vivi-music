@@ -10,15 +10,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
-import com.maloy.innertube.models.SongItem
-import com.maloy.muzza.LocalDatabase
-import com.maloy.muzza.LocalPlayerConnection
-import com.maloy.muzza.R
-import com.maloy.muzza.extensions.toMediaItem
-import com.maloy.muzza.models.toMediaMetadata
-import com.maloy.muzza.playback.queues.ListQueue
-import com.maloy.muzza.ui.component.GridMenu
-import com.maloy.muzza.ui.component.GridMenuItem
+import com.music.innertube.models.SongItem
+import com.music.vivi.LocalDatabase
+import com.music.vivi.LocalPlayerConnection
+import com.music.vivi.R
+import com.music.vivi.extensions.toMediaItem
+import com.music.vivi.models.toMediaMetadata
+import com.music.vivi.playback.queues.ListQueue
+import com.music.vivi.ui.component.GridMenu
+import com.music.vivi.ui.component.GridMenuItem
 import java.time.LocalDateTime
 
 @Composable

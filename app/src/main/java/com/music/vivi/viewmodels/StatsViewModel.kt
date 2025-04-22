@@ -2,10 +2,10 @@ package com.music.vivi.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.maloy.innertube.YouTube
-import com.maloy.muzza.constants.StatPeriod
-import com.maloy.muzza.db.MusicDatabase
-import com.maloy.muzza.utils.reportException
+import com.music.innertube.YouTube
+import com.music.vivi.constants.StatPeriod
+import com.music.vivi.db.MusicDatabase
+import com.music.vivi.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow

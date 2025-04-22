@@ -3,8 +3,8 @@ package com.music.vivi.utils
 import android.content.Context
 import com.my.kizzy.rpc.KizzyRPC
 import com.my.kizzy.rpc.RpcImage
-import com.maloy.muzza.R
-import com.maloy.muzza.db.entities.Song
+import com.music.vivi.R
+import com.music.vivi.db.entities.Song
 
 class DiscordRPC(
     val context: Context,
@@ -21,7 +21,7 @@ class DiscordRPC(
             smallText = song.artists.firstOrNull()?.name,
             buttons = listOf(
                 "Listen on YouTube Music" to "https://music.youtube.com/watch?v=${song.song.id}",
-                "Visit Muzza" to "https://github.com/Maloy-Android/Muzza"
+                "Visit vivi" to "https://github.com/vivizzz007/vivi-music.git"
             ),
             type = Type.LISTENING,
             since = System.currentTimeMillis(),

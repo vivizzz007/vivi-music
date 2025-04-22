@@ -1,8 +1,8 @@
-package com.maloy.innertube.models.response
+package com.music.innertube.models.response
 
-import com.maloy.innertube.models.Continuation
-import com.maloy.innertube.models.MusicResponsiveListItemRenderer
-import com.maloy.innertube.models.Tabs
+import com.music.innertube.models.Continuation
+import com.music.innertube.models.MusicResponsiveListItemRenderer
+import com.music.innertube.models.Tabs
 import kotlinx.serialization.Serializable
 
 @Serializable

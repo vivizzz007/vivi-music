@@ -19,8 +19,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.maloy.muzza.LocalPlayerAwareWindowInsets
-import com.maloy.muzza.ui.utils.isScrollingUp
+import com.music.vivi.LocalPlayerAwareWindowInsets
+import com.music.vivi.ui.utils.isScrollingUp
 
 @Composable
 fun BoxScope.HideOnScrollFAB(

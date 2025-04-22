@@ -1,4 +1,4 @@
-package com.maloy.muzza.utils
+package com.music.vivi.utils
 
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase

@@ -1,6 +1,6 @@
 <resources>
 
-    <style name="Theme.Muzza.AppWidgetContainerParent" parent="@android:style/Theme.DeviceDefault">
+    <style name="Theme.vivi.AppWidgetContainerParent" parent="@android:style/Theme.DeviceDefault">
         <!-- Radius of the outer bound of widgets to make the rounded corners -->
         <item name="appWidgetRadius">16dp</item>
         <!--
@@ -10,7 +10,7 @@
         <item name="appWidgetInnerRadius">8dp</item>
     </style>
 
-    <style name="Theme.Muzza.AppWidgetContainer" parent="Theme.Muzza.AppWidgetContainerParent">
+    <style name="Theme.vivi.AppWidgetContainer" parent="Theme.vivi.AppWidgetContainerParent">
         <!-- Apply padding to avoid the content of the widget colliding with the rounded corners -->
         <item name="appWidgetPadding">16dp</item>
     </style>

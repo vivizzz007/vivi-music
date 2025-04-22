@@ -1,15 +1,15 @@
-package com.maloy.innertube.pages
+package com.music.innertube.pages
 
-import com.maloy.innertube.models.Album
-import com.maloy.innertube.models.AlbumItem
-import com.maloy.innertube.models.Artist
-import com.maloy.innertube.models.MusicResponsiveListItemRenderer
-import com.maloy.innertube.models.MusicTwoRowItemRenderer
-import com.maloy.innertube.models.PlaylistItem
-import com.maloy.innertube.models.SongItem
-import com.maloy.innertube.models.YTItem
-import com.maloy.innertube.models.oddElements
-import com.maloy.innertube.utils.parseTime
+import com.music.innertube.models.Album
+import com.music.innertube.models.AlbumItem
+import com.music.innertube.models.Artist
+import com.music.innertube.models.MusicResponsiveListItemRenderer
+import com.music.innertube.models.MusicTwoRowItemRenderer
+import com.music.innertube.models.PlaylistItem
+import com.music.innertube.models.SongItem
+import com.music.innertube.models.YTItem
+import com.music.innertube.models.oddElements
+import com.music.innertube.utils.parseTime
 
 data class ArtistItemsPage(
     val title: String,

@@ -36,7 +36,7 @@
 
     <!-- Search -->
     <string name="search">Vyhledávání</string>
-    <string name="search_yt_music">Hledat v Muzza</string>
+    <string name="search_yt_music">Hledat v vivi</string>
     <string name="search_library">Hledat v knihovně…</string>
     <string name="filter_library">Knihovna</string>
     <string name="filter_liked">Oblíbené</string>

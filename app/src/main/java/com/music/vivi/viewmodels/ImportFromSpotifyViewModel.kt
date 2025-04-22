@@ -6,22 +6,22 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.maloy.muzza.db.MusicDatabase
-import com.maloy.muzza.db.entities.ArtistEntity
-import com.maloy.muzza.db.entities.PlaylistEntity
-import com.maloy.muzza.db.entities.PlaylistSongMap
-import com.maloy.muzza.db.entities.SongArtistMap
-import com.maloy.muzza.db.entities.SongEntity
-import com.maloy.muzza.models.SpotifyAuthResponse
-import com.maloy.muzza.models.SpotifyUserProfile
-import com.maloy.muzza.models.spotify.tracks.TrackItem
-import com.maloy.muzza.models.spotify.tracks.SpotifyResultPaginatedResponse
-import com.maloy.muzza.models.spotify.playlists.SpotifyPlaylistPaginatedResponse
-import com.maloy.muzza.ui.screens.settings.import_from_spotify.model.ImportFromSpotifyScreenState
-import com.maloy.muzza.ui.screens.settings.import_from_spotify.model.ImportProgressEvent
-import com.maloy.muzza.ui.screens.settings.import_from_spotify.model.Playlist
-import com.maloy.innertube.YouTube
-import com.maloy.innertube.models.SongItem
+import com.music.vivi.db.MusicDatabase
+import com.music.vivi.db.entities.ArtistEntity
+import com.music.vivi.db.entities.PlaylistEntity
+import com.music.vivi.db.entities.PlaylistSongMap
+import com.music.vivi.db.entities.SongArtistMap
+import com.music.vivi.db.entities.SongEntity
+import com.music.vivi.models.SpotifyAuthResponse
+import com.music.vivi.models.SpotifyUserProfile
+import com.music.vivi.models.spotify.tracks.TrackItem
+import com.music.vivi.models.spotify.tracks.SpotifyResultPaginatedResponse
+import com.music.vivi.models.spotify.playlists.SpotifyPlaylistPaginatedResponse
+import com.music.vivi.ui.screens.settings.import_from_spotify.model.ImportFromSpotifyScreenState
+import com.music.vivi.ui.screens.settings.import_from_spotify.model.ImportProgressEvent
+import com.music.vivi.ui.screens.settings.import_from_spotify.model.Playlist
+import com.music.innertube.YouTube
+import com.music.innertube.models.SongItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -263,7 +263,7 @@ class ImportFromSpotifyViewModel @Inject constructor(
     }
 
     private fun logTheString(string: String) {
-        Timber.tag("Muzza Log").d(string)
+        Timber.tag("vivi Log").d(string)
     }
 
 

@@ -24,12 +24,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
-import com.maloy.muzza.LocalPlayerAwareWindowInsets
-import com.maloy.muzza.R
-import com.maloy.muzza.constants.DiscordTokenKey
-import com.maloy.muzza.ui.component.IconButton
-import com.maloy.muzza.ui.utils.backToMain
-import com.maloy.muzza.utils.rememberPreference
+import com.music.vivi.LocalPlayerAwareWindowInsets
+import com.music.vivi.R
+import com.music.vivi.constants.DiscordTokenKey
+import com.music.vivi.ui.component.IconButton
+import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 

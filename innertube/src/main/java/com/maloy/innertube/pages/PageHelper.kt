@@ -1,7 +1,7 @@
-package com.maloy.innertube.pages
+package com.music.innertube.pages
 
-import com.maloy.innertube.models.MusicResponsiveListItemRenderer
-import com.maloy.innertube.models.Run
+import com.music.innertube.models.MusicResponsiveListItemRenderer
+import com.music.innertube.models.Run
 
 object PageHelper {
     fun extractRuns(columns: List<MusicResponsiveListItemRenderer.FlexColumn>, typeLike: String): List<Run> {

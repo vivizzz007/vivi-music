@@ -1,6 +1,6 @@
 package com.music.vivi.models
 
-import com.maloy.innertube.models.YTItem
+import com.music.innertube.models.YTItem
 
 data class ItemsPage(
     val items: List<YTItem>,

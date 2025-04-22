@@ -1,6 +1,6 @@
-package com.maloy.innertube.models.body
+package com.music.innertube.models.body
 
-import com.maloy.innertube.models.Context
+import com.music.innertube.models.Context
 import kotlinx.serialization.Serializable
 @Serializable
 data class CreatePlaylistBody(

@@ -56,11 +56,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import com.maloy.muzza.BuildConfig
-import com.maloy.muzza.LocalPlayerAwareWindowInsets
-import com.maloy.muzza.R
-import com.maloy.muzza.ui.component.IconButton
-import com.maloy.muzza.ui.utils.backToMain
+import com.music.vivi.BuildConfig
+import com.music.vivi.LocalPlayerAwareWindowInsets
+import com.music.vivi.R
+import com.music.vivi.ui.component.IconButton
+import com.music.vivi.ui.utils.backToMain
 
 
 
@@ -353,7 +353,7 @@ fun AboutScreen(
 fun UserCards(uriHandler: UriHandler) {
     Column {
         UserCard(
-            imageUrl = "https://i.gadgets360cdn.com/products/large/call-of-duty-modern-warfare-3-cover-image-1200x675-1692331943.jpg",
+            imageUrl = "https://drive.google.com/file/d/1yu4hpN_mc9DGXSjYS5tHyHJelKzEvRs0/view?usp=drive_link",
             name = "vivi-MUSIC",
             role = "Hello , i'm VIVIDH P ASHOKAN a beginner developer from India  ",
             onClick = { uriHandler.openUri("https://drive.google.com/file/d/10LtEMQE3oohz7ZAZ4di3brxujJYj11em/view?usp=drive_link") }

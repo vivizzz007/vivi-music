@@ -21,12 +21,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.maloy.muzza.LocalPlayerAwareWindowInsets
-import com.maloy.muzza.R
-import com.maloy.muzza.ui.component.IconButton
-import com.maloy.muzza.ui.component.PreferenceEntry
-import com.maloy.muzza.ui.utils.backToMain
-import com.maloy.muzza.viewmodels.BackupRestoreViewModel
+import com.music.vivi.LocalPlayerAwareWindowInsets
+import com.music.vivi.R
+import com.music.vivi.ui.component.IconButton
+import com.music.vivi.ui.component.PreferenceEntry
+import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.viewmodels.BackupRestoreViewModel
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 

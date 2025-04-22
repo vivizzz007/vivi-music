@@ -24,7 +24,7 @@ import com.google.material.color.score.Score
 val DefaultThemeColor = Color(0xFFED5564)
 
 @Composable
-fun MuzzaTheme(
+fun Themevivi(
     darkTheme: Boolean = isSystemInDarkTheme(),
     pureBlack: Boolean = false,
     themeColor: Color = DefaultThemeColor,

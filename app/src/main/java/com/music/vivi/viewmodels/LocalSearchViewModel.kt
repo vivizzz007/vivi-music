@@ -2,8 +2,8 @@ package com.music.vivi.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.maloy.muzza.db.MusicDatabase
-import com.maloy.muzza.db.entities.*
+import com.music.vivi.db.MusicDatabase
+import com.music.vivi.db.entities.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*

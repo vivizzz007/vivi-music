@@ -1,6 +1,6 @@
-package com.maloy.innertube.pages
+package com.music.innertube.pages
 
-import com.maloy.innertube.models.YTItem
+import com.music.innertube.models.YTItem
 
 data class LibraryContinuationPage(
     val items: List<YTItem>,

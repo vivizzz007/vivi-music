@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Setup wizard -->
-    <string name="welcome_to_muzza">Ласкаво просимо до vivi</string>
+    <string name="welcome_to_vivi" tools:ignore="ExtraTranslation">Ласкаво просимо до vivi</string>
     <string name="yt_music_fingertips">YouTube-Music завжди під рукою</string>
     <string name="ytm_account_sync">Синхронізація з аккаунтом YouTube-Music</string>
     <string name="ad_free_playback">Відтворення без реклами</string>
@@ -60,7 +60,7 @@
 
     <!-- Search -->
     <string name="search">Пошук</string>
-    <string name="search_yt_music">Пошук в Muzza</string>
+    <string name="search_yt_music">Пошук в vivi</string>
     <string name="search_library">Пошук в бібліотеці…</string>
     <string name="filter_library">Бібліотека</string>
     <string name="filter_liked">Вподобані</string>
@@ -276,7 +276,7 @@
     <!-- Notifications settings -->
     <string name="notifications">Сповіщення</string>
     <string name="keep_alive_title">Запобігти закриттю додатку системою</string>
-    <string name="keep_alive_description">Використовуйте сповіщення у фоновому режимі, щоб запобігти випадковому закриттю Muzza системою.</string>
+    <string name="keep_alive_description">Використовуйте сповіщення у фоновому режимі, щоб запобігти випадковому закриттю vivi системою.</string>
     <string name="notifications_settings">Налаштування сповіщень</string>
 
     <!-- Settings -->
@@ -295,9 +295,9 @@
     <string name="app_design_variant">Дизайн програми</string>
     <string name="pure_black">Режим чистого чорного кольору</string>
     <string name="listen_youtube_music">Слухати в YouTube Music</string>
-    <string name="visit_muzza">Відвідавши Muzza</string>
+    <string name="visit_vivi">Відвідавши vivi</string>
     <string name="artist">Виконавець</string>
-    <string name="listen_to_muzza">Слухати в Muzza</string>
+    <string name="listen_to_vivi">Слухати в vivi</string>
     <string name="customize_navigation_tabs">Налаштування вкладок навігації</string>
     <string name="player">Плеєр</string>
     <string name="player_text_alignment">Вирівнювання тексту плеєра</string>
@@ -342,8 +342,8 @@
     <string name="help_text">Зв\'язатися з розробником ❯</string>
     <string name="contribution">Вклад?</string>
     <string name="contribution_text">Якщо ви хочете внести вклад, натисніть тут ❯</string>
-    <string name="donate_help">Будь ласка, підтримайте мене пожертвуванням для подальшої розробки Muzza ❯</string>
-    <string name="telegram_info">Офіційний канал з новими новинами та процесом розробки Muzza ❯</string>
+    <string name="donate_help">Будь ласка, підтримайте мене пожертвуванням для подальшої розробки vivi ❯</string>
+    <string name="telegram_info">Офіційний канал з новими новинами та процесом розробки vivi ❯</string>
     <string name="my_channel">Мій Telegram канал</string>
     <string name="my_channel_info">Канал про моє життя ❯</string>
     <string name="Developer">Розробник ❯</string>
@@ -477,7 +477,7 @@
     <string name="restore_failed">Не вдалося відновити з резервної копії</string>
 
     <string name="discord_integration">Інтеграція з Discord</string>
-    <string name="discord_information">Muzza використовує бібліотеку KizzyRPC для встановлення статусу вашого облікового запису Discord. Це передбачає використання підключення через Discord Gateway, що може вважатися порушенням умов використання Discord. Однак, наразі немає відомих випадків блокування облікових записів користувачів з цієї причини. Використовуйте на свій страх і ризик.\n\nMuzza буде зчитувати тільки ваш токен, а все інше зберігається локально.</string>
+    <string name="discord_information">vivi використовує бібліотеку KizzyRPC для встановлення статусу вашого облікового запису Discord. Це передбачає використання підключення через Discord Gateway, що може вважатися порушенням умов використання Discord. Однак, наразі немає відомих випадків блокування облікових записів користувачів з цієї причини. Використовуйте на свій страх і ризик.\n\nvivi буде зчитувати тільки ваш токен, а все інше зберігається локально.</string>
     <string name="dismiss">Закрити</string>
     <string name="options">Налаштування</string>
     <string name="preview">Попередній перегляд</string>

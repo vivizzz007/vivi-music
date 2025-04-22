@@ -18,8 +18,9 @@ if (isFullBuild && System.getenv("PULL_REQUEST") == null) {
     apply(plugin = "com.google.firebase.firebase-perf")
 }
 
+
 android {
-    namespace = "com.maloy.muzza"
+    namespace = "com.music.vivi"
     compileSdk = 35
     buildToolsVersion = "35.0.0"
     defaultConfig {
@@ -27,7 +28,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 39
-        versionName = "1.1.6"
+        versionName = "1.1.5"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

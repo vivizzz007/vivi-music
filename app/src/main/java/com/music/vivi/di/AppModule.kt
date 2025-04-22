@@ -6,11 +6,11 @@ import androidx.media3.database.StandaloneDatabaseProvider
 import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
 import androidx.media3.datasource.cache.NoOpCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
-import com.maloy.muzza.constants.MaxSongCacheSizeKey
-import com.maloy.muzza.db.InternalDatabase
-import com.maloy.muzza.db.MusicDatabase
-import com.maloy.muzza.utils.dataStore
-import com.maloy.muzza.utils.get
+import com.music.vivi.constants.MaxSongCacheSizeKey
+import com.music.vivi.db.InternalDatabase
+import com.music.vivi.db.MusicDatabase
+import com.music.vivi.utils.dataStore
+import com.music.vivi.utils.get
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

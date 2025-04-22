@@ -82,39 +82,39 @@ import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.maloy.innertube.utils.parseCookieString
-import com.maloy.muzza.LocalDownloadUtil
-import com.maloy.muzza.LocalPlayerAwareWindowInsets
-import com.maloy.muzza.LocalPlayerConnection
-import com.maloy.muzza.R
-import com.maloy.muzza.constants.AlbumThumbnailSize
-import com.maloy.muzza.constants.CONTENT_TYPE_SONG
-import com.maloy.muzza.constants.InnerTubeCookieKey
-import com.maloy.muzza.constants.SongSortDescendingKey
-import com.maloy.muzza.constants.SongSortType
-import com.maloy.muzza.constants.SongSortTypeKey
-import com.maloy.muzza.constants.ThumbnailCornerRadius
-import com.maloy.muzza.constants.YtmSyncKey
-import com.maloy.muzza.db.entities.Song
-import com.maloy.muzza.extensions.toMediaItem
-import com.maloy.muzza.extensions.togglePlayPause
-import com.maloy.muzza.playback.ExoDownloadService
-import com.maloy.muzza.playback.queues.ListQueue
-import com.maloy.muzza.ui.component.AutoResizeText
-import com.maloy.muzza.ui.component.DefaultDialog
-import com.maloy.muzza.ui.component.EmptyPlaceholder
-import com.maloy.muzza.ui.component.FontSizeRange
-import com.maloy.muzza.ui.component.LocalMenuState
-import com.maloy.muzza.ui.component.SongListItem
-import com.maloy.muzza.ui.component.SortHeader
-import com.maloy.muzza.ui.menu.SongMenu
-import com.maloy.muzza.ui.menu.SongSelectionMenu
-import com.maloy.muzza.ui.utils.backToMain
-import com.maloy.muzza.utils.isInternetAvailable
-import com.maloy.muzza.utils.makeTimeString
-import com.maloy.muzza.utils.rememberEnumPreference
-import com.maloy.muzza.utils.rememberPreference
-import com.maloy.muzza.viewmodels.AutoPlaylistViewModel
+import com.music.innertube.utils.parseCookieString
+import com.music.vivi.LocalDownloadUtil
+import com.music.vivi.LocalPlayerAwareWindowInsets
+import com.music.vivi.LocalPlayerConnection
+import com.music.vivi.R
+import com.music.vivi.constants.AlbumThumbnailSize
+import com.music.vivi.constants.CONTENT_TYPE_SONG
+import com.music.vivi.constants.InnerTubeCookieKey
+import com.music.vivi.constants.SongSortDescendingKey
+import com.music.vivi.constants.SongSortType
+import com.music.vivi.constants.SongSortTypeKey
+import com.music.vivi.constants.ThumbnailCornerRadius
+import com.music.vivi.constants.YtmSyncKey
+import com.music.vivi.db.entities.Song
+import com.music.vivi.extensions.toMediaItem
+import com.music.vivi.extensions.togglePlayPause
+import com.music.vivi.playback.ExoDownloadService
+import com.music.vivi.playback.queues.ListQueue
+import com.music.vivi.ui.component.AutoResizeText
+import com.music.vivi.ui.component.DefaultDialog
+import com.music.vivi.ui.component.EmptyPlaceholder
+import com.music.vivi.ui.component.FontSizeRange
+import com.music.vivi.ui.component.LocalMenuState
+import com.music.vivi.ui.component.SongListItem
+import com.music.vivi.ui.component.SortHeader
+import com.music.vivi.ui.menu.SongMenu
+import com.music.vivi.ui.menu.SongSelectionMenu
+import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.utils.isInternetAvailable
+import com.music.vivi.utils.makeTimeString
+import com.music.vivi.utils.rememberEnumPreference
+import com.music.vivi.utils.rememberPreference
+import com.music.vivi.viewmodels.AutoPlaylistViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -727,7 +727,7 @@ fun AutoPlaylistScreen(
                 }
             },
             navigationIcon = {
-                com.maloy.muzza.ui.component.IconButton(
+                com.music.vivi.ui.component.IconButton(
                     onClick = {
                         if (isSearching) {
                             isSearching = false
