@@ -36,13 +36,14 @@ VIVI isn't just another music player — it's a complete audio experience. With 
 2. In the three dots menu at the top-right of the screen, click "Developer settings"
 3. Enable "Unknown sources"
 
-div align="center">
+<div align="center">
 <h1>Disclaimer</h1>
 </div>
 
 This project and its contents are not affiliated with, funded, authorized, endorsed by, or in any way associated with YouTube, Google LLC, Metrolist Group LLC or any of its affiliates and subsidiaries.
 
 Any trademark, service mark, trade name, or other intellectual property rights used in this project are owned by the respective owners.
+
 
 <div align="center">
 <h1>Special thanks</h1>
