@@ -1,4 +1,4 @@
-<div align="center">
+
  <h1>vivi-music</h1>
 <h1>More Than Just Music</h1>
 
