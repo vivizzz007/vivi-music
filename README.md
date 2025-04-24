@@ -21,3 +21,38 @@ VIVI isn't just another music player — it's a complete audio experience. With 
 - Android Auto support
 - Personalized quick picks
 - Material 3
+
+
+<div align="center">
+<h1>Download Now</h1>
+
+ 
+</div>
+
+<div align="center">
+<h1> Q: Why Metrolist isn't showing in Android Auto? </h1>
+</div>
+
+1. Go to Android Auto's settings and tap multiple times on the version in the bottom to enable
+   developer settings
+2. In the three dots menu at the top-right of the screen, click "Developer settings"
+3. Enable "Unknown sources"
+
+
+<div align="center">
+<h1>Special thanks</h1>
+
+(InnerTune)
+[Zion Huang](https://github.com/z-huang),
+[Malopieds](https://github.com/Malopieds)
+
+(OuterTune)
+[Davide Garberi](https://github.com/DD3Boh),
+[Michael Zh](https://github.com/mikooomich)
+
+(Muzza)
+[Maloy Android](https://github.com/Maloy-Android)
+
+(metrolist)
+[mostafaalagamy](https://github.com/mostafaalagamy/Metrolist) for Metrolist
+</div>
