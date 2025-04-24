@@ -335,7 +335,7 @@ fun AboutScreen(
 fun UserCards(uriHandler: UriHandler) {
     Column {
         UserCard(
-            imageUrl = "https://github.com/vivizzz007/vivi-music/blob/main/appinfo/metadata/android/en-US/images/dev/dev.jpg",
+            imageUrl = "https://raw.githubusercontent.com/vivizzz007/vivi-music/refs/heads/main/appinfo/metadata/android/en-US/images/dev/dev.jpg",
             name = "vivi-MUSIC",
             role = "Hello , i'm VIVIDH P ASHOKAN a beginner developer from India  ",
             onClick = { uriHandler.openUri("https://github.com/vivizzz007") }
