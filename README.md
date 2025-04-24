@@ -10,12 +10,12 @@ VIVI isn't just another music player — it's a complete audio experience. With 
 
 <h1>Screenshots</h1>
 <p>
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/Screenshots/home.png" width="30%" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/Screenshots/dev.png" width="30%" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/Screenshots/about.png" width="30%" />
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/appinfo/metadata/android/en-US/images/Screenshots/about.png" width="30%" />
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/appinfo/metadata/android/en-US/images/Screenshots/dev.png" width="30%" />
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/appinfo/metadata/android/en-US/images/Screenshots/explore.png" width="30%" />
 
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/Screenshots/player.png" width="30%" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/Screenshots/explore.png" width="30%" />
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/appinfo/metadata/android/en-US/images/Screenshots/home.png" width="30%" />
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/appinfo/metadata/android/en-US/images/Screenshots/player.png" width="30%" />
 </p>
 
 
