@@ -34,7 +34,7 @@ VIVI isn't just another music player — it's a complete audio experience. With 
 - Android Auto support
 - Personalized quick picks
 - Material 3
-
+- default blur player
 
 <div align="center">
 <h1>Download Now</h1>
