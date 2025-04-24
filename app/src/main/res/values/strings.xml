@@ -444,6 +444,15 @@
 
     <string name="about">About</string>
     <string name="app_version">App version</string>
+    <string name="backupandrestore_banner_description">Backup and restore illustration</string>
+    <string name="storage_banner_description">Storage image</string>
+    <string name="privacy_banner_description">Storage image</string>
+    <string name="content_banner_description">Storage image</string>
+    <string name="internal_backup">internal backup</string>
+    <string name="playerandaudio">playerandaudio</string>
+    <string name="appearenceimg">appearenceimg</string>
+
+
 
     <string name="new_version_available">New version available</string>
     <string name="translation_models">Translation Models</string>

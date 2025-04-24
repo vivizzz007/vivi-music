@@ -369,7 +369,8 @@ fun SongMenu(
             GridMenuItem(
                 icon = R.drawable.library_add,
                 title = R.string.add_to_library
-            ) {
+            )
+            {
                 database.query {
                     update(song.song.toggleLibrary())
                 }

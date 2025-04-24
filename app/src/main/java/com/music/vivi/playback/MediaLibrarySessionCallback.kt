@@ -55,10 +55,10 @@ class MediaLibrarySessionCallback @Inject constructor(
         val connectionResult = super.onConnect(session, controller)
         return MediaSession.ConnectionResult.accept(
             connectionResult.availableSessionCommands.buildUpon()
-                .add(MediaSessionConstants.CommandToggleLibrary)
+                //.add(MediaSessionConstants.CommandToggleLibrary)
                 .add(MediaSessionConstants.CommandToggleLike)
                 .add(MediaSessionConstants.CommandToggleStartRadio)
-                .add(MediaSessionConstants.CommandToggleShuffle)
+                //.add(MediaSessionConstants.CommandToggleShuffle)
                 .add(MediaSessionConstants.CommandToggleRepeatMode)
                 .build(),
             connectionResult.availablePlayerCommands

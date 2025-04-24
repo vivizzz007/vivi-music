@@ -185,7 +185,7 @@ enum class PlayerStyle {
 enum class PlayerBackgroundStyle {
     BLUR,
     DEFAULT,
-    GRADIENT,
+
     BLURMOV,
     MONETBLACK,
 }
