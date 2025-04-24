@@ -7,6 +7,17 @@
 
 VIVI isn't just another music player — it's a complete audio experience. With a sleek design, intelligent features, and deep personalization, VIVI redefines how you connect with your music. From stunning visual effects to smooth, intuitive controls, it’s built to match your vibe and elevate every beat. This is your music, your way — only with VIVI
 </div>
+
+<h1>Screenshots</h1>
+
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/Screenshots/home.png" width="30%" />
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/Screenshots/dev.png" width="30%" />
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/Screenshots/about.png" width="30%" />
+
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/Screenshots/player.png" width="30%" />
+</p>
+
+
 <br><b>Features:</b>
 
 - Play songs from YT/YT Music without ads
