@@ -1,5 +1,8 @@
 package com.music.vivi.ui.screens.settings
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -38,6 +41,16 @@ import com.music.vivi.ui.component.PreferenceGroupTitle
 import com.music.vivi.ui.component.SwitchPreference
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.utils.rememberPreference
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.*
+
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.layout.ContentScale
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -122,6 +135,31 @@ fun PrivacySettings(
             .verticalScroll(rememberScrollState())
     ) {
         Spacer(Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)))
+
+        var visible by remember { mutableStateOf(false) }
+
+        LaunchedEffect(Unit) {
+            visible = true
+        }
+
+        AnimatedVisibility(
+            visible = visible,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+
+            Image(
+                painter = painterResource(id = R.drawable.securityimg),
+                contentDescription = stringResource(R.string.privacy_banner_description),
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .height(180.dp)
+                    .clip(RoundedCornerShape(12.dp))
+            )
+        }
+
 
         PreferenceGroupTitle(
             title = stringResource(R.string.listen_history)

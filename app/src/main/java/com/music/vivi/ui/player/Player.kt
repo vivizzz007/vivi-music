@@ -184,26 +184,7 @@ fun BottomSheetPlayer(
     }
 
     LaunchedEffect(mediaMetadata) {
-        if (playerBackground != PlayerBackgroundStyle.GRADIENT) return@LaunchedEffect
-
-        withContext(Dispatchers.IO) {
-            if (mediaMetadata?.blurSync == true) {
-                getLocalThumbnail(mediaMetadata?.blurThumbnail)?.extractGradientColors()?.let {
-                    gradientColors = it
-                }
-            } else {
-                val result = (ImageLoader(context).execute(
-                    ImageRequest.Builder(context)
-                        .data(mediaMetadata?.thumbnailUrl)
-                        .allowHardware(false)
-                        .build()
-                ).drawable as? BitmapDrawable)?.bitmap?.extractGradientColors()
-
-                result?.let {
-                    gradientColors = it
-                }
-            }
-        }
+        if (playerBackground == PlayerBackgroundStyle.BLUR) return@LaunchedEffect
     }
 
     var position by rememberSaveable(playbackState) {
@@ -601,7 +582,7 @@ fun BottomSheetPlayer(
                             contentScale = ContentScale.FillBounds,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .blur(200.dp)
+                                .blur(100.dp)
                         )
                     }
                 } else {
@@ -611,7 +592,7 @@ fun BottomSheetPlayer(
                         contentScale = ContentScale.FillBounds,
                         modifier = Modifier
                             .fillMaxSize()
-                            .blur(200.dp)
+                            .blur(100.dp)
                     )
                 }
 
@@ -619,12 +600,6 @@ fun BottomSheetPlayer(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(Color.Black.copy(alpha = 0.3f))
-                )
-            } else if (playerBackground == PlayerBackgroundStyle.GRADIENT && gradientColors.size >= 2) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Brush.verticalGradient(gradientColors))
                 )
             }
             if (playerBackground == PlayerBackgroundStyle.BLURMOV) {
@@ -634,7 +609,7 @@ fun BottomSheetPlayer(
                 targetValue = 360f,
                 animationSpec = infiniteRepeatable(
                     animation = tween(
-                        durationMillis = 100000,
+                        durationMillis = 30000,
                         easing = FastOutSlowInEasing
                     ),
                     repeatMode = RepeatMode.Restart
@@ -648,7 +623,7 @@ fun BottomSheetPlayer(
                         contentScale = ContentScale.FillBounds,
                         modifier = Modifier
                             .fillMaxSize()
-                            .blur(200.dp)
+                            .blur(100.dp)
                             .alpha(0.8f)
                             .background(if (useBlackBackground) Color.Black.copy(alpha = 0.5f) else Color.Transparent)
                             .rotate(rotation)
@@ -661,7 +636,7 @@ fun BottomSheetPlayer(
                     targetValue = 360f,
                     animationSpec = infiniteRepeatable(
                         animation = tween(
-                            durationMillis = 100000,
+                            durationMillis = 30000,
                             easing = FastOutSlowInEasing
                         ),
                         repeatMode = RepeatMode.Restart
@@ -673,7 +648,7 @@ fun BottomSheetPlayer(
                     contentScale = ContentScale.FillBounds,
                     modifier = Modifier
                         .fillMaxSize()
-                        .blur(200.dp)
+                        .blur(100.dp)
                         .alpha(0.8f)
                         .background(if (useBlackBackground) Color.Black.copy(alpha = 0.5f) else Color.Transparent)
                         .rotate(rotation)

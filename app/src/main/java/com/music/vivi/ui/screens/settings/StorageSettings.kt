@@ -1,6 +1,9 @@
 package com.music.vivi.ui.screens.settings
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -54,6 +57,25 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.Image
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.height
+
+
+
+
+
+
+
+
+
 
 @SuppressLint("PrivateResource")
 @OptIn(ExperimentalCoilApi::class, ExperimentalMaterial3Api::class)
@@ -277,6 +299,30 @@ fun StorageSettings(
             .verticalScroll(rememberScrollState())
     ) {
         Spacer(Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)))
+
+        var visible by remember { mutableStateOf(false) }
+
+        LaunchedEffect(Unit) {
+            visible = true
+        }
+
+        AnimatedVisibility(
+            visible = visible,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+
+            Image(
+                painter = painterResource(id = R.drawable.storage_box),
+                contentDescription = stringResource(R.string.storage_banner_description),
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .height(180.dp)
+                    .clip(RoundedCornerShape(12.dp))
+            )
+        }
 
         PreferenceGroupTitle(
             title = stringResource(R.string.downloaded_songs)

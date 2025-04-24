@@ -66,10 +66,10 @@ import com.music.vivi.constants.DiscordTokenKey
 import com.music.vivi.constants.EnableDiscordRPCKey
 import com.music.vivi.constants.HideExplicitKey
 import com.music.vivi.constants.KeepAliveKey
-import com.music.vivi.constants.MediaSessionConstants.CommandToggleLibrary
+//import com.music.vivi.constants.MediaSessionConstants.CommandToggleLibrary
 import com.music.vivi.constants.MediaSessionConstants.CommandToggleLike
 import com.music.vivi.constants.MediaSessionConstants.CommandToggleRepeatMode
-import com.music.vivi.constants.MediaSessionConstants.CommandToggleShuffle
+//import com.music.vivi.constants.MediaSessionConstants.CommandToggleShuffle
 import com.music.vivi.constants.MediaSessionConstants.CommandToggleStartRadio
 import com.music.vivi.constants.PauseListenHistoryKey
 import com.music.vivi.constants.PersistentQueueKey
@@ -381,44 +381,46 @@ class MusicService : MediaLibraryService(),
     private fun updateNotification() {
         mediaSession.setCustomLayout(
             listOf(
-                CommandButton.Builder()
-                    .setDisplayName(getString(if (currentSong.value?.song?.inLibrary != null) R.string.remove_from_library else R.string.add_to_library))
-                    .setIconResId(if (currentSong.value?.song?.inLibrary != null) R.drawable.library_add_check else R.drawable.library_add)
-                    .setSessionCommand(CommandToggleLibrary)
-                    .setEnabled(currentSong.value != null)
-                    .build(),
+              // CommandButton.Builder()
+                  //  .setDisplayName(getString(if (currentSong.value?.song?.inLibrary != null) R.string.remove_from_library else R.string.add_to_library))
+                   // .setIconResId(if (currentSong.value?.song?.inLibrary != null) R.drawable.library_add_check else R.drawable.library_add)
+                   // .setSessionCommand(CommandToggleLibrary)
+                   // .setEnabled(currentSong.value != null)
+                  //  .build(),
                 CommandButton.Builder()
                     .setDisplayName(getString(if (currentSong.value?.song?.liked == true) R.string.action_remove_like else R.string.action_like))
                     .setIconResId(if (currentSong.value?.song?.liked == true) R.drawable.favorite else R.drawable.favorite_border)
                     .setSessionCommand(CommandToggleLike)
                     .setEnabled(currentSong.value != null)
                     .build(),
-                CommandButton.Builder()
-                    .setDisplayName(getString(R.string.start_radio))
-                    .setIconResId(R.drawable.radio)
-                    .setSessionCommand(CommandToggleStartRadio)
-                    .setEnabled(currentSong.value != null)
-                    .build(),
-                CommandButton.Builder()
-                    .setDisplayName(getString(if (player.shuffleModeEnabled) R.string.action_shuffle_off else R.string.action_shuffle_on))
-                    .setIconResId(if (player.shuffleModeEnabled) R.drawable.shuffle_on else R.drawable.shuffle)
-                    .setSessionCommand(CommandToggleShuffle)
-                    .build(),
+                //CommandButton.Builder()
+                   // .setDisplayName(getString(R.string.start_radio))
+                   // .setIconResId(R.drawable.radio)
+                  // .setSessionCommand(CommandToggleStartRadio)
+                   //.setEnabled(currentSong.value != null)
+                   //.build(),
+                //CommandButton.Builder()
+                    //.setDisplayName(getString(if (player.shuffleModeEnabled) R.string.action_shuffle_off else R.string.action_shuffle_on))
+                   // .setIconResId(if (player.shuffleModeEnabled) R.drawable.shuffle_on else R.drawable.shuffle)
+                   // .setSessionCommand(CommandToggleShuffle)
+                   // .build(),
+
                 CommandButton.Builder()
                     .setDisplayName(
                         getString(
-                            when (player.repeatMode) {
+                           when (player.repeatMode)
+                             {
                                 REPEAT_MODE_OFF -> R.string.repeat_mode_off
                                 REPEAT_MODE_ONE -> R.string.repeat_mode_one
                                 REPEAT_MODE_ALL -> R.string.repeat_mode_all
                                 else -> throw IllegalStateException()
-                            }
+                          }
                         )
-                    )
-                    .setIconResId(
+                   )
+                   .setIconResId(
                         when (player.repeatMode) {
                             REPEAT_MODE_OFF -> R.drawable.repeat
-                            REPEAT_MODE_ONE -> R.drawable.repeat_one_on
+                            REPEAT_MODE_ONE -> R.drawable.one_repeat_icon
                             REPEAT_MODE_ALL -> R.drawable.repeat_on
                             else -> throw IllegalStateException()
                         }
@@ -522,13 +524,13 @@ class MusicService : MediaLibraryService(),
     }
 
     fun playNext(items: List<MediaItem>) {
-        player.addMediaItems(if (player.mediaItemCount == 0) 0 else player.currentMediaItemIndex + 1, items)
-        player.prepare()
+       player.addMediaItems(if (player.mediaItemCount == 0) 0 else player.currentMediaItemIndex + 1, items)
+      player.prepare()
     }
 
     fun addToQueue(items: List<MediaItem>) {
         player.addMediaItems(items)
-        player.prepare()
+       player.prepare()
     }
 
     fun toggleLibrary() {
