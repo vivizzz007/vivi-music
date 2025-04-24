@@ -25,8 +25,6 @@ VIVI isn't just another music player — it's a complete audio experience. With 
 
 <div align="center">
 <h1>Download Now</h1>
-
- 
 </div>
 
 <div align="center">
