@@ -1,6 +1,6 @@
 <div align="center">
  <img src="https://github.com/vivizzz007/vivi-music/blob/main/assets/img.png" width="160" height="160" style="display: block; margin: 0 auto"/>
- <h1>vivi-music</h1>
+ <h1>vivi</h1>
 <h1>More Than Just Music</h1>
 
 </div>
