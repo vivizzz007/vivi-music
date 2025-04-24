@@ -276,15 +276,6 @@ fun AboutScreen(
         Spacer(Modifier.height(20.dp))
 
         CardItem(
-            icon = R.drawable.donate,
-            title = stringResource(R.string.Donate),
-            subtitle = stringResource(R.string.donate_help),
-            onClick = { uriHandler.openUri("https://drive.google.com/file/d/10LtEMQE3oohz7ZAZ4di3brxujJYj11em/view?usp=drive_link") }
-        )
-
-        Spacer(Modifier.height(20.dp))
-
-        CardItem(
             icon = R.drawable.codigo,
             title = stringResource(R.string.code),
             subtitle = stringResource(R.string.code_text),
@@ -347,7 +338,7 @@ fun UserCards(uriHandler: UriHandler) {
             imageUrl = "https://github.com/vivizzz007/vivi-music/blob/main/appinfo/metadata/android/en-US/images/dev/dev.jpg",
             name = "vivi-MUSIC",
             role = "Hello , i'm VIVIDH P ASHOKAN a beginner developer from India  ",
-            onClick = { uriHandler.openUri("https://github.com/vivizzz007/vivi-music") }
+            onClick = { uriHandler.openUri("https://github.com/vivizzz007") }
         )
     }
 }
