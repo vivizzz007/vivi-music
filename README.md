@@ -30,7 +30,7 @@ align="center">](not now)
 </div>
 
 <div align="center">
-<h1> Q: Why Metrolist isn't showing in Android Auto? </h1>
+<h1> Q: Why vivimusic isn't showing in Android Auto? </h1>
 </div>
 
 1. Go to Android Auto's settings and tap multiple times on the version in the bottom to enable
