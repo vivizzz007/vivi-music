@@ -163,6 +163,7 @@ import com.music.vivi.utils.SyncUtils
 import com.music.vivi.ui.utils.appBarScrollBehavior
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.ui.utils.resetHeightOffset
+import com.music.vivi.updater.UpdaterScreen
 import com.music.vivi.utils.Updater
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.get
@@ -237,7 +238,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "UnusedBoxWithConstraintsScope")
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -271,6 +272,8 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+
+
 
             val (appDesignVariant) = rememberEnumPreference(AppDesignVariantKey, defaultValue = AppDesignVariantType.NEW)
             val (defaultOpenTabOld) = rememberEnumPreference(DefaultOpenTabOldKey, defaultValue = NavigationTabOld.HOME)
@@ -321,7 +324,8 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier
                         .fillMaxSize()
                         .background(MaterialTheme.colorScheme.surface)
-                ) {
+                )
+                {
                     val focusManager = LocalFocusManager.current
                     val density = LocalDensity.current
                     val windowsInsets = WindowInsets.systemBars

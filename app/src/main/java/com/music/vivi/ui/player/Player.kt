@@ -582,7 +582,7 @@ fun BottomSheetPlayer(
                             contentScale = ContentScale.FillBounds,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .blur(100.dp)
+                                .blur(90.dp)
                         )
                     }
                 } else {
@@ -592,7 +592,7 @@ fun BottomSheetPlayer(
                         contentScale = ContentScale.FillBounds,
                         modifier = Modifier
                             .fillMaxSize()
-                            .blur(100.dp)
+                            .blur(90.dp)
                     )
                 }
 

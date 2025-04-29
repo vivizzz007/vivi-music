@@ -142,6 +142,7 @@ fun HomeScreen(
     val scrollToTop = backStackEntry?.savedStateHandle?.getStateFlow("scrollToTop", false)?.collectAsState()
     val (ytmSync) = rememberPreference(YtmSyncKey, true)
 
+
     LaunchedEffect(scrollToTop?.value) {
         if (scrollToTop?.value == true) {
             lazylistState.animateScrollToItem(0)

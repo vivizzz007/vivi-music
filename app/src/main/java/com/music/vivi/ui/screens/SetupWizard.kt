@@ -58,12 +58,14 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.music.vivi.R
 import com.music.vivi.constants.FirstSetupPassed
 import com.music.vivi.ui.screens.settings.shimmerEffect
 import com.music.vivi.utils.rememberPreference
+
 
 @Composable
 fun SetupWizard(
@@ -210,11 +212,14 @@ fun SetupWizard(
                                     .background(shimmerBrush)
                             )
                         }
-                        Column(verticalArrangement = Arrangement.Center) {
+                        Column(verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally)
+                        {
                             Text(
                                 text = stringResource(R.string.welcome_to_vivi),
                                 style = MaterialTheme.typography.headlineLarge,
                                 fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center, // Center the text itself
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 24.dp, vertical = 8.dp)
@@ -226,6 +231,7 @@ fun SetupWizard(
                                 .fillMaxWidth()
                                 .padding(horizontal = 48.dp)
                         ) {
+                            Spacer(Modifier.height(20.dp))
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
@@ -293,6 +299,7 @@ fun SetupWizard(
                                 )
                             }
                         }
+                        Spacer(Modifier.height(70.dp))
                         Row(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             modifier = Modifier

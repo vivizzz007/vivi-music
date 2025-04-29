@@ -28,7 +28,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 39
-        versionName = "1.1.5"
+        versionName = "1.1.6"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -181,4 +181,14 @@ dependencies {
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.json)
+    // For JSON parsing
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.squareup.okhttp3:okhttp:4.9.1")
+    implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation("androidx.compose.ui:ui:1.3.0")
+// or a later version
+    implementation("androidx.activity:activity-compose:1.5.0")
+// or a later versi
+
 }

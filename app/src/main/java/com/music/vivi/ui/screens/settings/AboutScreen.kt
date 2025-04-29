@@ -224,7 +224,7 @@ fun AboutScreen(
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "BETA-V-1.1.5",
+                text = "BETA-V-1.1.6",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.secondary
             )
@@ -288,7 +288,7 @@ fun AboutScreen(
             icon = R.drawable.bug_report,
             title = stringResource(R.string.bugs),
             subtitle = stringResource(R.string.bugs_text),
-            onClick = { uriHandler.openUri("https://drive.google.com/file/d/1of0nSYdb4Zal6qu7_8cGdjh4Ye4nPTrz/view?usp=drive_link") }
+            onClick = { uriHandler.openUri("https://drive.google.com/drive/folders/1FAG3ZR3H7r6HR9N_M4aZWRdJf5RtN4jY?usp=sharing") }
         )
 
         Spacer(Modifier.height(20.dp))
