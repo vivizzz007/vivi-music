@@ -43,7 +43,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import com.music.vivi.ui.utils.backToMain
 
-
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -51,6 +51,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Text
 
 import androidx.compose.runtime.*
 
@@ -110,15 +112,20 @@ fun SettingsScreen(
     val greeting = getGreetingBasedOnTime()
 
     // Inside your SettingsScreen
+    // Inside your SettingsScreen
     LaunchedEffect(Unit) {
+        // Trigger the check after the screen is loaded or resumed
         checkForUpdateFromGitHub { latestRelease ->
             val cleanLatestVersion = latestRelease.removePrefix("v")
             val newVersionAvailable = isNewerVersion(cleanLatestVersion, BuildConfig.VERSION_NAME)
             latestVersion = cleanLatestVersion
-            isUpdateAvailable = newVersionAvailable
-            showUpdateCard = newVersionAvailable
+
+            // Only show update card if there's a new version
+            isUpdateAvailable = newVersionAvailable && cleanLatestVersion != BuildConfig.VERSION_NAME
+            showUpdateCard = isUpdateAvailable
         }
     }
+
 
 
     Column(
@@ -191,12 +198,12 @@ fun SettingsScreen(
 
         // Show the Update Card if a new version is available
         if (showUpdateCard) {
-            Spacer(Modifier.height(20.dp))
+
             ElevatedCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
-                    .height(120.dp),
+                    .height(100.dp),
                 shape = RoundedCornerShape(30.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -211,13 +218,15 @@ fun SettingsScreen(
                     Text(
                         text = "New Version Available: $latestVersion",
                         style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
+                        textAlign = TextAlign.Center
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        text = "Tap here to update!",
+                        text = "Open updater to update!",
                         style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
                     )
                 }
             }
@@ -232,50 +241,50 @@ fun SettingsScreen(
                 uriHandler.openUri("https://github.com/vivizzz007/vivi-music/releases/latest")
             }
         )
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(10.dp))
         // Now your usual Preference entries
         PreferenceEntry(
             title = { Text(stringResource(R.string.appearance)) },
             icon = { Icon(painterResource(R.drawable.theme_icon), null) },
             onClick = { navController.navigate("settings/appearance") }
         )
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(10.dp))
         PreferenceEntry(
             title = { Text(stringResource(R.string.account)) },
             icon = { Icon(painterResource(R.drawable.account_icon), null) },
             onClick = { navController.navigate("settings/account") }
         )
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(10.dp))
         PreferenceEntry(
             title = { Text(stringResource(R.string.content)) },
             icon = { Icon(painterResource(R.drawable.content_icon), null) },
             onClick = { navController.navigate("settings/content") }
         )
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(10.dp))
         PreferenceEntry(
             title = { Text(stringResource(R.string.player_and_audio)) },
             icon = { Icon(painterResource(R.drawable.play_icon), null) },
             onClick = { navController.navigate("settings/player") }
         )
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(10.dp))
         PreferenceEntry(
             title = { Text(stringResource(R.string.storage)) },
             icon = { Icon(painterResource(R.drawable.storage_icon), null) },
             onClick = { navController.navigate("settings/storage") }
         )
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(10.dp))
         PreferenceEntry(
             title = { Text(stringResource(R.string.privacy)) },
             icon = { Icon(painterResource(R.drawable.security_icon), null) },
             onClick = { navController.navigate("settings/privacy") }
         )
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(10.dp))
         PreferenceEntry(
             title = { Text(stringResource(R.string.backup_restore)) },
             icon = { Icon(painterResource(R.drawable.backups_icon), null) },
             onClick = { navController.navigate("settings/backup_restore") }
         )
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(10.dp))
         PreferenceEntry(
             title = { Text(stringResource(R.string.about)) },
             icon = { Icon(painterResource(R.drawable.info_icon), null) },
