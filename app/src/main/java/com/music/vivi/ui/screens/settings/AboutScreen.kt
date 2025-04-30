@@ -224,7 +224,7 @@ fun AboutScreen(
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "BETA-V-1.1.6",
+                text = "BETA-V-1.1.7",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.secondary
             )

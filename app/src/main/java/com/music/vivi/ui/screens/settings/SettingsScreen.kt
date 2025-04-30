@@ -50,19 +50,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Text
-
-import androidx.compose.runtime.*
-
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import android.os.Build
-import android.provider.MediaStore
-import android.content.Intent
-import android.app.Activity
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.foundation.clickable
 import coil.compose.AsyncImage
 
@@ -126,8 +115,6 @@ fun SettingsScreen(
         }
     }
 
-
-
     Column(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
@@ -144,7 +131,7 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
-                .height(100.dp),
+                .height(120.dp),
             shape = RoundedCornerShape(30.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -198,7 +185,6 @@ fun SettingsScreen(
 
         // Show the Update Card if a new version is available
         if (showUpdateCard) {
-
             ElevatedCard(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -210,37 +196,67 @@ fun SettingsScreen(
                 )
             ) {
                 Column(
-                    modifier = Modifier
-                        .padding(20.dp),
+                    modifier = Modifier.padding(20.dp),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(
-                        text = "New Version Available: $latestVersion",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        textAlign = TextAlign.Center
-                    )
+                    // Icon + Text in a Row
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.SystemUpdate,
+                            contentDescription = "Update Icon",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "New Version Available: $latestVersion",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+
+                    val uriHandler = LocalUriHandler.current
                     Spacer(Modifier.height(8.dp))
+
                     Text(
-                        text = "Open updater to update!",
+                        text = "Update Now!",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
                     )
                 }
             }
         }
 
+
         val uriHandler = LocalUriHandler.current
         // Add the "Check for Updates" option in preferences
         PreferenceEntry(
-            title = { Text("Check for Updates") },
+            title = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Check for Updates", modifier = Modifier.weight(1f))
+                    Text(
+                        text = "v${BuildConfig.VERSION_NAME}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
             icon = { Icon(painterResource(R.drawable.update_icon), null) },
             onClick = {
                 uriHandler.openUri("https://github.com/vivizzz007/vivi-music/releases/latest")
             }
         )
+
         Spacer(Modifier.height(10.dp))
         // Now your usual Preference entries
         PreferenceEntry(
