@@ -18,16 +18,17 @@ if (isFullBuild && System.getenv("PULL_REQUEST") == null) {
     apply(plugin = "com.google.firebase.firebase-perf")
 }
 
+
 android {
-    namespace = "com.maloy.muzza"
+    namespace = "com.music.vivi"
     compileSdk = 35
     buildToolsVersion = "35.0.0"
     defaultConfig {
-        applicationId = "com.maloy.muzza"
+        applicationId = "com.vivi.vivimusic"
         minSdk = 24
         targetSdk = 35
-        versionCode = 41
-        versionName = "0.6.9-rc-1"
+        versionCode = 39
+        versionName = "2.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -36,6 +37,7 @@ android {
             isShrinkResources = true
             isCrunchPngs = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("debug")
         }
         debug {
             applicationIdSuffix = ".debug"
@@ -51,15 +53,15 @@ android {
         }
     }
 
-//    splits {
-//        abi {
-//            isEnable = true
-//            reset()
-//            include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
-//            isUniversalApk = false
-//        }
-//    }
-    
+    //splits {
+    // abi {
+    //   isEnable = true
+    //   reset()
+    //   include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+    //  isUniversalApk = false
+    // }
+    // }
+
     signingConfigs {
         getByName("debug") {
             if (System.getenv("MUSIC_DEBUG_SIGNING_STORE_PASSWORD") != null) {
@@ -179,4 +181,13 @@ dependencies {
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.json)
+    // For JSON parsing
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.squareup.okhttp3:okhttp:4.9.1")
+    implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation("androidx.compose.ui:ui:1.3.0")
+// or a later version
+    implementation("androidx.activity:activity-compose:1.5.0")
+
 }

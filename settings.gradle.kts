@@ -10,7 +10,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Muzza"
+rootProject.name = "vivi"
 include(":app")
 include(":innertube")
 include(":kugou")

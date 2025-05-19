@@ -1,18 +1,19 @@
 <resources>
 
     <!-- Setup wizard -->
-    <string name="welcome_to_muzza">Welcome to Muzza</string>
-    <string name="yt_music_fingertips">YouTube Music at your fingertips</string>
-    <string name="ytm_account_sync">YouTube-Music account synchronization</string>
-    <string name="ad_free_playback">AD free playback</string>
-    <string name="fos_info">Free open source app</string>
+    <string name="welcome_to_vivi">Welcome to VIVI</string>
+    <string name="yt_music_fingertips">YouTube Music</string>
+    <string name="ytm_account_sync">YouTube-Music account sync</string>
+    <string name="ad_free_playback">AD free music</string>
+    <string name="fos_info"> open source app</string>
     <string name="i_have_a_backup">I have a backup</string>
     <string name="skip">Skip</string>
     <string name="back">Back</string>
     <string name="next">Next</string>
 
     <!-- Bottom navigation -->
-    <string name="home">Home</string>
+    <string name="home">VIVI-HOME</string>
+    <string name="homee">Home</string>
     <string name="explore">Explore</string>
     <string name="songs">Songs</string>
     <string name="artists">Artists</string>
@@ -24,16 +25,15 @@
     <string name="my_top">My top music</string>
     <string name="cached">Cached music</string>
     <string name="local">Local music</string>
-
-    <string name="content_filter">Content filter</string>
-
-    <!-- My top -->
-    <string name="all_time">All time</string>
-    <string name="past_24_hours">Past 24 hours</string>
-    <string name="past_week">Past week</string>
-    <string name="past_month">Past month</string>
-    <string name="past_year">Past year</string>
-
+    <string name="Note">Important Message</string>
+    <string name="Warning">Warning</string>
+    <string name="backup_info_description">When you back up your data, your downloads are not included. Its recommended to clear your cache through the app for optimal performance. The backup service is secure, ensuring your data remains private and protected.</string>
+    <string name="backup_description">Create a backup file of your current data</string>
+    <string name="restore_description">Recover your data from a backup file</string>
+    <string name="backup_link_title">Backup uploaded successfully!</string>
+    <string name="backup_link_description">Your backup will be available for 14 days.</string>
+    <string name="copy_link">Copy Link</string>
+    <string name="backup_warning">Please make sure you keep your backup file safe. It contains sensitive data!</string>
     <!-- Top bar -->
     <plurals name="n_selected">
         <item quantity="other">%d selected</item>
@@ -53,6 +53,44 @@
     <string name="your_youtube_playlists">Your YouTube playlists</string>
     <string name="similar_to">Similar to</string>
     <string name="new_release_albums">New release albums</string>
+    <string name="remove_from_cache">Remove from cache</string>
+    <string name="show_content_filter">Show content filter</string>
+
+    <string name="content_filter">Content filter</string>
+    <!-- Library -->
+    <string name="library_empty">Library will show up here</string>
+    <string name="sync_local_songs_toast">Sync local songs successfully</string>
+    <string name="local_scanner_title">Local scanner</string>
+    <!-- My top -->
+    <string name="all_time">All time</string>
+    <string name="past_24_hours">Past 24 hours</string>
+    <string name="past_week">Past week</string>
+    <string name="past_month">Past month</string>
+    <string name="past_year">Past year</string>
+    <string name="slider_style">Slider style</string>
+    <string name="mini_player_style">Mini player style</string>
+    <string name="auto_playlists_customization">Auto playlists customization</string>
+    <string name="show_liked_auto_playlist">Show auto-playlist liked</string>
+    <string name="show_download_auto_playlist">Show auto-playlist download</string>
+    <string name="show_top_auto_playlist">Show auto-playlist top</string>
+    <string name="show_cached_auto_playlist">Show auto-playlist cached</string>
+    <string name="show_local_auto_playlist">Show auto-playlist local</string>
+    <string name="scanner_warning">Depending on the size of your library, it make take a while. It is highly recommend to wait until the scanner to finish before proceeding. Don\'t say I didn\'t warn you!</string>
+    !--scanner additional settings-->
+    <string name="scanner_settings_title">Additional scanner settings</string>
+    <string name="scanner_strict_file_name_title">Strict file names</string>
+    <string name="scanner_strict_file_name_description">When enabled extensions will NOT be ignored. Ex. "Song.ogg" will be a different song from "Song.flac"</string>
+    <string name="scanner_sensitivity_title">Configure scanner sensitivity</string>
+    <string name="scanner_sensitivity_L1">Match title</string>
+    <string name="scanner_sensitivity_L2">Match title and artists</string>
+    <string name="scanner_sensitivity_L3">Match title, artists, albums</string>
+    <string name="auto_scanner_title">Scan automatically</string>
+    <string name="auto_scanner_description">Automatically scan for songs when opening the app</string>
+    <!--Folders-->
+    <string name="folders_settings_title">Folders</string>
+    <string name="flat_subfolders_title">Flatten subfolders</string>
+    <string name="flat_subfolders_description">Disable to preserve the file structure as on disk</string>
+    <string name="local_player_settings_title">Local player settings</string>
 
     <!-- History -->
     <string name="today">Today</string>
@@ -71,7 +109,7 @@
 
     <!-- Search -->
     <string name="search">Search</string>
-    <string name="search_yt_music">Search Muzza</string>
+    <string name="search_yt_music">Search in vivi</string>
     <string name="search_library">Search library…</string>
     <string name="SearchHistory">Search History</string>
     <string name="Sujestions">Suggestions</string>
@@ -91,7 +129,6 @@
     <string name="no_results_found">No results found</string>
 
     <!-- Library -->
-    <string name="library_empty">Library will show up here</string>
     <string name="library_song_empty">Library songs will show up here</string>
     <string name="library_artist_empty">Library artists will show up here</string>
     <string name="library_album_empty">Library albums will show up here</string>
@@ -142,7 +179,6 @@
     <string name="remove_from_history">Remove from history</string>
     <string name="remove_from_playlist">Remove from playlist</string>
     <string name="remove_from_queue">Remove from queue</string>
-    <string name="remove_from_cache">Remove from cache</string>
     <string name="search_online">Search online</string>
     <string name="sync">Sync</string>
     <string name="advanced">Advanced</string>
@@ -273,7 +309,7 @@
     <!-- Notifications settings -->
     <string name="notifications">Notifications</string>
     <string name="keep_alive_title">Prevent system killing app</string>
-    <string name="keep_alive_description">Use a foreground notification to prevent Muzza from being randomly closed by the system.</string>
+    <string name="keep_alive_description">Use a foreground notification to prevent vivi from being randomly closed by the system.</string>
     <string name="notifications_settings">Notifications settings</string>
 
     <!-- Settings -->
@@ -289,9 +325,9 @@
     <string name="pure_black">Pure black</string>
     <string name="app_design_variant">App design</string>
     <string name="listen_youtube_music">Listen on YouTube Music</string>
-    <string name="visit_muzza">Visit Muzza</string>
+    <string name="visit_vivi">Visit vivi</string>
     <string name="artist">Artist</string>
-    <string name="listen_to_muzza">Listen to Muzza</string>
+    <string name="listen_to_vivi">Listen to vivi</string>
     <string name="enable_swipe_thumbnail">Enable swipe on thumbnail to change song</string>
     <string name="customize_navigation_tabs">Customize navigation tabs</string>
     <string name="player">Player</string>
@@ -300,7 +336,6 @@
     <string name="sided">Sided</string>
     <string name="left">Left</string>
     <string name="center">Center</string>
-    <string name="mini_player_style">Mini player style</string>
     <string name="player_style">Player style</string>
     <string name="player_style_old">Old</string>
     <string name="player_style_new">New</string>
@@ -308,22 +343,16 @@
     <string name="gradient">Gradient</string>
     <string name="blur">Blur</string>
     <string name="blurmv">Blur (Motion)</string>
+    <string name="monetblack">Monet black</string>
     <string name="player_background_style">Player background style</string>
     <string name="right">Right</string>
-    <string name="slider_style">Slider style</string>
-    <string name="default_">Default</string>
-    <string name="squiggly">Squiggly</string>
+    <string name="player_slider_style">Player slider style</string>
+    <string name="default_">player</string>
+    <string name="squiggly">Default</string>
     <string name="compose">Compose</string>
     <string name="thumbnail_corner_radius">Configure thumbnail corner radius</string>
-    <string name="show_content_filter">Show content filter</string>
     <string name="misc">Misc</string>
     <string name="main">Main</string>
-    <string name="auto_playlists_customization">Auto playlists customization</string>
-    <string name="show_liked_auto_playlist">Show auto-playlist liked</string>
-    <string name="show_download_auto_playlist">Show auto-playlist download</string>
-    <string name="show_top_auto_playlist">Show auto-playlist top</string>
-    <string name="show_cached_auto_playlist">Show auto-playlist cached</string>
-    <string name="show_local_auto_playlist">Show auto-playlist local</string>
     <string name="swipe_song_to_dismiss">Swipe song to right for play next or left for adding to queue</string>
     <string name="default_open_tab">Default open tab</string>
     <string name="default_lib_chips">Default library chips</string>
@@ -337,20 +366,20 @@
     <string name="closepopup">Close</string>
     <string name="NewVersion">New version available</string>
     <string name="Hi">Hello Again</string>
-    <string name="Donate">Donate</string>
+    <string name="Donate">donate</string>
     <string name="Telegramchanel">Official Channel</string>
     <string name="web_site">Website</string>
     <string name="web_site_info">Official website ❯</string>
     <string name="code">Source code</string>
     <string name="code_text">Access the source code of the app ❯</string>
-    <string name="bugs">Issues</string>
-    <string name="bugs_text">Bugs or Problems? Report them here ❯</string>
+    <string name="bugs">Website</string>
+    <string name="bugs_text">Website for vivi music❯</string>
     <string name="help">Help</string>
     <string name="help_text">Contact Dev ❯</string>
     <string name="contribution">Contribution ?</string>
     <string name="contribution_text">If you want to contribute, click here ❯</string>
-    <string name="donate_help">Please support me with a donation to further developing Muzza ❯</string>
-    <string name="telegram_info">Official channel with new news and Muzza development process ❯</string>
+    <string name="donate_help">Please support me with a donation to further developing vivi ❯</string>
+    <string name="telegram_info">Official channel with new news and vivi development process ❯</string>
     <string name="my_channel">My Telegram channel</string>
     <string name="my_channel_info">A channel about my life ❯</string>
     <string name="Developer">Developer ❯</string>
@@ -403,7 +432,6 @@
     <string name="equalizer">Equalizer</string>
     <string name="lyrics">Lyrics</string>
     <string name="lyrics_settings_title">Lyrics</string>
-    <string name="local_player_settings_title">Local player settings</string>
     <string name="storage">Storage</string>
     <string name="cache">Cache</string>
     <string name="image_cache">Image Cache</string>
@@ -456,7 +484,7 @@
     <string name="restore_failed">Failed to restore backup</string>
 
     <string name="discord_integration">Discord Integration</string>
-    <string name="discord_information">Muzza uses the KizzyRPC library to set your Discord account\'s status. This involves using the Discord Gateway connection, which may be considered a violation of Discord\'s TOS. However, there are no known cases of user accounts being suspended for this reason. Use at your own risk.\n\nMuzza will only extract your token, and everything else is stored locally.</string>
+    <string name="discord_information">vivi uses the KizzyRPC library to set your Discord account\'s status. This involves using the Discord Gateway connection, which may be considered a violation of Discord\'s TOS. However, there are no known cases of user accounts being suspended for this reason. Use at your own risk.\n\nvivi will only extract your token, and everything else is stored locally.</string>
     <string name="dismiss">Dismiss</string>
     <string name="options">Options</string>
     <string name="preview">Preview</string>
@@ -465,7 +493,33 @@
     <string name="enable_discord_rpc">Enable Rich Presence</string>
 
     <string name="about">About</string>
+    <string name="update">System Update</string>
     <string name="app_version">App version</string>
+    <string name="backupandrestore_banner_description">Backup and restore illustration</string>
+    <string name="storage_banner_description">Storage image</string>
+    <string name="privacy_banner_description">Storage image</string>
+    <string name="content_banner_description">Storage image</string>
+    <string name="internal_backup">internal backup</string>
+    <string name="playerandaudio">playerandaudio</string>
+    <string name="appearenceimg">appearenceimg</string>
+    <!--SETUP WIZARD Unknown app permission-->
+    <string name="allow_unknown_sources">Allow Unknown Source</string>
+    <string name="allow_unknown_sources_desc">Give permission</string>
+    <string name="cancel">Next</string>
+    <string name="allow_unknown_sources_title">Settings</string>
+    <string name="allow_unknown_sources_explanation">You need to allow this permission so that updater can work flawlessly</string>
+    <string name="skip_this_step">Skip Now</string>
+    <string name="finish_setup">Finish Setup</string>
+    <string name="all_set">All Set</string>
+    <string name="enjoy_vivi_music">Enjoy Vivi Music</string>
+    <string name="grant_permission">Allow permission</string>
+    <string name="start">Next</string>
+    <string name="permission_granted_message">Now You Can Update Flawlessly</string>
+    <string name="permission_granted">Granded Permission</string>
+    <string name="continue_text">Continue</string>
+    <string name="new_releases">New Releases</string>
+    <string name="viviplayer">vivi</string>
+
 
     <string name="new_version_available">New version available</string>
     <string name="translation_models">Translation Models</string>
@@ -477,34 +531,10 @@
     </plurals>
     <string name="appwidget_text">EXAMPLE</string>
     <string name="add_widget">Add widget</string>
-    <string name="app_widget_description">Muzza</string>
+    <string name="app_widget_description">vivi</string>
     <string name="not_internet">No Internet Connection</string>
     <string name="internet_required">It looks like you have no Internet connection. Please check your network.</string>
     <string name="downloadspage">Go to downloads</string>
-
-    <!--scanner page settings-->
-    <string name="sync_local_songs_toast">Sync local songs successfully</string>
-    <string name="local_scanner_title">Local scanner</string>
-
-    <string name="auto_scanner_title">Scan automatically</string>
-    <string name="auto_scanner_description">Automatically scan for songs when opening the app</string>
-
-    <string name="manual_scanner_title">Manual scanner</string>
-    <string name="scanner_warning">Depending on the size of your library, it make take a while. It is highly recommend to wait until the scanner to finish before proceeding. Don\'t say I didn\'t warn you!</string>
-
-    <!--scanner additional settings-->
-    <string name="scanner_settings_title">Additional scanner settings</string>
-    <string name="scanner_strict_file_name_title">Strict file names</string>
-    <string name="scanner_strict_file_name_description">When enabled extensions will NOT be ignored. Ex. "Song.ogg" will be a different song from "Song.flac"</string>
-    <string name="scanner_sensitivity_title">Configure scanner sensitivity</string>
-    <string name="scanner_sensitivity_L1">Match title</string>
-    <string name="scanner_sensitivity_L2">Match title and artists</string>
-    <string name="scanner_sensitivity_L3">Match title, artists, albums</string>
-
-    <!--Folders-->
-    <string name="folders_settings_title">Folders</string>
-    <string name="flat_subfolders_title">Flatten subfolders</string>
-    <string name="flat_subfolders_description">Disable to preserve the file structure as on disk</string>
 
     <!-- Spotify import settings -->
     <string name="select_all">Select All</string>
@@ -516,11 +546,11 @@
     <string name="make_sure_to_click">3. Make sure to click "Add" once you\'ve entered the local path above.</string>
     <string name="accept_the_terms_of_service">5. Accept the terms of service and click "Save".</string>
     <string name="you_ll_be_redirected_to_a_new_page">You’ll be redirected to a new page. Click on Settings, then copy the Client ID and Client Secret, and paste them into the text fields below in this app.</string>
-    <string name="enter_the_necessary_details">2. Enter the necessary details and use http://127.0.0.1:45454 as the Redirect URIs.</string>
+    <string name="enter_the_necessary_details">2. Enter the necessary details and use http://localhost:45454 as the Redirect URIs.</string>
     <string name="toggle_wep_api">4. Toggle Web API. The checkbox should now have a tick mark.</string>
-    <string name="now_click_the_authorize_and_continue">Now, click the Authorize and Continue button below and login with your account from which you want to import from, and Authorize and Continue, which will redirect you to a site which should start from http://127.0.0.1:45454/?code=
+    <string name="now_click_the_authorize_and_continue">Now, click the Authorize and Continue button below and login with your account from which you want to import from, and Authorize and Continue, which will redirect you to a site which should start from http://localhost:45454/?code=
 
-Paste that entire URL in the below text field which says Authorization Code and click the Authenticate button</string>
+        Paste that entire URL in the below text field which says Authorization Code and click the Authenticate button</string>
     <string name="visit_spotify_for_developers">1. Visit spotify for developers Spotify for developers dashboard and click on "Create app". </string>
     <string name="login_with_spotify">Login with Spotify API Credentials</string>
     <string name="authorize_and_continue">Authorize and Continue</string>
@@ -530,7 +560,7 @@ Paste that entire URL in the below text field which says Authorization Code and 
     <string name="client_id">Client ID</string>
     <string name="import_in_progress">Import in progress…</string>
     <string name="dont_close_app_message">Don\'t close the app or go back. This operation does\'t run in the background, so stay put until it\'s done!
-DO NOT PANIC IF IT LOOKS STUCK; sometimes retrieval may take some time.</string>
+        DO NOT PANIC IF IT LOOKS STUCK; sometimes retrieval may take some time.</string>
     <string name="choose_liked_songs">Choose \"Liked Songs\" Destination</string>
     <string name="where_should_the_liked_songs">Where should the liked songs be imported?</string>
     <string name="new_playlist_named">A new playlist named "Liked Songs"</string>
