@@ -352,7 +352,7 @@ fun AboutScreen(
             )
             HyperOSListItem(
                 title = "Updated",
-                value = "2025-5-18",
+                value = "2025-5-20",
                 onClick = { showChangelog = true }
             )
             HyperOSListItem(
