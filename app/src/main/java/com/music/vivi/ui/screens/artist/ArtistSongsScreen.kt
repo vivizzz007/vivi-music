@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import com.music.vivi.ui.component.IconButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -249,7 +250,7 @@ fun ArtistSongsScreen(
                         onLongClick = navController::backToMain
                     ) {
                         Icon(
-                            painterResource(R.drawable.arrow_back),
+                            painterResource(R.drawable.back_icon),
                             contentDescription = null
                         )
                     }

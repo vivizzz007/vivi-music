@@ -734,7 +734,7 @@ fun AutoPlaylistScreen(
                 ) {
                     Icon(
                         painter = painterResource(
-                            R.drawable.arrow_back
+                            R.drawable.back_icon
                         ),
                         contentDescription = null
                     )

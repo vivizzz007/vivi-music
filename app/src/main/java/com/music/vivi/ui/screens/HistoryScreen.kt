@@ -482,7 +482,7 @@ fun HistoryScreen(
                                 onClick = { query= TextFieldValue("") }
                             ) {
                                 Icon(
-                                    painter = painterResource(R.drawable.close),
+                                    painter = painterResource(R.drawable.close_icon),
                                     contentDescription = null
                                 )
                             }
@@ -497,7 +497,7 @@ fun HistoryScreen(
             if (inSelectMode) {
                 IconButton(onClick = onExitSelectionMode) {
                     Icon(
-                        painter = painterResource(R.drawable.close),
+                        painter = painterResource(R.drawable.close_icon),
                         contentDescription = null,
                     )
                 }
@@ -518,7 +518,7 @@ fun HistoryScreen(
                     }
                 ) {
                     Icon(
-                        painterResource(R.drawable.arrow_back),
+                        painterResource(R.drawable.back_icon),
                         contentDescription = null
                     )
                 }

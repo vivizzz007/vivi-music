@@ -46,7 +46,6 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.URL
 import java.util.*
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
@@ -88,7 +87,6 @@ fun SettingsScreen(
         )
 
         Spacer(Modifier.height(16.dp))
-
         ElevatedCard(
             modifier = Modifier
                 .fillMaxWidth()
@@ -200,7 +198,6 @@ fun SettingsScreen(
             icon = { Icon(painterResource(R.drawable.theme_icon), null) },
             onClick = { navController.navigate("settings/appearance") }
         )
-
         Spacer(Modifier.height(10.dp))
         PreferenceEntry(
             title = { Text(stringResource(R.string.account)) },

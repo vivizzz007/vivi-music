@@ -45,7 +45,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -388,31 +387,6 @@ fun BottomSheetPlayer(
 
             when (sliderStyle) {
                 SliderStyle.DEFAULT -> {
-                    Slider(
-                        value = (sliderPosition ?: position).toFloat(),
-                        valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
-                        onValueChange = {
-                            sliderPosition = it.toLong()
-                        },
-                        onValueChangeFinished = {
-                            sliderPosition?.let {
-                                playerConnection.player.seekTo(it)
-                                position = it
-                            }
-                            sliderPosition = null
-                        },
-                        thumb = { Spacer(modifier = Modifier.size(0.dp)) },
-                        track = { sliderState ->
-                            PlayerSliderTrack(
-                                sliderState = sliderState,
-                                colors = SliderDefaults.colors()
-                            )
-                        },
-                        modifier = Modifier.padding(horizontal = PlayerHorizontalPadding)
-                    )
-                }
-
-                SliderStyle.SQUIGGLY -> {
                     SquigglySlider(
                         value = (sliderPosition ?: position).toFloat(),
                         valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
@@ -642,12 +616,6 @@ fun BottomSheetPlayer(
                         .fillMaxSize()
                         .background(Color.Black.copy(alpha = 0.3f))
                 )
-            } else if (playerBackground == PlayerBackgroundStyle.GRADIENT && gradientColors.size >= 2) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Brush.verticalGradient(gradientColors))
-                )
             }
             if (playerBackground == PlayerBackgroundStyle.BLURMOV) {
             val infiniteTransition = rememberInfiniteTransition(label = "")
@@ -656,7 +624,7 @@ fun BottomSheetPlayer(
                 targetValue = 360f,
                 animationSpec = infiniteRepeatable(
                     animation = tween(
-                        durationMillis = 100000,
+                        durationMillis = 30000,
                         easing = FastOutSlowInEasing
                     ),
                     repeatMode = RepeatMode.Restart
@@ -670,7 +638,7 @@ fun BottomSheetPlayer(
                         contentScale = ContentScale.FillBounds,
                         modifier = Modifier
                             .fillMaxSize()
-                            .blur(200.dp)
+                            .blur(100.dp)
                             .alpha(0.8f)
                             .background(if (useBlackBackground) Color.Black.copy(alpha = 0.5f) else Color.Transparent)
                             .rotate(rotation)
@@ -683,7 +651,7 @@ fun BottomSheetPlayer(
                     targetValue = 360f,
                     animationSpec = infiniteRepeatable(
                         animation = tween(
-                            durationMillis = 100000,
+                            durationMillis = 30000,
                             easing = FastOutSlowInEasing
                         ),
                         repeatMode = RepeatMode.Restart
@@ -695,7 +663,7 @@ fun BottomSheetPlayer(
                     contentScale = ContentScale.FillBounds,
                     modifier = Modifier
                         .fillMaxSize()
-                        .blur(200.dp)
+                        .blur(100.dp)
                         .alpha(0.8f)
                         .background(if (useBlackBackground) Color.Black.copy(alpha = 0.5f) else Color.Transparent)
                         .rotate(rotation)

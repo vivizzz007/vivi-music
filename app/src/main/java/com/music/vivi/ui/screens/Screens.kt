@@ -21,8 +21,8 @@ sealed class Screens(
 
     data object Explore : Screens(
         titleId = R.string.explore,
-        iconIdInactive = R.drawable.explore_outlined,
-        iconIdActive = R.drawable.explore_filled,
+        iconIdInactive = R.drawable.explore_icon,
+        iconIdActive = R.drawable.explore_icon,
         route = "Explore"
     )
 

@@ -1,4 +1,4 @@
-package com.maloy.innertube
+package com.music.innertube
 
 import com.music.innertube.YouTube
 import com.music.innertube.YouTube.SearchFilter.Companion.FILTER_ALBUM

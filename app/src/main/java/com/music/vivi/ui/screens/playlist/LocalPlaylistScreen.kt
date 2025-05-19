@@ -545,7 +545,7 @@ fun LocalPlaylistScreen(
                                             modifier = Modifier.detectReorder(reorderableState)
                                         ) {
                                             Icon(
-                                                painter = painterResource(R.drawable.drag_handle),
+                                                painter = painterResource(R.drawable.twolines_icon),
                                                 contentDescription = null
                                             )
                                         }
@@ -661,7 +661,7 @@ fun LocalPlaylistScreen(
                         }
                     ) {
                         Icon(
-                            painterResource(R.drawable.arrow_back),
+                            painterResource(R.drawable.back_icon),
                             contentDescription = null
                         )
                     }

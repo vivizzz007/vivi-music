@@ -293,12 +293,14 @@ class MainActivity : ComponentActivity() {
 //                }
 //            }
 
+
+
             val (appDesignVariant) = rememberEnumPreference(AppDesignVariantKey, defaultValue = AppDesignVariantType.NEW)
             val (defaultOpenTabOld) = rememberEnumPreference(DefaultOpenTabOldKey, defaultValue = NavigationTabOld.HOME)
             val navController = rememberNavController()
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val inSelectMode = navBackStackEntry?.savedStateHandle?.getStateFlow("inSelectMode", false)?.collectAsState()
-            val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)
+            val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = false)
             val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
             val pureBlack by rememberPreference(PureBlackKey, defaultValue = false)
             val isSystemInDarkTheme = isSystemInDarkTheme()
@@ -832,7 +834,7 @@ class MainActivity : ComponentActivity() {
                                         Icon(
                                             painterResource(
                                                 if (active || !navigationItems.fastAny { it.route == navBackStackEntry?.destination?.route }) {
-                                                    R.drawable.arrow_back
+                                                    R.drawable.back_icon
                                                 } else {
                                                     R.drawable.search_icon
                                                 }

@@ -346,7 +346,7 @@ fun LibrarySongsScreen(
             navigationIcon = {
                 IconButton(onClick = onExitSelectionMode) {
                     Icon(
-                        painter = painterResource(R.drawable.close),
+                        painter = painterResource(R.drawable.close_icon),
                         contentDescription = null,
                     )
                 }

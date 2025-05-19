@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import com.music.vivi.ui.component.IconButton
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -320,7 +321,7 @@ fun ArtistItemsScreen(
                     onLongClick = navController::backToMain
                 ) {
                     Icon(
-                        painterResource(R.drawable.arrow_back),
+                        painterResource(R.drawable.back_icon),
                         contentDescription = null
                     )
                 }

@@ -292,7 +292,7 @@ fun Queue(
                                 horizontalArrangement = Arrangement.Center
                             ) {
                                 Icon(
-                                    painter = painterResource(R.drawable.queue_music),
+                                    painter = painterResource(R.drawable.queue_icon),
                                     contentDescription = null,
                                     modifier = Modifier.size(20.dp),
                                     tint = onBackgroundColor
@@ -540,7 +540,7 @@ fun Queue(
                                             modifier = Modifier.draggableHandle()
                                         ) {
                                             Icon(
-                                                painter = painterResource(R.drawable.drag_handle),
+                                                painter = painterResource(R.drawable.twolines_icon),
                                                 contentDescription = null
                                             )
                                         }
@@ -756,7 +756,7 @@ fun Queue(
                     }
                 ) {
                     Icon(
-                        painter = if (lockQueue) painterResource(R.drawable.lock) else painterResource(R.drawable.lock_open),
+                        painter = if (lockQueue) painterResource(R.drawable.lockon_icon) else painterResource(R.drawable.lockoff_icon),
                         contentDescription = null,
                     )
                 }
@@ -781,7 +781,7 @@ fun DetailsDialog(
         onDismissRequest = onDismiss,
         icon = {
             Icon(
-                painter = painterResource(R.drawable.info),
+                painter = painterResource(R.drawable.info_icon),
                 contentDescription = null
             )
         },
