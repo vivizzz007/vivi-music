@@ -65,17 +65,10 @@ Any trademark, service mark, trade name, or other intellectual property rights u
 <div align="center">
 <h1>Special thanks</h1>
 
-(InnerTune)
-[Zion Huang](https://github.com/z-huang),
-[Malopieds](https://github.com/Malopieds)
 
-(OuterTune)
-[Davide Garberi](https://github.com/DD3Boh),
-[Michael Zh](https://github.com/mikooomich)
 
 (Muzza)
 [Maloy Android](https://github.com/Maloy-Android)
 
-(metrolist)
-[mostafaalagamy](https://github.com/mostafaalagamy/Metrolist) for Metrolist
+
 </div>
