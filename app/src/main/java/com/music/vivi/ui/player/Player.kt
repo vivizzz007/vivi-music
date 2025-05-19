@@ -670,7 +670,7 @@ fun BottomSheetPlayer(
                         contentScale = ContentScale.FillBounds,
                         modifier = Modifier
                             .fillMaxSize()
-                            .blur(200.dp)
+                            .blur(90.dp)
                             .alpha(0.8f)
                             .background(if (useBlackBackground) Color.Black.copy(alpha = 0.5f) else Color.Transparent)
                             .rotate(rotation)
@@ -695,7 +695,7 @@ fun BottomSheetPlayer(
                     contentScale = ContentScale.FillBounds,
                     modifier = Modifier
                         .fillMaxSize()
-                        .blur(200.dp)
+                        .blur(90.dp)
                         .alpha(0.8f)
                         .background(if (useBlackBackground) Color.Black.copy(alpha = 0.5f) else Color.Transparent)
                         .rotate(rotation)
