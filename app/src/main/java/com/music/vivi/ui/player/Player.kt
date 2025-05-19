@@ -45,6 +45,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -177,8 +178,8 @@ fun BottomSheetPlayer(
             else
                 if (pureBlack && darkTheme == DarkMode.ON && isSystemInDarkTheme)
                     Color.White
-            else
-                MaterialTheme.colorScheme.onPrimary
+                else
+                    MaterialTheme.colorScheme.onPrimary
     }
 
     var gradientColors by remember {
@@ -189,18 +190,18 @@ fun BottomSheetPlayer(
         if (playerBackground != PlayerBackgroundStyle.GRADIENT) return@LaunchedEffect
 
         withContext(Dispatchers.IO) {
-                val result = (ImageLoader(context).execute(
-                    ImageRequest.Builder(context)
-                        .data(mediaMetadata?.thumbnailUrl)
-                        .allowHardware(false)
-                        .build()
-                ).drawable as? BitmapDrawable)?.bitmap?.extractGradientColors()
+            val result = (ImageLoader(context).execute(
+                ImageRequest.Builder(context)
+                    .data(mediaMetadata?.thumbnailUrl)
+                    .allowHardware(false)
+                    .build()
+            ).drawable as? BitmapDrawable)?.bitmap?.extractGradientColors()
 
-                result?.let {
-                    gradientColors = it
-                }
+            result?.let {
+                gradientColors = it
             }
         }
+    }
 
     var position by rememberSaveable(playbackState) {
         mutableLongStateOf(playerConnection.player.currentPosition)
@@ -285,12 +286,12 @@ fun BottomSheetPlayer(
                                 overflow = TextOverflow.Ellipsis,
                                 color = onBackgroundColor,
                                 modifier =
-                                Modifier
-                                    .basicMarquee()
-                                    .clickable(enabled = mediaMetadata.album != null && !mediaMetadata.isLocal) {
-                                        navController.navigate("album/${mediaMetadata.album!!.id}")
-                                        state.collapseSoft()
-                                    },
+                                    Modifier
+                                        .basicMarquee()
+                                        .clickable(enabled = mediaMetadata.album != null && !mediaMetadata.isLocal) {
+                                            navController.navigate("album/${mediaMetadata.album!!.id}")
+                                            state.collapseSoft()
+                                        },
                             )
                         }
 
@@ -309,10 +310,10 @@ fun BottomSheetPlayer(
                                         color = onBackgroundColor,
                                         maxLines = 1,
                                         modifier =
-                                        Modifier.clickable(enabled = artist.id != null && !mediaMetadata.isLocal) {
-                                            navController.navigate("artist/${artist.id}")
-                                            state.collapseSoft()
-                                        },
+                                            Modifier.clickable(enabled = artist.id != null && !mediaMetadata.isLocal) {
+                                                navController.navigate("artist/${artist.id}")
+                                                state.collapseSoft()
+                                            },
                                     )
                                 }
 
@@ -383,10 +384,35 @@ fun BottomSheetPlayer(
                 }
             }
 
-    Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(12.dp))
 
             when (sliderStyle) {
                 SliderStyle.DEFAULT -> {
+                    Slider(
+                        value = (sliderPosition ?: position).toFloat(),
+                        valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
+                        onValueChange = {
+                            sliderPosition = it.toLong()
+                        },
+                        onValueChangeFinished = {
+                            sliderPosition?.let {
+                                playerConnection.player.seekTo(it)
+                                position = it
+                            }
+                            sliderPosition = null
+                        },
+                        thumb = { Spacer(modifier = Modifier.size(0.dp)) },
+                        track = { sliderState ->
+                            PlayerSliderTrack(
+                                sliderState = sliderState,
+                                colors = SliderDefaults.colors()
+                            )
+                        },
+                        modifier = Modifier.padding(horizontal = PlayerHorizontalPadding)
+                    )
+                }
+
+                SliderStyle.SQUIGGLY -> {
                     SquigglySlider(
                         value = (sliderPosition ?: position).toFloat(),
                         valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
@@ -588,21 +614,11 @@ fun BottomSheetPlayer(
                 }
             }
         }
-            if (playerBackground == PlayerBackgroundStyle.BLUR) {
-                if (mediaMetadata?.isLocal == true) {
-                    mediaMetadata.let {
-                        AsyncLocalImage(
-                            image = { imageCache.getLocalThumbnail(it?.localPath) },
-                            contentDescription = null,
-                            contentScale = ContentScale.FillBounds,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .blur(90.dp)
-                        )
-                    }
-                } else {
-                    AsyncImage(
-                        model = mediaMetadata?.thumbnailUrl,
+        if (playerBackground == PlayerBackgroundStyle.BLUR) {
+            if (mediaMetadata?.isLocal == true) {
+                mediaMetadata.let {
+                    AsyncLocalImage(
+                        image = { imageCache.getLocalThumbnail(it?.localPath) },
                         contentDescription = null,
                         contentScale = ContentScale.FillBounds,
                         modifier = Modifier
@@ -610,21 +626,37 @@ fun BottomSheetPlayer(
                             .blur(90.dp)
                     )
                 }
-
-                Box(
+            } else {
+                AsyncImage(
+                    model = mediaMetadata?.thumbnailUrl,
+                    contentDescription = null,
+                    contentScale = ContentScale.FillBounds,
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.3f))
+                        .blur(90.dp)
                 )
             }
-            if (playerBackground == PlayerBackgroundStyle.BLURMOV) {
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.3f))
+            )
+        } else if (playerBackground == PlayerBackgroundStyle.GRADIENT && gradientColors.size >= 2) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Brush.verticalGradient(gradientColors))
+            )
+        }
+        if (playerBackground == PlayerBackgroundStyle.BLURMOV) {
             val infiniteTransition = rememberInfiniteTransition(label = "")
             val rotation by infiniteTransition.animateFloat(
                 initialValue = 0f,
                 targetValue = 360f,
                 animationSpec = infiniteRepeatable(
                     animation = tween(
-                        durationMillis = 30000,
+                        durationMillis = 100000,
                         easing = FastOutSlowInEasing
                     ),
                     repeatMode = RepeatMode.Restart
@@ -638,7 +670,7 @@ fun BottomSheetPlayer(
                         contentScale = ContentScale.FillBounds,
                         modifier = Modifier
                             .fillMaxSize()
-                            .blur(100.dp)
+                            .blur(200.dp)
                             .alpha(0.8f)
                             .background(if (useBlackBackground) Color.Black.copy(alpha = 0.5f) else Color.Transparent)
                             .rotate(rotation)
@@ -651,7 +683,7 @@ fun BottomSheetPlayer(
                     targetValue = 360f,
                     animationSpec = infiniteRepeatable(
                         animation = tween(
-                            durationMillis = 30000,
+                            durationMillis = 100000,
                             easing = FastOutSlowInEasing
                         ),
                         repeatMode = RepeatMode.Restart
@@ -663,12 +695,12 @@ fun BottomSheetPlayer(
                     contentScale = ContentScale.FillBounds,
                     modifier = Modifier
                         .fillMaxSize()
-                        .blur(100.dp)
+                        .blur(200.dp)
                         .alpha(0.8f)
                         .background(if (useBlackBackground) Color.Black.copy(alpha = 0.5f) else Color.Transparent)
                         .rotate(rotation)
                 )
-        }
+            }
 
             if (showLyrics) {
                 Box(
@@ -744,11 +776,11 @@ fun BottomSheetPlayer(
         Queue(
             state = queueSheetState,
             backgroundColor =
-            if (useBlackBackground) {
-                Color.Black
-            } else {
-                MaterialTheme.colorScheme.surfaceContainer
-            },
+                if (useBlackBackground) {
+                    Color.Black
+                } else {
+                    MaterialTheme.colorScheme.surfaceContainer
+                },
             navController = navController,
             onBackgroundColor = onBackgroundColor,
         )

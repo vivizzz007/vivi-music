@@ -75,21 +75,6 @@ import java.util.Locale
 import androidx.core.net.toUri
 import androidx.core.content.edit
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.height
-import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.draw.clip
-import androidx.compose.foundation.layout.padding
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.runtime.*
-import androidx.compose.ui.layout.ContentScale
-
-
 @SuppressLint("PrivateResource")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -98,7 +83,6 @@ fun ContentSettings(
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
     val context = LocalContext.current
-    var visible by remember { mutableStateOf(false) }
     val (likedAutoDownload, onLikedAutoDownload) = rememberEnumPreference(LikedAutoDownloadKey, LikedAutodownloadMode.OFF)
     val (contentLanguage, onContentLanguageChange) = rememberPreference(key = ContentLanguageKey, defaultValue = "system")
     val (contentCountry, onContentCountryChange) = rememberPreference(key = ContentCountryKey, defaultValue = "system")
@@ -144,31 +128,6 @@ fun ContentSettings(
             )
         }
 
-
-        var visible by remember { mutableStateOf(false) }
-
-        LaunchedEffect(Unit) {
-            visible = true
-        }
-
-        AnimatedVisibility(
-            visible = visible,
-            enter = fadeIn(),
-            exit = fadeOut()
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.content),
-                contentDescription = stringResource(R.string.content_banner_description),
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .height(180.dp)
-                    .clip(RoundedCornerShape(12.dp))
-            )
-        }
-
-
         PreferenceGroupTitle(
             title = stringResource(R.string.home)
         )
@@ -187,7 +146,7 @@ fun ContentSettings(
         )
         ListPreference(
             title = { Text(stringResource(R.string.content_country)) },
-            icon = { Icon(painterResource(R.drawable.location_icon), null) },
+            icon = { Icon(painterResource(R.drawable.location_on), null) },
             selectedValue = contentCountry,
             values = listOf(SYSTEM_DEFAULT) + CountryCodeToName.keys.toList(),
             valueText = {
@@ -215,7 +174,7 @@ fun ContentSettings(
             PreferenceEntry(
                 title = { Text(stringResource(R.string.open_supported_links)) },
                 description = stringResource(R.string.configure_supported_links),
-                icon = { Icon(painterResource(R.drawable.link_icon), null) },
+                icon = { Icon(painterResource(R.drawable.add_link), null) },
                 onClick = {
                     try {
                         context.startActivity(
@@ -238,7 +197,7 @@ fun ContentSettings(
         PreferenceGroupTitle(title = stringResource(R.string.content))
         SwitchPreference(
             title = { Text(stringResource(R.string.hide_explicit)) },
-            icon = { Icon(painterResource(R.drawable.explicit_icon), null) },
+            icon = { Icon(painterResource(R.drawable.explicit), null) },
             checked = hideExplicit,
             onCheckedChange = onHideExplicitChange
         )
@@ -246,7 +205,7 @@ fun ContentSettings(
         PreferenceGroupTitle(title = stringResource(R.string.notifications))
         PreferenceEntry(
             title = { Text(stringResource(R.string.notifications_settings)) },
-            icon = { Icon(painterResource(R.drawable.notification_icon), null) },
+            icon = { Icon(painterResource(R.drawable.notification_on), null) },
             onClick = { navController.navigate("settings/content/notification") }
         )
 
@@ -254,7 +213,7 @@ fun ContentSettings(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             PreferenceEntry(
                 title = { Text(stringResource(R.string.app_language)) },
-                icon = { Icon(painterResource(R.drawable.language_icon), null) },
+                icon = { Icon(painterResource(R.drawable.translate), null) },
                 onClick = {
                     context.startActivity(
                         Intent(
@@ -267,7 +226,7 @@ fun ContentSettings(
         } else {
             ListPreference(
                 title = { Text(stringResource(R.string.app_language)) },
-                icon = { Icon(painterResource(R.drawable.language_icon), null) },
+                icon = { Icon(painterResource(R.drawable.translate), null) },
                 selectedValue = selectedLanguage,
                 values = listOf(SYSTEM_DEFAULT) + LanguageCodeToName.keys.toList(),
                 valueText = { LanguageCodeToName[it] ?: stringResource(R.string.system_default) },
@@ -285,7 +244,7 @@ fun ContentSettings(
 
         SwitchPreference(
             title = { Text(stringResource(R.string.enable_proxy)) },
-            icon = { Icon(painterResource(R.drawable.proxy_icon), null) },
+            icon = { Icon(painterResource(R.drawable.wifi_proxy), null) },
             checked = proxyEnabled,
             onCheckedChange = onProxyEnabledChange
         )
@@ -316,7 +275,7 @@ fun ContentSettings(
                 onLongClick = navController::backToMain
             ) {
                 Icon(
-                    painterResource(R.drawable.back_icon),
+                    painterResource(R.drawable.arrow_back),
                     contentDescription = null
                 )
             }

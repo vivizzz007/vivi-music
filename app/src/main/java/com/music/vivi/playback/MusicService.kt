@@ -66,10 +66,10 @@ import com.music.vivi.constants.DiscordTokenKey
 import com.music.vivi.constants.EnableDiscordRPCKey
 import com.music.vivi.constants.HideExplicitKey
 import com.music.vivi.constants.KeepAliveKey
-import com.music.vivi.constants.MediaSessionConstants.CommandToggleLibrary
+//import com.music.vivi.constants.MediaSessionConstants.CommandToggleLibrary
 import com.music.vivi.constants.MediaSessionConstants.CommandToggleLike
 import com.music.vivi.constants.MediaSessionConstants.CommandToggleRepeatMode
-import com.music.vivi.constants.MediaSessionConstants.CommandToggleShuffle
+//import com.music.vivi.constants.MediaSessionConstants.CommandToggleShuffle
 import com.music.vivi.constants.MediaSessionConstants.CommandToggleStartRadio
 import com.music.vivi.constants.PauseListenHistoryKey
 import com.music.vivi.constants.PersistentQueueKey
