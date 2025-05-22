@@ -27,7 +27,9 @@ enum class AppDesignVariantType {
 }
 
 enum class SliderStyle {
-    SQUIGGLY,DEFAULT , COMPOSE
+    SQUIGGLY,
+//    DEFAULT
+     COMPOSE
 }
 
 val AutoPlaylistsCustomizationKey = booleanPreferencesKey("autoPlaylistsCustomization")

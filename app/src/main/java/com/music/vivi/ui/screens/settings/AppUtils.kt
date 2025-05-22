@@ -173,7 +173,7 @@ fun UpdateScreen(navController: NavHostController) {
                                         .weight(1f)
                                         .height(56.dp)
                                 ) {
-                                    Text("View Details", fontSize = 16.sp)
+                                    Text("Update", fontSize = 16.sp)
                                 }
                             }
                             updateAvailable && showUpdateDetails && !isDownloadComplete -> {

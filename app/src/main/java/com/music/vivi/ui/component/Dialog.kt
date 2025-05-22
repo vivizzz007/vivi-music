@@ -267,7 +267,7 @@ fun CounterDialog(
         val tempValue = rememberSaveable {
             mutableIntStateOf(initialValue)
         }
-        val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.DEFAULT)
+        val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.SQUIGGLY)
         Column(
             modifier = Modifier
                 .background(
@@ -301,20 +301,20 @@ fun CounterDialog(
                         modifier = Modifier.padding(horizontal = 8.dp)
                     )
                     when (sliderStyle) {
-                        SliderStyle.DEFAULT -> {
-                            Slider(
-                                value = tempValue.intValue.toFloat(),
-                                onValueChange = { tempValue.intValue = it.toInt() },
-                                valueRange = lowerBound.toFloat()..upperBound.toFloat(),
-                                thumb = { Spacer(modifier = Modifier.size(0.dp)) },
-                                track = { sliderState ->
-                                    PlayerSliderTrack(
-                                        sliderState = sliderState,
-                                        colors = SliderDefaults.colors()
-                                    )
-                                }
-                            )
-                        }
+//                        SliderStyle.DEFAULT -> {
+//                            Slider(
+//                                value = tempValue.intValue.toFloat(),
+//                                onValueChange = { tempValue.intValue = it.toInt() },
+//                                valueRange = lowerBound.toFloat()..upperBound.toFloat(),
+//                                thumb = { Spacer(modifier = Modifier.size(0.dp)) },
+//                                track = { sliderState ->
+//                                    PlayerSliderTrack(
+//                                        sliderState = sliderState,
+//                                        colors = SliderDefaults.colors()
+//                                    )
+//                                }
+//                            )
+//                        }
                         SliderStyle.SQUIGGLY -> {
                             SquigglySlider(
                                 value = tempValue.intValue.toFloat(),

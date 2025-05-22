@@ -1,6 +1,10 @@
 package com.music.vivi
 
 import android.Manifest
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.Context
@@ -780,10 +784,18 @@ class MainActivity : ComponentActivity() {
                                                 }
                                             }
                                         ) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.setting_icon),
-                                                contentDescription = stringResource(R.string.settings),
-                                                modifier = Modifier.size(24.dp)
+//                                            Icon(
+//                                                painter = painterResource(R.drawable.setting_icon),
+//                                                contentDescription = stringResource(R.string.settings),
+//                                                modifier = Modifier.size(24.dp)
+//                                            )
+                                            val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.setting))
+                                            val progress by animateLottieCompositionAsState(composition)
+
+                                            LottieAnimation(
+                                                composition = composition,
+                                                progress = progress,
+                                                modifier = Modifier.size(45.dp) // adjust size
                                             )
                                         }
                                     }

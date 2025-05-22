@@ -73,6 +73,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.draw.blur
 import androidx.compose.foundation.border
+import androidx.compose.runtime.getValue
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
 
 
 @Composable
@@ -206,25 +211,39 @@ fun SetupWizard(
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.padding(horizontal = 24.dp)
-                    ) {
+                    )
+                    {
+//                        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.setup)) // Replace with your Lottie JSON file
+//                        LottieAnimation(
+//                            composition = composition,
+//                            iterations = LottieConstants.IterateForever, // Loop the animation
+//                            modifier = Modifier
+////                    .size(100.dp)
+//                                .fillMaxWidth()
+//                                .padding(horizontal = 16.dp, vertical = 8.dp)
+//                                .height(180.dp)
+//                                .clip(RoundedCornerShape(12.dp))
+//                        )
+                        Spacer(Modifier.height(300.dp))
                         Box(
                             modifier = Modifier
                                 .size(120.dp) // Increased size
                                 .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation))
-                                .shadow(8.dp, CircleShape), // Add shadow
+//                                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation))
+//                                .shadow(8.dp, CircleShape)
+                                , // Add shadow
                             contentAlignment = Alignment.Center
                         ) {
                             Image(
-                                painter = painterResource(R.drawable.ic_launcher_monochrome),
+                                painter = painterResource(R.drawable.vivimusic),
                                 contentDescription = null,
-                                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground, BlendMode.SrcIn),
+//                                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground, BlendMode.SrcIn),
                                 modifier = Modifier
-                                    .size(80.dp) // Increased size of the icon
+                                    .size(150.dp) // Increased size of the icon
                                     .clickable { },
                             )
                         }
-                        Spacer(Modifier.height(24.dp)) // Increased spacing
+                        Spacer(Modifier.height(10.dp)) // Increased spacing
                         Text(
                             text = stringResource(R.string.welcome_to_vivi),
                             style = MaterialTheme.typography.headlineLarge,

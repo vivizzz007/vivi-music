@@ -214,21 +214,21 @@ fun Queue(
                         style = MaterialTheme.typography.bodyLarge
                     )
                     when (sliderStyle) {
-                        SliderStyle.DEFAULT -> {
-                            Slider(
-                                value = sleepTimerValue,
-                                onValueChange = { sleepTimerValue = it },
-                                valueRange = 5f..120f,
-                                steps = (120 - 5) / 5 - 1,
-                                thumb = { Spacer(modifier = Modifier.size(0.dp)) },
-                                track = { sliderState ->
-                                    PlayerSliderTrack(
-                                        sliderState = sliderState,
-                                        colors = SliderDefaults.colors()
-                                    )
-                                },
-                            )
-                        }
+//                        SliderStyle.DEFAULT -> {
+//                            Slider(
+//                                value = sleepTimerValue,
+//                                onValueChange = { sleepTimerValue = it },
+//                                valueRange = 5f..120f,
+//                                steps = (120 - 5) / 5 - 1,
+//                                thumb = { Spacer(modifier = Modifier.size(0.dp)) },
+//                                track = { sliderState ->
+//                                    PlayerSliderTrack(
+//                                        sliderState = sliderState,
+//                                        colors = SliderDefaults.colors()
+//                                    )
+//                                },
+//                            )
+//                        }
                         SliderStyle.SQUIGGLY -> {
                             SquigglySlider(
                                 value = sleepTimerValue,

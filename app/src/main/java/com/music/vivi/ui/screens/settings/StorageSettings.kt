@@ -42,6 +42,10 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.annotation.ExperimentalCoilApi
 import coil.imageLoader
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.music.vivi.BuildConfig
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.LocalPlayerConnection
@@ -297,11 +301,22 @@ fun StorageSettings(
             exit = fadeOut()
         ) {
 
-            Image(
-                painter = painterResource(id = R.drawable.storage_box),
-                contentDescription = stringResource(R.string.storage_banner_description),
-                contentScale = ContentScale.Crop,
+//            Image(
+//                painter = painterResource(id = R.drawable.storage_box),
+//                contentDescription = stringResource(R.string.storage_banner_description),
+//                contentScale = ContentScale.Crop,
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(horizontal = 16.dp, vertical = 8.dp)
+//                    .height(180.dp)
+//                    .clip(RoundedCornerShape(12.dp))
+//            )
+            val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.storage)) // Replace with your Lottie JSON file
+            LottieAnimation(
+                composition = composition,
+                iterations = LottieConstants.IterateForever, // Loop the animation
                 modifier = Modifier
+//                    .size(100.dp)
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .height(180.dp)

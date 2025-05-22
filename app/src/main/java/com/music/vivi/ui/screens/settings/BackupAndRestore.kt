@@ -41,6 +41,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
 import com.music.vivi.ui.component.IconButton
@@ -89,11 +93,22 @@ fun BackupAndRestore(
             exit = fadeOut()
         ) {
 
-            Image(
-                painter = painterResource(id = R.drawable.backupimg),
-                contentDescription = stringResource(R.string.backupandrestore_banner_description),
-                contentScale = ContentScale.Crop,
+//            Image(
+//                painter = painterResource(id = R.drawable.backupimg),
+//                contentDescription = stringResource(R.string.backupandrestore_banner_description),
+//                contentScale = ContentScale.Crop,
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(horizontal = 16.dp, vertical = 8.dp)
+//                    .height(180.dp)
+//                    .clip(RoundedCornerShape(12.dp))
+//            )
+            val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.backupup)) // Replace with your Lottie JSON file
+            LottieAnimation(
+                composition = composition,
+                iterations = LottieConstants.IterateForever, // Loop the animation
                 modifier = Modifier
+//                    .size(100.dp)
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .height(180.dp)

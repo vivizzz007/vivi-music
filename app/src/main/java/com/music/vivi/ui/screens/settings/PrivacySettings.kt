@@ -49,7 +49,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.layout.ContentScale
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -147,12 +152,23 @@ fun PrivacySettings(
             enter = fadeIn(),
             exit = fadeOut()
         ) {
-
-            Image(
-                painter = painterResource(id = R.drawable.securityimg),
-                contentDescription = stringResource(R.string.privacy_banner_description),
-                contentScale = ContentScale.Crop,
+//
+//            Image(
+//                painter = painterResource(id = R.drawable.securityimg),
+//                contentDescription = stringResource(R.string.privacy_banner_description),
+//                contentScale = ContentScale.Crop,
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(horizontal = 16.dp, vertical = 8.dp)
+//                    .height(180.dp)
+//                    .clip(RoundedCornerShape(12.dp))
+//            )
+            val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.privacy)) // Replace with your Lottie JSON file
+            LottieAnimation(
+                composition = composition,
+                iterations = LottieConstants.IterateForever, // Loop the animation
                 modifier = Modifier
+//                    .size(100.dp)
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .height(180.dp)

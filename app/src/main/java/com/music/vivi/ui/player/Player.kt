@@ -387,30 +387,31 @@ fun BottomSheetPlayer(
             Spacer(Modifier.height(12.dp))
 
             when (sliderStyle) {
-                SliderStyle.DEFAULT -> {
-                    Slider(
-                        value = (sliderPosition ?: position).toFloat(),
-                        valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
-                        onValueChange = {
-                            sliderPosition = it.toLong()
-                        },
-                        onValueChangeFinished = {
-                            sliderPosition?.let {
-                                playerConnection.player.seekTo(it)
-                                position = it
-                            }
-                            sliderPosition = null
-                        },
-                        thumb = { Spacer(modifier = Modifier.size(0.dp)) },
-                        track = { sliderState ->
-                            PlayerSliderTrack(
-                                sliderState = sliderState,
-                                colors = SliderDefaults.colors()
-                            )
-                        },
-                        modifier = Modifier.padding(horizontal = PlayerHorizontalPadding)
-                    )
-                }
+
+//                SliderStyle.DEFAULT -> {
+//                    Slider(
+//                        value = (sliderPosition ?: position).toFloat(),
+//                        valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
+//                        onValueChange = {
+//                            sliderPosition = it.toLong()
+//                        },
+//                        onValueChangeFinished = {
+//                            sliderPosition?.let {
+//                                playerConnection.player.seekTo(it)
+//                                position = it
+//                            }
+//                            sliderPosition = null
+//                        },
+//                        thumb = { Spacer(modifier = Modifier.size(0.dp)) },
+//                        track = { sliderState ->
+//                            PlayerSliderTrack(
+//                                sliderState = sliderState,
+//                                colors = SliderDefaults.colors()
+//                            )
+//                        },
+//                        modifier = Modifier.padding(horizontal = PlayerHorizontalPadding)
+//                    )
+//                }
 
                 SliderStyle.SQUIGGLY -> {
                     SquigglySlider(

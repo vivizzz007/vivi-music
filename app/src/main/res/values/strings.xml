@@ -1,7 +1,7 @@
 <resources>
 
     <!-- Setup wizard -->
-    <string name="welcome_to_vivi">Welcome to VIVI</string>
+    <string name="welcome_to_vivi">WELCOME TO VIVI</string>
     <string name="yt_music_fingertips">YouTube Music</string>
     <string name="ytm_account_sync">YouTube-Music account sync</string>
     <string name="ad_free_playback">AD free music</string>
@@ -13,6 +13,7 @@
 
     <!-- Bottom navigation -->
     <string name="home">VIVI</string>
+    <string name="home1">Home Screen</string>
     <string name="homee">Home</string>
     <string name="explore">Explore</string>
     <string name="songs">Songs</string>

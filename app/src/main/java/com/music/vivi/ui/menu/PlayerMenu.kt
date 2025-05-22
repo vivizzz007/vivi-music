@@ -154,7 +154,7 @@ fun PlayerMenu(
         mutableFloatStateOf(30f)
     }
 
-    val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.DEFAULT)
+    val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.SQUIGGLY)
 
     if (showSleepTimerDialog) {
         AlertDialog(
@@ -191,21 +191,21 @@ fun PlayerMenu(
                     )
 
                     when (sliderStyle) {
-                        SliderStyle.DEFAULT -> {
-                            Slider(
-                                value = sleepTimerValue,
-                                onValueChange = { sleepTimerValue = it },
-                                valueRange = 5f..120f,
-                                steps = (120 - 5) / 5 - 1,
-                                thumb = { Spacer(modifier = Modifier.size(0.dp)) },
-                                track = { sliderState ->
-                                    PlayerSliderTrack(
-                                        sliderState = sliderState,
-                                        colors = SliderDefaults.colors()
-                                    )
-                                },
-                            )
-                        }
+//                        SliderStyle.DEFAULT -> {
+//                            Slider(
+//                                value = sleepTimerValue,
+//                                onValueChange = { sleepTimerValue = it },
+//                                valueRange = 5f..120f,
+//                                steps = (120 - 5) / 5 - 1,
+//                                thumb = { Spacer(modifier = Modifier.size(0.dp)) },
+//                                track = { sliderState ->
+//                                    PlayerSliderTrack(
+//                                        sliderState = sliderState,
+//                                        colors = SliderDefaults.colors()
+//                                    )
+//                                },
+//                            )
+//                        }
                         SliderStyle.SQUIGGLY -> {
                             SquigglySlider(
                                 value = sleepTimerValue,

@@ -36,6 +36,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.music.innertube.YouTube
 import com.music.innertube.utils.parseCookieString
 import com.music.vivi.LocalPlayerAwareWindowInsets
@@ -96,11 +100,22 @@ fun AccountSettings(
             exit = fadeOut()
         ) {
 
-            Image(
-                painter = painterResource(id = R.drawable.account_box),
-                contentDescription = stringResource(R.string.playerandaudio),
-                contentScale = ContentScale.Crop,
+//            Image(
+//                painter = painterResource(id = R.drawable.account_box),
+//                contentDescription = stringResource(R.string.playerandaudio),
+//                contentScale = ContentScale.Crop,
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(horizontal = 16.dp, vertical = 8.dp)
+//                    .height(180.dp)
+//                    .clip(RoundedCornerShape(12.dp))
+//            )
+            val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.login)) // Replace with your Lottie JSON file
+            LottieAnimation(
+                composition = composition,
+                iterations = LottieConstants.IterateForever, // Loop the animation
                 modifier = Modifier
+//                    .size(100.dp)
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .height(180.dp)

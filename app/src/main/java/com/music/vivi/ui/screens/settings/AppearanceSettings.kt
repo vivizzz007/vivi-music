@@ -56,6 +56,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
 import com.music.vivi.constants.AppDesignVariantKey
@@ -125,7 +129,7 @@ fun AppearanceSettings(
     val (autoPlaylistLocal, onAutoPlaylistLocalChange) = rememberPreference(
         AutoPlaylistLocalPlaylistShowKey, defaultValue = true)
     val (swipeSongToDismiss, onSwipeSongToDismissChange) = rememberPreference(SwipeSongToDismissKey, defaultValue = true)
-    val (sliderStyle, onSliderStyleChange) = rememberEnumPreference(SliderStyleKey, defaultValue = SliderStyle.DEFAULT)
+    val (sliderStyle, onSliderStyleChange) = rememberEnumPreference(SliderStyleKey, defaultValue = SliderStyle.SQUIGGLY)
     val (defaultOpenTabOld, onDefaultOpenTabOldChange) = rememberEnumPreference(DefaultOpenTabOldKey, defaultValue = NavigationTabOld.HOME)
     val (defaultOpenTab, onDefaultOpenTabChange) = rememberEnumPreference(DefaultOpenTabKey, defaultValue = NavigationTab.HOME)
     val (gridCellSize, onGridCellSizeChange) = rememberEnumPreference(GridCellSizeKey, defaultValue = GridCellSize.SMALL)
@@ -216,11 +220,11 @@ fun AppearanceSettings(
                         .clip(RoundedCornerShape(16.dp))
                         .border(
                             1.dp,
-                            if (sliderStyle == SliderStyle.DEFAULT) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                            if (sliderStyle == SliderStyle.SQUIGGLY) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
                             RoundedCornerShape(16.dp)
                         )
                         .clickable {
-                            onSliderStyleChange(SliderStyle.DEFAULT)
+                            onSliderStyleChange(SliderStyle.SQUIGGLY)
                             showSliderOptionDialog = false
                         }
                         .padding(16.dp)
@@ -289,17 +293,40 @@ fun AppearanceSettings(
             exit = fadeOut()
         ) {
 
-            Image(
-                painter = painterResource(id = R.drawable.appearence_box),
-                contentDescription = stringResource(R.string.appearenceimg),
-                contentScale = ContentScale.Crop,
+//            Image(
+//                painter = painterResource(id = R.drawable.appearence_box),
+//                contentDescription = stringResource(R.string.appearenceimg),
+//                contentScale = ContentScale.Crop,
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(horizontal = 16.dp, vertical = 8.dp)
+//                    .height(180.dp)
+//                    .clip(RoundedCornerShape(12.dp))
+//            )
+            val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.theme)) // Replace with your Lottie JSON file
+            LottieAnimation(
+                composition = composition,
+                iterations = LottieConstants.IterateForever, // Loop the animation
                 modifier = Modifier
+//                    .size(100.dp)
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .height(180.dp)
                     .clip(RoundedCornerShape(12.dp))
             )
         }
+
+        PreferenceGroupTitle(
+            title = stringResource(R.string.home1)
+        )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.show_content_filter)) },
+            icon = { Icon(Icons.Rounded.FilterList, null) },
+            checked = showContentFilter,
+            onCheckedChange = onShowContentFilterChange
+        )
+
         PreferenceGroupTitle(
             title = stringResource(R.string.theme)
         )
@@ -356,24 +383,13 @@ fun AppearanceSettings(
             title = { Text(stringResource(R.string.slider_style)) },
             description = when (sliderStyle) {
                 SliderStyle.SQUIGGLY -> stringResource(R.string.squiggly)
-                SliderStyle.DEFAULT -> stringResource(R.string.default_)
+//                SliderStyle.DEFAULT -> stringResource(R.string.default_)
                 SliderStyle.COMPOSE -> stringResource(R.string.compose)
             },
             icon = { Icon(painterResource(R.drawable.slider_icon), null) },
             onClick = {
                 showSliderOptionDialog = true
             }
-        )
-
-        PreferenceGroupTitle(
-            title = stringResource(R.string.home)
-        )
-
-        SwitchPreference(
-            title = { Text(stringResource(R.string.show_content_filter)) },
-            icon = { Icon(Icons.Rounded.FilterList, null) },
-            checked = showContentFilter,
-            onCheckedChange = onShowContentFilterChange
         )
 
         PreferenceGroupTitle(
