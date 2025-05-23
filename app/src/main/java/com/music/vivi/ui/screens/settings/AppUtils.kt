@@ -34,6 +34,7 @@ import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.*
 import android.content.Context
+import com.music.vivi.R
 import android.content.Intent
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -52,6 +53,11 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -86,6 +92,7 @@ fun UpdateScreen(navController: NavHostController) {
         updateMessage = ""
         changelog = ""
         coroutineScope.launch {
+            delay(5000L)
             checkForUpdate(
                 onSuccess = { latestVersion, latestChangelog, latestSize ->
                     isChecking = false
@@ -289,7 +296,7 @@ fun UpdateScreen(navController: NavHostController) {
                         )
 
 
-                        // Pixel-style Progress Bar
+                        // Pixel-style Progress Bar for DOWNLOAD
                         AnimatedVisibility(visible = updateAvailable && isDownloading && !isDownloadComplete) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) { // Center the progress bar and text
                                 Row(
@@ -424,6 +431,7 @@ fun UpdateScreen(navController: NavHostController) {
 
 
                     } else {
+                        // This block is executed when updateAvailable is FALSE (no update or checking)
                         Text(
                             text = "VIVI MUSIC",
                             color = MaterialTheme.colorScheme.onSurface,
@@ -437,7 +445,35 @@ fun UpdateScreen(navController: NavHostController) {
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 16.sp
                         )
+                        Spacer(modifier = Modifier.height(24.dp)) // Add spacing before the animation
+
+                        // Lottie Animation when no update is available or checking
+                        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.updateon))
+                        val progress by animateLottieCompositionAsState(
+                            composition,
+                            iterations = LottieConstants.IterateForever // Loop the animation
+                        )
+
+                        LottieAnimation(
+                            composition,
+                            progress,
+                            modifier = Modifier
+                                .size(285.dp) // Adjust size as needed
+                                .padding(top = 16.dp, bottom = 16.dp)
+                        )
+
+
                         Spacer(modifier = Modifier.height(24.dp))
+
+                        // Now the "You're already up to date." message
+                        if (!isChecking && !fetchError) { // Only show this message if not checking and no error
+                            Text(
+                                text = updateMessage, // This will be "You're already up to date."
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(16.dp),
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
 
 
@@ -450,30 +486,25 @@ fun UpdateScreen(navController: NavHostController) {
                         )
                     }
 
-                    if (!updateAvailable && !fetchError && !isChecking && !isDownloading) {
-                        Text(
-                            text = updateMessage,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(16.dp),
-                            textAlign = TextAlign.Center
-                        )
-                    }
-
-                    if (isChecking && !isDownloading) {
+                    // --- MERGED: LinearProgressIndicator below "Checking for updates..." text ---
+                    if (isChecking && !isDownloading && !fetchError) { // Ensure it only shows when actively checking and no error
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier.padding(16.dp)
                         ) {
-                            CircularProgressIndicator(
-                                color = pixelBlue,
-                                modifier = Modifier.size(36.dp),
-                                strokeWidth = 3.dp
-                            )
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Text(
+                            Text( // Text comes first
                                 text = "Checking for updates...",
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontSize = 16.sp
+                            )
+                            Spacer(modifier = Modifier.height(12.dp)) // Spacer to separate text and indicator
+                            LinearProgressIndicator( // Indicator comes second
+                                modifier = Modifier
+                                    .fillMaxWidth(0.6f) // Make it take up 60% of the width
+                                    .height(8.dp) // Adjust thickness
+                                    .clip(RoundedCornerShape(4.dp)), // Give it rounded corners
+                                color = pixelBlue, // Use your custom blue color
+                                trackColor = progressBarBackground // Background color for the track
                             )
                         }
                     }
