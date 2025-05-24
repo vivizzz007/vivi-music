@@ -3,11 +3,22 @@ package com.music.vivi.ui.screens.settings
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material.icons.rounded.FolderCopy
 import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material.icons.rounded.TextFields
@@ -21,12 +32,18 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
 import com.music.vivi.constants.AutoSyncLocalSongsKey
@@ -70,6 +87,17 @@ fun LocalPlayerSettings(
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
             .verticalScroll(rememberScrollState())
     ) {
+        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.internalplayer)) // Replace with your Lottie JSON file
+        LottieAnimation(
+            composition = composition,
+            iterations = LottieConstants.IterateForever, // Loop the animation
+            modifier = Modifier
+//                    .size(100.dp)
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .height(180.dp)
+                .clip(RoundedCornerShape(12.dp))
+        )
         Row(
             modifier = Modifier
                 .padding(horizontal = 20.dp, vertical = 8.dp)
@@ -130,10 +158,25 @@ fun LocalPlayerSettings(
         PreferenceGroupTitle(
             title = stringResource(R.string.folders_settings_title)
         )
+//        SwitchPreference(
+//            title = { Text(stringResource(R.string.flat_subfolders_title)) },
+//            description = stringResource(R.string.flat_subfolders_description),
+//            icon = { Icon(Icons.Rounded.FolderCopy, null) },
+//            checked = flatSubfolders,
+//            onCheckedChange = onFlatSubfoldersChange
+//        )
         SwitchPreference(
             title = { Text(stringResource(R.string.flat_subfolders_title)) },
             description = stringResource(R.string.flat_subfolders_description),
-            icon = { Icon(Icons.Rounded.FolderCopy, null) },
+            icon = {
+                Icon(
+                    painter = painterResource(id = R.drawable.folder_icon), // Replace with your actual drawable name
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+//                    tint = Color.White // Optional: remove or change color as needed
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            },
             checked = flatSubfolders,
             onCheckedChange = onFlatSubfoldersChange
         )

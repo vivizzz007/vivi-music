@@ -7,8 +7,12 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.NoCell
@@ -19,12 +23,19 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.navigation.NavController
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.NotificationPermissionPreference
 import com.music.vivi.R
@@ -91,9 +102,23 @@ fun NotificationSettings(
             .verticalScroll(rememberScrollState())
     ) {
 
+
+
+        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.notification)) // Replace with your Lottie JSON file
+        LottieAnimation(
+            composition = composition,
+            iterations = LottieConstants.IterateForever, // Loop the animation
+            modifier = Modifier
+//                    .size(100.dp)
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .height(180.dp)
+                .clip(RoundedCornerShape(12.dp))
+        )
         PreferenceGroupTitle(
             title = stringResource(R.string.notifications)
         )
+
 
         NotificationPermissionPreference()
 

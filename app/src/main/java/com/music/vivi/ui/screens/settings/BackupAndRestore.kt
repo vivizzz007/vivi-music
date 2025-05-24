@@ -128,11 +128,13 @@ fun BackupAndRestore(
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant
             ),
-            onClick = {
-                val formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
-                backupLauncher.launch("${context.getString(R.string.app_name)}_${LocalDateTime.now().format(formatter)}.backup")
-            }
-        ) {
+//            onClick = {
+//                val formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+//                backupLauncher.launch("${context.getString(R.string.app_name)}_${LocalDateTime.now().format(formatter)}.backup")
+//            }
+        )
+        {
+
             Column(
                 modifier = Modifier
                     .padding(16.dp)

@@ -187,9 +187,22 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("com.squareup.okhttp3:okhttp:4.9.1")
     implementation("io.coil-kt:coil-compose:2.4.0")
-    implementation("androidx.compose.ui:ui:1.3.0")
+//    implementation("androidx.compose.ui:ui:1.3.0")
 // or a later version
     implementation("androidx.activity:activity-compose:1.5.0")
     implementation("com.airbnb.android:lottie-compose:6.0.0")
+    implementation("androidx.activity:activity-compose:1.8.2")
+    implementation("androidx.compose.ui:ui:1.7.0")
+    implementation("org.json:json:20231013")
+    implementation ("androidx.compose:compose-bom:2023.08.00") // Use the latest stable BOM
+    implementation ("androidx.compose.ui:ui")
+    implementation ("androidx.compose.ui:ui-graphics")
+    implementation ("androidx.compose.ui:ui-tooling-preview")
+    // OLD: implementation 'androidx.compose.material:material'
+    implementation ("androidx.compose.material3:material3:1.2.1") // <--- ADD THIS FOR MATERIAL 3 (check for latest stable version)
+    implementation ("androidx.activity:activity-compose:1.8.0")
+    debugImplementation ("androidx.compose.ui:ui-tooling")
+    debugImplementation ("androidx.compose.ui:ui-test-manifest")
+// Or the latest version compatible with your setup
 
 }

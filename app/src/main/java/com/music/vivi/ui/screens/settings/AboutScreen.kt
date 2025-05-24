@@ -288,6 +288,18 @@ fun AboutScreen(
     // NEW: Github Bottom Sheet state
     var showGithubSheet by remember { mutableStateOf(false) }
 
+    // --- NEW STATE FOR BUILD VERSION CLICKS ---
+    var buildVersionClickCount by remember { mutableStateOf(0) }
+
+    // --- LaunchedEffect for Build Version Clicks ---
+    LaunchedEffect(buildVersionClickCount) {
+        if (buildVersionClickCount >= 5) {
+            // Navigate to AppearanceSetting.kt (assuming its route is "settings/appearance")
+            navController.navigate("settings/experimental")
+            buildVersionClickCount = 0 // Reset the count after navigation
+        }
+    }
+
     LaunchedEffect(true) {
         // Load latest release info for update button
         withContext(Dispatchers.IO) {
@@ -317,7 +329,7 @@ fun AboutScreen(
 
         // Load changelog for the CURRENT app version
         val currentAppVersionTag = "v${BuildConfig.VERSION_NAME}"
-        changelogViewModel.loadChangelog("vivizzz007", "vivi-music", currentAppVersionTag) // <--- CRITICAL FIX HERE
+        changelogViewModel.loadChangelog("vivizzz007", "vivi-music", currentAppVersionTag)
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -375,35 +387,23 @@ fun AboutScreen(
             Spacer(modifier = Modifier.height(100.dp))
 
             // List Items
-//            HyperOSListItem(
-//                title = "Developer",
-//                value = "VIVIDH P ASHOKAN",
-//                onClick = { uriHandler.openUri("https://github.com/vivizzz007") }
-//            )
             HyperOSListItem(
                 title = "Developer",
-                value = "VIVIDH P ASHOKAN", // You can keep the name here
-                onClick = { showDeveloperSheet = true } // This now triggers the bottom sheet
+                value = "VIVIDH P ASHOKAN",
+                onClick = { showDeveloperSheet = true }
             )
-            // Display current app version dynamically
-//            HyperOSListItem(
-//                title = "Build Version",
-//                value = "v${BuildConfig.VERSION_NAME}", // Dynamically display current version
-//                onClick = { ("") } // Link to current version's release
-//            )
-//            HyperOSListItem(
-//                title = "Android",
-//                value = "${Build.VERSION.RELEASE}",
-//                onClick = {}
-//            )
-//            HyperOSListItem(
-//                title = "Changelog",
-//                value = "View", // More generic text, as date might not be constant
-//                onClick = { showChangelog = true }
-//            )
+
+            // --- MODIFIED: Build Version HyperOSListItem ---
+            HyperOSListItem(
+                title = "Build Version",
+                value = "v${BuildConfig.VERSION_NAME}",
+                onClick = { buildVersionClickCount++ } // Increment the count
+            )
+
             HyperOSListItem(
                 title = "changelog",
-                value = "v${BuildConfig.VERSION_NAME}", // Concatenated string
+//                value = "v${BuildConfig.VERSION_NAME}",
+                value = "CURRENT APP",
                 onClick = { showChangelog = true }
             )
             // Modified Donate HyperOSListItem
@@ -412,26 +412,16 @@ fun AboutScreen(
                 value = "SUPPORT APP",
                 onClick = { showDonationCardDialog = true }
             )
-//            HyperOSListItem(
-//                title = "Website",
-//                value = "VIVI-MUSIC",
-//                onClick = { uriHandler.openUri("https://vivi-music-web-com.vercel.app/") }
-//            )
             HyperOSListItem(
                 title = "Website",
                 value = "VIVI-MUSIC",
-                onClick = { showWebsiteSheet = true } // Triggers the website bottom sheet
+                onClick = { showWebsiteSheet = true }
             )
-//            HyperOSListItem(
-//                title = "Github",
-//                value = "VIVI-MUSIC",
-//                onClick = { uriHandler.openUri("https://github.com/vivizzz007/vivi-music") }
-//            )
             // MODIFIED: Github HyperOSListItem now triggers the bottom sheet
             HyperOSListItem(
                 title = "Github",
                 value = "VIVI-MUSIC",
-                onClick = { showGithubSheet = true } // Triggers the Github bottom sheet
+                onClick = { showGithubSheet = true }
             )
         }
 
@@ -471,6 +461,7 @@ fun AboutScreen(
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
 
+                            // Ensure AutoChangelogCard and ChangelogViewModel are correctly set up
                             AutoChangelogCard(
                                 viewModel = changelogViewModel,
                                 repoOwner = "vivizzz007",
@@ -501,22 +492,13 @@ fun AboutScreen(
                             .padding(top = 12.dp, bottom = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-//                        Icon(
-//                            imageVector = Icons.Filled.Favorite,
-//                            contentDescription = "Donate",
-//                            modifier = Modifier.size(48.dp),
-//                            tint = MaterialTheme.colorScheme.primary
-//                        )
                         val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.love)) // Replace with your Lottie JSON file
                         LottieAnimation(
                             composition = composition,
                             iterations = LottieConstants.IterateForever, // Loop the animation
                             modifier = Modifier.size(48.dp)
                         )
-
-
                         Spacer(modifier = Modifier.width(16.dp))
-
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "SUPPORT VIVI MUSIC",
@@ -532,27 +514,13 @@ fun AboutScreen(
                             )
                         }
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
-
                     Text(
                         text = "Choose Your Way to Support",
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
                         color = MaterialTheme.colorScheme.onSurface
                     )
-
-//                    DonationOptionItem(
-//                        icon = Icons.Filled.Paid,
-//                        title = "PayPal",
-//                        description = "Make a secure one-time donation.",
-//                        onClick = {
-////                            uriHandler.openUri("https://www.paypal.com/paypalme/yourusername") // **REPLACE WITH YOUR ACTUAL PAYPAL.ME LINK**
-////                            showDonationCardDialog = false
-//                            showErrorBottom1Sheet = true
-//                            showDonationCardDialog = false
-//                        }
-//                    )
                     DonationOptionItem(
                         icon = Icons.Filled.Paid,
                         title = "PayPal",
@@ -562,18 +530,6 @@ fun AboutScreen(
                             showErrorBottom1Sheet = true
                         }
                     )
-
-
-//                    DonationOptionItem(
-//                        icon = Icons.Filled.Coffee,
-//                        title = "Buy Me a Coffee",
-//                        description = "Support with a virtual coffee.",
-//
-//                        onClick = {
-//                            uriHandler.openUri("https://www.buymeacoffee.com/yourusername") // **REPLACE WITH YOUR ACTUAL BUYMEACOFFEE.COM LINK**
-//                            showDonationCardDialog = false
-//                        }
-//                    )
                     DonationOptionItem(
                         icon = Icons.Filled.Coffee,
                         title = "Buy Me a Coffee",
@@ -583,8 +539,6 @@ fun AboutScreen(
                             showDonationCardDialog = false
                         }
                     )
-
-
                     DonationOptionItem(
                         icon = Icons.Filled.Money,
                         title = "Google Pay (GPay)",
@@ -633,12 +587,11 @@ fun AboutScreen(
                 sheetState = rememberModalBottomSheetState(),
                 containerColor = MaterialTheme.colorScheme.surface,
             ) {
-                // Content for the developer details sheet
                 DeveloperDetailsSheet(
                     developerName = "VIVIDH P ASHOKAN",
                     githubUrl = "https://github.com/vivizzz007",
-                    developerAvatarResId = R.drawable.dev, // Your developer avatar
-                    onClose = { showDeveloperSheet = false } // Pass callback to dismiss
+                    developerAvatarResId = R.drawable.dev,
+                    onClose = { showDeveloperSheet = false }
                 )
             }
         }
@@ -733,7 +686,8 @@ fun AboutScreen(
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Button(
-                        onClick = { showErrorBottomSheet = false
+                        onClick = {
+                            showErrorBottomSheet = false
                             showDonationCardDialog = true
                         }
                     ) {
@@ -1382,3 +1336,5 @@ fun GithubDetailsSheet(
         Spacer(modifier = Modifier.height(32.dp))
     }
 }
+
+

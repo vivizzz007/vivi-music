@@ -145,7 +145,7 @@ fun PlayerSettings(
 //                    .height(180.dp)
 //                    .clip(RoundedCornerShape(12.dp))
 //            )
-            val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.player)) // Replace with your Lottie JSON file
+            val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.party)) // party ,player Replace with your Lottie JSON file
             LottieAnimation(
                 composition = composition,
                 iterations = LottieConstants.IterateForever, // Loop the animation
@@ -181,9 +181,14 @@ fun PlayerSettings(
             onClick = { navController.navigate("settings/player/lyrics") }
         )
 
+//        PreferenceEntry(
+//            title = { Text(stringResource(R.string.local_player_settings_title)) },
+//            icon = { Icon(Icons.Rounded.SdCard, null) },
+//            onClick = { navController.navigate("player/local") }
+//        )
         PreferenceEntry(
             title = { Text(stringResource(R.string.local_player_settings_title)) },
-            icon = { Icon(Icons.Rounded.SdCard, null) },
+            icon = { Icon(painterResource(R.drawable.folder_icon), null) }, // Replace your_lyrics_icon with the actual drawable name
             onClick = { navController.navigate("player/local") }
         )
 

@@ -1,7 +1,7 @@
 <resources>
 
     <!-- Setup wizard -->
-    <string name="welcome_to_vivi">WELCOME TO VIVI</string>
+    <string name="welcome_to_vivi">Welcome to vivi music</string>
     <string name="yt_music_fingertips">YouTube Music</string>
     <string name="ytm_account_sync">YouTube-Music account sync</string>
     <string name="ad_free_playback">AD free music</string>
@@ -10,16 +10,20 @@
     <string name="skip">Skip</string>
     <string name="back">Back</string>
     <string name="next">Next</string>
+    <string name="get_started">Get Started</string>
 
     <!-- Bottom navigation -->
     <string name="home">VIVI</string>
     <string name="home1">Home Screen</string>
+    <string name="home2">VIVI THEME</string>
     <string name="homee">Home</string>
     <string name="explore">Explore</string>
     <string name="songs">Songs</string>
     <string name="artists">Artists</string>
     <string name="albums">Albums</string>
     <string name="playlists">Playlists</string>
+    <string name="recheck_permission">Recheck</string>
+    <string name="baseline_cancel_24">Base line</string>
 
     <string name="liked">Liked music</string>
     <string name="offline">Offline music</string>
@@ -508,18 +512,22 @@
     <string name="allow_unknown_sources_desc">Give permission</string>
     <string name="cancel">Next</string>
     <string name="allow_unknown_sources_title">Settings</string>
-    <string name="allow_unknown_sources_explanation">You need to allow this permission so that updater can work flawlessly</string>
+    <string name="allow_unknown_sources_explanation">You need to allow permission so that updater can work flawlessly .After giving permission please press recheck to verify</string>
     <string name="skip_this_step">Skip Now</string>
     <string name="finish_setup">Finish Setup</string>
-    <string name="all_set">All Set</string>
+    <string name="all_set">All Set Enjoy</string>
     <string name="enjoy_vivi_music">Enjoy Vivi Music</string>
-    <string name="grant_permission">Allow permission</string>
+    <string name="grant_permission">Allow</string>
+    <string name="permission_error">Permission not granted</string>
     <string name="start">Next</string>
     <string name="permission_granted_message">Now You Can Update Flawlessly</string>
     <string name="permission_granted">Granded Permission</string>
     <string name="continue_text">Continue</string>
     <string name="new_releases">New Releases</string>
     <string name="viviplayer">vivi</string>
+    <string name="thumbnail">Thumbnail</string>
+    <string name="show_more_actions">Show more actions</string>
+    <string name="rename">Rename</string>
 
 
     <string name="new_version_available">New version available</string>

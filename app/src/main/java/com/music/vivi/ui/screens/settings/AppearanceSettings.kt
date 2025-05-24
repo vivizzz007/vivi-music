@@ -50,8 +50,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -105,6 +103,114 @@ import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import me.saket.squiggles.SquigglySlider
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.size
+
+import androidx.compose.foundation.shape.CircleShape
+
+import androidx.compose.material3.Surface
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.ui.graphics.Color
+
+
+@Composable
+fun HyperOSListItem(
+    title: String,
+    value: String? = null,
+    onClick: (() -> Unit)? = null,
+    leadingContent: @Composable (() -> Unit)? = null,
+    trailingContent: @Composable (() -> Unit)? = null
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 64.dp)
+            .clickable(enabled = onClick != null) { onClick?.invoke() },
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (leadingContent != null) {
+                Box(modifier = Modifier.padding(end = 16.dp)) {
+                    leadingContent()
+                }
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                if (value != null) {
+                    Text(
+                        text = value,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                }
+            }
+            if (trailingContent != null) {
+                Box(modifier = Modifier.padding(start = 16.dp)) {
+                    trailingContent()
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun ThemePicker(
+    currentTheme: DarkMode,
+    onThemeSelected: (DarkMode) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        DarkMode.values().forEach { theme ->
+            val colors = when (theme) {
+                DarkMode.OFF -> listOf(Color(0xFFFFFFFF), Color(0xFFE0E0E0)) // White and light gray
+                DarkMode.ON -> listOf(Color(0xFF212121), Color(0xFF424242)) // Dark gray and darker gray
+                DarkMode.AUTO -> listOf(Color(0xFF4CAF50), Color(0xFF81C784)) // Green shades for system
+            }
+
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(colors[0])
+                    .border(2.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), CircleShape)
+                    .clickable { onThemeSelected(theme) },
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(CircleShape)
+                        .background(colors[1])
+                )
+                if (currentTheme == theme) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Selected Theme",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+        }
+    }
+}
 
 @SuppressLint("DefaultLocale")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -136,9 +242,9 @@ fun AppearanceSettings(
     val (defaultChip, onDefaultChipChange) = rememberEnumPreference(key = ChipSortTypeKey, defaultValue = LibraryFilter.LIBRARY)
     val (swipeThumbnail, onSwipeThumbnailChange) = rememberPreference(SwipeThumbnailKey, defaultValue = true)
     val (slimNav, onSlimNavChange) = rememberPreference(SlimNavBarKey, defaultValue = true)
-    val (thumbnailCornerRadius, onThumbnailCornerRadius) = rememberPreference (ThumbnailCornerRadiusV2Key , defaultValue = 6)
+    val (thumbnailCornerRadius, onThumbnailCornerRadius) = rememberPreference(ThumbnailCornerRadiusV2Key, defaultValue = 6)
     val (showContentFilter, onShowContentFilterChange) = rememberPreference(ShowContentFilterKey, defaultValue = true)
-    val (playerStyle, onPlayerStyle) = rememberEnumPreference (PlayerStyleKey , defaultValue = PlayerStyle.NEW)
+    val (playerStyle, onPlayerStyle) = rememberEnumPreference(PlayerStyleKey, defaultValue = PlayerStyle.NEW)
     val (miniPlayerStyle, onMiniPlayerStyle) = rememberEnumPreference(MiniPlayerStyleKey, defaultValue = MiniPlayerStyle.NEW)
 
     val isSystemInDarkTheme = isSystemInDarkTheme()
@@ -152,8 +258,13 @@ fun AppearanceSettings(
             defaultValue = PlayerBackgroundStyle.BLUR,
         )
 
-
     var showCornerRadiusDialog by remember {
+        mutableStateOf(false)
+    }
+
+    // State to control the visibility of the ThemePicker and Pure Black switch
+    // This is the key state for the expandable section
+    var showThemeOptionsExpanded by remember {
         mutableStateOf(false)
     }
 
@@ -210,7 +321,6 @@ fun AppearanceSettings(
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -292,23 +402,11 @@ fun AppearanceSettings(
             enter = fadeIn(),
             exit = fadeOut()
         ) {
-
-//            Image(
-//                painter = painterResource(id = R.drawable.appearence_box),
-//                contentDescription = stringResource(R.string.appearenceimg),
-//                contentScale = ContentScale.Crop,
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(horizontal = 16.dp, vertical = 8.dp)
-//                    .height(180.dp)
-//                    .clip(RoundedCornerShape(12.dp))
-//            )
-            val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.theme)) // Replace with your Lottie JSON file
+            val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.theme))
             LottieAnimation(
                 composition = composition,
-                iterations = LottieConstants.IterateForever, // Loop the animation
+                iterations = LottieConstants.IterateForever,
                 modifier = Modifier
-//                    .size(100.dp)
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .height(180.dp)
@@ -338,43 +436,55 @@ fun AppearanceSettings(
             onCheckedChange = onDynamicThemeChange
         )
 
-        EnumListPreference(
-            title = { Text(stringResource(R.string.dark_theme)) },
-            icon = { Icon(painterResource(R.drawable.darkmode_icon), null) },
-            selectedValue = darkMode,
-            onValueSelected = onDarkModeChange,
-            valueText = {
-                when (it) {
-                    DarkMode.ON -> stringResource(R.string.dark_theme_on)
-                    DarkMode.OFF -> stringResource(R.string.dark_theme_off)
-                    DarkMode.AUTO -> stringResource(R.string.dark_theme_follow_system)
-                }
-            }
+        // The HyperOSListItem that triggers the expansion
+        HyperOSListItem(
+            title = stringResource(R.string.dark_theme),
+            value = when (darkMode) {
+                DarkMode.ON -> stringResource(R.string.dark_theme_on)
+                DarkMode.OFF -> stringResource(R.string.dark_theme_off)
+                DarkMode.AUTO -> stringResource(R.string.dark_theme_follow_system)
+            },
+            leadingContent = { Icon(painterResource(R.drawable.darkmode_icon), null) },
+            onClick = { showThemeOptionsExpanded = !showThemeOptionsExpanded } // Toggle expansion
         )
 
-        AnimatedVisibility(useDarkTheme) {
-            SwitchPreference(
-                title = { Text(stringResource(R.string.pure_black)) },
-                icon = { Icon(painterResource(R.drawable.contrast_icon), null) },
-                checked = pureBlack,
-                onCheckedChange = { checked ->
-                    if (useDarkTheme) {
-                        onPureBlackChange(checked)
-                    }
+        // Animated content that expands/collapses below the HyperOSListItem
+        AnimatedVisibility(
+            visible = showThemeOptionsExpanded,
+            enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
+            exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut()
+        ) {
+            Column {
+                ThemePicker(
+                    currentTheme = darkMode,
+                    onThemeSelected = onDarkModeChange
+                )
+
+                // Pure Black option only visible if a dark theme is active
+                AnimatedVisibility(useDarkTheme) {
+                    SwitchPreference(
+                        title = { Text(stringResource(R.string.pure_black)) },
+                        icon = { Icon(painterResource(R.drawable.contrast_icon), null) },
+                        checked = pureBlack,
+                        onCheckedChange = { checked ->
+                            if (useDarkTheme) {
+                                onPureBlackChange(checked)
+                            }
+                        }
+                    )
                 }
-            )
+            }
         }
+
 
         EnumListPreference(
             title = { Text(stringResource(R.string.app_design_variant)) },
-            icon = { Icon(painterResource(R.drawable.design_icon),null)
-            },
+            icon = { Icon(painterResource(R.drawable.design_icon), null) },
             selectedValue = appDesignVariant,
             onValueSelected = onAppDesignVariantChange,
             valueText = {
                 when (it) {
                     AppDesignVariantType.NEW -> stringResource(R.string.player_style_new)
-//                    AppDesignVariantType.OLD -> stringResource(R.string.player_style_old)
                 }
             }
         )
@@ -383,7 +493,6 @@ fun AppearanceSettings(
             title = { Text(stringResource(R.string.slider_style)) },
             description = when (sliderStyle) {
                 SliderStyle.SQUIGGLY -> stringResource(R.string.squiggly)
-//                SliderStyle.DEFAULT -> stringResource(R.string.default_)
                 SliderStyle.COMPOSE -> stringResource(R.string.compose)
             },
             icon = { Icon(painterResource(R.drawable.slider_icon), null) },
@@ -571,8 +680,7 @@ fun AppearanceSettings(
             title = { Text(stringResource(R.string.default_lib_chips)) },
             icon = { Icon(painterResource(R.drawable.list), null) },
             selectedValue = defaultChip,
-            values =
-            listOf(
+            values = listOf(
                 LibraryFilter.LIBRARY,
                 LibraryFilter.PLAYLISTS,
                 LibraryFilter.SONGS,
@@ -614,11 +722,11 @@ enum class DarkMode {
 }
 
 enum class NavigationTabOld {
-    HOME, EXPLORE ,SONGS, ARTISTS, ALBUMS, PLAYLISTS
+    HOME, EXPLORE, SONGS, ARTISTS, ALBUMS, PLAYLISTS
 }
 
 enum class NavigationTab {
-     HOME, LIBRARY, EXPLORE ,SONGS, ARTISTS, ALBUMS, PLAYLISTS
+    HOME, LIBRARY, EXPLORE, SONGS, ARTISTS, ALBUMS, PLAYLISTS
 }
 
 enum class LyricsPosition {

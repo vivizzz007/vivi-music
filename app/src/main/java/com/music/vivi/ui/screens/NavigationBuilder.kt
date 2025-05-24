@@ -42,7 +42,10 @@ import com.music.vivi.ui.screens.playlist.TopPlaylistScreen
 import com.music.vivi.ui.screens.settings.AccountSettings
 import com.music.vivi.ui.screens.settings.NotificationSettings
 import com.music.vivi.ui.screens.settings.ContentSettings
+import com.music.vivi.ui.screens.settings.ExperimentalSettingsScreen
 import com.music.vivi.ui.screens.settings.LocalPlayerSettings
+import com.music.vivi.ui.screens.settings.PixelUpdaterTheme
+import com.music.vivi.ui.screens.settings.PixelUpdaterUI
 import com.music.vivi.ui.screens.settings.import_from_spotify.ImportFromSpotifyScreen
 
 @SuppressLint("UnrememberedMutableState")
@@ -245,6 +248,16 @@ fun NavGraphBuilder.navigationBuilder(
     }
     composable("settings/import_from_spotify/ImportFromSpotify") {
         ImportFromSpotifyScreen(navController, scrollBehavior)
+    }
+    composable("settings/experimental") {
+        // This route should lead to your ExperimentScreen, not ImportFromSpotifyScreen
+        ExperimentalSettingsScreen(navController = navController)
+    }
+    composable("settings/pixel_updater") { backStackEntry ->
+        // Reuse the NavHostController you passed to NavHost
+        PixelUpdaterTheme {
+            PixelUpdaterUI(navController = navController) // ✅ Pass the navController here
+        }
     }
     composable("settings/player") {
         PlayerSettings(navController, scrollBehavior)

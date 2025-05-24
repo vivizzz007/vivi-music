@@ -60,6 +60,21 @@ import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 
 
+
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
+
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+import java.util.Date
+import java.util.Locale
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UpdateScreen(navController: NavHostController) {
@@ -68,13 +83,14 @@ fun UpdateScreen(navController: NavHostController) {
     var updateMessage by remember { mutableStateOf("") }
     var updateMessageVersion by remember { mutableStateOf("") }
     var changelog by remember { mutableStateOf("") }
-    var isChecking by remember { mutableStateOf(true) }
+    // IMPORTANT: Initialize isChecking based on autoUpdateCheckEnabled
+    var isChecking by remember { mutableStateOf(true) } // Default to true, but will be set by LaunchedEffect
     var fetchError by remember { mutableStateOf(false) }
     var appSize by remember { mutableStateOf("") }
     var isDownloading by remember { mutableStateOf(false) }
     var downloadProgress by remember { mutableStateOf(0f) }
     var isDownloadComplete by remember { mutableStateOf(false) }
-    var showUpdateDetails by rememberSaveable { mutableStateOf(false) } // Use rememberSaveable to preserve state across config changes
+    var showUpdateDetails by rememberSaveable { mutableStateOf(false) }
     val changelogVisibility = remember { MutableTransitionState(false) }
     changelogVisibility.targetState = showUpdateDetails
 
@@ -82,42 +98,54 @@ fun UpdateScreen(navController: NavHostController) {
     val currentVersion = BuildConfig.VERSION_NAME
     val coroutineScope = rememberCoroutineScope()
 
-    // Colors
     val pixelBlue = Color(0xFF1A73E8)
     val progressBarBackground = if (isSystemInDarkTheme()) Color(0xFF3C4043) else Color(0xFFE0E0E0)
 
+    val autoUpdateCheckEnabled = getAutoUpdateCheckSetting(context)
+
     fun triggerUpdateCheck() {
-        isChecking = true
+        isChecking = true // Set to true when a check is initiated
         fetchError = false
         updateMessage = ""
         changelog = ""
+        updateAvailable = false // Reset update status
         coroutineScope.launch {
-            delay(5000L)
+            delay(5000L) // Simulate network delay
             checkForUpdate(
                 onSuccess = { latestVersion, latestChangelog, latestSize ->
-                    isChecking = false
+                    isChecking = false // Set to false when check completes
                     if (isNewerVersion(latestVersion, currentVersion)) {
                         updateAvailable = true
                         updateMessage = "New Update Available!"
                         updateMessageVersion = latestVersion
                         changelog = latestChangelog
                         appSize = latestSize
-                        // showUpdateDetails remains false until the button is clicked
                     } else {
                         updateAvailable = false
                         updateMessage = "You're already up to date."
                     }
                 },
                 onError = {
-                    isChecking = false
+                    isChecking = false // Set to false on error
                     fetchError = true
                 }
             )
         }
     }
 
+    // --- CRITICAL CHANGE HERE ---
+    // This LaunchedEffect will run only once when the Composable enters the composition
     LaunchedEffect(Unit) {
-        triggerUpdateCheck()
+        if (autoUpdateCheckEnabled) {
+            // If auto-check is enabled, trigger the check immediately
+            triggerUpdateCheck()
+        } else {
+            // If auto-check is disabled, explicitly set states to reflect this
+            isChecking = false // No check is in progress
+            updateAvailable = false // No update found (as no check was performed)
+            updateMessage = "Automatic update check is disabled." // Inform the user
+            fetchError = false // No error
+        }
     }
 
     Scaffold(
@@ -134,9 +162,9 @@ fun UpdateScreen(navController: NavHostController) {
                     IconButton(
                         onClick = {
                             if (showUpdateDetails) {
-                                showUpdateDetails = false // Go back from details to the main update info
+                                showUpdateDetails = false
                             } else {
-                                navController.navigateUp() // Go back from the main update screen to settings
+                                navController.navigateUp()
                             }
                         },
                         modifier = Modifier.padding(start = 8.dp)
@@ -246,7 +274,11 @@ fun UpdateScreen(navController: NavHostController) {
                             }
                             else -> {
                                 Button(
-                                    onClick = { triggerUpdateCheck() },
+                                    onClick = {
+                                        triggerUpdateCheck()
+                                        // Reset any previous "auto-check disabled" message when manually checking
+                                        updateMessage = ""
+                                    },
                                     shape = RoundedCornerShape(30.dp),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = pixelBlue,
@@ -295,10 +327,8 @@ fun UpdateScreen(navController: NavHostController) {
                             fontSize = 16.sp
                         )
 
-
-                        // Pixel-style Progress Bar for DOWNLOAD
                         AnimatedVisibility(visible = updateAvailable && isDownloading && !isDownloadComplete) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) { // Center the progress bar and text
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -309,7 +339,7 @@ fun UpdateScreen(navController: NavHostController) {
                                         targetValue = downloadProgress,
                                         animationSpec = tween(durationMillis = 300, easing = LinearEasing)
                                     ).value
-                                    for (i in 0 until 20) { // Adjust the number of segments for desired granularity
+                                    for (i in 0 until 20) {
                                         val segmentProgress = (i + 1) / 20f
                                         val isActive = animatedProgress >= segmentProgress
                                         Box(
@@ -335,7 +365,7 @@ fun UpdateScreen(navController: NavHostController) {
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable { showUpdateDetails = true } // Trigger details
+                                    .clickable { showUpdateDetails = true }
                             )
                             Row(
                                 verticalAlignment = Alignment.CenterVertically
@@ -357,7 +387,6 @@ fun UpdateScreen(navController: NavHostController) {
                             }
                             Spacer(modifier = Modifier.height(35.dp))
 
-                            // Warning Card - Shown on the main update page when an update is available
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -387,11 +416,11 @@ fun UpdateScreen(navController: NavHostController) {
                             visibleState = changelogVisibility,
                             enter = slideInVertically(
                                 animationSpec = tween(durationMillis = 400, easing = EaseOut),
-                                initialOffsetY = { it } // Slide in from below
+                                initialOffsetY = { it }
                             ) + fadeIn(animationSpec = tween(durationMillis = 300)),
                             exit = slideOutVertically(
                                 animationSpec = tween(durationMillis = 300, easing = EaseIn),
-                                targetOffsetY = { it } // Slide out downwards
+                                targetOffsetY = { it }
                             ) + fadeOut(animationSpec = tween(durationMillis = 200))
                         ) {
                             Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
@@ -445,30 +474,30 @@ fun UpdateScreen(navController: NavHostController) {
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 16.sp
                         )
-                        Spacer(modifier = Modifier.height(24.dp)) // Add spacing before the animation
+                        Spacer(modifier = Modifier.height(24.dp))
 
-                        // Lottie Animation when no update is available or checking
+                        // Lottie Animation is fine here
                         val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.updateon))
                         val progress by animateLottieCompositionAsState(
                             composition,
-                            iterations = LottieConstants.IterateForever // Loop the animation
+                            iterations = LottieConstants.IterateForever
                         )
 
                         LottieAnimation(
                             composition,
                             progress,
                             modifier = Modifier
-                                .size(285.dp) // Adjust size as needed
+                                .size(285.dp)
                                 .padding(top = 16.dp, bottom = 16.dp)
                         )
 
-
                         Spacer(modifier = Modifier.height(24.dp))
 
-                        // Now the "You're already up to date." message
-                        if (!isChecking && !fetchError) { // Only show this message if not checking and no error
+                        // Only display the current message if not checking or downloading
+                        // The isChecking state is now managed correctly by the LaunchedEffect and triggerUpdateCheck
+                        if (!isChecking && !isDownloading) {
                             Text(
-                                text = updateMessage, // This will be "You're already up to date."
+                                text = updateMessage,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(16.dp),
                                 textAlign = TextAlign.Center
@@ -476,8 +505,30 @@ fun UpdateScreen(navController: NavHostController) {
                         }
                     }
 
-
-                    if (fetchError && !isDownloading) {
+                    // --- The Progress Indicator and Text Logic ---
+                    // This block now ONLY shows if isChecking is TRUE
+                    if (isChecking && !isDownloading && !fetchError) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Text(
+                                text = "Checking for updates...",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 16.sp
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            LinearProgressIndicator(
+                                modifier = Modifier
+                                    .fillMaxWidth(0.6f)
+                                    .height(8.dp)
+                                    .clip(RoundedCornerShape(4.dp)),
+                                color = pixelBlue,
+                                trackColor = progressBarBackground
+                            )
+                        }
+                    } else if (fetchError && !isDownloading) {
+                        // Keep error message separate
                         Text(
                             text = "Failed to check for update. Please try again.",
                             color = MaterialTheme.colorScheme.error,
@@ -485,37 +536,23 @@ fun UpdateScreen(navController: NavHostController) {
                             textAlign = TextAlign.Center
                         )
                     }
-
-                    // --- MERGED: LinearProgressIndicator below "Checking for updates..." text ---
-                    if (isChecking && !isDownloading && !fetchError) { // Ensure it only shows when actively checking and no error
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.padding(16.dp)
-                        ) {
-                            Text( // Text comes first
-                                text = "Checking for updates...",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontSize = 16.sp
-                            )
-                            Spacer(modifier = Modifier.height(12.dp)) // Spacer to separate text and indicator
-                            LinearProgressIndicator( // Indicator comes second
-                                modifier = Modifier
-                                    .fillMaxWidth(0.6f) // Make it take up 60% of the width
-                                    .height(8.dp) // Adjust thickness
-                                    .clip(RoundedCornerShape(4.dp)), // Give it rounded corners
-                                color = pixelBlue, // Use your custom blue color
-                                trackColor = progressBarBackground // Background color for the track
-                            )
-                        }
-                    }
                 }
             }
         }
     )
 }
-// Rest of your existing functions remain unchanged
-// Rest of your existing functions (getCurrentMonth, downloadApk, isNewerVersion, checkForUpdate) remain unchanged
 
+// Ensure these utility functions are properly defined and accessible
+// (They were already correct, just ensuring they are present for the full code)
+private const val PREFS_NAME = "app_settings"
+private const val KEY_AUTO_UPDATE_CHECK = "auto_update_check_enabled"
+
+fun getAutoUpdateCheckSetting(context: Context): Boolean {
+    val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    return sharedPrefs.getBoolean(KEY_AUTO_UPDATE_CHECK, true) // Default to true
+}
+
+// ... (downloadApk, isNewerVersion, checkForUpdate functions as they were)
 private fun getCurrentMonth(): String {
     return SimpleDateFormat("MMMM", Locale.getDefault()).format(Date())
 }
@@ -593,6 +630,7 @@ private fun isNewerVersion(latestVersion: String, currentVersion: String): Boole
     }
     return false
 }
+
 private suspend fun checkForUpdate(
     onSuccess: (String, String, String) -> Unit,
     onError: () -> Unit
@@ -607,7 +645,6 @@ private suspend fun checkForUpdate(
             val changelog = jsonObject.getString("body")
 
             val assets = jsonObject.getJSONArray("assets")
-            // Assuming the first asset is the APK
             if (assets.length() > 0) {
                 val apkAsset = assets.getJSONObject(0)
                 val apkSizeInBytes = apkAsset.getLong("size")
@@ -617,9 +654,8 @@ private suspend fun checkForUpdate(
                     onSuccess(tag, changelog, apkSizeInMB)
                 }
             } else {
-                // Handle the case where there are no assets in the release
                 withContext(Dispatchers.Main) {
-                    onError() // Or a more specific error callback
+                    onError()
                 }
             }
 

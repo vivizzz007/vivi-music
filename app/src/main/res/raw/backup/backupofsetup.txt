@@ -1,0 +1,496 @@
+
+package com.music.vivi.ui.screens
+
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material.icons.automirrored.rounded.NavigateBefore
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarDefaults
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.ProvideTextStyle
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.surfaceColorAtElevation
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import com.music.vivi.R
+import com.music.vivi.constants.FirstSetupPassed
+import com.music.vivi.ui.screens.settings.shimmerEffect
+import com.music.vivi.utils.rememberPreference
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.MusicVideo
+import androidx.compose.material.icons.rounded.NotInterested
+import androidx.compose.material.icons.rounded.Sync
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.draw.blur
+import androidx.compose.foundation.border
+import androidx.compose.runtime.getValue
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
+
+
+@Composable
+fun SetupWizard(
+    navController: NavController,
+) {
+    val shimmerBrush = shimmerEffect()
+    val layoutDirection = LocalLayoutDirection.current
+    val context = LocalContext.current
+
+    val (firstSetupPassed, onFirstSetupPassedChange) = rememberPreference(FirstSetupPassed, defaultValue = false)
+
+    var position by remember {
+        mutableIntStateOf(0)
+    }
+
+    var showInstallPermissionDialog by remember { mutableStateOf(false) }
+    var permissionGranted by remember { mutableStateOf(false) } // Track permission state
+
+    val MAX_POS = 3 // 0, 1, 2
+
+    if (position > 0) {
+        BackHandler {
+            position -= 1
+        }
+    }
+
+    if (firstSetupPassed) {
+        navController.navigateUp()
+    }
+
+    // Check for permission
+    LaunchedEffect(position) {
+        if (position == 1 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            permissionGranted = context.packageManager.canRequestPackageInstalls()
+        } else if (position == 1 && Build.VERSION.SDK_INT < Build.VERSION_CODES.O){
+            permissionGranted = true
+        }
+    }
+
+    Scaffold(
+        bottomBar = {
+            NavigationBar(
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface,
+            ) {
+                if (position != 0) { // Show back button for all pages except the first page.
+                    NavigationBarItem(
+                        selected = position > 0,
+                        onClick = {
+                            if (position > 0) {
+                                position -= 1
+                            }
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.NavigateBefore,
+                                contentDescription = stringResource(R.string.back),
+                                modifier = Modifier.size(24.dp),
+                            )
+                        },
+                        label = {
+                            Text(
+                                text = stringResource(R.string.back),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = MaterialTheme.colorScheme.primary,
+                            selectedTextColor = MaterialTheme.colorScheme.primary,
+                            unselectedIconColor = MaterialTheme.colorScheme.secondary,
+                            unselectedTextColor = MaterialTheme.colorScheme.secondary,
+                            indicatorColor = MaterialTheme.colorScheme.surface,
+                        ),
+                    )
+                }
+                NavigationBarItem(
+                    selected = true, // Always selected to show the button
+                    onClick = {
+                        if (position < MAX_POS - 1) {
+                            position += 1
+                        } else {
+                            navController.navigate("home")
+                            onFirstSetupPassedChange(true)
+                            navController.navigateUp()
+                        }
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
+                            contentDescription = stringResource(R.string.next),
+                            modifier = Modifier.size(24.dp),
+                        )
+                    },
+                    label = {
+                        Text(
+                            text = stringResource(R.string.next),
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = MaterialTheme.colorScheme.primary,
+                        selectedTextColor = MaterialTheme.colorScheme.primary,
+                        unselectedIconColor = MaterialTheme.colorScheme.secondary,
+                        unselectedTextColor = MaterialTheme.colorScheme.secondary,
+                        indicatorColor = MaterialTheme.colorScheme.surface,
+                    ),
+                )
+            }
+        },
+        modifier = Modifier
+            .fillMaxSize()
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(Modifier.height(WindowInsets.systemBars.asPaddingValues().calculateTopPadding() + 32.dp)) // Increased spacing
+
+                if (position == 0) {
+                    // Welcome Screen
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    )
+                    {
+//                        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.setup)) // Replace with your Lottie JSON file
+//                        LottieAnimation(
+//                            composition = composition,
+//                            iterations = LottieConstants.IterateForever, // Loop the animation
+//                            modifier = Modifier
+////                    .size(100.dp)
+//                                .fillMaxWidth()
+//                                .padding(horizontal = 16.dp, vertical = 8.dp)
+//                                .height(180.dp)
+//                                .clip(RoundedCornerShape(12.dp))
+//                        )
+                        Spacer(Modifier.height(300.dp))
+                        Box(
+                            modifier = Modifier
+                                .size(120.dp) // Increased size
+                                .clip(CircleShape)
+//                                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation))
+//                                .shadow(8.dp, CircleShape)
+                                , // Add shadow
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = painterResource(R.drawable.vivimusic),
+                                contentDescription = null,
+//                                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground, BlendMode.SrcIn),
+                                modifier = Modifier
+                                    .size(150.dp) // Increased size of the icon
+                                    .clickable { },
+                            )
+                        }
+                        Spacer(Modifier.height(10.dp)) // Increased spacing
+                        Text(
+                            text = stringResource(R.string.welcome_to_vivi),
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 16.dp), // Increased padding
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Spacer(Modifier.height(40.dp))
+                    }
+                }
+
+                if (position == 1) {
+                    // Install from Unknown Sources Permission Screen
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp)
+                    ) {
+                        if (!permissionGranted) {
+                            Icon(
+                                painter = painterResource(R.drawable.setting_icon),
+                                contentDescription = stringResource(R.string.allow_unknown_sources),
+                                modifier = Modifier.size(96.dp), // Increased size
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.height(24.dp)) // Increased spacing
+                            Text(
+                                text = stringResource(R.string.allow_unknown_sources_title),
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = stringResource(R.string.allow_unknown_sources_explanation),
+                                style = MaterialTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Center,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                            Spacer(modifier = Modifier.height(32.dp))
+                            Button(
+                                onClick = {
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                        if (!context.packageManager.canRequestPackageInstalls()) {
+                                            // Open the "Install from Unknown Sources" settings
+                                            val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                                                data = Uri.fromParts("package", context.packageName, null)
+                                            }
+                                            context.startActivity(intent)
+                                            showInstallPermissionDialog = true
+                                        } else {
+                                            position += 1 // Permission already granted or user granted it
+                                            permissionGranted = true
+                                        }
+                                    } else {
+                                        position += 1 // No need for permission below Android O
+                                        permissionGranted = true
+                                    }
+                                },
+                                shape = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                            ) {
+                                Text(
+                                    stringResource(R.string.grant_permission),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.onPrimary
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(16.dp))
+                            TextButton(
+                                onClick = { position = MAX_POS - 1 }, // Changed to MAX_POS -1
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text(
+                                    stringResource(R.string.skip_this_step),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
+                        } else {
+                            // Show a checkmark or other indication that permission is granted
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(
+                                    imageVector = Icons.Rounded.CheckCircle,
+                                    contentDescription = stringResource(R.string.permission_granted),
+                                    modifier = Modifier.size(96.dp),
+                                    tint = Color.Green,
+                                )
+                                Spacer(modifier = Modifier.height(24.dp))
+                                Text(
+                                    text = stringResource(R.string.permission_granted),
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Center,
+                                    color = MaterialTheme.colorScheme.onBackground
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = stringResource(
+                                        R.string.permission_granted_message
+                                    ),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    textAlign = TextAlign.Center,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                                Spacer(modifier = Modifier.height(32.dp))
+                                Button(
+                                    onClick = { position += 1 },
+                                    shape = RoundedCornerShape(8.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary
+                                    )
+                                ) {
+                                    Text(
+                                        stringResource(R.string.continue_text),
+                                        style = MaterialTheme.typography.labelLarge,
+                                        color = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (position == MAX_POS - 1) {
+                    // Final Setup Screen
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
+                            contentDescription = stringResource(R.string.finish_setup),
+                            modifier = Modifier.size(96.dp), // Increased size
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(24.dp)) // Increased spacing
+                        Text(
+                            text = stringResource(R.string.all_set),
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = stringResource(R.string.enjoy_vivi_music),
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                        Spacer(Modifier.height(20.dp)) // Add spacing before the moved texts
+
+                        // Start Glassmorphism Box
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(16.dp)) // Rounded corners for the glass effect
+                                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(10.dp).copy(alpha = 0.6f)) // Translucent background
+                                .border(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), // Subtle border
+                                    shape = RoundedCornerShape(16.dp)
+                                )
+                                // MODIFIED: Reduced blur from 8.dp to 3.dp
+                                .padding(16.dp) // Internal padding for content
+                        ) {
+                            ProvideTextStyle(value = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.secondary)) {
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalAlignment = Alignment.Start
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(vertical = 8.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.MusicVideo,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.secondary,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                        Text(
+                                            text = stringResource(R.string.yt_music_fingertips),
+                                            modifier = Modifier.padding(12.dp)
+                                        )
+                                    }
+
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(vertical = 8.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.NotInterested,
+                                            tint = Color.Red,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                        Text(
+                                            text = stringResource(R.string.ad_free_playback),
+                                            modifier = Modifier.padding(12.dp)
+                                        )
+                                    }
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(vertical = 8.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.Sync,
+                                            tint = Color.Red,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                        Text(
+                                            text = stringResource(R.string.ytm_account_sync),
+                                            modifier = Modifier.padding(12.dp)
+                                        )
+                                    }
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(vertical = 8.dp)
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.github),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                        Text(
+                                            text = stringResource(R.string.fos_info),
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier.padding(12.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        // End Glassmorphism Box
+                    }
+                }
+            }
+        }
+    }
+}

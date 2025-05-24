@@ -363,7 +363,9 @@ class MainActivity : ComponentActivity() {
                         .background(
                             if (pureBlack) Color.Black else MaterialTheme.colorScheme.surface
                         )
-                ) {
+                )
+                {
+
                     val focusManager = LocalFocusManager.current
                     val density = LocalDensity.current
                     val windowsInsets = WindowInsets.systemBars
