@@ -1,0 +1,18 @@
+The GitHub repository vivizzz007/vivi-music hosts Vivi Music, an open-source Android music streaming app. It enables users to play YouTube/YouTube Music content without ads, supports background playback, downloads for offline use, synchronized lyrics, audio normalization, silence skipping, and more. It also features a dynamic Material 3 theme and localization.
+
+
+🚀 Vivi Music Initial Release
+
+    🎵 Play music/videos from YouTube & YouTube Music (ad-free)
+
+    📥 Download & cache for offline playback
+
+    🎶 Lyrics sync, silence skip, audio normalization
+
+    🧠 Smart suggestions (Quick Picks, Forgotten Favorites)
+
+    🎨 Material 3 design, dynamic themes
+
+    📱 Android Auto & multilingual support
+
+📦 GitHub Repository
