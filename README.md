@@ -72,15 +72,11 @@
   </a>
 </div>
 
-## 📦 Available on IzzyOnDroid (F-Droid Repo)
+> Available on IzzyOnDroid (F-Droid Repo)
 
-Install **VIVI Music** from the trusted third-party F-Droid repo by **IzzyOnDroid**.  
-Always updated with the latest stable builds!
-
-[![Get it on IzzyOnDroid]()
-
-📥 Add the [IzzyOnDroid Repo]() to F-Droid first.
-
+<a href="https://apt.izzysoft.de/fdroid/index/apk/com.vivi.music">
+  <img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" height="80" alt="Download from IzzyOnDroid" />
+</a>
 
 ---
 
