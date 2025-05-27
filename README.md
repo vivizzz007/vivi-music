@@ -78,6 +78,7 @@
   <img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" height="80" alt="Download from IzzyOnDroid" />
 </a>
 </div>
+
 ---
 
 ## ❓ Android Auto Setup
