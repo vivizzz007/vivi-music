@@ -151,14 +151,14 @@ fun SettingsScreen(
 //            keywords = listOf("update", "version", "upgrade", "new")
 //        )
 
-        SettingItem(
-            title = stringResource(R.string.update),
-            iconRes = if (isUpdateAvailable) R.drawable.updateon_icon else R.drawable.update_icon,
-            route = "settings/update",
-            // Dynamically set the description based on isUpdateAvailable
-            description = if (isUpdateAvailable) "Update available" else "Check for app updates",
-            keywords = listOf("update", "version", "upgrade", "new","feedback","beta","auto check")
-        ),
+//        SettingItem(
+//            title = stringResource(R.string.update),
+//            iconRes = if (isUpdateAvailable) R.drawable.updateon_icon else R.drawable.update_icon,
+//            route = "settings/update",
+//            // Dynamically set the description based on isUpdateAvailable
+//            description = if (isUpdateAvailable) "Update available" else "Check for app updates",
+//            keywords = listOf("update", "version", "upgrade", "new","feedback","beta","auto check")
+//        ) ,
         SettingItem(
             title = stringResource(R.string.appearance),
             iconRes = R.drawable.theme_icon,
