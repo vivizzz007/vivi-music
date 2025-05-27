@@ -1,81 +1,106 @@
 <div align="center">
- <img src="https://github.com/vivizzz007/vivi-music/blob/main/assets/img.png" width="160" height="160" style="display: block; margin: 0 auto"/>
- <h1>vivi</h1>
-<h1>More Than Just Music</h1>
-
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/assets/img.png" width="140" height="140" />
+  
+  <h1 style="margin: 0;">VIVI</h1>
+  <p><strong>More Than Just Music</strong></p>
+  
+  <p align="center">
+    <a href="https://github.com/vivizzz007/vivi-music/releases/download/v-1.1.5/VIVI-MUSIC.apk">
+      <img src="https://img.shields.io/badge/Download-APK-blue?style=for-the-badge&logo=android" />
+    </a>
+    <img src="https://img.shields.io/github/v/release/vivizzz007/vivi-music?style=for-the-badge" />
+    <img src="https://img.shields.io/github/license/vivizzz007/vivi-music?style=for-the-badge" />
+  </p>
 </div>
 
-VIVI isn't just another music player — it's a complete audio experience. With a sleek design, intelligent features, and deep personalization, VIVI redefines how you connect with your music. From stunning visual effects to smooth, intuitive controls, it’s built to match your vibe and elevate every beat. This is your music, your way — only with VIVI
-</div>
+---
 
-<h1>Screenshots-Github-Apk</h1>
-<p>
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/sc-screen-github/about_me.png" width="30%" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/sc-screen-github/backup.png" width="30%" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/sc-screen-github/changelog.png" width="30%" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/sc-screen-github/home_me.png" width="30%" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/sc-screen-github/installupdate.png" width="30%" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/sc-screen-github/player.png" width="30%" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/sc-screen-github/search.png" width="30%" />
-   <img src="https://github.com/vivizzz007/vivi-music/blob/main/sc-screen-github/setting.PNG" width="30%" />
-   <img src="https://github.com/vivizzz007/vivi-music/blob/main/sc-screen-github/updateme.png" width="30%" />
-    <img src="https://github.com/vivizzz007/vivi-music/blob/main/sc-screen-github/updater.png" width="30%" />
+> **VIVI** is a next-gen music player that combines beautiful design, intuitive controls, and powerful features — all tuned to give you an unforgettable listening experience.
+
+---
+
+## 🎧 Key Features
+
+- 🎵 **Play music from YouTube & YouTube Music** without ads  
+- 🚀 **Background playback** for uninterrupted music  
+- 🔍 **Search** for songs, albums, playlists, or videos  
+- 📁 **Library management** and personal organization  
+- ⬇️ **Download for offline listening**  
+- 🎤 **Synchronized lyrics** support  
+- 💤 **Skip silence** & normalize audio levels  
+- 🎨 **Material You + Dynamic Theming**  
+- 🌐 **Multi-language support**  
+- 🚗 **Android Auto integration**  
+- ⚡ **Smart quick picks**  
+- 🌫️ **Stylized blurred player UI**  
+
+---
+
+## 🖼️ Screenshots
+
+<p align="center">
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/sc-screen-github/about_me.png" width="24%" />
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/sc-screen-github/backup.png" width="24%" />
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/sc-screen-github/changelog.png" width="24%" />
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/sc-screen-github/home_me.png" width="24%" />
+</p>
+<p align="center">
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/sc-screen-github/installupdate.png" width="24%" />
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/sc-screen-github/player.png" width="24%" />
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/sc-screen-github/search.png" width="24%" />
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/sc-screen-github/setting.PNG" width="24%" />
+</p>
+<p align="center">
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/sc-screen-github/updateme.png" width="24%" />
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/sc-screen-github/updater.png" width="24%" />
 </p>
 
-<h1>Screenshots-Izzyondroid-Apk</h1>
-<div></div>
-<p>Will add in future </p>
+---
 
-<h1>Features:</h1>
+## 📲 Download
 
-- Play songs from YT/YT Music without ads
-- Background playback
-- Search songs, videos, albums, and playlists from YouTube Music
-- Library management
-- Cache and download songs for offline playback
-- Synchronized lyrics
-- Skip silence
-- Audio normalization
-- Dynamic theme
-- Localization
-- Android Auto support
-- Personalized quick picks
-- Material 3
-- default blur player
+> Get the latest release from GitHub
 
 <div align="center">
-<h1>Download Now</h1>
- 
- [<img src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" alt="Get it on GitHub" height="82"
-align="center">](https://github.com/vivizzz007/vivi-music/releases/download/v-1.1.5/VIVI-MUSIC.apk)
-
+  <a href="https://github.com/vivizzz007/vivi-music/releases/download/v-1.1.5/VIVI-MUSIC.apk">
+    <img src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png?raw=true" height="80" alt="Download APK" />
+  </a>
 </div>
 
-<div align="center">
-<h1> Q: Why vivimusic isn't showing in Android Auto? </h1>
-</div>
+---
 
-1. Go to Android Auto's settings and tap multiple times on the version in the bottom to enable
-   developer settings
-2. In the three dots menu at the top-right of the screen, click "Developer settings"
-3. Enable "Unknown sources"
+## ❓ Android Auto Setup
 
-<div align="center">
-<h1>Disclaimer</h1>
-</div>
+If VIVI doesn't appear in Android Auto:
 
-This project and its contents are not affiliated with, funded, authorized, endorsed by, or in any way associated with YouTube, Google LLC, VIVI Group LLC or any of its affiliates and subsidiaries.
+1. Go to **Android Auto settings**
+2. Tap the version number multiple times to unlock **Developer Mode**
+3. Open the 3-dot menu → **Developer settings**
+4. Enable **Unknown sources**
 
-Any trademark, service mark, trade name, or other intellectual property rights used in this project are owned by the respective owners.
+---
+
+## ⚠️ Disclaimer
+
+This project is **not affiliated with**, endorsed by, or sponsored by:
+
+- YouTube / Google LLC  
+- VIVI Group LLC or any subsidiaries
+
+All trademarks and content belong to their respective owners.
+
+---
+
+## 🙌 Special Thanks
+
+Huge shoutout to:
+
+- [Maloy Android](https://github.com/Maloy-Android) – Creator of Muzza and inspiration for VIVI
+
+---
+
+> Built with ❤️ for music lovers, by a music lover.
+
+---
 
 
-<div align="center">
-<h1>Special thanks</h1>
-
-
-
-(Muzza)
-[Maloy Android](https://github.com/Maloy-Android)
-
-
-</div>
