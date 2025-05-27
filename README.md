@@ -85,7 +85,6 @@ If VIVI doesn't appear in Android Auto:
 This project is **not affiliated with**, endorsed by, or sponsored by:
 
 - YouTube / Google LLC  
-- VIVI Group LLC or any subsidiaries
 
 All trademarks and content belong to their respective owners.
 
