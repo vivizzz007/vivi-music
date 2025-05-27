@@ -72,6 +72,16 @@
   </a>
 </div>
 
+## 📦 Available on IzzyOnDroid (F-Droid Repo)
+
+Install **VIVI Music** from the trusted third-party F-Droid repo by **IzzyOnDroid**.  
+Always updated with the latest stable builds!
+
+[![Get it on IzzyOnDroid]()
+
+📥 Add the [IzzyOnDroid Repo]() to F-Droid first.
+
+
 ---
 
 ## ❓ Android Auto Setup
