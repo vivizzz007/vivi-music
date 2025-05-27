@@ -18,7 +18,6 @@
   </p>
 </div>
 
----
 
 > **VIVI** is a next-gen music player that combines beautiful design, intuitive controls, and powerful features — all tuned to give you an unforgettable listening experience.
 
