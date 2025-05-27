@@ -40,7 +40,7 @@
 
 ---
 
-## 🖼️ Screenshots
+## 🖼️ Screenshots Of Github Vivi.apk
 
 <p align="center">
   <img src="https://github.com/vivizzz007/vivi-music/blob/main/sc-screen-github/about_me.png" width="24%" />
