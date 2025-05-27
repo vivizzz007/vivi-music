@@ -8,10 +8,12 @@
     <a href="https://github.com/vivizzz007/vivi-music/releases/tag/v2.0.4">
       <img src="https://img.shields.io/badge/Download-APK-blue?style=for-the-badge&logo=android" />
     </a>
+    <a href="https://github.com/vivizzz007/vivi-music/releases/tag/F-1.0.0">
     <img src="https://img.shields.io/github/v/release/vivizzz007/vivi-music?style=for-the-badge" />
-    <img src="https://github.com/vivizzz007/vivi-music/releases/tag/F-1.0.0" />
-
+    </a>
+    <a href="https://github.com/vivizzz007/vivi-music/blob/main/LICENSE" >
   <img src="https://img.shields.io/github/license/vivizzz007/vivi-music?style=for-the-badge" />
+    </a>
     
   </p>
 </div>
