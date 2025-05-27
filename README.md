@@ -5,7 +5,7 @@
   <p><strong>More Than Just Music</strong></p>
   
   <p align="center">
-    <a href="https://github.com/vivizzz007/vivi-music/releases/download/v-1.1.5/VIVI-MUSIC.apk">
+    <a href="https://github.com/vivizzz007/vivi-music/releases/tag/v2.0.4">
       <img src="https://img.shields.io/badge/Download-APK-blue?style=for-the-badge&logo=android" />
     </a>
     <img src="https://img.shields.io/github/v/release/vivizzz007/vivi-music?style=for-the-badge" />
