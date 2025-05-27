@@ -14,10 +14,10 @@ Experience music your way — stylish, smooth, and smart.
   <a href="https://github.com/vivizzz007/vivi-music/releases/tag/F-1.0.0">
     <img alt="Izzyondroid Release" src="https://img.shields.io/github/v/release/vivizzz007/vivi-music?label=Latest&style=flat-square" />
   </a>
-  <a href="https://github.com/vivizzz007/vivi-music/releases">
-    <img alt="GitHub All Releases" src="https://img.shields.io/github/downloads/vivizzz007/vivi-music/total?label=Downloads&style=flat-square" />
+  <a href="https://github.com/vivizzz007/vivi-music/releases/tag/v2.0.4">
+    <img alt="GitHub All Releases" src="" />
   </a>
-  <img alt="License" src="https://img.shields.io/github/license/vivizzz007/vivi-music?style=flat-square" />
+  <img alt="License" src="https://github.com/vivizzz007/vivi-music/releases/download/v2.0.4/vivi.apk" />
 </p>
 
 </div>
