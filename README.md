@@ -24,6 +24,8 @@ VIVI isn't just another music player — it's a complete audio experience. With 
 
 <h1>Screenshots-Izzyondroid-Apk</h1>
 <div></div>
+<p>Will add in future </p>
+
 <br><b>Features:</b>
 
 - Play songs from YT/YT Music without ads
