@@ -26,7 +26,7 @@ VIVI isn't just another music player — it's a complete audio experience. With 
 <div></div>
 <p>Will add in future </p>
 
-<br><b>Features:</b>
+<h1>Features:</h1>
 
 - Play songs from YT/YT Music without ads
 - Background playback
