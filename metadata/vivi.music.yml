@@ -1,0 +1,19 @@
+### Application metadata
+- Package name: com.music.vivi 
+- License: GPL-3.0-or-later 
+- Web Site: https://github.com/vivizzz007/vivi-music
+- Source Code: https://github.com/vivizzz007/vivi-music
+- Issue Tracker: https://github.com/vivizzz007/vivi-music/issues
+- Changelog: https://github.com/vivizzz007/vivi-music/releases
+- Summary: A beautiful, open-source YouTube Music client
+- Description: |
+    Vivi Music is an open-source music app that allows ad-free playback from YouTube and YouTube Music with advanced features like:
+      - Background playback
+      - Offline caching
+      - Dynamic theming
+      - Lyrics, silence skipping, audio normalization
+      - Android Auto and Material 3 support
+- Repo type: GitHub
+- Repo name: vivizzz007/vivi-music
+- APK(s) available via GitHub Releases: Yes
+- Tracking/Ads: No

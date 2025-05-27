@@ -1,0 +1,3 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical">
+    <ImageView android:id="@+id/tvWidget" android:layout_width="143dp" android:layout_height="149dp" android:background="@color/ic_launcher_background" android:src="@drawable/small_icon"/>
+</LinearLayout>
