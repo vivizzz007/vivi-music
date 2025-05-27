@@ -510,23 +510,23 @@ fun SettingsScreen(
                             )
                         }
 
-                        AnimatedVisibility(
-                            visible = showUpdateCard,
-                            enter = fadeIn(animationSpec = tween(500)) + slideInVertically(
-                                animationSpec = tween(500), initialOffsetY = { it / 2 }
-                            )
-                        ) {
-                            Text(
-                                text = "🚀 Update available: v$latestVersion",
-                                style = MaterialTheme.typography.bodySmall.copy(fontSize = 18.sp),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier
-                                    .padding(top = 4.dp)
-                                    .clickable(enabled = showUpdateCard) {
-                                        if (showUpdateCard) navController.navigate("settings/update")
-                                    }
-                            )
-                        }
+//                        AnimatedVisibility(
+//                            visible = showUpdateCard,
+//                            enter = fadeIn(animationSpec = tween(500)) + slideInVertically(
+//                                animationSpec = tween(500), initialOffsetY = { it / 2 }
+//                            )
+//                        ) {
+//                            Text(
+//                                text = "🚀 Update available: v$latestVersion",
+//                                style = MaterialTheme.typography.bodySmall.copy(fontSize = 18.sp),
+//                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+//                                modifier = Modifier
+//                                    .padding(top = 4.dp)
+//                                    .clickable(enabled = showUpdateCard) {
+//                                        if (showUpdateCard) navController.navigate("settings/update")
+//                                    }
+//                            )
+//                        }
                     }
                 }
             }

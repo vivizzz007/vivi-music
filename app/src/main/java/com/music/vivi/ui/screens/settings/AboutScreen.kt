@@ -378,21 +378,22 @@ fun AboutScreen(
                 )
                 Spacer(modifier = Modifier.height(100.dp))
 
-                if (isUpdateAvailable.value) {
-                    Button(
-                        onClick = { navController.navigate("settings/update") },
-                        modifier = Modifier
-                            .fillMaxWidth(0.7f)
-                            .height(60.dp),
-                        contentPadding = PaddingValues(16.dp)
-                    ) {
-                        Text(
-                            text = "Update Now",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                }
+//                if (isUpdateAvailable.value)
+//                {
+//                    Button(
+//                        onClick = { navController.navigate("settings/update") },
+//                        modifier = Modifier
+//                            .fillMaxWidth(0.7f)
+//                            .height(60.dp),
+//                        contentPadding = PaddingValues(16.dp)
+//                    ) {
+////                        Text(
+////                            text = "Update Now",
+////                            fontSize = 18.sp,
+////                            fontWeight = FontWeight.SemiBold
+////                        )
+//                    }
+//                }
             }
 
             Spacer(modifier = Modifier.height(100.dp))

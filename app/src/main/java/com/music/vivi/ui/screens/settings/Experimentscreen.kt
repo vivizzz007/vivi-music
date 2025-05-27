@@ -241,19 +241,19 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                 }
             )
 
-            SettingsListItem(
-                title = "Beta Updater",
-                value = if (betaUpdaterEnabled) "Enabled" else "Disabled",
-                trailingContent = {
-                    Switch(
-                        checked = betaUpdaterEnabled,
-                        onCheckedChange = { isChecked ->
-                            betaUpdaterEnabled = isChecked
-                            saveBetaUpdaterSetting(context, isChecked)
-                        }
-                    )
-                }
-            )
+//            SettingsListItem(
+//                title = "Beta Updater",
+//                value = if (betaUpdaterEnabled) "Enabled" else "Disabled",
+//                trailingContent = {
+//                    Switch(
+//                        checked = betaUpdaterEnabled,
+//                        onCheckedChange = { isChecked ->
+//                            betaUpdaterEnabled = isChecked
+//                            saveBetaUpdaterSetting(context, isChecked)
+//                        }
+//                    )
+//                }
+//            )
 
             if (betaUpdaterEnabled) {
                 SettingsListItem(
@@ -275,11 +275,11 @@ fun ExperimentalSettingsScreen(navController: NavController) {
 //                }
 //            )
 
-            SettingsListItem(
-                title = "Debug Mode",
-                value = "Not Enabled",
-                onClick = { }
-            )
+//            SettingsListItem(
+//                title = "Debug Mode",
+//                value = "Not Enabled",
+//                onClick = { }
+//            )
 
             SettingsListItem(
                 title = "Send Feedback",
