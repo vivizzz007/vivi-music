@@ -67,7 +67,7 @@
 > Get the latest release from GitHub
 
 <div align="center">
-  <a href="https://github.com/vivizzz007/vivi-music/releases/download/v-1.1.5/VIVI-MUSIC.apk">
+  <a href="https://github.com/vivizzz007/vivi-music/releases/download/v2.0.4/vivi.apk">
     <img src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png?raw=true" height="80" alt="Download APK" />
   </a>
 </div>
