@@ -74,10 +74,11 @@
 
 > Available on IzzyOnDroid (F-Droid Repo)
 
+<div align="center">
 <a href="https://apt.izzysoft.de/fdroid/index/apk/com.vivi.music">
   <img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" height="80" alt="Download from IzzyOnDroid" />
 </a>
-
+</div>
 ---
 
 ## ❓ Android Auto Setup
