@@ -295,11 +295,14 @@ fun AboutScreen(
     var showWebsiteSheet by remember { mutableStateOf(false) }
     var showGithubSheet by remember { mutableStateOf(false) }
 <<<<<<< HEAD
+<<<<<<< HEAD
 
     // ---feedback for vivi---
     var showFeedbackSheet by remember { mutableStateOf(false) }
 
     // --- NEW STATE FOR BUILD VERSION CLICKS ---
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
 =======
 >>>>>>> 426be3ed (updated code to 2.0.5)
     var buildVersionClickCount by remember { mutableStateOf(0) }
@@ -393,6 +396,7 @@ fun AboutScreen(
                 Spacer(modifier = Modifier.height(100.dp))
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 //                if (isUpdateAvailable.value)
 //                {
 //                    Button(
@@ -410,6 +414,8 @@ fun AboutScreen(
 //                    }
 //                }
 =======
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
                 // --- SHOW UPDATE BUTTON AND LATEST TAG IF NEEDED ---
                 if (isUpdateAvailable.value && latestRelease != null) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -465,12 +471,15 @@ fun AboutScreen(
                 onClick = { showGithubSheet = true }
             )
 <<<<<<< HEAD
+<<<<<<< HEAD
             HyperOSListItem(
                 title = "Feedback",
                 value = "Report",
                 onClick = { showFeedbackSheet = true }
             )
 =======
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
 
             HyperOSListItem(
                 title = "Feedback",
@@ -491,6 +500,9 @@ fun AboutScreen(
                     onClose = { showFeedbackSheet = false }
                 )
             }
+<<<<<<< HEAD
+>>>>>>> 426be3ed (updated code to 2.0.5)
+=======
 >>>>>>> 426be3ed (updated code to 2.0.5)
         }
 
@@ -553,6 +565,7 @@ fun AboutScreen(
         }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         //feedback
         if (showFeedbackSheet) {
             ModalBottomSheet(
@@ -568,6 +581,9 @@ fun AboutScreen(
 
 
         // Donation Options Bottom Sheet
+=======
+            // Donation Options Bottom Sheet
+>>>>>>> 426be3ed (updated code to 2.0.5)
 =======
             // Donation Options Bottom Sheet
 >>>>>>> 426be3ed (updated code to 2.0.5)
@@ -1131,7 +1147,10 @@ fun DeveloperDetailsSheet(
         Spacer(modifier = Modifier.height(8.dp)) // Space between button and the URL text
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
 
 >>>>>>> 426be3ed (updated code to 2.0.5)
 
@@ -1246,7 +1265,12 @@ fun WebsiteDetailsSheet(
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+
+
+>>>>>>> 426be3ed (updated code to 2.0.5)
 
 
 
@@ -1347,6 +1371,7 @@ fun FeedbackDetailsSheet(
     val context = LocalContext.current
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 @Composable
 fun FeedbackDetailsSheet(
     onClose: () -> Unit
@@ -1354,6 +1379,8 @@ fun FeedbackDetailsSheet(
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
 
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
 =======
 >>>>>>> 426be3ed (updated code to 2.0.5)
     Column(
@@ -1366,6 +1393,7 @@ fun FeedbackDetailsSheet(
         Spacer(modifier = Modifier.height(16.dp))
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         // Feedback icon (you can replace with Lottie animation if preferred)
         Icon(
             imageVector = Icons.Filled.Feedback,
@@ -1373,6 +1401,8 @@ fun FeedbackDetailsSheet(
             modifier = Modifier.size(100.dp),
             tint = MaterialTheme.colorScheme.primary
 =======
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
         // Lottie Animation for feedback
         val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.feedback))
         LottieAnimation(
@@ -1380,6 +1410,9 @@ fun FeedbackDetailsSheet(
             iterations = LottieConstants.IterateForever,
             modifier = Modifier
                 .size(100.dp)
+<<<<<<< HEAD
+>>>>>>> 426be3ed (updated code to 2.0.5)
+=======
 >>>>>>> 426be3ed (updated code to 2.0.5)
         )
 
@@ -1387,7 +1420,11 @@ fun FeedbackDetailsSheet(
 
         Text(
 <<<<<<< HEAD
+<<<<<<< HEAD
             text = "Provide Feedback",
+=======
+            text = "Share Your Feedback",
+>>>>>>> 426be3ed (updated code to 2.0.5)
 =======
             text = "Share Your Feedback",
 >>>>>>> 426be3ed (updated code to 2.0.5)
@@ -1398,6 +1435,7 @@ fun FeedbackDetailsSheet(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+<<<<<<< HEAD
 <<<<<<< HEAD
         // GitHub Issues Button
         Button(
@@ -1413,6 +1451,8 @@ fun FeedbackDetailsSheet(
                 contentColor = MaterialTheme.colorScheme.onSurfaceVariant
             ),
 =======
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
         Text(
             text = "Help us improve Vivi Music by reporting issues or sharing suggestions",
             style = MaterialTheme.typography.bodyMedium,
@@ -1431,6 +1471,9 @@ fun FeedbackDetailsSheet(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
+<<<<<<< HEAD
+>>>>>>> 426be3ed (updated code to 2.0.5)
+=======
 >>>>>>> 426be3ed (updated code to 2.0.5)
             shape = RoundedCornerShape(12.dp)
         ) {
@@ -1442,7 +1485,11 @@ fun FeedbackDetailsSheet(
             Spacer(modifier = Modifier.width(12.dp))
             Text(
 <<<<<<< HEAD
+<<<<<<< HEAD
                 text = "GitHub Issues",
+=======
+                text = "Open GitHub Issues",
+>>>>>>> 426be3ed (updated code to 2.0.5)
 =======
                 text = "Open GitHub Issues",
 >>>>>>> 426be3ed (updated code to 2.0.5)
@@ -1452,6 +1499,7 @@ fun FeedbackDetailsSheet(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+<<<<<<< HEAD
 <<<<<<< HEAD
         // Email Button
         Button(
@@ -1465,6 +1513,8 @@ fun FeedbackDetailsSheet(
                 } catch (e: ActivityNotFoundException) {
                     Toast.makeText(context, "No email app found", Toast.LENGTH_SHORT).show()
 =======
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
         // OR divider
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -1499,11 +1549,15 @@ fun FeedbackDetailsSheet(
                     context.startActivity(intent)
                 } else {
                     uriHandler.openUri("mailto:$emailAddress?subject=Vivi Music Feedback")
+<<<<<<< HEAD
+>>>>>>> 426be3ed (updated code to 2.0.5)
+=======
 >>>>>>> 426be3ed (updated code to 2.0.5)
                 }
                 onClose()
             },
             modifier = Modifier
+<<<<<<< HEAD
 <<<<<<< HEAD
                 .fillMaxWidth(0.8f)
                 .height(56.dp),
@@ -1517,6 +1571,8 @@ fun FeedbackDetailsSheet(
                 imageVector = Icons.Filled.Email,
                 contentDescription = "Email",
 =======
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
                 .fillMaxWidth()
                 .height(56.dp),
             shape = RoundedCornerShape(12.dp)
@@ -1524,13 +1580,20 @@ fun FeedbackDetailsSheet(
             Icon(
                 imageVector = Icons.Default.Email,
                 contentDescription = "Email Feedback",
+<<<<<<< HEAD
+>>>>>>> 426be3ed (updated code to 2.0.5)
+=======
 >>>>>>> 426be3ed (updated code to 2.0.5)
                 modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.width(12.dp))
             Text(
 <<<<<<< HEAD
+<<<<<<< HEAD
                 text = "Email Developer",
+=======
+                text = "Send Email Feedback",
+>>>>>>> 426be3ed (updated code to 2.0.5)
 =======
                 text = "Send Email Feedback",
 >>>>>>> 426be3ed (updated code to 2.0.5)
@@ -1538,6 +1601,7 @@ fun FeedbackDetailsSheet(
             )
         }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -1565,6 +1629,8 @@ fun FeedbackDetailsSheet(
 
 
 =======
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
         Spacer(modifier = Modifier.height(24.dp))
 
         // Close button
@@ -1578,4 +1644,7 @@ fun FeedbackDetailsSheet(
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
+<<<<<<< HEAD
+>>>>>>> 426be3ed (updated code to 2.0.5)
+=======
 >>>>>>> 426be3ed (updated code to 2.0.5)

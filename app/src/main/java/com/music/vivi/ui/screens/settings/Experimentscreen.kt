@@ -242,6 +242,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
             )
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 //            SettingsListItem(
 //                title = "Beta Updater",
 //                value = if (betaUpdaterEnabled) "Enabled" else "Disabled",
@@ -256,6 +257,8 @@ fun ExperimentalSettingsScreen(navController: NavController) {
 //                }
 //            )
 =======
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
             SettingsListItem(
                 title = "Beta Updater",
                 value = if (betaUpdaterEnabled) "Enabled" else "Disabled",
@@ -283,6 +286,9 @@ fun ExperimentalSettingsScreen(navController: NavController) {
 
 //            Spacer(modifier = Modifier.height(8.dp))
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
 
 //            SettingsListItem(
 //                title = "Beta Updater",
@@ -291,6 +297,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
 //                    navController.navigate("") //settings/pixel_updater
 //                }
 //            )
+<<<<<<< HEAD
 
 //            SettingsListItem(
 //                title = "Debug Mode",
@@ -307,6 +314,8 @@ fun ExperimentalSettingsScreen(navController: NavController) {
 //                    navController.navigate("") //settings/pixel_updater
 //                }
 //            )
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
 
             SettingsListItem(
                 title = "Debug Mode",
@@ -314,6 +323,9 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                 onClick = { }
             )
 
+<<<<<<< HEAD
+>>>>>>> 426be3ed (updated code to 2.0.5)
+=======
 >>>>>>> 426be3ed (updated code to 2.0.5)
             SettingsListItem(
                 title = "Send Feedback",

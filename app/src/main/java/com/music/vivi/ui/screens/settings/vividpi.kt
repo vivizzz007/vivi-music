@@ -94,6 +94,10 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.BorderStroke
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+import androidx.annotation.RequiresApi
+>>>>>>> 426be3ed (updated code to 2.0.5)
 =======
 import androidx.annotation.RequiresApi
 >>>>>>> 426be3ed (updated code to 2.0.5)
@@ -276,6 +280,7 @@ class DpiSettingsViewModel(application: Application) : ViewModel() {
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 fun fetchLatestPreRelease() {
     viewModelScope.launch {
         _fetchState.value = FetchState.Loading
@@ -357,6 +362,8 @@ fun fetchLatestPreRelease() {
 }
 }
 =======
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
     fun fetchLatestPreRelease() {
         viewModelScope.launch {
             _fetchState.value = FetchState.Loading
@@ -437,6 +444,9 @@ fun fetchLatestPreRelease() {
         }
     }
 }
+<<<<<<< HEAD
+>>>>>>> 426be3ed (updated code to 2.0.5)
+=======
 >>>>>>> 426be3ed (updated code to 2.0.5)
 
 class DpiSettingsViewModelFactory(private val application: Application) :
@@ -482,7 +492,11 @@ fun ViviDpiSettings(
         isApkDownloaded && downloadedTag == latestPreReleaseValue?.tag_name -> "Ready to install"
         latestPreReleaseValue != null -> "Available"
 <<<<<<< HEAD
+<<<<<<< HEAD
         fetchState is DpiSettingsViewModel.FetchState.Loading -> "Loading..."
+=======
+        fetchState is DpiSettingsViewModel.FetchState.Loading -> "Checking for update"
+>>>>>>> 426be3ed (updated code to 2.0.5)
 =======
         fetchState is DpiSettingsViewModel.FetchState.Loading -> "Checking for update"
 >>>>>>> 426be3ed (updated code to 2.0.5)
@@ -924,6 +938,10 @@ fun downloadApk(context: Context, url: String, viewModel: DpiSettingsViewModel, 
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+@RequiresApi(Build.VERSION_CODES.O)
+>>>>>>> 426be3ed (updated code to 2.0.5)
 =======
 @RequiresApi(Build.VERSION_CODES.O)
 >>>>>>> 426be3ed (updated code to 2.0.5)
@@ -1180,7 +1198,11 @@ private fun formatUploadTime(dateTime: String): String {
         dateTime.substringAfter('T').substringBefore('Z') + " UTC"
     }
 <<<<<<< HEAD
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 426be3ed (updated code to 2.0.5)
 =======
 }
 >>>>>>> 426be3ed (updated code to 2.0.5)

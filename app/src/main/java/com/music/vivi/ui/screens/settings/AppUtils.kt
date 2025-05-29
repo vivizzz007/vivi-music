@@ -97,9 +97,15 @@ fun UpdateScreen(navController: NavHostController) {
     var isDownloadComplete by remember { mutableStateOf(false) }
     var showUpdateDetails by rememberSaveable { mutableStateOf(false) }
 <<<<<<< HEAD
+<<<<<<< HEAD
     var lastCheckedTime by remember { mutableStateOf("") } // For last checked timestamp
     var releaseDate by remember { mutableStateOf("") } // New state for release date
     var showMenu by remember { mutableStateOf(false) } // For 3-dot menu
+=======
+    var lastCheckedTime by remember { mutableStateOf("") }
+    var releaseDate by remember { mutableStateOf("") }
+    var showMenu by remember { mutableStateOf(false) }
+>>>>>>> 426be3ed (updated code to 2.0.5)
 =======
     var lastCheckedTime by remember { mutableStateOf("") }
     var releaseDate by remember { mutableStateOf("") }
@@ -133,8 +139,13 @@ fun UpdateScreen(navController: NavHostController) {
         updateMessage = ""
         changelog = ""
 <<<<<<< HEAD
+<<<<<<< HEAD
         updateAvailable = false // Reset update status
         releaseDate = "" // Reset release date
+=======
+        updateAvailable = false
+        releaseDate = ""
+>>>>>>> 426be3ed (updated code to 2.0.5)
 =======
         updateAvailable = false
         releaseDate = ""
@@ -144,9 +155,15 @@ fun UpdateScreen(navController: NavHostController) {
             checkForUpdate(
                 onSuccess = { latestVersion, latestChangelog, latestSize, latestReleaseDate ->
 <<<<<<< HEAD
+<<<<<<< HEAD
                     isChecking = false // Set to false when check completes
                     lastCheckedTime = getCurrentTimestamp() // Update timestamp
                     saveLastCheckedTime(context, lastCheckedTime) // Save to SharedPreferences
+=======
+                    isChecking = false
+                    lastCheckedTime = getCurrentTimestamp()
+                    saveLastCheckedTime(context, lastCheckedTime)
+>>>>>>> 426be3ed (updated code to 2.0.5)
 =======
                     isChecking = false
                     lastCheckedTime = getCurrentTimestamp()
@@ -159,7 +176,11 @@ fun UpdateScreen(navController: NavHostController) {
                         changelog = latestChangelog
                         appSize = latestSize
 <<<<<<< HEAD
+<<<<<<< HEAD
                         releaseDate = latestReleaseDate // Set release date
+=======
+                        releaseDate = latestReleaseDate
+>>>>>>> 426be3ed (updated code to 2.0.5)
 =======
                         releaseDate = latestReleaseDate
 >>>>>>> 426be3ed (updated code to 2.0.5)
@@ -220,7 +241,10 @@ fun UpdateScreen(navController: NavHostController) {
                 },
                 actions = {
 <<<<<<< HEAD
+<<<<<<< HEAD
                     // 3-dot menu button
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
 =======
 >>>>>>> 426be3ed (updated code to 2.0.5)
                     IconButton(onClick = { showMenu = true }) {
@@ -231,8 +255,11 @@ fun UpdateScreen(navController: NavHostController) {
                         )
                     }
 <<<<<<< HEAD
+<<<<<<< HEAD
 
                     // Dropdown menu
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
 =======
 >>>>>>> 426be3ed (updated code to 2.0.5)
                     DropdownMenu(
@@ -254,7 +281,10 @@ fun UpdateScreen(navController: NavHostController) {
                             }
                         )
 <<<<<<< HEAD
+<<<<<<< HEAD
 
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
 =======
 >>>>>>> 426be3ed (updated code to 2.0.5)
                     }
@@ -409,7 +439,10 @@ fun UpdateScreen(navController: NavHostController) {
                             fontSize = 16.sp
                         )
 <<<<<<< HEAD
+<<<<<<< HEAD
                         // Display release date when update is available
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
 =======
 >>>>>>> 426be3ed (updated code to 2.0.5)
                         if (releaseDate.isNotEmpty()) {
@@ -566,7 +599,10 @@ fun UpdateScreen(navController: NavHostController) {
                             fontSize = 16.sp
                         )
 <<<<<<< HEAD
+<<<<<<< HEAD
                         // Display last checked timestamp when no update is available
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
 =======
 >>>>>>> 426be3ed (updated code to 2.0.5)
                         if (lastCheckedTime.isNotEmpty()) {
@@ -661,7 +697,10 @@ fun getLastCheckedTime(context: Context): String {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Helper function to format GitHub date to readable format
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
 =======
 >>>>>>> 426be3ed (updated code to 2.0.5)
 private fun formatGitHubDate(githubDate: String): String {
@@ -672,6 +711,7 @@ private fun formatGitHubDate(githubDate: String): String {
         dateTime.format(displayFormatter)
     } catch (e: Exception) {
 <<<<<<< HEAD
+<<<<<<< HEAD
         githubDate // Return original if parsing fails
     }
 }
@@ -679,6 +719,10 @@ private fun formatGitHubDate(githubDate: String): String {
 // Existing utility functions (unchanged)
 private fun getCurrentMonth(): String {
     return SimpleDateFormat("MMMM", Locale.getDefault()).format(Date())
+=======
+        githubDate
+    }
+>>>>>>> 426be3ed (updated code to 2.0.5)
 =======
         githubDate
     }
@@ -762,7 +806,11 @@ private fun isNewerVersion(latestVersion: String, currentVersion: String): Boole
 // Fetches ALL releases, finds the latest version > current, and returns its info
 private suspend fun checkForUpdate(
 <<<<<<< HEAD
+<<<<<<< HEAD
     onSuccess: (String, String, String, String) -> Unit, // Added fourth parameter for release date
+=======
+    onSuccess: (String, String, String, String) -> Unit,
+>>>>>>> 426be3ed (updated code to 2.0.5)
 =======
     onSuccess: (String, String, String, String) -> Unit,
 >>>>>>> 426be3ed (updated code to 2.0.5)
@@ -776,10 +824,14 @@ private suspend fun checkForUpdate(
             var foundRelease: JSONObject? = null
 
 <<<<<<< HEAD
+<<<<<<< HEAD
             val tag = jsonObject.getString("tag_name").removePrefix("v")
             val changelog = jsonObject.getString("body")
             val publishedAt = jsonObject.getString("published_at") // Get release date
             val formattedReleaseDate = formatGitHubDate(publishedAt) // Format the date
+=======
+            val currentVersion = BuildConfig.VERSION_NAME
+>>>>>>> 426be3ed (updated code to 2.0.5)
 =======
             val currentVersion = BuildConfig.VERSION_NAME
 >>>>>>> 426be3ed (updated code to 2.0.5)
@@ -798,9 +850,12 @@ private suspend fun checkForUpdate(
             }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
                 withContext(Dispatchers.Main) {
                     onSuccess(tag, changelog, apkSizeInMB, formattedReleaseDate) // Pass release date
 =======
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
             if (foundRelease != null) {
                 val tag = foundRelease.getString("tag_name").removePrefix("v")
                 val changelog = foundRelease.optString("body", "")
@@ -816,6 +871,9 @@ private suspend fun checkForUpdate(
                     }
                 } else {
                     withContext(Dispatchers.Main) { onError() }
+<<<<<<< HEAD
+>>>>>>> 426be3ed (updated code to 2.0.5)
+=======
 >>>>>>> 426be3ed (updated code to 2.0.5)
                 }
             } else {

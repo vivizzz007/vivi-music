@@ -147,6 +147,7 @@ fun SettingsScreen(
 
     val settingsItems = listOf(
 <<<<<<< HEAD
+<<<<<<< HEAD
 //        SettingItem(
 //            title = stringResource(R.string.update),
 //            iconRes = if (isUpdateAvailable) R.drawable.updateon_icon else R.drawable.update_icon,
@@ -165,6 +166,8 @@ fun SettingsScreen(
 //            keywords = listOf("update", "version", "upgrade", "new","feedback","beta","auto check")
 //        ) ,
 =======
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
         SettingItem(
             title = stringResource(R.string.update),
             iconRes = if (isUpdateAvailable) R.drawable.updateon_icon else R.drawable.update_icon,
