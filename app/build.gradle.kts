@@ -31,7 +31,7 @@ android {
     compileSdk = 35
     buildToolsVersion = "35.0.0"
     defaultConfig {
-        applicationId = "com.music.vivi"
+        applicationId = "com.vivi.vivimusic"
         minSdk = 26
         targetSdk = 35
         versionCode = 1
