@@ -611,7 +611,11 @@ fun SetupWizard(
                                         .height(45.dp)
                                 ) {
                                     Text(
+<<<<<<< HEAD
                                         text = "Grant Notification",
+=======
+                                        text = "Grant",
+>>>>>>> 426be3ed (updated code to 2.0.5)
                                         style = MaterialTheme.typography.labelLarge,
                                         color = MaterialTheme.colorScheme.onPrimary
                                     )
@@ -709,7 +713,7 @@ fun SetupWizard(
                             .fillMaxWidth()
                             .padding(horizontal = 24.dp)
                     ) {
-                        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.completedsetup))
+                        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.complete)) //completedsetup
                         LottieAnimation(
                             composition = composition,
                             iterations = LottieConstants.IterateForever,

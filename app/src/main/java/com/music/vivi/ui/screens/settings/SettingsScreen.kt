@@ -95,15 +95,18 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
+import org.json.JSONArray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-
 fun SettingsScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
@@ -123,9 +126,10 @@ fun SettingsScreen(
 
     val greeting = getGreetingBasedOnTime()
 
+    // Fetch all releases and check for update
     LaunchedEffect(Unit) {
-        checkForUpdateFromGitHub { latestRelease ->
-            val cleanLatestVersion = latestRelease.removePrefix("v")
+        checkForUpdateFromGitHubAll { highestVersion ->
+            val cleanLatestVersion = highestVersion.removePrefix("v")
             val newVersionAvailable = isNewerVersion(cleanLatestVersion, BuildConfig.VERSION_NAME)
             latestVersion = cleanLatestVersion
             isUpdateAvailable = newVersionAvailable && cleanLatestVersion != BuildConfig.VERSION_NAME
@@ -142,6 +146,7 @@ fun SettingsScreen(
     )
 
     val settingsItems = listOf(
+<<<<<<< HEAD
 //        SettingItem(
 //            title = stringResource(R.string.update),
 //            iconRes = if (isUpdateAvailable) R.drawable.updateon_icon else R.drawable.update_icon,
@@ -159,6 +164,15 @@ fun SettingsScreen(
 //            description = if (isUpdateAvailable) "Update available" else "Check for app updates",
 //            keywords = listOf("update", "version", "upgrade", "new","feedback","beta","auto check")
 //        ) ,
+=======
+        SettingItem(
+            title = stringResource(R.string.update),
+            iconRes = if (isUpdateAvailable) R.drawable.updateon_icon else R.drawable.update_icon,
+            route = "settings/update",
+            description = if (isUpdateAvailable) "Update available" else "Check for app updates",
+            keywords = listOf("update", "version", "upgrade", "new")
+        ),
+>>>>>>> 426be3ed (updated code to 2.0.5)
         SettingItem(
             title = stringResource(R.string.appearance),
             iconRes = R.drawable.theme_icon,
@@ -214,15 +228,11 @@ fun SettingsScreen(
             route = "settings/about",
             description = "About this app and version info",
             keywords = listOf("about","developer", "version", "details","changelog","website","github","donate")
-
-
         )
-
     )
 
     fun matchesQuery(item: SettingItem, query: String): Boolean {
         if (query.isBlank()) return true
-
         val tokens = query.trim().lowercase().split("\\s+".toRegex())
         return tokens.all { token ->
             item.title.lowercase().contains(token) ||
@@ -231,7 +241,6 @@ fun SettingsScreen(
         }
     }
 
-    // `filteredItems` should still be calculated based on searchQuery
     val filteredItems = settingsItems.filter { item ->
         matchesQuery(item, searchQuery)
     }
@@ -242,12 +251,11 @@ fun SettingsScreen(
         onDismiss: () -> Unit,
         searchQuery: String,
         onSearchQueryChange: (String) -> Unit,
-        filteredItems: List<SettingItem>, // Pass filteredItems
+        filteredItems: List<SettingItem>,
         onItemClick: (String) -> Unit
     ) {
         if (showDialog) {
             val focusRequester = remember { FocusRequester() }
-
             Dialog(
                 onDismissRequest = onDismiss,
                 properties = DialogProperties(
@@ -258,7 +266,6 @@ fun SettingsScreen(
                 BackHandler(enabled = true) {
                     onDismiss()
                 }
-
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -282,7 +289,6 @@ fun SettingsScreen(
                                     tint = MaterialTheme.colorScheme.onSurface
                                 )
                             }
-
                             BasicTextField(
                                 value = searchQuery,
                                 onValueChange = onSearchQueryChange,
@@ -308,7 +314,6 @@ fun SettingsScreen(
                                     }
                                 }
                             )
-
                             AnimatedVisibility(
                                 visible = searchQuery.isNotEmpty(),
                                 enter = fadeIn(),
@@ -323,8 +328,6 @@ fun SettingsScreen(
                                 }
                             }
                         }
-
-                        // --- MODIFICATION START ---
                         if (searchQuery.isNotEmpty()) {
                             LazyColumn(
                                 modifier = Modifier.fillMaxSize(),
@@ -336,25 +339,16 @@ fun SettingsScreen(
                                             modifier = Modifier.fillMaxWidth().padding(16.dp),
                                             horizontalAlignment = Alignment.CenterHorizontally
                                         ) {
-//                                            Icon(
-//                                                painterResource(R.drawable.search_off), // A relevant icon
-//                                                contentDescription = null,
-//                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-//                                                modifier = Modifier.size(48.dp)
-//                                            )
                                             Spacer(Modifier.height(160.dp))
-
-                                            val compositionNoResults by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.searchingerror)) // Make sure this path is correct
-
+                                            val compositionNoResults by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.searchingerror))
                                             val progressNoResults by animateLottieCompositionAsState(
                                                 composition = compositionNoResults,
-                                                iterations = LottieConstants.IterateForever // Loop this animation
+                                                iterations = LottieConstants.IterateForever
                                             )
                                             LottieAnimation(
                                                 composition = compositionNoResults,
                                                 progress = { progressNoResults },
-                                                modifier = Modifier.
-                                                size(300.dp) // Maintain the desired size
+                                                modifier = Modifier.size(300.dp)
                                             )
                                             Spacer(Modifier.height(30.dp))
                                             Text(
@@ -392,14 +386,11 @@ fun SettingsScreen(
                                 }
                             }
                         } else {
-                            // Lottie Animation for initial hint
-                            val compositionSearchHint by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.smarts)) // Path to your Lottie JSON
-
+                            val compositionSearchHint by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.smarts))
                             val progressSearchHint by animateLottieCompositionAsState(
                                 composition = compositionSearchHint,
-                                iterations = LottieConstants.IterateForever // Loop the animation
+                                iterations = LottieConstants.IterateForever
                             )
-
                             Column(
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -410,17 +401,7 @@ fun SettingsScreen(
                                 LottieAnimation(
                                     composition = compositionSearchHint,
                                     progress = { progressSearchHint },
-                                    modifier = Modifier
-                                        .size(500.dp)
-                                        .height(16.dp)// Adjust size as needed
-//                                    modifier = Modifier
-//                    .size(300.dp)
-//                                        .fillMaxWidth()
-//                                        .padding(horizontal = 16.dp, vertical = 8.dp)
-//                                        .height(180.dp)
-//                                        .clip(RoundedCornerShape(12.dp))
-
-
+                                    modifier = Modifier.size(500.dp).height(16.dp)
                                 )
                                 Spacer(Modifier.height(24.dp))
                                 Text(
@@ -435,7 +416,6 @@ fun SettingsScreen(
                                 )
                             }
                         }
-                        // --- MODIFICATION END ---
                     }
                 }
             }
@@ -444,9 +424,6 @@ fun SettingsScreen(
             }
         }
     }
-
-
-
 
     CompositionLocalProvider(LocalPlayerAwareWindowInsets provides WindowInsets(0,0,0,0)) {
         Column(
@@ -510,6 +487,7 @@ fun SettingsScreen(
                             )
                         }
 
+<<<<<<< HEAD
 //                        AnimatedVisibility(
 //                            visible = showUpdateCard,
 //                            enter = fadeIn(animationSpec = tween(500)) + slideInVertically(
@@ -527,6 +505,25 @@ fun SettingsScreen(
 //                                    }
 //                            )
 //                        }
+=======
+                        AnimatedVisibility(
+                            visible = showUpdateCard,
+                            enter = fadeIn(animationSpec = tween(500)) + slideInVertically(
+                                animationSpec = tween(500), initialOffsetY = { it / 2 }
+                            )
+                        ) {
+                            Text(
+                                text = "🚀 Update available: v$latestVersion",
+                                style = MaterialTheme.typography.bodySmall.copy(fontSize = 18.sp),
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .padding(top = 4.dp)
+                                    .clickable(enabled = showUpdateCard) {
+                                        if (showUpdateCard) navController.navigate("settings/update")
+                                    }
+                            )
+                        }
+>>>>>>> 426be3ed (updated code to 2.0.5)
                     }
                 }
             }
@@ -584,14 +581,39 @@ fun SettingsScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            // Modified to include description
+            // Only the "Update available" text is colored if update is available
             settingsItems.forEach { item ->
+                val isUpdateItem = item.title == stringResource(R.string.update)
                 PreferenceEntry(
                     title = { Text(item.title) },
                     description = {
-                        // Only show description if it's not empty
                         if (item.description.isNotEmpty()) {
-                            Text(item.description)
+                            if (
+                                isUpdateItem &&
+                                isUpdateAvailable &&
+                                item.description.contains("Update available")
+                            ) {
+                                // Only color the "Update available" text differently
+                                Text(
+                                    buildAnnotatedString {
+                                        val desc = item.description
+                                        val keyword = "Update available"
+                                        val idx = desc.indexOf(keyword)
+                                        if (idx >= 0) {
+                                            append(desc.substring(0, idx))
+                                            withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
+                                                append(keyword)
+                                            }
+                                            append(desc.substring(idx + keyword.length))
+                                        } else {
+                                            append(desc)
+                                        }
+                                    },
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant // fallback color for other text
+                                )
+                            } else {
+                                Text(item.description)
+                            }
                         }
                     },
                     icon = { Icon(painterResource(item.iconRes), null) },
@@ -599,8 +621,7 @@ fun SettingsScreen(
                 )
                 Spacer(Modifier.height(10.dp))
             }
-            // Add a Spacer here to create free space below the settings items
-            Spacer(Modifier.height(80.dp)) // Adjust the height as needed
+            Spacer(Modifier.height(80.dp))
         }
     }
 
@@ -620,23 +641,22 @@ fun SettingsScreen(
         scrollBehavior = scrollBehavior
     )
 }
-// You'll need to define your PreferenceEntry composable like this:
+
 @Composable
 fun PreferenceEntry(
     title: @Composable () -> Unit,
-    description: @Composable (() -> Unit)? = null, // Make description optional
+    description: @Composable (() -> Unit)? = null,
     icon: @Composable () -> Unit,
     onClick: () -> Unit
 ) {
     ListItem(
         headlineContent = title,
-        supportingContent = description, // Pass the description here
+        supportingContent = description,
         leadingContent = icon,
         modifier = Modifier.clickable(onClick = onClick)
     )
 }
 
-// Greeting logic
 @Composable
 fun getGreetingBasedOnTime(): String {
     val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
@@ -648,11 +668,10 @@ fun getGreetingBasedOnTime(): String {
     }
 }
 
-// Version checking
+// Robust version check
 fun isNewerVersion(latestVersion: String, currentVersion: String): Boolean {
     val latestParts = latestVersion.split(".").map { it.toIntOrNull() ?: 0 }
     val currentParts = currentVersion.split(".").map { it.toIntOrNull() ?: 0 }
-
     for (i in 0 until maxOf(latestParts.size, currentParts.size)) {
         val latest = latestParts.getOrElse(i) { 0 }
         val current = currentParts.getOrElse(i) { 0 }
@@ -662,23 +681,31 @@ fun isNewerVersion(latestVersion: String, currentVersion: String): Boolean {
     return false
 }
 
-// GitHub update check
-suspend fun checkForUpdateFromGitHub(onResult: (String) -> Unit) {
+// GitHub update check for all release tags starting with v
+suspend fun checkForUpdateFromGitHubAll(onResult: (String) -> Unit) {
     withContext(Dispatchers.IO) {
         try {
-            val url = URL("https://api.github.com/repos/vivizzz007/vivi-music/releases/latest")
+            val url = URL("https://api.github.com/repos/vivizzz007/vivi-music/releases")
             val connection = url.openConnection().apply {
                 setRequestProperty("User-Agent", "ViviMusicApp")
             }
             connection.connect()
-
             val json = connection.getInputStream().bufferedReader().use { it.readText() }
-            val jsonObject = JSONObject(json)
-            val latestRelease = jsonObject.getString("tag_name").removePrefix("v")
-            onResult(latestRelease)
+            val releases = JSONArray(json)
+            var highestVersion = BuildConfig.VERSION_NAME
+            for (i in 0 until releases.length()) {
+                val tag = releases.getJSONObject(i).getString("tag_name")
+                if (tag.startsWith("v")) {
+                    val clean = tag.removePrefix("v")
+                    if (isNewerVersion(clean, highestVersion)) {
+                        highestVersion = clean
+                    }
+                }
+            }
+            onResult("v$highestVersion")
         } catch (e: Exception) {
             e.printStackTrace()
-            onResult("")
+            onResult("v${BuildConfig.VERSION_NAME}")
         }
     }
 }
@@ -696,4 +723,3 @@ fun loadImageUri(context: Context): Uri? {
     val uriString = sharedPreferences.getString("user_image_uri", null)
     return uriString?.let { Uri.parse(it) }
 }
-

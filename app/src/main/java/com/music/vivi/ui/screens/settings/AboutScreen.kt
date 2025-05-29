@@ -2,6 +2,7 @@ package com.music.vivi.ui.screens.settings
 
 import android.content.Intent
 import android.os.Build
+import com.music.vivi.ui.screens.settings.isNewerVersion
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
@@ -31,6 +32,7 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -126,7 +128,13 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
-
+import org.json.JSONArray
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun shimmerEffect(): Brush {
@@ -278,57 +286,64 @@ fun AboutScreen(
     val uriHandler = LocalUriHandler.current
     var latestRelease by remember { mutableStateOf<String?>(null) }
     val isUpdateAvailable = remember { mutableStateOf(false) }
-    val density = LocalDensity.current
-    val layoutDirection = LocalLayoutDirection.current
     var showErrorBottomSheet by remember { mutableStateOf(false) }
     var showErrorBottom1Sheet by remember { mutableStateOf(false) }
-    // Changelog state
     var showChangelog by remember { mutableStateOf(false) }
     val changelogViewModel: ChangelogViewModel = viewModel()
-
     var showDonationCardDialog by remember { mutableStateOf(false) }
-    // Developer Bottom Sheet state
     var showDeveloperSheet by remember { mutableStateOf(false) }
-
-    // NEW: Website Bottom Sheet state
     var showWebsiteSheet by remember { mutableStateOf(false) }
-
-    // NEW: Github Bottom Sheet state
     var showGithubSheet by remember { mutableStateOf(false) }
+<<<<<<< HEAD
 
     // ---feedback for vivi---
     var showFeedbackSheet by remember { mutableStateOf(false) }
 
     // --- NEW STATE FOR BUILD VERSION CLICKS ---
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
     var buildVersionClickCount by remember { mutableStateOf(0) }
+    var showFeedbackSheet by remember { mutableStateOf(false) }
 
     // --- LaunchedEffect for Build Version Clicks ---
     LaunchedEffect(buildVersionClickCount) {
         if (buildVersionClickCount >= 5) {
-            // Navigate to AppearanceSetting.kt (assuming its route is "settings/appearance")
             navController.navigate("settings/experimental")
-            buildVersionClickCount = 0 // Reset the count after navigation
+            buildVersionClickCount = 0
         }
     }
 
-    LaunchedEffect(true) {
-        // Load latest release info for update button
+    // --- MAIN UPDATE CHECK LAUNCHEDEFFECT ---
+    LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
             try {
-                val apiUrl = "https://api.github.com/repos/vivizzz007/vivi-music/releases/latest"
+                val apiUrl = "https://api.github.com/repos/vivizzz007/vivi-music/releases"
                 val url = URL(apiUrl)
                 val connection = url.openConnection() as HttpURLConnection
                 connection.requestMethod = "GET"
-
                 if (connection.responseCode == HttpURLConnection.HTTP_OK) {
                     val inputStream = connection.inputStream
                     val response = inputStream.bufferedReader().use { it.readText() }
-                    val jsonObject = JSONObject(response)
-                    val fetchedLatestRelease = jsonObject.getString("tag_name").removePrefix("v")
-                    latestRelease = fetchedLatestRelease
-
-                    if (fetchedLatestRelease.isNotEmpty() && BuildConfig.VERSION_NAME.isNotEmpty()) {
-                        isUpdateAvailable.value = fetchedLatestRelease > BuildConfig.VERSION_NAME
+                    val releases = JSONArray(response)
+                    var highestVersion: String? = null
+                    var highestTagName: String? = null
+                    for (i in 0 until releases.length()) {
+                        val tag = releases.getJSONObject(i).getString("tag_name")
+                        if (tag.startsWith("v")) {
+                            val ver = tag.removePrefix("v")
+                            if (highestVersion == null || isNewerVersion(ver, highestVersion)) {
+                                highestVersion = ver
+                                highestTagName = tag // e.g. "v2.0.0"
+                            }
+                        }
+                    }
+                    if (highestVersion != null) {
+                        latestRelease = highestTagName // e.g. "v2.0.0"
+                        isUpdateAvailable.value =
+                            isNewerVersion(highestVersion, BuildConfig.VERSION_NAME)
+                    } else {
+                        isUpdateAvailable.value = false
+                        latestRelease = null
                     }
                     inputStream.close()
                 }
@@ -337,7 +352,6 @@ fun AboutScreen(
                 e.printStackTrace()
             }
         }
-
         // Load changelog for the CURRENT app version
         val currentAppVersionTag = "v${BuildConfig.VERSION_NAME}"
         changelogViewModel.loadChangelog("vivizzz007", "vivi-music", currentAppVersionTag)
@@ -378,6 +392,7 @@ fun AboutScreen(
                 )
                 Spacer(modifier = Modifier.height(100.dp))
 
+<<<<<<< HEAD
 //                if (isUpdateAvailable.value)
 //                {
 //                    Button(
@@ -394,31 +409,46 @@ fun AboutScreen(
 ////                        )
 //                    }
 //                }
+=======
+                // --- SHOW UPDATE BUTTON AND LATEST TAG IF NEEDED ---
+                if (isUpdateAvailable.value && latestRelease != null) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Button(
+                            onClick = { navController.navigate("settings/update") },
+                            modifier = Modifier
+                                .fillMaxWidth(0.7f)
+                                .height(60.dp),
+                            contentPadding = PaddingValues(16.dp)
+                        ) {
+                            Text(
+                                text = "Update Now",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
+                }
+>>>>>>> 426be3ed (updated code to 2.0.5)
             }
 
             Spacer(modifier = Modifier.height(100.dp))
 
-            // List Items
+            // List Items (unchanged)
             HyperOSListItem(
                 title = "Developer",
                 value = "VIVIDH P ASHOKAN",
                 onClick = { showDeveloperSheet = true }
             )
-
-            // --- MODIFIED: Build Version HyperOSListItem ---
             HyperOSListItem(
                 title = "Build Version",
                 value = "v${BuildConfig.VERSION_NAME}",
-                onClick = { buildVersionClickCount++ } // Increment the count
+                onClick = { buildVersionClickCount++ }
             )
-
             HyperOSListItem(
                 title = "changelog",
-//                value = "v${BuildConfig.VERSION_NAME}",
                 value = "CURRENT APP",
                 onClick = { showChangelog = true }
             )
-            // Modified Donate HyperOSListItem
             HyperOSListItem(
                 title = "Donate",
                 value = "SUPPORT APP",
@@ -429,17 +459,39 @@ fun AboutScreen(
                 value = "VIVI-MUSIC",
                 onClick = { showWebsiteSheet = true }
             )
-            // MODIFIED: Github HyperOSListItem now triggers the bottom sheet
             HyperOSListItem(
                 title = "Github",
                 value = "VIVI-MUSIC",
                 onClick = { showGithubSheet = true }
             )
+<<<<<<< HEAD
             HyperOSListItem(
                 title = "Feedback",
                 value = "Report",
                 onClick = { showFeedbackSheet = true }
             )
+=======
+
+            HyperOSListItem(
+                title = "Feedback",
+                value = "REPORT ISSUE",
+                onClick = { showFeedbackSheet = true }
+            )
+        }
+
+        if (showFeedbackSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showFeedbackSheet = false },
+                sheetState = rememberModalBottomSheetState(),
+                containerColor = MaterialTheme.colorScheme.surface,
+            ) {
+                FeedbackDetailsSheet(
+                    githubUrl = "https://github.com/vivizzz007/vivi-music/issues",
+                    emailAddress = "mkmdevilmi@gmail.com",
+                    onClose = { showFeedbackSheet = false }
+                )
+            }
+>>>>>>> 426be3ed (updated code to 2.0.5)
         }
 
         // Changelog Bottom Sheet
@@ -477,13 +529,22 @@ fun AboutScreen(
                                 color = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
-
-                            // Ensure AutoChangelogCard and ChangelogViewModel are correctly set up
-                            AutoChangelogCard(
-                                viewModel = changelogViewModel,
-                                repoOwner = "vivizzz007",
-                                repoName = "vivi-music"
-                            )
+                            // Make changelog scrollable!
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(
+                                        min = 150.dp,
+                                        max = 350.dp
+                                    ) // Adjust max height as you wish
+                                    .verticalScroll(rememberScrollState())
+                            ) {
+                                AutoChangelogCard(
+                                    viewModel = changelogViewModel,
+                                    repoOwner = "vivizzz007",
+                                    repoName = "vivi-music"
+                                )
+                            }
                         }
                     }
                     Spacer(Modifier.height(16.dp))
@@ -491,6 +552,7 @@ fun AboutScreen(
             }
         }
 
+<<<<<<< HEAD
         //feedback
         if (showFeedbackSheet) {
             ModalBottomSheet(
@@ -506,6 +568,9 @@ fun AboutScreen(
 
 
         // Donation Options Bottom Sheet
+=======
+            // Donation Options Bottom Sheet
+>>>>>>> 426be3ed (updated code to 2.0.5)
         if (showDonationCardDialog) {
             ModalBottomSheet(
                 onDismissRequest = { showDonationCardDialog = false },
@@ -585,7 +650,7 @@ fun AboutScreen(
             }
         }
 
-        // NEW: Github Details Bottom Sheet
+        // Github Details Bottom Sheet
         if (showGithubSheet) {
             ModalBottomSheet(
                 onDismissRequest = { showGithubSheet = false },
@@ -598,7 +663,7 @@ fun AboutScreen(
                 )
             }
         }
-        // NEW: Website Details Bottom Sheet
+        // Website Details Bottom Sheet
         if (showWebsiteSheet) {
             ModalBottomSheet(
                 onDismissRequest = { showWebsiteSheet = false },
@@ -746,6 +811,8 @@ fun AboutScreen(
         )
     }
 }
+
+// Version Comparison Helper
 
 // Changelog ViewModel - MODIFIED TO ACCEPT versionTag
 class ChangelogViewModel : ViewModel() {
@@ -1037,8 +1104,7 @@ fun DeveloperDetailsSheet(
         // GitHub Link as a clickable Button
         Button(
             onClick = {
-//                uriHandler.openUri(githubUrl)
-                 uriHandler.openUri("https://github.com/vivizzz007")
+                uriHandler.openUri("https://github.com/vivizzz007")
                 onClose() // Close sheet after opening link
             },
             modifier = Modifier
@@ -1064,6 +1130,10 @@ fun DeveloperDetailsSheet(
         }
         Spacer(modifier = Modifier.height(8.dp)) // Space between button and the URL text
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 426be3ed (updated code to 2.0.5)
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -1106,23 +1176,6 @@ fun WebsiteDetailsSheet(
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-//        Icon(
-//            imageVector = Icons.Filled.Language, // A globe icon for website
-//            contentDescription = "Website Icon",
-//            modifier = Modifier.size(100.dp), // Large icon for prominence
-//            tint = MaterialTheme.colorScheme.primary
-//        )
-//        Image( // Use Image composable for painterResource
-//            painter = painterResource(id = R.drawable.website_vivi),
-//            contentDescription = "Website Icon",
-//            modifier = Modifier.size(100.dp), // Large icon for prominence
-//            colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(MaterialTheme.colorScheme.primary) // Apply tint to match theme
-//        )
-//        Image( // Use Image composable for painterResource
-//            painter = painterResource(id = R.drawable.website_vivi),
-//            contentDescription = "Visit Website",
-//            modifier = Modifier.size(100.dp)
-//        )
         val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.website)) // Replace with your Lottie JSON file
         LottieAnimation(
             composition = composition,
@@ -1192,6 +1245,12 @@ fun WebsiteDetailsSheet(
     }
 }
 
+<<<<<<< HEAD
+=======
+
+
+
+>>>>>>> 426be3ed (updated code to 2.0.5)
 
 @Composable
 fun GithubDetailsSheet(
@@ -1278,7 +1337,16 @@ fun GithubDetailsSheet(
     }
 }
 
+@Composable
+fun FeedbackDetailsSheet(
+    githubUrl: String,
+    emailAddress: String,
+    onClose: () -> Unit
+) {
+    val uriHandler = LocalUriHandler.current
+    val context = LocalContext.current
 
+<<<<<<< HEAD
 @Composable
 fun FeedbackDetailsSheet(
     onClose: () -> Unit
@@ -1286,6 +1354,8 @@ fun FeedbackDetailsSheet(
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
 
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -1295,18 +1365,32 @@ fun FeedbackDetailsSheet(
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
+<<<<<<< HEAD
         // Feedback icon (you can replace with Lottie animation if preferred)
         Icon(
             imageVector = Icons.Filled.Feedback,
             contentDescription = "Feedback",
             modifier = Modifier.size(100.dp),
             tint = MaterialTheme.colorScheme.primary
+=======
+        // Lottie Animation for feedback
+        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.feedback))
+        LottieAnimation(
+            composition = composition,
+            iterations = LottieConstants.IterateForever,
+            modifier = Modifier
+                .size(100.dp)
+>>>>>>> 426be3ed (updated code to 2.0.5)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
+<<<<<<< HEAD
             text = "Provide Feedback",
+=======
+            text = "Share Your Feedback",
+>>>>>>> 426be3ed (updated code to 2.0.5)
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
@@ -1314,6 +1398,7 @@ fun FeedbackDetailsSheet(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+<<<<<<< HEAD
         // GitHub Issues Button
         Button(
             onClick = {
@@ -1327,6 +1412,26 @@ fun FeedbackDetailsSheet(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant,
                 contentColor = MaterialTheme.colorScheme.onSurfaceVariant
             ),
+=======
+        Text(
+            text = "Help us improve Vivi Music by reporting issues or sharing suggestions",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // GitHub Issues Button with default MaterialTheme colors
+        Button(
+            onClick = {
+                uriHandler.openUri(githubUrl)
+                onClose()
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+>>>>>>> 426be3ed (updated code to 2.0.5)
             shape = RoundedCornerShape(12.dp)
         ) {
             Icon(
@@ -1336,13 +1441,18 @@ fun FeedbackDetailsSheet(
             )
             Spacer(modifier = Modifier.width(12.dp))
             Text(
+<<<<<<< HEAD
                 text = "GitHub Issues",
+=======
+                text = "Open GitHub Issues",
+>>>>>>> 426be3ed (updated code to 2.0.5)
                 style = MaterialTheme.typography.titleMedium
             )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
+<<<<<<< HEAD
         // Email Button
         Button(
             onClick = {
@@ -1354,10 +1464,47 @@ fun FeedbackDetailsSheet(
                     context.startActivity(emailIntent)
                 } catch (e: ActivityNotFoundException) {
                     Toast.makeText(context, "No email app found", Toast.LENGTH_SHORT).show()
+=======
+        // OR divider
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Divider(
+                modifier = Modifier.weight(1f),
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+            )
+            Text(
+                text = "OR",
+                modifier = Modifier.padding(horizontal = 8.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Divider(
+                modifier = Modifier.weight(1f),
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Email Button with default MaterialTheme colors
+        Button(
+            onClick = {
+                val intent = Intent(Intent.ACTION_SENDTO).apply {
+                    data = Uri.parse("mailto:")
+                    putExtra(Intent.EXTRA_EMAIL, arrayOf(emailAddress))
+                    putExtra(Intent.EXTRA_SUBJECT, "Vivi Music Feedback")
+                }
+                if (intent.resolveActivity(context.packageManager) != null) {
+                    context.startActivity(intent)
+                } else {
+                    uriHandler.openUri("mailto:$emailAddress?subject=Vivi Music Feedback")
+>>>>>>> 426be3ed (updated code to 2.0.5)
                 }
                 onClose()
             },
             modifier = Modifier
+<<<<<<< HEAD
                 .fillMaxWidth(0.8f)
                 .height(56.dp),
             colors = ButtonDefaults.buttonColors(
@@ -1369,15 +1516,29 @@ fun FeedbackDetailsSheet(
             Icon(
                 imageVector = Icons.Filled.Email,
                 contentDescription = "Email",
+=======
+                .fillMaxWidth()
+                .height(56.dp),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Email,
+                contentDescription = "Email Feedback",
+>>>>>>> 426be3ed (updated code to 2.0.5)
                 modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.width(12.dp))
             Text(
+<<<<<<< HEAD
                 text = "Email Developer",
+=======
+                text = "Send Email Feedback",
+>>>>>>> 426be3ed (updated code to 2.0.5)
                 style = MaterialTheme.typography.titleMedium
             )
         }
 
+<<<<<<< HEAD
         Spacer(modifier = Modifier.height(16.dp))
 
         Divider(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp))
@@ -1403,3 +1564,18 @@ fun FeedbackDetailsSheet(
 }
 
 
+=======
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Close button
+//        TextButton(
+//            onClick = onClose,
+//            modifier = Modifier.fillMaxWidth()
+//        ) {
+//            Text("Close")
+//        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+>>>>>>> 426be3ed (updated code to 2.0.5)

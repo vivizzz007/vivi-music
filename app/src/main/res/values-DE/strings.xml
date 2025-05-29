@@ -11,6 +11,7 @@
         <item quantity="one">%d ausgewählt</item>
         <item quantity="other">%d ausgewählt</item>
     </plurals>
+
     <!-- Home -->
     <string name="history">Hörverlauf</string>
     <string name="stats">Statistiken</string>

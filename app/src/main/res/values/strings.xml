@@ -11,7 +11,10 @@
     <string name="back">Back</string>
     <string name="next">Next</string>
     <string name="get_started">Get Started</string>
-
+    <string name="update_available">Update Available</string>
+    <string name="update_description">A new version of Vivi Music is available. Update now for the latest features and improvements.</string>
+    <string name="later">Later</string>
+    <string name="update_now">Update Now</string>
     <!-- Bottom navigation -->
     <string name="home">VIVI</string>
     <string name="home1">Home Screen</string>

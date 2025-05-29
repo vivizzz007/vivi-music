@@ -265,6 +265,9 @@ fun NavGraphBuilder.navigationBuilder(
             PixelUpdaterUI(navController = navController) // ✅ Pass the navController here
         }
     }
+    composable("settings/dpi") {
+        ViviDpiSettings(navController, scrollBehavior)
+    }
     composable("settings/player") {
         PlayerSettings(navController, scrollBehavior)
     }

@@ -76,6 +76,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
 
 import java.util.Date
 import java.util.Locale
@@ -88,16 +89,22 @@ fun UpdateScreen(navController: NavHostController) {
     var updateMessage by remember { mutableStateOf("") }
     var updateMessageVersion by remember { mutableStateOf("") }
     var changelog by remember { mutableStateOf("") }
-    var isChecking by remember { mutableStateOf(true) } // Default to true, but will be set by LaunchedEffect
+    var isChecking by remember { mutableStateOf(true) }
     var fetchError by remember { mutableStateOf(false) }
     var appSize by remember { mutableStateOf("") }
     var isDownloading by remember { mutableStateOf(false) }
     var downloadProgress by remember { mutableStateOf(0f) }
     var isDownloadComplete by remember { mutableStateOf(false) }
     var showUpdateDetails by rememberSaveable { mutableStateOf(false) }
+<<<<<<< HEAD
     var lastCheckedTime by remember { mutableStateOf("") } // For last checked timestamp
     var releaseDate by remember { mutableStateOf("") } // New state for release date
     var showMenu by remember { mutableStateOf(false) } // For 3-dot menu
+=======
+    var lastCheckedTime by remember { mutableStateOf("") }
+    var releaseDate by remember { mutableStateOf("") }
+    var showMenu by remember { mutableStateOf(false) }
+>>>>>>> 426be3ed (updated code to 2.0.5)
     val changelogVisibility = remember { MutableTransitionState(false) }
     changelogVisibility.targetState = showUpdateDetails
 
@@ -110,12 +117,10 @@ fun UpdateScreen(navController: NavHostController) {
 
     val autoUpdateCheckEnabled = getAutoUpdateCheckSetting(context)
 
-    // Load last checked time from SharedPreferences when composable is created
     LaunchedEffect(Unit) {
-        lastCheckedTime = getLastCheckedTime(context) // Initialize with stored value
+        lastCheckedTime = getLastCheckedTime(context)
     }
 
-    // Helper function to format current timestamp in 12-hour format with AM/PM
     fun getCurrentTimestamp(): String {
         val currentTime = LocalDateTime.now()
         val formatter = DateTimeFormatter.ofPattern("d MMMM yyyy, h:mm a")
@@ -123,35 +128,50 @@ fun UpdateScreen(navController: NavHostController) {
     }
 
     fun triggerUpdateCheck() {
-        isChecking = true // Set to true when a check is initiated
+        isChecking = true
         fetchError = false
         updateMessage = ""
         changelog = ""
+<<<<<<< HEAD
         updateAvailable = false // Reset update status
         releaseDate = "" // Reset release date
+=======
+        updateAvailable = false
+        releaseDate = ""
+>>>>>>> 426be3ed (updated code to 2.0.5)
         coroutineScope.launch {
-            delay(5000L) // Simulate network delay
+            delay(1500L)
             checkForUpdate(
                 onSuccess = { latestVersion, latestChangelog, latestSize, latestReleaseDate ->
+<<<<<<< HEAD
                     isChecking = false // Set to false when check completes
                     lastCheckedTime = getCurrentTimestamp() // Update timestamp
                     saveLastCheckedTime(context, lastCheckedTime) // Save to SharedPreferences
+=======
+                    isChecking = false
+                    lastCheckedTime = getCurrentTimestamp()
+                    saveLastCheckedTime(context, lastCheckedTime)
+>>>>>>> 426be3ed (updated code to 2.0.5)
                     if (isNewerVersion(latestVersion, currentVersion)) {
                         updateAvailable = true
                         updateMessage = "New Update Available!"
                         updateMessageVersion = latestVersion
                         changelog = latestChangelog
                         appSize = latestSize
+<<<<<<< HEAD
                         releaseDate = latestReleaseDate // Set release date
+=======
+                        releaseDate = latestReleaseDate
+>>>>>>> 426be3ed (updated code to 2.0.5)
                     } else {
                         updateAvailable = false
                         updateMessage = "You're already up to date."
                     }
                 },
                 onError = {
-                    isChecking = false // Set to false on error
-                    lastCheckedTime = getCurrentTimestamp() // Update timestamp
-                    saveLastCheckedTime(context, lastCheckedTime) // Save to SharedPreferences
+                    isChecking = false
+                    lastCheckedTime = getCurrentTimestamp()
+                    saveLastCheckedTime(context, lastCheckedTime)
                     fetchError = true
                 }
             )
@@ -167,7 +187,6 @@ fun UpdateScreen(navController: NavHostController) {
             updateAvailable = false
             updateMessage = "Automatic update check is disabled."
             fetchError = false
-            // lastCheckedTime is already loaded from SharedPreferences
         }
     }
 
@@ -200,7 +219,10 @@ fun UpdateScreen(navController: NavHostController) {
                     }
                 },
                 actions = {
+<<<<<<< HEAD
                     // 3-dot menu button
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
                     IconButton(onClick = { showMenu = true }) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
@@ -208,8 +230,11 @@ fun UpdateScreen(navController: NavHostController) {
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
+<<<<<<< HEAD
 
                     // Dropdown menu
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
                     DropdownMenu(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false },
@@ -228,7 +253,10 @@ fun UpdateScreen(navController: NavHostController) {
                                 )
                             }
                         )
+<<<<<<< HEAD
 
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -380,7 +408,10 @@ fun UpdateScreen(navController: NavHostController) {
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 16.sp
                         )
+<<<<<<< HEAD
                         // Display release date when update is available
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
                         if (releaseDate.isNotEmpty()) {
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
@@ -534,7 +565,10 @@ fun UpdateScreen(navController: NavHostController) {
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 16.sp
                         )
+<<<<<<< HEAD
                         // Display last checked timestamp when no update is available
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
                         if (lastCheckedTime.isNotEmpty()) {
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
@@ -626,7 +660,10 @@ fun getLastCheckedTime(context: Context): String {
     return sharedPrefs.getString(KEY_LAST_CHECKED_TIME, "") ?: ""
 }
 
+<<<<<<< HEAD
 // Helper function to format GitHub date to readable format
+=======
+>>>>>>> 426be3ed (updated code to 2.0.5)
 private fun formatGitHubDate(githubDate: String): String {
     return try {
         val githubFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
@@ -634,6 +671,7 @@ private fun formatGitHubDate(githubDate: String): String {
         val dateTime = LocalDateTime.parse(githubDate, githubFormatter)
         dateTime.format(displayFormatter)
     } catch (e: Exception) {
+<<<<<<< HEAD
         githubDate // Return original if parsing fails
     }
 }
@@ -641,6 +679,10 @@ private fun formatGitHubDate(githubDate: String): String {
 // Existing utility functions (unchanged)
 private fun getCurrentMonth(): String {
     return SimpleDateFormat("MMMM", Locale.getDefault()).format(Date())
+=======
+        githubDate
+    }
+>>>>>>> 426be3ed (updated code to 2.0.5)
 }
 
 private fun downloadApk(
@@ -702,10 +744,10 @@ private fun downloadApk(
     }
 }
 
+// Robust version comparison: returns true if latestVersion > currentVersion
 private fun isNewerVersion(latestVersion: String, currentVersion: String): Boolean {
     val latestParts = latestVersion.split(".").map { it.toIntOrNull() ?: 0 }
     val currentParts = currentVersion.split(".").map { it.toIntOrNull() ?: 0 }
-
     for (i in 0 until maxOf(latestParts.size, currentParts.size)) {
         val latest = latestParts.getOrElse(i) { 0 }
         val current = currentParts.getOrElse(i) { 0 }
@@ -717,39 +759,86 @@ private fun isNewerVersion(latestVersion: String, currentVersion: String): Boole
     return false
 }
 
+// Fetches ALL releases, finds the latest version > current, and returns its info
 private suspend fun checkForUpdate(
+<<<<<<< HEAD
     onSuccess: (String, String, String, String) -> Unit, // Added fourth parameter for release date
+=======
+    onSuccess: (String, String, String, String) -> Unit,
+>>>>>>> 426be3ed (updated code to 2.0.5)
     onError: () -> Unit
 ) {
     withContext(Dispatchers.IO) {
         try {
-            val url = URL("https://api.github.com/repos/vivizzz007/vivi-music/releases/latest")
+            val url = URL("https://api.github.com/repos/vivizzz007/vivi-music/releases")
             val json = url.openStream().bufferedReader().use { it.readText() }
-            val jsonObject = JSONObject(json)
+            val releases = JSONArray(json)
+            var foundRelease: JSONObject? = null
 
+<<<<<<< HEAD
             val tag = jsonObject.getString("tag_name").removePrefix("v")
             val changelog = jsonObject.getString("body")
             val publishedAt = jsonObject.getString("published_at") // Get release date
             val formattedReleaseDate = formatGitHubDate(publishedAt) // Format the date
+=======
+            val currentVersion = BuildConfig.VERSION_NAME
+>>>>>>> 426be3ed (updated code to 2.0.5)
 
-            val assets = jsonObject.getJSONArray("assets")
-            if (assets.length() > 0) {
-                val apkAsset = assets.getJSONObject(0)
-                val apkSizeInBytes = apkAsset.getLong("size")
-                val apkSizeInMB = String.format("%.1f", apkSizeInBytes / (1024.0 * 1024.0))
+            // Find the highest version > currentVersion
+            for (i in 0 until releases.length()) {
+                val release = releases.getJSONObject(i)
+                val tag = release.getString("tag_name").removePrefix("v")
+                // Only consider tags that look like a semantic version
+                if (!tag.matches(Regex("""\d+(\.\d+){1,2}"""))) continue
+                if (isNewerVersion(tag, currentVersion)) {
+                    if (foundRelease == null || isNewerVersion(tag, foundRelease.getString("tag_name").removePrefix("v"))) {
+                        foundRelease = release
+                    }
+                }
+            }
 
+<<<<<<< HEAD
                 withContext(Dispatchers.Main) {
                     onSuccess(tag, changelog, apkSizeInMB, formattedReleaseDate) // Pass release date
+=======
+            if (foundRelease != null) {
+                val tag = foundRelease.getString("tag_name").removePrefix("v")
+                val changelog = foundRelease.optString("body", "")
+                val publishedAt = foundRelease.getString("published_at")
+                val formattedReleaseDate = formatGitHubDate(publishedAt)
+                val assets = foundRelease.getJSONArray("assets")
+                if (assets.length() > 0) {
+                    val apkAsset = assets.getJSONObject(0)
+                    val apkSizeInBytes = apkAsset.getLong("size")
+                    val apkSizeInMB = String.format("%.1f", apkSizeInBytes / (1024.0 * 1024.0))
+                    withContext(Dispatchers.Main) {
+                        onSuccess(tag, changelog, apkSizeInMB, formattedReleaseDate)
+                    }
+                } else {
+                    withContext(Dispatchers.Main) { onError() }
+>>>>>>> 426be3ed (updated code to 2.0.5)
                 }
             } else {
-                withContext(Dispatchers.Main) {
-                    onError()
+                // No update found; fallback to latest for message
+                val latest = if (releases.length() > 0) releases.getJSONObject(0) else null
+                if (latest != null) {
+                    val tag = latest.getString("tag_name").removePrefix("v")
+                    val changelog = latest.optString("body", "")
+                    val publishedAt = latest.getString("published_at")
+                    val formattedReleaseDate = formatGitHubDate(publishedAt)
+                    val assets = latest.getJSONArray("assets")
+                    val apkSizeInMB = if (assets.length() > 0)
+                        String.format("%.1f", assets.getJSONObject(0).getLong("size") / (1024.0 * 1024.0))
+                    else ""
+                    withContext(Dispatchers.Main) {
+                        onSuccess(tag, changelog, apkSizeInMB, formattedReleaseDate)
+                    }
+                } else {
+                    withContext(Dispatchers.Main) { onError() }
                 }
             }
         } catch (e: Exception) {
-            withContext(Dispatchers.Main) {
-                onError()
-            }
+            withContext(Dispatchers.Main) { onError() }
         }
     }
 }

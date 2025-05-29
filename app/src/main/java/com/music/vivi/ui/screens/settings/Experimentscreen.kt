@@ -241,6 +241,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                 }
             )
 
+<<<<<<< HEAD
 //            SettingsListItem(
 //                title = "Beta Updater",
 //                value = if (betaUpdaterEnabled) "Enabled" else "Disabled",
@@ -254,6 +255,21 @@ fun ExperimentalSettingsScreen(navController: NavController) {
 //                    )
 //                }
 //            )
+=======
+            SettingsListItem(
+                title = "Beta Updater",
+                value = if (betaUpdaterEnabled) "Enabled" else "Disabled",
+                trailingContent = {
+                    Switch(
+                        checked = betaUpdaterEnabled,
+                        onCheckedChange = { isChecked ->
+                            betaUpdaterEnabled = isChecked
+                            saveBetaUpdaterSetting(context, isChecked)
+                        }
+                    )
+                }
+            )
+>>>>>>> 426be3ed (updated code to 2.0.5)
 
             if (betaUpdaterEnabled) {
                 SettingsListItem(
@@ -266,6 +282,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
             }
 
 //            Spacer(modifier = Modifier.height(8.dp))
+<<<<<<< HEAD
 
 //            SettingsListItem(
 //                title = "Beta Updater",
@@ -281,6 +298,23 @@ fun ExperimentalSettingsScreen(navController: NavController) {
 //                onClick = { }
 //            )
 
+=======
+
+//            SettingsListItem(
+//                title = "Beta Updater",
+//                value = "Beta update here",
+//                onClick = {
+//                    navController.navigate("") //settings/pixel_updater
+//                }
+//            )
+
+            SettingsListItem(
+                title = "Debug Mode",
+                value = "Not Enabled",
+                onClick = { }
+            )
+
+>>>>>>> 426be3ed (updated code to 2.0.5)
             SettingsListItem(
                 title = "Send Feedback",
                 value = "Gmail and Github",

@@ -93,6 +93,10 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.BorderStroke
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
+<<<<<<< HEAD
+=======
+import androidx.annotation.RequiresApi
+>>>>>>> 426be3ed (updated code to 2.0.5)
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -271,6 +275,7 @@ class DpiSettingsViewModel(application: Application) : ViewModel() {
         println("DPI Code Disabled")
     }
 
+<<<<<<< HEAD
 fun fetchLatestPreRelease() {
     viewModelScope.launch {
         _fetchState.value = FetchState.Loading
@@ -351,6 +356,88 @@ fun fetchLatestPreRelease() {
     }
 }
 }
+=======
+    fun fetchLatestPreRelease() {
+        viewModelScope.launch {
+            _fetchState.value = FetchState.Loading
+            try {
+                val client = OkHttpClient.Builder()
+                    .connectTimeout(30, TimeUnit.SECONDS)
+                    .readTimeout(30, TimeUnit.SECONDS)
+                    .build()
+
+                val request = Request.Builder()
+                    .url("https://api.github.com/repos/vivizzz007/vivi-music/releases")
+                    .addHeader("Accept", "application/vnd.github.v3+json")
+                    .addHeader("User-Agent", "Android-App/1.0")
+                    .build()
+
+                val response = withContext(Dispatchers.IO) {
+                    client.newCall(request).execute()
+                }
+
+                Log.d("DpiSettingsViewModel", "Response code: ${response.code}")
+                Log.d("DpiSettingsViewModel", "Response message: ${response.message}")
+
+                if (response.isSuccessful) {
+                    val json = response.body?.string()
+                    Log.d("DpiSettingsViewModel", "Response body length: ${json?.length ?: 0}")
+
+                    json?.let { jsonString ->
+                        try {
+                            val releases = Json {
+                                ignoreUnknownKeys = true
+                                coerceInputValues = true
+                            }.decodeFromString<List<GitHubRelease>>(jsonString)
+
+                            Log.d("DpiSettingsViewModel", "Total releases found: ${releases.size}")
+
+                            releases.forEachIndexed { index, release ->
+                                Log.d("DpiSettingsViewModel", "Release $index: tag=${release.tag_name}, prerelease=${release.prerelease}")
+                            }
+
+                            val latestPreRelease = releases.firstOrNull { it.prerelease }
+                            Log.d("DpiSettingsViewModel", "Latest pre-release: ${latestPreRelease?.tag_name ?: "None found"}")
+
+                            // Check if this is a new update
+                            val isNewUpdate = latestPreRelease != null &&
+                                    latestPreRelease.tag_name != _downloadedTag.value &&
+                                    _latestPreRelease.value?.tag_name != latestPreRelease.tag_name
+
+                            _latestPreRelease.value = latestPreRelease
+                            _fetchState.value = FetchState.Success
+
+                            // Auto-expand details for new updates
+                            if (isNewUpdate) {
+                                _showDetails.value = true
+                            }
+
+                            if (latestPreRelease == null) {
+                                Log.w("DpiSettingsViewModel", "No Update ${releases.size} releases")
+                            }
+                        } catch (jsonException: Exception) {
+                            Log.e("DpiSettingsViewModel", "JSON parsing error: ${jsonException.message}", jsonException)
+                            Log.e("DpiSettingsViewModel", "JSON content: ${jsonString.take(500)}")
+                            _fetchState.value = FetchState.Error("Failed to parse releases data: ${jsonException.message}")
+                        }
+                    } ?: run {
+                        Log.e("DpiSettingsViewModel", "Response body is null")
+                        _fetchState.value = FetchState.Error("Empty response body")
+                    }
+                } else {
+                    val errorBody = response.body?.string()
+                    Log.e("DpiSettingsViewModel", "API Error - Code: ${response.code}, Message: ${response.message}")
+                    Log.e("DpiSettingsViewModel", "Error body: $errorBody")
+                    _fetchState.value = FetchState.Error("GitHub API error: ${response.code} ${response.message}")
+                }
+            } catch (e: Exception) {
+                Log.e("DpiSettingsViewModel", "Network error: ${e.message}", e)
+                _fetchState.value = FetchState.Error("Network error: ${e.message}")
+            }
+        }
+    }
+}
+>>>>>>> 426be3ed (updated code to 2.0.5)
 
 class DpiSettingsViewModelFactory(private val application: Application) :
     ViewModelProvider.Factory {
@@ -394,7 +481,11 @@ fun ViviDpiSettings(
         isDownloading -> "Downloading..."
         isApkDownloaded && downloadedTag == latestPreReleaseValue?.tag_name -> "Ready to install"
         latestPreReleaseValue != null -> "Available"
+<<<<<<< HEAD
         fetchState is DpiSettingsViewModel.FetchState.Loading -> "Loading..."
+=======
+        fetchState is DpiSettingsViewModel.FetchState.Loading -> "Checking for update"
+>>>>>>> 426be3ed (updated code to 2.0.5)
         fetchState is DpiSettingsViewModel.FetchState.Error -> "Failed to load"
         else -> "No Update"
     }
@@ -832,6 +923,10 @@ fun downloadApk(context: Context, url: String, viewModel: DpiSettingsViewModel, 
     return downloadId
 }
 
+<<<<<<< HEAD
+=======
+@RequiresApi(Build.VERSION_CODES.O)
+>>>>>>> 426be3ed (updated code to 2.0.5)
 private fun startProgressTracking(
     context: Context,
     downloadManager: DownloadManager,
@@ -1084,4 +1179,8 @@ private fun formatUploadTime(dateTime: String): String {
         Log.e("FormatUploadTime", "Error formatting time: $dateTime", e)
         dateTime.substringAfter('T').substringBefore('Z') + " UTC"
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 426be3ed (updated code to 2.0.5)

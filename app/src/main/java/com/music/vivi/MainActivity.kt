@@ -884,7 +884,9 @@ class MainActivity : ComponentActivity() {
                                                 contentDescription = null
                                             )
                                         }
-                                    } else if (navBackStackEntry?.destination?.route in topLevelScreens) {
+                                    }
+
+                                    else if (navBackStackEntry?.destination?.route in topLevelScreens) {
 //                                        SettingsIconWithUpdateBadge(
 //                                            currentVersion = BuildConfig.VERSION_NAME,
 //                                            onSettingsClick = { navController.navigate("settings") }
@@ -892,9 +894,9 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 modifier =
-                                Modifier
-                                    .focusRequester(searchBarFocusRequester)
-                                    .align(Alignment.TopCenter),
+                                    Modifier
+                                        .focusRequester(searchBarFocusRequester)
+                                        .align(Alignment.TopCenter),
                                 focusRequester = searchBarFocusRequester,
                                 colors = if (pureBlack && active) {
                                     SearchBarDefaults.colors(
