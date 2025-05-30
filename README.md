@@ -12,7 +12,7 @@ VIVI isn't just another music player — it's a complete audio experience. With 
 <p>
   <img src="https://github.com/vivizzz007/vivi-music/blob/main/appinfo/metadata/android/en-US/images/Screenshots/about_me.png" width="30%" />
   <img src="https://github.com/vivizzz007/vivi-music/blob/main/appinfo/metadata/android/en-US/images/Screenshots/home_me.png" width="30%" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/appinfo/metadata/android/en-US/images/Screenshots/inside-setting-screen.png" width="30%" />
+ 
   <img src="https://github.com/vivizzz007/vivi-music/blob/main/appinfo/metadata/android/en-US/images/Screenshots/player.png" width="30%" />
   <img src="https://github.com/vivizzz007/vivi-music/blob/main/appinfo/metadata/android/en-US/images/Screenshots/search.png" width="30%" />
   <img src="https://github.com/vivizzz007/vivi-music/blob/main/appinfo/metadata/android/en-US/images/Screenshots/setting.PNG" width="30%" />
