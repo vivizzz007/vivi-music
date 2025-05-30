@@ -34,6 +34,15 @@ import com.airbnb.lottie.compose.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.launch
 import android.util.Log
+import androidx.compose.foundation.text.ClickableText
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
+
 @Composable
 fun SettingsListItem(
     title: String,
@@ -89,6 +98,7 @@ fun SettingsListItem(
 fun ExperimentalSettingsScreen(navController: NavController) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    var showAutoUpdateInfoSheet by remember { mutableStateOf(false) }
 
     var autoUpdateCheckEnabled by remember { mutableStateOf(getAutoUpdateCheckSetting(context)) }
     var betaUpdaterEnabled by remember { mutableStateOf(getBetaUpdaterSetting(context)) }
@@ -223,37 +233,37 @@ fun ExperimentalSettingsScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            SettingsListItem(
-                title = "Auto Check for Updates",
-                value = if (autoUpdateCheckEnabled) "Enabled" else "Disabled",
-                onClick = {
-                    autoUpdateCheckEnabled = !autoUpdateCheckEnabled
-                    saveAutoUpdateCheckSetting(context, autoUpdateCheckEnabled)
-                },
-                trailingContent = {
-                    Switch(
-                        checked = autoUpdateCheckEnabled,
-                        onCheckedChange = { isChecked ->
-                            autoUpdateCheckEnabled = isChecked
-                            saveAutoUpdateCheckSetting(context, isChecked)
-                        }
-                    )
-                }
-            )
+//            SettingsListItem(
+//                title = "Auto Check for Updates",
+//                value = if (autoUpdateCheckEnabled) "Enabled" else "Disabled",
+//                onClick = {
+//                    autoUpdateCheckEnabled = !autoUpdateCheckEnabled
+//                    saveAutoUpdateCheckSetting(context, autoUpdateCheckEnabled)
+//                },
+//                trailingContent = {
+//                    Switch(
+//                        checked = autoUpdateCheckEnabled,
+//                        onCheckedChange = { isChecked ->
+//                            autoUpdateCheckEnabled = isChecked
+//                            saveAutoUpdateCheckSetting(context, isChecked)
+//                        }
+//                    )
+//                }
+//            )
 
-            SettingsListItem(
-                title = "Beta Updater",
-                value = if (betaUpdaterEnabled) "Enabled" else "Disabled",
-                trailingContent = {
-                    Switch(
-                        checked = betaUpdaterEnabled,
-                        onCheckedChange = { isChecked ->
-                            betaUpdaterEnabled = isChecked
-                            saveBetaUpdaterSetting(context, isChecked)
-                        }
-                    )
-                }
-            )
+//            SettingsListItem(
+//                title = "Beta Updater",
+//                value = if (betaUpdaterEnabled) "Enabled" else "Disabled",
+//                trailingContent = {
+//                    Switch(
+//                        checked = betaUpdaterEnabled,
+//                        onCheckedChange = { isChecked ->
+//                            betaUpdaterEnabled = isChecked
+//                            saveBetaUpdaterSetting(context, isChecked)
+//                        }
+//                    )
+//                }
+//            )
 
             if (betaUpdaterEnabled) {
                 SettingsListItem(
@@ -264,9 +274,122 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                     }
                 )
             }
+            SettingsListItem(
+                title = "Automatic Updates Info",
+                value = "Learn More",
+                onClick = {
+                    coroutineScope.launch {
+                        showAutoUpdateInfoSheet = true
+                        bottomSheetState.show()
+                    }
+                },
+                trailingContent = {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = "Auto Update Info"
+                    )
+                }
+            )
+            if (showAutoUpdateInfoSheet) {
+                ModalBottomSheet(
+                    onDismissRequest = {
+                        coroutineScope.launch {
+                            bottomSheetState.hide()
+                            showAutoUpdateInfoSheet = false
+                        }
+                    },
+                    sheetState = bottomSheetState,
+                    dragHandle = {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .padding(vertical = 8.dp)
+                                    .size(width = 40.dp, height = 4.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                                        shape = RoundedCornerShape(2.dp)
+                                    )
+                            )
+                        }
+                    }
+                ) {
+
+                    val uriHandler = LocalUriHandler.current
+                    val annotatedLinkString = buildAnnotatedString {
+                        // Style the prefix text
+                        withStyle(
+                            style = SpanStyle(
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        ) {
+                            append("For automatic updates, please use the ")
+                        }
+
+                        // Style the clickable link
+                        pushStringAnnotation(
+                            tag = "GitHub",
+                            annotation = "https://github.com/vivizzz007/vivi-music/releases"
+                        )
+                        withStyle(
+                            style = SpanStyle(
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold,
+                                textDecoration = TextDecoration.Underline
+                            )
+                        ) {
+                            append("GitHub build")
+                        }
+                        pop()
+
+                        // Optionally, you can style a trailing period
+                        withStyle(
+                            style = SpanStyle(
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        ) {
+                            append(".")
+                        }
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp)
+                    ) {
+                        Text(
+                            text = "Automatic Updates",
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+
+                        ClickableText(
+                            text = annotatedLinkString,
+                            style = MaterialTheme.typography.bodyMedium,
+                            onClick = { offset ->
+                                annotatedLinkString.getStringAnnotations(
+                                    tag = "GitHub",
+                                    start = offset,
+                                    end = offset
+                                ).firstOrNull()?.let { annotation ->
+                                    uriHandler.openUri(annotation.item)
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+
+
+
+
+
+
 
 //            Spacer(modifier = Modifier.height(8.dp))
-
+//
 //            SettingsListItem(
 //                title = "Beta Updater",
 //                value = "Beta update here",

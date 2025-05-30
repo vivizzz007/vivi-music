@@ -119,6 +119,11 @@ fun SettingsScreen(
     var searchQuery by remember { mutableStateOf("") }
     var showSearchDialog by remember { mutableStateOf(false) }
 
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val coroutineScope = rememberCoroutineScope()
+    var showSheet by remember { mutableStateOf(false) }
+
+
     val imagePickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         userImageUri = uri
         saveImageUri(context, uri)
@@ -155,7 +160,17 @@ fun SettingsScreen(
 //            description = if (isUpdateAvailable) "Update available" else "Check for app updates",
 //            keywords = listOf("update", "version", "upgrade", "new")
 //        ),
-//
+
+//        SettingItem(
+//            title = "System Update",
+//            iconRes = if (isUpdateAvailable) R.drawable.updateon_icon else R.drawable.update_icon,
+//            route = "", // Leave blank since we’re handling click manually
+//            description = if (isUpdateAvailable) "Update available" else "Check for app updates",
+//            keywords = listOf("update", "system", "upgrade", "github")
+//        ),
+
+
+
         SettingItem(
             title = stringResource(R.string.appearance),
             iconRes = R.drawable.theme_icon,

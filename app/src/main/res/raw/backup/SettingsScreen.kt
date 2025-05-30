@@ -105,22 +105,6 @@ fun SettingsScreen(
                 horizontalArrangement = Arrangement.Start
             ) {
 
-
-//                Box(
-//                    modifier = Modifier
-//                        .size(80.dp)
-//                        .clip(CircleShape)
-//                        .clickable {
-//                            imagePickerLauncher.launch("image/*")
-//                        }
-//                ) {
-//                    Image(
-//                        painter = painterResource(id = R.drawable.vivimusic),
-//                        contentDescription = "User profile image",
-//                        modifier = Modifier.fillMaxSize(),
-//                        contentScale = ContentScale.Crop
-//                    )
-//                }
                 Box(
                     modifier = Modifier
                         .size(80.dp)
