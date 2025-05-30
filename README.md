@@ -62,20 +62,3 @@ This project and its contents are not affiliated with, funded, authorized, endor
 Any trademark, service mark, trade name, or other intellectual property rights used in this project are owned by the respective owners.
 
 
-<div align="center">
-<h1>Special thanks</h1>
-
-(InnerTune)
-[Zion Huang](https://github.com/z-huang),
-[Malopieds](https://github.com/Malopieds)
-
-(OuterTune)
-[Davide Garberi](https://github.com/DD3Boh),
-[Michael Zh](https://github.com/mikooomich)
-
-(Muzza)
-[Maloy Android](https://github.com/Maloy-Android)
-
-(metrolist)
-[mostafaalagamy](https://github.com/mostafaalagamy/Metrolist) for Metrolist
-</div>
