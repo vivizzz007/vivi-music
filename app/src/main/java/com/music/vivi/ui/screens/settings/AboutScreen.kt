@@ -356,7 +356,8 @@ fun AboutScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 80.dp, bottom = 16.dp)
-            ) {
+            )
+            {
                 Spacer(modifier = Modifier.height(170.dp))
                 Text(
                     text = "VIVI MUSIC",
@@ -377,23 +378,25 @@ fun AboutScreen(
                 Spacer(modifier = Modifier.height(100.dp))
 
                 // --- SHOW UPDATE BUTTON AND LATEST TAG IF NEEDED ---
-                if (isUpdateAvailable.value && latestRelease != null) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Button(
-                            onClick = { navController.navigate("settings/update") },
-                            modifier = Modifier
-                                .fillMaxWidth(0.7f)
-                                .height(60.dp),
-                            contentPadding = PaddingValues(16.dp)
-                        ) {
-                            Text(
-                                text = "Update Now",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        }
-                    }
-                }
+//                if (isUpdateAvailable.value && latestRelease != null)
+//                {
+//                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+//                        Button(
+//                            onClick = { navController.navigate("settings/update") },
+//                            modifier = Modifier
+//                                .fillMaxWidth(0.7f)
+//                                .height(60.dp),
+//                            contentPadding = PaddingValues(16.dp)
+//                        ) {
+//                            Text(
+//                                text = "Update Now",
+//                                fontSize = 18.sp,
+//                                fontWeight = FontWeight.SemiBold
+//                            )
+//                        }
+//                    }
+//                }
+
             }
 
             Spacer(modifier = Modifier.height(100.dp))

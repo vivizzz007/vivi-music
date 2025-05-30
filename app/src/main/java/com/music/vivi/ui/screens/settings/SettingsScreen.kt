@@ -127,15 +127,16 @@ fun SettingsScreen(
     val greeting = getGreetingBasedOnTime()
 
     // Fetch all releases and check for update
-    LaunchedEffect(Unit) {
-        checkForUpdateFromGitHubAll { highestVersion ->
-            val cleanLatestVersion = highestVersion.removePrefix("v")
-            val newVersionAvailable = isNewerVersion(cleanLatestVersion, BuildConfig.VERSION_NAME)
-            latestVersion = cleanLatestVersion
-            isUpdateAvailable = newVersionAvailable && cleanLatestVersion != BuildConfig.VERSION_NAME
-            showUpdateCard = isUpdateAvailable
-        }
-    }
+//    LaunchedEffect(Unit)
+//    {
+//        checkForUpdateFromGitHubAll { highestVersion ->
+//            val cleanLatestVersion = highestVersion.removePrefix("v")
+//            val newVersionAvailable = isNewerVersion(cleanLatestVersion, BuildConfig.VERSION_NAME)
+//            latestVersion = cleanLatestVersion
+//            isUpdateAvailable = newVersionAvailable && cleanLatestVersion != BuildConfig.VERSION_NAME
+//            showUpdateCard = isUpdateAvailable
+//        }
+//    }
 
     data class SettingItem(
         val title: String,
@@ -146,13 +147,15 @@ fun SettingsScreen(
     )
 
     val settingsItems = listOf(
-        SettingItem(
-            title = stringResource(R.string.update),
-            iconRes = if (isUpdateAvailable) R.drawable.updateon_icon else R.drawable.update_icon,
-            route = "settings/update",
-            description = if (isUpdateAvailable) "Update available" else "Check for app updates",
-            keywords = listOf("update", "version", "upgrade", "new")
-        ),
+
+//        SettingItem(
+//            title = stringResource(R.string.update),
+//            iconRes = if (isUpdateAvailable) R.drawable.updateon_icon else R.drawable.update_icon,
+//            route = "settings/update",
+//            description = if (isUpdateAvailable) "Update available" else "Check for app updates",
+//            keywords = listOf("update", "version", "upgrade", "new")
+//        ),
+//
         SettingItem(
             title = stringResource(R.string.appearance),
             iconRes = R.drawable.theme_icon,
@@ -467,23 +470,25 @@ fun SettingsScreen(
                             )
                         }
 
-                        AnimatedVisibility(
-                            visible = showUpdateCard,
-                            enter = fadeIn(animationSpec = tween(500)) + slideInVertically(
-                                animationSpec = tween(500), initialOffsetY = { it / 2 }
-                            )
-                        ) {
-                            Text(
-                                text = "🚀 Update available: v$latestVersion",
-                                style = MaterialTheme.typography.bodySmall.copy(fontSize = 18.sp),
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier
-                                    .padding(top = 4.dp)
-                                    .clickable(enabled = showUpdateCard) {
-                                        if (showUpdateCard) navController.navigate("settings/update")
-                                    }
-                            )
-                        }
+//                        AnimatedVisibility(
+//                            visible = showUpdateCard,
+//                            enter = fadeIn(animationSpec = tween(500)) + slideInVertically(
+//                                animationSpec = tween(500), initialOffsetY = { it / 2 }
+//                            )
+//                        )
+//                        {
+//                            Text(
+//                                text = "🚀 Update available: v$latestVersion",
+//                                style = MaterialTheme.typography.bodySmall.copy(fontSize = 18.sp),
+//                                color = MaterialTheme.colorScheme.primary,
+//                                modifier = Modifier
+//                                    .padding(top = 4.dp)
+//                                    .clickable(enabled = showUpdateCard) {
+//                                        if (showUpdateCard) navController.navigate("settings/update")
+//                                    }
+//                            )
+//                        }
+
                     }
                 }
             }
