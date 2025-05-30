@@ -61,4 +61,11 @@ This project and its contents are not affiliated with, funded, authorized, endor
 
 Any trademark, service mark, trade name, or other intellectual property rights used in this project are owned by the respective owners.
 
+<div align="center">
+<h1>Special thanks</h1>
 
+(Muzza)
+[Maloy Android](https://github.com/Maloy-Android)
+
+
+</div>
