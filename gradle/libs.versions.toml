@@ -1,0 +1,100 @@
+[versions]
+androidGradlePlugin = "8.10.1"
+annotation = "1.9.1"
+json = "20241224"
+kotlin = "2.1.0"
+compose = "1.8.1"
+lifecycle = "2.9.0"
+material3 = "1.3.2"
+media3 = "1.6.1"
+room = "2.7.1"
+hilt = "2.56.1"
+ktor = "3.1.2"
+ksp = "2.1.0-1.0.29"
+kotlinVersion = "2.0.20"
+lottieCompose = "6.4.1" # Or the latest stable version
+
+[libraries]
+annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
+guava = { group = "com.google.guava", name = "guava", version = "33.4.6-android" }
+coroutines-guava = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-guava", version = "1.10.1" }
+concurrent-futures = { group = "androidx.concurrent", name = "concurrent-futures-ktx", version = "1.2.0" }
+lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottieCompose" }
+
+gradle = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
+activity = { group = "androidx.activity", name = "activity-compose", version = "1.10.1" }
+navigation = { group = "androidx.navigation", name = "navigation-compose", version = "2.9.0" }
+hilt-navigation = { group = "androidx.hilt", name = "hilt-navigation-compose", version = "1.2.0" }
+datastore = { group = "androidx.datastore", name = "datastore-preferences", version = "1.1.4" }
+
+compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "compose" }
+compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version = "1.8.1" }
+compose-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "compose" }
+compose-ui-util = { group = "androidx.compose.ui", name = "ui-util", version.ref = "compose" }
+compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "compose" }
+compose-reorderable1 = { module = "sh.calvin.reorderable:reorderable", version = "2.4.3" }
+compose-reorderable2 = { group = "org.burnoutcrew.composereorderable", name = "reorderable", version = "0.9.6" }
+compose-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version = "1.7.8" }
+
+viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
+viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+
+material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
+squigglyslider = { group = "me.saket.squigglyslider", name = "squigglyslider", version = "1.0.0" }
+
+coil = { group = "io.coil-kt", name = "coil-compose", version = "2.7.0" }
+
+shimmer = { group = "com.valentinilk.shimmer", name = "compose-shimmer", version = "1.3.2" }
+
+palette = { group = "androidx.palette", name = "palette", version = "1.0.0" }
+
+media3 = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
+media3-okhttp = { group = "androidx.media3", name = "media3-datasource-okhttp", version.ref = "media3" }
+media3-session = { group = "androidx.media3", name = "media3-session", version.ref = "media3" }
+
+room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+
+apache-lang3 = { group = "org.apache.commons", name = "commons-lang3", version = "3.17.0" }
+
+hilt = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
+hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
+
+ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
+ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
+ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-client-encoding = { group = "io.ktor", name = "ktor-client-encoding", version.ref = "ktor" }
+ktor-serialization-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+
+json = { module = "org.json:json", version.ref = "json" }
+
+brotli = { group = "org.brotli", name = "dec", version = "0.1.2" }
+
+opencc4j = { group = "com.github.houbb", name = "opencc4j", version = "1.8.1" }
+
+desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version = "2.1.5" }
+
+junit = { group = "junit", name = "junit", version = "4.13.2" }
+
+timber = { group = "com.jakewharton.timber", name = "timber", version = "5.0.1" }
+
+google-services = { module = "com.google.gms:google-services", version = "4.4.2" }
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version = "33.13.0" }
+firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics-ktx" }
+firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics-ktx" }
+firebase-crashlytics-plugin = { module = "com.google.firebase:firebase-crashlytics-gradle", version = "3.0.3" }
+firebase-config = { group = "com.google.firebase", name = "firebase-config-ktx" }
+firebase-perf = { group = "com.google.firebase", name = "firebase-perf-ktx" }
+firebase-perf-plugin = { module = "com.google.firebase:perf-plugin", version = "1.4.2" }
+
+mlkit-language-id = { group = "com.google.mlkit", name = "language-id", version = "17.0.6" }
+mlkit-translate = { group = "com.google.mlkit", name = "translate", version = "17.0.3" }
+newpipe-extractor = { group = "com.github.libre-tube", name = "NewPipeExtractor", version = "bc9a5a220e" }
+
+[plugins]
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+kotlin-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlinVersion" }
