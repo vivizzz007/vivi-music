@@ -5,7 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -52,6 +51,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material.icons.automirrored.rounded.NavigateBefore
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Close // For the "wrong sign"
+import androidx.compose.material.icons.rounded.Settings // For the settings icon
+import androidx.compose.material.icons.rounded.MusicVideo
+import androidx.compose.material.icons.rounded.NotInterested
+import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
@@ -76,40 +84,36 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Warning
+import androidx.compose.material3.Card
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
-import androidx.core.content.PermissionChecker
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
-import kotlinx.coroutines.delay
-import android.Manifest
+
+
+
 
 @Composable
 fun SetupWizard(
     navController: NavController,
 ) {
-    val shimmerBrush = shimmerEffect()
+    val shimmerBrush = shimmerEffect() // Assuming this is defined
     val layoutDirection = LocalLayoutDirection.current
     val context = LocalContext.current
 
-    val (firstSetupPassed, onFirstSetupPassedChange) = rememberPreference(FirstSetupPassed, defaultValue = false)
+    // Assuming FirstSetupPassed and rememberPreference are defined and working
+    val (firstSetupPassed, onFirstSetupPassedChange) = rememberPreference("FirstSetupPassed", defaultValue = false)
 
-    var position by remember { mutableIntStateOf(0) }
-    var showInstallPermissionDialog by remember { mutableStateOf(false) }
-    var permissionGranted by remember { mutableStateOf(false) }
-    var showPermissionError by remember { mutableStateOf(false) }
-    var notificationPermissionGranted by remember { mutableStateOf(false) }
-    var showNotificationPermissionError by remember { mutableStateOf(false) }
-    var buildVersionClickCount by remember { mutableStateOf(0) }
+    var position by remember {
+        mutableIntStateOf(0)
+    }
 
-    val MAX_POS = 4 // 0, 1, 2, 3
+    val MAX_POS = 2 // Only 0 and 1 now
 
-    // Handle system back button to navigate to previous step
     if (position > 0) {
         BackHandler {
             position -= 1
@@ -118,82 +122,15 @@ fun SetupWizard(
 
     if (firstSetupPassed) {
         navController.navigateUp()
-    }
-
-    // Check for permissions
-    LaunchedEffect(position) {
-        if (position == 1 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            permissionGranted = context.packageManager.canRequestPackageInstalls()
-            showPermissionError = false
-        } else if (position == 1 && Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            permissionGranted = true
-            showPermissionError = false
-        } else if (position == 2 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            notificationPermissionGranted = ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) == PermissionChecker.PERMISSION_GRANTED
-            showNotificationPermissionError = false
-        } else if (position == 2 && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            notificationPermissionGranted = true
-            showNotificationPermissionError = false
-        }
-    }
-
-    // Hide permission errors after 5 seconds
-    LaunchedEffect(showPermissionError, showNotificationPermissionError) {
-        if (showPermissionError || showNotificationPermissionError) {
-            delay(5000) // 5 seconds
-            if (showPermissionError) showPermissionError = false
-            if (showNotificationPermissionError) showNotificationPermissionError = false
-        }
+        return // Return to prevent rendering the wizard if already passed
     }
 
     Scaffold(
-        bottomBar = {
-            NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.onSurface,
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(64.dp)
-                        .padding(horizontal = 30.dp, vertical = 1.dp)
-                        .clip(RoundedCornerShape(100.dp))
-                        .background(MaterialTheme.colorScheme.primary)
-                        .clickable {
-                            if (position < MAX_POS - 1) {
-                                position += 1
-                            } else {
-                                navController.navigate("home")
-                                onFirstSetupPassedChange(true)
-                                navController.navigateUp()
-                            }
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Row(
-                        modifier = Modifier.padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = stringResource(R.string.next),
-                            style = MaterialTheme.typography.labelLarge.copy(fontSize = 16.sp),
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                }
-            }
-        },
         modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
         Box(
             modifier = Modifier
-                .padding(paddingValues)
+                .padding(paddingValues) // Apply Scaffold's padding first
                 .fillMaxSize()
         ) {
             Column(
@@ -202,9 +139,10 @@ fun SetupWizard(
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(Modifier.height(WindowInsets.systemBars.asPaddingValues().calculateTopPadding() + 32.dp))
+                Spacer(Modifier.height(WindowInsets.systemBars.asPaddingValues().calculateTopPadding() + 32.dp)) // Increased spacing
 
                 if (position == 0) {
+                    // Welcome Screen
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.padding(horizontal = 24.dp)
@@ -214,513 +152,73 @@ fun SetupWizard(
                             composition = composition,
                             iterations = LottieConstants.IterateForever,
                             modifier = Modifier
-                                .size(350.dp)
+                                .size(300.dp)
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp, vertical = 8.dp)
-                                .height(180.dp)
                                 .clip(RoundedCornerShape(12.dp))
                         )
-                        Spacer(Modifier.height(16.dp))
-                        Spacer(Modifier.height(30.dp))
                         Box(
                             modifier = Modifier
                                 .size(120.dp)
                                 .clip(CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Image(
-                                painter = painterResource(R.drawable.vivimusic),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(150.dp)
-                                    .clickable {
-                                        buildVersionClickCount += 1
-                                        if (buildVersionClickCount >= 5) {
-                                            // Navigate to update screen or enable beta update mode
-                                            Toast.makeText(context, "Beta update mode enabled!", Toast.LENGTH_SHORT).show()
-                                            buildVersionClickCount = 0
-                                        }
-                                    },
-                            )
+                            // Your Image composable is commented out here:
+                            // Image(
+                            //     painter = painterResource(R.drawable.vivimusic),
+                            //     contentDescription = null,
+                            //     modifier = Modifier
+                            //         .size(150.dp)
+                            //         .clickable { },
+                            // )
                         }
-                        Spacer(Modifier.height(10.dp))
+                        // This spacer pushes the text down from the Lottie/Box.
+
+                        // "Welcome to Vivi Music" Text (made bigger as per previous discussion)
                         Text(
                             text = "Welcome to \nVivi Music",
-                            style = MaterialTheme.typography.headlineLarge.copy(fontSize = 40.sp),
+                            style = MaterialTheme.typography.headlineLarge.copy(
+                                fontSize = 40.sp // Explicitly set font size
+                            ),
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 10.dp),
+                                .padding(vertical = 10.dp), // Padding around the text itself
                             color = MaterialTheme.colorScheme.onBackground
                         )
+
+                        // --- NEW TEXT ADDED BELOW ---
                         Text(
                             text = "Your ultimate music experience, ad-free and open source.",
-                            style = MaterialTheme.typography.bodyLarge,
+                            style = MaterialTheme.typography.bodyLarge, // Or bodyMedium, bodySmall
                             textAlign = TextAlign.Center,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+                                .padding(horizontal = 16.dp, vertical = 8.dp), // Adjust padding as needed
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f) // Slightly faded color
                         )
-                    }
-                }
+                        // --- END NEW TEXT ---
 
-                if (position == 1) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 24.dp)
-                    ) {
-                        if (!permissionGranted) {
-                            val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.settingstart))
-                            LottieAnimation(
-                                composition = composition,
-                                iterations = LottieConstants.IterateForever,
-                                modifier = Modifier
-                                    .size(350.dp)
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                                    .height(180.dp)
-                                    .clip(RoundedCornerShape(12.dp))
-                            )
-                            Spacer(modifier = Modifier.height(24.dp))
-                            Text(
-                                text = stringResource(R.string.allow_unknown_sources_title),
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center,
-                                color = MaterialTheme.colorScheme.onBackground
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(Color.Yellow.copy(alpha = 0.1f))
-                                    .border(
-                                        width = 1.dp,
-                                        color = Color.Yellow.copy(alpha = 0.5f),
-                                        shape = RoundedCornerShape(8.dp)
-                                    )
-                                    .padding(16.dp)
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.Warning,
-                                        contentDescription = "Warning",
-                                        modifier = Modifier.size(24.dp),
-                                        tint = Color.Yellow
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = stringResource(R.string.allow_unknown_sources_explanation),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        textAlign = TextAlign.Start,
-                                        color = MaterialTheme.colorScheme.secondary
-                                    )
-                                }
-                            }
-                            if (showPermissionError) {
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(Color.Red.copy(alpha = 0.1f))
-                                        .border(
-                                            width = 1.dp,
-                                            color = Color.Red.copy(alpha = 0.5f),
-                                            shape = RoundedCornerShape(8.dp)
-                                        )
-                                        .padding(16.dp)
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Rounded.Close,
-                                            contentDescription = stringResource(R.string.permission_error),
-                                            modifier = Modifier.size(24.dp),
-                                            tint = Color.Red
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(
-                                            text = "Permission Denied",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            textAlign = TextAlign.Start,
-                                            color = MaterialTheme.colorScheme.secondary
-                                        )
-                                    }
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(32.dp))
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Button(
-                                    onClick = {
-                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                            if (!context.packageManager.canRequestPackageInstalls()) {
-                                                val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
-                                                    data = Uri.fromParts("package", context.packageName, null)
-                                                }
-                                                context.startActivity(intent)
-                                                showInstallPermissionDialog = true
-                                            } else {
-                                                position += 1
-                                                permissionGranted = true
-                                                showPermissionError = false
-                                            }
-                                        } else {
-                                            position += 1
-                                            permissionGranted = true
-                                            showPermissionError = false
-                                        }
-                                    },
-                                    shape = RoundedCornerShape(30.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .height(45.dp)
-                                ) {
-                                    Text(
-                                        stringResource(R.string.grant_permission),
-                                        style = MaterialTheme.typography.labelLarge,
-                                        color = MaterialTheme.colorScheme.onPrimary
-                                    )
-                                }
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Button(
-                                    onClick = {
-                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                            permissionGranted = context.packageManager.canRequestPackageInstalls()
-                                            showPermissionError = !permissionGranted
-                                        } else {
-                                            permissionGranted = true
-                                            showPermissionError = false
-                                        }
-                                    },
-                                    shape = RoundedCornerShape(30.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .height(45.dp)
-                                ) {
-                                    Text(
-                                        text = stringResource(R.string.recheck_permission),
-                                        style = MaterialTheme.typography.labelLarge,
-                                        color = MaterialTheme.colorScheme.onPrimary
-                                    )
-                                }
-                            }
-                        } else {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.settingstart))
-                                LottieAnimation(
-                                    composition = composition,
-                                    iterations = LottieConstants.IterateForever,
-                                    modifier = Modifier
-                                        .size(350.dp)
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                                        .height(180.dp)
-                                        .clip(RoundedCornerShape(12.dp))
-                                )
-                                Spacer(modifier = Modifier.height(24.dp))
-                                Text(
-                                    text = stringResource(R.string.allow_unknown_sources_title),
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    textAlign = TextAlign.Center,
-                                    color = MaterialTheme.colorScheme.onBackground
-                                )
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(Color.Green.copy(alpha = 0.1f))
-                                        .border(
-                                            width = 1.dp,
-                                            color = Color.Green.copy(alpha = 0.5f),
-                                            shape = RoundedCornerShape(8.dp)
-                                        )
-                                        .padding(16.dp)
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Rounded.CheckCircle,
-                                            contentDescription = stringResource(R.string.permission_granted),
-                                            modifier = Modifier.size(24.dp),
-                                            tint = Color.Green
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(
-                                            text = "Permission Granted",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            textAlign = TextAlign.Start,
-                                            color = MaterialTheme.colorScheme.secondary
-                                        )
-                                    }
-                                }
-                                Spacer(modifier = Modifier.height(32.dp))
-                            }
-                        }
-                    }
-                }
-
-                if (position == 2) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 24.dp)
-                    ) {
-                        if (!notificationPermissionGranted) {
-                            val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.notificationpermission))
-                            LottieAnimation(
-                                composition = composition,
-                                iterations = LottieConstants.IterateForever,
-                                modifier = Modifier
-                                    .size(350.dp)
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                                    .height(180.dp)
-                                    .clip(RoundedCornerShape(12.dp))
-                            )
-                            Spacer(modifier = Modifier.height(24.dp))
-                            Text(
-                                text = "Allow Notifications",
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center,
-                                color = MaterialTheme.colorScheme.onBackground
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(Color.Yellow.copy(alpha = 0.1f))
-                                    .border(
-                                        width = 1.dp,
-                                        color = Color.Yellow.copy(alpha = 0.5f),
-                                        shape = RoundedCornerShape(8.dp)
-                                    )
-                                    .padding(16.dp)
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.Warning,
-                                        contentDescription = "Warning",
-                                        modifier = Modifier.size(24.dp),
-                                        tint = Color.Yellow
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = "Allow Vivi Music to send notifications for playback controls and updates.",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        textAlign = TextAlign.Start,
-                                        color = MaterialTheme.colorScheme.secondary
-                                    )
-                                }
-                            }
-                            if (showNotificationPermissionError) {
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(Color.Red.copy(alpha = 0.1f))
-                                        .border(
-                                            width = 1.dp,
-                                            color = Color.Red.copy(alpha = 0.5f),
-                                            shape = RoundedCornerShape(8.dp)
-                                        )
-                                        .padding(16.dp)
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Rounded.Close,
-                                            contentDescription = "Notification Permission Error",
-                                            modifier = Modifier.size(24.dp),
-                                            tint = Color.Red
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(
-                                            text = "Notification Permission Denied",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            textAlign = TextAlign.Start,
-                                            color = MaterialTheme.colorScheme.secondary
-                                        )
-                                    }
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(32.dp))
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Button(
-                                    onClick = {
-                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                            if (ContextCompat.checkSelfPermission(
-                                                    context,
-                                                    Manifest.permission.POST_NOTIFICATIONS
-                                                ) != PermissionChecker.PERMISSION_GRANTED
-                                            ) {
-                                                val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
-                                                    putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-                                                }
-                                                context.startActivity(intent)
-                                            } else {
-                                                position += 1
-                                                notificationPermissionGranted = true
-                                                showNotificationPermissionError = false
-                                            }
-                                        } else {
-                                            position += 1
-                                            notificationPermissionGranted = true
-                                            showNotificationPermissionError = false
-                                        }
-                                    },
-                                    shape = RoundedCornerShape(30.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .height(45.dp)
-                                ) {
-                                    Text(
-                                        text = "Grant",
-                                        style = MaterialTheme.typography.labelLarge,
-                                        color = MaterialTheme.colorScheme.onPrimary
-                                    )
-                                }
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Button(
-                                    onClick = {
-                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                            notificationPermissionGranted = ContextCompat.checkSelfPermission(
-                                                context,
-                                                Manifest.permission.POST_NOTIFICATIONS
-                                            ) == PermissionChecker.PERMISSION_GRANTED
-                                            showNotificationPermissionError = !notificationPermissionGranted
-                                        } else {
-                                            notificationPermissionGranted = true
-                                            showNotificationPermissionError = false
-                                        }
-                                    },
-                                    shape = RoundedCornerShape(30.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .height(45.dp)
-                                ) {
-                                    Text(
-                                        text = stringResource(R.string.recheck_permission),
-                                        style = MaterialTheme.typography.labelLarge,
-                                        color = MaterialTheme.colorScheme.onPrimary
-                                    )
-                                }
-                            }
-                        } else {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.notificationpermission))
-                                LottieAnimation(
-                                    composition = composition,
-                                    iterations = LottieConstants.IterateForever,
-                                    modifier = Modifier
-                                        .size(350.dp)
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                                        .height(180.dp)
-                                        .clip(RoundedCornerShape(12.dp))
-                                )
-                                Spacer(modifier = Modifier.height(24.dp))
-                                Text(
-                                    text = "Allow Notifications",
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    textAlign = TextAlign.Center,
-                                    color = MaterialTheme.colorScheme.onBackground
-                                )
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(Color.Green.copy(alpha = 0.1f))
-                                        .border(
-                                            width = 1.dp,
-                                            color = Color.Green.copy(alpha = 0.5f),
-                                            shape = RoundedCornerShape(8.dp)
-                                        )
-                                        .padding(16.dp)
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Rounded.CheckCircle,
-                                            contentDescription = "Notification Permission Granted",
-                                            modifier = Modifier.size(24.dp),
-                                            tint = Color.Green
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(
-                                            text = "Notification Permission Granted",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            textAlign = TextAlign.Start,
-                                            color = MaterialTheme.colorScheme.secondary
-                                        )
-                                    }
-                                }
-                                Spacer(modifier = Modifier.height(32.dp))
-                            }
-                        }
+                        Spacer(Modifier.height(20.dp)) // This spacer pushes the button up, making text higher from bottom.
                     }
                 }
 
                 if (position == MAX_POS - 1) {
+                    // Final Setup Screen
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 24.dp)
                     ) {
-                        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.complete)) //completedsetup
-                        LottieAnimation(
-                            composition = composition,
-                            iterations = LottieConstants.IterateForever,
-                            modifier = Modifier
-                                .size(350.dp)
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                                .height(180.dp)
-                                .clip(RoundedCornerShape(12.dp))
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
+                            contentDescription = stringResource(R.string.finish_setup),
+                            modifier = Modifier.size(96.dp), // Increased size
+                            tint = MaterialTheme.colorScheme.primary
                         )
-                        Spacer(modifier = Modifier.height(1.dp))
+                        Spacer(modifier = Modifier.height(24.dp)) // Increased spacing
                         Text(
                             text = stringResource(R.string.all_set),
                             style = MaterialTheme.typography.headlineLarge,
@@ -728,27 +226,36 @@ fun SetupWizard(
                             textAlign = TextAlign.Center,
                             color = MaterialTheme.colorScheme.onBackground
                         )
-                        Spacer(Modifier.height(20.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = stringResource(R.string.enjoy_vivi_music),
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                        Spacer(Modifier.height(20.dp)) // Add spacing before the moved texts
+
+                        // Start Glassmorphism Box
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(10.dp).copy(alpha = 0.6f))
+                                .clip(RoundedCornerShape(16.dp)) // Rounded corners for the glass effect
+                                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(10.dp).copy(alpha = 0.6f)) // Translucent background
                                 .border(
                                     width = 1.dp,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), // Subtle border
                                     shape = RoundedCornerShape(16.dp)
                                 )
-                                .padding(16.dp)
+                                // MODIFIED: Reduced blur from 8.dp to 3.dp
+                                .padding(16.dp) // Internal padding for content
                         ) {
-                            ProvideTextStyle(value = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.secondary))
-                            {
+                            ProvideTextStyle(value = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.secondary)) {
                                 Column(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalAlignment = Alignment.Start
                                 ) {
                                     Row(
-                                        verticalAlignment = Alignment.CenterVertically,
+                                        verticalAlignment = CenterVertically,
                                         modifier = Modifier.padding(vertical = 8.dp)
                                     ) {
                                         Icon(
@@ -762,6 +269,7 @@ fun SetupWizard(
                                             modifier = Modifier.padding(12.dp)
                                         )
                                     }
+
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
                                         modifier = Modifier.padding(vertical = 8.dp)
@@ -806,31 +314,112 @@ fun SetupWizard(
                                             fontWeight = FontWeight.Bold,
                                             modifier = Modifier.padding(12.dp)
                                         )
-
                                     }
-
-
                                 }
                             }
                         }
-                        Spacer(Modifier.height(16.dp))
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp))
-                                .padding(16.dp)
-                        ) {
-                            Text(
-                                text = "If you want to update to the beta version, click on the build version 5 times.",
-                                style = MaterialTheme.typography.bodyMedium,
-                                textAlign = TextAlign.Center,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                        // End Glassmorphism Box
                     }
                 }
             }
+
+            // Universal Button at the bottom
+            val buttonText: String? = when (position) {
+                0 -> stringResource(R.string.get_started)
+                MAX_POS - 1 -> stringResource(R.string.finish_setup)
+                else -> null // Don't show the button if position is not handled
+            }
+
+            if (buttonText != null) {
+                SetupWizardButton(
+                    text = buttonText,
+                    onClick = {
+                        when (position) {
+                            0 -> position += 1
+                            MAX_POS - 1 -> {
+                                onFirstSetupPassedChange(true)
+                                navController.navigateUp()
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
+                        .padding(bottom = paddingValues.calculateBottomPadding() + 16.dp)
+                )
+            }
         }
+    }
+}
+
+@Composable
+fun SetupWizardButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    containerColor: Color = MaterialTheme.colorScheme.primary,
+    contentColor: Color = MaterialTheme.colorScheme.onPrimary
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier
+            .height(70.dp), // Standard button height
+        shape = RoundedCornerShape(50.dp), // Rounded corners
+        colors = ButtonDefaults.buttonColors(containerColor = containerColor)
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            color = contentColor
+        )
+    }
+}
+
+// Dummy implementations for missing functions to make the code runnable in isolation
+@Composable
+fun shimmerEffect(): Color {
+    // Replace with your actual shimmer effect implementation
+    return Color.Gray
+}
+
+@Composable
+fun rememberPreference(key: String, defaultValue: Boolean): Pair<Boolean, (Boolean) -> Unit> {
+    // Replace with your actual preference implementation
+    val (value, setValue) = remember { mutableStateOf(defaultValue) }
+    return value to setValue
+}
+
+object R {
+    object string {
+        val back = 1
+        val next = 2
+        val get_started = 3
+        val welcome_to_vivi = 4
+        val allow_unknown_sources = 5
+        val allow_unknown_sources_title = 6
+        val allow_unknown_sources_explanation = 7
+        val grant_permission = 8
+        val recheck_permission = 9
+        val skip_this_step = 10
+        val permission_granted = 11
+        val permission_granted_message = 12
+        val continue_text = 13 // Not used directly as 'Next' is used
+        val finish_setup = 14
+        val all_set = 15
+        val enjoy_vivi_music = 16
+        val yt_music_fingertips = 17
+        val ad_free_playback = 18
+        val ytm_account_sync = 19
+        val fos_info = 20
+        val cancel = 21
+    }
+    object raw {
+        val party = 0
+    }
+    object drawable {
+        val vivimusic = 0
+        val github = 0
     }
 }
