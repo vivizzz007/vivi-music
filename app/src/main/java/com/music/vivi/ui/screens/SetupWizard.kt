@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -51,15 +52,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-
-import androidx.compose.material.icons.automirrored.rounded.ArrowForward
-import androidx.compose.material.icons.automirrored.rounded.NavigateBefore
-import androidx.compose.material.icons.rounded.CheckCircle
-import androidx.compose.material.icons.rounded.Close // For the "wrong sign"
-import androidx.compose.material.icons.rounded.Settings // For the settings icon
-import androidx.compose.material.icons.rounded.MusicVideo
-import androidx.compose.material.icons.rounded.NotInterested
-import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
@@ -84,36 +76,35 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Warning
-import androidx.compose.material3.Card
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.core.content.PermissionChecker
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
-
-
-
+import kotlinx.coroutines.delay
+import android.Manifest
 
 @Composable
 fun SetupWizard(
     navController: NavController,
 ) {
-    val shimmerBrush = shimmerEffect() // Assuming this is defined
+    val shimmerBrush = shimmerEffect()
     val layoutDirection = LocalLayoutDirection.current
     val context = LocalContext.current
 
-    // Assuming FirstSetupPassed and rememberPreference are defined and working
-    val (firstSetupPassed, onFirstSetupPassedChange) = rememberPreference("FirstSetupPassed", defaultValue = false)
+    val (firstSetupPassed, onFirstSetupPassedChange) = rememberPreference(FirstSetupPassed, defaultValue = false)
 
-    var position by remember {
-        mutableIntStateOf(0)
-    }
+    var position by remember { mutableIntStateOf(0) }
+    var buildVersionClickCount by remember { mutableStateOf(0) }
 
-    val MAX_POS = 2 // Only 0 and 1 now
+    val MAX_POS = 2 // 0, 1 (only welcome and final page)
 
+    // Handle system back button to navigate to previous step
     if (position > 0) {
         BackHandler {
             position -= 1
@@ -122,15 +113,53 @@ fun SetupWizard(
 
     if (firstSetupPassed) {
         navController.navigateUp()
-        return // Return to prevent rendering the wizard if already passed
     }
 
     Scaffold(
+        bottomBar = {
+            NavigationBar(
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(64.dp)
+                        .padding(horizontal = 30.dp, vertical = 1.dp)
+                        .clip(RoundedCornerShape(100.dp))
+                        .background(MaterialTheme.colorScheme.primary)
+                        .clickable {
+                            if (position < MAX_POS - 1) {
+                                position += 1
+                            } else {
+                                navController.navigate("home")
+                                onFirstSetupPassedChange(true)
+                                navController.navigateUp()
+                            }
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.next),
+                            style = MaterialTheme.typography.labelLarge.copy(fontSize = 16.sp),
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                }
+            }
+        },
         modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
         Box(
             modifier = Modifier
-                .padding(paddingValues) // Apply Scaffold's padding first
+                .padding(paddingValues)
                 .fillMaxSize()
         ) {
             Column(
@@ -139,10 +168,9 @@ fun SetupWizard(
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(Modifier.height(WindowInsets.systemBars.asPaddingValues().calculateTopPadding() + 32.dp)) // Increased spacing
+                Spacer(Modifier.height(WindowInsets.systemBars.asPaddingValues().calculateTopPadding() + 32.dp))
 
                 if (position == 0) {
-                    // Welcome Screen
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.padding(horizontal = 24.dp)
@@ -152,73 +180,77 @@ fun SetupWizard(
                             composition = composition,
                             iterations = LottieConstants.IterateForever,
                             modifier = Modifier
-                                .size(300.dp)
+                                .size(350.dp)
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp, vertical = 8.dp)
+                                .height(180.dp)
                                 .clip(RoundedCornerShape(12.dp))
                         )
+                        Spacer(Modifier.height(16.dp))
+                        Spacer(Modifier.height(30.dp))
                         Box(
                             modifier = Modifier
                                 .size(120.dp)
                                 .clip(CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            // Your Image composable is commented out here:
-                            // Image(
-                            //     painter = painterResource(R.drawable.vivimusic),
-                            //     contentDescription = null,
-                            //     modifier = Modifier
-                            //         .size(150.dp)
-                            //         .clickable { },
-                            // )
+                            Image(
+                                painter = painterResource(R.drawable.vivimusic),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(150.dp)
+                                    .clickable {
+                                        buildVersionClickCount += 1
+                                        if (buildVersionClickCount >= 5) {
+                                            // Navigate to update screen or enable beta update mode
+                                            Toast.makeText(context, "Beta update mode enabled!", Toast.LENGTH_SHORT).show()
+                                            buildVersionClickCount = 0
+                                        }
+                                    },
+                            )
                         }
-                        // This spacer pushes the text down from the Lottie/Box.
-
-                        // "Welcome to Vivi Music" Text (made bigger as per previous discussion)
+                        Spacer(Modifier.height(10.dp))
                         Text(
                             text = "Welcome to \nVivi Music",
-                            style = MaterialTheme.typography.headlineLarge.copy(
-                                fontSize = 40.sp // Explicitly set font size
-                            ),
+                            style = MaterialTheme.typography.headlineLarge.copy(fontSize = 40.sp),
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 10.dp), // Padding around the text itself
+                                .padding(vertical = 10.dp),
                             color = MaterialTheme.colorScheme.onBackground
                         )
-
-                        // --- NEW TEXT ADDED BELOW ---
                         Text(
                             text = "Your ultimate music experience, ad-free and open source.",
-                            style = MaterialTheme.typography.bodyLarge, // Or bodyMedium, bodySmall
+                            style = MaterialTheme.typography.bodyLarge,
                             textAlign = TextAlign.Center,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 8.dp), // Adjust padding as needed
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f) // Slightly faded color
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                         )
-                        // --- END NEW TEXT ---
-
-                        Spacer(Modifier.height(20.dp)) // This spacer pushes the button up, making text higher from bottom.
                     }
                 }
 
                 if (position == MAX_POS - 1) {
-                    // Final Setup Screen
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 24.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
-                            contentDescription = stringResource(R.string.finish_setup),
-                            modifier = Modifier.size(96.dp), // Increased size
-                            tint = MaterialTheme.colorScheme.primary
+                        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.complete)) //completedsetup
+                        LottieAnimation(
+                            composition = composition,
+                            iterations = LottieConstants.IterateForever,
+                            modifier = Modifier
+                                .size(350.dp)
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                .height(180.dp)
+                                .clip(RoundedCornerShape(12.dp))
                         )
-                        Spacer(modifier = Modifier.height(24.dp)) // Increased spacing
+                        Spacer(modifier = Modifier.height(1.dp))
                         Text(
                             text = stringResource(R.string.all_set),
                             style = MaterialTheme.typography.headlineLarge,
@@ -226,36 +258,27 @@ fun SetupWizard(
                             textAlign = TextAlign.Center,
                             color = MaterialTheme.colorScheme.onBackground
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = stringResource(R.string.enjoy_vivi_music),
-                            style = MaterialTheme.typography.bodyMedium,
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                        Spacer(Modifier.height(20.dp)) // Add spacing before the moved texts
-
-                        // Start Glassmorphism Box
+                        Spacer(Modifier.height(20.dp))
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(16.dp)) // Rounded corners for the glass effect
-                                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(10.dp).copy(alpha = 0.6f)) // Translucent background
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(10.dp).copy(alpha = 0.6f))
                                 .border(
                                     width = 1.dp,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), // Subtle border
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
                                     shape = RoundedCornerShape(16.dp)
                                 )
-                                // MODIFIED: Reduced blur from 8.dp to 3.dp
-                                .padding(16.dp) // Internal padding for content
+                                .padding(16.dp)
                         ) {
-                            ProvideTextStyle(value = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.secondary)) {
+                            ProvideTextStyle(value = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.secondary))
+                            {
                                 Column(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalAlignment = Alignment.Start
                                 ) {
                                     Row(
-                                        verticalAlignment = CenterVertically,
+                                        verticalAlignment = Alignment.CenterVertically,
                                         modifier = Modifier.padding(vertical = 8.dp)
                                     ) {
                                         Icon(
@@ -269,7 +292,6 @@ fun SetupWizard(
                                             modifier = Modifier.padding(12.dp)
                                         )
                                     }
-
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
                                         modifier = Modifier.padding(vertical = 8.dp)
@@ -314,112 +336,31 @@ fun SetupWizard(
                                             fontWeight = FontWeight.Bold,
                                             modifier = Modifier.padding(12.dp)
                                         )
+
                                     }
+
+
                                 }
                             }
                         }
-                        // End Glassmorphism Box
+                        Spacer(Modifier.height(16.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp))
+                                .padding(16.dp)
+                        ) {
+                            Text(
+                                text = "If you want to update to the beta version, click on the build version 5 times.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Center,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }
-
-            // Universal Button at the bottom
-            val buttonText: String? = when (position) {
-                0 -> stringResource(R.string.get_started)
-                MAX_POS - 1 -> stringResource(R.string.finish_setup)
-                else -> null // Don't show the button if position is not handled
-            }
-
-            if (buttonText != null) {
-                SetupWizardButton(
-                    text = buttonText,
-                    onClick = {
-                        when (position) {
-                            0 -> position += 1
-                            MAX_POS - 1 -> {
-                                onFirstSetupPassedChange(true)
-                                navController.navigateUp()
-                            }
-                        }
-                    },
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp)
-                        .padding(bottom = paddingValues.calculateBottomPadding() + 16.dp)
-                )
-            }
         }
-    }
-}
-
-@Composable
-fun SetupWizardButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    containerColor: Color = MaterialTheme.colorScheme.primary,
-    contentColor: Color = MaterialTheme.colorScheme.onPrimary
-) {
-    Button(
-        onClick = onClick,
-        modifier = modifier
-            .height(70.dp), // Standard button height
-        shape = RoundedCornerShape(50.dp), // Rounded corners
-        colors = ButtonDefaults.buttonColors(containerColor = containerColor)
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Bold,
-            color = contentColor
-        )
-    }
-}
-
-// Dummy implementations for missing functions to make the code runnable in isolation
-@Composable
-fun shimmerEffect(): Color {
-    // Replace with your actual shimmer effect implementation
-    return Color.Gray
-}
-
-@Composable
-fun rememberPreference(key: String, defaultValue: Boolean): Pair<Boolean, (Boolean) -> Unit> {
-    // Replace with your actual preference implementation
-    val (value, setValue) = remember { mutableStateOf(defaultValue) }
-    return value to setValue
-}
-
-object R {
-    object string {
-        val back = 1
-        val next = 2
-        val get_started = 3
-        val welcome_to_vivi = 4
-        val allow_unknown_sources = 5
-        val allow_unknown_sources_title = 6
-        val allow_unknown_sources_explanation = 7
-        val grant_permission = 8
-        val recheck_permission = 9
-        val skip_this_step = 10
-        val permission_granted = 11
-        val permission_granted_message = 12
-        val continue_text = 13 // Not used directly as 'Next' is used
-        val finish_setup = 14
-        val all_set = 15
-        val enjoy_vivi_music = 16
-        val yt_music_fingertips = 17
-        val ad_free_playback = 18
-        val ytm_account_sync = 19
-        val fos_info = 20
-        val cancel = 21
-    }
-    object raw {
-        val party = 0
-    }
-    object drawable {
-        val vivimusic = 0
-        val github = 0
     }
 }
