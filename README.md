@@ -7,7 +7,8 @@
 
 VIVI isn't just another music player — it's a complete audio experience. With a sleek design, intelligent features, and deep personalization, VIVI redefines how you connect with your music. From stunning visual effects to smooth, intuitive controls, it’s built to match your vibe and elevate every beat. This is your music, your way — only with VIVI
 </div>
-### 📬 Contact
+
+📬 Contact
 
 [![Join us on Telegram](https://img.shields.io/badge/Telegram-Join%20Chat-2CA5E0?logo=telegram&logoColor=white)](https://t.me/+IwTlNKwjezExMzE1)
 
