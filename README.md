@@ -9,8 +9,8 @@ VIVI isn't just another music player — it's a complete audio experience. With 
 </div>
 ### 📬 Contact
 
-> 📱 **Join the Vivi Music Community on Telegram**  
-> 💬 [Click here to join the chat](https://t.me/+IwTlNKwjezExMzE1)
+[![Join us on Telegram](https://img.shields.io/badge/Telegram-Join%20Chat-2CA5E0?logo=telegram&logoColor=white)](https://t.me/+IwTlNKwjezExMzE1)
+
 
 <h1>Screenshots</h1>
 <p>
