@@ -40,13 +40,7 @@ VIVI isn't just another music player — it's a complete audio experience. With 
 - Material 3
 - default blur player
 
-<div align="center">
-<h1>Download Now</h1>
- 
- [<img src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" alt="Get it on GitHub" height="82"
-align="center">](https://github.com/vivizzz007/vivi-music/releases/download/v-1.1.5/VIVI-MUSIC.apk)
 
-</div>
 
 <div align="center">
 <h1> Q: Why vivimusic isn't showing in Android Auto? </h1>
