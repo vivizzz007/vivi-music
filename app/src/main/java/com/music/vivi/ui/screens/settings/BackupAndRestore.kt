@@ -103,7 +103,7 @@ fun BackupAndRestore(
 //                    .height(180.dp)
 //                    .clip(RoundedCornerShape(12.dp))
 //            )
-            val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.nonetwroklolitte)) // Replace with your Lottie JSON file
+            val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.backupandrestore)) // Replace with your Lottie JSON file
             LottieAnimation(
                 composition = composition,
                 iterations = LottieConstants.IterateForever, // Loop the animation
