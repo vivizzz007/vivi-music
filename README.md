@@ -10,20 +10,23 @@ VIVI isn't just another music player — it's a complete audio experience. With 
 
 <h1>Screenshots</h1>
 <p>
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/appinfo/metadata/android/en-US/images/Screenshots/about_me.png" width="30%" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/appinfo/metadata/android/en-US/images/Screenshots/home_me.png" width="30%" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/appinfo/metadata/android/en-US/images/Screenshots/backup.png" width="30%" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/appinfo/metadata/android/en-US/images/Screenshots/player.png" width="30%" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/appinfo/metadata/android/en-US/images/Screenshots/search.png" width="30%" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/appinfo/metadata/android/en-US/images/Screenshots/setting.PNG" width="30%" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/appinfo/metadata/android/en-US/images/Screenshots/updateme.png" width="30%" />
-   <img src="https://github.com/vivizzz007/vivi-music/blob/main/appinfo/metadata/android/en-US/images/Screenshots/installupdate.png" width="30%" />
-   <img src="https://github.com/vivizzz007/vivi-music/blob/main/appinfo/metadata/android/en-US/images/Screenshots/changelog.png" width="30%" />
+  <img src="https://github.com/vivizzz007/vivimusic-github/blob/main/NEW-UI/about_1.png" width="30%" />
+  <img src="https://github.com/vivizzz007/vivimusic-github/blob/main/NEW-UI/homescreen_1.png" width="30%" />
+  <img src="https://github.com/vivizzz007/vivimusic-github/blob/main/NEW-UI/new_player.png" width="30%" />
+  <img src="https://github.com/vivizzz007/vivimusic-github/blob/main/NEW-UI/newcontrol_center.png" width="30%" />
+  <img src="https://github.com/vivizzz007/vivimusic-github/blob/main/NEW-UI/player_audio_1.png" width="30%" />
+  <img src="https://github.com/vivizzz007/vivimusic-github/blob/main/NEW-UI/sharesong_qr.png" width="30%" />
+  <img src="https://github.com/vivizzz007/vivimusic-github/blob/main/NEW-UI/sharesong_qr_3.png" width="30%" />
+   <img src="https://github.com/vivizzz007/vivimusic-github/blob/main/NEW-UI/sleeptimer.png" width="30%" />
+   <img src="https://github.com/vivizzz007/vivimusic-github/blob/main/NEW-UI/spotify_2.png" width="30%" />
+   <img src="https://github.com/vivizzz007/vivimusic-github/blob/main/NEW-UI/updated_setting.png" width="30%" />
+   <img src="https://github.com/vivizzz007/vivimusic-github/blob/main/NEW-UI/updater_vivimusic.png" width="30%" />
 </p>
 
 
 <br><b>Features:</b>
 
+- Mordern  Ui
 - Play songs from YT/YT Music without ads
 - Background playback
 - Search songs, videos, albums, and playlists from YouTube Music
@@ -38,12 +41,13 @@ VIVI isn't just another music player — it's a complete audio experience. With 
 - Personalized quick picks
 - Material 3
 - default blur player
+- Inbuild Updater
+
 
 <div align="center">
 <h1>Download Now</h1>
  
- [<img src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" alt="Get it on GitHub" height="82"
-align="center">](https://github.com/vivizzz007/vivi-music/releases/download/v-1.1.5/VIVI-MUSIC.apk)
+
 
 </div>
 
