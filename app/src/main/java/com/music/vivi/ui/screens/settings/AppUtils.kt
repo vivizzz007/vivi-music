@@ -65,6 +65,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
+
+import androidx.compose.foundation.text.ClickableText
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UpdateScreen(navController: NavHostController) {
@@ -488,16 +496,84 @@ fun UpdateScreen(navController: NavHostController) {
                                     modifier = Modifier.padding(bottom = 8.dp)
                                 )
 
-                                Text(
-                                    text = changelog,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    lineHeight = 20.sp,
-                                    textAlign = TextAlign.Start
+                                val linkColor = MaterialTheme.colorScheme.primary
+                                val linkStyle = SpanStyle(
+                                    color = linkColor,
+                                    textDecoration = TextDecoration.Underline
                                 )
+
+                                val annotatedText = buildAnnotatedString {
+                                    val lines = changelog.split("\n")
+                                    lines.forEach { line ->
+                                        if (line.isNotBlank()) {
+                                            // Add bullet point
+                                            append("• ")
+
+                                            // Check for URLs in the line
+                                            val urlRegex = Regex("""https?://[^\s]+""")
+                                            val matchResults = urlRegex.findAll(line)
+                                            var lastIndex = 0
+
+                                            if (matchResults.none()) {
+                                                // No URLs in this line, just add the text
+                                                append(line.trim())
+                                            } else {
+                                                // Process URLs in the line
+                                                matchResults.forEach { match ->
+                                                    // Add text before the URL
+                                                    if (match.range.first > lastIndex) {
+                                                        append(line.substring(lastIndex, match.range.first))
+                                                    }
+
+                                                    // Add the URL with clickable annotation
+                                                    val url = match.value
+                                                    pushStringAnnotation(
+                                                        tag = "URL",
+                                                        annotation = url
+                                                    )
+                                                    withStyle(style = linkStyle) {
+                                                        append(url)
+                                                    }
+                                                    pop()
+
+                                                    lastIndex = match.range.last + 1
+                                                }
+
+                                                // Add remaining text after last URL
+                                                if (lastIndex < line.length) {
+                                                    append(line.substring(lastIndex))
+                                                }
+                                            }
+
+                                            append("\n\n")
+                                        }
+                                    }
+                                }
+
+                                ClickableText(
+                                    text = annotatedText,
+                                    onClick = { offset ->
+                                        annotatedText.getStringAnnotations(
+                                            tag = "URL",
+                                            start = offset,
+                                            end = offset
+                                        ).firstOrNull()?.let { annotation ->
+                                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(annotation.item))
+                                            ContextCompat.startActivity(context, intent, null)
+                                        }
+                                    },
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        lineHeight = 20.sp
+                                    ),
+                                    modifier = Modifier.padding(bottom = 16.dp)
+                                )
+
                                 Spacer(modifier = Modifier.height(24.dp))
                             }
                         }
-                    } else {
+                    }
+                    else {
                         Text(
                             text = "VIVI MUSIC",
                             color = MaterialTheme.colorScheme.onSurface,
