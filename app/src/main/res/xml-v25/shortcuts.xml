@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="songs"
+        android:enabled="true"
+        android:icon="@drawable/shortcut_songs"
+        android:shortcutShortLabel="@string/songs">
+        <intent
+            android:targetClass="com.music.vivi.MainActivity"
+            android:targetPackage="com.music.vivi"
+            android:action="com.music.vivi.action.SONGS" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="artists"
+        android:enabled="true"
+        android:icon="@drawable/shortcut_artists"
+        android:shortcutShortLabel="@string/artists">
+        <intent
+            android:targetClass="com.music.vivi.MainActivity"
+            android:targetPackage="com.music.vivi"
+            android:action="com.music.vivi.action.ARTISTS" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="albums"
+        android:enabled="true"
+        android:icon="@drawable/shortcut_albums"
+        android:shortcutShortLabel="@string/albums">
+        <intent
+            android:targetClass="com.music.vivi.MainActivity"
+            android:targetPackage="com.music.vivi"
+            android:action="com.music.vivi.action.ALBUMS" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="playlists"
+        android:enabled="true"
+        android:icon="@drawable/shortcut_playlists"
+        android:shortcutShortLabel="@string/filter_playlists">
+        <intent
+            android:targetClass="com.music.vivi.MainActivity"
+            android:targetPackage="com.music.vivi"
+            android:action="com.music.vivi.action.PLAYLISTS" />
+    </shortcut>
+</shortcuts>

@@ -1,0 +1,19 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="64dp"
+    android:height="40dp"
+    android:viewportWidth="960"
+    android:viewportHeight="600">
+
+    <!-- Rounded Rectangle Background -->
+    <path
+        android:pathData="M120,0h720a120,120 0 0 1 120,120v360a120,120 0 0 1 -120,120h-720a120,120 0 0 1 -120,-120v-360a120,120 0 0 1 120,-120Z"
+        android:fillColor="#1f1f1f" />
+
+    <!-- Pause Bars -->
+    <path
+        android:pathData="M400,180h60v240h-60Z"
+        android:fillColor="#ffffff" />
+    <path
+        android:pathData="M500,180h60v240h-60Z"
+        android:fillColor="#ffffff" />
+</vector>

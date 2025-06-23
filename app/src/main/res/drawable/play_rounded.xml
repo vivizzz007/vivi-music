@@ -1,0 +1,16 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="64dp"
+    android:height="40dp"
+    android:viewportWidth="960"
+    android:viewportHeight="600">
+
+    <!-- Rounded Rectangle Background -->
+    <path
+        android:pathData="M120,0h720a120,120 0 0 1 120,120v360a120,120 0 0 1 -120,120h-720a120,120 0 0 1 -120,-120v-360a120,120 0 0 1 120,-120Z"
+        android:fillColor="#1f1f1f" />
+
+    <!-- Play Icon -->
+    <path
+        android:pathData="M420,180L600,300L420,420Z"
+        android:fillColor="#ffffff" />
+</vector>
