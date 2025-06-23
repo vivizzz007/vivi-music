@@ -12,7 +12,12 @@ VIVI isn't just another music player — it's a complete audio experience. With 
 
 
 
-<h1> FOR THE LATEST RELEASE USE THE GITHUB RELEASE- OTA UPDATE AVAILABLE </h1>
+<h1>
+  <a href="https://github.com/vivizzz007/vivimusic-github" target="_blank" style="text-decoration: none; color: inherit;">
+    FOR THE LATEST RELEASE USE THE GITHUB RELEASE – OTA UPDATE AVAILABLE-CLICK HERE
+  </a>
+</h1>
+
 
 
 <h1>Screenshots</h1>
