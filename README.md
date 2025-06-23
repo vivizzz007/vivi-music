@@ -9,7 +9,10 @@ VIVI isn't just another music player — it's a complete audio experience. With 
 </div>
 
 
-FOR THE LATEST RELEASE USE THE GITHUB RELEASE- OTA UPDATE AVAILABLE
+
+
+
+<h1> FOR THE LATEST RELEASE USE THE GITHUB RELEASE- OTA UPDATE AVAILABLE </h1>
 
 
 <h1>Screenshots</h1>
