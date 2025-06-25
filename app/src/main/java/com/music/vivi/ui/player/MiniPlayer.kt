@@ -203,6 +203,18 @@ import com.music.vivi.utils.rememberPreference
 
 // For coroutines
 import kotlinx.coroutines.delay
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.blur
+import com.music.vivi.playback.PlayerConnection
+
+
+import kotlinx.coroutines.isActive
+
+
+
 
 
 @RequiresApi(Build.VERSION_CODES.S)
@@ -229,10 +241,30 @@ fun MiniPlayer(
     val animatedOffset by animateDpAsState(targetValue = offsetX.dp, label = "")
 
     val (miniPlayerStyle) = rememberEnumPreference(MiniPlayerStyleKey, defaultValue = MiniPlayerStyle.NEW)
+    val (autoPauseOnVolumeZero, _) = rememberPreference(AutoPauseOnVolumeZeroKey, defaultValue = true)
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showSheet by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
+
+    // Animation for glow effect
+    val infiniteTransition = rememberInfiniteTransition(label = "glow")
+    val glowAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 0.8f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, easing = EaseInOut),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "glow_alpha"
+    )
+
+    // Volume-based playback control
+    VolumeBasedPlaybackController(
+        playerConnection = playerConnection,
+        isPlaying = isPlaying,
+        autoPauseOnVolumeZero = autoPauseOnVolumeZero
+    )
 
     if (showSheet) {
         ModalBottomSheet(
@@ -240,8 +272,7 @@ fun MiniPlayer(
             sheetState = sheetState,
             modifier = Modifier
         ) {
-            val (autoPauseOnVolumeZero, _) = rememberPreference(AutoPauseOnVolumeZeroKey, defaultValue = true)
-            ConnectedDevicesSheet(autoPauseOnVolumeZero = autoPauseOnVolumeZero)
+            ConnectedDevicesSheet()
         }
     }
 
@@ -298,19 +329,47 @@ fun MiniPlayer(
             }
 
             if (miniPlayerStyle == MiniPlayerStyle.NEW) {
-                Icon(
-                    imageVector = if (isBluetoothConnected) Icons.Default.Headset else Icons.Default.Speaker,
-                    contentDescription = if (isBluetoothConnected) "Bluetooth Headphones Connected" else "Speaker Audio",
-                    tint = MaterialTheme.colorScheme.primary,
+                Box(
                     modifier = Modifier
-                        .size(24.dp)
+                        .size(32.dp)
                         .clickable {
                             coroutineScope.launch {
                                 showSheet = true
                                 sheetState.show()
                             }
-                        }
-                )
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    // Glow effect background
+                    Box(
+                        modifier = Modifier
+                            .size(28.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = glowAlpha * 0.4f),
+                                shape = CircleShape
+                            )
+                            .blur(radius = 8.dp)
+                    )
+
+                    // Secondary glow layer
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = glowAlpha * 0.6f),
+                                shape = CircleShape
+                            )
+                            .blur(radius = 4.dp)
+                    )
+
+                    // Icon with enhanced color
+                    Icon(
+                        imageVector = if (isBluetoothConnected) Icons.Default.Headset else Icons.Default.Speaker,
+                        contentDescription = if (isBluetoothConnected) "Bluetooth Headphones Connected" else "Speaker Audio",
+                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 1f),
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
                 Spacer(modifier = Modifier.width(4.dp))
             }
 
@@ -363,6 +422,56 @@ fun MiniPlayer(
     }
 }
 
+@Composable
+fun rememberVolumeState(context: Context): State<Int> {
+    val audioManager = remember { context.getSystemService(Context.AUDIO_SERVICE) as AudioManager }
+    val volumeState = remember { mutableStateOf(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)) }
+
+    LaunchedEffect(Unit) {
+        while (isActive) {
+            val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+            if (volumeState.value != currentVolume) {
+                volumeState.value = currentVolume
+            }
+            delay(100) // Check every 100ms
+        }
+    }
+
+    return volumeState
+}
+
+@Composable
+fun VolumeBasedPlaybackController(
+    playerConnection: PlayerConnection,
+    isPlaying: Boolean,
+    autoPauseOnVolumeZero: Boolean
+) {
+    val context = LocalContext.current
+    val currentVolume by rememberVolumeState(context)
+    var wasPlayingBeforePause by remember { mutableStateOf(false) }
+
+    LaunchedEffect(currentVolume, autoPauseOnVolumeZero) {
+        if (!autoPauseOnVolumeZero) return@LaunchedEffect
+
+        when {
+            currentVolume == 0 && isPlaying -> {
+                // Volume went to zero and music is playing - pause it
+                wasPlayingBeforePause = true
+                playerConnection.player.pause()
+            }
+            currentVolume > 0 && !isPlaying && wasPlayingBeforePause -> {
+                // Volume increased and we had paused due to zero volume - resume
+                playerConnection.player.play()
+                wasPlayingBeforePause = false
+            }
+            currentVolume > 0 && !wasPlayingBeforePause -> {
+                // Volume is up but we didn't pause due to volume - reset flag
+                wasPlayingBeforePause = false
+            }
+        }
+    }
+}
+
 
 
 @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
@@ -390,7 +499,6 @@ private fun isDeviceActive(device: BluetoothDevice, audioManager: AudioManager):
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConnectedDevicesSheet(
-    autoPauseOnVolumeZero: Boolean,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -413,10 +521,10 @@ fun ConnectedDevicesSheet(
 
     // Volume and playback states
     var volumeLevel by remember { mutableStateOf(0.5f) }
-    var wasPlayingBeforeMute by remember { mutableStateOf(false) }
     var isScanning by remember { mutableStateOf(false) }
     var isSwitchingDevice by remember { mutableStateOf(false) }
     var switchingDeviceName by remember { mutableStateOf<String?>(null) }
+    var isUpdatingVolumeFromSlider by remember { mutableStateOf(false) }
 
     // State for controlling equalizer visibility
     var isCurrentDeviceEqualizerExpanded by remember { mutableStateOf(false) }
@@ -429,14 +537,33 @@ fun ConnectedDevicesSheet(
 
     val audioManager = remember { context.getSystemService(Context.AUDIO_SERVICE) as AudioManager }
 
-    // Initialize volume level
+    // Initialize volume level and start polling
     LaunchedEffect(Unit) {
         if (!hasBluetoothConnectPermission) {
             permissionLauncher.launch(Manifest.permission.BLUETOOTH_CONNECT)
         }
+
+        // Initial volume setup
         val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
         val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
         volumeLevel = if (maxVolume > 0) currentVolume.toFloat() / maxVolume.toFloat() else 0f
+
+        // Volume polling for hardware volume sync
+        while (true) {
+            delay(100) // Check every 100ms
+            if (!isUpdatingVolumeFromSlider) {
+                val systemCurrentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+                val systemMaxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+                val systemVolumeLevel = if (systemMaxVolume > 0) systemCurrentVolume.toFloat() / systemMaxVolume.toFloat() else 0f
+
+                // Only update if there's a significant difference
+                if (kotlin.math.abs(systemVolumeLevel - volumeLevel) > 0.01f) {
+                    volumeLevel = systemVolumeLevel
+                    // Update player volume to match system volume
+                    playerConnection?.player?.volume = systemVolumeLevel
+                }
+            }
+        }
     }
 
     val bluetoothManager = remember {
@@ -643,7 +770,6 @@ fun ConnectedDevicesSheet(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 16.dp)
-            .verticalScroll(rememberScrollState())
     ) {
         // Header
         Text(
@@ -835,7 +961,7 @@ fun ConnectedDevicesSheet(
             return@Column
         }
 
-        // Volume Control Section with auto-pause feature
+        // Volume Control Section with hardware sync
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -862,30 +988,26 @@ fun ConnectedDevicesSheet(
                 Slider(
                     value = volumeLevel,
                     onValueChange = { newVolume ->
-                        val previousVolume = volumeLevel
+                        // Set flag to prevent polling from interfering
+                        isUpdatingVolumeFromSlider = true
                         volumeLevel = newVolume
 
+                        // Update system volume
                         val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
                         val targetVolume = (newVolume * maxVolume).toInt().coerceIn(0, maxVolume)
-
                         audioManager.setStreamVolume(
                             AudioManager.STREAM_MUSIC,
                             targetVolume,
-                            AudioManager.FLAG_SHOW_UI or AudioManager.FLAG_PLAY_SOUND
+                            AudioManager.FLAG_SHOW_UI
                         )
 
-                        // Handle auto-pause when enabled
-                        if (autoPauseOnVolumeZero) {
-                            if (previousVolume > 0.01f && newVolume <= 0.01f) {
-                                wasPlayingBeforeMute = playerConnection?.isPlaying?.value == true
-                                if (wasPlayingBeforeMute) {
-                                    playerConnection?.player?.pause()
-                                }
-                            } else if (previousVolume <= 0.01f && newVolume > 0.01f) {
-                                if (wasPlayingBeforeMute) {
-                                    playerConnection?.player?.play()
-                                }
-                            }
+                        // Update player volume
+                        playerConnection?.player?.volume = newVolume
+
+                        // Reset flag after a short delay
+                        scope.launch {
+                            delay(200)
+                            isUpdatingVolumeFromSlider = false
                         }
                     },
                     modifier = Modifier
@@ -916,7 +1038,7 @@ fun ConnectedDevicesSheet(
             )
         }
 
-        // Audio Quality Section - Now properly placed here
+        // Audio Quality Section
         Spacer(Modifier.height(16.dp))
 
         Text(
@@ -941,23 +1063,21 @@ fun ConnectedDevicesSheet(
                     selected = audioQuality == quality,
                     onClick = { onAudioQualityChange(quality) },
                     label = { Text(label) },
-                    // No leading icon (removes checkmark)
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                         selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
                         containerColor = MaterialTheme.colorScheme.surfaceVariant,
                         labelColor = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
-                    border = null // Optional: remove border for cleaner look
+                    border = null
                 )
             }
         }
 
-
         Spacer(Modifier.height(16.dp))
 
-        // Bluetooth Devices Section
-        if (hasBluetoothConnectPermission) {
+        // Bluetooth Devices Section - Fixed height container
+        Column {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -1000,248 +1120,264 @@ fun ConnectedDevicesSheet(
 
             Spacer(Modifier.height(8.dp))
 
-            if (connectedDevices.isEmpty()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.BluetoothSearching,
-                        contentDescription = null,
-                        modifier = Modifier.size(48.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+            // Fixed height container with scrollable content
+            Box(
+                modifier = Modifier
+                    .height(200.dp) // Fixed height
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                        shape = RoundedCornerShape(12.dp)
                     )
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        if (isScanning) "Scanning for devices..." else "No Bluetooth devices connected",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            } else {
-                connectedDevices.forEach { deviceName ->
-                    val isCurrentlyConnected = currentlyConnectedDevice.value == deviceName
-                    val batteryLevel = deviceBatteryLevels[deviceName] ?: 0
-                    val isDeviceExpanded = deviceEqualizerStates[deviceName] ?: false
-                    val isSwitching = switchingDeviceName == deviceName && isSwitchingDevice
-
-                    Card(
+                    .padding(4.dp)
+            ) {
+                if (connectedDevices.isEmpty()) {
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 6.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (isCurrentlyConnected)
-                                MaterialTheme.colorScheme.secondaryContainer
-                            else
-                                MaterialTheme.colorScheme.surfaceContainer
-                        ),
-                        border = if (isCurrentlyConnected)
-                            BorderStroke(1.dp, MaterialTheme.colorScheme.secondary)
-                        else null,
-                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                            .fillMaxSize()
+                            .padding(vertical = 24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Column {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
+                        Icon(
+                            imageVector = Icons.Default.BluetoothSearching,
+                            contentDescription = null,
+                            modifier = Modifier.size(48.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            if (isScanning) "Scanning for devices..." else "No Bluetooth devices connected",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                } else {
+                    Column {
+                        connectedDevices.forEach { deviceName ->
+                            val isCurrentlyConnected = currentlyConnectedDevice.value == deviceName
+                            val batteryLevel = deviceBatteryLevels[deviceName] ?: 0
+                            val isDeviceExpanded = deviceEqualizerStates[deviceName] ?: false
+                            val isSwitching = switchingDeviceName == deviceName && isSwitchingDevice
+
+                            Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(16.dp)
-                            ) {
-                                // Left side - Clickable area for settings/disconnect
-                                Row(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clickable {
-                                            deviceEqualizerStates[deviceName] = !isDeviceExpanded
-                                        },
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Headset,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(28.dp),
-                                        tint = if (isCurrentlyConnected)
-                                            MaterialTheme.colorScheme.secondary
-                                        else
-                                            MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    Spacer(Modifier.width(16.dp))
-
-                                    Column {
-                                        Text(
-                                            deviceName,
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            fontWeight = if (isCurrentlyConnected) FontWeight.Bold else FontWeight.Normal,
-                                            color = if (isCurrentlyConnected)
-                                                MaterialTheme.colorScheme.onSecondaryContainer
-                                            else
-                                                MaterialTheme.colorScheme.onSurface
-                                        )
-
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.padding(top = 4.dp)
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.Battery3Bar,
-                                                contentDescription = null,
-                                                modifier = Modifier.size(16.dp),
-                                                tint = when {
-                                                    batteryLevel > 50 -> MaterialTheme.colorScheme.tertiary
-                                                    batteryLevel > 20 -> MaterialTheme.colorScheme.secondary
-                                                    else -> MaterialTheme.colorScheme.error
-                                                }
-                                            )
-                                            Spacer(Modifier.width(4.dp))
-                                            Text(
-                                                "$batteryLevel%",
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-
-                                            Spacer(Modifier.width(12.dp))
-
-                                            if (isCurrentlyConnected) {
-                                                Text(
-                                                    "• Active",
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    color = MaterialTheme.colorScheme.primary
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-
-                                // Right side - Clickable area for switching devices
-                                Box(
-                                    modifier = Modifier
-                                        .clickable(
-                                            enabled = !isSwitching && !isCurrentlyConnected,
-                                            onClick = {
-                                                isSwitchingDevice = true
-                                                switchingDeviceName = deviceName
-
-                                                switchToBluetoothDevice(
-                                                    context = context,
-                                                    deviceName = deviceName,
-                                                    bluetoothAdapter = bluetoothAdapter,
-                                                    onSuccess = {
-                                                        scope.launch {
-                                                            currentlyConnectedDevice.value = deviceName
-                                                            isSwitchingDevice = false
-                                                            switchingDeviceName = null
-                                                            Toast.makeText(context, "Switched to $deviceName", Toast.LENGTH_SHORT).show()
-                                                        }
-                                                    },
-                                                    onError = { error ->
-                                                        scope.launch {
-                                                            isSwitchingDevice = false
-                                                            switchingDeviceName = null
-                                                            Toast.makeText(context, error, Toast.LENGTH_LONG).show()
-                                                        }
-                                                    }
-                                                )
-                                            }
-                                        )
-                                        .padding(start = 16.dp, top = 8.dp, bottom = 8.dp)
-                                ) {
-                                    when {
-                                        isSwitching -> {
-                                            CircularProgressIndicator(
-                                                modifier = Modifier.size(20.dp),
-                                                strokeWidth = 2.dp,
-                                                color = MaterialTheme.colorScheme.primary
-                                            )
-                                        }
-                                        isCurrentlyConnected -> {
-                                            Icon(
-                                                imageVector = Icons.Default.CheckCircle,
-                                                contentDescription = "Active device",
-                                                modifier = Modifier.size(20.dp),
-                                                tint = MaterialTheme.colorScheme.primary
-                                            )
-                                        }
-                                        else -> {
-                                            Text(
-                                                "Switch",
-                                                style = MaterialTheme.typography.labelLarge,
-                                                color = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier
-                                                    .padding(horizontal = 12.dp, vertical = 4.dp)
-                                                    .border(
-                                                        width = 1.dp,
-                                                        color = MaterialTheme.colorScheme.primary,
-                                                        shape = RoundedCornerShape(8.dp)
-                                                    )
-                                                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-
-                            // Animated Device-specific controls
-                            AnimatedVisibility(
-                                visible = isDeviceExpanded,
-                                enter = expandVertically(
-                                    animationSpec = tween(300, easing = EaseInOutCubic)
-                                ) + fadeIn(animationSpec = tween(300)),
-                                exit = shrinkVertically(
-                                    animationSpec = tween(300, easing = EaseInOutCubic)
-                                ) + fadeOut(animationSpec = tween(300))
+                                    .padding(vertical = 6.dp, horizontal = 4.dp),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = if (isCurrentlyConnected)
+                                        MaterialTheme.colorScheme.secondaryContainer
+                                    else
+                                        MaterialTheme.colorScheme.surfaceContainer
+                                ),
+                                border = if (isCurrentlyConnected)
+                                    BorderStroke(1.dp, MaterialTheme.colorScheme.secondary)
+                                else null,
+                                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                             ) {
                                 Column {
-                                    HorizontalDivider(
-                                        color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.3f),
-                                        thickness = 1.dp
-                                    )
-
-                                    Column(
-                                        modifier = Modifier.padding(16.dp)
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp)
                                     ) {
-                                        // Equalizer Button
-                                        Button(
-                                            onClick = { openEqualizer(context) },
-                                            modifier = Modifier.fillMaxWidth(),
-                                            shape = RoundedCornerShape(8.dp),
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = MaterialTheme.colorScheme.secondary,
-                                                contentColor = MaterialTheme.colorScheme.onSecondary
-                                            )
+                                        // Left side - Clickable area for settings/disconnect
+                                        Row(
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .clickable {
+                                                    deviceEqualizerStates[deviceName] = !isDeviceExpanded
+                                                },
+                                            verticalAlignment = Alignment.CenterVertically
                                         ) {
                                             Icon(
-                                                imageVector = Icons.Default.Equalizer,
+                                                imageVector = Icons.Default.Headset,
                                                 contentDescription = null,
-                                                modifier = Modifier.size(16.dp)
+                                                modifier = Modifier.size(28.dp),
+                                                tint = if (isCurrentlyConnected)
+                                                    MaterialTheme.colorScheme.secondary
+                                                else
+                                                    MaterialTheme.colorScheme.onSurfaceVariant
                                             )
-                                            Spacer(Modifier.width(8.dp))
-                                            Text("Open Equalizer")
+                                            Spacer(Modifier.width(16.dp))
+
+                                            Column {
+                                                Text(
+                                                    deviceName,
+                                                    style = MaterialTheme.typography.bodyLarge,
+                                                    fontWeight = if (isCurrentlyConnected) FontWeight.Bold else FontWeight.Normal,
+                                                    color = if (isCurrentlyConnected)
+                                                        MaterialTheme.colorScheme.onSecondaryContainer
+                                                    else
+                                                        MaterialTheme.colorScheme.onSurface
+                                                )
+
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    modifier = Modifier.padding(top = 4.dp)
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Battery3Bar,
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(16.dp),
+                                                        tint = when {
+                                                            batteryLevel > 50 -> MaterialTheme.colorScheme.tertiary
+                                                            batteryLevel > 20 -> MaterialTheme.colorScheme.secondary
+                                                            else -> MaterialTheme.colorScheme.error
+                                                        }
+                                                    )
+                                                    Spacer(Modifier.width(4.dp))
+                                                    Text(
+                                                        "$batteryLevel%",
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
+
+                                                    Spacer(Modifier.width(12.dp))
+
+                                                    if (isCurrentlyConnected) {
+                                                        Text(
+                                                            "• Active",
+                                                            style = MaterialTheme.typography.bodySmall,
+                                                            color = MaterialTheme.colorScheme.primary
+                                                        )
+                                                    }
+                                                }
+                                            }
                                         }
 
-                                        Spacer(Modifier.height(8.dp))
+                                        // Right side - Clickable area for switching devices
+                                        Box(
+                                            modifier = Modifier
+                                                .clickable(
+                                                    enabled = !isSwitching && !isCurrentlyConnected,
+                                                    onClick = {
+                                                        isSwitchingDevice = true
+                                                        switchingDeviceName = deviceName
 
-                                        // Disconnect Button
-                                        OutlinedButton(
-                                            onClick = {
-                                                disconnectBluetoothDevice(context, deviceName, bluetoothAdapter)
-                                            },
-                                            modifier = Modifier.fillMaxWidth(),
-                                            shape = RoundedCornerShape(8.dp),
-                                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
-                                            colors = ButtonDefaults.outlinedButtonColors(
-                                                contentColor = MaterialTheme.colorScheme.error
-                                            )
+                                                        switchToBluetoothDevice(
+                                                            context = context,
+                                                            deviceName = deviceName,
+                                                            bluetoothAdapter = bluetoothAdapter,
+                                                            onSuccess = {
+                                                                scope.launch {
+                                                                    currentlyConnectedDevice.value = deviceName
+                                                                    isSwitchingDevice = false
+                                                                    switchingDeviceName = null
+                                                                    Toast.makeText(context, "Switched to $deviceName", Toast.LENGTH_SHORT).show()
+                                                                }
+                                                            },
+                                                            onError = { error ->
+                                                                scope.launch {
+                                                                    isSwitchingDevice = false
+                                                                    switchingDeviceName = null
+                                                                    Toast.makeText(context, error, Toast.LENGTH_LONG).show()
+                                                                }
+                                                            }
+                                                        )
+                                                    }
+                                                )
+                                                .padding(start = 16.dp, top = 8.dp, bottom = 8.dp)
                                         ) {
-                                            Icon(
-                                                imageVector = Icons.Default.BluetoothDisabled,
-                                                contentDescription = null,
-                                                modifier = Modifier.size(16.dp)
+                                            when {
+                                                isSwitching -> {
+                                                    CircularProgressIndicator(
+                                                        modifier = Modifier.size(20.dp),
+                                                        strokeWidth = 2.dp,
+                                                        color = MaterialTheme.colorScheme.primary
+                                                    )
+                                                }
+                                                isCurrentlyConnected -> {
+                                                    Icon(
+                                                        imageVector = Icons.Default.CheckCircle,
+                                                        contentDescription = "Active device",
+                                                        modifier = Modifier.size(20.dp),
+                                                        tint = MaterialTheme.colorScheme.primary
+                                                    )
+                                                }
+                                                else -> {
+                                                    Text(
+                                                        "Switch",
+                                                        style = MaterialTheme.typography.labelLarge,
+                                                        color = MaterialTheme.colorScheme.primary,
+                                                        modifier = Modifier
+                                                            .padding(horizontal = 12.dp, vertical = 4.dp)
+                                                            .border(
+                                                                width = 1.dp,
+                                                                color = MaterialTheme.colorScheme.primary,
+                                                                shape = RoundedCornerShape(8.dp)
+                                                            )
+                                                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    // Animated Device-specific controls
+                                    AnimatedVisibility(
+                                        visible = isDeviceExpanded,
+                                        enter = expandVertically(
+                                            animationSpec = tween(300, easing = EaseInOutCubic)
+                                        ) + fadeIn(animationSpec = tween(300)),
+                                        exit = shrinkVertically(
+                                            animationSpec = tween(300, easing = EaseInOutCubic)
+                                        ) + fadeOut(animationSpec = tween(300))
+                                    ) {
+                                        Column {
+                                            HorizontalDivider(
+                                                color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.3f),
+                                                thickness = 1.dp
                                             )
-                                            Spacer(Modifier.width(8.dp))
-                                            Text("Disconnect Device")
+
+                                            Column(
+                                                modifier = Modifier.padding(16.dp)
+                                            ) {
+                                                // Equalizer Button
+                                                Button(
+                                                    onClick = { openEqualizer(context) },
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    shape = RoundedCornerShape(8.dp),
+                                                    colors = ButtonDefaults.buttonColors(
+                                                        containerColor = MaterialTheme.colorScheme.secondary,
+                                                        contentColor = MaterialTheme.colorScheme.onSecondary
+                                                    )
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Equalizer,
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(16.dp)
+                                                    )
+                                                    Spacer(Modifier.width(8.dp))
+                                                    Text("Open Equalizer")
+                                                }
+
+                                                Spacer(Modifier.height(8.dp))
+
+                                                // Disconnect Button
+                                                OutlinedButton(
+                                                    onClick = {
+                                                        disconnectBluetoothDevice(context, deviceName, bluetoothAdapter)
+                                                    },
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    shape = RoundedCornerShape(8.dp),
+                                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
+                                                    colors = ButtonDefaults.outlinedButtonColors(
+                                                        contentColor = MaterialTheme.colorScheme.error
+                                                    )
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.BluetoothDisabled,
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(16.dp)
+                                                    )
+                                                    Spacer(Modifier.width(8.dp))
+                                                    Text("Disconnect Device")
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -1250,59 +1386,59 @@ fun ConnectedDevicesSheet(
                     }
                 }
             }
+        }
 
-            Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(16.dp))
 
-            // Action Buttons
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+        // Action Buttons (fixed at bottom)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            OutlinedButton(
+                onClick = {
+                    context.startActivity(
+                        Intent(Settings.ACTION_BLUETOOTH_SETTINGS).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                    )
+                },
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.primary
+                )
             ) {
-                OutlinedButton(
-                    onClick = {
-                        context.startActivity(
-                            Intent(Settings.ACTION_BLUETOOTH_SETTINGS).apply {
-                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            }
-                        )
-                    },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.primary
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.SettingsBluetooth,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text("Settings")
-                }
+                Icon(
+                    imageVector = Icons.Default.SettingsBluetooth,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text("Settings")
+            }
 
-                Button(
-                    onClick = {
-                        val intent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        context.startActivity(intent)
-                    },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text("Add Device")
-                }
+            Button(
+                onClick = {
+                    val intent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    context.startActivity(intent)
+                },
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text("Add Device")
             }
         }
 
@@ -1930,64 +2066,3 @@ private fun setActiveBluetoothDevice(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.S)
-private fun switchToBluetoothDeviceSimple(
-    context: Context,
-    deviceName: String,
-    bluetoothAdapter: BluetoothAdapter?,
-    onSuccess: () -> Unit = {},
-    onError: (String) -> Unit = {}
-) {
-    if (ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.BLUETOOTH_CONNECT
-        ) != PackageManager.PERMISSION_GRANTED
-    ) {
-        onError("Bluetooth permission not granted")
-        return
-    }
-
-    bluetoothAdapter?.let { adapter ->
-        try {
-            val bondedDevices = adapter.bondedDevices
-            val targetDevice = bondedDevices.find { device ->
-                try {
-                    device.name == deviceName || device.address == deviceName
-                } catch (e: SecurityException) {
-                    device.address == deviceName
-                }
-            }
-
-            if (targetDevice != null) {
-                // For most cases, just opening Bluetooth settings and showing success
-                // is better than trying to programmatically switch devices
-                val intent = Intent(Settings.ACTION_BLUETOOTH_SETTINGS).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-
-                try {
-                    context.startActivity(intent)
-                    // Give user instruction via toast
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        Toast.makeText(
-                            context,
-                            "Please select $deviceName as audio output in Bluetooth settings",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }, 500)
-
-                    // Call success after a delay to update UI
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        onSuccess()
-                    }, 2000)
-                } catch (e: Exception) {
-                    onError("Could not open Bluetooth settings")
-                }
-            } else {
-                onError("Device not found")
-            }
-        } catch (e: SecurityException) {
-            onError("Security exception: ${e.message}")
-        }
-    } ?: onError("Bluetooth adapter not available")
-}

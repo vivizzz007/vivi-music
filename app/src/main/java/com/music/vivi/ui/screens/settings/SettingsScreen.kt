@@ -246,6 +246,25 @@ fun SettingsScreen(
     ) {
         if (showDialog) {
             val focusRequester = remember { FocusRequester() }
+
+            // Lottie compositions
+            val searchAnimationComposition by rememberLottieComposition(
+                spec = LottieCompositionSpec.RawRes(R.raw.smarts) // Replace with your Lottie file
+            )
+            val noResultsComposition by rememberLottieComposition(
+                spec = LottieCompositionSpec.RawRes(R.raw.searchingerror) // Replace with your Lottie file
+            )
+
+            // Animation progress states
+            val searchAnimationProgress by animateLottieCompositionAsState(
+                composition = searchAnimationComposition,
+                iterations = LottieConstants.IterateForever
+            )
+            val noResultsProgress by animateLottieCompositionAsState(
+                composition = noResultsComposition,
+                iterations = LottieConstants.IterateForever
+            )
+
             Dialog(
                 onDismissRequest = onDismiss,
                 properties = DialogProperties(
@@ -318,6 +337,7 @@ fun SettingsScreen(
                                 }
                             }
                         }
+
                         if (searchQuery.isNotEmpty()) {
                             LazyColumn(
                                 modifier = Modifier.fillMaxSize(),
@@ -326,16 +346,18 @@ fun SettingsScreen(
                                 if (filteredItems.isEmpty()) {
                                     item {
                                         Column(
-                                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(16.dp),
                                             horizontalAlignment = Alignment.CenterHorizontally
                                         ) {
-                                            Spacer(Modifier.height(160.dp))
-                                            Image(
-                                                painter = painterResource(R.drawable.vivi),
-                                                contentDescription = "No results found",
-                                                modifier = Modifier.size(300.dp)
+                                            Spacer(Modifier.height(80.dp))
+                                            LottieAnimation(
+                                                composition = noResultsComposition,
+                                                progress = { noResultsProgress },
+                                                modifier = Modifier.size(200.dp)
                                             )
-                                            Spacer(Modifier.height(30.dp))
+                                            Spacer(Modifier.height(24.dp))
                                             Text(
                                                 "No results found",
                                                 style = MaterialTheme.typography.bodyLarge,
@@ -378,10 +400,10 @@ fun SettingsScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center
                             ) {
-                                Image(
-                                    painter = painterResource(R.drawable.vivimusic),
-                                    contentDescription = "Search settings",
-                                    modifier = Modifier.size(300.dp)
+                                LottieAnimation(
+                                    composition = searchAnimationComposition,
+                                    progress = { searchAnimationProgress },
+                                    modifier = Modifier.size(250.dp)
                                 )
                                 Spacer(Modifier.height(24.dp))
                                 Text(

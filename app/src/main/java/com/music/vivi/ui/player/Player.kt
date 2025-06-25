@@ -132,6 +132,7 @@ import me.saket.squiggles.SquigglySlider
 
 
 import android.graphics.Bitmap
+import android.media.audiofx.AudioEffect
 //import android.graphics.Color
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
@@ -147,9 +148,15 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.style.TextAlign
+import androidx.core.net.toUri
+import androidx.media3.exoplayer.offline.Download
+import androidx.media3.exoplayer.offline.DownloadRequest
+import androidx.media3.exoplayer.offline.DownloadService
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
+import com.music.vivi.LocalDownloadUtil
+import com.music.vivi.playback.ExoDownloadService
 import kotlinx.coroutines.launch
 
 
@@ -181,6 +188,7 @@ fun BottomSheetPlayer(
         MaterialTheme.colorScheme.surfaceContainer
     }
 
+    var showMoreOptionsSheet by remember { mutableStateOf(false) }
     val showLyrics by rememberPreference(ShowLyricsKey, defaultValue = false)
     val fullScreenLyrics by rememberPreference(fullScreenLyricsKey, defaultValue = true)
     val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.SQUIGGLY)
@@ -399,8 +407,7 @@ fun BottomSheetPlayer(
                             }
                         }
 
-                        Spacer(modifier = Modifier.width(10.dp))
-
+                        // ADDED FAVORITE BUTTON HERE
                         Box(
                             modifier = Modifier
                                 .offset(y = 5.dp)
@@ -415,6 +422,66 @@ fun BottomSheetPlayer(
                                     .align(Alignment.Center)
                                     .size(24.dp),
                                 onClick = playerConnection::toggleLike
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(5.dp))
+                        val downloadUtil = LocalDownloadUtil.current
+                        val download by downloadUtil.getDownload(mediaMetadata?.id ?: "").collectAsState(initial = null)
+
+                        Box(
+                            modifier = Modifier
+                                .offset(y = 5.dp)
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(24.dp))
+                                .background(MaterialTheme.colorScheme.primary)
+                        ) {
+                            ResizableIconButton(
+                                icon = when (download?.state) {
+                                    Download.STATE_DOWNLOADING -> R.drawable.downloading_icon
+                                    Download.STATE_COMPLETED -> R.drawable.downloaded_icon
+                                    else -> R.drawable.download
+                                },
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier
+                                    .align(Alignment.Center)
+                                    .size(24.dp),
+                                onClick = {
+                                    when (download?.state) {
+                                        Download.STATE_COMPLETED -> {
+                                            DownloadService.sendRemoveDownload(
+                                                context,
+                                                ExoDownloadService::class.java,
+                                                mediaMetadata?.id ?: return@ResizableIconButton,
+                                                false
+                                            )
+                                        }
+                                        else -> {
+                                            mediaMetadata?.let { metadata ->
+                                                val downloadRequest = DownloadRequest.Builder(metadata.id, metadata.id.toUri())
+                                                    .setCustomCacheKey(metadata.id)
+                                                    .setData(metadata.title.toByteArray())
+                                                    .build()
+                                                DownloadService.sendAddDownload(
+                                                    context,
+                                                    ExoDownloadService::class.java,
+                                                    downloadRequest,
+                                                    false
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            )
+                        }
+
+                        if (showMoreOptionsSheet) {
+                            MoreOptionsSheet(
+                                mediaMetadata = mediaMetadata,
+                                navController = navController,
+                                bottomSheetState = state,
+                                onDismiss = { showMoreOptionsSheet = false },
+                                onShowDetailsDialog = { showDetailsDialog = true }
                             )
                         }
 
@@ -573,7 +640,6 @@ fun BottomSheetPlayer(
                         }
                     }
 
-
                     Spacer(Modifier.width(8.dp))
 
                     Box(
@@ -655,6 +721,8 @@ fun BottomSheetPlayer(
                 }
             }
         }
+
+        // Rest of the code remains unchanged...
         if (playerBackground == PlayerBackgroundStyle.BLUR) {
             if (mediaMetadata?.isLocal == true) {
                 mediaMetadata.let {
@@ -834,7 +902,6 @@ fun BottomSheetPlayer(
                         }
                     )
 
-                    // FIXED SECTION: Now shows current track name instead of queue title
                     if (mediaMetadata != null) {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally
@@ -846,7 +913,7 @@ fun BottomSheetPlayer(
                                 color = onBackgroundColor
                             )
                             Text(
-                                text = mediaMetadata!!.title, // Use track name directly
+                                text = mediaMetadata!!.title,
                                 style = MaterialTheme.typography.bodyMedium,
                                 overflow = TextOverflow.Ellipsis,
                                 maxLines = 1,
@@ -902,7 +969,6 @@ fun BottomSheetPlayer(
                     textAlign = TextAlign.Center
                 )
 
-                // Share via link
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -931,7 +997,6 @@ fun BottomSheetPlayer(
 
                 Divider()
 
-                // Share via QR code
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -956,7 +1021,6 @@ fun BottomSheetPlayer(
         }
     }
 
-    // QR Code Bottom Sheet
     // QR Code Bottom Sheet
     if (showQrCodeSheet) {
         ModalBottomSheet(
@@ -1021,5 +1085,183 @@ fun BottomSheetPlayer(
                 }
             }
         }
+    }
+}
+
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MoreOptionsSheet(
+    mediaMetadata: MediaMetadata?,
+    navController: NavController,
+    bottomSheetState: BottomSheetState,
+    onDismiss: () -> Unit,
+    onShowDetailsDialog: () -> Unit
+) {
+    val context = LocalContext.current
+    val playerConnection = LocalPlayerConnection.current
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            // Song information header
+            mediaMetadata?.let { metadata ->
+                Row(
+                    modifier = Modifier.padding(bottom = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    AsyncImage(
+                        model = metadata.thumbnailUrl,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Column {
+                        Text(
+                            text = metadata.title,
+                            style = MaterialTheme.typography.titleMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+
+                        Text(
+                            text = metadata.artists.joinToString { it.name },
+                            style = MaterialTheme.typography.bodyMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                    }
+                }
+            }
+
+            Divider()
+
+            // Options list
+            Column {
+                // Add to playlist
+                MoreOptionItem(
+                    icon = R.drawable.playlist_add,
+                    text = stringResource(R.string.add_to_playlist),
+                    onClick = {
+                        mediaMetadata?.let {
+                            navController.navigate("add_to_playlist/${it.id}")
+                            bottomSheetState.collapseSoft()
+                            onDismiss()
+                        }
+                    }
+                )
+
+                // View album
+                MoreOptionItem(
+                    icon = R.drawable.album,
+                    text = stringResource(R.string.view_album),
+                    enabled = mediaMetadata?.album != null && !mediaMetadata.isLocal,
+                    onClick = {
+                        mediaMetadata?.album?.let {
+                            navController.navigate("album/${it.id}")
+                            bottomSheetState.collapseSoft()
+                            onDismiss()
+                        }
+                    }
+                )
+
+                // View artist
+                MoreOptionItem(
+                    icon = R.drawable.person,
+                    text = stringResource(R.string.view_artist),
+                    enabled = mediaMetadata?.artists?.firstOrNull()?.id != null && !mediaMetadata.isLocal,
+                    onClick = {
+                        mediaMetadata?.artists?.firstOrNull()?.id?.let {
+                            navController.navigate("artist/$it")
+                            bottomSheetState.collapseSoft()
+                            onDismiss()
+                        }
+                    }
+                )
+
+                // Song details
+                MoreOptionItem(
+                    icon = R.drawable.info,
+                    text = stringResource(R.string.song_details),
+                    onClick = {
+                        onShowDetailsDialog()
+                        onDismiss()
+                    }
+                )
+
+                // Sleep timer
+                MoreOptionItem(
+                    icon = R.drawable.icon,
+                    text = stringResource(R.string.sleep_timer),
+                    onClick = {
+                        // Implement sleep timer functionality
+                        onDismiss()
+                    }
+                )
+
+                // Equalizer
+                MoreOptionItem(
+                    icon = R.drawable.equalizer,
+                    text = stringResource(R.string.equalizer),
+                    onClick = {
+                        // Open equalizer
+                        try {
+                            val intent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
+                                putExtra(AudioEffect.EXTRA_AUDIO_SESSION, playerConnection?.player?.audioSessionId)
+                                putExtra(AudioEffect.EXTRA_PACKAGE_NAME, context.packageName)
+                                putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
+                            }
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            // Handle error
+                        }
+                        onDismiss()
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MoreOptionItem(
+    icon: Int,
+    text: String,
+    enabled: Boolean = true,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = null,
+            modifier = Modifier
+                .size(24.dp)
+                .alpha(if (enabled) 1f else 0.5f),
+            tint = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+        )
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyLarge,
+            color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+        )
     }
 }

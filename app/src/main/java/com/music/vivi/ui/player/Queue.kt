@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -128,6 +129,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.material.Divider
 
 
 @SuppressLint("AutoboxingStateCreation")
@@ -841,6 +843,7 @@ fun Queue(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailsDialog(
     onDismiss: () -> Unit,
@@ -852,59 +855,79 @@ fun DetailsDialog(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val currentFormat by playerConnection.currentFormat.collectAsState(initial = null)
 
-    AlertDialog(
-        properties = DialogProperties(usePlatformDefaultWidth = false),
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
-        icon = {
-            Icon(
-                painter = painterResource(R.drawable.info_icon),
-                contentDescription = null
-            )
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(android.R.string.ok))
-            }
-        },
-        text = {
-            Column(
-                modifier = Modifier
-                    .sizeIn(minWidth = 280.dp, maxWidth = 560.dp)
-                    .verticalScroll(rememberScrollState())
+        sheetState = rememberModalBottomSheetState(),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                listOf(
-                    stringResource(R.string.song_title) to mediaMetadata?.title,
-                    stringResource(R.string.song_artists) to mediaMetadata?.artists?.joinToString { it.name },
-                    stringResource(R.string.media_id) to mediaMetadata?.id,
-                    "I tag" to currentFormat?.itag?.toString(),
-                    stringResource(R.string.mime_type) to currentFormat?.mimeType,
-                    stringResource(R.string.codecs) to currentFormat?.codecs,
-                    stringResource(R.string.bitrate) to currentFormat?.bitrate?.let { "${it / 1000} Kbps" },
-                    stringResource(R.string.sample_rate) to currentFormat?.sampleRate?.let { "$it Hz" },
-                    stringResource(R.string.loudness) to currentFormat?.loudnessDb?.let { "$it dB" },
-                    stringResource(R.string.volume) to "${(playerConnection.player.volume * 100).toInt()}%",
-                    stringResource(R.string.file_size) to currentFormat?.contentLength?.let { Formatter.formatShortFileSize(context, it) }
-                ).forEach { (label, text) ->
-                    val displayText = text ?: stringResource(R.string.unknown)
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.labelMedium
-                    )
-                    Text(
-                        text = displayText,
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.clickable(
+                Icon(
+                    painter = painterResource(R.drawable.info_icon),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp)
+                )
+                Text(
+                    text = stringResource(R.string.details),
+                    style = MaterialTheme.typography.titleLarge
+                )
+                TextButton(onClick = onDismiss) {
+                    Text(stringResource(android.R.string.ok))
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            listOf(
+                stringResource(R.string.song_title) to mediaMetadata?.title,
+                stringResource(R.string.song_artists) to mediaMetadata?.artists?.joinToString { it.name },
+                stringResource(R.string.media_id) to mediaMetadata?.id,
+                "I tag" to currentFormat?.itag?.toString(),
+                stringResource(R.string.mime_type) to currentFormat?.mimeType,
+                stringResource(R.string.codecs) to currentFormat?.codecs,
+                stringResource(R.string.bitrate) to currentFormat?.bitrate?.let { "${it / 1000} Kbps" },
+                stringResource(R.string.sample_rate) to currentFormat?.sampleRate?.let { "$it Hz" },
+                stringResource(R.string.loudness) to currentFormat?.loudnessDb?.let { "$it dB" },
+                stringResource(R.string.volume) to "${(playerConnection.player.volume * 100).toInt()}%",
+                stringResource(R.string.file_size) to currentFormat?.contentLength?.let { Formatter.formatShortFileSize(context, it) }
+            ).forEach { (label, text) ->
+                val displayText = text ?: stringResource(R.string.unknown)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(
                             interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
+                            indication = LocalIndication.current,
                             onClick = {
                                 clipboardManager.setText(AnnotatedString(displayText))
                                 Toast.makeText(context, R.string.copied, Toast.LENGTH_SHORT).show()
                             }
                         )
+                        .padding(vertical = 8.dp)
+                ) {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = displayText,
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
                 }
+                Divider(modifier = Modifier.padding(vertical = 4.dp))
             }
+
+            Spacer(Modifier.height(16.dp))
         }
-    )
+    }
 }

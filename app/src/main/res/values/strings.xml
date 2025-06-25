@@ -689,4 +689,13 @@
     <string name="spatial_audio">360° Audio</string>
     <string name="spatial_audio_on">360° Audio: ON</string>
     <string name="spatial_audio_off">360° Audio: OFF</string>
+
+    //new player.kt
+
+    <string name="song_details">Song</string>
+
+    //voice
+
+    <string name="speak_now">Speak now...</string>
+    <string name="voice_search_not_supported">Voice search not supported on this device</string>
 </resources>

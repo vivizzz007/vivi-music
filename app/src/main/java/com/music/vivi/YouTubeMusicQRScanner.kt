@@ -79,14 +79,28 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.journeyapps.barcodescanner.ScanIntentResult
 import android.content.pm.ActivityInfo
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import androidx.activity.compose.BackHandler
 import com.music.vivi.R
 import com.journeyapps.barcodescanner.CaptureActivity
 
 import androidx.activity.result.ActivityResultLauncher
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.ui.draw.shadow
 import com.airbnb.lottie.compose.*
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.BinaryBitmap
+import com.google.zxing.DecodeHintType
+import com.google.zxing.MultiFormatReader
+import com.google.zxing.NotFoundException
+import com.google.zxing.RGBLuminanceSource
+import com.google.zxing.common.HybridBinarizer
+import com.google.zxing.qrcode.QRCodeReader
 
+@OptIn(ExperimentalMaterial3Api::class)
 class SquareViewfinderActivity : CaptureActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -104,6 +118,8 @@ fun YouTubeMusicQRScanner(
     var scannedUrl by remember { mutableStateOf<String?>(null) }
     var showError by remember { mutableStateOf(false) }
     var isScanning by remember { mutableStateOf(false) }
+    var isProcessingImage by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
 
     // Handle system back button press
     BackHandler(enabled = true) {
@@ -124,19 +140,68 @@ fun YouTubeMusicQRScanner(
         )
     }
 
+    fun processQRContent(content: String) {
+        if (content.contains("music.youtube.com")) {
+            scannedUrl = content
+            showError = false
+            errorMessage = ""
+            onLinkScanned(content)
+        } else {
+            showError = true
+            errorMessage = "Not a YouTube Music link"
+        }
+    }
+
+    fun processImageForQR(uri: Uri) {
+        isProcessingImage = true
+        showError = false
+        errorMessage = ""
+
+        try {
+            val inputStream = context.contentResolver.openInputStream(uri)
+            val bitmap = BitmapFactory.decodeStream(inputStream)
+            inputStream?.close()
+
+            if (bitmap != null) {
+                val intArray = IntArray(bitmap.width * bitmap.height)
+                bitmap.getPixels(intArray, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+
+                val source = RGBLuminanceSource(bitmap.width, bitmap.height, intArray)
+                val binaryBitmap = BinaryBitmap(HybridBinarizer(source))
+
+                try {
+                    val reader = QRCodeReader()
+                    val result = reader.decode(binaryBitmap)
+                    processQRContent(result.text)
+                } catch (e: Exception) {
+                    showError = true
+                    errorMessage = "No QR code found in image"
+                }
+            } else {
+                showError = true
+                errorMessage = "Failed to load image"
+            }
+        } catch (e: Exception) {
+            showError = true
+            errorMessage = "Error processing image: ${e.message}"
+        } finally {
+            isProcessingImage = false
+        }
+    }
+
     val scanLauncher = rememberLauncherForActivityResult(
         contract = ScanContract()
     ) { result ->
         isScanning = false
         result.contents?.let { content ->
-            if (content.contains("music.youtube.com")) {
-                scannedUrl = content
-                showError = false
-                onLinkScanned(content)
-            } else {
-                showError = true
-            }
+            processQRContent(content)
         }
+    }
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let { processImageForQR(it) }
     }
 
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
@@ -148,7 +213,7 @@ fun YouTubeMusicQRScanner(
         }
     }
 
-    fun startScan() {
+    fun startCameraScan() {
         when {
             ContextCompat.checkSelfPermission(
                 context,
@@ -159,6 +224,10 @@ fun YouTubeMusicQRScanner(
             }
             else -> cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
+    }
+
+    fun startGalleryScan() {
+        imagePickerLauncher.launch("image/*")
     }
 
     Scaffold(
@@ -199,14 +268,21 @@ fun YouTubeMusicQRScanner(
         ) {
             when {
                 isScanning -> ScanInProgressUI()
+                isProcessingImage -> ProcessingImageUI()
                 scannedUrl != null -> ScannedUrlUI(
                     url = scannedUrl!!,
                     context = context,
-                    onRescan = { scannedUrl = null }
+                    onRescan = {
+                        scannedUrl = null
+                        showError = false
+                        errorMessage = ""
+                    }
                 )
                 else -> ReadyToScanUI(
-                    onScanClick = ::startScan,
-                    showError = showError
+                    onCameraScanClick = ::startCameraScan,
+                    onGalleryScanClick = ::startGalleryScan,
+                    showError = showError,
+                    errorMessage = errorMessage
                 )
             }
         }
@@ -240,9 +316,38 @@ private fun ScanInProgressUI() {
 }
 
 @Composable
+private fun ProcessingImageUI() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(48.dp),
+                strokeWidth = 4.dp,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = "PROCESSING IMAGE...",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    color = MaterialTheme.colorScheme.onSurface,
+                    letterSpacing = 0.5.sp
+                )
+            )
+        }
+    }
+}
+
+
+@Composable
 private fun ReadyToScanUI(
-    onScanClick: () -> Unit,
-    showError: Boolean
+    onCameraScanClick: () -> Unit,
+    onGalleryScanClick: () -> Unit,
+    showError: Boolean,
+    errorMessage: String
 ) {
     // Lottie animation composition and progress
     val composition by rememberLottieComposition(
@@ -279,7 +384,7 @@ private fun ReadyToScanUI(
         Spacer(modifier = Modifier.height(32.dp))
 
         Text(
-            text = "Position the QR code within the frame",
+            text = "Position the QR code within the frame or select from gallery",
             style = MaterialTheme.typography.bodyLarge.copy(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
@@ -289,8 +394,9 @@ private fun ReadyToScanUI(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Camera Scan Button
         Button(
-            onClick = onScanClick,
+            onClick = onCameraScanClick,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
@@ -301,20 +407,88 @@ private fun ReadyToScanUI(
                 contentColor = MaterialTheme.colorScheme.onPrimary
             )
         ) {
-            Text("SCAN NOW")
+            Icon(
+                imageVector = Icons.Default.CameraAlt,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("SCAN WITH CAMERA")
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Gallery Scan Button
+        OutlinedButton(
+            onClick = onGalleryScanClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .padding(horizontal = 48.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.primary
+            ),
+            border = ButtonDefaults.outlinedButtonBorder.copy(
+                width = 1.5.dp
+            )
+        ) {
+            Icon(
+                imageVector = Icons.Default.PhotoLibrary,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("SELECT FROM GALLERY")
         }
 
         if (showError) {
             Text(
-                text = "Not a YouTube Music link",
+                text = errorMessage,
                 style = MaterialTheme.typography.bodyMedium.copy(
                     color = MaterialTheme.colorScheme.error
                 ),
                 modifier = Modifier.padding(top = 16.dp)
             )
         }
+
+        // Glowing Card with Note
+        Spacer(modifier = Modifier.height(16.dp))
+        Box(
+            modifier = Modifier
+                .padding(horizontal = 24.dp)
+                .shadow(
+                    elevation = 16.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                    ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                )
+        ) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f)
+                ),
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                )
+            ) {
+                Text(
+                    text = "Note: You can scan music using QR codes. To share music, go to the song's 3-dot menu > Share > QR",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    ),
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        }
     }
 }
+
+
 
 @Composable
 private fun ScannedUrlUI(
