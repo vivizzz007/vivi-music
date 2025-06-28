@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.material3.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.ui.draw.clip
 
 import androidx.compose.foundation.layout.Spacer
@@ -35,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -57,6 +59,7 @@ import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+
 fun BackupAndRestore(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
@@ -81,64 +84,49 @@ fun BackupAndRestore(
     ) {
         Spacer(Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)))
 
+        // Animated Lottie Header
         var visible by remember { mutableStateOf(false) }
-
-        LaunchedEffect(Unit) {
-            visible = true
-        }
+        LaunchedEffect(Unit) { visible = true }
 
         AnimatedVisibility(
             visible = visible,
             enter = fadeIn(),
             exit = fadeOut()
         ) {
-
-//            Image(
-//                painter = painterResource(id = R.drawable.backupimg),
-//                contentDescription = stringResource(R.string.backupandrestore_banner_description),
-//                contentScale = ContentScale.Crop,
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(horizontal = 16.dp, vertical = 8.dp)
-//                    .height(180.dp)
-//                    .clip(RoundedCornerShape(12.dp))
-//            )
-            val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.backupandrestore)) // Replace with your Lottie JSON file
-            LottieAnimation(
-                composition = composition,
-                iterations = LottieConstants.IterateForever, // Loop the animation
+            Box(
                 modifier = Modifier
-//                    .size(100.dp)
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .height(180.dp)
-                    .clip(RoundedCornerShape(12.dp))
-            )
+            ) {
+                val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.backupandrestore))
+                LottieAnimation(
+                    composition = composition,
+                    iterations = LottieConstants.IterateForever,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                )
+            }
         }
-        PreferenceGroupTitle(
-            title = stringResource(R.string.Warning)
-        )
 
-        Card(
+        PreferenceGroupTitle(title = stringResource(R.string.Warning))
+
+        // Warning Card (matches PrivacySettings card design)
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            shape = RoundedCornerShape(12.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            ),
-//            onClick = {
-//                val formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
-//                backupLauncher.launch("${context.getString(R.string.app_name)}_${LocalDateTime.now().format(formatter)}.backup")
-//            }
-        )
-        {
-
-            Column(
-                modifier = Modifier
-                    .padding(16.dp)
-            ) {
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                )
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(12.dp)
+                )
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -153,40 +141,40 @@ fun BackupAndRestore(
                         style = MaterialTheme.typography.titleMedium
                     )
                 }
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = stringResource(R.string.backup_warning),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary  // Blue color here
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-
             }
         }
 
+        PreferenceGroupTitle(title = stringResource(R.string.internal_backup))
 
-
-        PreferenceGroupTitle(
-            title = stringResource(R.string.internal_backup)
-        )
-
-
-        Card(
+        // Backup Card
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            shape = RoundedCornerShape(12.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            ),
-            onClick = {
-                val formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
-                backupLauncher.launch("${context.getString(R.string.app_name)}_${LocalDateTime.now().format(formatter)}.backup")
-            }
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                )
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .clickable {
+                    val formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+                    backupLauncher.launch("${context.getString(R.string.app_name)}_${LocalDateTime.now().format(formatter)}.backup")
+                }
         ) {
             Row(
                 modifier = Modifier
-                    .padding(16.dp),
+                    .padding(16.dp)
+                    .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
@@ -202,22 +190,28 @@ fun BackupAndRestore(
             }
         }
 
-        Card(
+        // Restore Card
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            shape = RoundedCornerShape(12.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            ),
-            onClick = {
-                restoreLauncher.launch(arrayOf("application/octet-stream"))
-            }
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                )
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .clickable {
+                    restoreLauncher.launch(arrayOf("application/octet-stream"))
+                }
         ) {
             Row(
                 modifier = Modifier
-                    .padding(16.dp),
+                    .padding(16.dp)
+                    .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
@@ -232,7 +226,6 @@ fun BackupAndRestore(
                 )
             }
         }
-
     }
 
     TopAppBar(

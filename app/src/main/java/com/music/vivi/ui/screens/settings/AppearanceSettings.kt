@@ -116,6 +116,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Card
 import androidx.compose.ui.graphics.Color
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
 
 
 @SuppressLint("DefaultLocale")
@@ -168,12 +169,39 @@ fun AppearanceSettings(
         }
     }
 
+    val settingsAnimation by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.appearence_settings))
+
+    // Animation state
+    val animationProgress by animateLottieCompositionAsState(
+        composition = settingsAnimation,
+        iterations = LottieConstants.IterateForever,
+        speed = 1f
+    )
+
+
+
+
+
     Column(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
             .verticalScroll(rememberScrollState())
     ) {
         Spacer(Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(150.dp)
+                .padding(horizontal = 16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            LottieAnimation(
+                composition = settingsAnimation,
+                progress = { animationProgress },
+                modifier = Modifier.size(150.dp)
+            )
+        }
 
         // Home Preferences
         PreferenceGroupTitle(title = stringResource(R.string.home1))

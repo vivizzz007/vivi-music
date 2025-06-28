@@ -33,18 +33,22 @@ import android.os.LocaleList
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.music.vivi.LocalPlayerAwareWindowInsets
@@ -92,7 +96,6 @@ fun ContentSettings(
     val (contentCountry, onContentCountryChange) = rememberPreference(key = ContentCountryKey, defaultValue = "system")
     val (selectedLanguage, onSelectedLanguage) = rememberPreference(key = SelectedLanguageKey, defaultValue = "system")
     val (hideExplicit, onHideExplicitChange) = rememberPreference(key = HideExplicitKey, defaultValue = false)
-
     val (proxyEnabled, onProxyEnabledChange) = rememberPreference(key = ProxyEnabledKey, defaultValue = false)
     val (proxyType, onProxyTypeChange) = rememberEnumPreference(key = ProxyTypeKey, defaultValue = Proxy.Type.HTTP)
     val (proxyUrl, onProxyUrlChange) = rememberPreference(key = ProxyUrlKey, defaultValue = "host:port")
@@ -109,175 +112,342 @@ fun ContentSettings(
                 )
             )
         )
-        var visible by remember { mutableStateOf(false) }
 
-        LaunchedEffect(Unit) {
-            visible = true
-        }
+        // Lottie Animation at the top (without card)
+        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.content))
+        LottieAnimation(
+            composition = composition,
+            iterations = LottieConstants.IterateForever,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .height(180.dp)
+                .clip(RoundedCornerShape(12.dp))
+        )
 
-        AnimatedVisibility(
-            visible = visible,
-            enter = fadeIn(),
-            exit = fadeOut()
+        PreferenceGroupTitle(title = stringResource(R.string.home))
+
+        // Content Language Card with Glow Effect
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                )
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(12.dp)
+                )
         ) {
-//            Image(
-//                painter = painterResource(id = R.drawable.content),
-//                contentDescription = stringResource(R.string.content_banner_description),
-//                contentScale = ContentScale.Crop,
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(horizontal = 16.dp, vertical = 8.dp)
-//                    .height(180.dp)
-//                    .clip(RoundedCornerShape(12.dp))
-//            )
-            val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.content)) // Replace with your Lottie JSON file
-            LottieAnimation(
-                composition = composition,
-                iterations = LottieConstants.IterateForever, // Loop the animation
-                modifier = Modifier
-//                    .size(100.dp)
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .height(180.dp)
-                    .clip(RoundedCornerShape(12.dp))
-            )
-        }
-
-        PreferenceGroupTitle(
-            title = stringResource(R.string.home)
-        )
-
-        ListPreference(
-            title = { Text(stringResource(R.string.content_language)) },
-            icon = { Icon(painterResource(R.drawable.language), null) },
-            selectedValue = contentLanguage,
-            values = listOf(SYSTEM_DEFAULT) + LanguageCodeToName.keys.toList(),
-            valueText = {
-                LanguageCodeToName.getOrElse(it) {
-                    stringResource(R.string.system_default)
-                }
-            },
-            onValueSelected = onContentLanguageChange
-        )
-        ListPreference(
-            title = { Text(stringResource(R.string.content_country)) },
-            icon = { Icon(painterResource(R.drawable.location_on), null) },
-            selectedValue = contentCountry,
-            values = listOf(SYSTEM_DEFAULT) + CountryCodeToName.keys.toList(),
-            valueText = {
-                CountryCodeToName.getOrElse(it) {
-                    stringResource(R.string.system_default)
-                }
-            },
-            onValueSelected = onContentCountryChange
-        )
-
-        ListPreference(
-            title = { Text(stringResource(R.string.like_autodownload)) },
-            icon = { Icon(Icons.Rounded.Favorite, null) },
-            values = listOf(LikedAutodownloadMode.OFF, LikedAutodownloadMode.ON, LikedAutodownloadMode.WIFI_ONLY),
-            selectedValue = likedAutoDownload,
-            valueText = { when (it){
-                LikedAutodownloadMode.OFF -> stringResource(R.string.state_off)
-                LikedAutodownloadMode.ON -> stringResource(R.string.state_on)
-                LikedAutodownloadMode.WIFI_ONLY -> stringResource(R.string.wifi_only)
-            } },
-            onValueSelected = onLikedAutoDownload
-        )
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            PreferenceEntry(
-                title = { Text(stringResource(R.string.open_supported_links)) },
-                description = stringResource(R.string.configure_supported_links),
-                icon = { Icon(painterResource(R.drawable.add_link), null) },
-                onClick = {
-                    try {
-                        context.startActivity(
-                            Intent(
-                                Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS,
-                                "package:${context.packageName}".toUri()
-                            ),
-                        )
-                    } catch (e: ActivityNotFoundException) {
-                        Toast.makeText(
-                            context,
-                            R.string.intent_supported_links_not_found,
-                            Toast.LENGTH_LONG
-                        ).show()
+            ListPreference(
+                title = { Text(stringResource(R.string.content_language)) },
+                icon = { Icon(painterResource(R.drawable.language), null) },
+                selectedValue = contentLanguage,
+                values = listOf(SYSTEM_DEFAULT) + LanguageCodeToName.keys.toList(),
+                valueText = {
+                    LanguageCodeToName.getOrElse(it) {
+                        stringResource(R.string.system_default)
                     }
                 },
+                onValueSelected = onContentLanguageChange,
+                modifier = Modifier.padding(16.dp)
             )
+        }
+
+        // Content Country Card with Glow Effect
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                )
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(12.dp)
+                )
+        ) {
+            ListPreference(
+                title = { Text(stringResource(R.string.content_country)) },
+                icon = { Icon(painterResource(R.drawable.location_on), null) },
+                selectedValue = contentCountry,
+                values = listOf(SYSTEM_DEFAULT) + CountryCodeToName.keys.toList(),
+                valueText = {
+                    CountryCodeToName.getOrElse(it) {
+                        stringResource(R.string.system_default)
+                    }
+                },
+                onValueSelected = onContentCountryChange,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+
+        // Like Autodownload Card with Glow Effect
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                )
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(12.dp)
+                )
+        ) {
+            ListPreference(
+                title = { Text(stringResource(R.string.like_autodownload)) },
+                icon = { Icon(Icons.Rounded.Favorite, null) },
+                values = listOf(LikedAutodownloadMode.OFF, LikedAutodownloadMode.ON, LikedAutodownloadMode.WIFI_ONLY),
+                selectedValue = likedAutoDownload,
+                valueText = { when (it) {
+                    LikedAutodownloadMode.OFF -> stringResource(R.string.state_off)
+                    LikedAutodownloadMode.ON -> stringResource(R.string.state_on)
+                    LikedAutodownloadMode.WIFI_ONLY -> stringResource(R.string.wifi_only)
+                } },
+                onValueSelected = onLikedAutoDownload,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // Open Supported Links Card with Glow Effect
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .shadow(
+                        elevation = 8.dp,
+                        shape = RoundedCornerShape(12.dp),
+                        spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                    )
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceContainer,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+            ) {
+                PreferenceEntry(
+                    title = { Text(stringResource(R.string.open_supported_links)) },
+                    description = stringResource(R.string.configure_supported_links),
+                    icon = { Icon(painterResource(R.drawable.add_link), null) },
+                    onClick = {
+                        try {
+                            context.startActivity(
+                                Intent(
+                                    Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS,
+                                    "package:${context.packageName}".toUri()
+                                ),
+                            )
+                        } catch (e: ActivityNotFoundException) {
+                            Toast.makeText(
+                                context,
+                                R.string.intent_supported_links_not_found,
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    },
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
         }
 
         PreferenceGroupTitle(title = stringResource(R.string.content))
-        SwitchPreference(
-            title = { Text(stringResource(R.string.hide_explicit)) },
-            icon = { Icon(painterResource(R.drawable.explicit), null) },
-            checked = hideExplicit,
-            onCheckedChange = onHideExplicitChange
-        )
 
-        PreferenceGroupTitle(title = stringResource(R.string.notifications))
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.notifications_settings)) },
-            icon = { Icon(painterResource(R.drawable.notification_on), null) },
-            onClick = { navController.navigate("settings/content/notification") }
-        )
-
-        PreferenceGroupTitle(title = stringResource(R.string.app_language))
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            PreferenceEntry(
-                title = { Text(stringResource(R.string.app_language)) },
-                icon = { Icon(painterResource(R.drawable.translate), null) },
-                onClick = {
-                    context.startActivity(
-                        Intent(
-                            Settings.ACTION_APP_LOCALE_SETTINGS,
-                            "package:${context.packageName}".toUri()
-                        )
-                    )
-                }
-            )
-        } else {
-            ListPreference(
-                title = { Text(stringResource(R.string.app_language)) },
-                icon = { Icon(painterResource(R.drawable.translate), null) },
-                selectedValue = selectedLanguage,
-                values = listOf(SYSTEM_DEFAULT) + LanguageCodeToName.keys.toList(),
-                valueText = { LanguageCodeToName[it] ?: stringResource(R.string.system_default) },
-                onValueSelected = {
-                    onSelectedLanguage(it)
-                    updateLanguage(context, it)
-                    saveLanguagePreference(context, it)
-                }
+        // Hide Explicit Card with Glow Effect
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                )
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(12.dp)
+                )
+        ) {
+            SwitchPreference(
+                title = { Text(stringResource(R.string.hide_explicit)) },
+                icon = { Icon(painterResource(R.drawable.explicit), null) },
+                checked = hideExplicit,
+                onCheckedChange = onHideExplicitChange,
+                modifier = Modifier.padding(16.dp)
             )
         }
 
-        PreferenceGroupTitle(
-            title = stringResource(R.string.proxy)
-        )
+        PreferenceGroupTitle(title = stringResource(R.string.notifications))
 
-        SwitchPreference(
-            title = { Text(stringResource(R.string.enable_proxy)) },
-            icon = { Icon(painterResource(R.drawable.wifi_proxy), null) },
-            checked = proxyEnabled,
-            onCheckedChange = onProxyEnabledChange
-        )
+        // Notifications Settings Card with Glow Effect
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                )
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(12.dp)
+                )
+        ) {
+            PreferenceEntry(
+                title = { Text(stringResource(R.string.notifications_settings)) },
+                icon = { Icon(painterResource(R.drawable.notification_on), null) },
+                onClick = { navController.navigate("settings/content/notification") },
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+
+        PreferenceGroupTitle(title = stringResource(R.string.app_language))
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // App Language Card with Glow Effect (Android T+)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .shadow(
+                        elevation = 8.dp,
+                        shape = RoundedCornerShape(12.dp),
+                        spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                    )
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceContainer,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+            ) {
+                PreferenceEntry(
+                    title = { Text(stringResource(R.string.app_language)) },
+                    icon = { Icon(painterResource(R.drawable.translate), null) },
+                    onClick = {
+                        context.startActivity(
+                            Intent(
+                                Settings.ACTION_APP_LOCALE_SETTINGS,
+                                "package:${context.packageName}".toUri()
+                            )
+                        )
+                    },
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        } else {
+            // App Language Card with Glow Effect (Pre-Android T)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .shadow(
+                        elevation = 8.dp,
+                        shape = RoundedCornerShape(12.dp),
+                        spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                    )
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceContainer,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+            ) {
+                ListPreference(
+                    title = { Text(stringResource(R.string.app_language)) },
+                    icon = { Icon(painterResource(R.drawable.translate), null) },
+                    selectedValue = selectedLanguage,
+                    values = listOf(SYSTEM_DEFAULT) + LanguageCodeToName.keys.toList(),
+                    valueText = { LanguageCodeToName[it] ?: stringResource(R.string.system_default) },
+                    onValueSelected = {
+                        onSelectedLanguage(it)
+                        updateLanguage(context, it)
+                        saveLanguagePreference(context, it)
+                    },
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        }
+
+        PreferenceGroupTitle(title = stringResource(R.string.proxy))
+
+        // Proxy Enable Card with Glow Effect
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                )
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(12.dp)
+                )
+        ) {
+            SwitchPreference(
+                title = { Text(stringResource(R.string.enable_proxy)) },
+                icon = { Icon(painterResource(R.drawable.wifi_proxy), null) },
+                checked = proxyEnabled,
+                onCheckedChange = onProxyEnabledChange,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
 
         AnimatedVisibility(proxyEnabled) {
             Column {
-                ListPreference(
-                    title = { Text(stringResource(R.string.proxy_type)) },
-                    selectedValue = proxyType,
-                    values = listOf(Proxy.Type.HTTP, Proxy.Type.SOCKS),
-                    valueText = { it.name },
-                    onValueSelected = onProxyTypeChange
-                )
-                EditTextPreference(
-                    title = { Text(stringResource(R.string.proxy_url)) },
-                    value = proxyUrl,
-                    onValueChange = onProxyUrlChange
-                )
+                // Proxy Type Card with Glow Effect
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .shadow(
+                            elevation = 8.dp,
+                            shape = RoundedCornerShape(12.dp),
+                            spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                        )
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceContainer,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                ) {
+                    ListPreference(
+                        title = { Text(stringResource(R.string.proxy_type)) },
+                        selectedValue = proxyType,
+                        values = listOf(Proxy.Type.HTTP, Proxy.Type.SOCKS),
+                        valueText = { it.name },
+                        onValueSelected = onProxyTypeChange,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+
+                // Proxy URL Card with Glow Effect
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .shadow(
+                            elevation = 8.dp,
+                            shape = RoundedCornerShape(12.dp),
+                            spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                        )
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceContainer,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                ) {
+                    EditTextPreference(
+                        title = { Text(stringResource(R.string.proxy_url)) },
+                        value = proxyUrl,
+                        onValueChange = onProxyUrlChange,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
             }
         }
     }
@@ -303,7 +473,6 @@ fun saveLanguagePreference(context: Context, languageCode: String) {
     val sharedPreferences = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
     sharedPreferences.edit { putString("app_language", languageCode) }
 }
-
 
 fun updateLanguage(context: Context, languageCode: String) {
     val locale = Locale(languageCode)

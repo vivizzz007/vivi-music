@@ -4,6 +4,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -24,6 +26,7 @@ import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -35,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -157,6 +161,7 @@ fun PlayerSettings(
     ) {
         Spacer(Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)))
 
+        // Lottie Animation
         val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.party))
         LottieAnimation(
             composition = composition,
@@ -170,145 +175,398 @@ fun PlayerSettings(
 
         PreferenceGroupTitle(title = stringResource(R.string.player))
 
-        // New auto-pause switch preference
-// To this:
-        EnumListPreference(
-            title = { Text(stringResource(R.string.audio_quality)) },
-            icon = { Icon(painterResource(R.drawable.graphic_eq), null) },
-            selectedValue = audioQuality,
-            onValueSelected = onAudioQualityChange,
-            valueText = {
-                when (it) {
-                    AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto)
-                    AudioQuality.MAX -> stringResource(R.string.audio_quality_max)
-                    AudioQuality.HIGH -> stringResource(R.string.audio_quality_high)
-                    AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
-                }
-            }
-        )
-
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.lyrics_settings_title)) },
-            icon = { Icon(Icons.Rounded.Lyrics, null) },
-            onClick = { navController.navigate("settings/player/lyrics") }
-        )
-
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.local_player_settings_title)) },
-            icon = { Icon(painterResource(R.drawable.folder_icon), null) },
-            onClick = { navController.navigate("player/local") }
-        )
-
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.minimum_playback_duration)) },
-            description = "$minPlaybackDur %",
-            icon = { Icon(Icons.Rounded.Sync, null) },
-            onClick = { showMinPlaybackDur = true }
-        )
-
-        SwitchPreference(
-            title = { Text(stringResource(R.string.skip_silence)) },
-            icon = { Icon(painterResource(R.drawable.fast_forward), null) },
-            checked = skipSilence,
-            onCheckedChange = onSkipSilenceChange
-        )
-
-        if (isLoggedIn) {
-            SwitchPreference(
-                title = { Text(stringResource(R.string.adding_played_songs_to_ytm_history)) },
-                icon = { Icon(painterResource(R.drawable.history), null) },
-                checked = addingPlayedSongsToYtmHistory,
-                onCheckedChange = onAddingPlayedSongsToYtmHistoryChange
+        // Audio Quality Card
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                )
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(12.dp)
+                )
+        ) {
+            EnumListPreference(
+                title = { Text(stringResource(R.string.audio_quality)) },
+                icon = { Icon(painterResource(R.drawable.graphic_eq), null) },
+                selectedValue = audioQuality,
+                onValueSelected = onAudioQualityChange,
+                valueText = {
+                    when (it) {
+                        AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto)
+                        AudioQuality.MAX -> stringResource(R.string.audio_quality_max)
+                        AudioQuality.HIGH -> stringResource(R.string.audio_quality_high)
+                        AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
+                    }
+                },
+                modifier = Modifier.padding(16.dp)
             )
         }
 
-        SwitchPreference(
-            title = { Text(stringResource(R.string.audio_normalization)) },
-            icon = { Icon(Icons.AutoMirrored.Rounded.VolumeUp, null) },
-            checked = audioNormalization,
-            onCheckedChange = onAudioNormalizationChange
-        )
+        // Lyrics Settings Card
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                )
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(12.dp)
+                )
+        ) {
+            PreferenceEntry(
+                title = { Text(stringResource(R.string.lyrics_settings_title)) },
+                icon = { Icon(Icons.Rounded.Lyrics, null) },
+                onClick = { navController.navigate("settings/player/lyrics") },
+                modifier = Modifier.padding(16.dp)
+            )
+        }
 
-        SwitchPreference(
-            title = { Text(stringResource(R.string.auto_pause_on_volume_zero)) },
-            description = stringResource(R.string.auto_pause_on_volume_zero_desc), // Remove the lambda
-            icon = { Icon(painterResource(R.drawable.ic_headphone), null) },
-            checked = autoPauseOnVolumeZero,
-            onCheckedChange = onAutoPauseOnVolumeZeroChange
-        )
+        // Local Player Settings Card
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                )
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(12.dp)
+                )
+        ) {
+            PreferenceEntry(
+                title = { Text(stringResource(R.string.local_player_settings_title)) },
+                icon = { Icon(painterResource(R.drawable.folder_icon), null) },
+                onClick = { navController.navigate("player/local") },
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+
+        // Minimum Playback Duration Card
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                )
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(12.dp)
+                )
+        ) {
+            PreferenceEntry(
+                title = { Text(stringResource(R.string.minimum_playback_duration)) },
+                description = "$minPlaybackDur %",
+                icon = { Icon(Icons.Rounded.Sync, null) },
+                onClick = { showMinPlaybackDur = true },
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+
+        // Skip Silence Card
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                )
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(12.dp)
+                )
+        ) {
+            SwitchPreference(
+                title = { Text(stringResource(R.string.skip_silence)) },
+                icon = { Icon(painterResource(R.drawable.fast_forward), null) },
+                checked = skipSilence,
+                onCheckedChange = onSkipSilenceChange,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+
+        // YTM History Card (conditionally shown)
+        if (isLoggedIn) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .shadow(
+                        elevation = 8.dp,
+                        shape = RoundedCornerShape(12.dp),
+                        spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                    )
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceContainer,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+            ) {
+                SwitchPreference(
+                    title = { Text(stringResource(R.string.adding_played_songs_to_ytm_history)) },
+                    icon = { Icon(painterResource(R.drawable.history), null) },
+                    checked = addingPlayedSongsToYtmHistory,
+                    onCheckedChange = onAddingPlayedSongsToYtmHistoryChange,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        }
+
+        // Audio Normalization Card
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                )
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(12.dp)
+                )
+        ) {
+            SwitchPreference(
+                title = { Text(stringResource(R.string.audio_normalization)) },
+                icon = { Icon(Icons.AutoMirrored.Rounded.VolumeUp, null) },
+                checked = audioNormalization,
+                onCheckedChange = onAudioNormalizationChange,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+
+        // Auto Pause on Volume Zero Card
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                )
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(12.dp)
+                )
+        ) {
+            SwitchPreference(
+                title = { Text(stringResource(R.string.auto_pause_on_volume_zero)) },
+                description = stringResource(R.string.auto_pause_on_volume_zero_desc),
+                icon = { Icon(painterResource(R.drawable.ic_headphone), null) },
+                checked = autoPauseOnVolumeZero,
+                onCheckedChange = onAutoPauseOnVolumeZeroChange,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
 
         PreferenceGroupTitle(title = stringResource(R.string.playback_effects))
 
-        SwitchPreference(
-            title = { Text(stringResource(R.string.enable_crossfade)) },
-            icon = { Icon(painterResource(R.drawable.ic_crossfade), null) },
-            checked = crossfadeEnabled,
-            onCheckedChange = onCrossfadeEnabledChange
-        )
+        // Crossfade Enable Card
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                )
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(12.dp)
+                )
+        ) {
+            SwitchPreference(
+                title = { Text(stringResource(R.string.enable_crossfade)) },
+                icon = { Icon(painterResource(R.drawable.ic_crossfade), null) },
+                checked = crossfadeEnabled,
+                onCheckedChange = onCrossfadeEnabledChange,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
 
-        PreferenceEntry(
-            title = {
-                Text(
-                    stringResource(R.string.crossfade_duration),
-                    color = if (crossfadeEnabled) LocalContentColor.current else LocalContentColor.current.copy(alpha = 0.5f)
+        // Crossfade Duration Card
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
                 )
-            },
-            description = if (crossfadeEnabled)
-                stringResource(R.string.seconds_format, crossfadeDuration)
-            else
-                stringResource(R.string.disabled),
-            icon = {
-                Icon(
-                    painterResource(R.drawable.timer_crossfade),
-                    null,
-                    tint = if (crossfadeEnabled) LocalContentColor.current else LocalContentColor.current.copy(alpha = 0.5f)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(12.dp)
                 )
-            },
-            onClick = { if (crossfadeEnabled) showCrossfadeDialog = true }
-        )
+        ) {
+            PreferenceEntry(
+                title = {
+                    Text(
+                        stringResource(R.string.crossfade_duration),
+                        color = if (crossfadeEnabled) LocalContentColor.current else LocalContentColor.current.copy(alpha = 0.5f)
+                    )
+                },
+                description = if (crossfadeEnabled)
+                    stringResource(R.string.seconds_format, crossfadeDuration)
+                else
+                    stringResource(R.string.disabled),
+                icon = {
+                    Icon(
+                        painterResource(R.drawable.timer_crossfade),
+                        null,
+                        tint = if (crossfadeEnabled) LocalContentColor.current else LocalContentColor.current.copy(alpha = 0.5f)
+                    )
+                },
+                onClick = { if (crossfadeEnabled) showCrossfadeDialog = true },
+                modifier = Modifier.padding(16.dp)
+            )
+        }
 
         PreferenceGroupTitle(title = stringResource(R.string.queue))
 
-        SwitchPreference(
-            title = { Text(stringResource(R.string.persistent_queue)) },
-            description = stringResource(R.string.persistent_queue_desc),
-            icon = { Icon(painterResource(R.drawable.queue_music), null) },
-            checked = persistentQueue,
-            onCheckedChange = onPersistentQueueChange
-        )
+        // Persistent Queue Card
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                )
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(12.dp)
+                )
+        ) {
+            SwitchPreference(
+                title = { Text(stringResource(R.string.persistent_queue)) },
+                description = stringResource(R.string.persistent_queue_desc),
+                icon = { Icon(painterResource(R.drawable.queue_music), null) },
+                checked = persistentQueue,
+                onCheckedChange = onPersistentQueueChange,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
 
-        SwitchPreference(
-            title = { Text(stringResource(R.string.auto_load_more)) },
-            description = stringResource(R.string.auto_load_more_desc),
-            icon = { Icon(painterResource(R.drawable.playlist_add), null) },
-            checked = autoLoadMore,
-            onCheckedChange = onAutoLoadMoreChange
-        )
+        // Auto Load More Card
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                )
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(12.dp)
+                )
+        ) {
+            SwitchPreference(
+                title = { Text(stringResource(R.string.auto_load_more)) },
+                description = stringResource(R.string.auto_load_more_desc),
+                icon = { Icon(painterResource(R.drawable.playlist_add), null) },
+                checked = autoLoadMore,
+                onCheckedChange = onAutoLoadMoreChange,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
 
-        SwitchPreference(
-            title = { Text(stringResource(R.string.auto_skip_next_on_error)) },
-            description = stringResource(R.string.auto_skip_next_on_error_desc),
-            icon = { Icon(painterResource(R.drawable.skip_next), null) },
-            checked = autoSkipNextOnError,
-            onCheckedChange = onAutoSkipNextOnErrorChange
-        )
+        // Auto Skip Next on Error Card
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                )
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(12.dp)
+                )
+        ) {
+            SwitchPreference(
+                title = { Text(stringResource(R.string.auto_skip_next_on_error)) },
+                description = stringResource(R.string.auto_skip_next_on_error_desc),
+                icon = { Icon(painterResource(R.drawable.skip_next), null) },
+                checked = autoSkipNextOnError,
+                onCheckedChange = onAutoSkipNextOnErrorChange,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
 
         PreferenceGroupTitle(title = stringResource(R.string.misc))
 
-        SwitchPreference(
-            title = { Text(stringResource(R.string.audio_offload)) },
-            description = stringResource(R.string.audio_offload_description),
-            icon = { Icon(Icons.Rounded.Bolt, null) },
-            checked = audioOffload,
-            onCheckedChange = onAudioOffloadChange
-        )
+        // Audio Offload Card
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                )
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(12.dp)
+                )
+        ) {
+            SwitchPreference(
+                title = { Text(stringResource(R.string.audio_offload)) },
+                description = stringResource(R.string.audio_offload_description),
+                icon = { Icon(Icons.Rounded.Bolt, null) },
+                checked = audioOffload,
+                onCheckedChange = onAudioOffloadChange,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
 
-        SwitchPreference(
-            title = { Text(stringResource(R.string.stop_music_on_task_clear)) },
-            icon = { Icon(painterResource(R.drawable.clear_all), null) },
-            checked = stopMusicOnTaskClear,
-            onCheckedChange = onStopMusicOnTaskClearChange
-        )
+        // Stop Music on Task Clear Card
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                )
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(12.dp)
+                )
+        ) {
+            SwitchPreference(
+                title = { Text(stringResource(R.string.stop_music_on_task_clear)) },
+                icon = { Icon(painterResource(R.drawable.clear_all), null) },
+                checked = stopMusicOnTaskClear,
+                onCheckedChange = onStopMusicOnTaskClearChange,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
     }
 
     TopAppBar(
@@ -324,5 +582,3 @@ fun PlayerSettings(
         scrollBehavior = scrollBehavior
     )
 }
-
-

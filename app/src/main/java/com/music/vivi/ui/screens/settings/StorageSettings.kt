@@ -5,6 +5,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -34,6 +36,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -289,165 +292,219 @@ fun StorageSettings(
             .verticalScroll(rememberScrollState())
     ) {
         Spacer(Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)))
-        var visible by remember { mutableStateOf(false) }
 
-        LaunchedEffect(Unit) {
-            visible = true
-        }
+        var visible by remember { mutableStateOf(false) }
+        LaunchedEffect(Unit) { visible = true }
 
         AnimatedVisibility(
             visible = visible,
             enter = fadeIn(),
             exit = fadeOut()
         ) {
-
-//            Image(
-//                painter = painterResource(id = R.drawable.storage_box),
-//                contentDescription = stringResource(R.string.storage_banner_description),
-//                contentScale = ContentScale.Crop,
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(horizontal = 16.dp, vertical = 8.dp)
-//                    .height(180.dp)
-//                    .clip(RoundedCornerShape(12.dp))
-//            )
-            val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.storage)) // Replace with your Lottie JSON file
-            LottieAnimation(
-                composition = composition,
-                iterations = LottieConstants.IterateForever, // Loop the animation
+            // Lottie Animation in Card
+            Box(
                 modifier = Modifier
-//                    .size(100.dp)
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .height(180.dp)
-                    .clip(RoundedCornerShape(12.dp))
-            )
-        }
-
-        PreferenceGroupTitle(
-            title = stringResource(R.string.downloaded_songs)
-        )
-
-        Text(
-            text = stringResource(R.string.size_used, formatFileSize(downloadCacheSize)),
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
-        )
-
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.clear_all_downloads)) },
-            onClick = { showClearAllDownloadsDialog = true }
-        )
-
-        PreferenceGroupTitle(
-            title = stringResource(R.string.song_cache)
-        )
-
-        if (maxSongCacheSize != 0) {
-            if (maxSongCacheSize == -1) {
-                Text(
-                    text = stringResource(R.string.size_used, formatFileSize(playerCacheSize)),
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
-                )
-            } else {
-                LinearProgressIndicator(
-                    progress = { (playerCacheSize.toFloat() / (maxSongCacheSize * 1024 * 1024L)).coerceIn(0f, 1f) },
+            ) {
+                val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.storage))
+                LottieAnimation(
+                    composition = composition,
+                    iterations = LottieConstants.IterateForever,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 6.dp)
-                )
-
-                Text(
-                    text = stringResource(R.string.size_used, "${formatFileSize(playerCacheSize)} / ${formatFileSize(maxSongCacheSize * 1024 * 1024L)}"),
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                        .height(180.dp)
                 )
             }
         }
 
-        ListPreference(
-            title = { Text(stringResource(R.string.max_cache_size)) },
-            selectedValue = maxSongCacheSize,
-            values = listOf(0, 128, 256, 512, 1024, 2048, 4096, 8192, -1),
-            valueText = {
-                when (it) {
-                    0 -> stringResource(R.string.off)
-                    -1 -> stringResource(R.string.unlimited)
-                    else -> formatFileSize(it * 1024 * 1024L)
-                }
-            },
-            onValueSelected = onMaxSongCacheSizeChange
-        )
+        PreferenceGroupTitle(title = stringResource(R.string.downloaded_songs))
 
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.clear_song_cache)) },
-            onClick = { showClearSongCacheDialog = true }
-        )
-
-        PreferenceGroupTitle(
-            title = stringResource(R.string.image_cache)
-        )
-
-        if (maxImageCacheSize != 0) {
-            if (maxSongCacheSize == -1) {
-                Text(
-                    text = stringResource(R.string.size_used, formatFileSize(imageCacheSize)),
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+        // Downloaded Songs Card
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
                 )
-            } else {
-                LinearProgressIndicator(
-                    progress = {
-                        (imageCacheSize.toFloat() / (imageCacheSize * 1024 * 1024L)).coerceIn(
-                            0f,
-                            1f
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(12.dp)
+                )
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = stringResource(R.string.size_used, formatFileSize(downloadCacheSize)),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+
+                PreferenceEntry(
+                    title = { Text(stringResource(R.string.clear_all_downloads)) },
+                    onClick = { showClearAllDownloadsDialog = true },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+
+        PreferenceGroupTitle(title = stringResource(R.string.song_cache))
+
+        // Song Cache Card
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                )
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(12.dp)
+                )
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                if (maxSongCacheSize != 0) {
+                    if (maxSongCacheSize == -1) {
+                        Text(
+                            text = stringResource(R.string.size_used, formatFileSize(playerCacheSize)),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(bottom = 8.dp)
                         )
+                    } else {
+                        LinearProgressIndicator(
+                            progress = { (playerCacheSize.toFloat() / (maxSongCacheSize * 1024 * 1024L)).coerceIn(0f, 1f) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 8.dp)
+                        )
+
+                        Text(
+                            text = stringResource(R.string.size_used, "${formatFileSize(playerCacheSize)} / ${formatFileSize(maxSongCacheSize * 1024 * 1024L)}"),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
+                }
+
+                ListPreference(
+                    title = { Text(stringResource(R.string.max_cache_size)) },
+                    selectedValue = maxSongCacheSize,
+                    values = listOf(0, 128, 256, 512, 1024, 2048, 4096, 8192, -1),
+                    valueText = {
+                        when (it) {
+                            0 -> stringResource(R.string.off)
+                            -1 -> stringResource(R.string.unlimited)
+                            else -> formatFileSize(it * 1024 * 1024L)
+                        }
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 6.dp)
+                    onValueSelected = onMaxSongCacheSizeChange,
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
 
-                Text(
-                    text = stringResource(
-                        R.string.size_used,
-                        "${formatFileSize(imageCacheSize)} / ${formatFileSize(maxImageCacheSize * 1024 * 1024L)}"
-                    ),
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                PreferenceEntry(
+                    title = { Text(stringResource(R.string.clear_song_cache)) },
+                    onClick = { showClearSongCacheDialog = true },
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }
 
-        ListPreference(
-            title = { Text(stringResource(R.string.max_cache_size)) },
-            selectedValue = maxImageCacheSize,
-            values = listOf(0, 128, 256, 512, 1024, 2048, 4096, 8192, -1),
-            valueText = {
-                when (it) {
-                    0 -> stringResource(R.string.off)
-                    -1 -> stringResource(R.string.unlimited)
-                    else -> formatFileSize(it * 1024 * 1024L)
-                }
-            },
-            onValueSelected = onMaxImageCacheSizeChange
-        )
+        PreferenceGroupTitle(title = stringResource(R.string.image_cache))
 
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.clear_image_cache)) },
-            onClick = { showClearImagesCacheDialog = true }
-        )
+        // Image Cache Card
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                )
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(12.dp)
+                )
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                if (maxImageCacheSize != 0) {
+                    if (maxImageCacheSize == -1) {
+                        Text(
+                            text = stringResource(R.string.size_used, formatFileSize(imageCacheSize)),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    } else {
+                        LinearProgressIndicator(
+                            progress = { (imageCacheSize.toFloat() / (maxImageCacheSize * 1024 * 1024L)).coerceIn(0f, 1f) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 8.dp)
+                        )
+
+                        Text(
+                            text = stringResource(
+                                R.string.size_used,
+                                "${formatFileSize(imageCacheSize)} / ${formatFileSize(maxImageCacheSize * 1024 * 1024L)}"
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
+                }
+
+                ListPreference(
+                    title = { Text(stringResource(R.string.max_cache_size)) },
+                    selectedValue = maxImageCacheSize,
+                    values = listOf(0, 128, 256, 512, 1024, 2048, 4096, 8192, -1),
+                    valueText = {
+                        when (it) {
+                            0 -> stringResource(R.string.off)
+                            -1 -> stringResource(R.string.unlimited)
+                            else -> formatFileSize(it * 1024 * 1024L)
+                        }
+                    },
+                    onValueSelected = onMaxImageCacheSizeChange,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+
+                PreferenceEntry(
+                    title = { Text(stringResource(R.string.clear_image_cache)) },
+                    onClick = { showClearImagesCacheDialog = true },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
 
         if (BuildConfig.FLAVOR != "foss") {
-            PreferenceGroupTitle(
-                title = stringResource(R.string.translation_models)
-            )
+            PreferenceGroupTitle(title = stringResource(R.string.translation_models))
 
-            PreferenceEntry(
-                title = { Text(stringResource(R.string.clear_translation_models)) },
-                onClick = { showClearTranslationModels = true }
-            )
+            // Translation Models Card
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .shadow(
+                        elevation = 8.dp,
+                        shape = RoundedCornerShape(12.dp),
+                        spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                    )
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceContainer,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+            ) {
+                PreferenceEntry(
+                    title = { Text(stringResource(R.string.clear_translation_models)) },
+                    onClick = { showClearTranslationModels = true },
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
         }
     }
 
