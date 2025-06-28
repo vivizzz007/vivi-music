@@ -71,13 +71,15 @@
             android:name=".NotificationActionReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="install_now" />
+                <action android:name="open_app" />
                 <action android:name="remind_later" />
+                <action android:name="check_updates" />
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
-                <action android:name="check_updates" />
             </intent-filter>
         </receiver>
+
+
 
         <receiver
             android:name=".Test"

@@ -4,7 +4,17 @@ import android.annotation.SuppressLint
 import android.text.format.Formatter
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.with
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
@@ -129,12 +139,18 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.material.Divider
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.sp
 
 
 @SuppressLint("AutoboxingStateCreation")
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class,
-    ExperimentalMaterialApi::class
+    ExperimentalMaterialApi::class, ExperimentalAnimationApi::class
 )
 @Composable
 fun Queue(
@@ -266,14 +282,37 @@ fun Queue(
 
                 Spacer(Modifier.height(16.dp))
 
-                Text(
-                    text = pluralStringResource(
-                        R.plurals.minute,
-                        sleepTimerValue.roundToInt(),
-                        sleepTimerValue.roundToInt()
-                    ),
-                    style = MaterialTheme.typography.bodyLarge
-                )
+                // Animated time display
+                AnimatedContent(
+                    targetState = sleepTimerValue.roundToInt(),
+                    transitionSpec = {
+                        if (targetState > initialState) {
+                            slideInVertically { height -> height } + fadeIn() with
+                                    slideOutVertically { height -> -height } + fadeOut()
+                        } else {
+                            slideInVertically { height -> -height } + fadeIn() with
+                                    slideOutVertically { height -> height } + fadeOut()
+                        }.using(SizeTransform(clip = false))
+                    }
+                ) { targetCount ->
+                    Text(
+                        text = buildAnnotatedString {
+                            withStyle(style = SpanStyle(fontSize = 32.sp, fontWeight = FontWeight.Bold)) {
+                                append(targetCount.toString())
+                            }
+                            append(" ")
+                            withStyle(style = SpanStyle(fontSize = 16.sp)) {
+                                append(pluralStringResource(
+                                    R.plurals.minute,
+                                    targetCount,
+                                    targetCount
+                                ).replace(targetCount.toString(), "").trim())
+                            }
+                        },
+                        style = MaterialTheme.typography.headlineMedium,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
 
                 Spacer(Modifier.height(16.dp))
 
@@ -287,14 +326,54 @@ fun Queue(
                         )
                     }
                     SliderStyle.COMPOSE -> {
+                        // Enhanced slider with animation
+                        var sliderPosition by remember { mutableFloatStateOf(sleepTimerValue) }
+                        val animatedSliderValue by animateFloatAsState(
+                            targetValue = sliderPosition,
+                            animationSpec = spring(
+                                dampingRatio = 0.5f,
+                                stiffness = 100f
+                            ),
+                            label = "sliderAnimation"
+                        )
+
+                        LaunchedEffect(sleepTimerValue) {
+                            sliderPosition = sleepTimerValue
+                        }
+
                         Slider(
-                            value = sleepTimerValue,
-                            onValueChange = { sleepTimerValue = it },
+                            value = animatedSliderValue,
+                            onValueChange = {
+                                sleepTimerValue = it
+                                sliderPosition = it
+                            },
                             valueRange = 5f..120f,
                             steps = (120 - 5) / 5 - 1,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            interactionSource = remember { MutableInteractionSource() }.also { interactionSource ->
+                                LaunchedEffect(interactionSource) {
+                                    interactionSource.interactions.collect {
+                                        if (it is PressInteraction.Release) {
+                                            // Snap to nearest 5-minute interval
+                                            sleepTimerValue = (sleepTimerValue.roundToInt() / 5 * 5).toFloat()
+                                        }
+                                    }
+                                }
+                            }
                         )
                     }
+                }
+
+                // Time markers under the slider
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("5m", style = MaterialTheme.typography.labelSmall)
+                    Text("30m", style = MaterialTheme.typography.labelSmall)
+                    Text("60m", style = MaterialTheme.typography.labelSmall)
+                    Text("90m", style = MaterialTheme.typography.labelSmall)
+                    Text("120m", style = MaterialTheme.typography.labelSmall)
                 }
 
                 Spacer(Modifier.height(24.dp))
@@ -308,9 +387,10 @@ fun Queue(
                             showSleepTimerDialog = false
                         }
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = sleepTimerValue.roundToInt() > 0
                 ) {
-                    Text(stringResource(R.string.sleep_timer))
+                    Text("Set timer for ${sleepTimerValue.roundToInt()} min")
                 }
 
                 Spacer(Modifier.height(8.dp))

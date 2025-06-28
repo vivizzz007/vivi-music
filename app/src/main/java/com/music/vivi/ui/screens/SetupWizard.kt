@@ -611,7 +611,7 @@ fun SetupWizard(
                                         .height(45.dp)
                                 ) {
                                     Text(
-                                        text = "Grant Notification",
+                                        text = "Allow", //notification
                                         style = MaterialTheme.typography.labelLarge,
                                         color = MaterialTheme.colorScheme.onPrimary
                                     )

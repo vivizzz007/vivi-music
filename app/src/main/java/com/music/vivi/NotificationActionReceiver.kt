@@ -211,7 +211,7 @@ class UpdateCheckWorker(context: Context, workerParams: WorkerParameters) : Coro
             .setContentIntent(createContentIntent(context))
             .addAction(
                 R.drawable.vivi, // Your custom icon
-                "Open App",
+                "Click here",
                 createActionIntent(context, ACTION_OPEN_APP, 0)
             )
             .addAction(

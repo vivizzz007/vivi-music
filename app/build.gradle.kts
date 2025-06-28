@@ -258,6 +258,8 @@ dependencies {
     implementation("com.google.accompanist:accompanist-flowlayout:0.30.1")
     // For Android Settings
     implementation (libs.core.ktx)// or lates
+    implementation ("androidx.compose.ui:ui:1.5.4")
+    implementation ("androidx.compose.ui:ui-unit:1.5.4")
 // Or the latest version compatible with your setup
 
 }

@@ -1,8 +1,11 @@
 package com.music.vivi.ui.menu
 
+import android.content.ContentValues
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.os.Environment
+import android.provider.MediaStore
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -29,6 +32,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -53,6 +57,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
@@ -100,6 +105,7 @@ import com.music.vivi.viewmodels.CachePlaylistViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.EnumMap
+import kotlinx.coroutines.delay
 
 
 
@@ -519,7 +525,12 @@ fun SongMenu(
     }
 
     // QR Code Bottom Sheet
+    // QR Code Bottom Sheet
+    // QR Code Bottom Sheet
     if (showQrCodeSheet) {
+        var showSaveSuccess by remember { mutableStateOf(false) }
+        var saveError by remember { mutableStateOf<String?>(null) }
+
         ModalBottomSheet(
             onDismissRequest = {
                 scope.launch {
@@ -569,18 +580,102 @@ fun SongMenu(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                Button(
-                    onClick = {
-                        scope.launch {
-                            showQrCodeSheet = false
-                            showShareOptionsSheet = true
-                        }
-                    },
+                // Button Row with Save on left and Cancel on right
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 32.dp)
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(text = stringResource(R.string.cancels))
+                    // Save QR Code Button (left side)
+                    Button(
+                        onClick = {
+                            if (qrCodeBitmap != null) {
+                                try {
+                                    val filename = "QR_${song.song.title.replace(" ", "_")}_${System.currentTimeMillis()}.png"
+                                    val contentValues = ContentValues().apply {
+                                        put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
+                                        put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
+                                        put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/YouTubeMusicQR")
+                                    }
+
+                                    val resolver = context.contentResolver
+                                    val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+
+                                    uri?.let {
+                                        resolver.openOutputStream(it)?.use { outputStream ->
+                                            qrCodeBitmap.asAndroidBitmap().compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+                                            showSaveSuccess = true
+                                            // Auto-close after 1 second if successful
+                                            scope.launch {
+                                                delay(1000)
+                                                showQrCodeSheet = false
+                                                showShareOptionsSheet = false
+                                                onDismiss()
+                                            }
+                                        }
+                                    } ?: run {
+                                        saveError = context.getString(R.string.failed_to_create_file)
+                                    }
+                                } catch (e: Exception) {
+                                    saveError = e.localizedMessage ?: context.getString(R.string.failed_to_save_qr)
+                                }
+                            } else {
+                                saveError = context.getString(R.string.qr_code_not_generated)
+                            }
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.download),
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = stringResource(R.string.save_qr_code))
+                    }
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    // Cancel Button (right side)
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                showQrCodeSheet = false
+                                showShareOptionsSheet = true
+                            }
+                        },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.close),
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = stringResource(R.string.cancel))
+                    }
+                }
+
+                // Show success/error messages
+                if (showSaveSuccess) {
+                    Text(
+                        text = stringResource(R.string.qr_saved_successfully),
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+
+                saveError?.let { error ->
+                    Text(
+                        text = error,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
                 }
             }
         }

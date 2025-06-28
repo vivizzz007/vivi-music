@@ -37,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -83,6 +84,47 @@ import com.music.vivi.constants.fullScreenLyricsKey
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlin.time.Duration.Companion.seconds
+
+
+
+import android.graphics.BlurMaskFilter
+import androidx.compose.animation.core.EaseInOutCubic
+import androidx.compose.animation.core.EaseInOutSine
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.text.drawText
+
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.unit.TextUnit
+
+
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.offset
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.ui.draw.blur
+
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.graphicsLayer
+
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.TextStyle
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+
+
+import androidx.compose.animation.core.*
+
+
 
 @Composable
 fun Lyrics(
@@ -143,6 +185,9 @@ fun Lyrics(
                     MaterialTheme.colorScheme.onPrimary
     }
 
+    // High intensity white glow color
+    val glowColor = Color(0xFFFFFFFF) // Pure bright white
+
     var currentLineIndex by remember {
         mutableIntStateOf(-1)
     }
@@ -157,6 +202,18 @@ fun Lyrics(
     var isSeeking by remember {
         mutableStateOf(false)
     }
+
+    // Simple glow animation for active line only
+    val infiniteTransition = rememberInfiniteTransition(label = "textGlow")
+    val glowAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.95f,
+        targetValue = 1.0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(600, easing = EaseInOutSine),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "glowAlpha"
+    )
 
     LaunchedEffect(lyrics) {
         if (lyrics.isNullOrEmpty() || !lyrics.startsWith("[")) {
@@ -227,7 +284,7 @@ fun Lyrics(
                 .add(WindowInsets(top = maxHeight / 2, bottom = maxHeight / 2))
                 .asPaddingValues(),
             modifier = Modifier
-                .fadingEdge(vertical = 64.dp)
+                .fillMaxSize()
                 .nestedScroll(remember {
                     object : NestedScrollConnection {
                         override fun onPostScroll(
@@ -253,37 +310,40 @@ fun Lyrics(
 
             if (lyrics == null) {
                 item {
-                    ShimmerHost {
-                        repeat(10) {
-                            Box(
-                                contentAlignment = when (lyricsTextPosition) {
-                                    LyricsPosition.LEFT -> Alignment.CenterStart
-                                    LyricsPosition.CENTER -> Alignment.Center
-                                    LyricsPosition.RIGHT -> Alignment.CenterEnd
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 24.dp, vertical = 4.dp)
-                            ) {
-                                TextPlaceholder()
-                            }
-                        }
+                    repeat(10) {
+                        Text(
+                            text = "Loading lyrics...",
+                            fontSize = lyricsFontSize.sp,
+                            color = textColor.copy(alpha = 0.3f),
+                            textAlign = when (lyricsTextPosition) {
+                                LyricsPosition.LEFT -> TextAlign.Left
+                                LyricsPosition.CENTER -> TextAlign.Center
+                                LyricsPosition.RIGHT -> TextAlign.Right
+                            },
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 24.dp, vertical = 8.dp)
+                        )
                     }
                 }
             } else {
                 itemsIndexed(
                     items = lines
                 ) { index, item ->
+                    val isCurrentLine = isSynced && index == displayedCurrentLineIndex
+
                     Text(
                         text = item.text,
                         fontSize = lyricsFontSize.sp,
-                        color = textColor,
+                        color = if (isCurrentLine)
+                            glowColor.copy(alpha = glowAlpha) else textColor,
                         textAlign = when (lyricsTextPosition) {
                             LyricsPosition.LEFT -> TextAlign.Left
                             LyricsPosition.CENTER -> TextAlign.Center
                             LyricsPosition.RIGHT -> TextAlign.Right
                         },
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = if (isCurrentLine) FontWeight.ExtraBold else FontWeight.Bold,
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable(enabled = isSynced) {
@@ -388,6 +448,8 @@ fun Lyrics(
         }
     }
 }
+
+
 
 const val animateScrollDuration = 300L
 val LyricsPreviewTime = 4.seconds

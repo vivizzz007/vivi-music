@@ -698,4 +698,31 @@
 
     <string name="speak_now">Speak now...</string>
     <string name="voice_search_not_supported">Voice search not supported on this device</string>
+
+//update
+    <string name="check_for_updates">Check for updates</string>
+    <string name="check_for_updates_description">Notify when new versions are available</string>
+
+    <string name="update_notification_message">Version %1$s is available!</string>
+    <string name="open_app">Open App</string>
+    <string name="remind_later">Remind Later</string>
+    <string name="update_channel_name">Vivi Music Updates</string>
+    <string name="update_channel_description">Notifications about new Vivi Music versions</string>
+
+
+    //qr code save
+    <string name="save_qr_code">Save QR</string>
+    <string name="qr_saved_successfully">QR code saved to Pictures/YouTubeMusicQR</string>
+
+    <string name="failed_to_create_file">Failed to create file</string>
+    <string name="qr_code_not_generated">QR code not generated</string>
+
+    <string name="failed_to_save_qr_code">Failed to save QR code: %1$s</string>
+    <string name="failed_to_share_qr_code">Failed to share QR code: %1$s</string>
+    <string name="qr_code_saved_successfully">QR code saved to gallery</string>
+    <string name="share_via_text">Share via Text</string>
+    <string name="failed_to_generate_qr">Failed to generate QR code</string>
+
+    //new player
+    <string name="newplayer">Rain effect</string>
 </resources>

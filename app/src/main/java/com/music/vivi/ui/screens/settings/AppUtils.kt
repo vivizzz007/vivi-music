@@ -73,6 +73,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.foundation.text.ClickableText
 
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UpdateScreen(navController: NavHostController) {
@@ -352,252 +353,243 @@ fun UpdateScreen(navController: NavHostController) {
                 ) {
                     Spacer(modifier = Modifier.height(32.dp))
 
+                    // Main version display
+                    Text(
+                        text = "VIVI MUSIC ${if (updateAvailable) updateMessageVersion else currentVersion}",
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 0.sp
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    // Status information
                     if (updateAvailable) {
                         Text(
-                            text = "VIVI MUSIC UPDATE",
-                            color = MaterialTheme.colorScheme.onBackground,
-                            fontSize = 28.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            letterSpacing = 0.sp
-                        )
-                        Spacer(modifier = Modifier.height(20.dp))
-                        Text(
-                            text = "Version $updateMessageVersion",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 16.sp
+                            text = "New Update Available!",
+                            color = MaterialTheme.colorScheme.primary,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium
                         )
                         if (releaseDate.isNotEmpty()) {
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = "Released: $releaseDate",
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontSize = 14.sp,
-                                textAlign = TextAlign.Center
+                                fontSize = 14.sp
                             )
                         }
-
-                        AnimatedVisibility(visible = updateAvailable && isDownloading && !isDownloadComplete) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 8.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    val animatedProgress = animateFloatAsState(
-                                        targetValue = downloadProgress,
-                                        animationSpec = tween(durationMillis = 300, easing = LinearEasing)
-                                    ).value
-                                    for (i in 0 until 20) {
-                                        val segmentProgress = (i + 1) / 20f
-                                        val isActive = animatedProgress >= segmentProgress
-                                        Box(
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .height(8.dp)
-                                                .clip(RoundedCornerShape(4.dp))
-                                                .background(if (isActive) pixelBlue else progressBarBackground)
-                                        )
-                                    }
-                                }
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "${(downloadProgress * 100).toInt()}%",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontSize = 14.sp
-                                )
-                                Spacer(modifier = Modifier.height(16.dp))
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(35.dp))
-                        if (!showUpdateDetails) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { showUpdateDetails = true }
-                            )
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "What's new",
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    fontSize = 16.sp,
-                                )
-                                Icon(
-                                    imageVector = Icons.Default.ArrowBack,
-                                    contentDescription = "What's new",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier
-                                        .size(20.dp)
-                                        .rotate(180f)
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(35.dp))
-
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(bottom = 16.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                                    contentColor = MaterialTheme.colorScheme.onErrorContainer
-                                ),
-                                shape = RoundedCornerShape(8.dp)
-                            ) {
-                                Column(modifier = Modifier.padding(16.dp)) {
-                                    Text(
-                                        text = "Important! ⚠",
-                                        style = MaterialTheme.typography.titleSmall,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Text(
-                                        text = "Please do not press the back button during the download or installation process. Doing so may interrupt the update and could lead to unexpected issues.",
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(24.dp))
-                        }
-                        AnimatedVisibility(
-                            visibleState = changelogVisibility,
-                            enter = slideInVertically(
-                                animationSpec = tween(durationMillis = 400, easing = EaseOut),
-                                initialOffsetY = { it }
-                            ) + fadeIn(animationSpec = tween(durationMillis = 300)),
-                            exit = slideOutVertically(
-                                animationSpec = tween(durationMillis = 300, easing = EaseIn),
-                                targetOffsetY = { it }
-                            ) + fadeOut(animationSpec = tween(durationMillis = 200))
-                        ) {
-                            Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
-                                Text(
-                                    text = "Vivi Music $updateMessageVersion",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    textAlign = TextAlign.Start
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = "Size: $appSize MB",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    textAlign = TextAlign.Start,
-                                    modifier = Modifier.padding(bottom = 16.dp)
-                                )
-
-                                Text(
-                                    text = "What's New",
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    textAlign = TextAlign.Start,
-                                    modifier = Modifier.padding(bottom = 8.dp)
-                                )
-
-                                val linkColor = MaterialTheme.colorScheme.primary
-                                val linkStyle = SpanStyle(
-                                    color = linkColor,
-                                    textDecoration = TextDecoration.Underline
-                                )
-
-                                val annotatedText = buildAnnotatedString {
-                                    val lines = changelog.split("\n")
-                                    lines.forEach { line ->
-                                        if (line.isNotBlank()) {
-                                            // Add bullet point
-                                            append("• ")
-
-                                            // Check for URLs in the line
-                                            val urlRegex = Regex("""https?://[^\s]+""")
-                                            val matchResults = urlRegex.findAll(line)
-                                            var lastIndex = 0
-
-                                            if (matchResults.none()) {
-                                                // No URLs in this line, just add the text
-                                                append(line.trim())
-                                            } else {
-                                                // Process URLs in the line
-                                                matchResults.forEach { match ->
-                                                    // Add text before the URL
-                                                    if (match.range.first > lastIndex) {
-                                                        append(line.substring(lastIndex, match.range.first))
-                                                    }
-
-                                                    // Add the URL with clickable annotation
-                                                    val url = match.value
-                                                    pushStringAnnotation(
-                                                        tag = "URL",
-                                                        annotation = url
-                                                    )
-                                                    withStyle(style = linkStyle) {
-                                                        append(url)
-                                                    }
-                                                    pop()
-
-                                                    lastIndex = match.range.last + 1
-                                                }
-
-                                                // Add remaining text after last URL
-                                                if (lastIndex < line.length) {
-                                                    append(line.substring(lastIndex))
-                                                }
-                                            }
-
-                                            append("\n\n")
-                                        }
-                                    }
-                                }
-
-                                ClickableText(
-                                    text = annotatedText,
-                                    onClick = { offset ->
-                                        annotatedText.getStringAnnotations(
-                                            tag = "URL",
-                                            start = offset,
-                                            end = offset
-                                        ).firstOrNull()?.let { annotation ->
-                                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(annotation.item))
-                                            ContextCompat.startActivity(context, intent, null)
-                                        }
-                                    },
-                                    style = MaterialTheme.typography.bodyMedium.copy(
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        lineHeight = 20.sp
-                                    ),
-                                    modifier = Modifier.padding(bottom = 16.dp)
-                                )
-
-                                Spacer(modifier = Modifier.height(24.dp))
-                            }
-                        }
-                    }
-                    else {
-                        Text(
-                            text = "VIVI MUSIC",
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = 28.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            letterSpacing = 0.sp
-                        )
-                        Spacer(modifier = Modifier.height(20.dp))
-                        Text(
-                            text = "Version $currentVersion",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 16.sp
-                        )
+                    } else {
                         if (lastCheckedTime.isNotEmpty()) {
-                            Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = "Last checked: $lastCheckedTime",
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontSize = 14.sp,
-                                textAlign = TextAlign.Center
+                                fontSize = 14.sp
                             )
                         }
-                        Spacer(modifier = Modifier.height(24.dp))
+                        if (!isChecking && !fetchError) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "You're up to date",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
 
+                    AnimatedVisibility(visible = updateAvailable && isDownloading && !isDownloadComplete) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                val animatedProgress = animateFloatAsState(
+                                    targetValue = downloadProgress,
+                                    animationSpec = tween(durationMillis = 300, easing = LinearEasing)
+                                ).value
+                                for (i in 0 until 20) {
+                                    val segmentProgress = (i + 1) / 20f
+                                    val isActive = animatedProgress >= segmentProgress
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .height(8.dp)
+                                            .clip(RoundedCornerShape(4.dp))
+                                            .background(if (isActive) pixelBlue else progressBarBackground)
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "${(downloadProgress * 100).toInt()}%",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 14.sp
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(35.dp))
+
+                    if (!showUpdateDetails && updateAvailable) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { showUpdateDetails = true }
+                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "What's new",
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontSize = 16.sp,
+                            )
+                            Icon(
+                                imageVector = Icons.Default.ArrowBack,
+                                contentDescription = "What's new",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .rotate(180f)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(35.dp))
+
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 16.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer,
+                                contentColor = MaterialTheme.colorScheme.onErrorContainer
+                            ),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(
+                                    text = "Important! ⚠",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "Please do not press the back button during the download or installation process. Doing so may interrupt the update and could lead to unexpected issues.",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
+
+                    AnimatedVisibility(
+                        visibleState = changelogVisibility,
+                        enter = slideInVertically(
+                            animationSpec = tween(durationMillis = 400, easing = EaseOut),
+                            initialOffsetY = { it }
+                        ) + fadeIn(animationSpec = tween(durationMillis = 300)),
+                        exit = slideOutVertically(
+                            animationSpec = tween(durationMillis = 300, easing = EaseIn),
+                            targetOffsetY = { it }
+                        ) + fadeOut(animationSpec = tween(durationMillis = 200))
+                    ) {
+                        Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
+                            Text(
+                                text = "Vivi Music $updateMessageVersion",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                textAlign = TextAlign.Start
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Size: $appSize MB",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Start,
+                                modifier = Modifier.padding(bottom = 16.dp)
+                            )
+
+                            Text(
+                                text = "What's New",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                textAlign = TextAlign.Start,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+
+                            val linkColor = MaterialTheme.colorScheme.primary
+                            val linkStyle = SpanStyle(
+                                color = linkColor,
+                                textDecoration = TextDecoration.Underline
+                            )
+
+                            val annotatedText = buildAnnotatedString {
+                                val lines = changelog.split("\n")
+                                lines.forEach { line ->
+                                    if (line.isNotBlank()) {
+                                        append("• ")
+
+                                        val urlRegex = Regex("""https?://[^\s]+""")
+                                        val matchResults = urlRegex.findAll(line)
+                                        var lastIndex = 0
+
+                                        if (matchResults.none()) {
+                                            append(line.trim())
+                                        } else {
+                                            matchResults.forEach { match ->
+                                                if (match.range.first > lastIndex) {
+                                                    append(line.substring(lastIndex, match.range.first))
+                                                }
+
+                                                val url = match.value
+                                                pushStringAnnotation(
+                                                    tag = "URL",
+                                                    annotation = url
+                                                )
+                                                withStyle(style = linkStyle) {
+                                                    append(url)
+                                                }
+                                                pop()
+
+                                                lastIndex = match.range.last + 1
+                                            }
+
+                                            if (lastIndex < line.length) {
+                                                append(line.substring(lastIndex))
+                                            }
+                                        }
+
+                                        append("\n\n")
+                                    }
+                                }
+                            }
+
+                            ClickableText(
+                                text = annotatedText,
+                                onClick = { offset ->
+                                    annotatedText.getStringAnnotations(
+                                        tag = "URL",
+                                        start = offset,
+                                        end = offset
+                                    ).firstOrNull()?.let { annotation ->
+                                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(annotation.item))
+                                        ContextCompat.startActivity(context, intent, null)
+                                    }
+                                },
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    lineHeight = 20.sp
+                                ),
+                                modifier = Modifier.padding(bottom = 16.dp)
+                            )
+
+                            Spacer(modifier = Modifier.height(24.dp))
+                        }
+                    }
+
+                    if (!updateAvailable) {
                         val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.updateon))
                         val progress by animateLottieCompositionAsState(
                             composition,
@@ -613,15 +605,6 @@ fun UpdateScreen(navController: NavHostController) {
                         )
 
                         Spacer(modifier = Modifier.height(15.dp))
-
-                        if (!isChecking && !isDownloading) {
-                            Text(
-                                text = updateMessage,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(16.dp),
-                                textAlign = TextAlign.Center
-                            )
-                        }
                     }
 
                     if (isChecking && !isDownloading && !fetchError) {
@@ -781,7 +764,6 @@ private suspend fun checkForUpdate(
             for (i in 0 until releases.length()) {
                 val release = releases.getJSONObject(i)
                 val tag = release.getString("tag_name").removePrefix("v")
-                // Only consider tags that look like a semantic version
                 if (!tag.matches(Regex("""\d+(\.\d+){1,2}"""))) continue
                 if (isNewerVersion(tag, currentVersion)) {
                     if (foundRelease == null || isNewerVersion(tag, foundRelease.getString("tag_name").removePrefix("v"))) {

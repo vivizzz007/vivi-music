@@ -132,7 +132,9 @@ import me.saket.squiggles.SquigglySlider
 
 
 import android.graphics.Bitmap
+import android.graphics.Matrix
 import android.media.audiofx.AudioEffect
+import androidx.compose.animation.core.Animatable
 //import android.graphics.Color
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
@@ -160,7 +162,28 @@ import com.music.vivi.playback.ExoDownloadService
 import kotlinx.coroutines.launch
 
 
+import androidx.compose.foundation.Canvas
 
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.withFrameNanos
+
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
+
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import kotlin.random.Random
+import kotlinx.coroutines.delay
+
+
+
+import androidx.compose.ui.graphics.Path
+
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.asAndroidPath
+import androidx.compose.ui.graphics.drawscope.Stroke
+import kotlin.math.sin
 
 
 @RequiresApi(Build.VERSION_CODES.S)
@@ -751,12 +774,22 @@ fun BottomSheetPlayer(
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.3f))
             )
-        } else if (playerBackground == PlayerBackgroundStyle.GRADIENT && gradientColors.size >= 2) {
+        }
+        else if (playerBackground == PlayerBackgroundStyle.GRADIENT && gradientColors.size >= 2) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Brush.verticalGradient(gradientColors))
             )
+        }
+
+        else if (playerBackground == PlayerBackgroundStyle.RAINEFFECT ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                RainEffect(Modifier.fillMaxSize())
+            }
         }
         if (playerBackground == PlayerBackgroundStyle.BLURMOV) {
             val infiniteTransition = rememberInfiniteTransition(label = "")
@@ -1265,3 +1298,403 @@ private fun MoreOptionItem(
         )
     }
 }
+
+
+
+
+
+@Composable
+//new code for rain
+fun RainEffect(modifier: Modifier = Modifier) {
+    val rainDrops = remember { mutableStateListOf<RainDrop>() }
+    val clouds = remember { mutableStateListOf<Cloud>() }
+    val random = remember { Random(System.currentTimeMillis()) }
+    val glowPhase = remember { Animatable(0f) }
+    val lightningFlash = remember { mutableStateOf(false) }
+    val lightningAlpha = remember { Animatable(0f) }
+
+    // Glow animation for the whole scene
+    LaunchedEffect(Unit) {
+        glowPhase.animateTo(
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(3000, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse
+            )
+        )
+    }
+
+    // Lightning flash animation
+    LaunchedEffect(lightningFlash.value) {
+        if (lightningFlash.value) {
+            lightningAlpha.snapTo(0.8f)
+            lightningAlpha.animateTo(
+                targetValue = 0f,
+                animationSpec = tween(500)
+            )
+            lightningFlash.value = false
+        }
+    }
+
+    // Initialize clouds - multiple layers for storm effect
+    LaunchedEffect(Unit) {
+        // Background layer clouds (largest, darkest)
+        repeat(4) { index ->
+            clouds.add(
+                Cloud(
+                    x = random.nextFloat() * 1.5f - 0.3f,
+                    y = 0.02f + random.nextFloat() * 0.12f,
+                    speed = 0.0002f + random.nextFloat() * 0.0004f,
+                    size = 0.35f + random.nextFloat() * 0.25f,
+                    colorPhase = random.nextFloat() * 6.28f,
+                    opacity = 0.9f + random.nextFloat() * 0.1f,
+                    layer = 0
+                )
+            )
+        }
+
+        // Middle layer clouds
+        repeat(3) { index ->
+            clouds.add(
+                Cloud(
+                    x = random.nextFloat() * 1.3f - 0.2f,
+                    y = 0.05f + random.nextFloat() * 0.15f,
+                    speed = 0.0004f + random.nextFloat() * 0.0006f,
+                    size = 0.25f + random.nextFloat() * 0.2f,
+                    colorPhase = random.nextFloat() * 6.28f,
+                    opacity = 0.8f + random.nextFloat() * 0.15f,
+                    layer = 1
+                )
+            )
+        }
+
+        // Foreground layer clouds (smaller, still dark)
+        repeat(3) { index ->
+            clouds.add(
+                Cloud(
+                    x = random.nextFloat() * 1.2f - 0.1f,
+                    y = 0.08f + random.nextFloat() * 0.18f,
+                    speed = 0.0006f + random.nextFloat() * 0.0008f,
+                    size = 0.18f + random.nextFloat() * 0.15f,
+                    colorPhase = random.nextFloat() * 6.28f,
+                    opacity = 0.7f + random.nextFloat() * 0.2f,
+                    layer = 2
+                )
+            )
+        }
+    }
+
+    // Initialize rain drops
+    LaunchedEffect(Unit) {
+        while (true) {
+            if (rainDrops.size < 200) { // Increased number for more intense rain
+                rainDrops.add(
+                    RainDrop(
+                        x = random.nextFloat(),
+                        y = -0.1f,
+                        speed = 0.005f + random.nextFloat() * 0.02f,
+                        length = 0.02f + random.nextFloat() * 0.05f,
+                        width = 1.dp + (random.nextInt(3)).dp,
+                        glow = random.nextFloat() * 0.5f + 0.5f // Random glow intensity
+                    )
+                )
+            }
+            delay(10) // Faster rain generation
+        }
+    }
+
+    // Animate clouds
+    LaunchedEffect(Unit) {
+        while (true) {
+            withFrameNanos { frameTime ->
+                val deltaTime = frameTime / 1_000_000_000f
+
+                clouds.forEachIndexed { index, cloud ->
+                    val newX = cloud.x + cloud.speed
+                    val newColorPhase = cloud.colorPhase + deltaTime * 0.5f
+
+                    clouds[index] = cloud.copy(
+                        x = newX,
+                        colorPhase = newColorPhase
+                    )
+                }
+
+                // Remove clouds that moved off screen and add new ones by layer
+                clouds.removeAll { it.x > 1.6f }
+
+                val backgroundCount = clouds.count { it.layer == 0 }
+                val middleCount = clouds.count { it.layer == 1 }
+                val foregroundCount = clouds.count { it.layer == 2 }
+
+                if (backgroundCount < 4 && random.nextFloat() < 0.008f) {
+                    clouds.add(
+                        Cloud(
+                            x = -0.4f,
+                            y = 0.02f + random.nextFloat() * 0.12f,
+                            speed = 0.0002f + random.nextFloat() * 0.0004f,
+                            size = 0.35f + random.nextFloat() * 0.25f,
+                            colorPhase = random.nextFloat() * 6.28f,
+                            opacity = 0.9f + random.nextFloat() * 0.1f,
+                            layer = 0
+                        )
+                    )
+                }
+
+                if (middleCount < 3 && random.nextFloat() < 0.01f) {
+                    clouds.add(
+                        Cloud(
+                            x = -0.3f,
+                            y = 0.05f + random.nextFloat() * 0.15f,
+                            speed = 0.0004f + random.nextFloat() * 0.0006f,
+                            size = 0.25f + random.nextFloat() * 0.2f,
+                            colorPhase = random.nextFloat() * 6.28f,
+                            opacity = 0.8f + random.nextFloat() * 0.15f,
+                            layer = 1
+                        )
+                    )
+                }
+
+                if (foregroundCount < 3 && random.nextFloat() < 0.012f) {
+                    clouds.add(
+                        Cloud(
+                            x = -0.2f,
+                            y = 0.08f + random.nextFloat() * 0.18f,
+                            speed = 0.0006f + random.nextFloat() * 0.0008f,
+                            size = 0.18f + random.nextFloat() * 0.15f,
+                            colorPhase = random.nextFloat() * 6.28f,
+                            opacity = 0.7f + random.nextFloat() * 0.2f,
+                            layer = 2
+                        )
+                    )
+                }
+
+                // Random lightning flashes
+                if (random.nextFloat() < 0.002f) {
+                    lightningFlash.value = true
+                }
+            }
+        }
+    }
+
+    // Animate rain drops
+    LaunchedEffect(Unit) {
+        while (true) {
+            withFrameNanos {
+                rainDrops.forEachIndexed { index, drop ->
+                    rainDrops[index] = drop.copy(y = drop.y + drop.speed)
+                }
+                rainDrops.removeAll { it.y > 1.2f }
+            }
+        }
+    }
+
+    Box(modifier = modifier.fillMaxSize()) {
+        // Background layer with blur for bloom effect
+        Canvas(modifier = Modifier.fillMaxSize().blur(radius = 8.dp)) {
+            val canvasWidth = size.width
+            val canvasHeight = size.height
+
+            // Draw stormy background with subtle color variation
+            drawRect(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0.1f, 0.1f, 0.15f).copy(alpha = 0.9f),
+                        Color(0.05f, 0.05f, 0.1f).copy(alpha = 0.9f),
+                        Color(0f, 0f, 0.05f).copy(alpha = 0.9f)
+                    ),
+                    startY = 0f,
+                    endY = canvasHeight
+                ),
+                size = size
+            )
+
+            // Draw clouds in layers (back to front)
+            val sortedClouds = clouds.sortedBy { it.layer }
+
+            sortedClouds.forEach { cloud ->
+                val centerX = cloud.x * canvasWidth
+                val centerY = cloud.y * canvasHeight
+                val cloudSize = cloud.size * canvasWidth
+
+                // Cloud color with subtle pulsing effect
+                val cloudColor = when (cloud.layer) {
+                    0 -> Color(0.08f, 0.08f, 0.12f, cloud.opacity * 0.8f)
+                    1 -> Color(0.15f, 0.15f, 0.2f, cloud.opacity * 0.8f)
+                    else -> Color(0.2f, 0.2f, 0.25f, cloud.opacity * 0.8f)
+                }
+
+                // Draw cloud shapes with glow
+                val cloudCircles = when (cloud.layer) {
+                    0 -> listOf(
+                        Pair(0f, 0f) to 1.2f,
+                        Pair(-0.8f, -0.1f) to 1.0f,
+                        Pair(0.8f, 0.1f) to 1.1f,
+                        Pair(-0.4f, -0.6f) to 0.9f,
+                        Pair(0.5f, -0.5f) to 0.95f,
+                        Pair(-1.2f, 0.3f) to 0.8f,
+                        Pair(1.1f, 0.4f) to 0.85f,
+                        Pair(0.1f, 0.6f) to 0.7f,
+                        Pair(-0.6f, 0.5f) to 0.6f,
+                        Pair(0.7f, 0.6f) to 0.65f
+                    )
+                    1 -> listOf(
+                        Pair(0f, 0f) to 1.0f,
+                        Pair(-0.7f, -0.2f) to 0.9f,
+                        Pair(0.7f, -0.1f) to 0.95f,
+                        Pair(-0.3f, -0.5f) to 0.8f,
+                        Pair(0.4f, -0.4f) to 0.85f,
+                        Pair(-1.0f, 0.2f) to 0.7f,
+                        Pair(0.9f, 0.3f) to 0.75f,
+                        Pair(0f, 0.5f) to 0.6f
+                    )
+                    else -> listOf(
+                        Pair(0f, 0f) to 1.0f,
+                        Pair(-0.6f, -0.2f) to 0.8f,
+                        Pair(0.6f, -0.1f) to 0.85f,
+                        Pair(-0.3f, -0.4f) to 0.7f,
+                        Pair(0.3f, -0.3f) to 0.75f,
+                        Pair(0f, 0.4f) to 0.55f
+                    )
+                }
+
+                cloudCircles.forEach { (offset, scale) ->
+                    // Cloud glow effect
+                    drawCircle(
+                        brush = Brush.radialGradient(
+                            colors = listOf(
+                                cloudColor.copy(alpha = cloudColor.alpha * 0.5f),
+                                cloudColor.copy(alpha = 0f)
+                            ),
+                            center = Offset(
+                                centerX + offset.first * cloudSize * 0.6f,
+                                centerY + offset.second * cloudSize * 0.6f
+                            ),
+                            radius = cloudSize * scale * 0.8f
+                        ),
+                        radius = cloudSize * scale * 0.8f,
+                        center = Offset(
+                            centerX + offset.first * cloudSize * 0.6f,
+                            centerY + offset.second * cloudSize * 0.6f
+                        )
+                    )
+
+                    // Main cloud shape
+                    drawCircle(
+                        color = cloudColor,
+                        radius = cloudSize * scale * 0.6f,
+                        center = Offset(
+                            centerX + offset.first * cloudSize * 0.6f,
+                            centerY + offset.second * cloudSize * 0.6f
+                        )
+                    )
+                }
+            }
+
+            // Draw rain drops with glow
+            rainDrops.forEach { drop ->
+                val baseRainColor = if (random.nextFloat() < 0.2f) {
+                    Color(0.7f, 0.8f, 1f, 0.8f) // Light blue
+                } else {
+                    Color(0.9f, 0.95f, 1f, 0.7f) // White
+                }
+
+                val rainColor = baseRainColor.copy(alpha = baseRainColor.alpha * drop.glow)
+
+                // Rain drop glow
+                drawLine(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            rainColor.copy(alpha = rainColor.alpha * 0.7f),
+                            Color.Transparent
+                        )
+                    ),
+                    start = Offset(drop.x * canvasWidth, drop.y * canvasHeight),
+                    end = Offset(drop.x * canvasWidth, (drop.y + drop.length) * canvasHeight),
+                    strokeWidth = drop.width.toPx() * 3f, // Wider glow
+                    cap = StrokeCap.Round,
+                    blendMode = BlendMode.Screen
+                )
+
+                // Main rain drop
+                drawLine(
+                    color = rainColor,
+                    start = Offset(drop.x * canvasWidth, drop.y * canvasHeight),
+                    end = Offset(drop.x * canvasWidth, (drop.y + drop.length) * canvasHeight),
+                    strokeWidth = drop.width.toPx(),
+                    cap = StrokeCap.Round
+                )
+            }
+        }
+
+        // Foreground layer with sharper details
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val canvasWidth = size.width
+            val canvasHeight = size.height
+
+            // Lightning flash effect
+            if (lightningAlpha.value > 0f) {
+                drawRect(
+                    color = Color(0.9f, 0.9f, 1f, lightningAlpha.value * 0.7f),
+                    size = size,
+                    blendMode = BlendMode.Plus
+                )
+            }
+
+            // Add fog/mist effect at the bottom with glow
+            drawRect(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color.Transparent,
+                        Color(0.1f, 0.1f, 0.15f, 0.3f * glowPhase.value),
+                        Color(0.1f, 0.1f, 0.2f, 0.5f * glowPhase.value)
+                    ),
+                    startY = canvasHeight * 0.6f,
+                    endY = canvasHeight
+                ),
+                size = size,
+                blendMode = BlendMode.Screen
+            )
+
+            // Draw some highlighted rain drops in foreground
+            rainDrops.filter { random.nextFloat() < 0.1f }.forEach { drop ->
+                val highlightColor = Color(1f, 1f, 1f, 0.9f * drop.glow)
+
+                // Highlight glow
+                drawLine(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            highlightColor.copy(alpha = highlightColor.alpha * 0.8f),
+                            Color.Transparent
+                        )
+                    ),
+                    start = Offset(drop.x * canvasWidth, drop.y * canvasHeight),
+                    end = Offset(drop.x * canvasWidth, (drop.y + drop.length) * canvasHeight),
+                    strokeWidth = drop.width.toPx() * 2f,
+                    cap = StrokeCap.Round,
+                    blendMode = BlendMode.Plus
+                )
+            }
+        }
+    }
+}
+
+private data class RainDrop(
+    val x: Float, // 0-1 percentage of screen width
+    val y: Float, // 0-1 percentage of screen height
+    val speed: Float,
+    val length: Float,
+    val width: Dp,
+    val glow: Float = 1f // Glow intensity (0-1)
+)
+
+private data class Cloud(
+    val x: Float, // 0-1 percentage of screen width
+    val y: Float, // 0-1 percentage of screen height
+    val speed: Float, // Movement speed
+    val size: Float, // Cloud size multiplier
+    val colorPhase: Float, // For color animation
+    val opacity: Float, // Cloud opacity
+    val layer: Int // 0 = background (darkest), 1 = middle, 2 = foreground
+)
+
+

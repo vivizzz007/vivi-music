@@ -257,7 +257,8 @@ enum class PlayerBackgroundStyle {
     DEFAULT,
     GRADIENT,
     BLUR,
-    BLURMOV
+    BLURMOV,
+    RAINEFFECT
 }
 
 val PlayerBackgroundStyleKey = stringPreferencesKey("playerBackgroundStyle")
