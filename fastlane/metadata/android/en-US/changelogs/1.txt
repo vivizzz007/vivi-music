@@ -1,0 +1,15 @@
+Vivi Music Initial Release
+
+     Play music/videos from YouTube & YouTube Music (ad-free)
+
+     Download & cache for offline playback
+
+     Lyrics sync, silence skip, audio normalization
+
+     Smart suggestions (Quick Picks, Forgotten Favorites)
+
+     Material 3 design, dynamic themes
+
+     Android Auto & multilingual support
+
+ GitHub Repository
