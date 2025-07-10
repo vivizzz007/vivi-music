@@ -12,6 +12,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.music.vivi.changelog.ChangelogScreen
 import com.music.vivi.ui.screens.artist.ArtistAlbumsScreen
 import com.music.vivi.ui.screens.artist.ArtistItemsScreen
 import com.music.vivi.ui.screens.artist.ArtistScreen
@@ -285,6 +286,10 @@ fun NavGraphBuilder.navigationBuilder(
     composable("settings/experimental") {
         // This route should lead to your ExperimentScreen, not ImportFromSpotifyScreen
         ExperimentalSettingsScreen(navController = navController)
+    }
+
+    composable("settings/changelog") {
+        ChangelogScreen(navController = navController, scrollBehavior = scrollBehavior)
     }
 
 }
