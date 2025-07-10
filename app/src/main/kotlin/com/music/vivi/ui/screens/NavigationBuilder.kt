@@ -35,6 +35,7 @@ import com.music.vivi.ui.screens.settings.PrivacySettings
 import com.music.vivi.ui.screens.settings.SettingsScreen
 import com.music.vivi.ui.screens.settings.StorageSettings
 import com.music.vivi.ui.screens.settings.ExperimentalSettingsScreen
+import com.music.vivi.update.betaupdate.ViviDpiSettings
 
 @OptIn(ExperimentalMaterial3Api::class)
 fun NavGraphBuilder.navigationBuilder(
@@ -291,5 +292,7 @@ fun NavGraphBuilder.navigationBuilder(
     composable("settings/changelog") {
         ChangelogScreen(navController = navController, scrollBehavior = scrollBehavior)
     }
-
+    composable("settings/dpi") {
+        ViviDpiSettings(navController, scrollBehavior)
+    }
 }
