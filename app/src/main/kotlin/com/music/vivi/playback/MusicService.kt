@@ -235,12 +235,12 @@ class MusicService :
                 .setHandleAudioBecomingNoisy(true)
                 .setWakeMode(C.WAKE_MODE_NETWORK)
                 .setAudioAttributes(
-                    AudioAttributes
+                    androidx.media3.common.AudioAttributes  // ← Media3 version for ExoPlayer
                         .Builder()
                         .setUsage(C.USAGE_MEDIA)
                         .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
                         .build(),
-                    false,
+                    true,  // Enable automatic audio focus handling
                 ).setSeekBackIncrementMs(5000)
                 .setSeekForwardIncrementMs(5000)
                 .build()
@@ -995,13 +995,13 @@ class MusicService :
     }
 
     private fun requestAudioFocus(): Boolean {
-        val legacyAttributes = LegacyAudioAttributes.Builder()
-            .setUsage(LegacyAudioAttributes.USAGE_MEDIA)
-            .setContentType(LegacyAudioAttributes.CONTENT_TYPE_MUSIC)
+        val audioAttributes = android.media.AudioAttributes.Builder()  // ← Use android.media version
+            .setUsage(android.media.AudioAttributes.USAGE_MEDIA)
+            .setContentType(android.media.AudioAttributes.CONTENT_TYPE_MUSIC)
             .build()
 
         val focusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
-            .setAudioAttributes(legacyAttributes)
+            .setAudioAttributes(audioAttributes)
             .setAcceptsDelayedFocusGain(false)
             .setWillPauseWhenDucked(false)
             .setOnAudioFocusChangeListener { focusChange ->
@@ -1019,7 +1019,6 @@ class MusicService :
                     }
                     AudioManager.AUDIOFOCUS_GAIN -> {
                         player.volume = playerVolume.value
-                        // Only resume if music was playing before focus loss and not paused by user
                         if (wasPlayingBeforeFocusLoss && !pausedByUser) {
                             player.play()
                         }
