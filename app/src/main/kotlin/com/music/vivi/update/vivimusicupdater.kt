@@ -62,7 +62,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 
 import androidx.compose.foundation.text.ClickableText
-
+import androidx.compose.material.icons.filled.History
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -207,6 +207,22 @@ fun UpdateScreen(navController: NavHostController) {
                                 )
                             }
                         )
+                        //changelog showing tile
+                        DropdownMenuItem(
+                            text = { Text("Changelog") },
+                            onClick = {
+                                showMenu = false
+                                navController.navigate("settings/changelog")
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.History,
+                                    contentDescription = null
+                                )
+                            }
+                        )
+
+
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
