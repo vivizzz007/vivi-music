@@ -365,4 +365,8 @@
 
 
     <string name="backup_choise">Backup option</string>
+
+    //new sub artist
+    <string name="subscribed">SUBED</string>
+    <string name="subscribe">SUB</string>
 </resources>
