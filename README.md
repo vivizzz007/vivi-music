@@ -89,6 +89,24 @@
   </a>
 </div>
 
+<div align="center">
+  <h1>🔄 How to Enable OTA Updates?</h1>
+  <p style="font-size: 16px; max-width: 800px; padding: 0 16px;">
+    To receive Over-The-Air (OTA) updates directly within the Vivi Music app, you must allow the app to install updates on your device. This requires enabling the <b>"Install unknown apps"</b> permission.
+  </p>
+</div>
+
+<div style="max-width: 700px; margin: 0 auto; font-size: 15px; padding: 20px;">
+  <ol>
+    <li>Go to your device's <b>Settings</b>.</li>
+    <li>Navigate to <b>Apps & notifications</b> (or <b>Apps</b> depending on your phone).</li>
+    <li>Find and tap on <b>Vivi Music</b> from the list of installed apps.</li>
+    <li>Scroll down and select <b>Install unknown apps</b>.</li>
+    <li>Toggle ON the option <b>"Allow from this source"</b>.</li>
+    <li>You're done! OTA updates will now be able to install automatically from within the app.</li>
+  </ol>
+</div>
+
 
 <div align="center">
 <h1> Q: Why vivimusic isn't showing in Android Auto? </h1>
