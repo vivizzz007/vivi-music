@@ -128,6 +128,7 @@ import androidx.compose.ui.unit.LayoutDirection
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
+
 fun OnlinePlaylistScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
@@ -178,6 +179,9 @@ fun OnlinePlaylistScreen(
     LaunchedEffect(isSearching) {
         if (isSearching) {
             focusRequester.requestFocus()
+        } else {
+            // When exiting search, scroll to the top
+            lazyListState.animateScrollToItem(0)
         }
     }
 
@@ -185,6 +189,7 @@ fun OnlinePlaylistScreen(
         BackHandler {
             isSearching = false
             query = TextFieldValue()
+            // LaunchedEffect(isSearching) will handle the scroll to top
         }
     }
 
@@ -658,6 +663,7 @@ fun OnlinePlaylistScreen(
                             if (isSearching) {
                                 isSearching = false
                                 query = TextFieldValue()
+                                // The LaunchedEffect will now handle the scroll to top
                             } else if (selection) {
                                 selection = false
                             } else {
