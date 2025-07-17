@@ -26,27 +26,50 @@
   </p>
 </div>
 
+<h1 class="features-section-title">✨ Features</h1>
 
-<br><b>Features:</b>
-
-- Mordern  Ui
-- Share music using Qr
-- Play songs from YT/YT Music without ads
-- Background playback
-- Search songs, videos, albums, and playlists from YouTube Music
-- Library management
-- Cache and download songs for offline playback
-- Synchronized lyrics
-- Skip silence
-- Audio normalization
-- Dynamic theme
-- Localization
-- Android Auto support
-- Personalized quick picks
-- Material 3
-- default blur player
-- Inbuild Updater
-
+<div class="features-grid">
+  <div class="feature-card">
+    <h3>🎧 Modern UI</h3>
+    <p>Material You-inspired design with smooth transitions and dynamic theming.</p>
+  </div>
+  <div class="feature-card">
+    <h3>📷 QR Music Sharing</h3>
+    <p>Share any song or playlist instantly using a QR code.</p>
+  </div>
+  <div class="feature-card">
+    <h3>🎵 YouTube & YT Music Playback</h3>
+    <p>Stream music from YouTube without ads and enjoy background playback.</p>
+  </div>
+  <div class="feature-card">
+    <h3>⬇️ Offline Downloads</h3>
+    <p>Cache and download music for offline listening anytime, anywhere.</p>
+  </div>
+  <div class="feature-card">
+    <h3>📝 Synced Lyrics</h3>
+    <p>Enjoy karaoke-style synced lyrics with your favorite tracks.</p>
+  </div>
+  <div class="feature-card">
+    <h3>🔇 Skip Silence</h3>
+    <p>Automatically skip silent sections for uninterrupted music flow.</p>
+  </div>
+  <div class="feature-card">
+    <h3>🎚️ Audio Normalization</h3>
+    <p>Keep all tracks playing at consistent volume levels.</p>
+  </div>
+  <div class="feature-card">
+    <h3>🌍 Localization</h3>
+    <p>Available in multiple languages for a global experience.</p>
+  </div>
+  <div class="feature-card">
+    <h3>🚗 Android Auto</h3>
+    <p>Full support for Android Auto with optimized car-friendly UI.</p>
+  </div>
+  <div class="feature-card">
+    <h3>⚙️ Built-in Updater</h3>
+    <p>Receive OTA updates directly inside the app—no hassle!</p>
+  </div>
+</div>
 
 <div align="center">
 <h1>Download Now</h1>
@@ -74,12 +97,5 @@ Any trademark, service mark, trade name, or other intellectual property rights u
 
 
 <div align="center">
-<h1>Special thanks</h1>
-
-
-
-(Muzza)
-[Maloy Android](https://github.com/Maloy-Android)
-
 
 </div>
