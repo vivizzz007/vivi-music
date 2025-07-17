@@ -327,11 +327,27 @@ fun ArtistScreen(
                                     modifier = Modifier.height(40.dp)
                                 ) {
                                     val isSubscribed = libraryArtist?.artist?.bookmarkedAt != null
-                                    Text(
-                                        text = stringResource(if (isSubscribed) R.string.subscribed else R.string.subscribe),
-                                        fontSize = 14.sp,
-                                        color = if (!isSubscribed) MaterialTheme.colorScheme.error else LocalContentColor.current
-                                    )
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            painter = painterResource(
+                                                id = if (isSubscribed) R.drawable.subscribed
+                                                else R.drawable.subscribe
+                                            ),
+                                            contentDescription = if (isSubscribed) "Subscribed" else "Subscribe",
+                                            modifier = Modifier.size(20.dp),
+                                            tint = if (!isSubscribed) MaterialTheme.colorScheme.error
+                                            else MaterialTheme.colorScheme.primary
+                                        )
+
+                                        Spacer(modifier = Modifier.width(4.dp)) // Add small space between icon and text
+
+                                        Text(
+                                            text = stringResource(if (isSubscribed) R.string.subscribed else R.string.subscribe),
+                                            fontSize = 14.sp,
+                                            color = if (!isSubscribed) MaterialTheme.colorScheme.error
+                                            else LocalContentColor.current
+                                        )
+                                    }
                                 }
 
                                 Spacer(modifier = Modifier.weight(1f))
