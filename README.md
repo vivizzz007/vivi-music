@@ -18,6 +18,14 @@
   <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/2.png?raw=true" width="30%" />
 </p>
 
+<div align="center">
+  <h1>📢 OTA Update Notice</h1>
+  <p style="font-size: 18px; max-width: 800px; padding: 0 16px;">
+    ⚠️ <strong>If you download the APK from a tag starting with <code>IZ</code></strong>, you <b>will NOT receive OTA (Over-The-Air) updates</b> via the in-app updater.<br><br>
+    ✅ <strong>If you download the APK from a tag starting with <code>v</code></strong> (like <code>v3.2.1</code>), you <b>WILL receive OTA updates</b> directly in the app.
+  </p>
+</div>
+
 
 <br><b>Features:</b>
 
