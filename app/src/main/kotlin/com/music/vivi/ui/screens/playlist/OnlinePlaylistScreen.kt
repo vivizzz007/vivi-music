@@ -8,6 +8,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -111,11 +112,19 @@ import com.valentinilk.shimmer.shimmer
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.systemBars
 import com.music.vivi.constants.AppBarHeight
 import com.music.vivi.ui.utils.fadingEdge
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Surface
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+
+import androidx.compose.ui.unit.LayoutDirection
+
+
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -188,19 +197,36 @@ fun OnlinePlaylistScreen(
         }
     }
 
+    // Capture the height of the TopAppBar dynamically
+    var topAppBarHeightPx by remember { mutableStateOf(0) }
+    val density = LocalDensity.current
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
         LazyColumn(
             state = lazyListState,
-            contentPadding = LocalPlayerAwareWindowInsets.current
-                .add(
-                    WindowInsets(
-                        top = -WindowInsets.systemBars.asPaddingValues()
-                            .calculateTopPadding() - AppBarHeight
-                    )
+            // Adjust contentPadding dynamically based on whether searching or not
+            contentPadding = if (isSearching) {
+                // When searching, apply padding equivalent to the top app bar height + system bars
+                PaddingValues(
+                    top = (topAppBarHeightPx / density.density).dp +
+                            WindowInsets.systemBars.asPaddingValues().calculateTopPadding(),
+                    bottom = LocalPlayerAwareWindowInsets.current.asPaddingValues().calculateBottomPadding(),
+                    start = LocalPlayerAwareWindowInsets.current.asPaddingValues().calculateStartPadding(LayoutDirection.Ltr),
+                    end = LocalPlayerAwareWindowInsets.current.asPaddingValues().calculateEndPadding(LayoutDirection.Ltr)
                 )
-                .asPaddingValues(),
+            } else {
+                // Original padding for normal state
+                LocalPlayerAwareWindowInsets.current
+                    .add(
+                        WindowInsets(
+                            top = -WindowInsets.systemBars.asPaddingValues()
+                                .calculateTopPadding() - AppBarHeight
+                        )
+                    )
+                    .asPaddingValues()
+            },
         ) {
             playlist.let { playlist ->
                 if (playlist != null && !isSearching) {
@@ -576,86 +602,52 @@ fun OnlinePlaylistScreen(
                 .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
                 .align(Alignment.BottomCenter)
         )
-    }
 
-    TopAppBar(
-        title = {
-            if (selection) {
-                val count = wrappedSongs.count { it.isSelected }
-                Text(
-                    text = pluralStringResource(R.plurals.n_song, count, count),
-                    style = MaterialTheme.typography.titleLarge
-                )
-            } else if (isSearching) {
-                TextField(
-                    value = query,
-                    onValueChange = { query = it },
-                    placeholder = {
-                        Text(
-                            text = stringResource(R.string.search),
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                    },
-                    singleLine = true,
-                    textStyle = MaterialTheme.typography.titleLarge,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent,
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .focusRequester(focusRequester)
-                )
-            } else {
-                if (!transparentAppBar) {
+        // TopAppBar placed on top of the LazyColumn
+        TopAppBar(
+            title = {
+                if (selection) {
+                    val count = wrappedSongs.count { it.isSelected }
                     Text(
-                        text = playlist?.title.orEmpty(),
-                        style = MaterialTheme.typography.titleLarge,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        text = pluralStringResource(R.plurals.n_song, count, count),
+                        style = MaterialTheme.typography.titleLarge
                     )
-                }
-            }
-        },
-        navigationIcon = {
-            Surface(
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                modifier = Modifier.size(40.dp),
-            ) {
-                IconButton(
-                    onClick = {
-                        if (isSearching) {
-                            isSearching = false
-                            query = TextFieldValue()
-                        } else if (selection) {
-                            selection = false
-                        } else {
-                            navController.navigateUp()
-                        }
-                    },
-                    onLongClick = {
-                        if (!isSearching && !selection) {
-                            navController.backToMain()
-                        }
-                    }
-                ) {
-                    Icon(
-                        painter = painterResource(
-                            if (selection) R.drawable.close else R.drawable.arrow_back
+                } else if (isSearching) {
+                    TextField(
+                        value = query,
+                        onValueChange = { query = it },
+                        placeholder = {
+                            Text(
+                                text = stringResource(R.string.search),
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                        },
+                        singleLine = true,
+                        textStyle = MaterialTheme.typography.titleLarge,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            disabledIndicatorColor = Color.Transparent,
                         ),
-                        contentDescription = null
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(focusRequester)
                     )
+                } else {
+                    if (!transparentAppBar) {
+                        Text(
+                            text = playlist?.title.orEmpty(),
+                            style = MaterialTheme.typography.titleLarge,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
-            }
-        },
-        actions = {
-            if (selection) {
-                val count = wrappedSongs.count { it.isSelected }
+            },
+            navigationIcon = {
                 Surface(
                     shape = CircleShape,
                     color = MaterialTheme.colorScheme.surfaceVariant,
@@ -663,71 +655,109 @@ fun OnlinePlaylistScreen(
                 ) {
                     IconButton(
                         onClick = {
-                            if (count == wrappedSongs.size) {
-                                wrappedSongs.forEach { it.isSelected = false }
+                            if (isSearching) {
+                                isSearching = false
+                                query = TextFieldValue()
+                            } else if (selection) {
+                                selection = false
                             } else {
-                                wrappedSongs.forEach { it.isSelected = true }
+                                navController.navigateUp()
                             }
                         },
+                        onLongClick = {
+                            if (!isSearching && !selection) {
+                                navController.backToMain()
+                            }
+                        }
                     ) {
                         Icon(
                             painter = painterResource(
-                                if (count == wrappedSongs.size) R.drawable.deselect else R.drawable.select_all
+                                if (selection) R.drawable.close else R.drawable.arrow_back
                             ),
                             contentDescription = null
                         )
                     }
                 }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Surface(
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    modifier = Modifier.size(40.dp),
-                ) {
-                    IconButton(
-                        onClick = {
-                            menuState.show {
-                                SelectionMediaMetadataMenu(
-                                    songSelection = wrappedSongs.filter { it.isSelected }
-                                        .map { it.item.second.toMediaItem().metadata!! },
-                                    onDismiss = menuState::dismiss,
-                                    clearAction = { selection = false },
-                                    currentItems = emptyList()
-                                )
-                            }
-                        },
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.more_vert),
-                            contentDescription = null
-                        )
-                    }
-                }
-            } else {
-                if (!isSearching) {
+            },
+            actions = {
+                if (selection) {
+                    val count = wrappedSongs.count { it.isSelected }
                     Surface(
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.surfaceVariant,
                         modifier = Modifier.size(40.dp),
                     ) {
                         IconButton(
-                            onClick = { isSearching = true }
+                            onClick = {
+                                if (count == wrappedSongs.size) {
+                                    wrappedSongs.forEach { it.isSelected = false }
+                                } else {
+                                    wrappedSongs.forEach { it.isSelected = true }
+                                }
+                            },
                         ) {
                             Icon(
-                                painter = painterResource(R.drawable.search),
+                                painter = painterResource(
+                                    if (count == wrappedSongs.size) R.drawable.deselect else R.drawable.select_all
+                                ),
                                 contentDescription = null
                             )
                         }
                     }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        modifier = Modifier.size(40.dp),
+                    ) {
+                        IconButton(
+                            onClick = {
+                                menuState.show {
+                                    SelectionMediaMetadataMenu(
+                                        songSelection = wrappedSongs.filter { it.isSelected }
+                                            .map { it.item.second.toMediaItem().metadata!! },
+                                        onDismiss = menuState::dismiss,
+                                        clearAction = { selection = false },
+                                        currentItems = emptyList()
+                                    )
+                                }
+                            },
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.more_vert),
+                                contentDescription = null
+                            )
+                        }
+                    }
+                } else {
+                    if (!isSearching) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            modifier = Modifier.size(40.dp),
+                        ) {
+                            IconButton(
+                                onClick = { isSearching = true }
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.search),
+                                    contentDescription = null
+                                )
+                            }
+                        }
+                    }
                 }
+            },
+            colors = if (transparentAppBar && !selection) {
+                TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+            } else {
+                TopAppBarDefaults.topAppBarColors()
+            },
+            modifier = Modifier.onSizeChanged { size ->
+                topAppBarHeightPx = size.height
             }
-        },
-        colors = if (transparentAppBar && !selection) {
-            TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-        } else {
-            TopAppBarDefaults.topAppBarColors()
-        }
-    )
+        )
+    }
 }
