@@ -367,6 +367,11 @@
     <string name="backup_choise">Backup option</string>
 
     //new sub artist
-    <string name="subscribed">SUBED</string>
-    <string name="subscribe">SUB</string>
+    <string name="subscribed">Subed</string>
+    <string name="subscribe">Sub</string>
+
+    //new album screen
+    <string name="like">like</string>
+    <string name="downloaded">Downloaded</string>
+    <string name="download">download</string>
 </resources>
