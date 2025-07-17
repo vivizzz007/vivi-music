@@ -71,12 +71,24 @@
   </div>
 </div>
 
+
 <div align="center">
-<h1>Download Now</h1>
- 
-
-
+  <h1>📥 Download Now</h1>
+  <a href="https://github.com/vivizzz007/vivi-music/releases" target="_blank" style="
+    display: inline-block;
+    background-color: #4CAF50;
+    color: white;
+    padding: 14px 28px;
+    font-size: 18px;
+    border-radius: 8px;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  " onmouseover="this.style.backgroundColor='#45a049'; this.style.transform='scale(1.05)';" onmouseout="this.style.backgroundColor='#4CAF50'; this.style.transform='scale(1)';">
+    Get Latest Version →
+  </a>
 </div>
+
 
 <div align="center">
 <h1> Q: Why vivimusic isn't showing in Android Auto? </h1>
