@@ -10,17 +10,12 @@
 
 <h1>Screenshots</h1>
 <p>
-  <img src="https://github.com/vivizzz007/vivimusic-github/blob/main/NEW-UI/about_1.png" width="30%" />
-  <img src="https://github.com/vivizzz007/vivimusic-github/blob/main/NEW-UI/homescreen_1.png" width="30%" />
-  <img src="https://github.com/vivizzz007/vivimusic-github/blob/main/NEW-UI/new_player.png" width="30%" />
-  <img src="https://github.com/vivizzz007/vivimusic-github/blob/main/NEW-UI/newcontrol_center.png" width="30%" />
-  <img src="https://github.com/vivizzz007/vivimusic-github/blob/main/NEW-UI/player_audio_1.png" width="30%" />
-  <img src="https://github.com/vivizzz007/vivimusic-github/blob/main/NEW-UI/sharesong_qr.png" width="30%" />
-  <img src="https://github.com/vivizzz007/vivimusic-github/blob/main/NEW-UI/sharesong_qr_3.png" width="30%" />
-   <img src="https://github.com/vivizzz007/vivimusic-github/blob/main/NEW-UI/sleeptimer.png" width="30%" />
-   <img src="https://github.com/vivizzz007/vivimusic-github/blob/main/NEW-UI/spotify_2.png" width="30%" />
-   <img src="https://github.com/vivizzz007/vivimusic-github/blob/main/NEW-UI/updated_setting.png" width="30%" />
-   <img src="https://github.com/vivizzz007/vivimusic-github/blob/main/NEW-UI/updater_vivimusic.png" width="30%" />
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/6.png?raw=true" width="30%" />
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/7.png?raw=true" width="30%" />
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/5.png?raw=true" width="30%" />
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/4.png?raw=true" width="30%" />
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/3.png?raw=true" width="30%" />
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/2.png?raw=true" width="30%" />
 </p>
 
 
