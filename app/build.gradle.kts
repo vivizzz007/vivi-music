@@ -243,11 +243,6 @@ dependencies {
     // If you're using Compose
     implementation("androidx.compose.ui:ui:1.5.4")
     implementation("androidx.compose.material3:material3:1.1.2")
-    implementation ("com.google.mlkit:barcode-scanning:17.2.0")
-//    implementation ("androidx.camera:camera-camera2:1.3.0")
-//    implementation ("androidx.camera:camera-lifecycle:1.3.0")
-//    implementation ("androidx.camera:camera-view:1.3.0")
-    implementation ("com.google.mlkit:barcode-scanning:17.2.0")
     implementation ("com.journeyapps:zxing-android-embedded:4.3.0")
 
     implementation ("com.google.zxing:core:3.5.2")
