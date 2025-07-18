@@ -119,6 +119,7 @@ import kotlin.random.Random
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
+
 fun HomeScreen(
     navController: NavController,
     viewModel: HomeViewModel = hiltViewModel(),
@@ -185,7 +186,6 @@ fun HomeScreen(
 
     if (selectedChip != null) {
         BackHandler {
-            // if a chip is selected, go back to the normal homepage first
             viewModel.toggleChip(selectedChip)
         }
     }
@@ -382,7 +382,13 @@ fun HomeScreen(
                 )
             }
 
-            // QUICK PICKS SECTION
+            // Find the New Releases section early for conditional placement
+            val newReleasesSection = homePage?.sections?.firstOrNull {
+                it.title.contains("release", ignoreCase = true) ||
+                        it.title.contains("new", ignoreCase = true)
+            }
+
+            // QUICK PICKS SECTION - Only show if available
             quickPicks?.takeIf { it.isNotEmpty() }?.let { quickPicks ->
                 item {
                     NavigationTitle(
@@ -408,7 +414,6 @@ fun HomeScreen(
                             items = quickPicks,
                             key = { it.id }
                         ) { originalSong ->
-                            // fetch song from database to keep updated
                             val song by database.song(originalSong.id)
                                 .collectAsState(initial = originalSong)
 
@@ -461,18 +466,70 @@ fun HomeScreen(
                         }
                     }
                 }
+
+                // NEW RELEASES SECTION - Placed right after Quick Picks if Quick Picks is shown
+                newReleasesSection?.let { section ->
+                    item {
+                        NavigationTitle(
+                            title = section.title,
+                            label = section.label,
+                            thumbnail = section.thumbnail?.let { thumbnailUrl ->
+                                {
+                                    val shape =
+                                        if (section.endpoint?.isArtistEndpoint == true) CircleShape else RoundedCornerShape(
+                                            ThumbnailCornerRadius
+                                        )
+                                    AsyncImage(
+                                        model = thumbnailUrl,
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .size(ListThumbnailSize)
+                                            .clip(shape)
+                                    )
+                                }
+                            },
+                            onClick = section.endpoint?.browseId?.let { browseId ->
+                                if (homePage != null) {
+                                    {
+                                        when (browseId) {
+                                            "FEmusic_moods_and_genres" -> navController.navigate("mood_and_genres")
+                                            "FEmusic_charts" -> navController.navigate("charts_screen")
+                                            else -> navController.navigate("browse/$browseId")
+                                        }
+                                    }
+                                } else {
+                                    null
+                                }
+                            },
+                            modifier = Modifier.animateItem()
+                        )
+                    }
+
+                    item {
+                        LazyRow(
+                            contentPadding = WindowInsets.systemBars
+                                .only(WindowInsetsSides.Horizontal)
+                                .asPaddingValues(),
+                            modifier = Modifier.animateItem()
+                        ) {
+                            items(section.items) { item ->
+                                ytGridItem(item)
+                            }
+                        }
+                    }
+                }
             }
 
-            // NEW RELEASES SECTION - Placed below Quick Picks
-            homePage?.sections?.firstOrNull { it.title.contains("release", ignoreCase = true) || it.title.contains("new", ignoreCase = true) }?.let { topReleaseSection ->
+            // If Quick Picks is empty but we have New Releases, show them at the top
+            if (quickPicks.isNullOrEmpty() && newReleasesSection != null) {
                 item {
                     NavigationTitle(
-                        title = topReleaseSection.title,
-                        label = topReleaseSection.label,
-                        thumbnail = topReleaseSection.thumbnail?.let { thumbnailUrl ->
+                        title = newReleasesSection.title,
+                        label = newReleasesSection.label,
+                        thumbnail = newReleasesSection.thumbnail?.let { thumbnailUrl ->
                             {
                                 val shape =
-                                    if (topReleaseSection.endpoint?.isArtistEndpoint == true) CircleShape else RoundedCornerShape(
+                                    if (newReleasesSection.endpoint?.isArtistEndpoint == true) CircleShape else RoundedCornerShape(
                                         ThumbnailCornerRadius
                                     )
                                 AsyncImage(
@@ -484,7 +541,7 @@ fun HomeScreen(
                                 )
                             }
                         },
-                        onClick = topReleaseSection.endpoint?.browseId?.let { browseId ->
+                        onClick = newReleasesSection.endpoint?.browseId?.let { browseId ->
                             if (homePage != null) {
                                 {
                                     when (browseId) {
@@ -508,7 +565,7 @@ fun HomeScreen(
                             .asPaddingValues(),
                         modifier = Modifier.animateItem()
                     ) {
-                        items(topReleaseSection.items) { item ->
+                        items(newReleasesSection.items) { item ->
                             ytGridItem(item)
                         }
                     }
@@ -606,7 +663,6 @@ fun HomeScreen(
                 }
 
                 item {
-                    // take min in case list size is less than 4
                     val rows = min(4, forgottenFavorites.size)
                     LazyHorizontalGrid(
                         state = forgottenFavoritesLazyGridState,
@@ -728,7 +784,10 @@ fun HomeScreen(
             }
 
             // REMAINING HOME PAGE SECTIONS (excluding the new releases section that was already shown)
-            homePage?.sections?.filterNot { it.title.contains("release", ignoreCase = true) || it.title.contains("new", ignoreCase = true) }?.forEach {
+            homePage?.sections?.filterNot {
+                it.title.contains("release", ignoreCase = true) ||
+                        it.title.contains("new", ignoreCase = true)
+            }?.forEach {
                 item {
                     NavigationTitle(
                         title = it.title,
