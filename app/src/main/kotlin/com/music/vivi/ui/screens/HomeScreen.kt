@@ -382,6 +382,7 @@ fun HomeScreen(
                 )
             }
 
+            // QUICK PICKS SECTION
             quickPicks?.takeIf { it.isNotEmpty() }?.let { quickPicks ->
                 item {
                     NavigationTitle(
@@ -457,6 +458,58 @@ fun HomeScreen(
                                         }
                                     )
                             )
+                        }
+                    }
+                }
+            }
+
+            // NEW RELEASES SECTION - Placed below Quick Picks
+            homePage?.sections?.firstOrNull { it.title.contains("release", ignoreCase = true) || it.title.contains("new", ignoreCase = true) }?.let { topReleaseSection ->
+                item {
+                    NavigationTitle(
+                        title = topReleaseSection.title,
+                        label = topReleaseSection.label,
+                        thumbnail = topReleaseSection.thumbnail?.let { thumbnailUrl ->
+                            {
+                                val shape =
+                                    if (topReleaseSection.endpoint?.isArtistEndpoint == true) CircleShape else RoundedCornerShape(
+                                        ThumbnailCornerRadius
+                                    )
+                                AsyncImage(
+                                    model = thumbnailUrl,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(ListThumbnailSize)
+                                        .clip(shape)
+                                )
+                            }
+                        },
+                        onClick = topReleaseSection.endpoint?.browseId?.let { browseId ->
+                            if (homePage != null) {
+                                {
+                                    when (browseId) {
+                                        "FEmusic_moods_and_genres" -> navController.navigate("mood_and_genres")
+                                        "FEmusic_charts" -> navController.navigate("charts_screen")
+                                        else -> navController.navigate("browse/$browseId")
+                                    }
+                                }
+                            } else {
+                                null
+                            }
+                        },
+                        modifier = Modifier.animateItem()
+                    )
+                }
+
+                item {
+                    LazyRow(
+                        contentPadding = WindowInsets.systemBars
+                            .only(WindowInsetsSides.Horizontal)
+                            .asPaddingValues(),
+                        modifier = Modifier.animateItem()
+                    ) {
+                        items(topReleaseSection.items) { item ->
+                            ytGridItem(item)
                         }
                     }
                 }
@@ -674,7 +727,8 @@ fun HomeScreen(
                 }
             }
 
-            homePage?.sections?.forEach {
+            // REMAINING HOME PAGE SECTIONS (excluding the new releases section that was already shown)
+            homePage?.sections?.filterNot { it.title.contains("release", ignoreCase = true) || it.title.contains("new", ignoreCase = true) }?.forEach {
                 item {
                     NavigationTitle(
                         title = it.title,
