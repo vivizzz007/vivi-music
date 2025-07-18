@@ -13,6 +13,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -28,6 +30,14 @@ class OnlinePlaylistViewModel @Inject constructor(
     val playlistSongs = MutableStateFlow<List<SongItem>>(emptyList())
     val dbPlaylist = database.playlistByBrowseId(playlistId)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    // Add shuffle state management
+    private val _isShuffleActive = MutableStateFlow(false)
+    val isShuffleActive: StateFlow<Boolean> = _isShuffleActive.asStateFlow()
+
+    fun setShuffleActive(active: Boolean) {
+        _isShuffleActive.value = active
+    }
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
