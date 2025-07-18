@@ -315,9 +315,9 @@ fun AlbumScreen(
                                     Icon(
                                         painter = painterResource(
                                             if (albumWithSongs.album.bookmarkedAt != null) {
-                                                R.drawable.subscribed
+                                                R.drawable.favorite
                                             } else {
-                                                R.drawable.subscribe
+                                                R.drawable.favorite_border
                                             }
                                         ),
                                         contentDescription = null,
