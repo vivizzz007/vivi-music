@@ -143,6 +143,9 @@ import androidx.compose.material3.Surface
 import kotlin.collections.shuffle
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
+
+
+
 fun AlbumScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
@@ -159,6 +162,7 @@ fun AlbumScreen(
 
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+    val shuffleModeEnabled by playerConnection.shuffleModeEnabled.collectAsState()
 
     val playlistId by viewModel.playlistId.collectAsState()
     val albumWithSongs by viewModel.albumWithSongs.collectAsState()
@@ -177,6 +181,9 @@ fun AlbumScreen(
     // Add LazyListState for scroll behavior
     val lazyListState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // Check if current album is playing
+    val isCurrentAlbumPlaying = mediaMetadata?.album?.id == albumWithSongs?.album?.id
 
     // Transparent app bar logic
     val transparentAppBar by remember {
@@ -445,25 +452,45 @@ fun AlbumScreen(
 
                                 Spacer(modifier = Modifier.weight(1f))
 
-                                // Play Button
+                                // Play/Pause Button
                                 IconButton(
                                     onClick = {
-                                        playerConnection.service.getAutomix(playlistId)
-                                        playerConnection.playQueue(
-                                            LocalAlbumRadio(albumWithSongs),
-                                        )
+                                        if (isCurrentAlbumPlaying) {
+                                            // If current album is playing, toggle play/pause
+                                            playerConnection.player.togglePlayPause()
+                                        } else {
+                                            // If different album or not playing, start playing this album
+                                            playerConnection.service.getAutomix(playlistId)
+                                            playerConnection.playQueue(
+                                                LocalAlbumRadio(albumWithSongs),
+                                            )
+                                        }
                                     },
                                     modifier = Modifier
                                         .size(48.dp)
                                         .background(
-                                            MaterialTheme.colorScheme.primary,
+                                            if (isCurrentAlbumPlaying && isPlaying) {
+                                                MaterialTheme.colorScheme.primary
+                                            } else {
+                                                MaterialTheme.colorScheme.surfaceVariant
+                                            },
                                             RoundedCornerShape(24.dp)
                                         )
                                 ) {
                                     Icon(
-                                        painter = painterResource(R.drawable.play),
+                                        painter = painterResource(
+                                            if (isCurrentAlbumPlaying && isPlaying) {
+                                                R.drawable.pause
+                                            } else {
+                                                R.drawable.play
+                                            }
+                                        ),
                                         contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onPrimary,
+                                        tint = if (isCurrentAlbumPlaying && isPlaying) {
+                                            MaterialTheme.colorScheme.onPrimary
+                                        } else {
+                                            LocalContentColor.current
+                                        },
                                         modifier = Modifier.size(20.dp)
                                     )
                                 }
@@ -471,21 +498,39 @@ fun AlbumScreen(
                                 // Shuffle Button
                                 IconButton(
                                     onClick = {
-                                        playerConnection.service.getAutomix(playlistId)
-                                        playerConnection.playQueue(
-                                            LocalAlbumRadio(albumWithSongs.copy(songs = albumWithSongs.songs.shuffled())),
-                                        )
+                                        if (isCurrentAlbumPlaying && shuffleModeEnabled) {
+                                            // If current album is playing and shuffle is on, toggle shuffle off
+                                            playerConnection.player.shuffleModeEnabled = false
+                                        } else if (isCurrentAlbumPlaying) {
+                                            // If current album is playing but shuffle is off, enable shuffle
+                                            playerConnection.player.shuffleModeEnabled = true
+                                        } else {
+                                            // Start playing shuffled
+                                            playerConnection.service.getAutomix(playlistId)
+                                            playerConnection.playQueue(
+                                                LocalAlbumRadio(albumWithSongs.copy(songs = albumWithSongs.songs.shuffled())),
+                                            )
+                                        }
                                     },
                                     modifier = Modifier
                                         .size(48.dp)
                                         .background(
-                                            MaterialTheme.colorScheme.surfaceVariant,
+                                            if (shuffleModeEnabled) {
+                                                MaterialTheme.colorScheme.primary
+                                            } else {
+                                                MaterialTheme.colorScheme.surfaceVariant
+                                            },
                                             RoundedCornerShape(24.dp)
                                         )
                                 ) {
                                     Icon(
                                         painter = painterResource(R.drawable.shuffle),
                                         contentDescription = null,
+                                        tint = if (shuffleModeEnabled) {
+                                            MaterialTheme.colorScheme.onPrimary
+                                        } else {
+                                            LocalContentColor.current
+                                        },
                                         modifier = Modifier.size(20.dp)
                                     )
                                 }
