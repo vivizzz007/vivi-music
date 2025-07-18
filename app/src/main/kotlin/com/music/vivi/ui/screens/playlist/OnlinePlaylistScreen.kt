@@ -150,6 +150,9 @@ fun OnlinePlaylistScreen(
     var selection by remember { mutableStateOf(false) }
     val hideExplicit by rememberPreference(key = HideExplicitKey, defaultValue = false)
 
+    //shufflebutton
+    val isShuffleActive by viewModel.isShuffleActive.collectAsState()
+
     // Add LazyListState for scroll behavior
     val lazyListState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -307,12 +310,17 @@ fun OnlinePlaylistScreen(
                                     )
                                 }
 
+
+
                                 // Action Buttons Row
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
+
+                                    Spacer(modifier = Modifier.weight(1f))
+
                                     // Like Button (only for non-LM playlists)
                                     if (playlist.id != "LM") {
                                         IconButton(
@@ -370,6 +378,37 @@ fun OnlinePlaylistScreen(
                                         }
                                     }
 
+
+                                    // Shuffle Button
+                                    playlist.shuffleEndpoint?.let { shuffleEndpoint ->
+                                        IconButton(
+                                            onClick = {
+                                                // When clicked, activate shuffle and update the state
+                                                playerConnection.playQueue(
+                                                    YouTubeQueue(shuffleEndpoint)
+                                                )
+                                                // This assumes clicking always means activating shuffle for this playlist
+                                                viewModel.setShuffleActive(!isShuffleActive) // Toggle or set true
+                                            },
+                                            modifier = Modifier
+                                                .size(48.dp)
+                                                .background(
+                                                    // Conditionally apply primary color if shuffle is active
+                                                    if (isShuffleActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                                                    RoundedCornerShape(24.dp)
+                                                )
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.shuffle),
+                                                contentDescription = null,
+                                                // Conditionally apply onPrimary color if shuffle is active
+                                                tint = if (isShuffleActive) MaterialTheme.colorScheme.onPrimary else LocalContentColor.current,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
+                                    }
+
+
                                     // Menu Button
                                     IconButton(
                                         onClick = {
@@ -397,54 +436,28 @@ fun OnlinePlaylistScreen(
                                         )
                                     }
 
-                                    Spacer(modifier = Modifier.weight(1f))
-
-                                    // Shuffle Button
-                                    playlist.shuffleEndpoint?.let { shuffleEndpoint ->
-                                        IconButton(
-                                            onClick = {
-                                                playerConnection.playQueue(
-                                                    YouTubeQueue(shuffleEndpoint)
-                                                )
-                                            },
-                                            modifier = Modifier
-                                                .size(48.dp)
-                                                .background(
-                                                    MaterialTheme.colorScheme.primary,
-                                                    RoundedCornerShape(24.dp)
-                                                )
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.shuffle),
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onPrimary,
-                                                modifier = Modifier.size(20.dp)
-                                            )
-                                        }
-                                    }
-
                                     // Radio Button
-                                    playlist.radioEndpoint?.let { radioEndpoint ->
-                                        IconButton(
-                                            onClick = {
-                                                playerConnection.playQueue(
-                                                    YouTubeQueue(radioEndpoint)
-                                                )
-                                            },
-                                            modifier = Modifier
-                                                .size(48.dp)
-                                                .background(
-                                                    MaterialTheme.colorScheme.surfaceVariant,
-                                                    RoundedCornerShape(24.dp)
-                                                )
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.radio),
-                                                contentDescription = null,
-                                                modifier = Modifier.size(20.dp)
-                                            )
-                                        }
-                                    }
+//                                    playlist.radioEndpoint?.let { radioEndpoint ->
+//                                        IconButton(
+//                                            onClick = {
+//                                                playerConnection.playQueue(
+//                                                    YouTubeQueue(radioEndpoint)
+//                                                )
+//                                            },
+//                                            modifier = Modifier
+//                                                .size(48.dp)
+//                                                .background(
+//                                                    MaterialTheme.colorScheme.surfaceVariant,
+//                                                    RoundedCornerShape(24.dp)
+//                                                )
+//                                        ) {
+//                                            Icon(
+//                                                painter = painterResource(R.drawable.radio),
+//                                                contentDescription = null,
+//                                                modifier = Modifier.size(20.dp)
+//                                            )
+//                                        }
+//                                    }
                                 }
                             }
 
