@@ -4,6 +4,7 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
@@ -16,6 +17,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -113,10 +115,21 @@ import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import org.json.JSONArray
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.core.content.FileProvider
+import coil.request.CachePolicy
+import coil.request.ImageRequest
+import com.music.vivi.update.isNewerVersion
+import java.io.File
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+
 fun SettingsScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
@@ -129,9 +142,26 @@ fun SettingsScreen(
     var searchQuery by remember { mutableStateOf("") }
     var showSearchDialog by remember { mutableStateOf(false) }
 
-    val imagePickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        userImageUri = uri
-        saveImageUri(context, uri)
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { selectedUri ->
+            // Take persistent URI permission to prevent image from disappearing
+            try {
+                context.contentResolver.takePersistableUriPermission(
+                    selectedUri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+                userImageUri = selectedUri
+                saveImageUri(context, selectedUri)
+            } catch (e: SecurityException) {
+                // If persistent permission fails, copy the image to internal storage
+                copyImageToInternalStorage(context, selectedUri) { copiedUri ->
+                    userImageUri = copiedUri
+                    saveImageUri(context, copiedUri)
+                }
+            }
+        }
     }
 
     val greeting = getGreetingBasedOnTime()
@@ -419,28 +449,32 @@ fun SettingsScreen(
         }
     }
 
-    CompositionLocalProvider(LocalPlayerAwareWindowInsets provides WindowInsets(0,0,0,0)) {
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
-            Modifier
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
                 .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
                 .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)))
+            Spacer(modifier = Modifier.height(110.dp))
 
-            Spacer(Modifier.height(130.dp))
-
+            // Profile Card
             ElevatedCard(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
                     .height(120.dp),
-                shape = RoundedCornerShape(30.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                ),
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = 20.dp),
+                        .padding(20.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Start
                 ) {
@@ -454,10 +488,21 @@ fun SettingsScreen(
                     ) {
                         if (userImageUri != null) {
                             AsyncImage(
-                                model = userImageUri,
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(userImageUri)
+                                    .memoryCachePolicy(CachePolicy.ENABLED)
+                                    .diskCachePolicy(CachePolicy.ENABLED)
+                                    .crossfade(true)
+                                    .error(R.drawable.vivimusic) // Fallback to default image on error
+                                    .build(),
                                 contentDescription = "User profile image",
                                 modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
+                                contentScale = ContentScale.Crop,
+                                onError = {
+                                    // If image fails to load, reset to null so default image shows
+                                    userImageUri = null
+                                    saveImageUri(context, null)
+                                }
                             )
                         } else {
                             Image(
@@ -475,7 +520,8 @@ fun SettingsScreen(
                         Text(
                             text = greeting,
                             style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            fontWeight = FontWeight.Bold
                         )
 
                         AnimatedVisibility(
@@ -486,8 +532,8 @@ fun SettingsScreen(
                         ) {
                             Text(
                                 text = "👋 Welcome to Settings",
-                                style = MaterialTheme.typography.bodySmall.copy(fontSize = 18.sp),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
                                 modifier = Modifier.padding(top = 4.dp)
                             )
                         }
@@ -500,7 +546,7 @@ fun SettingsScreen(
                         ) {
                             Text(
                                 text = "🚀 Update available: v$latestVersion",
-                                style = MaterialTheme.typography.bodySmall.copy(fontSize = 18.sp),
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier
                                     .padding(top = 4.dp)
@@ -513,8 +559,9 @@ fun SettingsScreen(
                 }
             }
 
-            Spacer(Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
+            // Search Card
             SearchDialog(
                 showDialog = showSearchDialog,
                 onDismiss = {
@@ -529,108 +576,213 @@ fun SettingsScreen(
                 }
             )
 
-            OutlinedTextField(
-                value = "",
-                onValueChange = { },
-                placeholder = {
-                    Text(
-                        "Search vivi settings…",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        painterResource(R.drawable.search_icon),
-                        contentDescription = "Search",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                },
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
-                    .padding(horizontal = 20.dp)
+                    .height(60.dp)
                     .clickable { showSearchDialog = true },
-                shape = RoundedCornerShape(24.dp),
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.onSurface,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    focusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
                 ),
-                enabled = false,
-                readOnly = true
-            )
+                shape = RoundedCornerShape(20.dp),
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                )
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 20.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            painterResource(R.drawable.search_icon),
+                            contentDescription = "Search",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = "Search vivi settings…",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            settingsItems.forEach { item ->
-                val isUpdateItem = item.title == stringResource(R.string.update)
-                PreferenceEntry(
-                    title = { Text(item.title) },
-                    description = {
-                        if (item.description.isNotEmpty()) {
-                            if (isUpdateItem && isUpdateAvailable && item.description.contains("Update available")) {
-                                Text(
-                                    buildAnnotatedString {
-                                        val desc = item.description
-                                        val keyword = "Update available"
-                                        val idx = desc.indexOf(keyword)
-                                        if (idx >= 0) {
-                                            append(desc.substring(0, idx))
-                                            withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-                                                append(keyword)
-                                            }
-                                            append(desc.substring(idx + keyword.length))
-                                        } else {
-                                            append(desc)
-                                        }
-                                    },
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+            // Settings Cards Grid
+            val chunkedItems = settingsItems.chunked(2)
+
+            chunkedItems.forEach { rowItems ->
+                if (rowItems.size == 2) {
+                    // Two cards in a row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        rowItems.forEach { item ->
+                            val isUpdateItem = item.title == stringResource(R.string.update)
+                            Card(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(120.dp)
+                                    .clickable { navController.navigate(item.route) },
+                                colors = CardDefaults.cardColors(
+                                    containerColor = if (isUpdateItem && isUpdateAvailable)
+                                        MaterialTheme.colorScheme.errorContainer
+                                    else
+                                        MaterialTheme.colorScheme.surfaceContainer
+                                ),
+                                shape = RoundedCornerShape(16.dp),
+                                border = BorderStroke(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                                 )
-                            } else {
-                                Text(item.description)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Icon(
+                                            painterResource(item.iconRes),
+                                            contentDescription = item.title,
+                                            modifier = Modifier.size(32.dp),
+                                            tint = if (isUpdateItem && isUpdateAvailable)
+                                                MaterialTheme.colorScheme.onErrorContainer
+                                            else
+                                                MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = item.title,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (isUpdateItem && isUpdateAvailable)
+                                                MaterialTheme.colorScheme.onErrorContainer
+                                            else
+                                                MaterialTheme.colorScheme.onSurface,
+                                            textAlign = TextAlign.Center
+                                        )
+                                        if (item.description.isNotEmpty()) {
+                                            Text(
+                                                text = if (isUpdateItem && isUpdateAvailable) "Update available" else item.description,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = if (isUpdateItem && isUpdateAvailable)
+                                                    MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f)
+                                                else
+                                                    MaterialTheme.colorScheme.onSurfaceVariant,
+                                                textAlign = TextAlign.Center,
+                                                maxLines = 2,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
-                    },
-                    icon = { Icon(painterResource(item.iconRes), null) },
-                    onClick = { navController.navigate(item.route) }
-                )
-                Spacer(Modifier.height(10.dp))
+                    }
+                } else {
+                    // Single card (full width) - for odd number of items
+                    val item = rowItems[0]
+                    val isUpdateItem = item.title == stringResource(R.string.update)
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(80.dp)
+                            .clickable { navController.navigate(item.route) },
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isUpdateItem && isUpdateAvailable)
+                                MaterialTheme.colorScheme.errorContainer
+                            else
+                                MaterialTheme.colorScheme.surfaceContainer
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                        )
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp),
+                            contentAlignment = Alignment.CenterStart
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text(
+                                        text = item.title,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (isUpdateItem && isUpdateAvailable)
+                                            MaterialTheme.colorScheme.onErrorContainer
+                                        else
+                                            MaterialTheme.colorScheme.onSurface
+                                    )
+                                    if (item.description.isNotEmpty()) {
+                                        Text(
+                                            text = if (isUpdateItem && isUpdateAvailable) "Update available" else item.description,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = if (isUpdateItem && isUpdateAvailable)
+                                                MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f)
+                                            else
+                                                MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                                Icon(
+                                    painterResource(item.iconRes),
+                                    contentDescription = item.title,
+                                    modifier = Modifier.size(24.dp),
+                                    tint = if (isUpdateItem && isUpdateAvailable)
+                                        MaterialTheme.colorScheme.onErrorContainer
+                                    else
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
             }
-            Spacer(Modifier.height(80.dp))
-        }
-    }
 
-    TopAppBar(
-        title = { Text(stringResource(R.string.settings)) },
-        navigationIcon = {
-            IconButton(
-                onClick = navController::navigateUp,
-                onLongClick = navController::backToMain
-            ) {
-                Icon(
-                    painterResource(R.drawable.arrow_back),
-                    contentDescription = null
-                )
-            }
-        },
-        scrollBehavior = scrollBehavior
-    )
-}
-@Composable
-fun PreferenceEntry(
-    title: @Composable () -> Unit,
-    description: @Composable (() -> Unit)? = null,
-    icon: @Composable () -> Unit,
-    onClick: () -> Unit
-) {
-    ListItem(
-        headlineContent = title,
-        supportingContent = description,
-        leadingContent = icon,
-        modifier = Modifier.clickable(onClick = onClick)
-    )
+            Spacer(modifier = Modifier.height(32.dp))
+        }
+
+        // Top App Bar
+        TopAppBar(
+            title = { Text(stringResource(R.string.settings)) },
+            navigationIcon = {
+                IconButton(
+                    onClick = navController::navigateUp,
+                    onLongClick = navController::backToMain
+                ) {
+                    Icon(
+                        painterResource(R.drawable.arrow_back),
+                        contentDescription = null
+                    )
+                }
+            },
+            scrollBehavior = scrollBehavior,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
+    }
 }
 
 @Composable
@@ -686,3 +838,39 @@ fun loadImageUri(context: Context): Uri? {
     val uriString = sharedPreferences.getString("user_image_uri", null)
     return uriString?.let { Uri.parse(it) }
 }
+
+
+private fun copyImageToInternalStorage(
+    context: Context,
+    sourceUri: Uri,
+    onComplete: (Uri?) -> Unit
+) {
+    try {
+        val inputStream = context.contentResolver.openInputStream(sourceUri)
+        if (inputStream != null) {
+            val fileName = "profile_image_${System.currentTimeMillis()}.jpg"
+            val file = File(context.filesDir, fileName)
+
+            file.outputStream().use { outputStream ->
+                inputStream.copyTo(outputStream)
+            }
+
+            val fileUri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider", // Make sure this matches your manifest
+                file
+            )
+            onComplete(fileUri)
+        } else {
+            onComplete(null)
+        }
+        inputStream?.close()
+    } catch (e: Exception) {
+        e.printStackTrace()
+        onComplete(null)
+    }
+}
+
+
+
+
