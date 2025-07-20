@@ -13,6 +13,8 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.music.vivi.changelog.ChangelogScreen
+import com.music.vivi.support.SupportScreen
+import com.music.vivi.support.ViviIssueScreen
 import com.music.vivi.ui.screens.artist.ArtistAlbumsScreen
 import com.music.vivi.ui.screens.artist.ArtistItemsScreen
 import com.music.vivi.ui.screens.artist.ArtistScreen
@@ -294,5 +296,17 @@ fun NavGraphBuilder.navigationBuilder(
     }
     composable("settings/dpi") {
         ViviDpiSettings(navController, scrollBehavior)
+    }
+    composable("settings/support") {
+        SupportScreen(
+            navController = navController,
+            scrollBehavior = scrollBehavior
+        )
+    }
+    composable("settings/report_issue") {
+        ViviIssueScreen(
+            navController = navController,
+            scrollBehavior = scrollBehavior
+        )
     }
 }

@@ -116,6 +116,10 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import org.json.JSONArray
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -478,6 +482,7 @@ fun SettingsScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Start
                 ) {
+                    // Profile Image Container
                     Box(
                         modifier = Modifier
                             .size(80.dp)
@@ -486,6 +491,7 @@ fun SettingsScreen(
                                 imagePickerLauncher.launch("image/*")
                             }
                     ) {
+                        // Profile Image
                         if (userImageUri != null) {
                             AsyncImage(
                                 model = ImageRequest.Builder(LocalContext.current)
@@ -512,10 +518,35 @@ fun SettingsScreen(
                                 contentScale = ContentScale.Crop
                             )
                         }
+
+                        // Camera Icon Overlay - Now properly inside the Box
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter) // This works because we're inside a Box
+                                .fillMaxWidth()
+                                .height(24.dp)
+                                .background(
+                                    Brush.verticalGradient(
+                                        colors = listOf(
+                                            Color.Transparent,
+                                            MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
+                                        )
+                                    )
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CameraAlt,
+                                contentDescription = "Change profile picture",
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.width(16.dp))
 
+                    // Greeting Text Column
                     Column {
                         Text(
                             text = greeting,

@@ -2,6 +2,7 @@ package com.music.vivi.changelog
 
 
 
+import android.R.attr.progress
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,7 +38,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.music.vivi.BuildConfig
 import com.music.vivi.R
-import com.music.vivi.ui.screens.settings.ChangelogViewModel
 import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.layout.*
@@ -57,6 +57,13 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.music.vivi.update.updatetime.ChangelogViewModel
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.rememberLottieComposition
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.music.vivi.LocalPlayerAwareWindowInsets
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,8 +79,6 @@ fun ChangelogScreen(
     // Load cached changelog first
     LaunchedEffect(Unit) {
         cachedChangelog.value = loadCachedChangelog(context, versionTag)
-
-        // Then try to fetch fresh data
         changelogViewModel.loadChangelog("vivizzz007", "vivi-music", versionTag)
     }
 
@@ -98,10 +103,13 @@ fun ChangelogScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .background(MaterialTheme.colorScheme.background)
+                .windowInsetsPadding(
+                    LocalPlayerAwareWindowInsets.current
+                        .only(WindowInsetsSides.Bottom)
+                ) // Add bottom insets padding here
         ) {
             val uiState by changelogViewModel.uiState.collectAsState()
 
-            // Save changelog to cache when it's loaded
             LaunchedEffect(uiState.changes) {
                 if (uiState.changes.isNotEmpty()) {
                     saveChangelogToCache(context, versionTag, uiState.changes)
@@ -146,7 +154,7 @@ fun ChangelogScreen(
                                 .fillMaxSize()
                                 .verticalScroll(rememberScrollState())
                         ) {
-                            // Changelog heading below top bar
+                            // Changelog heading
                             Surface(
                                 modifier = Modifier.fillMaxWidth(),
                                 color = MaterialTheme.colorScheme.surface,
@@ -167,12 +175,32 @@ fun ChangelogScreen(
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.padding(top = 4.dp)
                                     )
+
+                                    // Lottie animation
+                                    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.android))
+                                    val progress by animateLottieCompositionAsState(
+                                        composition = composition,
+                                        iterations = LottieConstants.IterateForever
+                                    )
+
+                                    Box(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        LottieAnimation(
+                                            composition = composition,
+                                            progress = progress,
+                                            modifier = Modifier.size(120.dp)
+                                        )
+                                    }
                                 }
                             }
 
-                            // Changelog content
+                            // Changelog content with bottom spacing
                             Column(
-                                modifier = Modifier.padding(16.dp)
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .padding(bottom = 16.dp) // Additional bottom padding
                             ) {
                                 if (uiState.error != null && cachedChangelog.value != null) {
                                     Text(
@@ -195,7 +223,6 @@ fun ChangelogScreen(
         }
     }
 }
-
 @Composable
 private fun FormattedChangelogText(
     markdown: String,

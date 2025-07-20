@@ -8,6 +8,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -36,11 +37,19 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Coffee
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Money
+import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material.icons.filled.Paid
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -127,51 +136,15 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
-
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun HyperOSListItem(title: String, value: String, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .background(
-                MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation),
-                shape = MaterialTheme.shapes.medium
-            )
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = title,
-            style = TextStyle(
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-                fontSize = 16.sp
-            )
-        )
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = value,
-                style = TextStyle(
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontSize = 16.sp
-                )
-            )
-            Icon(
-                imageVector = Icons.Filled.ArrowForward,
-                contentDescription = "Go to details",
-                tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-                modifier = Modifier.size(20.dp)
-            )
-        }
-    }
-}
+import kotlin.io.inputStream
+import androidx.compose.ui.platform.LocalContext
+import com.music.vivi.support.DateUtils
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+
 fun AboutScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
@@ -179,17 +152,32 @@ fun AboutScreen(
     val uriHandler = LocalUriHandler.current
     var latestRelease by remember { mutableStateOf<String?>(null) }
     val isUpdateAvailable = remember { mutableStateOf(false) }
-    var showErrorBottomSheet by remember { mutableStateOf(false) }
-    var showErrorBottom1Sheet by remember { mutableStateOf(false) }
-    var showChangelog by remember { mutableStateOf(false) }
-    val changelogViewModel: ChangelogViewModel = viewModel()
-    var showDonationCardDialog by remember { mutableStateOf(false) }
-    var showDeveloperSheet by remember { mutableStateOf(false) }
-    var showWebsiteSheet by remember { mutableStateOf(false) }
-    var showGithubSheet by remember { mutableStateOf(false) }
     var buildVersionClickCount by remember { mutableStateOf(0) }
 
-    // --- LaunchedEffect for Build Version Clicks ---
+    // Version update date tracking
+    val context = LocalContext.current
+    var versionUpdateDate by remember { mutableStateOf<String?>(null) }
+    var isVersionUpdated by remember { mutableStateOf(false) }
+
+    // Get app install date
+    val installedDate = remember {
+        try {
+            val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+            val installTime = packageInfo.firstInstallTime
+            SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date(installTime))
+        } catch (e: Exception) {
+            "Unknown"
+        }
+    }
+
+    // Check for version update on screen load
+    LaunchedEffect(Unit) {
+        val (wasUpdated, updateDate) = DateUtils.checkAndStoreVersionUpdate(context, BuildConfig.VERSION_NAME)
+        isVersionUpdated = wasUpdated
+        versionUpdateDate = updateDate ?: DateUtils.getVersionUpdateDate(context)
+    }
+
+    // LaunchedEffect for Build Version Clicks
     LaunchedEffect(buildVersionClickCount) {
         if (buildVersionClickCount >= 5) {
             navController.navigate("settings/experimental")
@@ -197,7 +185,7 @@ fun AboutScreen(
         }
     }
 
-    // --- MAIN UPDATE CHECK LAUNCHEDEFFECT ---
+    // Update check LaunchedEffect
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
             try {
@@ -217,14 +205,13 @@ fun AboutScreen(
                             val ver = tag.removePrefix("v")
                             if (highestVersion == null || isNewerVersion(ver, highestVersion)) {
                                 highestVersion = ver
-                                highestTagName = tag // e.g. "v2.0.0"
+                                highestTagName = tag
                             }
                         }
                     }
                     if (highestVersion != null) {
-                        latestRelease = highestTagName // e.g. "v2.0.0"
-                        isUpdateAvailable.value =
-                            isNewerVersion(highestVersion, BuildConfig.VERSION_NAME)
+                        latestRelease = highestTagName
+                        isUpdateAvailable.value = isNewerVersion(highestVersion, BuildConfig.VERSION_NAME)
                     } else {
                         isUpdateAvailable.value = false
                         latestRelease = null
@@ -236,9 +223,6 @@ fun AboutScreen(
                 e.printStackTrace()
             }
         }
-        // Load changelog for the CURRENT app version
-        val currentAppVersionTag = "v${BuildConfig.VERSION_NAME}"
-        changelogViewModel.loadChangelog("vivizzz007", "vivi-music", currentAppVersionTag)
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -247,434 +231,574 @@ fun AboutScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
                 .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header Section - FIXED: Added proper touch event handling
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 80.dp, bottom = 16.dp)
-                    .pointerInput(Unit) {
-                        // Consume all touch events in the header to prevent interference
-                        awaitPointerEventScope {
-                            while (true) {
-                                val event = awaitPointerEvent()
-                                // Don't consume the event, just let it pass through
-                                // This prevents the AnimatedBrushText from blocking touches
-                            }
-                        }
-                    }
-            ) {
-                Spacer(modifier = Modifier.height(170.dp))
-
-                // FIXED: Wrap AnimatedBrushText with proper touch handling
-                Box(
-                    modifier = Modifier
-                        .wrapContentSize()
-                        .clip(RectangleShape) // Clip to exact bounds
-                ) {
-                    AnimatedBrushText(
-                        text = "VIVI MUSIC",
-                        baseStyle = TextStyle(
-                            fontSize = 36.sp,
-                            fontWeight = FontWeight.Bold
-                        ),
-                        modifier = Modifier
-                            .wrapContentSize() // Ensure it only takes the space it needs
-                            .clipToBounds() // Clip any overflow
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(25.dp))
-                Text(
-                    text = BuildConfig.VERSION_NAME,
-                    style = TextStyle(
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
-                    )
-                )
-                Spacer(modifier = Modifier.height(100.dp))
-
-                // --- SHOW UPDATE BUTTON AND LATEST TAG IF NEEDED ---
-                if (isUpdateAvailable.value && latestRelease != null) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Button(
-                            onClick = { navController.navigate("settings/update") },
-                            modifier = Modifier
-                                .fillMaxWidth(0.7f)
-                                .height(60.dp),
-                            contentPadding = PaddingValues(16.dp)
-                        ) {
-                            Text(
-                                text = "Update Now",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        }
-                    }
-                }
-            }
-
             Spacer(modifier = Modifier.height(100.dp))
 
-            // List Items - FIXED: Added explicit touch handling
-            Column(
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Main Update Status Card
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .pointerInput(Unit) {
-                        // Ensure touch events are properly handled in the list area
-                        awaitPointerEventScope {
-                            while (true) {
-                                awaitPointerEvent()
-                                // Let click events pass through normally
-                            }
-                        }
-                    }
+                    .height(if (isUpdateAvailable.value) 200.dp else 200.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isUpdateAvailable.value)
+                        MaterialTheme.colorScheme.errorContainer
+                    else
+                        MaterialTheme.colorScheme.primaryContainer
+                ),
+                shape = RoundedCornerShape(20.dp),
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                )
             ) {
-                HyperOSListItem(
-                    title = "Developer",
-                    value = "VIVIDH P ASHOKAN",
-                    onClick = {
-                        Log.d("AboutScreen", "Developer clicked")
-                        showDeveloperSheet = true
-                    }
-                )
-                HyperOSListItem(
-                    title = "Build Version",
-                    value = "v${BuildConfig.VERSION_NAME}",
-                    onClick = {
-                        Log.d("AboutScreen", "Build Version clicked")
-                        buildVersionClickCount++
-                    }
-                )
-               //new changelog
-                HyperOSListItem(
-                    title = "Changelog",
-                    value = "CURRENT APP",
-                    onClick = {
-                        navController.navigate("settings/changelog")
-                    }
-                )
-
-                HyperOSListItem(
-                    title = "Donate",
-                    value = "SUPPORT APP",
-                    onClick = {
-                        Log.d("AboutScreen", "Donate clicked")
-                        showDonationCardDialog = true
-                    }
-                )
-                HyperOSListItem(
-                    title = "Website",
-                    value = "VIVI-MUSIC",
-                    onClick = {
-                        Log.d("AboutScreen", "Website clicked")
-                        showWebsiteSheet = true
-                    }
-                )
-                HyperOSListItem(
-                    title = "Github",
-                    value = "VIVI-MUSIC",
-                    onClick = {
-                        Log.d("AboutScreen", "Github clicked - showGithubSheet = $showGithubSheet")
-                        showGithubSheet = true
-                        Log.d("AboutScreen", "Github clicked - showGithubSheet set to $showGithubSheet")
-                    }
-                )
-            }
-        }
-
-        // Changelog Bottom Sheet
-        if (showChangelog) {
-            ModalBottomSheet(
-                onDismissRequest = { showChangelog = false },
-                sheetState = rememberModalBottomSheetState(),
-                containerColor = MaterialTheme.colorScheme.surface,
-            ) {
-                Column(
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .fillMaxSize()
+                        .padding(24.dp),
+                    contentAlignment = if (isUpdateAvailable.value) Alignment.TopCenter else Alignment.Center
                 ) {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        ),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                    ) {
+                    if (isUpdateAvailable.value) {
                         Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.fillMaxSize()
                         ) {
                             Text(
-                                text = "CHANGELOG FOR  ${BuildConfig.VERSION_NAME}",
-                                style = MaterialTheme.typography.titleLarge,
+                                text = "VIVI MUSIC",
+                                style = MaterialTheme.typography.displaySmall,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
-                            Box(
+                            Text(
+                                text = "Update ${latestRelease ?: ""} available",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f)
+                            )
+
+                            Spacer(modifier = Modifier.height(30.dp))
+
+                            Button(
+                                onClick = { navController.navigate("settings/update") },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .heightIn(
-                                        min = 150.dp,
-                                        max = 350.dp
-                                    )
-                                    .verticalScroll(rememberScrollState())
+                                    .height(50.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.error,
+                                    contentColor = MaterialTheme.colorScheme.onError
+                                ),
+                                shape = RoundedCornerShape(12.dp)
                             ) {
-                                AutoChangelogCard(
-                                    viewModel = changelogViewModel,
-                                    repoOwner = "vivizzz007",
-                                    repoName = "vivi-music"
+
+                                Text(
+                                    text = "Update Now",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
                         }
+                    } else {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "VIVI MUSIC",
+                                style = MaterialTheme.typography.displaySmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+
+                            Spacer(modifier = Modifier.height(10.dp))
+
+                            Text(
+                                text = "Stable",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                            )
+                        }
                     }
-                    Spacer(Modifier.height(16.dp))
                 }
             }
-        }
 
-        // Donation Options Bottom Sheet
-        if (showDonationCardDialog) {
-            ModalBottomSheet(
-                onDismissRequest = { showDonationCardDialog = false },
-                sheetState = rememberModalBottomSheetState(),
-                containerColor = MaterialTheme.colorScheme.surface,
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Developer Card - moved here
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(80.dp)
+                    .clickable {
+                        uriHandler.openUri("https://github.com/vivizzz007")
+                    },
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                ),
+                shape = RoundedCornerShape(16.dp),
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                )
             ) {
-                Column(
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.CenterStart
                 ) {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 12.dp, bottom = 8.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.love))
-                        LottieAnimation(
-                            composition = composition,
-                            iterations = LottieConstants.IterateForever,
-                            modifier = Modifier.size(48.dp)
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
+                        Column {
                             Text(
-                                text = "SUPPORT VIVI MUSIC",
+                                text = "Developer",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "VIVIDH P ASHOKAN",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Filled.Person,
+                            contentDescription = "Developer",
+                            modifier = Modifier.size(24.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // First Row - App Version and Installed Date
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // App Version Card
+                Card(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(140.dp)
+                        .clickable { buildVersionClickCount++ },
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                    )
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.vivimusic),
+                                contentDescription = "App Version",
+                                modifier = Modifier.size(55.dp),
+                                tint = Color.Unspecified
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "App version",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = BuildConfig.VERSION_NAME,
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
-                            Spacer(modifier = Modifier.height(4.dp))
+                        }
+                    }
+                }
+
+                // Installed Date Card
+                Card(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(140.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                    )
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.androidvivi),
+                                contentDescription = "Installed Date",
+                                modifier = Modifier.size(48.dp),
+                                tint = Color.Unspecified
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "Help us keep the music playing and improve the app!",
+                                text = "App Installed",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = installedDate,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "Choose Your Way to Support",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    DonationOptionItem(
-                        icon = Icons.Filled.Paid,
-                        title = "PayPal",
-                        description = "Make a secure one-time donation.",
-                        onClick = {
-                            showDonationCardDialog = false
-                            showErrorBottom1Sheet = true
-                        }
-                    )
-                    DonationOptionItem(
-                        icon = Icons.Filled.Coffee,
-                        title = "Buy Me a Coffee",
-                        description = "Support with a virtual coffee.",
-                        onClick = {
-                            showErrorBottomSheet = true
-                            showDonationCardDialog = false
-                        }
-                    )
-                    DonationOptionItem(
-                        icon = Icons.Filled.Money,
-                        title = "Google Pay (GPay)",
-                        description = "Direct support via UPI (India).",
-                        onClick = {
-                            val upiUri = "upi://pay?pa=vividhpashokan@axl&pn=Vivi%20Music&cu=INR"
-                            uriHandler.openUri(upiUri)
-                            showDonationCardDialog = false
-                        }
-                    )
-                    Spacer(Modifier.height(16.dp))
                 }
             }
-        }
 
-        // Github Details Bottom Sheet - FIXED: Added logging and proper state handling
-        if (showGithubSheet) {
-            Log.d("AboutScreen", "Rendering Github bottom sheet")
-            ModalBottomSheet(
-                onDismissRequest = {
-                    Log.d("AboutScreen", "Github sheet dismissed")
-                    showGithubSheet = false
-                },
-                sheetState = rememberModalBottomSheetState(),
-                containerColor = MaterialTheme.colorScheme.surface,
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Second Row - Developer Info and Website
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                GithubDetailsSheet(
-                    githubRepoUrl = "https://github.com/vivizzz007/vivi-music",
-                    onClose = {
-                        Log.d("AboutScreen", "Github sheet closed")
-                        showGithubSheet = false
+                // Changelog Card (moved here)
+                Card(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(100.dp)
+                        .clickable {
+                            navController.navigate("settings/changelog")
+                        },
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                    )
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Column {
+                            Text(
+                                text = "Changelog",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "CURRENT APP",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Filled.History,
+                            contentDescription = "Changelog",
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .size(24.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
-                )
-            }
-        }
+                }
 
-        // Website Details Bottom Sheet
-        if (showWebsiteSheet) {
-            ModalBottomSheet(
-                onDismissRequest = { showWebsiteSheet = false },
-                sheetState = rememberModalBottomSheetState(),
-                containerColor = MaterialTheme.colorScheme.surface,
-            ) {
-                WebsiteDetailsSheet(
-                    websiteUrl = "https://vivi-music-web-com.vercel.app/",
-                    onClose = { showWebsiteSheet = false }
-                )
-            }
-        }
 
-        if (showDeveloperSheet) {
-            ModalBottomSheet(
-                onDismissRequest = { showDeveloperSheet = false },
-                sheetState = rememberModalBottomSheetState(),
-                containerColor = MaterialTheme.colorScheme.surface,
-            ) {
-                DeveloperDetailsSheet(
-                    developerName = "VIVIDH P ASHOKAN",
-                    githubUrl = "https://github.com/vivizzz007",
-                    developerAvatarResId = R.drawable.dev,
-                    onClose = { showDeveloperSheet = false }
-                )
+                // Website Card
+                Card(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(100.dp)
+                        .clickable {
+                            uriHandler.openUri("https://vivi-music-web-com.vercel.app/")
+                        },
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                    )
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Column {
+                            Text(
+                                text = "Website",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "VIVI-MUSIC",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Filled.Language,
+                            contentDescription = "Website",
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .size(24.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
-        }
 
-        if (showErrorBottom1Sheet) {
-            ModalBottomSheet(
-                onDismissRequest = { showErrorBottom1Sheet = false },
-                sheetState = rememberModalBottomSheetState(),
-                containerColor = MaterialTheme.colorScheme.surface
-            ) {
-                Column(
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Version Update Date Card - moved here
+            if (versionUpdateDate != null) {
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .height(80.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isVersionUpdated)
+                            MaterialTheme.colorScheme.tertiaryContainer
+                        else
+                            MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                    )
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.ErrorOutline,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(48.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = "Not Available",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "PayPal is not supported at the moment. Please try another donation method.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Button(
-                        onClick = {
-                            showErrorBottom1Sheet = false
-                            showDonationCardDialog = true
-                        }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.CenterStart
                     ) {
-                        Text("Back")
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = if (isVersionUpdated) "Version Updated" else "Updated On",  //Current Version Since
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = versionUpdateDate!!,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                            Icon(
+                                imageVector = if (isVersionUpdated) Icons.Filled.NewReleases else Icons.Filled.Schedule,
+                                contentDescription = "Version Update Date",
+                                modifier = Modifier.size(24.dp),
+                                tint = if (isVersionUpdated)
+                                    MaterialTheme.colorScheme.tertiary
+                                else
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
-            }
-        }
 
-        if (showErrorBottomSheet) {
-            ModalBottomSheet(
-                onDismissRequest = { showErrorBottomSheet = false },
-                sheetState = rememberModalBottomSheetState(),
-                containerColor = MaterialTheme.colorScheme.surface
+//                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Fourth Row - Donate and GitHub Repository
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Column(
+                // Donate Card
+                Card(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .weight(1f)
+                        .height(100.dp)
+                        .clickable {
+                            navController.navigate("settings/support")
+                        },
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                    )
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.ErrorOutline,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(48.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = "Not Available",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "Buy Me a Coffee is currently unavailable in India. We'll support it soon.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Button(
-                        onClick = {
-                            showErrorBottomSheet = false
-                            showDonationCardDialog = true
-                        }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.CenterStart
                     ) {
-                        Text("Back")
+                        Column {
+                            Text(
+                                text = "Donate",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "SUPPORT APP",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Filled.Favorite,
+                            contentDescription = "Donate",
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .size(24.dp),
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+
+                // GitHub Repository Card
+                Card(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(100.dp)
+                        .clickable {
+                            uriHandler.openUri("https://github.com/vivizzz007/vivi-music")
+                        },
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                    )
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Column {
+                            Text(
+                                text = "GitHub",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "REPOSITORY",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        Icon(
+                            painter = painterResource(R.drawable.github_icon_about),
+                            contentDescription = "GitHub",
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .size(24.dp),
+                            tint = Color.Unspecified
+                        )
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Fifth Row - Report Issue (Full Width) - Placed below Donate and GitHub cards
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(80.dp)
+                    .clickable {
+                        navController.navigate("settings/report_issue")
+                    },
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                ),
+                shape = RoundedCornerShape(16.dp),
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                )
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = "Report Issue",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "BUGS & FEEDBACK",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Filled.BugReport,
+                            contentDescription = "Report Issue",
+                            modifier = Modifier.size(24.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
         }
 
+        // Top App Bar
         TopAppBar(
             title = { Text(stringResource(R.string.about)) },
             navigationIcon = {
@@ -693,523 +817,7 @@ fun AboutScreen(
         )
     }
 }
-
-// Version Comparison Helper
-
-// Changelog ViewModel - MODIFIED TO ACCEPT versionTag
-class ChangelogViewModel : ViewModel() {
-    private val _uiState = MutableStateFlow(ChangelogState())
-    val uiState: StateFlow<ChangelogState> = _uiState.asStateFlow()
-
-    // Modified to accept a specific versionTag
-    fun loadChangelog(repoOwner: String, repoName: String, versionTag: String) { // <--- ADDED versionTag PARAMETER
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
-
-            try {
-                // Pass the versionTag to the fetching function
-                val markdownContent = fetchReleaseMarkdown(repoOwner, repoName, versionTag) // <--- PASSING versionTag
-                _uiState.update {
-                    it.copy(
-                        changes = markdownContent,
-                        isLoading = false
-                    )
-                }
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        error = "Error loading changelog for $versionTag: ${e.message}. Tag not found or network issue. May be you are using beta version " // Improved error message
-                    )
-                }
-            }
-        }
-    }
-
-    // Modified to fetch a specific release by tag
-    private suspend fun fetchReleaseMarkdown(owner: String, repo: String, versionTag: String): String { // <--- ADDED versionTag PARAMETER
-        return withContext(Dispatchers.IO) {
-            val url = URL("https://api.github.com/repos/$owner/$repo/releases/tags/$versionTag") // <--- FETCHING BY SPECIFIC TAG
-            val connection = url.openConnection() as HttpURLConnection
-            connection.connectTimeout = 15000
-            connection.readTimeout = 15000
-            connection.setRequestProperty("Accept", "application/vnd.github.v3+json")
-
-            if (connection.responseCode != HttpURLConnection.HTTP_OK) {
-                // Throwing an IOException when the tag isn't found will be caught by the ViewModel
-                throw IOException("HTTP error: ${connection.responseCode}. Release tag '$versionTag' might not exist on GitHub.")
-            }
-
-            val response = connection.inputStream.bufferedReader().use { it.readText() }
-            val jsonObject = JSONObject(response)
-            jsonObject.optString("body", "")
-        }
-    }
-}
-
-// Changelog State
-data class ChangelogState(
-    val changes: String = "",
-    val isLoading: Boolean = true,
-    val error: String? = null
-)
-
-@Composable
-fun AutoChangelogCard(
-    viewModel: ChangelogViewModel,
-    repoOwner: String,
-    repoName: String
-) {
-    val uiState by viewModel.uiState.collectAsState()
-
-    ElevatedCard(
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-        )
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            when {
-                uiState.isLoading -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 16.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
-
-                uiState.error != null -> {
-                    Text(
-                        text = uiState.error!!,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-
-                uiState.changes.isEmpty() -> {
-                    Text("No changelog available or tag not found.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-
-                else -> {
-                    MarkdownText(
-                        markdown = uiState.changes,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }
-        }
-    }
-}
-
-// Markdown Text Renderer
-@Composable
-fun MarkdownText(markdown: String, modifier: Modifier = Modifier) {
-    val lines = markdown.lines()
-
-    Column(modifier = modifier) {
-        for (line in lines) {
-            val trimmedLine = line.trim()
-
-            when {
-                trimmedLine.startsWith("# ") -> {
-                    Text(
-                        text = trimmedLine.substring(2),
-                        style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                }
-                trimmedLine.startsWith("## ") -> {
-                    Text(
-                        text = trimmedLine.substring(3),
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(vertical = 6.dp)
-                    )
-                }
-                trimmedLine.startsWith("- ") || trimmedLine.startsWith("* ") -> {
-                    Row(modifier = Modifier.padding(vertical = 2.dp)) {
-                        Text("•", modifier = Modifier.padding(end = 8.dp))
-                        Text(
-                            text = trimmedLine.substring(2),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
-                trimmedLine.isNotEmpty() -> {
-                    Text(
-                        text = trimmedLine,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(vertical = 4.dp)
-                    )
-                }
-            }
-        }
-    }
-}
-
-
-
-
-@Composable
-fun DonationOptionItem(
-    icon: ImageVector,
-    title: String,
-    description: String,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 12.dp, horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = title,
-            modifier = Modifier.size(36.dp),
-            tint = MaterialTheme.colorScheme.primary
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-
-@Composable
-fun DeveloperDetailsSheet(
-    developerName: String,
-    githubUrl: String,
-    developerAvatarResId: Int, // Or imageUrl: String for network image
-    onClose: () -> Unit // Function to dismiss the sheet
-) {
-    val uriHandler = LocalUriHandler.current
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()), // Make content scrollable if it gets long
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Large Developer Image
-        Image(
-            painter = painterResource(id = developerAvatarResId),
-            contentDescription = "Developer Avatar",
-            modifier = Modifier
-                .size(120.dp) // Larger size for the bottom sheet
-                .clip(CircleShape)
-                .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape),
-            contentScale = ContentScale.Crop
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = developerName,
-            style = MaterialTheme.typography.headlineSmall, // Even larger for prominence
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // GitHub Link as a clickable Button
-        Button(
-            onClick = {
-                uriHandler.openUri("https://github.com/vivizzz007")
-                onClose() // Close sheet after opening link
-            },
-            modifier = Modifier
-                .fillMaxWidth(0.8f) // Make the button take 80% of the width
-                .height(56.dp), // Give it a decent height
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary // Use primary color for the button
-            ),
-            shape = RoundedCornerShape(12.dp) // Slightly rounded corners for the button
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.github_icon), // Use your GitHub icon
-                contentDescription = "GitHub",
-                modifier = Modifier.size(24.dp), // Adjust icon size within the button
-                tint = MaterialTheme.colorScheme.onPrimary // Icon color contrasts with button color
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                text = "Visit GitHub Profile", // Clearer button text
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onPrimary
-            )
-        }
-        Spacer(modifier = Modifier.height(8.dp)) // Space between button and the URL text
-
-
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Divider(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp))
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // About the Developer text
-        Text(
-            text = "About the Developer:",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.align(Alignment.Start)
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "Vividh is the creator and maintainer of Vivi Music. He is so passionate about open-source development and creating engaging music experiences. You can explore his projects on GitHub.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.height(32.dp)) // Add some bottom spacing
-    }
-}
-
-// NEW: WebsiteDetailsSheet Composable
-@Composable
-fun WebsiteDetailsSheet(
-    websiteUrl: String,
-    onClose: () -> Unit // Function to dismiss the sheet
-) {
-    val uriHandler = LocalUriHandler.current
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(modifier = Modifier.height(16.dp))
-
-        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.website)) // Replace with your Lottie JSON file
-        LottieAnimation(
-            composition = composition,
-            iterations = LottieConstants.IterateForever, // Loop the animation
-            modifier = Modifier.size(100.dp)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "VIVI MUSIC OFFICIAL WEBSITE",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Button to visit the website
-        Button(
-            onClick = {
-                uriHandler.openUri(websiteUrl)
-                onClose() // Close sheet after opening link
-            },
-            modifier = Modifier
-                .fillMaxWidth(0.8f)
-                .height(56.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary
-            ),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Language,
-                contentDescription = "Visit Website",
-                modifier = Modifier.size(24.dp),
-                tint = MaterialTheme.colorScheme.onPrimary
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                text = "Visit Website",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onPrimary
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Divider(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp))
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "About the Website:",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.align(Alignment.Start)
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "Explore more about Vivi Music, discover new features, listen online, and stay updated with the latest news directly on our official website.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-    }
-}
-
-
-
-@Composable
-fun GithubDetailsSheet(
-    githubRepoUrl: String,
-    onClose: () -> Unit // Function to dismiss the sheet
-) {
-    val uriHandler = LocalUriHandler.current
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Lottie Animation
-        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.githubanimation)) // Replace with your Lottie JSON file
-        LottieAnimation(
-            composition = composition,
-            iterations = LottieConstants.IterateForever, // Loop the animation
-            modifier = Modifier.size(100.dp)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "VIVI MUSIC GitHub Repository",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Button(
-            onClick = {
-                uriHandler.openUri(githubRepoUrl)
-                onClose()
-            },
-            modifier = Modifier
-                .fillMaxWidth(0.8f)
-                .height(56.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary
-            ),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Icon( // Using Icon for GitHub if it's a vector drawable and you want it tinted
-                painter = painterResource(id = R.drawable.github_icon),
-                contentDescription = "Visit GitHub Repository",
-                modifier = Modifier.size(24.dp),
-                tint = MaterialTheme.colorScheme.onPrimary // Apply tint if GitHub icon is monochrome
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                text = "Visit Repository",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onPrimary
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Divider(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp))
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "About the Repository:",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.align(Alignment.Start)
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "This is the official open-source repository for VIVI MUSIC. Here you can find the source code, report issues, contribute, and see the project's progress.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-    }
-}
-
-
-
-
-@Composable
-fun AnimatedBrushText(
-    text: String,
-    baseStyle: TextStyle,
-    modifier: Modifier = Modifier
-) {
-    val infiniteTransition = rememberInfiniteTransition(label = "brush_animation")
-
-    // Smooth left-to-right shimmer animation that covers full text width
-    val shimmerOffset by infiniteTransition.animateFloat(
-        initialValue = -800f,
-        targetValue = 800f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(3000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "shimmer_offset"
-    )
-
-    // Purple gradient colors only
-    val colors = listOf(
-        Color(0xFF4C1D95), // Dark Purple
-        Color(0xFF6B21A8), // Purple
-        Color(0xFF7C3AED), // Medium Purple
-        Color(0xFF8B5CF6), // Light Purple
-        Color(0xFFA855F7), // Lighter Purple
-        Color(0xFFD8B4FE), // Very Light Purple
-        Color(0xFFFFFFFF), // White (shimmer highlight)
-        Color(0xFFD8B4FE), // Very Light Purple
-        Color(0xFFA855F7), // Lighter Purple
-        Color(0xFF8B5CF6), // Light Purple
-        Color(0xFF7C3AED), // Medium Purple
-        Color(0xFF6B21A8), // Purple
-        Color(0xFF4C1D95)  // Dark Purple
-    )
-
-    Text(
-        text = text,
-        style = baseStyle.copy(
-            brush = Brush.linearGradient(
-                colors = colors,
-                start = Offset(shimmerOffset - 400f, 0f),
-                end = Offset(shimmerOffset + 400f, 0f)
-            )
-        ),
-        modifier = modifier
-    )
-}
-
-
+// Keep the version comparison function
 fun isNewerVersion(latestVersion: String, currentVersion: String): Boolean {
     val latestParts = latestVersion.split(".").map { it.toIntOrNull() ?: 0 }
     val currentParts = currentVersion.split(".").map { it.toIntOrNull() ?: 0 }
@@ -1222,3 +830,5 @@ fun isNewerVersion(latestVersion: String, currentVersion: String): Boolean {
     }
     return false
 }
+
+
