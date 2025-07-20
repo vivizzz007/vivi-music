@@ -125,6 +125,30 @@
     <string name="intent_supported_links_not_found">Couldn\'t find supported links settings, please configure them manually</string>
     <string name="set_first_lyrics_provider">Preferred lyrics provider</string>
 
+    //content
+    <string name="japanese">Romanize Japanese</string>
+    <string name="korean">Romanize Korean</string>
+<!--    <string name="romanize">Romanize</string>-->
+    <string name="enabled">ON</string>
+    <string name="disabled">OFF</string>
+
+    // appearence
+    <string name="theme_preferenece">Theme Preference</string>
+    //prefernce
+    <string name="dark_mode_auto">Auto</string>
+    <string name="dark_mode_light">Light</string>
+    <string name="dark_mode_dark">Dark</string>
+    //background and control
+    <string name="Back_ground">Background</string>
+    <string name="button">Button</string>
+    <string name="slider_style">Slider Style</string>
+    <string name="Swipe_Thumbnail">Swipe Thumb</string>
+    //lyrics setting
+    <string name="Lyrics_Settings">Lyrics Settings</string>
+
+
+
+
     <string name="audio_quality_max">Max (beta)</string>
     <string name="enable_similar_content">Enable similar content</string>
     <string name="similar_content_desc">Automatically add more similar songs when the end of the queue is reached</string>
@@ -170,5 +194,6 @@
     <plurals name="seconds">
         <item quantity="one">1 second</item>
         <item quantity="other">%d seconds</item>
+
     </plurals>
 </resources>

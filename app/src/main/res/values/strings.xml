@@ -314,12 +314,12 @@
     <string name="use_login_for_browse">Use login for browsing content</string>
     <string name="use_login_for_browse_desc">This can influence what content you see and for example shows premium-only albums if you are logged in with a Premium account</string>
     <string name="disable_screenshot">Disable screenshot</string>
-    <string name="disable_screenshot_desc">When this option is on, screenshots and the app\'s view in Recents are disabled.</string>
+    <string name="disable_screenshot_desc">screenshots view in Recents are disabled.</string>
     <string name="enable_lrclib">Enable LrcLib lyrics provider</string>
     <string name="enable_kugou">Enable KuGou lyrics provider</string>
     <string name="hide_explicit">Hide explicit content</string>
 
-    <string name="backup_restore">Backup and restore</string>
+    <string name="backup_restore">Backup/restore</string>
     <string name="action_backup">Backup</string>
     <string name="action_restore">Restore</string>
     <string name="imported_playlist">Imported playlist</string>
@@ -374,4 +374,12 @@
     <string name="like">like</string>
     <string name="downloaded">Downloaded</string>
     <string name="download">download</string>
+
+    //APPEARENCE
+    <string name="appearance_settings">Appearance Settings</string>
+    <string name="navigation">Navigation</string>
+
+    //import
+    <string name="import_option">Import Option</string>
+
 </resources>
