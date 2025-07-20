@@ -17,7 +17,7 @@ android {
         applicationId = "com.vivi.vivimusic"
         minSdk = 26
         targetSdk = 36
-        versionCode = 3
+        versionCode = 45
         versionName = "3.0.4"
 
         multiDexEnabled = true
