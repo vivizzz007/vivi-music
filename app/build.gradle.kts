@@ -18,7 +18,7 @@ android {
         minSdk = 26
         targetSdk = 36
         versionCode = 45
-        versionName = "3.0.4"
+        versionName = "3.0.3"
 
         multiDexEnabled = true
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -39,6 +39,24 @@ android {
             ndk { abiFilters += "arm64-v8a" }
             buildConfigField("String", "ARCHITECTURE", "\"arm64\"")
         }
+
+        // FOSS variants - explicitly named for F-Droid
+        create("foss") {
+            dimension = "variant"
+            ndk {
+                abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+            }
+            buildConfigField("String", "ARCHITECTURE", "\"universal\"")
+            buildConfigField("String", "BUILD_TYPE", "\"foss\"")
+            // Remove proprietary features/dependencies if needed
+        }
+        create("fossArm64") {
+            dimension = "variant"
+            ndk { abiFilters += "arm64-v8a" }
+            buildConfigField("String", "ARCHITECTURE", "\"arm64\"")
+            buildConfigField("String", "BUILD_TYPE", "\"foss\"")
+        }
+
         create("armeabi") {
             dimension = "abi"
             ndk { abiFilters += "armeabi-v7a" }
@@ -231,7 +249,7 @@ dependencies {
 
     implementation ("androidx.media3:media3-exoplayer:1.2.1")
     implementation ("androidx.navigation:navigation-compose:2.7.6")
-    implementation ("com.journeyapps:zxing-android-embedded:4.3.0")
+
     implementation ("io.coil-kt:coil-compose:2.4.0")
     implementation ("com.airbnb.android:lottie-compose:6.1.0") // For Lottie animations
     implementation ("androidx.hilt:hilt-navigation-compose:1.2.0") // For Hilt with Compose
@@ -243,32 +261,25 @@ dependencies {
     // If you're using Compose
     implementation("androidx.compose.ui:ui:1.5.4")
     implementation("androidx.compose.material3:material3:1.1.2")
-    implementation ("com.journeyapps:zxing-android-embedded:4.3.0")
+
 
     implementation ("com.google.zxing:core:3.5.2")
     implementation ("androidx.compose.ui:ui:1.6.0")
     implementation ("androidx.compose.foundation:foundation:1.6.0")
     implementation ("androidx.compose.material:material:1.6.0")
     implementation ("com.google.zxing:core:3.5.3")
-    implementation ("com.journeyapps:zxing-android-embedded:4.3.0")
-    implementation ("com.journeyapps:zxing-android-embedded:4.3.0")
     implementation ("androidx.appcompat:appcompat:1.6.1")
     implementation("io.coil-kt:coil:2.6.0")
 
     implementation("com.google.accompanist:accompanist-flowlayout:0.30.1")
     // For Android Settings
-
     implementation ("androidx.compose.ui:ui:1.5.4")
     implementation ("androidx.compose.ui:ui-unit:1.5.4")
 // Or the latest version compatible with your setup
-
-
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     implementation("androidx.compose.material:material-icons-extended")
-
-
 }
 
 
