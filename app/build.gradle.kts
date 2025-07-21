@@ -18,15 +18,18 @@ android {
         minSdk = 26
         targetSdk = 36
         versionCode = 45
-        versionName = "3.0.3"
+        versionName = "3.0.5"
 
         multiDexEnabled = true
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
 
-    flavorDimensions += "abi"
+    // Two-dimensional flavor system as suggested by IzzySoft
+    flavorDimensions += listOf("abi", "distribution")
+
     productFlavors {
+        // ABI Dimension (Architecture)
         create("universal") {
             dimension = "abi"
             ndk {
@@ -39,24 +42,6 @@ android {
             ndk { abiFilters += "arm64-v8a" }
             buildConfigField("String", "ARCHITECTURE", "\"arm64\"")
         }
-
-        // FOSS variants - explicitly named for F-Droid
-        create("foss") {
-            dimension = "variant"
-            ndk {
-                abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
-            }
-            buildConfigField("String", "ARCHITECTURE", "\"universal\"")
-            buildConfigField("String", "BUILD_TYPE", "\"foss\"")
-            // Remove proprietary features/dependencies if needed
-        }
-        create("fossArm64") {
-            dimension = "variant"
-            ndk { abiFilters += "arm64-v8a" }
-            buildConfigField("String", "ARCHITECTURE", "\"arm64\"")
-            buildConfigField("String", "BUILD_TYPE", "\"foss\"")
-        }
-
         create("armeabi") {
             dimension = "abi"
             ndk { abiFilters += "armeabi-v7a" }
@@ -71,6 +56,19 @@ android {
             dimension = "abi"
             ndk { abiFilters += "x86_64" }
             buildConfigField("String", "ARCHITECTURE", "\"x86_64\"")
+        }
+
+        // Distribution Dimension (Build Type)
+        create("foss") {
+            dimension = "distribution"
+            buildConfigField("String", "BUILD_TYPE", "\"foss\"")
+            // FOSS-specific configuration
+            // Remove proprietary features/dependencies if needed
+        }
+        create("standard") {
+            dimension = "distribution"
+            buildConfigField("String", "BUILD_TYPE", "\"standard\"")
+            // Standard configuration with all features
         }
     }
 
@@ -208,6 +206,9 @@ dependencies {
 
     implementation(libs.timber)
 
+    // Flavor-specific dependencies (if needed)
+    // "fossImplementation"("some.foss:library:1.0")
+    // "standardImplementation"("some.proprietary:library:1.0")
 
     // For JSON parsing
     implementation("com.google.code.gson:gson:2.10.1")
@@ -262,7 +263,6 @@ dependencies {
     implementation("androidx.compose.ui:ui:1.5.4")
     implementation("androidx.compose.material3:material3:1.1.2")
 
-
     implementation ("com.google.zxing:core:3.5.2")
     implementation ("androidx.compose.ui:ui:1.6.0")
     implementation ("androidx.compose.foundation:foundation:1.6.0")
@@ -281,7 +281,3 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     implementation("androidx.compose.material:material-icons-extended")
 }
-
-
-
-
