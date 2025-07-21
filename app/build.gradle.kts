@@ -17,15 +17,15 @@ android {
         applicationId = "com.vivi.vivimusic"
         minSdk = 26
         targetSdk = 36
-        versionCode = 45
-        versionName = "3.0.5"
+        versionCode = 4
+        versionName = "3.0.6"
 
         multiDexEnabled = true
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
 
-    // Two-dimensional flavor system as suggested by IzzySoft
+    // Two-dimensional flavor system as suggested
     flavorDimensions += listOf("abi", "distribution")
 
     productFlavors {
