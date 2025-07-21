@@ -47,6 +47,7 @@ import java.time.format.DateTimeFormatter
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Tune
 import kotlinx.coroutines.CoroutineScope
@@ -62,7 +63,12 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.GetApp
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.NewReleases
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Warning
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -371,6 +377,9 @@ fun UpdateScreen(navController: NavHostController) {
                     Spacer(modifier = Modifier.height(20.dp))
 
                     // Status information
+                    // Replace the existing status information section with this enhanced version:
+
+// Status information
                     if (updateAvailable) {
                         Text(
                             text = "New Update Available!",
@@ -402,7 +411,83 @@ fun UpdateScreen(navController: NavHostController) {
                                 fontSize = 14.sp
                             )
                         }
+
+                        // Show offline changelog option when not checking for updates and no update available
+                        if (!isChecking && !fetchError) {
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            // Current Version Changelog Card
+
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        navController.navigate("settings/changelog")
+                                    }
+                                    .padding(bottom = 20.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                ),
+                                shape = RoundedCornerShape(16.dp),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(20.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        Surface(
+                                            modifier = Modifier.size(40.dp),
+                                            shape = CircleShape,
+                                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                                        ) {
+                                            Box(
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.History,
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.primary,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            }
+                                        }
+
+                                        Column {
+                                            Text(
+                                                text = "Current Version Changelog",
+                                                style = MaterialTheme.typography.titleMedium,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                            Text(
+                                                text = "View changelog for v$currentVersion",
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                                            )
+                                        }
+                                    }
+
+                                    Icon(
+                                        imageVector = Icons.Default.ArrowForward,
+                                        contentDescription = "View current changelog",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+                        }
                     }
+
+                    // Replace the existing "What's new" section in the main content area with this:
 
                     AnimatedVisibility(visible = updateAvailable && isDownloading && !isDownloadComplete) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -440,55 +525,130 @@ fun UpdateScreen(navController: NavHostController) {
                     Spacer(modifier = Modifier.height(35.dp))
 
                     if (!showUpdateDetails && updateAvailable) {
-                        Box(
+                        // Modern "What's new" clickable card
+                        Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable { showUpdateDetails = true }
-                        )
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
+                                .padding(bottom = 20.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            ),
+                            shape = RoundedCornerShape(16.dp),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                         ) {
-                            Text(
-                                text = "What's new",
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontSize = 16.sp,
-                            )
-                            Icon(
-                                imageVector = Icons.Default.ArrowBack,
-                                contentDescription = "What's new",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            Row(
                                 modifier = Modifier
-                                    .size(20.dp)
-                                    .rotate(180f)
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(35.dp))
+                                    .fillMaxWidth()
+                                    .padding(20.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    Surface(
+                                        modifier = Modifier.size(40.dp),
+                                        shape = CircleShape,
+                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                                    ) {
+                                        Box(
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.NewReleases,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.size(22.dp)
+                                            )
+                                        }
+                                    }
 
+                                    Column {
+                                        Text(
+                                            text = "What's New",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = "See new features & improvements",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                                        )
+                                    }
+                                }
+
+                                Icon(
+                                    imageVector = Icons.Default.ArrowForward,
+                                    contentDescription = "View changelog",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+
+                        // Enhanced Warning Card
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(bottom = 16.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.errorContainer,
+                                containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.9f),
                                 contentColor = MaterialTheme.colorScheme.onErrorContainer
                             ),
-                            shape = RoundedCornerShape(8.dp)
+                            shape = RoundedCornerShape(16.dp),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
                         ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text(
-                                    text = "Important! ⚠",
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "Please do not press the back button during the download or installation process. Doing so may interrupt the update and could lead to unexpected issues.",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(20.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                verticalAlignment = Alignment.Top
+                            ) {
+                                Surface(
+                                    modifier = Modifier.size(32.dp),
+                                    shape = CircleShape,
+                                    color = MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
+                                ) {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Warning,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.error,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                }
+
+                                Column {
+                                    Text(
+                                        text = "Important Notice",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onErrorContainer
+                                    )
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Text(
+                                        text = "Please do not press the back button during the download or installation process. Doing so may interrupt the update and could lead to unexpected issues.",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.9f),
+                                        lineHeight = 20.sp
+                                    )
+                                }
                             }
                         }
                         Spacer(modifier = Modifier.height(24.dp))
                     }
+
+                    // Replace the existing changelog section with this modern implementation
 
                     AnimatedVisibility(
                         visibleState = changelogVisibility,
@@ -501,98 +661,222 @@ fun UpdateScreen(navController: NavHostController) {
                             targetOffsetY = { it }
                         ) + fadeOut(animationSpec = tween(durationMillis = 200))
                     ) {
-                        Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
-                            Text(
-                                text = "Vivi Music $updateMessageVersion",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                textAlign = TextAlign.Start
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "Size: $appSize MB",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Start,
-                                modifier = Modifier.padding(bottom = 16.dp)
-                            )
-
-                            Text(
-                                text = "What's New",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                textAlign = TextAlign.Start,
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-
-                            val linkColor = MaterialTheme.colorScheme.primary
-                            val linkStyle = SpanStyle(
-                                color = linkColor,
-                                textDecoration = TextDecoration.Underline
-                            )
-
-                            val annotatedText = buildAnnotatedString {
-                                val lines = changelog.split("\n")
-                                lines.forEach { line ->
-                                    if (line.isNotBlank()) {
-                                        append("• ")
-
-                                        val urlRegex = Regex("""https?://[^\s]+""")
-                                        val matchResults = urlRegex.findAll(line)
-                                        var lastIndex = 0
-
-                                        if (matchResults.none()) {
-                                            append(line.trim())
-                                        } else {
-                                            matchResults.forEach { match ->
-                                                if (match.range.first > lastIndex) {
-                                                    append(line.substring(lastIndex, match.range.first))
-                                                }
-
-                                                val url = match.value
-                                                pushStringAnnotation(
-                                                    tag = "URL",
-                                                    annotation = url
+                        Column(
+                            horizontalAlignment = Alignment.Start,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            // Version Header Card
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 24.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
+                                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                ),
+                                shape = RoundedCornerShape(16.dp),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(20.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column {
+                                        Text(
+                                            text = "Version $updateMessageVersion",
+                                            style = MaterialTheme.typography.titleLarge,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.GetApp,
+                                                contentDescription = "Download size",
+                                                tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                            Text(
+                                                text = "$appSize MB",
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                            )
+                                            if (releaseDate.isNotEmpty()) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Schedule,
+                                                    contentDescription = "Release date",
+                                                    tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                                                    modifier = Modifier.size(16.dp)
                                                 )
-                                                withStyle(style = linkStyle) {
-                                                    append(url)
-                                                }
-                                                pop()
-
-                                                lastIndex = match.range.last + 1
-                                            }
-
-                                            if (lastIndex < line.length) {
-                                                append(line.substring(lastIndex))
+                                                Text(
+                                                    text = releaseDate,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                                )
                                             }
                                         }
+                                    }
 
-                                        append("\n\n")
+                                    // Version badge
+                                    Surface(
+                                        modifier = Modifier
+                                            .background(
+                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                                                RoundedCornerShape(12.dp)
+                                            )
+                                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                                        color = Color.Transparent
+                                    ) {
+                                        Text(
+                                            text = "NEW",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            letterSpacing = 1.sp
+                                        )
                                     }
                                 }
                             }
 
-                            ClickableText(
-                                text = annotatedText,
-                                onClick = { offset ->
-                                    annotatedText.getStringAnnotations(
-                                        tag = "URL",
-                                        start = offset,
-                                        end = offset
-                                    ).firstOrNull()?.let { annotation ->
-                                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(annotation.item))
-                                        ContextCompat.startActivity(context, intent, null)
-                                    }
-                                },
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    lineHeight = 20.sp
-                                ),
+                            // What's New Section
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier.padding(bottom = 16.dp)
-                            )
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.NewReleases,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "What's New",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
 
-                            Spacer(modifier = Modifier.height(24.dp))
+                            // Enhanced Changelog Display
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                ),
+                                shape = RoundedCornerShape(12.dp),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(20.dp)
+                                ) {
+                                    val linkColor = MaterialTheme.colorScheme.primary
+                                    val linkStyle = SpanStyle(
+                                        color = linkColor,
+                                        textDecoration = TextDecoration.Underline,
+                                        fontWeight = FontWeight.Medium
+                                    )
+
+                                    val changelogItems = changelog.split("\n").filter { it.isNotBlank() }
+
+                                    changelogItems.forEachIndexed { index, item ->
+                                        val trimmedItem = item.trim()
+                                        if (trimmedItem.isNotEmpty()) {
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(vertical = 8.dp),
+                                                verticalAlignment = Alignment.Top
+                                            ) {
+                                                // Modern bullet point
+                                                Surface(
+                                                    modifier = Modifier
+                                                        .size(8.dp)
+                                                        .offset(y = 6.dp),
+                                                    shape = CircleShape,
+                                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                                                ) {}
+
+                                                Spacer(modifier = Modifier.width(16.dp))
+
+                                                // Enhanced text with better formatting
+                                                val annotatedText = buildAnnotatedString {
+                                                    val urlRegex = Regex("""https?://[^\s]+""")
+                                                    val matchResults = urlRegex.findAll(trimmedItem)
+                                                    var lastIndex = 0
+
+                                                    if (matchResults.none()) {
+                                                        append(trimmedItem)
+                                                    } else {
+                                                        matchResults.forEach { match ->
+                                                            if (match.range.first > lastIndex) {
+                                                                append(trimmedItem.substring(lastIndex, match.range.first))
+                                                            }
+
+                                                            val url = match.value
+                                                            pushStringAnnotation(
+                                                                tag = "URL",
+                                                                annotation = url
+                                                            )
+                                                            withStyle(style = linkStyle) {
+                                                                append(url)
+                                                            }
+                                                            pop()
+
+                                                            lastIndex = match.range.last + 1
+                                                        }
+
+                                                        if (lastIndex < trimmedItem.length) {
+                                                            append(trimmedItem.substring(lastIndex))
+                                                        }
+                                                    }
+                                                }
+
+                                                ClickableText(
+                                                    text = annotatedText,
+                                                    onClick = { offset ->
+                                                        annotatedText.getStringAnnotations(
+                                                            tag = "URL",
+                                                            start = offset,
+                                                            end = offset
+                                                        ).firstOrNull()?.let { annotation ->
+                                                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(annotation.item))
+                                                            ContextCompat.startActivity(context, intent, null)
+                                                        }
+                                                    },
+                                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                        lineHeight = 22.sp,
+                                                        letterSpacing = 0.1.sp
+                                                    ),
+                                                    modifier = Modifier.weight(1f)
+                                                )
+                                            }
+
+                                            // Add subtle divider between items (except for the last one)
+                                            if (index < changelogItems.size - 1) {
+                                                Spacer(modifier = Modifier.height(4.dp))
+                                                Divider(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth(0.8f)
+                                                        .padding(start = 24.dp),
+                                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                                                    thickness = 0.5.dp
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(32.dp))
                         }
                     }
 
