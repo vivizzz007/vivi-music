@@ -105,10 +105,13 @@ import androidx.navigation.NavController
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.music.vivi.Audioquality.getAudioQualityText
 import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalDownloadUtil
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
+import com.music.vivi.constants.AudioQuality
+import com.music.vivi.constants.AudioQualityKey
 import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PlayerBackgroundStyleKey
@@ -225,6 +228,14 @@ fun BottomSheetPlayer(
     var changeColor by remember {
         mutableStateOf(false)
     }
+
+    //audio quality
+
+    val audioQuality by rememberEnumPreference(
+        AudioQualityKey,
+        defaultValue = AudioQuality.AUTO
+    )
+
 
     if (!canSkipNext && automix.isNotEmpty()) {
         playerConnection.service.addToQueueAutomix(automix[0], 0)
@@ -876,7 +887,33 @@ fun BottomSheetPlayer(
                 )
             }
 
-            Spacer(Modifier.height(12.dp))
+
+
+            Spacer(Modifier.height(1.dp))
+
+            // Audio Quality Display Box
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .background(
+                            color = textButtonColor.copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(16.dp)
+                        )
+                        .padding(horizontal = 12.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = getAudioQualityText(audioQuality),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = TextBackgroundColor.copy(alpha = 0.7f),
+                        fontSize = 11.sp
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(29.dp))
 
             BoxWithConstraints(
                 modifier = Modifier.fillMaxWidth()
