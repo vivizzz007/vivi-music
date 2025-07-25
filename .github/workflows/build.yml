@@ -27,23 +27,23 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
-      
+
       - name: Set Up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-cleanup: on-success
-          
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - - name: Build Release APK
-      - run: ./gradlew assemble${{ matrix.abi }}StandardRelease
+      - name: Build Release APK
+        run: ./gradlew assemble${{ matrix.abi }}StandardRelease
         env:
           PULL_REQUEST: 'false'
           GITHUB_EVENT_NAME: ${{ github.event_name }}
@@ -57,12 +57,12 @@ jobs:
           keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
           buildToolsVersion: 35.0.0
-      
+
       - name: Move signed APK
         run: |
           mkdir -p app/build/outputs/apk/${{ matrix.abi }}/release/out
           find app/build/outputs/apk/${{ matrix.abi }}/release/ -name "*-signed.apk" -o -name "*-unsigned-signed.apk" | xargs -I{} mv {} app/build/outputs/apk/${{ matrix.abi }}/release/out/app-${{ matrix.abi }}-release.apk
-  
+
       - name: Upload Signed APK
         uses: actions/upload-artifact@v4
         with:
@@ -81,12 +81,12 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-          
+
       - name: Set Up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-cleanup: on-success
-          
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
