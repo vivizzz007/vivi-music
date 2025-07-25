@@ -17,6 +17,8 @@ val GridItemsSizeKey = stringPreferencesKey("gridItemSize")
 val SliderStyleKey = stringPreferencesKey("sliderStyle")
 val SwipeToSongKey = booleanPreferencesKey("SwipeToSong")
 
+val CrossfadeDurationKey = intPreferencesKey("crossfade_duration")
+
 enum class SliderStyle {
     DEFAULT,
     SQUIGGLY,

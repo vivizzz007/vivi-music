@@ -112,6 +112,7 @@ import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.AudioQuality
 import com.music.vivi.constants.AudioQualityKey
+import com.music.vivi.constants.CrossfadeDurationKey
 import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PlayerBackgroundStyleKey
@@ -162,6 +163,7 @@ fun BottomSheetPlayer(
     val playerConnection = LocalPlayerConnection.current ?: return
 
     //CHANGED TO BLUR
+
 
     val playerBackground by rememberEnumPreference(
         key = PlayerBackgroundStyleKey,
@@ -913,7 +915,7 @@ fun BottomSheetPlayer(
                 }
             }
 
-            Spacer(Modifier.height(29.dp))
+            Spacer(Modifier.height(28.dp))
 
             BoxWithConstraints(
                 modifier = Modifier.fillMaxWidth()

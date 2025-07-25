@@ -65,6 +65,7 @@ import com.music.vivi.constants.AudioQualityKey
 import com.music.vivi.constants.AutoLoadMoreKey
 import com.music.vivi.constants.AutoDownloadOnLikeKey
 import com.music.vivi.constants.AutoSkipNextOnErrorKey
+import com.music.vivi.constants.CrossfadeDurationKey
 import com.music.vivi.constants.DiscordTokenKey
 import com.music.vivi.constants.EnableDiscordRPCKey
 import com.music.vivi.constants.HideExplicitKey
@@ -118,7 +119,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.NonCancellable
+//import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -142,13 +144,19 @@ import javax.inject.Inject
 import kotlin.math.min
 import kotlin.math.pow
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.delay
+import kotlin.coroutines.cancellation.CancellationException
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.max
+import kotlinx.coroutines.isActive
+import kotlin.coroutines.coroutineContext
+
+//import kotlinx.coroutines.CancellationException
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @AndroidEntryPoint
-class MusicService :
-    MediaLibraryService(),
-    Player.Listener,
-    PlaybackStatsListener.Callback {
+class MusicService : MediaLibraryService(), Player.Listener, PlaybackStatsListener.Callback {
     @Inject
     lateinit var database: MusicDatabase
 
@@ -164,7 +172,7 @@ class MusicService :
     private lateinit var audioManager: AudioManager
     private var audioFocusRequest: AudioFocusRequest? = null
 
-    private var scope = CoroutineScope(Dispatchers.Main) + Job()
+    var scope = CoroutineScope(Dispatchers.Main) + Job()
     private val binder = MusicBinder()
 
     private lateinit var connectivityManager: ConnectivityManager
@@ -174,6 +182,15 @@ class MusicService :
         AudioQualityKey,
         com.music.vivi.constants.AudioQuality.AUTO
     )
+    ///crossfade
+    var crossfadeJob: Job? = null
+    var isPerformingCrossfade = false
+    private var nextTrackStartTime = 0L
+    private var nextTrackCrossfadeJob: Job? = null
+    // Keep your existing crossfadeDuration property
+    private val crossfadeDuration by lazy {
+        dataStore.get(CrossfadeDurationKey, 3000) // 3 seconds default
+    }
 
     private var currentQueue: Queue = EmptyQueue
     var queueTitle: String? = null
@@ -287,9 +304,12 @@ class MusicService :
         }
 
         playerVolume.debounce(1000).collect(scope) { volume ->
-            dataStore.edit { settings ->
-                settings[PlayerVolumeKey] = volume
-            }
+            dataStore.data
+                .map { it[CrossfadeDurationKey] ?: 3000 }
+                .distinctUntilChanged()
+                .collectLatest(scope) { duration ->
+                    // Crossfade duration updated
+                }
         }
 
         currentSong.debounce(1000).collect(scope) { song ->
@@ -372,12 +392,12 @@ class MusicService :
             }.onSuccess { queue ->
                 playQueue(
                     queue =
-                    ListQueue(
-                        title = queue.title,
-                        items = queue.items.map { it.toMediaItem() },
-                        startIndex = queue.mediaItemIndex,
-                        position = queue.position,
-                    ),
+                        ListQueue(
+                            title = queue.title,
+                            items = queue.items.map { it.toMediaItem() },
+                            startIndex = queue.mediaItemIndex,
+                            position = queue.position,
+                        ),
                     playWhenReady = false,
                 )
             }
@@ -458,6 +478,8 @@ class MusicService :
             ),
         )
     }
+
+
 
     private suspend fun recoverSong(
         mediaId: String,
@@ -649,30 +671,30 @@ class MusicService :
     }
 
     fun toggleLike() {
-         database.query {
-             currentSong.value?.let {
-                 val song = it.song.toggleLike()
-                 update(song)
-                 syncUtils.likeSong(song)
+        database.query {
+            currentSong.value?.let {
+                val song = it.song.toggleLike()
+                update(song)
+                syncUtils.likeSong(song)
 
-                 // Check if auto-download on like is enabled and the song is now liked
-                 if (dataStore.get(AutoDownloadOnLikeKey, false) && song.liked) {
-                     // Trigger download for the liked song
-                     val downloadRequest = androidx.media3.exoplayer.offline.DownloadRequest
-                         .Builder(song.id, song.id.toUri())
-                         .setCustomCacheKey(song.id)
-                         .setData(song.title.toByteArray())
-                         .build()
-                     androidx.media3.exoplayer.offline.DownloadService.sendAddDownload(
-                         this@MusicService,
-                         ExoDownloadService::class.java,
-                         downloadRequest,
-                         false
-                     )
-                 }
-             }
-         }
-     }
+                // Check if auto-download on like is enabled and the song is now liked
+                if (dataStore.get(AutoDownloadOnLikeKey, false) && song.liked) {
+                    // Trigger download for the liked song
+                    val downloadRequest = androidx.media3.exoplayer.offline.DownloadRequest
+                        .Builder(song.id, song.id.toUri())
+                        .setCustomCacheKey(song.id)
+                        .setData(song.title.toByteArray())
+                        .build()
+                    androidx.media3.exoplayer.offline.DownloadService.sendAddDownload(
+                        this@MusicService,
+                        ExoDownloadService::class.java,
+                        downloadRequest,
+                        false
+                    )
+                }
+            }
+        }
+    }
 
     fun toggleStartRadio() {
         startRadioSeamlessly()
@@ -701,25 +723,45 @@ class MusicService :
         )
     }
 
-    override fun onMediaItemTransition(
-        mediaItem: MediaItem?,
-        reason: Int,
-    ) {
-        // Auto load more songs
+    override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+        // ... existing code for auto-loading more items ...
+
         if (dataStore.get(AutoLoadMoreKey, true) &&
             reason != Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT &&
             player.mediaItemCount - player.currentMediaItemIndex <= 5 &&
             currentQueue.hasNextPage()
         ) {
             scope.launch(SilentHandler) {
-                val mediaItems =
-                    currentQueue.nextPage().filterExplicit(dataStore.get(HideExplicitKey, false))
+                val mediaItems = currentQueue.nextPage().filterExplicit(dataStore.get(HideExplicitKey, false))
                 if (player.playbackState != STATE_IDLE) {
                     player.addMediaItems(mediaItems.drop(1))
                 }
             }
         }
+
+        // Reset crossfade state on transitions
+        if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO ||
+            reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT) {
+            isPerformingCrossfade = false
+            // Don't immediately reset volume here - let crossfade handle it
+        }
+
+        when (reason) {
+            Player.MEDIA_ITEM_TRANSITION_REASON_AUTO -> {
+                if (crossfadeDuration > 0) {
+                    // Start monitoring for next crossfade
+                    startCrossfadeMonitoring()
+                }
+            }
+            Player.MEDIA_ITEM_TRANSITION_REASON_SEEK -> {
+                if (crossfadeDuration > 0) {
+                    fadeInNewTrack()
+                }
+            }
+        }
     }
+
+
 
     override fun onPlaybackStateChanged(
         @Player.State playbackState: Int,
@@ -756,15 +798,55 @@ class MusicService :
     override fun onIsPlayingChanged(isPlaying: Boolean) {
         super.onIsPlayingChanged(isPlaying)
 
-        // Track if user manually paused/played
         if (!isPlaying && player.playbackState != Player.STATE_IDLE) {
-            // Check if this pause was not caused by audio focus loss
+            // Cancel crossfade when paused
+            crossfadeJob?.cancel()
+            isPerformingCrossfade = false
+
             if (!wasPlayingBeforeFocusLoss) {
                 pausedByUser = true
             }
         } else if (isPlaying) {
             pausedByUser = false
             wasPlayingBeforeFocusLoss = false
+
+            // Restart crossfade monitoring if we have a next track
+            if (player.hasNextMediaItem() && crossfadeDuration > 0) {
+                startCrossfadeMonitoring() // Use new seamless monitoring
+            }
+
+            // Enhanced playback start
+            if (crossfadeDuration > 0) {
+                handlePlaybackStart() // Use enhanced version
+            }
+        }
+    }
+    private fun handlePlaybackStart() {
+        if (isPerformingCrossfade) return
+
+        scope.launch {
+            try {
+                val targetVolume = playerVolume.value * normalizeFactor.value
+                val fadeSteps = 15
+                val stepDuration = 40L // 600ms total fade-in
+
+                player.volume = 0.2f // Start at audible but low volume
+
+                for (i in 0..fadeSteps) {
+                    if (!coroutineContext.isActive || !player.isPlaying) break
+
+                    val progress = i.toFloat() / fadeSteps
+                    val volume = 0.2f + (targetVolume - 0.2f) * progress.pow(0.8f)
+                    player.volume = volume.coerceAtMost(targetVolume)
+
+                    delay(stepDuration)
+                }
+
+                player.volume = targetVolume
+
+            } catch (e: Exception) {
+                player.volume = playerVolume.value * normalizeFactor.value
+            }
         }
     }
 
@@ -887,6 +969,160 @@ class MusicService :
         }
     }
 
+
+    //crossfade
+
+    fun startCrossfadeMonitoring() {
+        crossfadeJob?.cancel()
+        crossfadeJob = scope.launch {
+            while (coroutineContext.isActive && player.hasNextMediaItem() && player.isPlaying) {
+                val currentDuration = player.duration
+                val currentPosition = player.currentPosition
+
+                if (currentDuration > 0 && currentPosition > 0) {
+                    // Skip crossfade for very short tracks
+                    if (currentDuration < crossfadeDuration + 2000) {
+                        delay(100)
+                        continue
+                    }
+
+                    val timeRemaining = currentDuration - currentPosition
+
+                    // Start crossfade when we reach the crossfade duration before end
+                    if (timeRemaining <= crossfadeDuration) {
+                        performSmoothCrossfade()
+                        break
+                    }
+
+                    // Dynamic monitoring frequency based on proximity to crossfade point
+                    val checkInterval = when {
+                        timeRemaining < crossfadeDuration + 1000 -> 50L  // Close to crossfade
+                        timeRemaining < crossfadeDuration + 3000 -> 100L // Approaching
+                        else -> 500L // Far away
+                    }
+
+                    delay(checkInterval)
+                } else {
+                    delay(100)
+                }
+            }
+        }
+    }
+
+    private suspend fun performSmoothCrossfade() {
+        if (crossfadeDuration <= 0 || isPerformingCrossfade || !player.hasNextMediaItem()) return
+
+        isPerformingCrossfade = true
+        val originalVolume = playerVolume.value * normalizeFactor.value
+
+        try {
+            // Calculate fade parameters for smooth transition
+            val fadeSteps = (crossfadeDuration / 50).coerceIn(10, 50) // 50ms per step, 10-50 steps
+            val stepDuration = crossfadeDuration.toLong() / fadeSteps
+            val halfSteps = fadeSteps / 2
+
+            // Phase 1: Fade out current track (first half of crossfade duration)
+            for (step in 0 until halfSteps) {
+                if (!coroutineContext.isActive || !player.isPlaying) return
+
+                val progress = step.toFloat() / halfSteps
+                // Use exponential curve for natural fade out
+                val volume = originalVolume * (1f - progress).pow(2f)
+                player.volume = volume.coerceAtLeast(0.05f) // Avoid complete silence
+
+                delay(stepDuration)
+            }
+
+            // Phase 2: Quick transition at minimum audible volume
+            player.volume = 0.05f
+
+            // Store current position before transition
+            val transitionPosition = player.currentPosition
+
+            // Perform the track transition
+            player.seekToNext()
+
+            // Brief pause to allow buffering
+            var bufferWaitTime = 0L
+            val maxBufferWait = 200L
+
+            while (player.playbackState == Player.STATE_BUFFERING &&
+                bufferWaitTime < maxBufferWait &&
+                coroutineContext.isActive) {
+                delay(25)
+                bufferWaitTime += 25
+            }
+
+            // Ensure playback continues
+            if (!player.isPlaying) {
+                player.play()
+            }
+
+            // Small stabilization delay
+            delay(50)
+
+            // Phase 3: Fade in new track (second half of crossfade duration)
+            for (step in 0 until halfSteps) {
+                if (!coroutineContext.isActive) return
+
+                val progress = step.toFloat() / halfSteps
+                // Use exponential curve for natural fade in
+                val volume = 0.05f + (originalVolume - 0.05f) * progress.pow(0.5f)
+                player.volume = volume.coerceAtMost(originalVolume)
+
+                delay(stepDuration)
+            }
+
+            // Ensure final volume is correct
+            player.volume = originalVolume
+
+        } catch (e: Exception) {
+            // Restore normal volume on any error
+            player.volume = originalVolume
+            reportException(e)
+        } finally {
+            isPerformingCrossfade = false
+        }
+    }
+
+    private fun fadeInNewTrack() {
+        scope.launch {
+            try {
+                val targetVolume = playerVolume.value * normalizeFactor.value
+                val fadeSteps = 20
+                val stepDuration = 50L // 1 second total fade-in
+
+                player.volume = 0.1f // Start at low but audible volume
+
+                for (i in 0..fadeSteps) {
+                    if (!coroutineContext.isActive) break
+
+                    val progress = i.toFloat() / fadeSteps
+                    val volume = 0.1f + (targetVolume - 0.1f) * progress.pow(0.7f)
+                    player.volume = volume.coerceAtMost(targetVolume)
+
+                    delay(stepDuration)
+                }
+
+                player.volume = targetVolume
+
+            } catch (e: Exception) {
+                player.volume = playerVolume.value * normalizeFactor.value
+                reportException(e)
+            }
+        }
+    }
+
+
+
+    fun setCrossfadeDuration(durationMs: Int) {
+        scope.launch {
+            dataStore.edit { settings ->
+                settings[CrossfadeDurationKey] = durationMs
+            }
+        }
+    }
+
     private fun createMediaSourceFactory() =
         DefaultMediaSourceFactory(
             createDataSourceFactory(),
@@ -921,9 +1157,9 @@ class MusicService :
         val mediaItem = eventTime.timeline.getWindow(eventTime.windowIndex, Timeline.Window()).mediaItem
 
         if (playbackStats.totalPlayTimeMs >= (
-                dataStore[HistoryDuration]?.times(1000f)
-                    ?: 30000f
-            ) &&
+                    dataStore[HistoryDuration]?.times(1000f)
+                        ?: 30000f
+                    ) &&
             !dataStore.get(PauseListenHistoryKey, false)
         ) {
             database.query {
@@ -937,18 +1173,18 @@ class MusicService :
                         ),
                     )
                 } catch (_: SQLException) {
+                }
             }
-        }
 
-        CoroutineScope(Dispatchers.IO).launch {
-            val playbackUrl = database.format(mediaItem.mediaId).first()?.playbackUrl
-                ?: YTPlayerUtils.playerResponseForMetadata(mediaItem.mediaId, null)
-                    .getOrNull()?.playbackTracking?.videostatsPlaybackUrl?.baseUrl
-            playbackUrl?.let {
-                YouTube.registerPlayback(null, playbackUrl)
-                    .onFailure {
-                        reportException(it)
-                    }
+            CoroutineScope(Dispatchers.IO).launch {
+                val playbackUrl = database.format(mediaItem.mediaId).first()?.playbackUrl
+                    ?: YTPlayerUtils.playerResponseForMetadata(mediaItem.mediaId, null)
+                        .getOrNull()?.playbackTracking?.videostatsPlaybackUrl?.baseUrl
+                playbackUrl?.let {
+                    YouTube.registerPlayback(null, playbackUrl)
+                        .onFailure {
+                            reportException(it)
+                        }
                 }
             }
         }
@@ -1038,19 +1274,18 @@ class MusicService :
         }
     }
 
-    // Optional: Add this method to reset the state when needed
-    private fun resetAudioFocusState() {
-        wasPlayingBeforeFocusLoss = false
-        pausedByUser = false
-    }
 
     override fun onDestroy() {
+        crossfadeJob?.cancel()
+
         if (dataStore.get(PersistentQueueKey, true)) {
             saveQueueToDisk()
         }
+
         if (discordRpc?.isRpcRunning() == true) {
             discordRpc?.closeRPC()
         }
+
         discordRpc = null
         abandonAudioFocus()
         mediaSession.release()
