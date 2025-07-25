@@ -382,4 +382,12 @@
     //import
     <string name="import_option">Import Option</string>
 
+    <!-- Add these to your strings.xml -->
+
+        <string name="just_now">Just now</string>
+        <string name="minutes_ago">%d min ago</string>
+        <string name="hours_ago">%d hr ago</string>
+        <string name="days_ago">%d days ago</string>
+
+
 </resources>
