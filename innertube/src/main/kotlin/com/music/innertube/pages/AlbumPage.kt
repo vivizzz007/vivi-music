@@ -71,7 +71,7 @@ data class AlbumPage(
         fun getSongs(response: BrowseResponse, album: AlbumItem): List<SongItem> {
             val tabs = response.contents?.singleColumnBrowseResultsRenderer?.tabs ?: response.contents?.twoColumnBrowseResultsRenderer?.tabs
             val shelfRenderer = tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.musicShelfRenderer ?:
-                response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer?.contents?.firstOrNull()?.musicShelfRenderer
+            response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer?.contents?.firstOrNull()?.musicShelfRenderer
 
             val songs = shelfRenderer?.contents?.getItems()?.mapNotNull {
                 getSong(it, album)
@@ -88,6 +88,15 @@ data class AlbumPage(
                         name = it.text,
                         id = it.navigationEndpoint?.browseEndpoint?.browseId
                     )
+                }.ifEmpty {
+                    // Fallback: try to extract from flexColumns position 1
+                    renderer.flexColumns.getOrNull(1)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.mapNotNull { run ->
+                        run.navigationEndpoint?.browseEndpoint?.browseId?.let { browseId ->
+                            if (browseId.startsWith("UC") || browseId.startsWith("MPLA")) {
+                                Artist(name = run.text, id = browseId)
+                            } else null
+                        }
+                    } ?: emptyList()
                 },
                 album = album?.let {
                     Album(it.title, it.browseId)
