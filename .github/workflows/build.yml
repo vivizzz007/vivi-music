@@ -42,8 +42,8 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build Release APK
-        run: ./gradlew assemble${{ matrix.abi }}Release
+      - - name: Build Release APK
+      - run: ./gradlew assemble${{ matrix.abi }}StandardRelease
         env:
           PULL_REQUEST: 'false'
           GITHUB_EVENT_NAME: ${{ github.event_name }}
