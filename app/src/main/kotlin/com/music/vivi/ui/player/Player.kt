@@ -667,8 +667,7 @@ fun BottomSheetPlayer(
                     Box(
                         modifier = Modifier
                             .size(42.dp)
-//                            .clip(favShape)
-                            .clip( moresh )
+                            .clip(moresh)
                             .background(textButtonColor)
                             .clickable {
                                 playerConnection.toggleLike()
@@ -692,8 +691,6 @@ fun BottomSheetPlayer(
                     Box(
                         modifier = Modifier
                             .size(42.dp)
-//                            .clip(favShape)
-//                            .clip(CircleShape)
                             .clip(RoundedCornerShape(8.dp))
                             .background(textButtonColor)
                             .clickable {
@@ -752,9 +749,7 @@ fun BottomSheetPlayer(
                         )
                     }
 
-
-                    // Shuffle Button imlimentation
-
+                    // Shuffle Button implementation
                     Box(
                         modifier = Modifier
                             .size(42.dp)
@@ -776,6 +771,41 @@ fun BottomSheetPlayer(
                             )
                         )
                     }
+                    // Menu Button moved here
+                    Box(
+                        modifier = Modifier
+                            .size(42.dp)
+                            .clip(favShape)
+                            .background(textButtonColor)
+                            .clickable {
+                                menuState.show {
+                                    PlayerMenu(
+                                        mediaMetadata = mediaMetadata,
+                                        navController = navController,
+                                        playerBottomSheetState = state,
+                                        onShowDetailsDialog = {
+                                            mediaMetadata?.id?.let {
+                                                bottomSheetPageState.show {
+                                                    ShowMediaInfo(it)
+                                                }
+                                            }
+                                        },
+                                        onDismiss = menuState::dismiss
+                                    )
+                                }
+                            }
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.more_vert),
+                            contentDescription = "More options",
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .size(24.dp),
+                            tint = iconButtonColor
+                        )
+                    }
+
+
                 }
             }
 
@@ -888,8 +918,6 @@ fun BottomSheetPlayer(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-
-
 
             Spacer(Modifier.height(1.dp))
 
@@ -1041,7 +1069,7 @@ fun BottomSheetPlayer(
                 )
             }
         }
-//EDITING
+
         when (LocalConfiguration.current.orientation) {
             Configuration.ORIENTATION_LANDSCAPE -> {
                 Row(
@@ -1054,58 +1082,6 @@ fun BottomSheetPlayer(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier.weight(1f),
                     ) {
-                        // Add arrow down button top left (with proper top spacing)
-                        IconButton(
-                            onClick = { state.collapse() },
-                            modifier = Modifier
-                                .align(Alignment.TopStart)
-                                .padding(top = 32.dp, start = 16.dp) // Added top padding
-                                .size(24.dp),
-                            colors = IconButtonDefaults.iconButtonColors(
-                                contentColor = TextBackgroundColor
-                            )
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.arrow_downward),
-                                contentDescription = "Collapse player",
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-
-                        // Add menu button top right (with proper top spacing)
-                        IconButton(
-                            onClick = {
-                                menuState.show {
-                                    PlayerMenu(
-                                        mediaMetadata = mediaMetadata,
-                                        navController = navController,
-                                        playerBottomSheetState = state,
-                                        onShowDetailsDialog = {
-                                            mediaMetadata?.id?.let {
-                                                bottomSheetPageState.show {
-                                                    ShowMediaInfo(it)
-                                                }
-                                            }
-                                        },
-                                        onDismiss = menuState::dismiss
-                                    )
-                                }
-                            },
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(top = 32.dp, end = 16.dp) // Added top padding
-                                .size(24.dp),
-                            colors = IconButtonDefaults.iconButtonColors(
-                                contentColor = TextBackgroundColor
-                            )
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.more_vert),
-                                contentDescription = "More options",
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-
                         val screenWidth = LocalConfiguration.current.screenWidthDp
                         val thumbnailSize = (screenWidth * 0.4).dp
                         Thumbnail(
@@ -1143,58 +1119,6 @@ fun BottomSheetPlayer(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier.weight(1f),
                     ) {
-                        // Add arrow down button top left (with proper top spacing)
-                        IconButton(
-                            onClick = { state.collapse() },
-                            modifier = Modifier
-                                .align(Alignment.TopStart)
-                                .padding(top = 32.dp, start = 16.dp) // Added top padding
-                                .size(24.dp),
-                            colors = IconButtonDefaults.iconButtonColors(
-                                contentColor = TextBackgroundColor
-                            )
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.arrow_downward),
-                                contentDescription = "Collapse player",
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-
-                        // Add menu button top right (with proper top spacing)
-                        IconButton(
-                            onClick = {
-                                menuState.show {
-                                    PlayerMenu(
-                                        mediaMetadata = mediaMetadata,
-                                        navController = navController,
-                                        playerBottomSheetState = state,
-                                        onShowDetailsDialog = {
-                                            mediaMetadata?.id?.let {
-                                                bottomSheetPageState.show {
-                                                    ShowMediaInfo(it)
-                                                }
-                                            }
-                                        },
-                                        onDismiss = menuState::dismiss
-                                    )
-                                }
-                            },
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(top = 32.dp, end = 16.dp) // Added top padding
-                                .size(24.dp),
-                            colors = IconButtonDefaults.iconButtonColors(
-                                contentColor = TextBackgroundColor
-                            )
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.more_vert),
-                                contentDescription = "More options",
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-
                         Thumbnail(
                             sliderPositionProvider = { sliderPosition },
                             modifier = Modifier.nestedScroll(state.preUpPostDownNestedScrollConnection),
