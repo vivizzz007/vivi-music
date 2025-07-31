@@ -145,7 +145,7 @@ fun BackupAndRestore(
                 .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(100.dp))
+            Spacer(modifier = Modifier.height(125.dp))
 
             // Enhanced Header Card with Lottie Animation
             Card(

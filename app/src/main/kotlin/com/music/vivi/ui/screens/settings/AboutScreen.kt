@@ -235,9 +235,9 @@ fun AboutScreen(
                 .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(100.dp))
+            Spacer(modifier = Modifier.height(125.dp))
 
-            Spacer(modifier = Modifier.height(10.dp))
+//            Spacer(modifier = Modifier.height(10.dp))
 
             // Main Update Status Card
             Card(

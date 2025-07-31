@@ -145,7 +145,7 @@ fun ContentSettings(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp),
         ) {
-            Spacer(modifier = Modifier.height(100.dp))
+            Spacer(modifier = Modifier.height(125.dp))
 
             // Lottie Animation Card
             Card(
