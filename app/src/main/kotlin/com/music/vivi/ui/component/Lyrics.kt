@@ -6,6 +6,10 @@ import android.content.res.Configuration
 import android.os.Build
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -123,7 +127,8 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.seconds
-
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.graphicsLayer
 
 @RequiresApi(Build.VERSION_CODES.M)
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -137,12 +142,10 @@ fun Lyrics(
     val menuState = LocalMenuState.current
     val density = LocalDensity.current
     val context = LocalContext.current
-    val configuration = LocalConfiguration.current // Get configuration
+    val configuration = LocalConfiguration.current
 
-    val landscapeOffset =
-        configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-
-    val lyricsTextPosition by rememberEnumPreference(LyricsTextPositionKey, LyricsPosition.CENTER)
+    val landscapeOffset = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val lyricsTextPosition by rememberEnumPreference(LyricsTextPositionKey, LyricsPosition.LEFT)  //CENTER
     val changeLyrics by rememberPreference(LyricsClickKey, true)
     val scrollLyrics by rememberPreference(LyricsScrollKey, true)
     val romanizeJapaneseLyrics by rememberPreference(LyricsRomanizeJapaneseKey, true)
@@ -163,6 +166,19 @@ fun Lyrics(
     val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
         if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
     }
+
+    // Apple Music style colors (keeping original background logic)
+    val textColor = when (playerBackground) {
+        PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.secondary
+        else ->
+            if (useDarkTheme)
+                MaterialTheme.colorScheme.onSurface
+            else
+                MaterialTheme.colorScheme.onPrimary
+    }
+
+    val activeTextColor = Color.White
+    val inactiveTextColor = textColor.copy(alpha = 0.4f)
 
     val lines = remember(lyrics, scope) {
         if (lyrics == null || lyrics == LYRICS_NOT_FOUND) {
@@ -210,85 +226,39 @@ fun Lyrics(
             }
         }
     }
-    val isSynced =
-        remember(lyrics) {
-            !lyrics.isNullOrEmpty() && lyrics.startsWith("[")
-        }
 
-    val textColor = when (playerBackground) {
-        PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.secondary
-        else ->
-            if (useDarkTheme)
-                MaterialTheme.colorScheme.onSurface
-            else
-                MaterialTheme.colorScheme.onPrimary
+    val isSynced = remember(lyrics) {
+        !lyrics.isNullOrEmpty() && lyrics.startsWith("[")
     }
 
-    var currentLineIndex by remember {
-        mutableIntStateOf(-1)
-    }
-    // Because LaunchedEffect has delay, which leads to inconsistent with current line color and scroll animation,
-    // we use deferredCurrentLineIndex when user is scrolling
-    var deferredCurrentLineIndex by rememberSaveable {
-        mutableIntStateOf(0)
-    }
+    var currentLineIndex by remember { mutableIntStateOf(-1) }
+    var deferredCurrentLineIndex by rememberSaveable { mutableIntStateOf(0) }
+    var previousLineIndex by rememberSaveable { mutableIntStateOf(0) }
+    var lastPreviewTime by rememberSaveable { mutableLongStateOf(0L) }
+    var isSeeking by remember { mutableStateOf(false) }
+    var initialScrollDone by rememberSaveable { mutableStateOf(false) }
+    var shouldScrollToFirstLine by rememberSaveable { mutableStateOf(true) }
+    var isAppMinimized by rememberSaveable { mutableStateOf(false) }
 
-    var previousLineIndex by rememberSaveable {
-        mutableIntStateOf(0)
-    }
+    // Selection mode states (keeping existing functionality)
+    var isSelectionModeActive by rememberSaveable { mutableStateOf(false) }
+    val selectedIndices = remember { mutableStateListOf<Int>() }
+    var showMaxSelectionToast by remember { mutableStateOf(false) }
+    val maxSelectionLimit = 5
 
-    var lastPreviewTime by rememberSaveable {
-        mutableLongStateOf(0L)
-    }
-    var isSeeking by remember {
-        mutableStateOf(false)
-    }
-
-    var initialScrollDone by rememberSaveable {
-        mutableStateOf(false)
-    }
-
-    var shouldScrollToFirstLine by rememberSaveable {
-        mutableStateOf(true)
-    }
-
-    var isAppMinimized by rememberSaveable {
-        mutableStateOf(false)
-    }
-
+    // Dialog states
     var showProgressDialog by remember { mutableStateOf(false) }
     var showShareDialog by remember { mutableStateOf(false) }
     var shareDialogData by remember { mutableStateOf<Triple<String, String, String>?>(null) }
-
     var showColorPickerDialog by remember { mutableStateOf(false) }
     var previewBackgroundColor by remember { mutableStateOf(Color(0xFF242424)) }
     var previewTextColor by remember { mutableStateOf(Color.White) }
     var previewSecondaryTextColor by remember { mutableStateOf(Color.White.copy(alpha = 0.7f)) }
 
-    // State for multi-selection
-    var isSelectionModeActive by rememberSaveable { mutableStateOf(false) }
-    val selectedIndices = remember { mutableStateListOf<Int>() }
-    var showMaxSelectionToast by remember { mutableStateOf(false) } // State for showing max selection toast
-
     val lazyListState = rememberLazyListState()
-
-    // Define max selection limit
-    val maxSelectionLimit = 5
-
-    // Show toast when max selection is reached
-    LaunchedEffect(showMaxSelectionToast) {
-        if (showMaxSelectionToast) {
-            Toast.makeText(
-                context,
-                context.getString(R.string.max_selection_limit, maxSelectionLimit),
-                Toast.LENGTH_SHORT
-            ).show()
-            showMaxSelectionToast = false
-        }
-    }
-
     val lifecycleOwner = LocalLifecycleOwner.current
 
+    // Keep existing lifecycle and effect logic...
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_STOP) {
@@ -308,7 +278,7 @@ fun Lyrics(
         }
     }
 
-    // Reset selection mode if lyrics change
+    // Keep existing LaunchedEffect blocks for currentLineIndex tracking and scrolling...
     LaunchedEffect(lines) {
         isSelectionModeActive = false
         selectedIndices.clear()
@@ -340,15 +310,10 @@ fun Lyrics(
     }
 
     LaunchedEffect(currentLineIndex, lastPreviewTime, initialScrollDone) {
-
-        /**
-         * Calculate the lyric offset Based on how many lines (\n chars)
-         */
         fun calculateOffset() = with(density) {
             if (currentLineIndex < 0 || currentLineIndex >= lines.size) return@with 0
             val currentItem = lines[currentLineIndex]
             val totalNewLines = currentItem.text.count { it == '\n' }
-
             val dpValue = if (landscapeOffset) 16.dp else 20.dp
             dpValue.toPx().toInt() * totalNewLines
         }
@@ -397,6 +362,17 @@ fun Lyrics(
         previousLineIndex = currentLineIndex
     }
 
+    LaunchedEffect(showMaxSelectionToast) {
+        if (showMaxSelectionToast) {
+            Toast.makeText(
+                context,
+                context.getString(R.string.max_selection_limit, maxSelectionLimit),
+                Toast.LENGTH_SHORT
+            ).show()
+            showMaxSelectionToast = false
+        }
+    }
+
     BoxWithConstraints(
         contentAlignment = Alignment.Center,
         modifier = modifier
@@ -410,7 +386,7 @@ fun Lyrics(
                 .add(WindowInsets(top = maxHeight / 2, bottom = maxHeight / 2))
                 .asPaddingValues(),
             modifier = Modifier
-                .fadingEdge(vertical = 64.dp)
+                .fillMaxSize()
                 .nestedScroll(remember {
                     object : NestedScrollConnection {
                         override fun onPostScroll(
@@ -418,7 +394,7 @@ fun Lyrics(
                             available: Offset,
                             source: NestedScrollSource
                         ): Offset {
-                            if (!isSelectionModeActive) { // Only update preview time if not selecting
+                            if (!isSelectionModeActive) {
                                 lastPreviewTime = System.currentTimeMillis()
                             }
                             return super.onPostScroll(consumed, available, source)
@@ -428,7 +404,7 @@ fun Lyrics(
                             consumed: Velocity,
                             available: Velocity
                         ): Velocity {
-                            if (!isSelectionModeActive) { // Only update preview time if not selecting
+                            if (!isSelectionModeActive) {
                                 lastPreviewTime = System.currentTimeMillis()
                             }
                             return super.onPostFling(consumed, available)
@@ -451,7 +427,7 @@ fun Lyrics(
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 24.dp, vertical = 4.dp)
+                                    .padding(horizontal = 32.dp, vertical = 12.dp)
                             ) {
                                 TextPlaceholder()
                             }
@@ -461,21 +437,35 @@ fun Lyrics(
             } else {
                 itemsIndexed(
                     items = lines,
-                    key = { index, item -> "$index-${item.time}" } // Add stable key
+                    key = { index, item -> "$index-${item.time}" }
                 ) { index, item ->
+                    val isCurrentLine = index == displayedCurrentLineIndex
                     val isSelected = selectedIndices.contains(index)
+
+                    // Apple Music style animation
+                    val animatedAlpha by animateFloatAsState(
+                        targetValue = if (!isSynced || isCurrentLine || (isSelectionModeActive && isSelected)) 1f else 0.4f,
+                        animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
+                        label = "alpha"
+                    )
+
+                    val animatedScale by animateFloatAsState(
+                        targetValue = if (isCurrentLine && isSynced) 1.05f else 1f,
+                        animationSpec = spring(dampingRatio = 0.8f, stiffness = 300f),
+                        label = "scale"
+                    )
+
                     val itemModifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp)) // Clip for background
+                        .clip(RoundedCornerShape(12.dp))
                         .combinedClickable(
                             enabled = true,
                             onClick = {
                                 if (isSelectionModeActive) {
-                                    // Toggle selection
                                     if (isSelected) {
                                         selectedIndices.remove(index)
                                         if (selectedIndices.isEmpty()) {
-                                            isSelectionModeActive = false // Exit mode if last item deselected
+                                            isSelectionModeActive = false
                                         }
                                     } else {
                                         if (selectedIndices.size < maxSelectionLimit) {
@@ -485,7 +475,6 @@ fun Lyrics(
                                         }
                                     }
                                 } else if (isSynced && changeLyrics) {
-                                    // Seek action
                                     playerConnection.player.seekTo(item.time)
                                     scope.launch {
                                         lazyListState.animateScrollToItem(
@@ -505,23 +494,24 @@ fun Lyrics(
                                     isSelectionModeActive = true
                                     selectedIndices.add(index)
                                 } else if (!isSelected && selectedIndices.size < maxSelectionLimit) {
-                                    // If already in selection mode and item not selected, add it if below limit
                                     selectedIndices.add(index)
                                 } else if (!isSelected) {
-                                    // If already at limit, show toast
                                     showMaxSelectionToast = true
                                 }
                             }
                         )
                         .background(
-                            if (isSelected && isSelectionModeActive) MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-                            else Color.Transparent
+                            if (isSelected && isSelectionModeActive)
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                            else Color.Transparent,
+                            RoundedCornerShape(12.dp)
                         )
-                        .padding(horizontal = 24.dp, vertical = 8.dp)
-                        .alpha(
-                            if (!isSynced || index == displayedCurrentLineIndex || (isSelectionModeActive && isSelected)) 1f
-                            else 0.5f
-                        )
+                        .padding(horizontal = 32.dp, vertical = 16.dp)
+                        .graphicsLayer {
+                            alpha = animatedAlpha
+                            scaleX = animatedScale
+                            scaleY = animatedScale
+                        }
 
                     Column(
                         modifier = itemModifier,
@@ -533,30 +523,46 @@ fun Lyrics(
                     ) {
                         Text(
                             text = item.text,
-                            fontSize = 20.sp,
-                            color = textColor,
+                            fontSize = if (isCurrentLine && isSynced) 28.sp else 24.sp,
+                            color = if (isCurrentLine && isSynced) activeTextColor else inactiveTextColor,
                             textAlign = when (lyricsTextPosition) {
                                 LyricsPosition.LEFT -> TextAlign.Left
                                 LyricsPosition.CENTER -> TextAlign.Center
                                 LyricsPosition.RIGHT -> TextAlign.Right
                             },
-                            fontWeight = FontWeight.Bold
+                            fontWeight = if (isCurrentLine && isSynced) FontWeight.Bold else FontWeight.Medium,
+                            lineHeight = if (isCurrentLine && isSynced) 36.sp else 32.sp,
+                            style = if (isCurrentLine && isSynced)
+                                TextStyle(
+                                    shadow = Shadow(
+                                        color = Color.White.copy(alpha = 0.3f),
+                                        offset = Offset(0f, 0f),
+                                        blurRadius = 8f
+                                    )
+                                )
+                            else TextStyle.Default,
+                            modifier = Modifier.padding(horizontal = 8.dp)
                         )
+
                         if (romanizeJapaneseLyrics || romanizeKoreanLyrics) {
-                            // Show romanized text if available
                             val romanizedText by item.romanizedTextFlow.collectAsState()
                             romanizedText?.let { romanized ->
+                                Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = romanized,
-                                    fontSize = 16.sp,
-                                    color = textColor.copy(alpha = 0.8f),
+                                    fontSize = if (isCurrentLine && isSynced) 18.sp else 16.sp,
+                                    color = if (isCurrentLine && isSynced)
+                                        activeTextColor.copy(alpha = 0.8f)
+                                    else
+                                        inactiveTextColor.copy(alpha = 0.7f),
                                     textAlign = when (lyricsTextPosition) {
                                         LyricsPosition.LEFT -> TextAlign.Left
                                         LyricsPosition.CENTER -> TextAlign.Center
                                         LyricsPosition.RIGHT -> TextAlign.Right
                                     },
                                     fontWeight = FontWeight.Normal,
-                                    modifier = Modifier.padding(top = 2.dp)
+                                    lineHeight = if (isCurrentLine && isSynced) 24.sp else 22.sp,
+                                    modifier = Modifier.padding(horizontal = 8.dp)
                                 )
                             }
                         }
@@ -568,27 +574,28 @@ fun Lyrics(
         if (lyrics == LYRICS_NOT_FOUND) {
             Text(
                 text = stringResource(R.string.lyrics_not_found),
-                fontSize = 20.sp,
-                color = MaterialTheme.colorScheme.secondary,
+                fontSize = 24.sp,
+                color = textColor.copy(alpha = 0.5f),
                 textAlign = when (lyricsTextPosition) {
                     LyricsPosition.LEFT -> TextAlign.Left
                     LyricsPosition.CENTER -> TextAlign.Center
                     LyricsPosition.RIGHT -> TextAlign.Right
                 },
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Medium,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 8.dp)
-                    .alpha(0.5f)
+                    .padding(horizontal = 32.dp, vertical = 16.dp)
             )
         }
 
+        // Floating action buttons (Apple Music style)
         mediaMetadata?.let { metadata ->
             Row(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(end = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(end = 16.dp, bottom = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 if (isSelectionModeActive) {
                     // Cancel Selection Button
@@ -596,15 +603,21 @@ fun Lyrics(
                         onClick = {
                             isSelectionModeActive = false
                             selectedIndices.clear()
-                        }
+                        },
+                        modifier = Modifier
+                            .size(48.dp)
+                            .background(
+                                Color.Black.copy(alpha = 0.6f),
+                                RoundedCornerShape(24.dp)
+                            )
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.close),
                             contentDescription = stringResource(R.string.cancel),
-                            tint = textColor
+                            tint = Color.White
                         )
                     }
-                    Spacer(Modifier.width(8.dp))
+
                     // Share Selected Button
                     IconButton(
                         onClick = {
@@ -617,7 +630,7 @@ fun Lyrics(
                                 if (selectedLyricsText.isNotBlank()) {
                                     shareDialogData = Triple(
                                         selectedLyricsText,
-                                        metadata.title, // Provide default empty string
+                                        metadata.title,
                                         metadata.artists.joinToString { it.name }
                                     )
                                     showShareDialog = true
@@ -626,12 +639,21 @@ fun Lyrics(
                                 selectedIndices.clear()
                             }
                         },
-                        enabled = selectedIndices.isNotEmpty() // Disable if nothing selected
+                        enabled = selectedIndices.isNotEmpty(),
+                        modifier = Modifier
+                            .size(48.dp)
+                            .background(
+                                if (selectedIndices.isNotEmpty())
+                                    Color.Black.copy(alpha = 0.6f)
+                                else
+                                    Color.Black.copy(alpha = 0.3f),
+                                RoundedCornerShape(24.dp)
+                            )
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.media3_icon_share),
                             contentDescription = stringResource(R.string.share_selected),
-                            tint = if (selectedIndices.isNotEmpty()) textColor else textColor.copy(alpha = 0.5f)
+                            tint = if (selectedIndices.isNotEmpty()) Color.White else Color.White.copy(alpha = 0.5f)
                         )
                     }
                 } else {
@@ -645,18 +667,28 @@ fun Lyrics(
                                     onDismiss = menuState::dismiss
                                 )
                             }
-                        }
+                        },
+                        modifier = Modifier
+                            .size(48.dp)
+                            .background(
+                                Color.Black.copy(alpha = 0.6f),
+                                RoundedCornerShape(24.dp)
+                            )
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.more_horiz),
                             contentDescription = stringResource(R.string.more_options),
-                            tint = textColor
+                            tint = Color.White
                         )
                     }
                 }
             }
         }
     }
+
+    // Keep all existing dialog components (showProgressDialog, showShareDialog, showColorPickerDialog)
+    // ... [Include all the existing dialog code here] ...
+
 
     if (showProgressDialog) {
         BasicAlertDialog(onDismissRequest = { /* Don't dismiss */ }) {
