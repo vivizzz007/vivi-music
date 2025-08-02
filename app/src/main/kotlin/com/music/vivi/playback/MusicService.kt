@@ -991,7 +991,7 @@ class MusicService : MediaLibraryService(), Player.Listener, PlaybackStatsListen
                     // Start crossfade when we reach the crossfade duration before end
                     if (timeRemaining <= crossfadeDuration) {
                         performSmoothCrossfade()
-                        break
+                        break // Exit loop after crossfade
                     }
 
                     // Dynamic monitoring frequency based on proximity to crossfade point
@@ -1009,6 +1009,7 @@ class MusicService : MediaLibraryService(), Player.Listener, PlaybackStatsListen
         }
     }
 
+
     private suspend fun performSmoothCrossfade() {
         if (crossfadeDuration <= 0 || isPerformingCrossfade || !player.hasNextMediaItem()) return
 
@@ -1016,68 +1017,58 @@ class MusicService : MediaLibraryService(), Player.Listener, PlaybackStatsListen
         val originalVolume = playerVolume.value * normalizeFactor.value
 
         try {
-            // Calculate fade parameters for smooth transition
-            val fadeSteps = (crossfadeDuration / 50).coerceIn(10, 50) // 50ms per step, 10-50 steps
+            val fadeSteps = (crossfadeDuration / 50).coerceIn(10, 50)
             val stepDuration = crossfadeDuration.toLong() / fadeSteps
             val halfSteps = fadeSteps / 2
 
-            // Phase 1: Fade out current track (first half of crossfade duration)
+            // Fade out current track
             for (step in 0 until halfSteps) {
-                if (!coroutineContext.isActive || !player.isPlaying) return
-
+                if (!coroutineContext.isActive || !player.isPlaying) {
+                    player.volume = originalVolume
+                    isPerformingCrossfade = false
+                    return
+                }
                 val progress = step.toFloat() / halfSteps
-                // Use exponential curve for natural fade out
                 val volume = originalVolume * (1f - progress).pow(2f)
-                player.volume = volume.coerceAtLeast(0.05f) // Avoid complete silence
-
+                player.volume = volume.coerceAtLeast(0.05f)
                 delay(stepDuration)
             }
 
-            // Phase 2: Quick transition at minimum audible volume
             player.volume = 0.05f
 
-            // Store current position before transition
-            val transitionPosition = player.currentPosition
-
-            // Perform the track transition
+            // Transition to next track
             player.seekToNext()
 
-            // Brief pause to allow buffering
-            var bufferWaitTime = 0L
-            val maxBufferWait = 200L
-
-            while (player.playbackState == Player.STATE_BUFFERING &&
-                bufferWaitTime < maxBufferWait &&
+            // Wait for buffering
+            val bufferStart = System.currentTimeMillis()
+            while (player.playbackState != Player.STATE_READY &&
+                System.currentTimeMillis() - bufferStart < 2000 &&
                 coroutineContext.isActive) {
-                delay(25)
-                bufferWaitTime += 25
+                delay(50)
             }
 
-            // Ensure playback continues
             if (!player.isPlaying) {
                 player.play()
             }
 
-            // Small stabilization delay
             delay(50)
 
-            // Phase 3: Fade in new track (second half of crossfade duration)
+            // Fade in new track
             for (step in 0 until halfSteps) {
-                if (!coroutineContext.isActive) return
-
+                if (!coroutineContext.isActive) {
+                    player.volume = originalVolume
+                    isPerformingCrossfade = false
+                    return
+                }
                 val progress = step.toFloat() / halfSteps
-                // Use exponential curve for natural fade in
                 val volume = 0.05f + (originalVolume - 0.05f) * progress.pow(0.5f)
                 player.volume = volume.coerceAtMost(originalVolume)
-
                 delay(stepDuration)
             }
 
-            // Ensure final volume is correct
             player.volume = originalVolume
 
         } catch (e: Exception) {
-            // Restore normal volume on any error
             player.volume = originalVolume
             reportException(e)
         } finally {
