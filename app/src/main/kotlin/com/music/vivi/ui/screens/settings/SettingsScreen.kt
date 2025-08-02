@@ -648,149 +648,79 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Settings Cards Grid
-            val chunkedItems = settingsItems.chunked(2)
+            // Settings List (replacing the card grid)
+            settingsItems.forEach { item ->
+                val isUpdateItem = item.title == stringResource(R.string.update)
 
-            chunkedItems.forEach { rowItems ->
-                if (rowItems.size == 2) {
-                    // Two cards in a row
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        rowItems.forEach { item ->
-                            val isUpdateItem = item.title == stringResource(R.string.update)
-                            Card(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(120.dp)
-                                    .clickable { navController.navigate(item.route) },
-                                colors = CardDefaults.cardColors(
-                                    containerColor = if (isUpdateItem && isUpdateAvailable)
-                                        MaterialTheme.colorScheme.errorContainer
-                                    else
-                                        MaterialTheme.colorScheme.surfaceContainer
-                                ),
-                                shape = RoundedCornerShape(16.dp),
-                                border = BorderStroke(
-                                    width = 1.dp,
-                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                                )
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(16.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        Icon(
-                                            painterResource(item.iconRes),
-                                            contentDescription = item.title,
-                                            modifier = Modifier.size(32.dp),
-                                            tint = if (isUpdateItem && isUpdateAvailable)
-                                                MaterialTheme.colorScheme.onErrorContainer
-                                            else
-                                                MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                        Text(
-                                            text = item.title,
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold,
-                                            color = if (isUpdateItem && isUpdateAvailable)
-                                                MaterialTheme.colorScheme.onErrorContainer
-                                            else
-                                                MaterialTheme.colorScheme.onSurface,
-                                            textAlign = TextAlign.Center
-                                        )
-                                        if (item.description.isNotEmpty()) {
-                                            Text(
-                                                text = if (isUpdateItem && isUpdateAvailable) "Update available" else item.description,
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = if (isUpdateItem && isUpdateAvailable)
-                                                    MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f)
-                                                else
-                                                    MaterialTheme.colorScheme.onSurfaceVariant,
-                                                textAlign = TextAlign.Center,
-                                                maxLines = 2,
-                                                overflow = TextOverflow.Ellipsis
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    // Single card (full width) - for odd number of items
-                    val item = rowItems[0]
-                    val isUpdateItem = item.title == stringResource(R.string.update)
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(80.dp)
-                            .clickable { navController.navigate(item.route) },
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (isUpdateItem && isUpdateAvailable)
-                                MaterialTheme.colorScheme.errorContainer
-                            else
-                                MaterialTheme.colorScheme.surfaceContainer
-                        ),
-                        shape = RoundedCornerShape(16.dp),
-                        border = BorderStroke(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                        )
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(16.dp),
-                            contentAlignment = Alignment.CenterStart
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column {
-                                    Text(
-                                        text = item.title,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (isUpdateItem && isUpdateAvailable)
-                                            MaterialTheme.colorScheme.onErrorContainer
-                                        else
-                                            MaterialTheme.colorScheme.onSurface
-                                    )
-                                    if (item.description.isNotEmpty()) {
-                                        Text(
-                                            text = if (isUpdateItem && isUpdateAvailable) "Update available" else item.description,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = if (isUpdateItem && isUpdateAvailable)
-                                                MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f)
-                                            else
-                                                MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                }
-                                Icon(
-                                    painterResource(item.iconRes),
-                                    contentDescription = item.title,
-                                    modifier = Modifier.size(24.dp),
-                                    tint = if (isUpdateItem && isUpdateAvailable)
-                                        MaterialTheme.colorScheme.onErrorContainer
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                        .clickable { navController.navigate(item.route) },
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isUpdateItem && isUpdateAvailable)
+                            MaterialTheme.colorScheme.errorContainer
+                        else
+                            MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                    )
+                ) {
+                    ListItem(
+                        headlineContent = {
+                            Text(
+                                text = item.title,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Medium,
+                                color = if (isUpdateItem && isUpdateAvailable)
+                                    MaterialTheme.colorScheme.onErrorContainer
+                                else
+                                    MaterialTheme.colorScheme.onSurface
+                            )
+                        },
+                        supportingContent = if (item.description.isNotEmpty()) {
+                            {
+                                Text(
+                                    text = if (isUpdateItem && isUpdateAvailable) "Update available" else item.description,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = if (isUpdateItem && isUpdateAvailable)
+                                        MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f)
                                     else
                                         MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
-                        }
-                    }
+                        } else null,
+                        leadingContent = {
+                            Icon(
+                                painterResource(item.iconRes),
+                                contentDescription = item.title,
+                                modifier = Modifier.size(24.dp),
+                                tint = if (isUpdateItem && isUpdateAvailable)
+                                    MaterialTheme.colorScheme.onErrorContainer
+                                else
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        trailingContent = {
+                            Icon(
+                                painterResource(R.drawable.arrow_forward),
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp),
+                                tint = if (isUpdateItem && isUpdateAvailable)
+                                    MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.6f)
+                                else
+                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                            )
+                        },
+                        colors = ListItemDefaults.colors(
+                            containerColor = Color.Transparent
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
-                Spacer(modifier = Modifier.height(16.dp))
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -815,7 +745,6 @@ fun SettingsScreen(
         )
     }
 }
-
 @Composable
 fun getGreetingBasedOnTime(): String {
     val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
