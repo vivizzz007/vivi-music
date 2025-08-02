@@ -37,27 +37,6 @@ object LrcLib {
         }
     }
 
-    private val geniusClient by lazy {
-        HttpClient(CIO) {
-            install(ContentNegotiation) {
-                json(
-                    Json {
-                        isLenient = true
-                        ignoreUnknownKeys = true
-                    },
-                )
-            }
-
-            // Add user agent to appear more like a browser
-            defaultRequest {
-                header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-            }
-
-            expectSuccess = false // Don't throw on 4xx/5xx, we'll handle it
-        }
-    }
-
-    // Existing LrcLib methods remain the same
     private suspend fun queryLyrics(
         artist: String,
         title: String,
@@ -125,7 +104,7 @@ object LrcLib {
         }
 
         sortedTracks.forEach { track ->
-            currentCoroutineContext().ensureActive()
+            currentCoroutineContext().ensureActive() // Corrected usage
             if (count <= 4) {
                 if (track.syncedLyrics != null && duration == -1) {
                     count++
@@ -145,224 +124,6 @@ object LrcLib {
         }
     }
 
-    // NEW: Genius integration methods
-    suspend fun searchGeniusSongs(
-        artist: String,
-        title: String
-    ) = runCatching {
-        val searchQuery = "$artist $title".replace(" ", "%20")
-        val searchUrl = "https://genius.com/search?q=$searchQuery"
-
-        val response = geniusClient.get(searchUrl)
-
-        if (response.status.value in 200..299) {
-            val html = response.bodyAsText()
-            parseGeniusSearchResults(html)
-        } else {
-            emptyList<GeniusSong>()
-        }
-    }.getOrElse { emptyList() }
-
-    suspend fun scrapeGeniusLyrics(url: String) = runCatching {
-        val response = geniusClient.get(url)
-
-        if (response.status.value in 200..299) {
-            val html = response.bodyAsText()
-            extractLyricsFromGeniusPage(html)
-        } else {
-            null
-        }
-    }.getOrNull()
-
-    // NEW: Enhanced lyrics fetching with Genius fallback
-    suspend fun getLyricsWithFallback(
-        title: String,
-        artist: String,
-        duration: Int,
-        album: String? = null,
-    ): LyricsResult {
-        // Try LrcLib first (for synced lyrics)
-        val lrcResult = getLyrics(title, artist, duration, album)
-        if (lrcResult.isSuccess) {
-            return LyricsResult.Success(
-                lyrics = lrcResult.getOrThrow(),
-                source = LyricsSource.LRCLIB,
-                synced = true
-            )
-        }
-
-        // LrcLib failed, try Genius fallback
-        return try {
-            val geniusSongs = searchGeniusSongs(artist, title)
-            println("Found ${geniusSongs.size} Genius songs for '$title' by '$artist'") // Debug log
-
-            val bestMatch = geniusSongs.firstOrNull { song ->
-                val titleSim = calculateStringSimilarity(title, song.title)
-                val artistSim = calculateStringSimilarity(artist, song.artist)
-                println("Checking: '${song.title}' by '${song.artist}' - Title: $titleSim, Artist: $artistSim") // Debug log
-                titleSim > 0.6 && artistSim > 0.6 // Lowered threshold for better matches
-            }
-
-            if (bestMatch != null) {
-                println("Best match found: ${bestMatch.title} by ${bestMatch.artist}") // Debug log
-                val lyrics = scrapeGeniusLyrics(bestMatch.url)
-                if (lyrics != null && lyrics.isNotBlank()) {
-                    LyricsResult.Success(
-                        lyrics = lyrics,
-                        source = LyricsSource.GENIUS,
-                        synced = false
-                    )
-                } else {
-                    println("Failed to scrape lyrics from: ${bestMatch.url}") // Debug log
-                    LyricsResult.NotFound
-                }
-            } else {
-                println("No suitable match found in Genius results") // Debug log
-                LyricsResult.NotFound
-            }
-        } catch (e: Exception) {
-            println("Genius fallback error: ${e.message}") // Debug log
-            LyricsResult.Error("Genius fallback failed: ${e.message}")
-        }
-    }
-
-    private fun parseGeniusSearchResults(html: String): List<GeniusSong> {
-        val songs = mutableListOf<GeniusSong>()
-
-        // Multiple patterns to catch different search result formats
-        val patterns = listOf(
-            // Pattern 1: Standard search results
-            """<a[^>]*href="([^"]*lyrics[^"]*)"[^>]*>.*?<span[^>]*>(.*?)</span>.*?by\s*<a[^>]*>(.*?)</a>""".toRegex(RegexOption.DOT_MATCHES_ALL),
-            // Pattern 2: Mini card results
-            """mini_card.*?href="([^"]+)".*?<b[^>]*>(.*?)</b>.*?by\s*(.*?)</a>""".toRegex(RegexOption.DOT_MATCHES_ALL),
-            // Pattern 3: Search item results
-            """search_result.*?href="([^"]+)".*?title[^>]*>(.*?)<.*?artist[^>]*>(.*?)<""".toRegex(RegexOption.DOT_MATCHES_ALL)
-        )
-
-        patterns.forEach { pattern ->
-            pattern.findAll(html).forEach { match ->
-                val url = if (match.groupValues[1].startsWith("http")) {
-                    match.groupValues[1]
-                } else {
-                    "https://genius.com${match.groupValues[1]}"
-                }
-                val title = match.groupValues[2].replace(Regex("<[^>]+>"), "").trim()
-                val artist = match.groupValues[3].replace(Regex("<[^>]+>"), "").trim()
-
-                if (title.isNotBlank() && artist.isNotBlank() && url.contains("lyrics")) {
-                    songs.add(GeniusSong(title = title, artist = artist, url = url))
-                }
-            }
-        }
-
-        // Fallback: Look for any links containing "lyrics"
-        if (songs.isEmpty()) {
-            val fallbackPattern = """href="([^"]*lyrics[^"]*)"[^>]*>([^<]+)</a>""".toRegex()
-            fallbackPattern.findAll(html).take(5).forEach { match ->
-                val url = if (match.groupValues[1].startsWith("http")) {
-                    match.groupValues[1]
-                } else {
-                    "https://genius.com${match.groupValues[1]}"
-                }
-                val titleAndArtist = match.groupValues[2].trim()
-
-                // Try to split title and artist
-                val parts = titleAndArtist.split(" by ", " - ", " – ")
-                if (parts.size >= 2) {
-                    songs.add(GeniusSong(
-                        title = parts[0].trim(),
-                        artist = parts.drop(1).joinToString(" ").trim(),
-                        url = url
-                    ))
-                }
-            }
-        }
-
-        println("Parsed ${songs.size} songs from Genius search") // Debug log
-        return songs.distinctBy { it.url } // Remove duplicates
-    }
-
-    private fun extractLyricsFromGeniusPage(html: String): String? {
-        val lyricsBuilder = StringBuilder()
-
-        // Multiple patterns to extract lyrics from different Genius page formats
-        val patterns = listOf(
-            // New format: data-lyrics-container
-            """<div[^>]*data-lyrics-container="true"[^>]*>(.*?)</div>""".toRegex(RegexOption.DOT_MATCHES_ALL),
-            // Old format: Lyrics__Container
-            """<div[^>]*class="[^"]*Lyrics__Container[^"]*"[^>]*>(.*?)</div>""".toRegex(RegexOption.DOT_MATCHES_ALL),
-            // Alternative format: lyrics container
-            """<div[^>]*class="[^"]*lyrics[^"]*"[^>]*>(.*?)</div>""".toRegex(RegexOption.DOT_MATCHES_ALL)
-        )
-
-        var foundLyrics = false
-
-        patterns.forEach { pattern ->
-            if (!foundLyrics) {
-                val matches = pattern.findAll(html)
-                matches.forEach { match ->
-                    val content = match.groupValues[1]
-                    val cleanContent = cleanHtmlContent(content)
-
-                    if (cleanContent.isNotBlank() && cleanContent.length > 50) { // Only substantial content
-                        lyricsBuilder.append(cleanContent).append("\n")
-                        foundLyrics = true
-                    }
-                }
-            }
-        }
-
-        // Fallback: Look for JSON-LD structured data
-        if (!foundLyrics) {
-            val jsonPattern = """<script type="application/ld\+json">(.*?)</script>""".toRegex(RegexOption.DOT_MATCHES_ALL)
-            jsonPattern.findAll(html).forEach { match ->
-                val jsonContent = match.groupValues[1]
-                if (jsonContent.contains("\"@type\":\"MusicRecording\"") && jsonContent.contains("\"lyrics\"")) {
-                    // Try to extract lyrics from JSON-LD (basic extraction)
-                    val lyricsPattern = """"lyrics":\s*"([^"]+)"""".toRegex()
-                    lyricsPattern.find(jsonContent)?.let { lyricsMatch ->
-                        val lyrics = lyricsMatch.groupValues[1]
-                            .replace("\\n", "\n")
-                            .replace("\\\"", "\"")
-                            .replace("\\\\", "\\")
-
-                        if (lyrics.length > 50) {
-                            lyricsBuilder.append(lyrics)
-                            foundLyrics = true
-                        }
-                    }
-                }
-            }
-        }
-
-        val result = lyricsBuilder.toString().trim()
-        println("Extracted lyrics length: ${result.length}") // Debug log
-
-        return if (result.isNotBlank() && result.length > 20) {
-            result
-        } else null
-    }
-
-    private fun cleanHtmlContent(content: String): String {
-        return content
-            .replace(Regex("<br[^>]*>"), "\n")
-            .replace(Regex("<p[^>]*>"), "\n")
-            .replace(Regex("</p>"), "\n")
-            .replace(Regex("<div[^>]*>"), "\n")
-            .replace(Regex("</div>"), "\n")
-            .replace(Regex("<[^>]+>"), "") // Remove all other HTML tags
-            .replace("&amp;", "&")
-            .replace("&lt;", "<")
-            .replace("&gt;", ">")
-            .replace("&quot;", "\"")
-            .replace("&#x27;", "'")
-            .replace("&#39;", "'")
-            .replace(Regex("\\s+"), " ") // Normalize whitespace
-            .replace(Regex("\n\\s*\n"), "\n") // Remove extra line breaks
-            .trim()
-    }
-
-    // Existing helper methods remain the same
     private fun calculateStringSimilarity(str1: String, str2: String): Double {
         val s1 = str1.trim().lowercase()
         val s2 = str2.trim().lowercase()
@@ -409,45 +170,6 @@ object LrcLib {
         queryLyrics(artist = artist, title = title, album = null)
     }
 
-    // Debug method to test Genius functionality
-    suspend fun testGeniusFallback(artist: String, title: String) {
-        println("=== Testing Genius Fallback for '$title' by '$artist' ===")
-
-        // Test search
-        println("1. Searching Genius...")
-        val songs = searchGeniusSongs(artist, title)
-        println("Found ${songs.size} results:")
-        songs.take(3).forEach { song ->
-            println("  - '${song.title}' by '${song.artist}' -> ${song.url}")
-        }
-
-        // Test best match
-        if (songs.isNotEmpty()) {
-            val bestMatch = songs.firstOrNull { song ->
-                val titleSim = calculateStringSimilarity(title, song.title)
-                val artistSim = calculateStringSimilarity(artist, song.artist)
-                titleSim > 0.6 && artistSim > 0.6
-            }
-
-            if (bestMatch != null) {
-                println("2. Best match: '${bestMatch.title}' by '${bestMatch.artist}'")
-                println("3. Scraping lyrics from: ${bestMatch.url}")
-
-                val lyrics = scrapeGeniusLyrics(bestMatch.url)
-                if (lyrics != null) {
-                    println("4. Success! Lyrics preview (first 200 chars):")
-                    println(lyrics.take(200) + "...")
-                } else {
-                    println("4. Failed to extract lyrics")
-                }
-            } else {
-                println("2. No suitable match found")
-            }
-        }
-
-        println("=== End Test ===")
-    }
-
     @JvmInline
     value class Lyrics(
         val text: String,
@@ -470,28 +192,5 @@ object LrcLib {
                         }
                     }
                 }.getOrNull()
-    }
-
-    // Data classes for Genius integration
-    data class GeniusSong(
-        val title: String,
-        val artist: String,
-        val url: String
-    )
-
-    sealed class LyricsResult {
-        data class Success(
-            val lyrics: String,
-            val source: LyricsSource,
-            val synced: Boolean
-        ) : LyricsResult()
-
-        object NotFound : LyricsResult()
-
-        data class Error(val message: String) : LyricsResult()
-    }
-
-    enum class LyricsSource {
-        LRCLIB, GENIUS
     }
 }
