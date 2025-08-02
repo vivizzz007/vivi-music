@@ -66,7 +66,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -117,7 +116,6 @@ import com.music.vivi.ui.component.shimmer.TextPlaceholder
 import com.music.vivi.ui.menu.LyricsMenu
 import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.screens.settings.LyricsPosition
-import com.music.vivi.ui.utils.fadingEdge
 import com.music.vivi.utils.ComposeToImage
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
@@ -129,6 +127,8 @@ import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.seconds
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.graphicsLayer
+import com.music.vivi.dotlyrics.DotLoadingProgress
+import com.music.vivi.dotlyrics.LoadingCard
 
 @RequiresApi(Build.VERSION_CODES.M)
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -417,6 +417,13 @@ fun Lyrics(
 
             if (lyrics == null) {
                 item {
+                    // Show your animated LoadingCard
+                    LoadingCard(
+                        fetching = Pair(true, "Fetching lyrics..."),
+                        searching = Pair(false, ""),
+                        colors = Pair(MaterialTheme.colorScheme.primary, Color.White)
+                    )
+                    // Optionally, keep shimmer for skeleton effect
                     ShimmerHost {
                         repeat(10) {
                             Box(
@@ -441,6 +448,8 @@ fun Lyrics(
                 ) { index, item ->
                     val isCurrentLine = index == displayedCurrentLineIndex
                     val isSelected = selectedIndices.contains(index)
+                    val nextItem = lines.getOrNull(index + 1)
+                    val showInstrumentalAnimation = isCurrentLine && isSynced && isInstrumentalBreak(item, nextItem)
 
                     // Apple Music style animation
                     val animatedAlpha by animateFloatAsState(
@@ -454,6 +463,18 @@ fun Lyrics(
                         animationSpec = spring(dampingRatio = 0.8f, stiffness = 300f),
                         label = "scale"
                     )
+
+                    // Calculate progress for instrumental animation
+                    val instrumentalProgress = remember(item.time, nextItem?.time, playerConnection.player.currentPosition) {
+                        if (showInstrumentalAnimation) {
+                            val currentPos = playerConnection.player.currentPosition
+                            val startTime = item.time
+                            val endTime = nextItem?.time ?: (startTime + 8000L)
+                            val elapsed = (currentPos - startTime).coerceAtLeast(0L)
+                            val duration = (endTime - startTime).coerceAtLeast(1000L)
+                            (elapsed.toFloat() / duration.toFloat()).coerceIn(0f, 1f)
+                        } else 0f
+                    }
 
                     val itemModifier = Modifier
                         .fillMaxWidth()
@@ -521,49 +542,66 @@ fun Lyrics(
                             LyricsPosition.RIGHT -> Alignment.End
                         }
                     ) {
-                        Text(
-                            text = item.text,
-                            fontSize = if (isCurrentLine && isSynced) 28.sp else 24.sp,
-                            color = if (isCurrentLine && isSynced) activeTextColor else inactiveTextColor,
-                            textAlign = when (lyricsTextPosition) {
-                                LyricsPosition.LEFT -> TextAlign.Left
-                                LyricsPosition.CENTER -> TextAlign.Center
-                                LyricsPosition.RIGHT -> TextAlign.Right
-                            },
-                            fontWeight = if (isCurrentLine && isSynced) FontWeight.Bold else FontWeight.Medium,
-                            lineHeight = if (isCurrentLine && isSynced) 36.sp else 32.sp,
-                            style = if (isCurrentLine && isSynced)
-                                TextStyle(
-                                    shadow = Shadow(
-                                        color = Color.White.copy(alpha = 0.3f),
-                                        offset = Offset(0f, 0f),
-                                        blurRadius = 8f
-                                    )
-                                )
-                            else TextStyle.Default,
-                            modifier = Modifier.padding(horizontal = 8.dp)
-                        )
-
-                        if (romanizeJapaneseLyrics || romanizeKoreanLyrics) {
-                            val romanizedText by item.romanizedTextFlow.collectAsState()
-                            romanizedText?.let { romanized ->
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = romanized,
-                                    fontSize = if (isCurrentLine && isSynced) 18.sp else 16.sp,
-                                    color = if (isCurrentLine && isSynced)
-                                        activeTextColor.copy(alpha = 0.8f)
-                                    else
-                                        inactiveTextColor.copy(alpha = 0.7f),
-                                    textAlign = when (lyricsTextPosition) {
-                                        LyricsPosition.LEFT -> TextAlign.Left
-                                        LyricsPosition.CENTER -> TextAlign.Center
-                                        LyricsPosition.RIGHT -> TextAlign.Right
-                                    },
-                                    fontWeight = FontWeight.Normal,
-                                    lineHeight = if (isCurrentLine && isSynced) 24.sp else 22.sp,
+                        // Show either text or instrumental animation
+                        if (showInstrumentalAnimation) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 32.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                DotLoadingProgress(
+                                    progress = instrumentalProgress,
+                                    color = if (isCurrentLine && isSynced) activeTextColor else inactiveTextColor,
+                                    isCurrentLine = isCurrentLine && isSynced,
                                     modifier = Modifier.padding(horizontal = 8.dp)
                                 )
+                            }
+                        } else {
+                            Text(
+                                text = item.text,
+                                fontSize = if (isCurrentLine && isSynced) 28.sp else 24.sp,
+                                color = if (isCurrentLine && isSynced) activeTextColor else inactiveTextColor,
+                                textAlign = when (lyricsTextPosition) {
+                                    LyricsPosition.LEFT -> TextAlign.Left
+                                    LyricsPosition.CENTER -> TextAlign.Center
+                                    LyricsPosition.RIGHT -> TextAlign.Right
+                                },
+                                fontWeight = if (isCurrentLine && isSynced) FontWeight.Bold else FontWeight.Medium,
+                                lineHeight = if (isCurrentLine && isSynced) 36.sp else 32.sp,
+                                style = if (isCurrentLine && isSynced)
+                                    TextStyle(
+                                        shadow = Shadow(
+                                            color = Color.White.copy(alpha = 0.3f),
+                                            offset = Offset(0f, 0f),
+                                            blurRadius = 8f
+                                        )
+                                    )
+                                else TextStyle.Default,
+                                modifier = Modifier.padding(horizontal = 8.dp)
+                            )
+
+                            if (romanizeJapaneseLyrics || romanizeKoreanLyrics) {
+                                val romanizedText by item.romanizedTextFlow.collectAsState()
+                                romanizedText?.let { romanized ->
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = romanized,
+                                        fontSize = if (isCurrentLine && isSynced) 18.sp else 16.sp,
+                                        color = if (isCurrentLine && isSynced)
+                                            activeTextColor.copy(alpha = 0.8f)
+                                        else
+                                            inactiveTextColor.copy(alpha = 0.7f),
+                                        textAlign = when (lyricsTextPosition) {
+                                            LyricsPosition.LEFT -> TextAlign.Left
+                                            LyricsPosition.CENTER -> TextAlign.Center
+                                            LyricsPosition.RIGHT -> TextAlign.Right
+                                        },
+                                        fontWeight = FontWeight.Normal,
+                                        lineHeight = if (isCurrentLine && isSynced) 24.sp else 22.sp,
+                                        modifier = Modifier.padding(horizontal = 8.dp)
+                                    )
+                                }
                             }
                         }
                     }
@@ -1005,3 +1043,19 @@ fun Lyrics(
 // Constants remain unchanged
 const val ANIMATE_SCROLL_DURATION = 300L
 val LyricsPreviewTime = 2.seconds
+
+private fun isInstrumentalBreak(lyricsEntry: LyricsEntry, nextEntry: LyricsEntry?): Boolean {
+    val currentText = lyricsEntry.text.trim().lowercase()
+    val timeDifference = nextEntry?.let { it.time - lyricsEntry.time } ?: 0L
+
+    // Detect instrumental breaks by:
+    // 1. Empty or instrumental-related text
+    // 2. Long time gaps between lyrics (e.g., > 8 seconds)
+    return (currentText.isEmpty() ||
+            currentText.contains("instrumental") ||
+            currentText.contains("♪") ||
+            currentText.contains("🎵") ||
+            currentText.contains("[music]") ||
+            currentText.contains("(instrumental)") ||
+            timeDifference > 8000L) // 8+ seconds gap
+}
