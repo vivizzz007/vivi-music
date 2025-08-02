@@ -753,7 +753,7 @@ fun BottomSheetPlayer(
                     Box(
                         modifier = Modifier
                             .size(42.dp)
-                            .clip(favShape)
+                            .clip(RoundedCornerShape(8.dp))
                             .background(textButtonColor)
                             .clickable {
                                 // Toggle shuffle mode directly
