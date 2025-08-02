@@ -25,6 +25,9 @@ enum class SliderStyle {
     SLIM,
 }
 
+
+val fullScreenLyricsKey = booleanPreferencesKey("fullScreenLyrics")
+
 const val SYSTEM_DEFAULT = "SYSTEM_DEFAULT"
 val ContentLanguageKey = stringPreferencesKey("contentLanguage")
 val ContentCountryKey = stringPreferencesKey("contentCountry")
