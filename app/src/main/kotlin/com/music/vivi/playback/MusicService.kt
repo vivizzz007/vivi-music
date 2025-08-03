@@ -13,6 +13,7 @@ import android.media.AudioAttributes as LegacyAudioAttributes
 import android.media.audiofx.AudioEffect
 import android.net.ConnectivityManager
 import android.os.Binder
+import android.util.Log
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.datastore.preferences.core.edit
@@ -522,50 +523,109 @@ class MusicService : MediaLibraryService(), Player.Listener, PlaybackStatsListen
         queue: Queue,
         playWhenReady: Boolean = true,
     ) {
+        Log.d("MusicService", "=== playQueue called ===")
+        Log.d("MusicService", "playWhenReady parameter: $playWhenReady")
+        Log.d("MusicService", "Player state before: ${player.playbackState}")
+        Log.d("MusicService", "Player playWhenReady before: ${player.playWhenReady}")
+        Log.d("MusicService", "Player isPlaying before: ${player.isPlaying}")
+        Log.d("MusicService", "Queue preloadItem: ${queue.preloadItem}")
+
         if (!scope.isActive) scope = CoroutineScope(Dispatchers.Main) + Job()
+
+        // Cancel any ongoing crossfade
+        crossfadeJob?.cancel()
+        isPerformingCrossfade = false
+
         currentQueue = queue
         queueTitle = null
         player.shuffleModeEnabled = false
+
         if (queue.preloadItem != null) {
+            Log.d("MusicService", "Setting preload item: ${queue.preloadItem!!.toMediaItem().mediaId}")
             player.setMediaItem(queue.preloadItem!!.toMediaItem())
             player.prepare()
             player.playWhenReady = playWhenReady
+            Log.d("MusicService", "After setting preload - playWhenReady: ${player.playWhenReady}")
         }
+
         scope.launch(SilentHandler) {
-            val initialStatus =
-                withContext(Dispatchers.IO) {
+            try {
+                Log.d("MusicService", "Loading initial status...")
+                val initialStatus = withContext(Dispatchers.IO) {
                     queue.getInitialStatus().filterExplicit(dataStore.get(HideExplicitKey, false))
                 }
-            if (queue.preloadItem != null && player.playbackState == STATE_IDLE) return@launch
-            if (initialStatus.title != null) {
-                queueTitle = initialStatus.title
-            }
-            if (initialStatus.items.isEmpty()) return@launch
-            if (queue.preloadItem != null) {
-                player.addMediaItems(
-                    0,
-                    initialStatus.items.subList(0, initialStatus.mediaItemIndex)
-                )
-                player.addMediaItems(
-                    initialStatus.items.subList(
-                        initialStatus.mediaItemIndex + 1,
-                        initialStatus.items.size
+
+                Log.d("MusicService", "Initial status loaded - items count: ${initialStatus.items.size}")
+                Log.d("MusicService", "Player state during async: ${player.playbackState}")
+
+                if (initialStatus.title != null) {
+                    queueTitle = initialStatus.title
+                    Log.d("MusicService", "Queue title set: $queueTitle")
+                }
+
+                if (initialStatus.items.isEmpty()) {
+                    Log.e("MusicService", "No items in initial status - returning")
+                    return@launch
+                }
+
+                if (queue.preloadItem != null) {
+                    Log.d("MusicService", "Handling preload item path")
+                    // Add other items around the preloaded item
+                    if (initialStatus.mediaItemIndex > 0) {
+                        player.addMediaItems(
+                            0,
+                            initialStatus.items.subList(0, initialStatus.mediaItemIndex)
+                        )
+                        Log.d("MusicService", "Added ${initialStatus.mediaItemIndex} items before current")
+                    }
+
+                    if (initialStatus.mediaItemIndex + 1 < initialStatus.items.size) {
+                        player.addMediaItems(
+                            initialStatus.items.subList(
+                                initialStatus.mediaItemIndex + 1,
+                                initialStatus.items.size
+                            )
+                        )
+                        Log.d("MusicService", "Added ${initialStatus.items.size - initialStatus.mediaItemIndex - 1} items after current")
+                    }
+
+                    // Ensure the player is prepared and ready to play
+                    if (player.playbackState == STATE_IDLE) {
+                        Log.d("MusicService", "Player was idle, calling prepare()")
+                        player.prepare()
+                    }
+
+                    // Make sure playWhenReady is set correctly
+                    Log.d("MusicService", "Setting playWhenReady to: $playWhenReady")
+                    player.playWhenReady = playWhenReady
+
+                } else {
+                    Log.d("MusicService", "Handling non-preload item path")
+                    player.setMediaItems(
+                        initialStatus.items,
+                        if (initialStatus.mediaItemIndex > 0) {
+                            initialStatus.mediaItemIndex
+                        } else {
+                            0
+                        },
+                        initialStatus.position,
                     )
-                )
-            } else {
-                player.setMediaItems(
-                    initialStatus.items,
-                    if (initialStatus.mediaItemIndex >
-                        0
-                    ) {
-                        initialStatus.mediaItemIndex
-                    } else {
-                        0
-                    },
-                    initialStatus.position,
-                )
-                player.prepare()
-                player.playWhenReady = playWhenReady
+                    player.prepare()
+                    player.playWhenReady = playWhenReady
+                    Log.d("MusicService", "Set media items and playWhenReady to: $playWhenReady")
+                }
+
+                // Wait a bit and log final state
+                delay(200)
+                Log.d("MusicService", "=== Final state ===")
+                Log.d("MusicService", "Player state: ${player.playbackState}")
+                Log.d("MusicService", "Player playWhenReady: ${player.playWhenReady}")
+                Log.d("MusicService", "Player isPlaying: ${player.isPlaying}")
+                Log.d("MusicService", "Media item count: ${player.mediaItemCount}")
+                Log.d("MusicService", "Current media item: ${player.currentMediaItem?.mediaId}")
+
+            } catch (e: Exception) {
+                Log.e("MusicService", "Error in playQueue async block", e)
             }
         }
     }
