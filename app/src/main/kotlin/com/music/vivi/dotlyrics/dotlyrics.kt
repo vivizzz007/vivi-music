@@ -1,6 +1,5 @@
 package com.music.vivi.dotlyrics
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 
@@ -19,20 +18,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import kotlin.math.PI
-import kotlin.math.sin
 
 
-// Add your DotLoadingProgress composable here
-
-
+// DotLoadingProgress composable here
 
 @Composable
-
 fun DotLoadingProgress(
     progress: Float,
     modifier: Modifier = Modifier,
