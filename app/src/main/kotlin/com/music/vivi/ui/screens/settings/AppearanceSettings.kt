@@ -198,7 +198,7 @@ fun AppearanceSettings(
     )
 
     val availableBackgroundStyles = PlayerBackgroundStyle.entries.filter {
-        it != PlayerBackgroundStyle.BLUR || Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+        it != PlayerBackgroundStyle.GRADIENT || Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     }
 
     val isSystemInDarkTheme = isSystemInDarkTheme()
