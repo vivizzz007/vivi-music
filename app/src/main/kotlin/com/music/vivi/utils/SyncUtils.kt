@@ -166,6 +166,11 @@ class SyncUtils @Inject constructor(
                         )
                         database.insert(playlistEntity)
                     }
+                    else {
+                        // Update existing playlist with latest information including thumbnail
+
+                        database.update(playlistEntity, playlist)
+                    }
                     syncPlaylist(playlist.id, playlistEntity.id)
                 }
             }
