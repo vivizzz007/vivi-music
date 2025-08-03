@@ -172,6 +172,10 @@ fun Lyrics(
         if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
     }
 
+//lyrics shows or goes to the location
+    var wasSeekingPreviously by remember { mutableStateOf(false) }
+    var seekStartTime by remember { mutableLongStateOf(0L) }
+
     // Apple Music style colors (keeping original background logic)
     val textColor = when (playerBackground) {
         PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.secondary
@@ -306,11 +310,24 @@ fun Lyrics(
         while (isActive) {
             delay(50)
             val sliderPosition = sliderPositionProvider()
+            val wasSeekingBefore = isSeeking
             isSeeking = sliderPosition != null
-            currentLineIndex = findCurrentLineIndex(
+
+            // Track when seeking starts and ends
+            if (isSeeking && !wasSeekingPreviously) {
+                seekStartTime = System.currentTimeMillis()
+            }
+            wasSeekingPreviously = isSeeking
+
+            val newLineIndex = findCurrentLineIndex(
                 lines,
                 sliderPosition ?: playerConnection.player.currentPosition
             )
+
+            // Update currentLineIndex immediately during seeking
+            if (currentLineIndex != newLineIndex) {
+                currentLineIndex = newLineIndex
+            }
         }
     }
 
@@ -323,7 +340,7 @@ fun Lyrics(
         }
     }
 
-    LaunchedEffect(currentLineIndex, lastPreviewTime, initialScrollDone) {
+    LaunchedEffect(currentLineIndex, lastPreviewTime, initialScrollDone, isSeeking) {
         fun calculateOffset() = with(density) {
             if (currentLineIndex < 0 || currentLineIndex >= lines.size) return@with 0
             val currentItem = lines[currentLineIndex]
@@ -333,26 +350,46 @@ fun Lyrics(
         }
 
         if (!isSynced) return@LaunchedEffect
-        if((currentLineIndex == 0 && shouldScrollToFirstLine) || !initialScrollDone) {
+
+        // Handle initial scroll or first line
+        if ((currentLineIndex == 0 && shouldScrollToFirstLine) || !initialScrollDone) {
             shouldScrollToFirstLine = false
             lazyListState.scrollToItem(
                 currentLineIndex,
-                with(density) { 36.dp.toPx().toInt() } + calculateOffset())
-            if(!isAppMinimized) {
+                with(density) { 36.dp.toPx().toInt() } + calculateOffset()
+            )
+            if (!isAppMinimized) {
                 initialScrollDone = true
             }
-        } else if (currentLineIndex != -1) {
+        }
+        // Handle seeking - scroll immediately when seeking
+        else if (currentLineIndex != -1 && isSeeking) {
+            lazyListState.scrollToItem(
+                currentLineIndex,
+                with(density) { 36.dp.toPx().toInt() } + calculateOffset()
+            )
+        }
+        // Handle normal playback scrolling
+        else if (currentLineIndex != -1 && !isSeeking) {
             deferredCurrentLineIndex = currentLineIndex
-            if (isSeeking) {
-                lazyListState.scrollToItem(
-                    currentLineIndex,
-                    with(density) { 36.dp.toPx().toInt() } + calculateOffset())
-            } else if ((lastPreviewTime == 0L || currentLineIndex != previousLineIndex) && scrollLyrics) {
+
+            // Check if we just finished seeking
+            val justFinishedSeeking = wasSeekingPreviously && !isSeeking
+
+            if (justFinishedSeeking || (lastPreviewTime == 0L || currentLineIndex != previousLineIndex) && scrollLyrics) {
                 val visibleItemsInfo = lazyListState.layoutInfo.visibleItemsInfo
                 val isCurrentLineVisible = visibleItemsInfo.any { it.index == currentLineIndex }
                 val isPreviousLineVisible = visibleItemsInfo.any { it.index == previousLineIndex }
 
-                if (isCurrentLineVisible && isPreviousLineVisible) {
+                // If we just finished seeking or current line is not visible, scroll immediately
+                if (justFinishedSeeking || !isCurrentLineVisible) {
+                    lazyListState.animateScrollToItem(
+                        currentLineIndex,
+                        with(density) { 36.dp.toPx().toInt() } + calculateOffset()
+                    )
+                }
+                // Otherwise use the existing smart scrolling logic
+                else if (isCurrentLineVisible && isPreviousLineVisible) {
                     val viewportStartOffset = lazyListState.layoutInfo.viewportStartOffset
                     val viewportEndOffset = lazyListState.layoutInfo.viewportEndOffset
                     val currentLineOffset = visibleItemsInfo.find { it.index == currentLineIndex }?.offset ?: 0
@@ -365,16 +402,19 @@ fun Lyrics(
                         previousLineOffset in centerRangeStart..centerRangeEnd) {
                         lazyListState.animateScrollToItem(
                             currentLineIndex,
-                            with(density) { 36.dp.toPx().toInt() } + calculateOffset())
+                            with(density) { 36.dp.toPx().toInt() } + calculateOffset()
+                        )
                     }
                 }
             }
         }
-        if(currentLineIndex > 0) {
+
+        if (currentLineIndex > 0) {
             shouldScrollToFirstLine = true
         }
         previousLineIndex = currentLineIndex
     }
+
 
     LaunchedEffect(showMaxSelectionToast) {
         if (showMaxSelectionToast) {
@@ -408,7 +448,8 @@ fun Lyrics(
                             available: Offset,
                             source: NestedScrollSource
                         ): Offset {
-                            if (!isSelectionModeActive) {
+                            // Only update preview time if not in selection mode and not seeking
+                            if (!isSelectionModeActive && !isSeeking) {
                                 lastPreviewTime = System.currentTimeMillis()
                             }
                             return super.onPostScroll(consumed, available, source)
@@ -418,7 +459,8 @@ fun Lyrics(
                             consumed: Velocity,
                             available: Velocity
                         ): Velocity {
-                            if (!isSelectionModeActive) {
+                            // Only update preview time if not in selection mode and not seeking
+                            if (!isSelectionModeActive && !isSeeking) {
                                 lastPreviewTime = System.currentTimeMillis()
                             }
                             return super.onPostFling(consumed, available)
@@ -502,8 +544,11 @@ fun Lyrics(
                                         }
                                     }
                                 } else if (isSynced && changeLyrics) {
+                                    // Seek to the line and force scroll update
                                     playerConnection.player.seekTo(item.time)
                                     scope.launch {
+                                        // Small delay to ensure seek has been processed
+                                        delay(100)
                                         lazyListState.animateScrollToItem(
                                             index,
                                             with(density) { 36.dp.toPx().toInt() } +
