@@ -162,6 +162,10 @@ fun Lyrics(
         defaultValue = PlayerBackgroundStyle.DEFAULT
     )
 
+
+    var plainTextCurrentLine by remember { mutableIntStateOf(0) }
+
+
     val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
     val isSystemInDarkTheme = isSystemInDarkTheme()
     val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
@@ -283,6 +287,15 @@ fun Lyrics(
     LaunchedEffect(lines) {
         isSelectionModeActive = false
         selectedIndices.clear()
+    }
+    LaunchedEffect(lines, lyrics) {
+        if (!lyrics.isNullOrEmpty() && !lyrics.startsWith("[")) {
+            // For plain text, auto-progress through lines
+            while (isActive && lines.isNotEmpty()) {
+                delay(3000) // Change line every 3 seconds, adjust as needed
+                plainTextCurrentLine = (plainTextCurrentLine + 1) % lines.size
+            }
+        }
     }
 
     LaunchedEffect(lyrics) {
@@ -447,18 +460,24 @@ fun Lyrics(
                     items = lines,
                     key = { index, item -> "$index-${item.time}" }
                 ) { index, item ->
-                    val isCurrentLine = index == displayedCurrentLineIndex
+                    // Modified current line detection
+                    val isCurrentLine = if (isSynced) {
+                        index == displayedCurrentLineIndex
+                    } else {
+                        index == plainTextCurrentLine // Use plain text current line for non-synced lyrics
+                    }
+
                     val isSelected = selectedIndices.contains(index)
 
-                    // Apple Music style animation
+                    // Apple Music style animation - now works for both synced and plain text
                     val animatedAlpha by animateFloatAsState(
-                        targetValue = if (!isSynced || isCurrentLine || (isSelectionModeActive && isSelected)) 1f else 0.4f,
+                        targetValue = if (isCurrentLine || (isSelectionModeActive && isSelected)) 1f else 0.4f, // Removed isSynced condition
                         animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
                         label = "alpha"
                     )
 
                     val animatedScale by animateFloatAsState(
-                        targetValue = if (isCurrentLine && isSynced) 1.05f else 1f,
+                        targetValue = if (isCurrentLine) 1.05f else 1f, // Removed isSynced condition
                         animationSpec = spring(dampingRatio = 0.8f, stiffness = 300f),
                         label = "scale"
                     )
@@ -495,6 +514,9 @@ fun Lyrics(
                                         )
                                     }
                                     lastPreviewTime = 0L
+                                } else if (!isSynced) {
+                                    // For plain text, just highlight the clicked line
+                                    plainTextCurrentLine = index
                                 }
                             },
                             onLongClick = {
@@ -531,16 +553,16 @@ fun Lyrics(
                     ) {
                         Text(
                             text = item.text,
-                            fontSize = if (isCurrentLine && isSynced) 28.sp else 24.sp,
-                            color = if (isCurrentLine && isSynced) activeTextColor else inactiveTextColor,
+                            fontSize = if (isCurrentLine) 28.sp else 24.sp, // Removed isSynced condition
+                            color = if (isCurrentLine) activeTextColor else inactiveTextColor, // Removed isSynced condition
                             textAlign = when (lyricsTextPosition) {
                                 LyricsPosition.LEFT -> TextAlign.Left
                                 LyricsPosition.CENTER -> TextAlign.Center
                                 LyricsPosition.RIGHT -> TextAlign.Right
                             },
-                            fontWeight = if (isCurrentLine && isSynced) FontWeight.Bold else FontWeight.Medium,
-                            lineHeight = if (isCurrentLine && isSynced) 36.sp else 32.sp,
-                            style = if (isCurrentLine && isSynced)
+                            fontWeight = if (isCurrentLine) FontWeight.Bold else FontWeight.Medium, // Removed isSynced condition
+                            lineHeight = if (isCurrentLine) 36.sp else 32.sp, // Removed isSynced condition
+                            style = if (isCurrentLine) // Removed isSynced condition
                                 TextStyle(
                                     shadow = Shadow(
                                         color = Color.White.copy(alpha = 0.3f),
@@ -558,8 +580,8 @@ fun Lyrics(
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = romanized,
-                                    fontSize = if (isCurrentLine && isSynced) 18.sp else 16.sp,
-                                    color = if (isCurrentLine && isSynced)
+                                    fontSize = if (isCurrentLine) 18.sp else 16.sp, // Removed isSynced condition
+                                    color = if (isCurrentLine) // Removed isSynced condition
                                         activeTextColor.copy(alpha = 0.8f)
                                     else
                                         inactiveTextColor.copy(alpha = 0.7f),
@@ -569,7 +591,7 @@ fun Lyrics(
                                         LyricsPosition.RIGHT -> TextAlign.Right
                                     },
                                     fontWeight = FontWeight.Normal,
-                                    lineHeight = if (isCurrentLine && isSynced) 24.sp else 22.sp,
+                                    lineHeight = if (isCurrentLine) 24.sp else 22.sp, // Removed isSynced condition
                                     modifier = Modifier.padding(horizontal = 8.dp)
                                 )
                             }
