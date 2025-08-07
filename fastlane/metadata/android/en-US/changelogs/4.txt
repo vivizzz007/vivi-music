@@ -1,0 +1,7 @@
+Updated to v3.0.6
+
+    Added monochrome app icon
+
+    Updated ViviMusic Updater (only for vivi.apk builds)
+
+    Improved performance and stability
