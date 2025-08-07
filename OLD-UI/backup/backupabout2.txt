@@ -1,0 +1,579 @@
+fun AboutScreen(
+    navController: NavController,
+    scrollBehavior: TopAppBarScrollBehavior,
+) {
+    val uriHandler = LocalUriHandler.current
+    var latestRelease by remember { mutableStateOf<String?>(null) }
+    val isUpdateAvailable = remember { mutableStateOf(false) }
+    var buildVersionClickCount by remember { mutableStateOf(0) }
+
+    // Get app install date
+    val context = LocalContext.current
+    val installedDate = remember {
+        try {
+            val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+            val installTime = packageInfo.firstInstallTime
+            SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date(installTime))
+        } catch (e: Exception) {
+            "Unknown"
+        }
+    }
+
+    // LaunchedEffect for Build Version Clicks
+    LaunchedEffect(buildVersionClickCount) {
+        if (buildVersionClickCount >= 5) {
+            navController.navigate("settings/experimental")
+            buildVersionClickCount = 0
+        }
+    }
+
+    // Update check LaunchedEffect
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) {
+            try {
+                val apiUrl = "https://api.github.com/repos/vivizzz007/vivi-music/releases"
+                val url = URL(apiUrl)
+                val connection = url.openConnection() as HttpURLConnection
+                connection.requestMethod = "GET"
+                if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+                    val inputStream = connection.inputStream
+                    val response = inputStream.bufferedReader().use { it.readText() }
+                    val releases = JSONArray(response)
+                    var highestVersion: String? = null
+                    var highestTagName: String? = null
+                    for (i in 0 until releases.length()) {
+                        val tag = releases.getJSONObject(i).getString("tag_name")
+                        if (tag.startsWith("v")) {
+                            val ver = tag.removePrefix("v")
+                            if (highestVersion == null || isNewerVersion(ver, highestVersion)) {
+                                highestVersion = ver
+                                highestTagName = tag
+                            }
+                        }
+                    }
+                    if (highestVersion != null) {
+                        latestRelease = highestTagName
+                        isUpdateAvailable.value = isNewerVersion(highestVersion, BuildConfig.VERSION_NAME)
+                    } else {
+                        isUpdateAvailable.value = false
+                        latestRelease = null
+                    }
+                    inputStream.close()
+                }
+                connection.disconnect()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(100.dp))
+
+//            Text(
+//                text = "VIVI MUSIC",
+//                style = MaterialTheme.typography.displaySmall,
+//                fontWeight = FontWeight.Bold,
+//                color = MaterialTheme.colorScheme.primary,
+//                modifier = Modifier.padding(bottom = 8.dp)
+//            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Main Update Status Card
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(if (isUpdateAvailable.value) 200.dp else 200.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isUpdateAvailable.value)
+                        MaterialTheme.colorScheme.errorContainer
+                    else
+                        MaterialTheme.colorScheme.primaryContainer
+                ),
+                shape = RoundedCornerShape(20.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(24.dp),
+                    contentAlignment = if (isUpdateAvailable.value) Alignment.TopCenter else Alignment.Center
+                ) {
+                    if (isUpdateAvailable.value) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Text(
+                                text = "VIVI MUSIC",
+                                style = MaterialTheme.typography.displaySmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            Text(
+                                text = "Update ${latestRelease ?: ""} available",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f)
+                            )
+
+                            Spacer(modifier = Modifier.height(30.dp))
+
+                            Button(
+                                onClick = { navController.navigate("settings/update") },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(50.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.error,
+                                    contentColor = MaterialTheme.colorScheme.onError
+                                ),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+
+                                Text(
+                                    text = "Update Now",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    } else {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+//                            Text(
+//                                text = "Up to date",
+//                                style = MaterialTheme.typography.headlineMedium,
+//                                fontWeight = FontWeight.Bold,
+//                                color = MaterialTheme.colorScheme.onPrimaryContainer
+//                            )
+                            Text(
+                                text = "VIVI MUSIC",
+                                style = MaterialTheme.typography.displaySmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+
+                            Spacer(modifier = Modifier.height(10.dp))
+
+                            Text(
+                                text = "Stable",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // First Row - App Version and Installed Date
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // App Version Card
+                Card(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(140.dp)
+                        .clickable { buildVersionClickCount++ },
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.androidvivi),
+                                contentDescription = "App Version",
+                                modifier = Modifier.size(48.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "App version",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = BuildConfig.VERSION_NAME,
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                }
+
+                // Installed Date Card
+                Card(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(140.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Event,
+                                contentDescription = "Installed Date",
+                                modifier = Modifier.size(48.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Installed",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = installedDate,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Second Row - Developer Info and Website
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Changelog Card (moved here)
+                Card(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(100.dp)
+                        .clickable {
+                            navController.navigate("settings/changelog")
+                        },
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Column {
+                            Text(
+                                text = "Changelog",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "CURRENT APP",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Filled.History,
+                            contentDescription = "Changelog",
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .size(24.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+
+                // Website Card
+                Card(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(100.dp)
+                        .clickable {
+                            uriHandler.openUri("https://vivi-music-web-com.vercel.app/")
+                        },
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Column {
+                            Text(
+                                text = "Website",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "VIVI-MUSIC",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Filled.Language,
+                            contentDescription = "Website",
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .size(24.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Third Row - Changelog (Full Width)
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(80.dp)
+                    .clickable {
+                        uriHandler.openUri("https://github.com/vivizzz007")
+                    },
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                ),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = "Developer",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "VIVIDH P ASHOKAN",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Filled.Person,
+                            contentDescription = "Developer",
+                            modifier = Modifier.size(24.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Fourth Row - Donate and GitHub Repository
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Donate Card
+                Card(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(100.dp)
+                        .clickable {
+                            navController.navigate("settings/support")
+                        },
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Column {
+                            Text(
+                                text = "Donate",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "SUPPORT APP",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Filled.Favorite,
+                            contentDescription = "Donate",
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .size(24.dp),
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+
+                // GitHub Repository Card
+                Card(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(100.dp)
+                        .clickable {
+                            uriHandler.openUri("https://github.com/vivizzz007/vivi-music")
+                        },
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Column {
+                            Text(
+                                text = "GitHub",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "REPOSITORY",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        Icon(
+                            painter = painterResource(R.drawable.github_icon),
+                            contentDescription = "GitHub",
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .size(24.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Fifth Row - Report Issue (Full Width) - Placed below Donate and GitHub cards
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(80.dp)
+                    .clickable {
+                        navController.navigate("settings/report_issue")
+                    },
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                ),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = "Report Issue",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "BUGS & FEEDBACK",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Filled.BugReport,
+                            contentDescription = "Report Issue",
+                            modifier = Modifier.size(24.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+        }
+
+        // Top App Bar
+        TopAppBar(
+            title = { Text(stringResource(R.string.about)) },
+            navigationIcon = {
+                IconButton(
+                    onClick = navController::navigateUp,
+                    onLongClick = navController::backToMain
+                ) {
+                    Icon(
+                        painterResource(R.drawable.arrow_back),
+                        contentDescription = null
+                    )
+                }
+            },
+            scrollBehavior = scrollBehavior,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
+    }
+}
