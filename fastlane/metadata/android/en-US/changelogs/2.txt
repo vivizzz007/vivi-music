@@ -1,0 +1,41 @@
+ Updater: Updated to the latest version with full support for direct linking and image support
+
+ New Mini Player
+
+     Spotify-style output device UI (Speaker / Headphone)
+
+    Bluetooth Sheet in Mini Player
+
+        Switch between connected Bluetooth devices
+
+        Auto-pause or reduce volume when Bluetooth disconnects
+
+ QR Code Sharing
+
+    Share individual songs or playlists via QR code
+
+     Built-in scanner to import shared music via QR codes
+    
+   scan through gallery now you can
+
+ Lottie Animations: Visuals updated with smoother and lighter animations
+
+ Stability improvements and player engine updated for smoother playback support multiple Bluetooth change in audio out full seamlessly
+
+ Update Notifications: Now you get notified when a new update is available
+
+ Update Check Preferences:
+
+    Go to Settings > Update > More > Preferences to set how often the app checks for updates
+
+ Experimental Feature:
+
+    App reset option added under Settings > Update > More > Preferences (scroll to bottom)
+    
+     Version 2.x.x Changelog
+
+ Download Button Added: You can now download songs directly from the player screen for easier access.
+
+ Auto-Pause on Mute: Music now automatically pauses when the volume is turned down to zero.
+
+ You can disable this feature anytime from Settings > Play and Audio > Auto Pause When Muted.
