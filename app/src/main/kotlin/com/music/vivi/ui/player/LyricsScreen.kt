@@ -72,6 +72,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -465,7 +466,8 @@ fun LyricsScreen(
                                     lyrics = currentLyrics?.lyrics,
                                     currentPosition = position,
                                     lyricsPosition = lyricsPosition,
-                                    isPlaying = isPlaying, // Add this line
+                                    isPlaying = isPlaying,
+                                    textColor = textBackgroundColor, // Add the missing parameter
                                     onSeek = { timestamp -> player.seekTo(timestamp) },
                                     modifier = Modifier.fillMaxSize()
                                 )
@@ -797,11 +799,12 @@ fun LyricsScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         AppleLikeLyrics(
-                            lyrics = currentLyrics?.lyrics, // This should work if currentLyrics is LyricsEntity
+                            lyrics = currentLyrics?.lyrics,
                             currentPosition = position,
-                            lyricsPosition = lyricsPosition, // Pass lyrics position
-                            isPlaying = isPlaying, // Add this line
-                            onSeek = { timestamp -> player.seekTo(timestamp) }, // Seek on lyric tap
+                            lyricsPosition = lyricsPosition,
+                            isPlaying = isPlaying,
+                            textColor = textBackgroundColor, // Add the missing parameter
+                            onSeek = { timestamp -> player.seekTo(timestamp) },
                             modifier = Modifier.fillMaxSize()
                         )
                     }
@@ -816,7 +819,8 @@ fun AppleLikeLyrics(
     lyrics: String?,
     currentPosition: Long,
     lyricsPosition: LyricsPosition,
-    isPlaying: Boolean, // Add this parameter
+    isPlaying: Boolean,
+    textColor: Color, // Add this parameter
     onSeek: (Long) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -898,19 +902,20 @@ fun AppleLikeLyrics(
                         painter = painterResource(R.drawable.music_note),
                         contentDescription = null,
                         modifier = Modifier.size(48.dp),
-                        tint = Color.White.copy(alpha = 0.3f)
+                        tint = textColor.copy(alpha = 0.3f) // Use textColor parameter
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "Loading lyrics...",
                         style = MaterialTheme.typography.bodyLarge,
-                        color = Color.White.copy(alpha = 0.6f),
+                        color = textColor.copy(alpha = 0.6f), // Use textColor parameter
                         textAlign = TextAlign.Center
                     )
                 } else {
                     // Show animated dots for instrumental music
                     AnimatedMusicBeatDots(
                         isPlaying = isPlaying,
+                        textColor = textColor, // Pass textColor parameter
                         modifier = Modifier.padding(16.dp)
                     )
                 }
@@ -928,13 +933,14 @@ fun AppleLikeLyrics(
                     ) {
                         AnimatedMusicBeatDots(
                             isPlaying = isPlaying,
+                            textColor = textColor, // Pass textColor parameter
                             modifier = Modifier.padding(16.dp)
                         )
                         Spacer(modifier = Modifier.height(32.dp))
                         Text(
                             text = "Music playing...",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White.copy(alpha = 0.6f),
+                            color = textColor.copy(alpha = 0.6f), // Use textColor parameter
                             textAlign = TextAlign.Center
                         )
                     }
@@ -954,6 +960,7 @@ fun AppleLikeLyrics(
                             isUpcoming = index == currentLineIndex + 1,
                             isPassed = index < currentLineIndex,
                             textAlign = textAlign,
+                            textColor = textColor, // Pass textColor parameter
                             onClick = { onSeek(lyricLine.timestamp) },
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -974,6 +981,7 @@ fun AppleLikeLyrics(
                             ) {
                                 AnimatedMusicBeatDots(
                                     isPlaying = isPlaying,
+                                    textColor = textColor, // Pass textColor parameter
                                     modifier = Modifier.padding(horizontal = 24.dp)
                                 )
                             }
@@ -993,7 +1001,8 @@ fun AppleLyricLine(
     isUpcoming: Boolean,
     isPassed: Boolean,
     textAlign: TextAlign,
-    onClick: () -> Unit = {}, // Add click callback
+    textColor: Color, // Add this parameter
+    onClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val animationSpec = remember {
@@ -1022,10 +1031,10 @@ fun AppleLyricLine(
 
     val color by animateColorAsState(
         targetValue = when {
-            isActive -> Color.White
-            isUpcoming -> Color.White.copy(alpha = 0.7f)
-            isPassed -> Color.White.copy(alpha = 0.4f)
-            else -> Color.White.copy(alpha = 0.3f)
+            isActive -> textColor
+            isUpcoming -> textColor.copy(alpha = 0.7f)
+            isPassed -> textColor.copy(alpha = 0.4f)
+            else -> textColor.copy(alpha = 0.3f)
         },
         animationSpec = tween(durationMillis = 300),
         label = "color"
@@ -1055,12 +1064,11 @@ fun AppleLyricLine(
                 indication = ripple(
                     bounded = false,
                     radius = 100.dp,
-                    color = Color.White.copy(alpha = 0.3f)
+                    color = textColor.copy(alpha = 0.3f) // Use textColor parameter
                 )
-            ) { onClick() }, // Make it clickable
+            ) { onClick() },
         contentAlignment = boxAlignment
     ) {
-        // Clean Apple Music style text - no heavy glow effects
         Text(
             text = text,
             style = MaterialTheme.typography.headlineMedium.copy(
@@ -1119,8 +1127,6 @@ fun parseSimpleLyrics(lyricsText: String): List<LyricLine> {
     }
 }
 
-
-// Helper function to check if current position is in an instrumental section
 // Helper function to check if current position is in an instrumental section
 fun isInstrumentalSection(
     parsedLyrics: List<LyricLine>,
@@ -1159,4 +1165,7 @@ fun isInstrumentalSection(
     }
 
     return false
+}
+enum class LyricsPosition {
+    LEFT, CENTER, RIGHT
 }
