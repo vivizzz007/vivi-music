@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun AnimatedMusicBeatDots(
     isPlaying: Boolean,
+    textColor: Color,
     modifier: Modifier = Modifier
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "beat_animation")

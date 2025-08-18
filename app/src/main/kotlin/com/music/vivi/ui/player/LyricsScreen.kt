@@ -453,25 +453,19 @@ fun LyricsScreen(
                                 .weight(1f)
                                 .fillMaxSize()
                         ) {
-                            // Apple-like Lyrics content - centered in landscape
-                            Box(
+                            // Apple-like Lyrics content - fill available space in landscape
+                            AppleLikeLyrics(
+                                lyrics = currentLyrics?.lyrics,
+                                currentPosition = position,
+                                lyricsPosition = lyricsPosition,
+                                isPlaying = isPlaying,
+                                textColor = textBackgroundColor,
+                                onSeek = { timestamp -> player.seekTo(timestamp) },
                                 modifier = Modifier
                                     .weight(1f)
                                     .fillMaxWidth()
-                                    .padding(horizontal = 16.dp),
-                                contentAlignment = Alignment.Center  // Center lyrics in landscape
-                            ) {
-
-                                AppleLikeLyrics(
-                                    lyrics = currentLyrics?.lyrics,
-                                    currentPosition = position,
-                                    lyricsPosition = lyricsPosition,
-                                    isPlaying = isPlaying,
-                                    textColor = textBackgroundColor, // Add the missing parameter
-                                    onSeek = { timestamp -> player.seekTo(timestamp) },
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                            }
+                                    .padding(horizontal = 16.dp)
+                            )
                         }
 
                         // Left side - Controls only (from slider to volume)
@@ -570,7 +564,8 @@ fun LyricsScreen(
                                 )
                             }
 
-                            Spacer(modifier = Modifier.height(24.dp))
+//                            Spacer(modifier = Modifier.height(24.dp))
+                            Spacer(modifier = Modifier.height(45.dp))
 
                             // Control buttons
                             Row(
@@ -668,40 +663,40 @@ fun LyricsScreen(
                                 }
                             }
 
-                            Spacer(modifier = Modifier.height(24.dp))
-
-                            // Volume Control
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 48.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.volume_off),
-                                    contentDescription = stringResource(R.string.minimum_volume),
-                                    modifier = Modifier.size(20.dp),
-                                    tint = textBackgroundColor
-                                )
-
-                                BigSeekBar(
-                                    progressProvider = playerVolume::value,
-                                    onProgressChange = { playerConnection.service.playerVolume.value = it },
-                                    color = textBackgroundColor,
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .height(24.dp)
-                                        .padding(horizontal = 16.dp)
-                                )
-
-                                Icon(
-                                    painter = painterResource(R.drawable.volume_up),
-                                    contentDescription = stringResource(R.string.maximum_volume),
-                                    modifier = Modifier.size(20.dp),
-                                    tint = textBackgroundColor
-                                )
-                            }
+//                            Spacer(modifier = Modifier.height(24.dp))
+//
+//                            // Volume Control
+//                            Row(
+//                                modifier = Modifier
+//                                    .fillMaxWidth()
+//                                    .padding(horizontal = 48.dp),
+//                                verticalAlignment = Alignment.CenterVertically,
+//                                horizontalArrangement = Arrangement.SpaceBetween
+//                            ) {
+//                                Icon(
+//                                    painter = painterResource(R.drawable.volume_off),
+//                                    contentDescription = stringResource(R.string.minimum_volume),
+//                                    modifier = Modifier.size(20.dp),
+//                                    tint = textBackgroundColor
+//                                )
+//
+//                                BigSeekBar(
+//                                    progressProvider = playerVolume::value,
+//                                    onProgressChange = { playerConnection.service.playerVolume.value = it },
+//                                    color = textBackgroundColor,
+//                                    modifier = Modifier
+//                                        .weight(1f)
+//                                        .height(24.dp)
+//                                        .padding(horizontal = 16.dp)
+//                                )
+//
+//                                Icon(
+//                                    painter = painterResource(R.drawable.volume_up),
+//                                    contentDescription = stringResource(R.string.maximum_volume),
+//                                    modifier = Modifier.size(20.dp),
+//                                    tint = textBackgroundColor
+//                                )
+//                            }
                         }
                     }
                 }
@@ -841,6 +836,7 @@ fun AppleLikeLyrics(
 
     val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
+    val configuration = LocalConfiguration.current
 
     // Check if we're in an instrumental section
     val isInInstrumental = remember(currentPosition, parsedLyrics) {
@@ -886,6 +882,10 @@ fun AppleLikeLyrics(
         LyricsPosition.CENTER -> TextAlign.Center
         LyricsPosition.RIGHT -> TextAlign.End
     }
+
+    // Adjust padding based on orientation
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val verticalPadding = if (isLandscape) 50.dp else 200.dp
 
     Box(
         modifier = modifier.fillMaxSize(),
@@ -950,7 +950,7 @@ fun AppleLikeLyrics(
                 LazyColumn(
                     state = lazyListState,
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(vertical = 200.dp),
+                    contentPadding = PaddingValues(vertical = verticalPadding),
                     horizontalAlignment = horizontalAlignment
                 ) {
                     itemsIndexed(parsedLyrics) { index, lyricLine ->
