@@ -410,7 +410,8 @@ fun UpdateScreen(navController: NavHostController) {
                         when {
                             updateAvailable -> {
                                 Text(
-                                    text = "System update\navailable",
+//                                    text = "App update\navailable",
+                                    text = "Update Available",
                                     style = MaterialTheme.typography.headlineMedium.copy(
                                         fontSize = 36.sp,
                                         fontWeight = FontWeight.Normal,
@@ -443,7 +444,7 @@ fun UpdateScreen(navController: NavHostController) {
                             }
                             else -> {
                                 Text(
-                                    text = "Your system is\nup to date",
+                                    text = "Your App is\nup to date",
                                     style = MaterialTheme.typography.headlineMedium.copy(
                                         fontSize = 36.sp,
                                         fontWeight = FontWeight.Normal,
@@ -453,26 +454,35 @@ fun UpdateScreen(navController: NavHostController) {
                                 )
                             }
                         }
-                        Spacer(modifier = Modifier.height(32.dp))
+                        Spacer(modifier = Modifier.height(20.dp))
                         // Content based on state
                         when {
                             updateAvailable -> {
                                 Text(
-                                    text = "Update to Version ${updateMessageVersion}",
+                                    text = "Version ${updateMessageVersion}",
                                     style = MaterialTheme.typography.headlineSmall.copy(
                                         fontWeight = FontWeight.Bold
                                     ),
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = "Get the latest version.",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Spacer(modifier = Modifier.height(16.dp))
+                                Spacer(modifier = Modifier.height(10.dp))
+                                if (releaseDate.isNotEmpty()) {
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "Released: $releaseDate",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+//                                Spacer(modifier = Modifier.height(8.dp))
+//                                Text(
+//                                    text = "Get the latest version.",
+//                                    style = MaterialTheme.typography.bodyLarge,
+//                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+//                                )
+                                Spacer(modifier = Modifier.height(10.dp))
                                 val annotatedString = buildAnnotatedString {
-                                    append("Your app will update to ${updateMessageVersion}. Learn more ")
+                                    append("Your app will update to ${updateMessageVersion}.\nLearn more ")
                                     pushStringAnnotation(tag = "URL", annotation = "https://github.com/vivizzz007/vivi-music/releases")
                                     withStyle(
                                         style = SpanStyle(
@@ -499,6 +509,24 @@ fun UpdateScreen(navController: NavHostController) {
                                         lineHeight = 24.sp
                                     )
                                 )
+                                // Progress bar for downloading
+                                if (isDownloading) {
+                                    Spacer(modifier = Modifier.height(24.dp))
+                                    LinearProgressIndicator(
+                                        progress = downloadProgress,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(8.dp), // Increased thickness
+                                        color = MaterialTheme.colorScheme.primary, // Use theme color
+                                        trackColor = MaterialTheme.colorScheme.surfaceVariant
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = "Downloading... ${(downloadProgress * 100).toInt()}%",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                                 Spacer(modifier = Modifier.height(15.dp))
                                 Divider(
                                     modifier = Modifier.padding(vertical = 8.dp),
@@ -592,24 +620,7 @@ fun UpdateScreen(navController: NavHostController) {
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
-                                // Progress bar for downloading
-                                if (isDownloading) {
-                                    Spacer(modifier = Modifier.height(24.dp))
-                                    LinearProgressIndicator(
-                                        progress = downloadProgress,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(8.dp), // Increased thickness
-                                        color = MaterialTheme.colorScheme.primary, // Use theme color
-                                        trackColor = MaterialTheme.colorScheme.surfaceVariant
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = "Downloading... ${(downloadProgress * 100).toInt()}%",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
+
                             }
                             isChecking -> {
                                 LinearProgressIndicator(
@@ -719,7 +730,7 @@ fun UpdateScreen(navController: NavHostController) {
                 ) {
                     Text(
                         text = when {
-                            updateAvailable && !isDownloading && !isDownloadComplete -> "Download and install"
+                            updateAvailable && !isDownloading && !isDownloadComplete -> "Download"
                             isDownloading -> "Pause"
                             isDownloadComplete -> "Install"
                             else -> "Check for update"
@@ -764,6 +775,7 @@ private fun formatGitHubDate(githubDate: String): String {
         githubDate
     }
 }
+
 
 private fun downloadApk(
     context: Context,
@@ -923,3 +935,4 @@ fun String.extractUrls(): List<Pair<IntRange, String>> {
 
     return urlList
 }
+
