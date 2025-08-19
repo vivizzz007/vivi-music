@@ -18,6 +18,7 @@
   <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/6.png?raw=true" width="30%" />
   <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/14.png?raw=true" width="30%" />
 </p>
+
 <div align="center">
   <h1>📢 OTA Update Notice</h1>
   <p style="font-size: 18px; max-width: 800px; padding: 0 16px;">
