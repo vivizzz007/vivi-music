@@ -44,7 +44,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -97,9 +99,14 @@ import java.io.File
 import java.net.URL
 import java.util.Calendar
 import kotlin.io.copyTo
-
-@OptIn(ExperimentalMaterial3Api::class)
+import androidx.compose.runtime.collectAsState
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.music.innertube.utils.parseCookieString
+import com.music.vivi.constants.InnerTubeCookieKey
+import com.music.vivi.utils.rememberPreference
+import com.music.vivi.viewmodels.HomeViewModel
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
 fun SettingsScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
@@ -111,6 +118,16 @@ fun SettingsScreen(
     var userImageUri by remember { mutableStateOf(loadImageUri(context)) }
     var searchQuery by remember { mutableStateOf("") }
     var showSearchDialog by remember { mutableStateOf(false) }
+
+    // Account sync state - check if user is logged in
+    val (innerTubeCookie, _) = rememberPreference(InnerTubeCookieKey, "")
+    val isLoggedIn = remember(innerTubeCookie) {
+        "SAPISID" in parseCookieString(innerTubeCookie)
+    }
+
+    // Get account image from HomeViewModel (same as AccountviviSettings)
+    val viewModel: HomeViewModel = hiltViewModel()
+    val accountImageUrl by viewModel.accountImageUrl.collectAsState()
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
@@ -133,8 +150,6 @@ fun SettingsScreen(
             }
         }
     }
-
-    val greeting = getGreetingBasedOnTime()
 
     LaunchedEffect(Unit) {
         checkForUpdateFromGitHubAll { highestVersion ->
@@ -166,7 +181,7 @@ fun SettingsScreen(
             title = stringResource(R.string.account),
             iconRes = R.drawable.account,
             route = "account_settings",
-            description = "Add you account",
+            description = "Add your account",
             keywords = listOf("account","sign in","sign out")
         ),
         SettingItem(
@@ -314,7 +329,7 @@ fun SettingsScreen(
                                     Box {
                                         if (searchQuery.isEmpty()) {
                                             Text(
-                                                "Search in vivi settings...",
+                                                "Search settings",
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                         }
@@ -426,282 +441,19 @@ fun SettingsScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(110.dp))
-
-            // Profile Card
-            ElevatedCard(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                ),
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(20.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Start
-                ) {
-                    // Profile Image Container
-                    Box(
-                        modifier = Modifier
-                            .size(80.dp)
-                            .clip(CircleShape)
-                            .clickable {
-                                imagePickerLauncher.launch("image/*")
-                            }
-                    ) {
-                        // Profile Image
-                        if (userImageUri != null) {
-                            AsyncImage(
-                                model = ImageRequest.Builder(LocalContext.current)
-                                    .data(userImageUri)
-                                    .memoryCachePolicy(CachePolicy.ENABLED)
-                                    .diskCachePolicy(CachePolicy.ENABLED)
-                                    .crossfade(true)
-                                    .error(R.drawable.vivimusic) // Fallback to default image on error
-                                    .build(),
-                                contentDescription = "User profile image",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop,
-                                onError = {
-                                    // If image fails to load, reset to null so default image shows
-                                    userImageUri = null
-                                    saveImageUri(context, null)
-                                }
-                            )
-                        } else {
-                            Image(
-                                painter = painterResource(R.drawable.vivimusic),
-                                contentDescription = "Default profile image",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
-                        }
-
-                        // Camera Icon Overlay - Now properly inside the Box
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.BottomCenter) // This works because we're inside a Box
-                                .fillMaxWidth()
-                                .height(24.dp)
-                                .background(
-                                    Brush.verticalGradient(
-                                        colors = listOf(
-                                            Color.Transparent,
-                                            MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
-                                        )
-                                    )
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.CameraAlt,
-                                contentDescription = "Change profile picture",
-                                modifier = Modifier.size(16.dp),
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.width(16.dp))
-
-                    // Greeting Text Column
-                    Column {
-                        Text(
-                            text = greeting,
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            fontWeight = FontWeight.Bold
-                        )
-
-                        AnimatedVisibility(
-                            visible = !showUpdateCard,
-                            enter = fadeIn(animationSpec = tween(500)) + slideInVertically(
-                                animationSpec = tween(500), initialOffsetY = { it / 2 }
-                            )
-                        ) {
-                            Text(
-                                text = "👋 Welcome to Settings",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
-                                modifier = Modifier.padding(top = 4.dp)
-                            )
-                        }
-
-                        AnimatedVisibility(
-                            visible = showUpdateCard,
-                            enter = fadeIn(animationSpec = tween(500)) + slideInVertically(
-                                animationSpec = tween(500), initialOffsetY = { it / 2 }
-                            )
-                        ) {
-                            Text(
-                                text = "🚀 Update available: v$latestVersion",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier
-                                    .padding(top = 4.dp)
-                                    .clickable(enabled = showUpdateCard) {
-                                        if (showUpdateCard) navController.navigate("settings/update")
-                                    }
-                            )
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Search Card
-            SearchDialog(
-                showDialog = showSearchDialog,
-                onDismiss = {
-                    showSearchDialog = false
-                    searchQuery = ""
-                },
-                searchQuery = searchQuery,
-                onSearchQueryChange = { searchQuery = it },
-                filteredItems = filteredItems,
-                onItemClick = { route ->
-                    navController.navigate(route)
-                }
-            )
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(60.dp)
-                    .clickable { showSearchDialog = true },
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                ),
-                shape = RoundedCornerShape(20.dp),
-                border = BorderStroke(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .windowInsetsPadding(
+                LocalPlayerAwareWindowInsets.current.only(
+                    WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
                 )
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 20.dp),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            painterResource(R.drawable.search_icon),
-                            contentDescription = "Search",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = "Search vivi settings…",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Settings List (replacing the card grid)
-            settingsItems.forEach { item ->
-                val isUpdateItem = item.title == stringResource(R.string.update)
-
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                        .clickable { navController.navigate(item.route) },
-                    colors = CardDefaults.cardColors(
-                        containerColor = if (isUpdateItem && isUpdateAvailable)
-                            MaterialTheme.colorScheme.errorContainer
-                        else
-                            MaterialTheme.colorScheme.surfaceContainer
-                    ),
-                    shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                    )
-                ) {
-                    ListItem(
-                        headlineContent = {
-                            Text(
-                                text = item.title,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Medium,
-                                color = if (isUpdateItem && isUpdateAvailable)
-                                    MaterialTheme.colorScheme.onErrorContainer
-                                else
-                                    MaterialTheme.colorScheme.onSurface
-                            )
-                        },
-                        supportingContent = if (item.description.isNotEmpty()) {
-                            {
-                                Text(
-                                    text = if (isUpdateItem && isUpdateAvailable) "Update available" else item.description,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = if (isUpdateItem && isUpdateAvailable)
-                                        MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f)
-                                    else
-                                        MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        } else null,
-                        leadingContent = {
-                            Icon(
-                                painterResource(item.iconRes),
-                                contentDescription = item.title,
-                                modifier = Modifier.size(24.dp),
-                                tint = if (isUpdateItem && isUpdateAvailable)
-                                    MaterialTheme.colorScheme.onErrorContainer
-                                else
-                                    MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        },
-                        trailingContent = {
-                            Icon(
-                                painterResource(R.drawable.arrow_forward),
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp),
-                                tint = if (isUpdateItem && isUpdateAvailable)
-                                    MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.6f)
-                                else
-                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                            )
-                        },
-                        colors = ListItemDefaults.colors(
-                            containerColor = Color.Transparent
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-        }
-
+            )
+    ) {
         // Top App Bar
         TopAppBar(
-            title = { Text(stringResource(R.string.settings)) },
+            title = { },
             navigationIcon = {
                 IconButton(
                     onClick = navController::navigateUp,
@@ -716,21 +468,206 @@ fun SettingsScreen(
             scrollBehavior = scrollBehavior,
             modifier = Modifier.align(Alignment.TopCenter)
         )
+
+        // Search Dialog
+        SearchDialog(
+            showDialog = showSearchDialog,
+            onDismiss = {
+                showSearchDialog = false
+                searchQuery = ""
+            },
+            searchQuery = searchQuery,
+            onSearchQueryChange = { searchQuery = it },
+            filteredItems = filteredItems,
+            onItemClick = { route ->
+                navController.navigate(route)
+            }
+        )
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+                .padding(top = 64.dp), // Add top padding to account for TopAppBar
+            contentPadding = PaddingValues(vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            // Account icon (scrollable) - Keep same position, sync with account state
+            item {
+                Spacer(modifier = Modifier.height(10.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(60.dp)
+                            .clip(CircleShape)
+                            .clickable {
+                                navController.navigate("account_settings")
+                            }
+                    ) {
+                        if (isLoggedIn && accountImageUrl != null) {
+                            // Show synced account image from AccountviviSettings
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(accountImageUrl)
+                                    .memoryCachePolicy(CachePolicy.ENABLED)
+                                    .diskCachePolicy(CachePolicy.ENABLED)
+                                    .crossfade(true)
+                                    .error(R.drawable.account) // Fallback to R.drawable.account
+                                    .build(),
+                                contentDescription = "User account image",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            // Default account icon using R.drawable.account - large like in AccountviviSettings
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                        CircleShape
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.account),
+                                    contentDescription = "Account",
+                                    tint = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.size(36.dp)
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
+            }
+
+            // Large Settings title (scrollable)
+            item {
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = stringResource(R.string.settings),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 40.sp,
+                    fontWeight = FontWeight.Normal,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+
+            // Search bar
+            item {
+                Spacer(modifier = Modifier.height(10.dp))
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                        .clickable { showSearchDialog = true },
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(28.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            painterResource(R.drawable.search_icon),
+                            contentDescription = "Search",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = "Search settings",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+            }
+
+            // Settings items
+            items(settingsItems) { item ->
+                val isUpdateItem = item.title == stringResource(R.string.update)
+
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { navController.navigate(item.route) },
+                    color = Color.Transparent
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Icon
+                        Icon(
+                            painterResource(item.iconRes),
+                            contentDescription = item.title,
+                            modifier = Modifier.size(24.dp),
+                            tint = if (isUpdateItem && isUpdateAvailable)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        // Text content
+                        Column(
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = item.title,
+                                style = MaterialTheme.typography.headlineSmall,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 18.sp
+                            )
+                            if (item.description.isNotEmpty()) {
+                                Text(
+                                    text = if (isUpdateItem && isUpdateAvailable)
+                                        "Update available"
+                                    else
+                                        item.description,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = if (isUpdateItem && isUpdateAvailable)
+                                        MaterialTheme.colorScheme.primary
+                                    else
+                                        MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(top = 2.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Add divider between items (except last)
+                if (item != settingsItems.last()) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(start = 56.dp),
+                        thickness = 0.5.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                    )
+                }
+            }
+
+            // Add space below the last item (About)
+            item {
+                Spacer(modifier = Modifier.height(50.dp))
+            }
+        }
     }
 }
-@Composable
-fun getGreetingBasedOnTime(): String {
-    val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-    return when {
-        hour in 5..11 -> "Good Morning 🌅"
-        hour in 12..17 -> "Good Afternoon 🌞"
-        hour in 18..20 -> "Good Evening 🌆"
-        else -> "Good Night 🌙"
-    }
-}
-
-
-
 suspend fun checkForUpdateFromGitHubAll(onResult: (String) -> Unit) {
     withContext(Dispatchers.IO) {
         try {
@@ -772,7 +709,6 @@ fun loadImageUri(context: Context): Uri? {
     return uriString?.let { Uri.parse(it) }
 }
 
-
 private fun copyImageToInternalStorage(
     context: Context,
     sourceUri: Uri,
@@ -803,5 +739,3 @@ private fun copyImageToInternalStorage(
         onComplete(null)
     }
 }
-
-
