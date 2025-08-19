@@ -128,10 +128,6 @@ fun SettingsListItem(
     }
 }
 
-
-// Your imports here
-// ...
-
 private const val PREFS_NAME = "app_settings"
 private const val KEY_AUTO_UPDATE_CHECK = "auto_update_check_enabled"
 private const val KEY_BETA_UPDATER_ENABLED = "beta_updater_enabled"

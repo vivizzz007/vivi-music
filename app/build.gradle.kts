@@ -21,8 +21,8 @@ android {
         applicationId = "com.vivi.vivimusic"
         minSdk = 26
         targetSdk = 36
-        versionCode = 5
-        versionName = "3.0.7"
+        versionCode = 6
+        versionName = "3.0.8"
 
         multiDexEnabled = true
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -208,6 +208,12 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("com.airbnb.android:lottie-compose:6.6.7")
     implementation("androidx.work:work-runtime-ktx:2.10.3")
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.google.code.gson:gson:2.10.1")
+    // for the notification
+    implementation("androidx.core:core-ktx:1.13.1")
 }
 
 kapt {
