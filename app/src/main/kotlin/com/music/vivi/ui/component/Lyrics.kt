@@ -161,7 +161,7 @@ fun Lyrics(
 
     val playerBackground by rememberEnumPreference(
         key = PlayerBackgroundStyleKey,
-        defaultValue = PlayerBackgroundStyle.DEFAULT
+        defaultValue = PlayerBackgroundStyle.GRADIENT
     )
 
     val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
@@ -222,7 +222,7 @@ fun Lyrics(
         }
 
     val textColor = when (playerBackground) {
-        PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.secondary
+        PlayerBackgroundStyle.GRADIENT -> MaterialTheme.colorScheme.secondary
         else ->
             if (useDarkTheme)
                 MaterialTheme.colorScheme.onSurface

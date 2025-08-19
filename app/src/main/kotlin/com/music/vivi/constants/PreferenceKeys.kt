@@ -261,11 +261,12 @@ enum class PlayerButtonsStyle {
 }
 
 enum class PlayerBackgroundStyle {
-    DEFAULT,
+//    DEFAULT,
     GRADIENT,
     BLUR,
 }
 
+val AccountImageUrlKey = stringPreferencesKey("account_image_url")
 val TopSize = stringPreferencesKey("topSize")
 val HistoryDuration = floatPreferencesKey("historyDuration")
 
