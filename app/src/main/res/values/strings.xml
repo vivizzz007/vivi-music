@@ -8,7 +8,7 @@
 
 <resources>
     <!-- Bottom navigation -->
-    <string name="home">Home</string>
+    <string name="home">VIVI</string>
     <string name="songs">Songs</string>
     <string name="artists">Artists</string>
     <string name="albums">Albums</string>
