@@ -39,6 +39,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
@@ -657,88 +658,107 @@ fun UpdateScreen(navController: NavHostController) {
                         Spacer(modifier = Modifier.height(100.dp)) // Space for bottom button
                     }
                 }
-
-                // Bottom button - completely redesigned without Surface wrapper
-                Button(
-                    onClick = {
-                        when {
-                            updateAvailable && !isDownloading && !isDownloadComplete -> {
-                                // Start download
-                                isDownloading = true
-                                downloadProgress = 0f
-                                val apkUrl = "https://github.com/vivizzz007/vivi-music/releases/download/v$updateMessageVersion/vivi.apk"
-                                downloadApk(
-                                    context = context,
-                                    apkUrl = apkUrl,
-                                    onProgress = { progress ->
-                                        downloadProgress = progress
-                                    },
-                                    onDownloadComplete = {
-                                        isDownloading = false
-                                        isDownloadComplete = true
-                                        // Don't reset to check for update state
-                                    }
-                                )
-                            }
-                            isDownloading -> {
-                                // Pause download
-                                isDownloading = false
-                                downloadProgress = 0f
-                                // Reset to initial update available state
-                            }
-                            isDownloadComplete -> {
-                                // Install the APK
-                                val file = File(
-                                    context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),
-                                    "vivi.apk"
-                                )
-                                val uri = FileProvider.getUriForFile(
-                                    context,
-                                    "${context.packageName}.FileProvider",
-                                    file
-                                )
-                                val installIntent = Intent(Intent.ACTION_VIEW).apply {
-                                    setDataAndType(uri, "application/vnd.android.package-archive")
-                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                }
-                                ContextCompat.startActivity(context, installIntent, null)
-                            }
-                            !isChecking && !updateAvailable -> {
-                                // Only trigger update check when no update is available
-                                triggerUpdateCheck()
-                                updateMessage = ""
-                            }
-                        }
-                    },
-                    shape = RoundedCornerShape(28.dp), // More rounded corners
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    ),
-                    elevation = ButtonDefaults.buttonElevation(
-                        defaultElevation = 0.dp, // Remove shadow/elevation
-                        pressedElevation = 2.dp,
-                        focusedElevation = 0.dp,
-                        hoveredElevation = 1.dp
-                    ),
+//button updater
+                // Bottom button with background container
+                Surface(
                     modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(end = 24.dp, bottom = 24.dp)
-                        .height(56.dp) // Standard Material 3 button height
-                        .widthIn(min = 60.dp) // Minimum width but can expand
-                ) {
-                    Text(
-                        text = when {
-                            updateAvailable && !isDownloading && !isDownloadComplete -> "Download"
-                            isDownloading -> "Pause"
-                            isDownloadComplete -> "Install"
-                            else -> "Check for update"
-                        },
-                        style = MaterialTheme.typography.labelLarge.copy(
-                            fontWeight = FontWeight.Medium
-                        )
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.surface,
+                    shadowElevation = 8.dp,
+                    shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                    border = BorderStroke(
+                        1.dp,
+                        MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
                     )
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 39.dp),
+                        contentAlignment = Alignment.CenterEnd
+                    ) {
+                        Button(
+                            onClick = {
+                                when {
+                                    updateAvailable && !isDownloading && !isDownloadComplete -> {
+                                        // Start download
+                                        isDownloading = true
+                                        downloadProgress = 0f
+                                        val apkUrl = "https://github.com/vivizzz007/vivi-music/releases/download/v$updateMessageVersion/vivi.apk"
+                                        downloadApk(
+                                            context = context,
+                                            apkUrl = apkUrl,
+                                            onProgress = { progress ->
+                                                downloadProgress = progress
+                                            },
+                                            onDownloadComplete = {
+                                                isDownloading = false
+                                                isDownloadComplete = true
+                                                // Don't reset to check for update state
+                                            }
+                                        )
+                                    }
+                                    isDownloading -> {
+                                        // Pause download
+                                        isDownloading = false
+                                        downloadProgress = 0f
+                                        // Reset to initial update available state
+                                    }
+                                    isDownloadComplete -> {
+                                        // Install the APK
+                                        val file = File(
+                                            context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),
+                                            "vivi.apk"
+                                        )
+                                        val uri = FileProvider.getUriForFile(
+                                            context,
+                                            "${context.packageName}.FileProvider",
+                                            file
+                                        )
+                                        val installIntent = Intent(Intent.ACTION_VIEW).apply {
+                                            setDataAndType(uri, "application/vnd.android.package-archive")
+                                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                        }
+                                        ContextCompat.startActivity(context, installIntent, null)
+                                    }
+                                    !isChecking && !updateAvailable -> {
+                                        // Only trigger update check when no update is available
+                                        triggerUpdateCheck()
+                                        updateMessage = ""
+                                    }
+                                }
+                            },
+                            shape = RoundedCornerShape(24.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            ),
+                            elevation = ButtonDefaults.buttonElevation(
+                                defaultElevation = 2.dp,
+                                pressedElevation = 4.dp,
+                                focusedElevation = 2.dp,
+                                hoveredElevation = 3.dp
+                            ),
+                            modifier = Modifier
+                                .height(48.dp)
+                                .widthIn(min = 120.dp)
+                        ) {
+                            Text(
+                                text = when {
+                                    updateAvailable && !isDownloading && !isDownloadComplete -> "Download"
+                                    isDownloading -> "Pause"
+                                    isDownloadComplete -> "Install"
+                                    else -> "Check for update"
+                                },
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    fontWeight = FontWeight.Medium
+                                )
+                            )
+                        }
+                    }
+
                 }
             }
         }
