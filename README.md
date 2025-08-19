@@ -15,12 +15,6 @@
   <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/4.png?raw=true" width="30%" />
   <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/3.png?raw=true" width="30%" />
   <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/2.png?raw=true" width="30%" />
-
-[//]: # (   <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/10.png?raw=true" width="30%" />)
-
-[//]: # (  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/11.png?raw=true" width="30%" />)
-
-[//]: # (  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/12.png?raw=true" width="30%" />)
   <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/6.png?raw=true" width="30%" />
   <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/14.png?raw=true" width="30%" />
 </p>
