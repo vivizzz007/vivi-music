@@ -206,7 +206,7 @@ fun LyricsScreen(
     var duration by remember { mutableLongStateOf(C.TIME_UNSET) }
     var sliderPosition by remember { mutableStateOf<Long?>(null) }
 
-    val playerBackground by rememberEnumPreference(PlayerBackgroundStyleKey, PlayerBackgroundStyle.DEFAULT)
+    val playerBackground by rememberEnumPreference(PlayerBackgroundStyleKey, PlayerBackgroundStyle.GRADIENT)
 
     var gradientColors by remember { mutableStateOf<List<Color>>(emptyList()) }
     val gradientColorsCache = remember { mutableMapOf<String, List<Color>>() }
@@ -261,13 +261,13 @@ fun LyricsScreen(
     }
 
     val textBackgroundColor = when (playerBackground) {
-        PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.onBackground
+//        PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.onBackground
         PlayerBackgroundStyle.BLUR -> Color.White
         PlayerBackgroundStyle.GRADIENT -> Color.White
     }
 
     val icBackgroundColor = when (playerBackground) {
-        PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.surface
+//        PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.surface
         PlayerBackgroundStyle.BLUR -> Color.Black
         PlayerBackgroundStyle.GRADIENT -> Color.Black
     }
@@ -345,13 +345,13 @@ fun LyricsScreen(
                 }
             }
 
-            if (playerBackground != PlayerBackgroundStyle.DEFAULT) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.3f))
-                )
-            }
+//            if (playerBackground != PlayerBackgroundStyle.DEFAULT) {
+//                Box(
+//                    modifier = Modifier
+//                        .fillMaxSize()
+//                        .background(Color.Black.copy(alpha = 0.3f))
+//                )
+//            }
         }
 
         // Check orientation and layout accordingly
@@ -815,7 +815,7 @@ fun AppleLikeLyrics(
     currentPosition: Long,
     lyricsPosition: LyricsPosition,
     isPlaying: Boolean,
-    textColor: Color, // Add this parameter
+    textColor: Color,
     onSeek: (Long) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -837,6 +837,7 @@ fun AppleLikeLyrics(
     val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     // Check if we're in an instrumental section
     val isInInstrumental = remember(currentPosition, parsedLyrics) {
@@ -858,14 +859,23 @@ fun AppleLikeLyrics(
         activeIndex
     }
 
-    // Auto-scroll to current line
+    // Auto-scroll to current line with different behavior for landscape
     LaunchedEffect(currentLineIndex) {
         if (currentLineIndex >= 0 && parsedLyrics.isNotEmpty()) {
             coroutineScope.launch {
-                lazyListState.animateScrollToItem(
-                    index = maxOf(0, currentLineIndex - 2),
-                    scrollOffset = 0
-                )
+                if (isLandscape) {
+                    // In landscape, scroll to show active line at the top
+                    lazyListState.animateScrollToItem(
+                        index = currentLineIndex,
+                        scrollOffset = 0
+                    )
+                } else {
+                    // In portrait, center the active line (original behavior)
+                    lazyListState.animateScrollToItem(
+                        index = maxOf(0, currentLineIndex - 2),
+                        scrollOffset = 0
+                    )
+                }
             }
         }
     }
@@ -884,8 +894,8 @@ fun AppleLikeLyrics(
     }
 
     // Adjust padding based on orientation
-    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-    val verticalPadding = if (isLandscape) 50.dp else 200.dp
+    val topPadding = if (isLandscape) 16.dp else 200.dp
+    val bottomPadding = if (isLandscape) 100.dp else 200.dp
 
     Box(
         modifier = modifier.fillMaxSize(),
@@ -902,20 +912,20 @@ fun AppleLikeLyrics(
                         painter = painterResource(R.drawable.music_note),
                         contentDescription = null,
                         modifier = Modifier.size(48.dp),
-                        tint = textColor.copy(alpha = 0.3f) // Use textColor parameter
+                        tint = textColor.copy(alpha = 0.3f)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "Loading lyrics...",
                         style = MaterialTheme.typography.bodyLarge,
-                        color = textColor.copy(alpha = 0.6f), // Use textColor parameter
+                        color = textColor.copy(alpha = 0.6f),
                         textAlign = TextAlign.Center
                     )
                 } else {
                     // Show animated dots for instrumental music
                     AnimatedMusicBeatDots(
                         isPlaying = isPlaying,
-                        textColor = textColor, // Pass textColor parameter
+                        textColor = textColor,
                         modifier = Modifier.padding(16.dp)
                     )
                 }
@@ -933,14 +943,14 @@ fun AppleLikeLyrics(
                     ) {
                         AnimatedMusicBeatDots(
                             isPlaying = isPlaying,
-                            textColor = textColor, // Pass textColor parameter
+                            textColor = textColor,
                             modifier = Modifier.padding(16.dp)
                         )
                         Spacer(modifier = Modifier.height(32.dp))
                         Text(
                             text = "Music playing...",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = textColor.copy(alpha = 0.6f), // Use textColor parameter
+                            color = textColor.copy(alpha = 0.6f),
                             textAlign = TextAlign.Center
                         )
                     }
@@ -950,7 +960,10 @@ fun AppleLikeLyrics(
                 LazyColumn(
                     state = lazyListState,
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(vertical = verticalPadding),
+                    contentPadding = PaddingValues(
+                        top = topPadding,
+                        bottom = bottomPadding
+                    ),
                     horizontalAlignment = horizontalAlignment
                 ) {
                     itemsIndexed(parsedLyrics) { index, lyricLine ->
@@ -960,11 +973,14 @@ fun AppleLikeLyrics(
                             isUpcoming = index == currentLineIndex + 1,
                             isPassed = index < currentLineIndex,
                             textAlign = textAlign,
-                            textColor = textColor, // Pass textColor parameter
+                            textColor = textColor,
                             onClick = { onSeek(lyricLine.timestamp) },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 24.dp, vertical = 16.dp)
+                                .padding(
+                                    horizontal = 24.dp,
+                                    vertical = if (isLandscape) 12.dp else 16.dp // Tighter spacing in landscape
+                                )
                         )
 
                         // Show beat dots after current line if we're in an instrumental section
@@ -972,7 +988,7 @@ fun AppleLikeLyrics(
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = 32.dp),
+                                    .padding(vertical = if (isLandscape) 24.dp else 32.dp),
                                 contentAlignment = when (lyricsPosition) {
                                     LyricsPosition.LEFT -> Alignment.CenterStart
                                     LyricsPosition.CENTER -> Alignment.Center
@@ -981,7 +997,7 @@ fun AppleLikeLyrics(
                             ) {
                                 AnimatedMusicBeatDots(
                                     isPlaying = isPlaying,
-                                    textColor = textColor, // Pass textColor parameter
+                                    textColor = textColor,
                                     modifier = Modifier.padding(horizontal = 24.dp)
                                 )
                             }
