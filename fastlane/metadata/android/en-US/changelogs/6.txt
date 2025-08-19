@@ -1,0 +1,34 @@
+
+UI & Design
+- Better overall UI
+- Redesigned Artist Screen
+- Added sub info and view info in Artist Screen
+- Redesigned Music Player
+- Redesigned Lyrics Screen
+- Redesigned whole Playlist Screen
+- Redesigned Settings Page
+- Added support for syncing images in Settings (matching Android stock style)
+- New design for detail info screen (per music)
+- Enhanced gradient backgrounds & animations
+- Added draggable scrollbar for playlist screens
+- Enhanced draggable scrollbar for small playlists
+- Added Now Playing header to thumbnail player
+
+Features
+- Added YouTube Music playlist thumbnails support
+- Added support for Fullscreen Lyrics
+- Improved Apple-style lyrics display
+- Added separate Account screen
+
+Improvements
+- Added new Updater (Pixel Updater)
+- Added option to disable auto-load when Repeat All mode is enabled
+- Enhanced Lyrics screen functionality
+
+Refactoring & Cleanup
+- Refactored Appearance screen
+- Refactored App Updater
+- Refactored Backup system
+- Refactored Playback & Audio
+- Refactored Content management
+- Refactored Storage handling
