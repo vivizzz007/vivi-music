@@ -29,8 +29,11 @@ android {
         vectorDrawables.useSupportLibrary = true
     }
 
-    flavorDimensions += "abi"
+    // Two-dimensional flavor system as suggested
+    flavorDimensions += listOf("abi", "distribution")
+
     productFlavors {
+        // ABI Dimension (Architecture)
         create("universal") {
             dimension = "abi"
             ndk {
@@ -57,6 +60,19 @@ android {
             dimension = "abi"
             ndk { abiFilters += "x86_64" }
             buildConfigField("String", "ARCHITECTURE", "\"x86_64\"")
+        }
+
+        // Distribution Dimension (Build Type)
+        create("foss") {
+            dimension = "distribution"
+            buildConfigField("String", "BUILD_TYPE", "\"foss\"")
+            // FOSS-specific configuration
+            // Remove proprietary features/dependencies if needed
+        }
+        create("standard") {
+            dimension = "distribution"
+            buildConfigField("String", "BUILD_TYPE", "\"standard\"")
+            // Standard configuration with all features
         }
     }
 
