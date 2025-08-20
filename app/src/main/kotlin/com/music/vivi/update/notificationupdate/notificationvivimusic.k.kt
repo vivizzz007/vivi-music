@@ -30,7 +30,16 @@ import android.app.NotificationChannel
 
 import android.graphics.BitmapFactory
 import android.graphics.Color
-
+import android.app.Dialog
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.Button
+import android.widget.TextView
+import androidx.fragment.app.DialogFragment
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import androidx.core.content.ContextCompat
 import androidx.work.CoroutineWorker
 import androidx.work.OneTimeWorkRequestBuilder
@@ -47,14 +56,21 @@ import com.music.vivi.update.notificationupdate.NotificationActionReceiver.Compa
 import com.music.vivi.update.notificationupdate.NotificationActionReceiver.Companion.ACTION_REMIND_LATER
 import com.music.vivi.update.notificationupdate.NotificationActionReceiver.Companion.NOTIFICATION_CHANNEL_ID
 import com.music.vivi.update.notificationupdate.NotificationActionReceiver.Companion.NOTIFICATION_ID
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import android.net.Uri
+import android.widget.Toast
 
 import java.util.concurrent.TimeUnit
+
 
 class NotificationActionReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         when (intent?.action) {
             ACTION_OPEN_APP -> handleOpenApp(context)
             ACTION_REMIND_LATER -> handleRemindLater(context)
+            ACTION_DISMISS -> handleDismiss(context)
+            ACTION_UPDATE_NOW -> handleUpdateNow(context, intent.getStringExtra(EXTRA_VERSION) ?: "")
             Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED -> {
                 schedulePeriodicUpdateCheck(context)
                 checkForUpdatesImmediately(context)
@@ -76,6 +92,30 @@ class NotificationActionReceiver : BroadcastReceiver() {
         Log.d(TAG, "Remind Later clicked")
         cancelNotification(context)
         scheduleDelayedCheck(context, getRemindLaterDelay(context))
+    }
+
+    private fun handleDismiss(context: Context) {
+        Log.d(TAG, "Dismiss clicked")
+        cancelNotification(context)
+    }
+
+    private fun handleUpdateNow(context: Context, version: String) {
+        Log.d(TAG, "Update Now clicked for version: $version")
+        cancelNotification(context)
+        openDownloadPage(context, version)
+    }
+
+    private fun openDownloadPage(context: Context, version: String) {
+        try {
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                data = Uri.parse("https://github.com/vivizzz007/vivi-music/releases/tag/v$version")
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to open download page", e)
+            Toast.makeText(context, "Failed to open download page", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun cancelNotification(context: Context) {
@@ -148,9 +188,12 @@ class NotificationActionReceiver : BroadcastReceiver() {
 
         const val ACTION_OPEN_APP = "open_app"
         const val ACTION_REMIND_LATER = "remind_later"
+        const val ACTION_DISMISS = "dismiss"
+        const val ACTION_UPDATE_NOW = "update_now"
         const val ACTION_CHECK_UPDATES = "check_updates"
         const val NOTIFICATION_CHANNEL_ID = "vivi_music_updates"
         const val NOTIFICATION_ID = 1001
+        const val EXTRA_VERSION = "extra_version"
 
         fun checkForUpdatesOnStartup(context: Context) {
             val checkIntent = Intent(context, NotificationActionReceiver::class.java).apply {
@@ -166,14 +209,17 @@ class NotificationActionReceiver : BroadcastReceiver() {
     }
 }
 
+
 class UpdateCheckWorker(context: Context, workerParams: WorkerParameters) : CoroutineWorker(context, workerParams) {
     override suspend fun doWork(): Result {
         return try {
-            val latestVersion = checkGitHubForUpdates()
-            latestVersion?.let { version ->
+            val latestRelease = checkGitHubForUpdates()
+            latestRelease?.let { release ->
                 showUpdateNotification(
                     context = applicationContext,
-                    version = version
+                    version = release.version,
+                    releaseNotes = release.releaseNotes,
+                    downloadUrl = release.downloadUrl
                 )
                 Result.success()
             } ?: Result.success().also {
@@ -185,59 +231,112 @@ class UpdateCheckWorker(context: Context, workerParams: WorkerParameters) : Coro
         }
     }
 
-    private suspend fun checkGitHubForUpdates(): String? {
-        val url = URL("https://api.github.com/repos/vivizzz007/vivi-music/releases")
-        val json = withContext(Dispatchers.IO) {
-            url.openStream().bufferedReader().use { it.readText() }
-        }
-        val releases = JSONArray(json)
-        val currentVersion = BuildConfig.VERSION_NAME
-
-        for (i in 0 until releases.length()) {
-            val release = releases.getJSONObject(i)
-            val tag = release.getString("tag_name").removePrefix("v")
-            if (isNewerVersion(tag, currentVersion)) {
-                return tag
+    private suspend fun checkGitHubForUpdates(): GitHubRelease? {
+        return try {
+            val url = URL("https://api.github.com/repos/vivizzz007/vivi-music/releases/latest")
+            val connection = withContext(Dispatchers.IO) {
+                url.openConnection() as HttpURLConnection
             }
+
+            connection.apply {
+                requestMethod = "GET"
+                setRequestProperty("Accept", "application/vnd.github.v3+json")
+                connectTimeout = 10000
+                readTimeout = 10000
+            }
+
+            if (connection.responseCode == 200) {
+                val json = connection.inputStream.bufferedReader().use { it.readText() }
+                val release = JSONObject(json)
+                val tag = release.getString("tag_name").removePrefix("v")
+                val releaseNotes = release.optString("body", "")
+                val downloadUrl = release.getJSONArray("assets")
+                    .optJSONObject(0)
+                    ?.optString("browser_download_url", "")
+
+                if (isNewerVersion(tag, BuildConfig.VERSION_NAME)) {
+                    GitHubRelease(tag, releaseNotes, downloadUrl)
+                } else {
+                    null
+                }
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "GitHub API call failed", e)
+            null
         }
-        return null
     }
 
-    private fun showUpdateNotification(context: Context, version: String) {
+    private fun showUpdateNotification(context: Context, version: String, releaseNotes: String?, downloadUrl: String?) {
         createNotificationChannel(context)
 
+        // Create app icon bitmap for large notification icon
+        val largeIcon = createAppIconBitmap(context)
+
+        // Create a more informative notification with expandable content
+        val notificationStyle = NotificationCompat.BigTextStyle()
+            .bigText("Version $version is now available! ${releaseNotes?.take(200) ?: "Bug fixes and performance improvements."}...")
+            .setBigContentTitle("🎵 New Vivi Music Update")
+            .setSummaryText("Tap to update")
+
         val notification = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
-            .setContentTitle("New Vivi Music Update")
-            .setContentText("Version $version is available!")
-            .setSmallIcon(R.drawable.vivi) // Your app's notification icon
+            .setContentTitle("🎵 Vivi Music Update Available")
+            .setContentText("Version $version - Tap to see what's new")
+            .setSmallIcon(R.drawable.ic_vivi_notification)
+            .setLargeIcon(largeIcon)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
+            .setCategory(NotificationCompat.CATEGORY_RECOMMENDATION)
+            .setStyle(notificationStyle)
+            .setColor(ContextCompat.getColor(context, R.color.purple_500))
             .setContentIntent(createContentIntent(context))
             .addAction(
-                R.drawable.vivi, // Your custom icon
-                "Click here",
-                createActionIntent(context, ACTION_OPEN_APP, 0)
+                R.drawable.ic_download,
+                "Update Now",
+                createUpdateIntent(context, version)
             )
             .addAction(
-                R.drawable.restore, // Your custom icon
+                R.drawable.ic_snooze,
                 "Remind Later",
-                createActionIntent(context, ACTION_REMIND_LATER, 1)
+                createActionIntent(context, NotificationActionReceiver.ACTION_REMIND_LATER, 1)
             )
+            .addAction(
+                R.drawable.ic_close,
+                "Dismiss",
+                createDismissIntent(context)
+            )
+            .setGroup("vivi_updates_group")
             .build()
 
         context.getSystemService(NotificationManager::class.java)
             .notify(NOTIFICATION_ID, notification)
     }
 
+    private fun createAppIconBitmap(context: Context): Bitmap? {
+        return try {
+            val drawable = ContextCompat.getDrawable(context, R.mipmap.ic_launcher)
+            val bitmap = Bitmap.createBitmap(128, 128, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
+            drawable?.setBounds(0, 0, canvas.width, canvas.height)
+            drawable?.draw(canvas)
+            bitmap
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to create app icon bitmap", e)
+            null
+        }
+    }
+
     private fun createContentIntent(context: Context): PendingIntent {
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            putExtra("show_update_dialog", true)
         }
         return PendingIntent.getActivity(
             context,
             0,
             intent,
-            PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
     }
 
@@ -249,7 +348,32 @@ class UpdateCheckWorker(context: Context, workerParams: WorkerParameters) : Coro
             context,
             requestCode,
             intent,
-            PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+    }
+
+    private fun createUpdateIntent(context: Context, version: String): PendingIntent {
+        val intent = Intent(context, NotificationActionReceiver::class.java).apply {
+            action = NotificationActionReceiver.ACTION_UPDATE_NOW
+            putExtra(NotificationActionReceiver.EXTRA_VERSION, version)
+        }
+        return PendingIntent.getBroadcast(
+            context,
+            2,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+    }
+
+    private fun createDismissIntent(context: Context): PendingIntent {
+        val intent = Intent(context, NotificationActionReceiver::class.java).apply {
+            action = NotificationActionReceiver.ACTION_DISMISS
+        }
+        return PendingIntent.getBroadcast(
+            context,
+            3,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
     }
 
@@ -285,7 +409,16 @@ class UpdateCheckWorker(context: Context, workerParams: WorkerParameters) : Coro
         }
     }
 
+    data class GitHubRelease(
+        val version: String,
+        val releaseNotes: String,
+        val downloadUrl: String?
+    )
+
     companion object {
         private const val TAG = "UpdateCheckWorker"
+        const val NOTIFICATION_CHANNEL_ID = "vivi_music_updates"
+        const val NOTIFICATION_ID = 1001
     }
 }
+
