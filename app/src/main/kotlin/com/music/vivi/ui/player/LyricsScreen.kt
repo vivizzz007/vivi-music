@@ -195,8 +195,11 @@ fun LyricsScreen(
                     database.query {
                         upsert(LyricsEntity(mediaMetadata.id, lyrics))
                     }
+
                 } catch (e: Exception) {
-                    // Handle error silently - user can manually refetch if needed
+                    // Log error for debugging but don't crash the app
+                    Log.w("LyricsScreen", "Failed to auto-fetch lyrics for ${mediaMetadata.title}: ${e.message}")
+                    // User can still manually refetch if needed
                 }
             }
         }
