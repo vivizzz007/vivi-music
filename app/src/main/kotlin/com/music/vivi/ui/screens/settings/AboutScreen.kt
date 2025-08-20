@@ -103,9 +103,9 @@ fun AboutScreen(
         }
     }
 
-    // Check for version update on screen load
     LaunchedEffect(Unit) {
-        val (wasUpdated, updateDate) = DateUtils.checkAndStoreVersionUpdate(context, androidx.multidex.BuildConfig.VERSION_NAME)
+        val (wasUpdated, updateDate) =
+            DateUtils.checkAndStoreVersionUpdate(context, BuildConfig.VERSION_NAME)
         isVersionUpdated = wasUpdated
         versionUpdateDate = updateDate ?: DateUtils.getVersionUpdateDate(context)
     }
@@ -144,7 +144,7 @@ fun AboutScreen(
                     }
                     if (highestVersion != null) {
                         latestRelease = highestTagName
-                        isUpdateAvailable.value = isNewerVersion(highestVersion, androidx.multidex.BuildConfig.VERSION_NAME)
+                        isUpdateAvailable.value = isNewerVersion(highestVersion, BuildConfig.VERSION_NAME)
                     } else {
                         isUpdateAvailable.value = false
                         latestRelease = null
