@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="surface">#FFFFFFFF</color>
+    <color name="on_surface">#FF000000</color>
+    <color name="surface_dark">#FF121212</color>
+    <color name="on_surface_dark">#FFFFFFFF</color>
+</resources>
