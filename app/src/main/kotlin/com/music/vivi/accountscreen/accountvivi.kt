@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.Login
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -64,6 +65,7 @@ import com.music.vivi.BuildConfig
 import com.music.vivi.R
 import com.music.vivi.constants.AccountChannelHandleKey
 import com.music.vivi.constants.AccountEmailKey
+import com.music.vivi.constants.AccountImageUrlKey
 import com.music.vivi.constants.AccountNameKey
 import com.music.vivi.constants.DataSyncIdKey
 import com.music.vivi.constants.InnerTubeCookieKey
@@ -79,6 +81,7 @@ import com.music.vivi.viewmodels.HomeViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 
+// Option 1: Add image loading state management to prevent constant refreshing
 fun AccountviviSettings(
     navController: NavController,
     onClose: () -> Unit,
@@ -93,6 +96,8 @@ fun AccountviviSettings(
     val (innerTubeCookie, onInnerTubeCookieChange) = rememberPreference(InnerTubeCookieKey, "")
     val (visitorData, onVisitorDataChange) = rememberPreference(VisitorDataKey, "")
     val (dataSyncId, onDataSyncIdChange) = rememberPreference(DataSyncIdKey, "")
+    // ADD: Store account image URL in preferences
+    val (storedAccountImageUrl, onStoredAccountImageUrlChange) = rememberPreference(AccountImageUrlKey, "")
 
     val isLoggedIn = remember(innerTubeCookie) {
         "SAPISID" in parseCookieString(innerTubeCookie)
@@ -103,6 +108,16 @@ fun AccountviviSettings(
     val viewModel: HomeViewModel = hiltViewModel()
     val accountName by viewModel.accountName.collectAsState()
     val accountImageUrl by viewModel.accountImageUrl.collectAsState()
+
+    // Store fetched image URL in preferences when it changes
+    LaunchedEffect(accountImageUrl) {
+        if (!accountImageUrl.isNullOrEmpty() && accountImageUrl != storedAccountImageUrl) {
+            onStoredAccountImageUrlChange(accountImageUrl!!)
+        }
+    }
+
+    // Use stored image URL for display (constant until sign out)
+    val displayImageUrl = if (isLoggedIn) storedAccountImageUrl.takeIf { it.isNotEmpty() } else null
 
     var showToken by remember { mutableStateOf(false) }
     var showTokenEditor by remember { mutableStateOf(false) }
@@ -150,9 +165,10 @@ fun AccountviviSettings(
                                 }
                             }
                     ) {
-                        if (isLoggedIn && accountImageUrl != null) {
+                        // Use stored image URL that remains constant
+                        if (isLoggedIn && !displayImageUrl.isNullOrEmpty()) {
                             AsyncImage(
-                                model = accountImageUrl,
+                                model = displayImageUrl,
                                 contentDescription = "Profile Image",
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Crop
@@ -181,13 +197,6 @@ fun AccountviviSettings(
                             modifier = Modifier
                                 .size(24.dp)
                                 .align(Alignment.BottomEnd)
-//                                .background(
-//                                    if (isLoggedIn)
-//                                        Color(0xFF4CAF50)
-//                                    else
-//                                        MaterialTheme.colorScheme.outline,
-//                                    CircleShape
-//                                )
                                 .padding(4.dp),
                             contentAlignment = Alignment.Center
                         ) {
@@ -200,6 +209,7 @@ fun AccountviviSettings(
                         }
                     }
 
+                    // Rest of your existing code remains the same...
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // Account Info
@@ -278,6 +288,7 @@ fun AccountviviSettings(
                     }
                 }
             }
+
 
             Spacer(modifier = Modifier.height(16.dp))
 
