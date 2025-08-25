@@ -17,6 +17,8 @@
   <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/2.png?raw=true" width="30%" />
   <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/6.png?raw=true" width="30%" />
   <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/14.png?raw=true" width="30%" />
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/5.png?raw=true" width="30%" />
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/8.png?raw=true" width="30%" />
 </p>
 
 <div align="center">
