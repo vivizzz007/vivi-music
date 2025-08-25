@@ -68,9 +68,13 @@ import androidx.compose.ui.zIndex
 import android.content.res.Configuration
 import android.util.Log
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.PaddingValues
@@ -79,6 +83,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Shadow
@@ -133,7 +138,11 @@ import com.music.vivi.ui.screens.settings.LyricsPosition
 import com.music.vivi.utils.rememberPreference
 import androidx.compose.ui.graphics.CompositingStrategy
 import com.music.vivi.Dotlyrics.AnimatedMusicBeatDots
+// Coroutines
+import kotlinx.coroutines.withTimeoutOrNull
 
+// Animation
+import androidx.compose.animation.core.RepeatMode
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LyricsScreen(
@@ -162,25 +171,31 @@ fun LyricsScreen(
     // slider style preference
     val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.DEFAULT)
 
+    // Add loading state for better UX
+    var isLoadingLyrics by remember { mutableStateOf(false) }
+
     // Debug: Let's see what we're getting
     LaunchedEffect(currentLyrics) {
         Log.d("LyricsDebug", "currentLyrics changed: $currentLyrics")
         Log.d("LyricsDebug", "lyrics text: ${currentLyrics?.lyrics}")
     }
+
     val lyricsPosition = when (lyricsTextPosition) {
         "LEFT" -> LyricsPosition.LEFT
         "RIGHT" -> LyricsPosition.RIGHT
         else -> LyricsPosition.CENTER
     }
 
-    // Auto-fetch lyrics when no lyrics found (same logic as refetch)
+    // Optimized auto-fetch lyrics with better error handling and faster execution
     LaunchedEffect(mediaMetadata.id, currentLyrics) {
-        if (currentLyrics == null) {
-            // Small delay to ensure database state is stable
-            delay(500)
+        if (currentLyrics == null && !isLoadingLyrics) {
+            isLoadingLyrics = true
 
+            // Start fetch immediately without delay for faster response
             coroutineScope.launch(Dispatchers.IO) {
                 try {
+                    Log.d("LyricsDebug", "Starting lyrics fetch for: ${mediaMetadata.title}")
+
                     // Get LyricsHelper from Hilt
                     val entryPoint = EntryPointAccessors.fromApplication(
                         context.applicationContext,
@@ -188,18 +203,30 @@ fun LyricsScreen(
                     )
                     val lyricsHelper = entryPoint.lyricsHelper()
 
-                    // Fetch lyrics automatically
-                    val lyrics = lyricsHelper.getLyrics(mediaMetadata)
+                    // Fetch lyrics with timeout to prevent hanging
+                    val lyrics = withTimeoutOrNull(10000) { // 10 second timeout
+                        lyricsHelper.getLyrics(mediaMetadata)
+                    }
 
-                    // Save to database
-                    database.query {
-                        upsert(LyricsEntity(mediaMetadata.id, lyrics))
+                    if (lyrics != null) {
+                        Log.d("LyricsDebug", "Lyrics fetched successfully, saving to database")
+
+                        // Save to database
+                        database.query {
+                            upsert(LyricsEntity(mediaMetadata.id, lyrics))
+                        }
+
+                        Log.d("LyricsDebug", "Lyrics saved to database")
+                    } else {
+                        Log.w("LyricsDebug", "Lyrics fetch timed out for: ${mediaMetadata.title}")
                     }
 
                 } catch (e: Exception) {
                     // Log error for debugging but don't crash the app
                     Log.w("LyricsScreen", "Failed to auto-fetch lyrics for ${mediaMetadata.title}: ${e.message}")
                     // User can still manually refetch if needed
+                } finally {
+                    isLoadingLyrics = false
                 }
             }
         }
@@ -217,6 +244,7 @@ fun LyricsScreen(
     val defaultGradientColors = listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surfaceVariant)
     val fallbackColor = MaterialTheme.colorScheme.surface.toArgb()
 
+    // Optimize gradient loading with better caching
     LaunchedEffect(mediaMetadata.id, playerBackground) {
         if (playerBackground == PlayerBackgroundStyle.GRADIENT) {
             if (mediaMetadata.thumbnailUrl != null) {
@@ -224,35 +252,38 @@ fun LyricsScreen(
                 if (cachedColors != null) {
                     gradientColors = cachedColors
                 } else {
-                    val request = ImageRequest.Builder(context)
-                        .data(mediaMetadata.thumbnailUrl)
-                        .size(Size(PlayerColorExtractor.Config.IMAGE_SIZE, PlayerColorExtractor.Config.IMAGE_SIZE))
-                        .allowHardware(false)
-                        .memoryCacheKey("gradient_${mediaMetadata.id}")
-                        .build()
+                    // Use a separate coroutine to avoid blocking lyrics loading
+                    launch(Dispatchers.IO) {
+                        val request = ImageRequest.Builder(context)
+                            .data(mediaMetadata.thumbnailUrl)
+                            .size(Size(PlayerColorExtractor.Config.IMAGE_SIZE, PlayerColorExtractor.Config.IMAGE_SIZE))
+                            .allowHardware(false)
+                            .memoryCacheKey("gradient_${mediaMetadata.id}")
+                            .build()
 
-                    val result = runCatching {
-                        context.imageLoader.execute(request).image
-                    }.getOrNull()
+                        val result = runCatching {
+                            context.imageLoader.execute(request).image
+                        }.getOrNull()
 
-                    if (result != null) {
-                        val bitmap = result.toBitmap()
-                        val palette = withContext(Dispatchers.Default) {
-                            Palette.from(bitmap)
-                                .maximumColorCount(PlayerColorExtractor.Config.MAX_COLOR_COUNT)
-                                .resizeBitmapArea(PlayerColorExtractor.Config.BITMAP_AREA)
-                                .generate()
+                        if (result != null) {
+                            val bitmap = result.toBitmap()
+                            val palette = withContext(Dispatchers.Default) {
+                                Palette.from(bitmap)
+                                    .maximumColorCount(PlayerColorExtractor.Config.MAX_COLOR_COUNT)
+                                    .resizeBitmapArea(PlayerColorExtractor.Config.BITMAP_AREA)
+                                    .generate()
+                            }
+
+                            val extractedColors = PlayerColorExtractor.extractGradientColors(
+                                palette = palette,
+                                fallbackColor = fallbackColor
+                            )
+
+                            gradientColorsCache[mediaMetadata.id] = extractedColors
+                            gradientColors = extractedColors
+                        } else {
+                            gradientColors = defaultGradientColors
                         }
-
-                        val extractedColors = PlayerColorExtractor.extractGradientColors(
-                            palette = palette,
-                            fallbackColor = fallbackColor
-                        )
-
-                        gradientColorsCache[mediaMetadata.id] = extractedColors
-                        gradientColors = extractedColors
-                    } else {
-                        gradientColors = defaultGradientColors
                     }
                 }
             } else {
@@ -264,13 +295,11 @@ fun LyricsScreen(
     }
 
     val textBackgroundColor = when (playerBackground) {
-//        PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.onBackground
         PlayerBackgroundStyle.BLUR -> Color.White
         PlayerBackgroundStyle.GRADIENT -> Color.White
     }
 
     val icBackgroundColor = when (playerBackground) {
-//        PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.surface
         PlayerBackgroundStyle.BLUR -> Color.Black
         PlayerBackgroundStyle.GRADIENT -> Color.Black
     }
@@ -347,14 +376,6 @@ fun LyricsScreen(
                     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface))
                 }
             }
-
-//            if (playerBackground != PlayerBackgroundStyle.DEFAULT) {
-//                Box(
-//                    modifier = Modifier
-//                        .fillMaxSize()
-//                        .background(Color.Black.copy(alpha = 0.3f))
-//                )
-//            }
         }
 
         // Check orientation and layout accordingly
@@ -463,6 +484,7 @@ fun LyricsScreen(
                                 lyricsPosition = lyricsPosition,
                                 isPlaying = isPlaying,
                                 textColor = textBackgroundColor,
+                                isLoading = isLoadingLyrics, // Pass loading state
                                 onSeek = { timestamp -> player.seekTo(timestamp) },
                                 modifier = Modifier
                                     .weight(1f)
@@ -567,7 +589,6 @@ fun LyricsScreen(
                                 )
                             }
 
-//                            Spacer(modifier = Modifier.height(24.dp))
                             Spacer(modifier = Modifier.height(45.dp))
 
                             // Control buttons
@@ -665,41 +686,6 @@ fun LyricsScreen(
                                     )
                                 }
                             }
-
-//                            Spacer(modifier = Modifier.height(24.dp))
-//
-//                            // Volume Control
-//                            Row(
-//                                modifier = Modifier
-//                                    .fillMaxWidth()
-//                                    .padding(horizontal = 48.dp),
-//                                verticalAlignment = Alignment.CenterVertically,
-//                                horizontalArrangement = Arrangement.SpaceBetween
-//                            ) {
-//                                Icon(
-//                                    painter = painterResource(R.drawable.volume_off),
-//                                    contentDescription = stringResource(R.string.minimum_volume),
-//                                    modifier = Modifier.size(20.dp),
-//                                    tint = textBackgroundColor
-//                                )
-//
-//                                BigSeekBar(
-//                                    progressProvider = playerVolume::value,
-//                                    onProgressChange = { playerConnection.service.playerVolume.value = it },
-//                                    color = textBackgroundColor,
-//                                    modifier = Modifier
-//                                        .weight(1f)
-//                                        .height(24.dp)
-//                                        .padding(horizontal = 16.dp)
-//                                )
-//
-//                                Icon(
-//                                    painter = painterResource(R.drawable.volume_up),
-//                                    contentDescription = stringResource(R.string.maximum_volume),
-//                                    modifier = Modifier.size(20.dp),
-//                                    tint = textBackgroundColor
-//                                )
-//                            }
                         }
                     }
                 }
@@ -801,7 +787,8 @@ fun LyricsScreen(
                             currentPosition = position,
                             lyricsPosition = lyricsPosition,
                             isPlaying = isPlaying,
-                            textColor = textBackgroundColor, // Add the missing parameter
+                            textColor = textBackgroundColor,
+                            isLoading = isLoadingLyrics, // Pass loading state
                             onSeek = { timestamp -> player.seekTo(timestamp) },
                             modifier = Modifier.fillMaxSize()
                         )
@@ -819,6 +806,7 @@ fun AppleLikeLyrics(
     lyricsPosition: LyricsPosition,
     isPlaying: Boolean,
     textColor: Color,
+    isLoading: Boolean = false, // Add loading parameter
     onSeek: (Long) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -904,18 +892,16 @@ fun AppleLikeLyrics(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        if (parsedLyrics.isEmpty()) {
-            // No lyrics available - show beat dots if playing
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                if (lyrics == null) {
-                    Icon(
-                        painter = painterResource(R.drawable.music_note),
-                        contentDescription = null,
-                        modifier = Modifier.size(48.dp),
-                        tint = textColor.copy(alpha = 0.3f)
+        when {
+            // Show loading state with spinner
+            isLoading -> {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    CircularProgressIndicator(
+                        color = textColor.copy(alpha = 0.7f),
+                        modifier = Modifier.size(32.dp)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
@@ -924,85 +910,111 @@ fun AppleLikeLyrics(
                         color = textColor.copy(alpha = 0.6f),
                         textAlign = TextAlign.Center
                     )
-                } else {
-                    // Show animated dots for instrumental music
-                    AnimatedMusicBeatDots(
-                        isPlaying = isPlaying,
-                        textColor = textColor,
-                        modifier = Modifier.padding(16.dp)
-                    )
                 }
             }
-        } else {
-            // Show intro beat dots if we're at the beginning before first lyrics
-            if (isInInstrumental && currentLineIndex == -1) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+
+            // No lyrics available - show beat dots if playing
+            parsedLyrics.isEmpty() -> {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
+                    if (lyrics == null) {
+                        Icon(
+                            painter = painterResource(R.drawable.music_note),
+                            contentDescription = null,
+                            modifier = Modifier.size(48.dp),
+                            tint = textColor.copy(alpha = 0.3f)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "No lyrics available",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = textColor.copy(alpha = 0.6f),
+                            textAlign = TextAlign.Center
+                        )
+                    } else {
+                        // Show animated dots for instrumental music
                         AnimatedMusicBeatDots(
                             isPlaying = isPlaying,
                             textColor = textColor,
                             modifier = Modifier.padding(16.dp)
                         )
-                        Spacer(modifier = Modifier.height(32.dp))
-                        Text(
-                            text = "Music playing...",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = textColor.copy(alpha = 0.6f),
-                            textAlign = TextAlign.Center
-                        )
                     }
                 }
-            } else {
-                // Show lyrics with beat dots during instrumental breaks
-                LazyColumn(
-                    state = lazyListState,
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(
-                        top = topPadding,
-                        bottom = bottomPadding
-                    ),
-                    horizontalAlignment = horizontalAlignment
-                ) {
-                    itemsIndexed(parsedLyrics) { index, lyricLine ->
-                        AppleLyricLine(
-                            text = lyricLine.text,
-                            isActive = index == currentLineIndex,
-                            isUpcoming = index == currentLineIndex + 1,
-                            isPassed = index < currentLineIndex,
-                            textAlign = textAlign,
-                            textColor = textColor,
-                            onClick = { onSeek(lyricLine.timestamp) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(
-                                    horizontal = 24.dp,
-                                    vertical = if (isLandscape) 12.dp else 16.dp // Tighter spacing in landscape
-                                )
-                        )
+            }
 
-                        // Show beat dots after current line if we're in an instrumental section
-                        if (isInInstrumental && index == currentLineIndex) {
-                            Box(
+            else -> {
+                // Show intro beat dots if we're at the beginning before first lyrics
+                if (isInInstrumental && currentLineIndex == -1) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            AnimatedMusicBeatDots(
+                                isPlaying = isPlaying,
+                                textColor = textColor,
+                                modifier = Modifier.padding(16.dp)
+                            )
+                            Spacer(modifier = Modifier.height(32.dp))
+                            Text(
+                                text = "Music playing...",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = textColor.copy(alpha = 0.6f),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                } else {
+                    // Show lyrics with beat dots during instrumental breaks
+                    LazyColumn(
+                        state = lazyListState,
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(
+                            top = topPadding,
+                            bottom = bottomPadding
+                        ),
+                        horizontalAlignment = horizontalAlignment
+                    ) {
+                        itemsIndexed(parsedLyrics) { index, lyricLine ->
+                            AppleLyricLine(
+                                text = lyricLine.text,
+                                isActive = index == currentLineIndex,
+                                isUpcoming = index == currentLineIndex + 1,
+                                isPassed = index < currentLineIndex,
+                                textAlign = textAlign,
+                                textColor = textColor,
+                                onClick = { onSeek(lyricLine.timestamp) },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = if (isLandscape) 24.dp else 32.dp),
-                                contentAlignment = when (lyricsPosition) {
-                                    LyricsPosition.LEFT -> Alignment.CenterStart
-                                    LyricsPosition.CENTER -> Alignment.Center
-                                    LyricsPosition.RIGHT -> Alignment.CenterEnd
+                                    .padding(
+                                        horizontal = 24.dp,
+                                        vertical = if (isLandscape) 12.dp else 16.dp // Tighter spacing in landscape
+                                    )
+                            )
+
+                            // Show beat dots after current line if we're in an instrumental section
+                            if (isInInstrumental && index == currentLineIndex) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = if (isLandscape) 24.dp else 32.dp),
+                                    contentAlignment = when (lyricsPosition) {
+                                        LyricsPosition.LEFT -> Alignment.CenterStart
+                                        LyricsPosition.CENTER -> Alignment.Center
+                                        LyricsPosition.RIGHT -> Alignment.CenterEnd
+                                    }
+                                ) {
+                                    AnimatedMusicBeatDots(
+                                        isPlaying = isPlaying,
+                                        textColor = textColor,
+                                        modifier = Modifier.padding(horizontal = 24.dp)
+                                    )
                                 }
-                            ) {
-                                AnimatedMusicBeatDots(
-                                    isPlaying = isPlaying,
-                                    textColor = textColor,
-                                    modifier = Modifier.padding(horizontal = 24.dp)
-                                )
                             }
                         }
                     }
@@ -1012,7 +1024,6 @@ fun AppleLikeLyrics(
     }
 }
 
-
 @Composable
 fun AppleLyricLine(
     text: String,
@@ -1020,7 +1031,7 @@ fun AppleLyricLine(
     isUpcoming: Boolean,
     isPassed: Boolean,
     textAlign: TextAlign,
-    textColor: Color, // Add this parameter
+    textColor: Color,
     onClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -1083,7 +1094,7 @@ fun AppleLyricLine(
                 indication = ripple(
                     bounded = false,
                     radius = 100.dp,
-                    color = textColor.copy(alpha = 0.3f) // Use textColor parameter
+                    color = textColor.copy(alpha = 0.3f)
                 )
             ) { onClick() },
         contentAlignment = boxAlignment
@@ -1107,13 +1118,62 @@ fun AppleLyricLine(
     }
 }
 
+// Optimized AnimatedMusicBeatDots composable with better performance
+@Composable
+fun AnimatedMusicBeatDots(
+    isPlaying: Boolean,
+    textColor: Color,
+    modifier: Modifier = Modifier
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "beat_dots")
+
+    val dotCount = 3
+    val animationDuration = 1200
+    val delayBetweenDots = animationDuration / dotCount
+
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        repeat(dotCount) { index ->
+            val animatedScale by infiniteTransition.animateFloat(
+                initialValue = if (isPlaying) 0.4f else 0.6f,
+                targetValue = if (isPlaying) 1.2f else 0.6f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(
+                        durationMillis = animationDuration,
+                        delayMillis = delayBetweenDots * index,
+                        easing = FastOutSlowInEasing
+                    ),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "dot_scale_$index"
+            )
+
+            Box(
+                modifier = Modifier
+                    .size(12.dp)
+                    .graphicsLayer {
+                        scaleX = animatedScale
+                        scaleY = animatedScale
+                    }
+                    .background(
+                        color = textColor.copy(alpha = 0.6f),
+                        shape = CircleShape
+                    )
+            )
+        }
+    }
+}
+
 // Data class for parsed lyrics
 data class LyricLine(
     val timestamp: Long,
     val text: String
 )
 
-// Parse LRC format lyrics
+// Optimized LRC parser with better performance
 fun parseLrcLyrics(lyricsText: String): List<LyricLine> {
     val lines = lyricsText.split("\n")
     val lyricLines = mutableListOf<LyricLine>()
@@ -1121,13 +1181,16 @@ fun parseLrcLyrics(lyricsText: String): List<LyricLine> {
     val timeRegex = "\\[(\\d{2}):(\\d{2})\\.(\\d{2})\\](.*)".toRegex()
 
     for (line in lines) {
+        if (line.isBlank()) continue
+
         val matchResult = timeRegex.find(line.trim())
         if (matchResult != null) {
             val (minutes, seconds, centiseconds, text) = matchResult.destructured
             val timestamp = (minutes.toLong() * 60 + seconds.toLong()) * 1000 + (centiseconds.toLong() * 10)
 
-            if (text.trim().isNotEmpty()) {
-                lyricLines.add(LyricLine(timestamp, text.trim()))
+            val cleanText = text.trim()
+            if (cleanText.isNotEmpty()) {
+                lyricLines.add(LyricLine(timestamp, cleanText))
             }
         }
     }
@@ -1185,6 +1248,7 @@ fun isInstrumentalSection(
 
     return false
 }
+
 enum class LyricsPosition {
     LEFT, CENTER, RIGHT
 }
