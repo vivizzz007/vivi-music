@@ -169,7 +169,7 @@ import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.ui.utils.resetHeightOffset
 import com.music.vivi.update.notificationupdate.NotificationActionReceiver
 import com.music.vivi.utils.SyncUtils
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.get
 import com.music.vivi.utils.rememberEnumPreference
@@ -357,9 +357,9 @@ class MainActivity : ComponentActivity() {
                     val windowsInsets = WindowInsets.systemBars
                     val bottomInset = with(density) { windowsInsets.getBottom(density).toDp() }
                     val bottomInsetDp = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
-
+//
                     val navController = rememberNavController()
-                    val homeViewModel: HomeViewModel = hiltViewModel()
+                    val homeViewModel: HomeViewModel = viewModel()
                     val accountImageUrl by homeViewModel.accountImageUrl.collectAsState()
                     val navBackStackEntry by navController.currentBackStackEntryAsState()
                     val (previousTab) = rememberSaveable { mutableStateOf("home") }
