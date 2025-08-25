@@ -168,11 +168,11 @@ fun SettingsScreen(
         val route: String,
         val description: String = "",
         val keywords: List<String> = emptyList(),
-        val iconColor: Color = Color(0xFF1976D2), // Blue
-        val backgroundColor: Color = Color(0xFFE3F2FD) // Light Blue
+        val iconColor: Color = Color.Red,
+        val backgroundColor: Color = Color.Blue.copy(alpha = 0.1f)
     )
 
-// Android 16 style preset colors for settings
+// Android 16 style settings
     val settingsItems = listOf(
         SettingItem(
             title = stringResource(R.string.update),
@@ -180,8 +180,8 @@ fun SettingsScreen(
             route = "settings/update",
             description = if (isUpdateAvailable) "Update available" else "Check for app updates",
             keywords = listOf("update", "version", "upgrade", "new"),
-            iconColor = if (isUpdateAvailable) Color(0xFFD32F2F) else Color(0xFF1976D2), // Red or Blue
-            backgroundColor = if (isUpdateAvailable) Color(0xFFFFEBEE) else Color(0xFFE3F2FD) // Light Red or Light Blue
+            iconColor = if (isUpdateAvailable) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+            backgroundColor = if (isUpdateAvailable) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer
         ),
         SettingItem(
             title = stringResource(R.string.appearance),
@@ -189,8 +189,8 @@ fun SettingsScreen(
             route = "settings/appearance",
             description = "Customize theme and colors",
             keywords = listOf("theme", "color", "dark mode", "light mode","home screen","app design","slider style","player","misc"),
-            iconColor = Color(0xFFE91E63), // Pink
-            backgroundColor = Color(0xFFFCE4EC) // Light Pink
+            iconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            backgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f)
         ),
         SettingItem(
             title = stringResource(R.string.content),
@@ -198,8 +198,8 @@ fun SettingsScreen(
             route = "settings/content",
             description = "Content preferences and settings",
             keywords = listOf("content", "hide explicit","notification setting","app language","enable proxy", "files"),
-            iconColor = Color(0xFF9C27B0), // Purple
-            backgroundColor = Color(0xFFF3E5F5) // Light Purple
+            iconColor = MaterialTheme.colorScheme.onTertiaryContainer,
+            backgroundColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.7f)
         ),
         SettingItem(
             title = stringResource(R.string.play),
@@ -207,8 +207,8 @@ fun SettingsScreen(
             route = "settings/player",
             description = "Player and audio settings",
             keywords = listOf("player", "audio","auto", "sound", "music","lyrics","local player setings","skip silence","enable offload","queue","playback"),
-            iconColor = Color(0xFF4CAF50), // Green
-            backgroundColor = Color(0xFFE8F5E8) // Light Green
+            iconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            backgroundColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
         ),
         SettingItem(
             title = stringResource(R.string.storage),
@@ -216,8 +216,8 @@ fun SettingsScreen(
             route = "settings/storage",
             description = "Manage storage and cache",
             keywords = listOf("storage", "cache", "memory"),
-            iconColor = Color(0xFFFF9800), // Orange
-            backgroundColor = Color(0xFFFFF3E0) // Light Orange
+            iconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            backgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f)
         ),
         SettingItem(
             title = stringResource(R.string.account),
@@ -225,8 +225,8 @@ fun SettingsScreen(
             route = "account_settings",
             description = "Add your account",
             keywords = listOf("account","sign in","sign out"),
-            iconColor = Color(0xFF2196F3), // Light Blue
-            backgroundColor = Color(0xFFE1F5FE) // Very Light Blue
+            iconColor = MaterialTheme.colorScheme.onTertiaryContainer,
+            backgroundColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.7f)
         ),
         SettingItem(
             title = stringResource(R.string.privacy),
@@ -234,8 +234,8 @@ fun SettingsScreen(
             route = "settings/privacy",
             description = "Privacy and security settings",
             keywords = listOf("privacy", "security", "permissions","misc","screenshot"),
-            iconColor = Color(0xFF607D8B), // Blue Grey
-            backgroundColor = Color(0xFFECEFF1) // Light Blue Grey
+            iconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            backgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f)
         ),
         SettingItem(
             title = stringResource(R.string.backup_restore),
@@ -243,8 +243,8 @@ fun SettingsScreen(
             route = "settings/backup_restore",
             description = "Backup and restore your data",
             keywords = listOf("backup", "restore", "data"),
-            iconColor = Color(0xFF795548), // Brown
-            backgroundColor = Color(0xFFEFEBE9) // Light Brown
+            iconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            backgroundColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
         ),
         SettingItem(
             title = stringResource(R.string.about),
@@ -252,8 +252,8 @@ fun SettingsScreen(
             route = "settings/about",
             description = "About this app and version info",
             keywords = listOf("about","developer", "version", "details","changelog","website","github","donate"),
-            iconColor = Color(0xFF009688), // Teal
-            backgroundColor = Color(0xFFE0F2F1) // Light Teal
+            iconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            backgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f)
         )
     )
 
