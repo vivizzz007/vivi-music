@@ -13,31 +13,14 @@ import android.content.Intent
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import android.app.AlarmManager
 import android.os.Build
 
 import androidx.core.app.NotificationCompat
-import kotlinx.coroutines.CoroutineScope
 
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.json.JSONArray
 import java.net.URL
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.util.*
 import android.app.NotificationChannel
 
-import android.graphics.BitmapFactory
 import android.graphics.Color
-import android.app.Dialog
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.Button
-import android.widget.TextView
-import androidx.fragment.app.DialogFragment
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import androidx.core.content.ContextCompat
@@ -49,13 +32,7 @@ import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequest
-import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
-import com.music.vivi.update.notificationupdate.NotificationActionReceiver.Companion.ACTION_OPEN_APP
-import com.music.vivi.update.notificationupdate.NotificationActionReceiver.Companion.ACTION_REMIND_LATER
-import com.music.vivi.update.notificationupdate.NotificationActionReceiver.Companion.NOTIFICATION_CHANNEL_ID
-import com.music.vivi.update.notificationupdate.NotificationActionReceiver.Companion.NOTIFICATION_ID
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import android.net.Uri
@@ -178,7 +155,7 @@ class NotificationActionReceiver : BroadcastReceiver() {
         val intervalHours = prefs.getInt(KEY_UPDATE_CHECK_INTERVAL, DEFAULT_UPDATE_CHECK_INTERVAL)
         return intervalHours * 60 * 60 * 1000L // Convert hours to milliseconds
     }
-
+//
     companion object {
         private const val TAG = "UpdateNotification"
         private const val PREFS_NAME = "app_settings"
