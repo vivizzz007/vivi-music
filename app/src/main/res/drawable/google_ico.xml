@@ -1,0 +1,32 @@
+<!-- Alternative version with better contrast - save as ic_google_alt.xml -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    
+    <!-- Background circle for better visibility -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10s10,-4.48 10,-10S17.52,2 12,2z"/>
+    
+    <!-- Blue section -->
+    <path
+        android:fillColor="#4285F4"
+        android:pathData="M19.35,11.5c0,-0.62 -0.05,-1.23 -0.16,-1.8H12v3.4h4.74c-0.2,1.1 -0.83,2.03 -1.77,2.65v2.22h2.86c1.66,-1.54 2.52,-3.8 2.52,-6.47z"/>
+    
+    <!-- Green section -->
+    <path
+        android:fillColor="#34A853"
+        android:pathData="M12,20c2.38,0 4.37,-0.79 5.82,-2.13l-2.86,-2.22c-0.78,0.53 -1.78,0.85 -2.96,0.85 -2.29,0 -4.23,-1.55 -4.93,-3.62H4.17v2.27C5.59,17.58 8.58,20 12,20z"/>
+    
+    <!-- Yellow section -->
+    <path
+        android:fillColor="#FBBC05"
+        android:pathData="M7.07,12.88c-0.18,-0.53 -0.28,-1.09 -0.28,-1.67s0.1,-1.14 0.28,-1.67V7.27H4.17c-0.6,1.19 -0.94,2.53 -0.94,3.94s0.34,2.75 0.94,3.94l2.9,-2.27z"/>
+    
+    <!-- Red section -->
+    <path
+        android:fillColor="#EA4335"
+        android:pathData="M12,6.57c1.3,0 2.45,0.45 3.37,1.32l2.52,-2.52C16.37,4.17 14.38,3.38 12,3.38c-3.42,0 -6.41,2.42 -7.83,5.85l2.9,2.26c0.7,-2.07 2.64,-3.62 4.93,-3.62z"/>
+</vector>
