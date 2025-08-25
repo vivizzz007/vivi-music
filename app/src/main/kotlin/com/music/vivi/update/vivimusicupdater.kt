@@ -303,8 +303,6 @@ fun UpdateScreen(navController: NavHostController) {
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                // Display changelog during installation
-                // In the updateAvailable section, replace the changelog display code with:
                 if (changelog.isNotEmpty()) {
                     val changelogItems = changelog.split("\n").filter { it.isNotBlank() }
                     changelogItems.forEach { item ->
@@ -331,38 +329,27 @@ fun UpdateScreen(navController: NavHostController) {
                             }
                         }
 
-                        Row(
-                            modifier = Modifier.padding(vertical = 2.dp),
-                            verticalAlignment = Alignment.Top
-                        ) {
-                            Text(
-                                text = "•",
-                                style = MaterialTheme.typography.bodyLarge.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 20.sp
-                                ),
+                        // Remove the Row with bullet point and just use ClickableText directly
+                        ClickableText(
+                            text = annotatedText,
+                            onClick = { offset ->
+                                annotatedText.getStringAnnotations("URL", offset, offset)
+                                    .firstOrNull()?.let { annotation ->
+                                        val intent = Intent(
+                                            Intent.ACTION_VIEW,
+                                            Uri.parse(annotation.item)
+                                        )
+                                        ContextCompat.startActivity(context, intent, null)
+                                    }
+                            },
+                            style = MaterialTheme.typography.bodyLarge.copy(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(end = 8.dp)
-                            )
-                            ClickableText(
-                                text = annotatedText,
-                                onClick = { offset ->
-                                    annotatedText.getStringAnnotations("URL", offset, offset)
-                                        .firstOrNull()?.let { annotation ->
-                                            val intent = Intent(
-                                                Intent.ACTION_VIEW,
-                                                Uri.parse(annotation.item)
-                                            )
-                                            ContextCompat.startActivity(context, intent, null)
-                                        }
-                                },
-                                style = MaterialTheme.typography.bodyLarge.copy(
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    lineHeight = 24.sp
-                                ),
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
+                                lineHeight = 24.sp
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 2.dp)
+                        )
                     }
                 }
                 Spacer(modifier = Modifier.height(40.dp))
@@ -568,38 +555,27 @@ fun UpdateScreen(navController: NavHostController) {
                                             }
                                         }
 
-                                        Row(
-                                            modifier = Modifier.padding(vertical = 2.dp),
-                                            verticalAlignment = Alignment.Top
-                                        ) {
-                                            Text(
-                                                text = "•",
-                                                style = MaterialTheme.typography.bodyLarge.copy(
-                                                    fontWeight = FontWeight.Bold,
-                                                    fontSize = 20.sp
-                                                ),
+                                        // NO BULLET POINTS - Direct ClickableText
+                                        ClickableText(
+                                            text = annotatedText,
+                                            onClick = { offset ->
+                                                annotatedText.getStringAnnotations("URL", offset, offset)
+                                                    .firstOrNull()?.let { annotation ->
+                                                        val intent = Intent(
+                                                            Intent.ACTION_VIEW,
+                                                            Uri.parse(annotation.item)
+                                                        )
+                                                        ContextCompat.startActivity(context, intent, null)
+                                                    }
+                                            },
+                                            style = MaterialTheme.typography.bodyLarge.copy(
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                modifier = Modifier.padding(end = 8.dp)
-                                            )
-                                            ClickableText(
-                                                text = annotatedText,
-                                                onClick = { offset ->
-                                                    annotatedText.getStringAnnotations("URL", offset, offset)
-                                                        .firstOrNull()?.let { annotation ->
-                                                            val intent = Intent(
-                                                                Intent.ACTION_VIEW,
-                                                                Uri.parse(annotation.item)
-                                                            )
-                                                            ContextCompat.startActivity(context, intent, null)
-                                                        }
-                                                },
-                                                style = MaterialTheme.typography.bodyLarge.copy(
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                    lineHeight = 24.sp
-                                                ),
-                                                modifier = Modifier.weight(1f)
-                                            )
-                                        }
+                                                lineHeight = 24.sp
+                                            ),
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(vertical = 2.dp)
+                                        )
                                     }
                                 }
                                 Spacer(modifier = Modifier.height(15.dp))
