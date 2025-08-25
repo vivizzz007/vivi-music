@@ -9,6 +9,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,6 +30,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Login
 import androidx.compose.material.icons.filled.Person
@@ -54,6 +56,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -76,12 +79,12 @@ import com.music.vivi.ui.component.InfoLabel
 import com.music.vivi.ui.component.TextFieldDialog
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.HomeViewModel
+import androidx.compose.foundation.layout.*
+import androidx.compose.ui.unit.sp
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-
-// Option 1: Add image loading state management to prevent constant refreshing
 fun AccountviviSettings(
     navController: NavController,
     onClose: () -> Unit,
@@ -90,18 +93,18 @@ fun AccountviviSettings(
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
 
+    /* === remember every preference (unchanged) === */
     val (accountNamePref, onAccountNameChange) = rememberPreference(AccountNameKey, "")
     val (accountEmail, onAccountEmailChange) = rememberPreference(AccountEmailKey, "")
-    val (accountChannelHandle, onAccountChannelHandleChange) = rememberPreference(AccountChannelHandleKey, "")
+    val (accountChannelHandle, onAccountChannelHandleChange) =
+        rememberPreference(AccountChannelHandleKey, "")
     val (innerTubeCookie, onInnerTubeCookieChange) = rememberPreference(InnerTubeCookieKey, "")
     val (visitorData, onVisitorDataChange) = rememberPreference(VisitorDataKey, "")
     val (dataSyncId, onDataSyncIdChange) = rememberPreference(DataSyncIdKey, "")
-    // ADD: Store account image URL in preferences
-    val (storedAccountImageUrl, onStoredAccountImageUrlChange) = rememberPreference(AccountImageUrlKey, "")
+    val (storedAccountImageUrl, onStoredAccountImageUrlChange) =
+        rememberPreference(AccountImageUrlKey, "")
 
-    val isLoggedIn = remember(innerTubeCookie) {
-        "SAPISID" in parseCookieString(innerTubeCookie)
-    }
+    val isLoggedIn = remember(innerTubeCookie) { "SAPISID" in parseCookieString(innerTubeCookie) }
     val (useLoginForBrowse, onUseLoginForBrowseChange) = rememberPreference(UseLoginForBrowse, true)
     val (ytmSync, onYtmSyncChange) = rememberPreference(YtmSyncKey, true)
 
@@ -109,290 +112,245 @@ fun AccountviviSettings(
     val accountName by viewModel.accountName.collectAsState()
     val accountImageUrl by viewModel.accountImageUrl.collectAsState()
 
-    // Store fetched image URL in preferences when it changes
+    /* persist avatar once */
     LaunchedEffect(accountImageUrl) {
         if (!accountImageUrl.isNullOrEmpty() && accountImageUrl != storedAccountImageUrl) {
             onStoredAccountImageUrlChange(accountImageUrl!!)
         }
     }
 
-    // Use stored image URL for display (constant until sign out)
     val displayImageUrl = if (isLoggedIn) storedAccountImageUrl.takeIf { it.isNotEmpty() } else null
 
     var showToken by remember { mutableStateOf(false) }
     var showTokenEditor by remember { mutableStateOf(false) }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(Modifier.fillMaxSize()) {
         Column(
-            modifier = Modifier
+            Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
-                .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp)
         ) {
-            Spacer(modifier = Modifier.height(110.dp))
+//            /* Status-bar padding + small gap */
+//            Spacer(
+//                Modifier.height(
+//                    WindowInsets.statusBars
+//                        .asPaddingValues()
+//                        .calculateTopPadding() + 12.dp
+//                )
+//            )
 
-            // Main Account Card - Large Card with Profile Info
-            ElevatedCard(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 200.dp),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = if (isLoggedIn)
-                        MaterialTheme.colorScheme.primaryContainer
-                    else
-                        MaterialTheme.colorScheme.surfaceContainer
+
+            Spacer(modifier = Modifier.height(150.dp))
+
+            /* Page headline */
+            Text(
+                text = "Google Services",
+                style = MaterialTheme.typography.headlineLarge.copy(
+                    fontSize = 32.sp        // whatever size you want
                 ),
-                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 8.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    // Profile Image Section
-                    Box(
-                        modifier = Modifier
-                            .size(100.dp)
-                            .clip(CircleShape)
-                            .clickable {
-                                if (isLoggedIn) {
-                                    navController.navigate("account")
-                                } else {
-                                    navController.navigate("login")
-                                }
-                            }
-                    ) {
-                        // Use stored image URL that remains constant
-                        if (isLoggedIn && !displayImageUrl.isNullOrEmpty()) {
-                            AsyncImage(
-                                model = displayImageUrl,
-                                contentDescription = "Profile Image",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(
-                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                                        CircleShape
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Image(
-                                    painter = painterResource(R.drawable.vivimusic),
-                                    contentDescription = "Default profile image",
-                                    modifier = Modifier.size(60.dp),
-                                    contentScale = ContentScale.Crop
-                                )
-                            }
-                        }
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
 
-                        // Status Indicator
-                        Box(
-                            modifier = Modifier
-                                .size(24.dp)
-                                .align(Alignment.BottomEnd)
-                                .padding(4.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = if (isLoggedIn) Icons.Default.Check else Icons.Default.Person,
-                                contentDescription = null,
-                                modifier = Modifier.size(14.dp),
-                                tint = Color.White
-                            )
-                        }
-                    }
-
-                    // Rest of your existing code remains the same...
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Account Info
-                    Text(
-                        text = if (isLoggedIn) accountName else "Welcome to ViviMusic",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = if (isLoggedIn)
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        else
-                            MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center
-                    )
-
-                    Text(
-                        text = if (isLoggedIn) {
-                            "Account synced and ready"
-                        } else {
-                            "Sign in to sync your music and playlists"
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = if (isLoggedIn)
-                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                        else
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-
-                    if (isLoggedIn) {
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        // Sync Status Indicators
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            // Library Sync
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.library_music),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp),
-                                    tint = Color(0xFF4CAF50)
-                                )
-                                Text(
-                                    text = "Library",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                                )
-                            }
-
-                            // YTM Sync Status
-                            if (ytmSync) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.cached),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(16.dp),
-                                        tint = Color(0xFF4CAF50)
-                                    )
-                                    Text(
-                                        text = "YTM Sync",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Login/Logout Button Card
-            if (!isLoggedIn) {
-                // Login Button
-                ElevatedButton(
-                    onClick = {
-                        navController.navigate("login")
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.elevatedButtonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    ),
-                    elevation = ButtonDefaults.elevatedButtonElevation(
-                        defaultElevation = 4.dp,
-                        pressedElevation = 8.dp
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.Login,
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = "Sign In to Your Account",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-            } else {
-                // Logout Button Card
+            /* --- SIGNED-IN AVATAR CARD --- */
+            // For the signed-in avatar card - remove icon, add text box
+            if (isLoggedIn) {
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.1f)
-                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 24.dp),
                     shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(
-                        1.dp,
-                        MaterialTheme.colorScheme.error.copy(alpha = 0.3f)
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
                     )
                 ) {
-                    OutlinedButton(
-                        onClick = {
-                            onInnerTubeCookieChange("")
-                            forgetAccount(context)
-                        },
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(12.dp)
-                            .height(48.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error
-                        ),
-                        border = BorderStroke(
-                            1.dp,
-                            MaterialTheme.colorScheme.error.copy(alpha = 0.5f)
-                        )
+                            .padding(20.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            painter = painterResource(R.drawable.logout),
-                            contentDescription = "Logout",
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Sign Out",
-                            fontWeight = FontWeight.Medium
-                        )
+                        /* Avatar */
+                        Box(
+                            modifier = Modifier
+                                .size(56.dp)
+                                .clip(CircleShape)
+                        ) {
+                            if (!displayImageUrl.isNullOrEmpty()) {
+                                AsyncImage(
+                                    model = displayImageUrl,
+                                    contentDescription = "Avatar",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Image(
+                                    painter = painterResource(R.drawable.google_icon),
+                                    contentDescription = "Default",
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(8.dp),
+                                    contentScale = ContentScale.Fit
+                                )
+                            }
+                        }
+                        Spacer(Modifier.width(16.dp))
+                        /* Name & email */
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(
+                                accountName, // From ViewModel
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            Text(
+                                accountEmail, // From preferences - might be different
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                            )
+                        }
+                        Spacer(Modifier.weight(1f))
+                        /* Sign out text in small box */
+                        Card(
+                            modifier = Modifier.clickable {
+                                onInnerTubeCookieChange("")
+                                forgetAccount(context)
+                            },
+                            shape = RoundedCornerShape(8.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer
+                            )
+                        ) {
+                            Text(
+                                text = "Sign out",
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+// For the not-signed-in section - replace TextButton with small box
+            if (!isLoggedIn) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    )
+                ) {
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+//                            Icon(
+//                                painter = painterResource(R.drawable.google_icon),
+//                                contentDescription = "Google",
+//                                modifier = Modifier.size(32.dp),
+////                                tint = MaterialTheme.colorScheme.primary
+//                            )
+                            Image(
+                                painter = painterResource(R.drawable.google_icon),
+                                contentDescription = "Google",
+                                modifier = Modifier.size(32.dp),
+                                contentScale = ContentScale.Fit
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    "Sign in",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Text(
+                                    "Sign in to your Google Account \n to sync music and playlists",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                )
+                            }
+                        }
 
-            // Settings Cards
+                        /* Sign in text in small box */
+                        Card(
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .clickable { navController.navigate("login") },
+                            shape = RoundedCornerShape(8.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer
+                            )
+                        ) {
+                            Text(
+                                text = "Sign in",
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                }
+            }
+
+            /* Tabs */
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 15.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                ElevatedButton(
+                    onClick = { /* no-op */ },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.elevatedButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                ) {
+                    Text("Recommended")
+                }
+
+//                OutlinedButton(
+//                    onClick = { /* no-op */ },
+//                    modifier = Modifier
+//                        .weight(1f)
+//                        .height(48.dp),
+//                    shape = RoundedCornerShape(16.dp)
+//                ) {
+//                    Text("All services")
+//                }
+            }
+
+            /* === SETTINGS TOGGLES (only when signed in) === */
             if (isLoggedIn) {
-                // Account Preferences
+                Spacer(Modifier.height(8.dp))
                 Text(
                     text = "Account Settings",
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
-                // More Content Card
+                /* More-content switch */
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceContainer
-                    ),
-                    shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                     )
                 ) {
                     Row(
@@ -404,21 +362,20 @@ fun AccountviviSettings(
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
-                                painter = painterResource(R.drawable.add_circle),
+                                painter = painterResource(R.drawable.library_music),
                                 contentDescription = null,
                                 modifier = Modifier.size(24.dp),
                                 tint = MaterialTheme.colorScheme.primary
                             )
-                            Spacer(modifier = Modifier.width(16.dp))
+                            Spacer(Modifier.width(16.dp))
                             Column {
                                 Text(
-                                    text = stringResource(R.string.more_content),
+                                    stringResource(R.string.more_content),
                                     style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurface,
                                     fontWeight = FontWeight.Medium
                                 )
                                 Text(
-                                    text = "Browse with your account data",
+                                    "Browse with your account data",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                                 )
@@ -438,18 +395,16 @@ fun AccountviviSettings(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(Modifier.height(8.dp))
 
-                // YTM Sync Card
+                /* YTM-sync switch */
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceContainer
-                    ),
-                    shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                     )
                 ) {
                     Row(
@@ -466,16 +421,15 @@ fun AccountviviSettings(
                                 modifier = Modifier.size(24.dp),
                                 tint = MaterialTheme.colorScheme.primary
                             )
-                            Spacer(modifier = Modifier.width(16.dp))
+                            Spacer(Modifier.width(16.dp))
                             Column {
                                 Text(
-                                    text = stringResource(R.string.yt_sync),
+                                    stringResource(R.string.yt_sync),
                                     style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurface,
                                     fontWeight = FontWeight.Medium
                                 )
                                 Text(
-                                    text = "Sync with YouTube Music",
+                                    "Sync with YouTube Music",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                                 )
@@ -491,22 +445,18 @@ fun AccountviviSettings(
                         )
                     }
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // Advanced Options
+            /* --- ADVANCED section (always visible) --- */
             Text(
                 text = "Advanced",
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(top = 20.dp, bottom = 8.dp)
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(30.dp))
 
-            // Advanced Login/Token Card
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -515,10 +465,10 @@ fun AccountviviSettings(
                         else if (!showToken) showToken = true
                         else showTokenEditor = true
                     },
+                shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainer
                 ),
-                shape = RoundedCornerShape(16.dp),
                 border = BorderStroke(
                     width = 1.dp,
                     color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
@@ -527,61 +477,50 @@ fun AccountviviSettings(
                 ListItem(
                     headlineContent = {
                         Text(
-                            text = when {
-                                !isLoggedIn -> stringResource(R.string.advanced_login)
-                                showToken -> stringResource(R.string.token_shown)
-                                else -> stringResource(R.string.token_hidden)
-                            },
+                            text = if (!isLoggedIn) stringResource(R.string.advanced_login)
+                            else if (showToken) stringResource(R.string.token_shown)
+                            else stringResource(R.string.token_hidden),
                             fontWeight = FontWeight.Medium
                         )
                     },
                     supportingContent = {
                         Text(
-                            text = if (!isLoggedIn) "Manual token configuration" else "Manage authentication tokens",
+                            text = if (!isLoggedIn) "Manual token configuration"
+                            else "Manage authentication tokens",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                         )
                     },
                     leadingContent = {
                         Icon(
-                            painterResource(R.drawable.token),
+                            painter = painterResource(R.drawable.token),
                             contentDescription = null,
-                            modifier = Modifier.size(24.dp),
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
                         )
                     },
                     trailingContent = {
                         Icon(
-                            painterResource(R.drawable.arrow_forward),
+                            painter = painterResource(R.drawable.arrow_forward),
                             contentDescription = null,
-                            modifier = Modifier.size(20.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            modifier = Modifier.size(20.dp)
                         )
                     },
-                    colors = ListItemDefaults.colors(
-                        containerColor = Color.Transparent
-                    )
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
 
-            Spacer(modifier = Modifier.height(150.dp))
+            Spacer(Modifier.height(150.dp))
         }
 
-        // Top App Bar
+        /* === TopAppBar === */
         TopAppBar(
-            title = {
-                Text(
-                    text = "Account",
-                    fontWeight = FontWeight.SemiBold
-                )
-            },
+            title = { Text("Account", fontWeight = FontWeight.SemiBold) },
             navigationIcon = {
-                IconButton(
-                    onClick = onClose,
-                    modifier = Modifier.testTag("close_button")
-                ) {
+                IconButton(onClick = onClose) {
                     Icon(
-                        painterResource(R.drawable.arrow_back),
+                        painter = painterResource(R.drawable.arrow_back),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurface
                     )
@@ -593,40 +532,56 @@ fun AccountviviSettings(
                 titleContentColor = MaterialTheme.colorScheme.onSurface
             )
         )
-        Spacer(modifier = Modifier.height(150.dp))
+
+        /* Give feedback footer (only when not signed in) */
+        if (!isLoggedIn) {
+            Text(
+                text = "Give feedback",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary,
+                textDecoration = TextDecoration.Underline,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 16.dp)
+            )
+        }
     }
 
-    // Token Editor Dialog
+    /* === Token editor dialog (unchanged) === */
     if (showTokenEditor) {
-        val text = """
-            ***INNERTUBE COOKIE*** =$innerTubeCookie
-            ***VISITOR DATA*** =$visitorData
-            ***DATASYNC ID*** =$dataSyncId
-            ***ACCOUNT NAME*** =$accountNamePref
-            ***ACCOUNT EMAIL*** =$accountEmail
-            ***ACCOUNT CHANNEL HANDLE*** =$accountChannelHandle
-        """.trimIndent()
+        val text = buildString {
+            appendLine("***INNERTUBE COOKIE*** =$innerTubeCookie")
+            appendLine("***VISITOR DATA*** =$visitorData")
+            appendLine("***DATASYNC ID*** =$dataSyncId")
+            appendLine("***ACCOUNT NAME*** =$accountNamePref")
+            appendLine("***ACCOUNT EMAIL*** =$accountEmail")
+            if (isLoggedIn) appendLine("***ACCOUNT CHANNEL HANDLE*** =$accountChannelHandle")
+        }
 
         TextFieldDialog(
             initialTextFieldValue = TextFieldValue(text),
             onDone = { data ->
-                data.split("\n").forEach {
+                data.lines().forEach { line ->
                     when {
-                        it.startsWith("***INNERTUBE COOKIE*** =") -> onInnerTubeCookieChange(it.substringAfter("="))
-                        it.startsWith("***VISITOR DATA*** =") -> onVisitorDataChange(it.substringAfter("="))
-                        it.startsWith("***DATASYNC ID*** =") -> onDataSyncIdChange(it.substringAfter("="))
-                        it.startsWith("***ACCOUNT NAME*** =") -> onAccountNameChange(it.substringAfter("="))
-                        it.startsWith("***ACCOUNT EMAIL*** =") -> onAccountEmailChange(it.substringAfter("="))
-                        it.startsWith("***ACCOUNT CHANNEL HANDLE*** =") -> onAccountChannelHandleChange(it.substringAfter("="))
+                        line.startsWith("***INNERTUBE COOKIE*** =") ->
+                            onInnerTubeCookieChange(line.substringAfter("="))
+                        line.startsWith("***VISITOR DATA*** =") ->
+                            onVisitorDataChange(line.substringAfter("="))
+                        line.startsWith("***DATASYNC ID*** =") ->
+                            onDataSyncIdChange(line.substringAfter("="))
+                        line.startsWith("***ACCOUNT NAME*** =") ->
+                            onAccountNameChange(line.substringAfter("="))
+                        line.startsWith("***ACCOUNT EMAIL*** =") ->
+                            onAccountEmailChange(line.substringAfter("="))
+                        line.startsWith("***ACCOUNT CHANNEL HANDLE*** =") ->
+                            onAccountChannelHandleChange(line.substringAfter("="))
                     }
                 }
             },
             onDismiss = { showTokenEditor = false },
             singleLine = false,
             maxLines = 20,
-            isInputValid = {
-                it.isNotEmpty() && "SAPISID" in parseCookieString(it)
-            },
+            isInputValid = { it.isNotEmpty() && "SAPISID" in parseCookieString(it) },
             extraContent = {
                 InfoLabel(text = stringResource(R.string.token_adv_login_description))
             }
