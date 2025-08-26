@@ -302,25 +302,25 @@ fun AccountviviSettings(
             }
 
             /* Tabs */
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 15.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                ElevatedButton(
-                    onClick = { /* no-op */ },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(48.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.elevatedButtonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                ) {
-                    Text("Recommended")
-                }
+//            Row(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(bottom = 15.dp),
+//                horizontalArrangement = Arrangement.spacedBy(8.dp)
+//            ) {
+//                ElevatedButton(
+//                    onClick = { /* no-op */ },
+//                    modifier = Modifier
+//                        .weight(1f)
+//                        .height(48.dp),
+//                    shape = RoundedCornerShape(16.dp),
+//                    colors = ButtonDefaults.elevatedButtonColors(
+//                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+//                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+//                    )
+//                ) {
+//                    Text("Recommended")
+//                }
 
 //                OutlinedButton(
 //                    onClick = { /* no-op */ },
@@ -331,6 +331,63 @@ fun AccountviviSettings(
 //                ) {
 //                    Text("All services")
 //                }
+//            }
+            Text(
+                text = "Discord",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(top = 5.dp, bottom = 5.dp)
+            )
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+                    .clickable {
+                        navController.navigate("settings/discord")  // Remove onClose()
+                    },
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Discord icon
+                    Icon(
+                        painter = painterResource(R.drawable.discord),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(Modifier.width(16.dp))
+                    // Text content
+                    Column {
+                        Text(
+                            stringResource(R.string.discord_integration),
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            "Connect with Discord",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+                    }
+                    Spacer(Modifier.weight(1f))
+                    // Forward arrow
+                    Icon(
+                        painter = painterResource(R.drawable.arrow_forward),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
 
             /* === SETTINGS TOGGLES (only when signed in) === */
@@ -343,6 +400,7 @@ fun AccountviviSettings(
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
+                Spacer(modifier = Modifier.height(20.dp))
                 /* More-content switch */
                 Card(
                     modifier = Modifier
@@ -455,7 +513,7 @@ fun AccountviviSettings(
                 modifier = Modifier.padding(top = 20.dp, bottom = 8.dp)
             )
 
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             Card(
                 modifier = Modifier
