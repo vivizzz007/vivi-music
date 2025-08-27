@@ -238,6 +238,8 @@ fun LyricsScreen(
     var position by remember { mutableLongStateOf(0L) }
     var duration by remember { mutableLongStateOf(C.TIME_UNSET) }
     var sliderPosition by remember { mutableStateOf<Long?>(null) }
+    //like button
+    val currentSong by playerConnection.currentSong.collectAsState(initial = null)
 
     val playerBackground by rememberEnumPreference(PlayerBackgroundStyleKey, PlayerBackgroundStyle.GRADIENT)
 
@@ -701,84 +703,126 @@ fun LyricsScreen(
                         .padding(WindowInsets.systemBars.asPaddingValues())
                 ) {
                     // Header with Down arrow and More button
-                    // Replace your current header Row in both portrait and landscape modes with this:
+                    // Replace your portrait mode header Row with this updated version:
 
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 24.dp, vertical = 16.dp),
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        // Center content with album artwork - like in the image
+                        // Left side - Album artwork and text info
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
                             modifier = Modifier.weight(1f)
                         ) {
-                            // Album artwork thumbnail
+                            // Album artwork
                             AsyncImage(
                                 model = mediaMetadata.thumbnailUrl,
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
-                                    .size(40.dp)
+                                    .size(48.dp)
                                     .clip(RoundedCornerShape(8.dp))
                             )
 
                             Spacer(modifier = Modifier.width(12.dp))
 
-                            // Text content
+                            // Song and artist info
                             Column(
-                                horizontalAlignment = Alignment.CenterHorizontally
+                                verticalArrangement = Arrangement.Center,
+                                modifier = Modifier.weight(1f)
                             ) {
                                 Text(
-                                    text = stringResource(R.string.now_playing),
+                                    text = mediaMetadata.title,
                                     style = MaterialTheme.typography.titleMedium.copy(
                                         fontSize = 16.sp,
-                                        fontWeight = FontWeight.Medium
+                                        fontWeight = FontWeight.SemiBold
                                     ),
-                                    color = textBackgroundColor
+                                    color = textBackgroundColor,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                                 Text(
-                                    text = "${mediaMetadata.title}${if (mediaMetadata.artists.isNotEmpty()) " • ${mediaMetadata.artists.joinToString(", ")}" else ""}",
+                                    text = if (mediaMetadata.artists.isNotEmpty()) {
+                                        mediaMetadata.artists.joinToString(", ") { it.name }
+                                    } else {
+                                        "Unknown Artist"
+                                    },
                                     style = MaterialTheme.typography.bodyMedium.copy(
                                         fontSize = 14.sp
                                     ),
-                                    color = textBackgroundColor.copy(alpha = 0.8f),
+                                    color = textBackgroundColor.copy(alpha = 0.7f),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
 
-                        // More button (right)
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = ripple(
-                                        bounded = true,
-                                        radius = 16.dp
-                                    )
-                                ) {
-                                    menuState.show {
-                                        LyricsMenu(
-                                            lyricsProvider = { currentLyrics },
-                                            mediaMetadataProvider = { mediaMetadata },
-                                            onDismiss = menuState::dismiss
-                                        )
-                                    }
-                                },
-                            contentAlignment = Alignment.Center
+                        // Right side - Action buttons
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Icon(
-                                painter = painterResource(R.drawable.more_horiz),
-                                contentDescription = stringResource(R.string.more_options),
-                                tint = textBackgroundColor,
-                                modifier = Modifier.size(20.dp)
-                            )
+                            // Favorite button
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = ripple(
+                                            bounded = true,
+                                            radius = 16.dp
+                                        )
+                                    ) {
+                                        playerConnection.toggleLike()
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    painter = painterResource(
+                                        if (currentSong?.song?.liked == true)
+                                            R.drawable.favorite
+                                        else R.drawable.favorite_border
+                                    ),
+                                    contentDescription = if (currentSong?.song?.liked == true) "Remove from favorites" else "Add to favorites",
+                                    tint = if (currentSong?.song?.liked == true)
+                                        MaterialTheme.colorScheme.error
+                                    else
+                                        textBackgroundColor.copy(alpha = 0.8f),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+
+                            // More button
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = ripple(
+                                            bounded = true,
+                                            radius = 16.dp
+                                        )
+                                    ) {
+                                        menuState.show {
+                                            LyricsMenu(
+                                                lyricsProvider = { currentLyrics },
+                                                mediaMetadataProvider = { mediaMetadata },
+                                                onDismiss = menuState::dismiss
+                                            )
+                                        }
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.more_horiz),
+                                    contentDescription = stringResource(R.string.more_options),
+                                    tint = textBackgroundColor,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
                         }
                     }
 
