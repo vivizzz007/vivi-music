@@ -1,0 +1,39 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    
+    <!-- Phone body -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="?attr/colorOnSurfaceVariant"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M8,2L16,2A2,2 0 0,1 18,4L18,20A2,2 0 0,1 16,22L8,22A2,2 0 0,1 6,20L6,4A2,2 0 0,1 8,2Z" />
+    
+    <!-- Screen area -->
+    <path
+        android:fillColor="?attr/colorSurfaceContainer"
+        android:pathData="M8,4L16,4A1,1 0 0,1 17,5L17,17A1,1 0 0,1 16,18L8,18A1,1 0 0,1 7,17L7,5A1,1 0 0,1 8,4Z" />
+    
+    <!-- Home indicator -->
+    <path
+        android:fillColor="?attr/colorOnSurfaceVariant"
+        android:pathData="M10,19.5L14,19.5A1,1 0 0,1 14,20.5L10,20.5A1,1 0 0,1 10,19.5Z" />
+    
+    <!-- Check mark for up-to-date status -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="?attr/colorPrimary"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M9,12L11,14L15,10" />
+    
+    <!-- Update notification badge -->
+    <path
+        android:fillColor="?attr/colorPrimary"
+        android:pathData="M18,4a2,2 0,1,1 -4,0a2,2 0,1,1 4,0z" />
+</vector>
