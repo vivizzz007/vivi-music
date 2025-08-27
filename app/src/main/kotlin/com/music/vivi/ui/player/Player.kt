@@ -1133,7 +1133,7 @@ fun BottomSheetPlayer(
                                         model = thumbnailUrl,
                                         contentDescription = "Blurred background",
                                         contentScale = ContentScale.FillBounds,
-                                        modifier = Modifier.fillMaxSize().blur(70.dp)
+                                        modifier = Modifier.fillMaxSize().blur(50.dp)
                                     )
                                     Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.4f)))
                                 }
