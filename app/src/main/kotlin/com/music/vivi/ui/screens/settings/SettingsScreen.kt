@@ -181,6 +181,7 @@ fun SettingsScreen(
     )
 
     // Android 16 style settings
+    // Updated settings items with standardized colors
     val settingsItems = listOf(
         SettingItem(
             title = stringResource(R.string.update),
@@ -188,8 +189,8 @@ fun SettingsScreen(
             route = "settings/update",
             description = if (isUpdateAvailable) "Update available" else "Check for app updates",
             keywords = listOf("update", "version", "upgrade", "new"),
-            iconColor = if (isUpdateAvailable) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-            backgroundColor = if (isUpdateAvailable) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer
+            iconColor = if (isUpdateAvailable) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+            backgroundColor = if (isUpdateAvailable) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.surfaceVariant
         ),
         SettingItem(
             title = stringResource(R.string.appearance),
@@ -197,8 +198,8 @@ fun SettingsScreen(
             route = "settings/appearance",
             description = "Customize theme and colors",
             keywords = listOf("theme", "color", "dark mode", "light mode","home screen","app design","slider style","player","misc"),
-            iconColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            backgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f)
+            iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            backgroundColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         SettingItem(
             title = stringResource(R.string.content),
@@ -206,8 +207,8 @@ fun SettingsScreen(
             route = "settings/content",
             description = "Content preferences and settings",
             keywords = listOf("content", "hide explicit","notification setting","app language","enable proxy", "files"),
-            iconColor = MaterialTheme.colorScheme.onTertiaryContainer,
-            backgroundColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.7f)
+            iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            backgroundColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         SettingItem(
             title = stringResource(R.string.play),
@@ -215,8 +216,8 @@ fun SettingsScreen(
             route = "settings/player",
             description = "Player and audio settings",
             keywords = listOf("player", "audio","auto", "sound", "music","lyrics","local player setings","skip silence","enable offload","queue","playback"),
-            iconColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            backgroundColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+            iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            backgroundColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         SettingItem(
             title = stringResource(R.string.storage),
@@ -224,8 +225,8 @@ fun SettingsScreen(
             route = "settings/storage",
             description = "Manage storage and cache",
             keywords = listOf("storage", "cache", "memory"),
-            iconColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            backgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f)
+            iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            backgroundColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         SettingItem(
             title = stringResource(R.string.account),
@@ -233,8 +234,8 @@ fun SettingsScreen(
             route = "account_settings",
             description = "Add your account",
             keywords = listOf("account","sign in","sign out"),
-            iconColor = MaterialTheme.colorScheme.onTertiaryContainer,
-            backgroundColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.7f)
+            iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            backgroundColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         SettingItem(
             title = stringResource(R.string.privacy),
@@ -242,8 +243,8 @@ fun SettingsScreen(
             route = "settings/privacy",
             description = "Privacy and security settings",
             keywords = listOf("privacy", "security", "permissions","misc","screenshot"),
-            iconColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            backgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f)
+            iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            backgroundColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         SettingItem(
             title = stringResource(R.string.backup_restore),
@@ -251,8 +252,8 @@ fun SettingsScreen(
             route = "settings/backup_restore",
             description = "Backup and restore your data",
             keywords = listOf("backup", "restore", "data"),
-            iconColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            backgroundColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+            iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            backgroundColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         SettingItem(
             title = stringResource(R.string.about),
@@ -260,8 +261,8 @@ fun SettingsScreen(
             route = "settings/about",
             description = "About this app and version info",
             keywords = listOf("about","developer", "version", "details","changelog","website","github","donate"),
-            iconColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            backgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f)
+            iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            backgroundColor = MaterialTheme.colorScheme.surfaceVariant
         )
     )
 
