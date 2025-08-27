@@ -222,7 +222,8 @@ fun HistoryScreen(
 
                     items(
                         items = section.songs,
-                        key = { "${section.title}_${it.id}" }
+                        key = { "${section.title}_${it.id}_${section.songs.indexOf(it)}" }
+
                     ) { song ->
                         YouTubeListItem(
                             item = song,

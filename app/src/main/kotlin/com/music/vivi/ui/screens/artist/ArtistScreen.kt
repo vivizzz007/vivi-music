@@ -632,7 +632,7 @@ fun ArtistScreen(
                         }
                         itemsIndexed(
                             items = filteredLibrarySongs,
-                            key = { _, item -> "local_song_${item.id}" }
+                            key = { index, item -> "local_song_${item.id}_$index" }
                         ) { index, song ->
                             SongListItem(
                                 song = song,
@@ -708,7 +708,7 @@ fun ArtistScreen(
                             LazyRow {
                                 items(
                                     items = filteredLibraryAlbums,
-                                    key = { "local_album_${it.id}" }
+                                    key = { "local_album_${it.id}_${filteredLibraryAlbums.indexOf(it)}" }
                                 ) { album ->
                                     AlbumGridItem(
                                         album = album,
@@ -756,9 +756,13 @@ fun ArtistScreen(
 
                         if ((section.items.firstOrNull() as? SongItem)?.album != null) {
                             items(
-                                items = section.items,
-                                key = { it.id },
-                            ) { song ->
+
+                                items = section.items.distinctBy { it.id },
+
+
+                                key = { "youtube_song_${it.id}" },
+
+                                ) { song ->
                                 YouTubeListItem(
                                     item = song as SongItem,
                                     isActive = mediaMetadata?.id == song.id,
@@ -814,7 +818,7 @@ fun ArtistScreen(
                                 LazyRow {
                                     items(
                                         items = section.items,
-                                        key = { it.id },
+                                        key = { "youtube_album_${it.id}" },
                                     ) { item ->
                                         YouTubeGridItem(
                                             item = item,
