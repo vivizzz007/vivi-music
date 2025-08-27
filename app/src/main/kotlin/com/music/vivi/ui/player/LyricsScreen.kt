@@ -68,6 +68,7 @@ import androidx.compose.ui.zIndex
 import android.content.res.Configuration
 import android.util.Log
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
@@ -143,6 +144,8 @@ import kotlinx.coroutines.withTimeoutOrNull
 
 // Animation
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateIntAsState
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LyricsScreen(
@@ -775,29 +778,25 @@ fun LyricsScreen(
                         }
                     }
 
-                    // Apple-like Lyrics - taking up the remaining space
-                    Box(
+                    // Apple-like Lyrics - taking up the remaining space (FIXED - no more centering)
+                    AppleLikeLyrics(
+                        lyrics = currentLyrics?.lyrics,
+                        currentPosition = position,
+                        lyricsPosition = lyricsPosition,
+                        isPlaying = isPlaying,
+                        textColor = textBackgroundColor,
+                        isLoading = isLoadingLyrics,
+                        onSeek = { timestamp -> player.seekTo(timestamp) },
                         modifier = Modifier
                             .weight(1f)
-                            .fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        AppleLikeLyrics(
-                            lyrics = currentLyrics?.lyrics,
-                            currentPosition = position,
-                            lyricsPosition = lyricsPosition,
-                            isPlaying = isPlaying,
-                            textColor = textBackgroundColor,
-                            isLoading = isLoadingLyrics, // Pass loading state
-                            onSeek = { timestamp -> player.seekTo(timestamp) },
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
+                            .fillMaxWidth()
+                    )
                 }
             }
         }
     }
 }
+
 
 @Composable
 fun AppleLikeLyrics(
@@ -806,7 +805,7 @@ fun AppleLikeLyrics(
     lyricsPosition: LyricsPosition,
     isPlaying: Boolean,
     textColor: Color,
-    isLoading: Boolean = false, // Add loading parameter
+    isLoading: Boolean = false,
     onSeek: (Long) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -815,11 +814,9 @@ fun AppleLikeLyrics(
         when {
             lyrics.isNullOrBlank() -> emptyList()
             lyrics.contains("[") && lyrics.contains("]") -> {
-                // Looks like LRC format
                 parseLrcLyrics(lyrics)
             }
             else -> {
-                // Simple text lyrics - split by lines
                 parseSimpleLyrics(lyrics)
             }
         }
@@ -835,35 +832,53 @@ fun AppleLikeLyrics(
         isInstrumentalSection(parsedLyrics, currentPosition)
     }
 
-    // Find current active line
-    val currentLineIndex = remember(currentPosition, parsedLyrics) {
-        if (parsedLyrics.isEmpty()) return@remember -1
+    // Find current active line with smooth transition logic
+    val currentLineData = remember(currentPosition, parsedLyrics) {
+        if (parsedLyrics.isEmpty()) return@remember LyricsState(-1, 0f)
 
         var activeIndex = -1
+        var progress = 0f
+
         for (i in parsedLyrics.indices) {
             if (currentPosition >= parsedLyrics[i].timestamp) {
                 activeIndex = i
+
+                // Calculate progress to next line for smooth transitions
+                val nextIndex = i + 1
+                if (nextIndex < parsedLyrics.size) {
+                    val currentLineStart = parsedLyrics[i].timestamp
+                    val nextLineStart = parsedLyrics[nextIndex].timestamp
+                    val lineDuration = nextLineStart - currentLineStart
+
+                    if (lineDuration > 0) {
+                        progress = ((currentPosition - currentLineStart).toFloat() / lineDuration.toFloat()).coerceIn(0f, 1f)
+                    }
+                }
             } else {
                 break
             }
         }
-        activeIndex
+
+        LyricsState(activeIndex, progress)
     }
 
-    // Auto-scroll to current line with different behavior for landscape
-    LaunchedEffect(currentLineIndex) {
-        if (currentLineIndex >= 0 && parsedLyrics.isNotEmpty()) {
+    // Smooth auto-scroll with better timing (starts moving closer to line completion)
+    LaunchedEffect(currentLineData.activeIndex, currentLineData.progress) {
+        if (currentLineData.activeIndex >= 0 && parsedLyrics.isNotEmpty()) {
             coroutineScope.launch {
-                if (isLandscape) {
-                    // In landscape, scroll to show active line at the top
+                // Start scrolling when we're 85% through the current line (much later)
+                if (currentLineData.progress > 0.85f) {
+                    val targetIndex = (currentLineData.activeIndex + 1).coerceAtMost(parsedLyrics.size - 1)
+
+                    // Smooth scroll with custom animation
                     lazyListState.animateScrollToItem(
-                        index = currentLineIndex,
+                        index = targetIndex,
                         scrollOffset = 0
                     )
-                } else {
-                    // In portrait, center the active line (original behavior)
+                } else if (currentLineData.progress == 0f) {
+                    // Just became active, ensure it's visible
                     lazyListState.animateScrollToItem(
-                        index = maxOf(0, currentLineIndex - 2),
+                        index = currentLineData.activeIndex,
                         scrollOffset = 0
                     )
                 }
@@ -884,17 +899,15 @@ fun AppleLikeLyrics(
         LyricsPosition.RIGHT -> TextAlign.End
     }
 
-    // Adjust padding based on orientation
-    val topPadding = if (isLandscape) 16.dp else 200.dp
-    val bottomPadding = if (isLandscape) 100.dp else 200.dp
+    val topPadding = if (isLandscape) 16.dp else 40.dp
+    val bottomPadding = if (isLandscape) 100.dp else 120.dp
 
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        when {
-            // Show loading state with spinner
-            isLoading -> {
+    when {
+        isLoading -> {
+            Box(
+                modifier = modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
@@ -912,9 +925,13 @@ fun AppleLikeLyrics(
                     )
                 }
             }
+        }
 
-            // No lyrics available - show beat dots if playing
-            parsedLyrics.isEmpty() -> {
+        parsedLyrics.isEmpty() -> {
+            Box(
+                modifier = modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
@@ -934,7 +951,6 @@ fun AppleLikeLyrics(
                             textAlign = TextAlign.Center
                         )
                     } else {
-                        // Show animated dots for instrumental music
                         AnimatedMusicBeatDots(
                             isPlaying = isPlaying,
                             textColor = textColor,
@@ -943,78 +959,75 @@ fun AppleLikeLyrics(
                     }
                 }
             }
+        }
 
-            else -> {
-                // Show intro beat dots if we're at the beginning before first lyrics
-                if (isInInstrumental && currentLineIndex == -1) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+        else -> {
+            if (isInInstrumental && currentLineData.activeIndex == -1) {
+                Box(
+                    modifier = modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
                     ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            AnimatedMusicBeatDots(
-                                isPlaying = isPlaying,
-                                textColor = textColor,
-                                modifier = Modifier.padding(16.dp)
-                            )
-                            Spacer(modifier = Modifier.height(32.dp))
-                            Text(
-                                text = "Music playing...",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = textColor.copy(alpha = 0.6f),
-                                textAlign = TextAlign.Center
-                            )
-                        }
+                        AnimatedMusicBeatDots(
+                            isPlaying = isPlaying,
+                            textColor = textColor,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                        Spacer(modifier = Modifier.height(32.dp))
+                        Text(
+                            text = "Music playing...",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = textColor.copy(alpha = 0.6f),
+                            textAlign = TextAlign.Center
+                        )
                     }
-                } else {
-                    // Show lyrics with beat dots during instrumental breaks
-                    LazyColumn(
-                        state = lazyListState,
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(
-                            top = topPadding,
-                            bottom = bottomPadding
-                        ),
-                        horizontalAlignment = horizontalAlignment
-                    ) {
-                        itemsIndexed(parsedLyrics) { index, lyricLine ->
-                            AppleLyricLine(
-                                text = lyricLine.text,
-                                isActive = index == currentLineIndex,
-                                isUpcoming = index == currentLineIndex + 1,
-                                isPassed = index < currentLineIndex,
-                                textAlign = textAlign,
-                                textColor = textColor,
-                                onClick = { onSeek(lyricLine.timestamp) },
+                }
+            } else {
+                LazyColumn(
+                    state = lazyListState,
+                    modifier = modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(
+                        top = topPadding,
+                        bottom = bottomPadding
+                    ),
+                    horizontalAlignment = horizontalAlignment
+                ) {
+                    itemsIndexed(parsedLyrics) { index, lyricLine ->
+                        SmoothAppleLyricLine(
+                            text = lyricLine.text,
+                            currentLineIndex = currentLineData.activeIndex,
+                            lineIndex = index,
+                            progress = if (index == currentLineData.activeIndex) currentLineData.progress else 0f,
+                            textAlign = textAlign,
+                            textColor = textColor,
+                            onClick = { onSeek(lyricLine.timestamp) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(
+                                    horizontal = 24.dp,
+                                    vertical = if (isLandscape) 8.dp else 12.dp
+                                )
+                        )
+
+                        if (isInInstrumental && index == currentLineData.activeIndex) {
+                            Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(
-                                        horizontal = 24.dp,
-                                        vertical = if (isLandscape) 12.dp else 16.dp // Tighter spacing in landscape
-                                    )
-                            )
-
-                            // Show beat dots after current line if we're in an instrumental section
-                            if (isInInstrumental && index == currentLineIndex) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = if (isLandscape) 24.dp else 32.dp),
-                                    contentAlignment = when (lyricsPosition) {
-                                        LyricsPosition.LEFT -> Alignment.CenterStart
-                                        LyricsPosition.CENTER -> Alignment.Center
-                                        LyricsPosition.RIGHT -> Alignment.CenterEnd
-                                    }
-                                ) {
-                                    AnimatedMusicBeatDots(
-                                        isPlaying = isPlaying,
-                                        textColor = textColor,
-                                        modifier = Modifier.padding(horizontal = 24.dp)
-                                    )
+                                    .padding(vertical = if (isLandscape) 24.dp else 32.dp),
+                                contentAlignment = when (lyricsPosition) {
+                                    LyricsPosition.LEFT -> Alignment.CenterStart
+                                    LyricsPosition.CENTER -> Alignment.Center
+                                    LyricsPosition.RIGHT -> Alignment.CenterEnd
                                 }
+                            ) {
+                                AnimatedMusicBeatDots(
+                                    isPlaying = isPlaying,
+                                    textColor = textColor,
+                                    modifier = Modifier.padding(horizontal = 24.dp)
+                                )
                             }
                         }
                     }
@@ -1023,55 +1036,61 @@ fun AppleLikeLyrics(
         }
     }
 }
-
 @Composable
-fun AppleLyricLine(
+fun SmoothAppleLyricLine(
     text: String,
-    isActive: Boolean,
-    isUpcoming: Boolean,
-    isPassed: Boolean,
+    currentLineIndex: Int,
+    lineIndex: Int,
+    progress: Float,
     textAlign: TextAlign,
     textColor: Color,
     onClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val animationSpec = remember {
-        spring<Float>(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
-        )
+    // Determine line state with smooth transitions
+    val lineState = when {
+        lineIndex == currentLineIndex -> LineState.ACTIVE
+        lineIndex == currentLineIndex + 1 -> LineState.UPCOMING
+        lineIndex < currentLineIndex -> LineState.PASSED
+        else -> LineState.INACTIVE
     }
 
+    // Smooth animations with custom easing
+    val customEasing = CubicBezierEasing(0.4f, 0.0f, 0.2f, 1.0f)
+
     val scale by animateFloatAsState(
-        targetValue = if (isActive) 1.05f else 1f,
-        animationSpec = animationSpec,
+        targetValue = when (lineState) {
+            LineState.ACTIVE -> 1.03f + (progress * 0.02f) // Subtle scale increase during progress
+            LineState.UPCOMING -> 1.0f + (progress * 0.01f) // Anticipation scaling
+            else -> 1.0f
+        },
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioLowBouncy,
+            stiffness = Spring.StiffnessMediumLow
+        ),
         label = "scale"
     )
 
     val alpha by animateFloatAsState(
-        targetValue = when {
-            isActive -> 1f
-            isUpcoming -> 0.6f
-            isPassed -> 0.3f
-            else -> 0.25f
+        targetValue = when (lineState) {
+            LineState.ACTIVE -> 1.0f
+            LineState.UPCOMING -> 0.75f + (progress * 0.15f) // Gradual brightening
+            LineState.PASSED -> 0.45f
+            LineState.INACTIVE -> 0.25f
         },
-        animationSpec = tween(durationMillis = 300),
+        animationSpec = tween(
+            durationMillis = 500,
+            easing = customEasing
+        ),
         label = "alpha"
     )
 
-    val color by animateColorAsState(
-        targetValue = when {
-            isActive -> textColor
-            isUpcoming -> textColor.copy(alpha = 0.7f)
-            isPassed -> textColor.copy(alpha = 0.4f)
-            else -> textColor.copy(alpha = 0.3f)
-        },
-        animationSpec = tween(durationMillis = 300),
-        label = "color"
-    )
-
     val fontSize by animateDpAsState(
-        targetValue = if (isActive) 32.dp else 28.dp,
+        targetValue = when (lineState) {
+            LineState.ACTIVE -> (30f + (progress * 1f)).dp // Subtle size increase during progress
+            LineState.UPCOMING -> (26f + (progress * 1f)).dp
+            else -> 26.dp
+        },
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessMedium
@@ -1079,7 +1098,34 @@ fun AppleLyricLine(
         label = "fontSize"
     )
 
-    // Determine alignment based on textAlign
+    val fontWeight by animateIntAsState(
+        targetValue = when (lineState) {
+            LineState.ACTIVE -> FontWeight.Bold.weight
+            LineState.UPCOMING -> FontWeight.Medium.weight + ((progress * (FontWeight.Bold.weight - FontWeight.Medium.weight)).toInt())
+            else -> FontWeight.Normal.weight
+        },
+        animationSpec = tween(
+            durationMillis = 300,
+            easing = customEasing
+        ),
+        label = "fontWeight"
+    )
+
+    // Color transitions with smooth interpolation
+    val color by animateColorAsState(
+        targetValue = when (lineState) {
+            LineState.ACTIVE -> textColor
+            LineState.UPCOMING -> textColor.copy(alpha = 0.8f + (progress * 0.2f))
+            LineState.PASSED -> textColor.copy(alpha = 0.5f)
+            LineState.INACTIVE -> textColor.copy(alpha = 0.3f)
+        },
+        animationSpec = tween(
+            durationMillis = 400,
+            easing = customEasing
+        ),
+        label = "color"
+    )
+
     val boxAlignment = when (textAlign) {
         TextAlign.Start -> Alignment.CenterStart
         TextAlign.Center -> Alignment.Center
@@ -1103,8 +1149,9 @@ fun AppleLyricLine(
             text = text,
             style = MaterialTheme.typography.headlineMedium.copy(
                 fontSize = fontSize.value.sp,
-                fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
-                letterSpacing = if (isActive) 0.2.sp else 0.sp
+                fontWeight = FontWeight(fontWeight),
+                letterSpacing = if (lineState == LineState.ACTIVE) (0.2f + progress * 0.1f).sp else 0.sp,
+                lineHeight = (fontSize.value * 1.3f).sp
             ),
             color = color,
             textAlign = textAlign,
@@ -1113,12 +1160,31 @@ fun AppleLyricLine(
                     scaleX = scale
                     scaleY = scale
                     this.alpha = alpha
+
+                    // Add subtle translation for flowing effect
+                    translationY = when (lineState) {
+                        LineState.UPCOMING -> -progress * 8f // Subtle upward movement as it becomes active
+                        else -> 0f
+                    }
                 }
         )
     }
 }
 
-// Optimized AnimatedMusicBeatDots composable with better performance
+
+data class LyricsState(
+    val activeIndex: Int,
+    val progress: Float // 0f to 1f indicating progress through current line
+)
+
+enum class LineState {
+    ACTIVE,
+    UPCOMING,
+    PASSED,
+    INACTIVE
+}
+
+// Keep existing helper functions
 @Composable
 fun AnimatedMusicBeatDots(
     isPlaying: Boolean,
@@ -1167,13 +1233,11 @@ fun AnimatedMusicBeatDots(
     }
 }
 
-// Data class for parsed lyrics
 data class LyricLine(
     val timestamp: Long,
     val text: String
 )
 
-// Optimized LRC parser with better performance
 fun parseLrcLyrics(lyricsText: String): List<LyricLine> {
     val lines = lyricsText.split("\n")
     val lyricLines = mutableListOf<LyricLine>()
@@ -1198,26 +1262,23 @@ fun parseLrcLyrics(lyricsText: String): List<LyricLine> {
     return lyricLines.sortedBy { it.timestamp }
 }
 
-// Alternative parser for simple lyrics without timestamps
 fun parseSimpleLyrics(lyricsText: String): List<LyricLine> {
     val lines = lyricsText.split("\n").filter { it.trim().isNotEmpty() }
     return lines.mapIndexed { index, line ->
         LyricLine(
-            timestamp = (index * 4000).toLong(), // 4 seconds per line as fallback
+            timestamp = (index * 4000).toLong(),
             text = line.trim()
         )
     }
 }
 
-// Helper function to check if current position is in an instrumental section
 fun isInstrumentalSection(
     parsedLyrics: List<LyricLine>,
     currentPosition: Long,
-    instrumentalGapThreshold: Long = 6000L // 6 seconds gap indicates instrumental
+    instrumentalGapThreshold: Long = 6000L
 ): Boolean {
-    if (parsedLyrics.isEmpty()) return true // If no lyrics, always show beat dots
+    if (parsedLyrics.isEmpty()) return true
 
-    // Find the current and next lyric lines
     var currentLineIndex = -1
     var nextLineIndex = -1
 
@@ -1230,17 +1291,14 @@ fun isInstrumentalSection(
         }
     }
 
-    // If we're before the first lyric line (song intro)
     if (currentLineIndex == -1 && nextLineIndex != -1) {
-        return (parsedLyrics[nextLineIndex].timestamp - currentPosition) > 2000L // Show dots if more than 2 seconds before first lyric
+        return (parsedLyrics[nextLineIndex].timestamp - currentPosition) > 2000L
     }
 
-    // If we're after the last lyric line (song outro)
     if (currentLineIndex != -1 && nextLineIndex == -1) {
         return (currentPosition - parsedLyrics[currentLineIndex].timestamp) > instrumentalGapThreshold
     }
 
-    // If we're between two lyric lines (instrumental break)
     if (currentLineIndex != -1 && nextLineIndex != -1) {
         val gapDuration = parsedLyrics[nextLineIndex].timestamp - parsedLyrics[currentLineIndex].timestamp
         return gapDuration > instrumentalGapThreshold
