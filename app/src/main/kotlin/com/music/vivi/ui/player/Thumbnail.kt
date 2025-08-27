@@ -65,6 +65,7 @@ import androidx.media3.common.C
 import androidx.media3.common.Player
 import coil3.compose.AsyncImage
 import androidx.compose.material3.Icon
+import androidx.compose.ui.text.style.TextOverflow
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.PlayerBackgroundStyle
@@ -246,18 +247,32 @@ fun Thumbnail(
                         style = MaterialTheme.typography.titleMedium,
                         color = textBackgroundColor
                     )
-                    // Show album title or queue title
-                    val playingFrom = queueTitle ?: mediaMetadata?.album?.title
-                    if (!playingFrom.isNullOrBlank()) {
+
+                    // Add the current song title (this was missing!)
+                    mediaMetadata?.let { metadata ->
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = playingFrom,
-                            style = MaterialTheme.typography.titleMedium,
+                            text = metadata.title,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = textBackgroundColor.copy(alpha = 0.8f),
                             maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.basicMarquee()
                         )
                     }
+
+                    // Show album title or queue title
+//                    val playingFrom = queueTitle ?: mediaMetadata?.album?.title
+//                    if (!playingFrom.isNullOrBlank()) {
+//                        Spacer(modifier = Modifier.height(4.dp))
+//                        Text(
+//                            text = playingFrom,
+//                            style = MaterialTheme.typography.titleSmall, // Changed to titleSmall to differentiate from song title
+//                            color = textBackgroundColor.copy(alpha = 0.6f), // Lower alpha for less emphasis
+//                            maxLines = 1,
+//                            modifier = Modifier.basicMarquee()
+//                        )
+//                    }
                 }
                 
                 // Thumbnail content
