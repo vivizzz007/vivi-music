@@ -12,14 +12,19 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -47,6 +52,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -100,13 +106,15 @@ import java.net.URL
 import java.util.Calendar
 import kotlin.io.copyTo
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.music.innertube.utils.parseCookieString
 import com.music.vivi.constants.InnerTubeCookieKey
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.HomeViewModel
-@Composable
 @OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun SettingsScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
@@ -172,7 +180,7 @@ fun SettingsScreen(
         val backgroundColor: Color = Color.Blue.copy(alpha = 0.1f)
     )
 
-// Android 16 style settings
+    // Android 16 style settings
     val settingsItems = listOf(
         SettingItem(
             title = stringResource(R.string.update),
@@ -471,60 +479,113 @@ fun SettingsScreen(
         }
     }
 
-    Box(
+    // Use Scaffold for proper layout management
+    Scaffold(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
             .windowInsetsPadding(
                 LocalPlayerAwareWindowInsets.current.only(
                     WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
                 )
-            )
-    ) {
-        // Top App Bar
-        TopAppBar(
-            title = { },
-            navigationIcon = {
-                IconButton(
-                    onClick = navController::navigateUp,
-                    onLongClick = navController::backToMain
+            ),
+        topBar = {
+            // Animated TopAppBar with proper elevation and shadow
+            AnimatedVisibility(
+                visible = true,
+                enter = slideInVertically(
+                    animationSpec = tween(300),
+                    initialOffsetY = { -it }
+                ) + fadeIn(animationSpec = tween(300)),
+                exit = slideOutVertically(
+                    animationSpec = tween(300),
+                    targetOffsetY = { -it }
+                ) + fadeOut(animationSpec = tween(300))
+            ) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.background.copy(
+                        alpha = 1f - scrollBehavior.state.overlappedFraction
+                    ),
+                    shadowElevation = if (scrollBehavior.state.overlappedFraction > 0.01f) 4.dp else 0.dp,
+                    tonalElevation = if (scrollBehavior.state.overlappedFraction > 0.01f) 2.dp else 0.dp
                 ) {
-                    Icon(
-                        painterResource(R.drawable.arrow_back),
-                        contentDescription = null
+                    TopAppBar(
+                        title = { },
+                        navigationIcon = {
+                            // Enhanced back button with better touch target
+                            Surface(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(CircleShape),
+                                color = Color.Transparent
+                            ) {
+                                IconButton(
+                                    onClick = {
+                                        navController.navigateUp()
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(4.dp)
+                                ) {
+                                    Icon(
+                                        painterResource(R.drawable.arrow_back),
+                                        contentDescription = "Back",
+                                        tint = MaterialTheme.colorScheme.onSurface,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = Color.Transparent,
+                            navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+                            titleContentColor = MaterialTheme.colorScheme.onSurface
+                        ),
+                        scrollBehavior = scrollBehavior
                     )
                 }
-            },
-            scrollBehavior = scrollBehavior
-        )
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { paddingValues ->
 
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 64.dp), // TopAppBar padding
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
+            contentPadding = PaddingValues(
+                top = paddingValues.calculateTopPadding(),
+                start = 16.dp,
+                end = 16.dp,
+                bottom = paddingValues.calculateBottomPadding() + 16.dp
+            ),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Large Settings title (like in original code)
+            // Large Settings title - no animation
             item {
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = stringResource(R.string.settings),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 40.sp,
-                    fontWeight = FontWeight.Normal,
-                    modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
+                Column {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = stringResource(R.string.settings),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 40.sp,
+                        fontWeight = FontWeight.Normal,
+                        modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
             }
-            // Search bar at top (Android 16 style)
+
+            // Search bar with animation
             item {
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { showSearchDialog = true },
+                        .clickable { showSearchDialog = true }
+                        .animateContentSize(),
                     color = MaterialTheme.colorScheme.surfaceContainer,
-                    shape = RoundedCornerShape(32.dp)
+                    shape = RoundedCornerShape(32.dp),
+                    tonalElevation = 1.dp
                 ) {
                     Row(
                         modifier = Modifier
@@ -548,13 +609,14 @@ fun SettingsScreen(
                 }
             }
 
-            // User profile section (Android 16 card style)
+            // User profile section with animation
             item {
                 Spacer(modifier = Modifier.height(8.dp))
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { navController.navigate("account_settings") },
+                        .clickable { navController.navigate("account_settings") }
+                        .animateContentSize(),
                     color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
                     shape = RoundedCornerShape(16.dp),
                     tonalElevation = 1.dp
@@ -630,12 +692,13 @@ fun SettingsScreen(
                 }
             }
 
-            // Settings items grouped in cards (Android 16 boxed style)
+            // Settings items grouped in cards
             item {
                 Spacer(modifier = Modifier.height(8.dp))
                 Surface(
-                    modifier = Modifier.fillMaxWidth(),
-//                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animateContentSize(),
                     color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
                     shape = RoundedCornerShape(16.dp),
                     tonalElevation = 1.dp
@@ -656,7 +719,7 @@ fun SettingsScreen(
                                         .padding(16.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    // Colored circular icon background (Android 16 style)
+                                    // Colored circular icon background
                                     Box(
                                         modifier = Modifier
                                             .size(48.dp)
