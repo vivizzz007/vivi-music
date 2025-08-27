@@ -2,10 +2,14 @@ package com.music.vivi.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -29,6 +33,8 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -49,6 +55,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -57,6 +64,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -473,6 +481,86 @@ fun HomeScreen(
                 }
             }
 
+            //added new releses shown in box just like in applemusic
+            explorePage?.newReleaseAlbums?.takeIf { it.isNotEmpty() }?.let { albums ->
+                item(key = "new-releases-header") {
+                    NavigationTitle(
+                        title = stringResource(R.string.new_release_albums),
+                        onClick = null,
+                        modifier = Modifier.animateItem()
+                    )
+                }
+
+                item(key = "new-releases-pager") {
+                    val pagerState = rememberPagerState { albums.size }
+
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)          // ← taller card
+                            .padding(horizontal = 16.dp)
+                    ) { page ->
+                        val album = albums[page]
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(RoundedCornerShape(16.dp))
+                                .clickable { navController.navigate("album/${album.id}") }
+                        ) {
+                            /* full-bleed background image */
+                            AsyncImage(
+                                model = album.thumbnail,
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
+
+                            /* bottom-to-top gradient scrim */
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(
+                                        Brush.verticalGradient(
+                                            colors = listOf(
+                                                Color.Black.copy(alpha = .60f),
+                                                Color.Transparent
+                                            ),
+                                            startY = Float.POSITIVE_INFINITY,
+                                            endY = 0f
+                                        )
+                                    )
+                            )
+
+                            /* text anchored to bottom-left */
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(start = 16.dp, bottom = 16.dp),
+                                verticalArrangement = Arrangement.Bottom,
+                                horizontalAlignment = Alignment.Start
+                            ) {
+                                Text(
+                                    text = album.title,
+                                    style = MaterialTheme.typography.titleLarge,
+                                    color = Color.White,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    text = album.artists?.joinToString { it.name } ?: "",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.White.copy(alpha = .85f),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             keepListening?.takeIf { it.isNotEmpty() }?.let { keepListening ->
                 item {
                     NavigationTitle(
@@ -634,10 +722,14 @@ fun HomeScreen(
                                         }
                                     )
                             )
+
+
                         }
                     }
                 }
             }
+
+
 
             similarRecommendations?.forEach {
                 item {
@@ -685,6 +777,9 @@ fun HomeScreen(
                 }
             }
 
+
+
+
             homePage?.sections?.forEach {
                 item {
                     NavigationTitle(
@@ -730,6 +825,9 @@ fun HomeScreen(
                     }
                 }
             }
+
+
+
 
             if (isLoading || homePage?.continuation != null && homePage?.sections?.isNotEmpty() == true) {
                 item {
