@@ -227,9 +227,6 @@ fun Queue(
                     val borderColor = TextBackgroundColor.copy(alpha = 0.35f)
 
 
-//                    Spacer(modifier = Modifier.weight(1f))
-
-
                     Box(
                         modifier = Modifier
                             .size(buttonSize)
@@ -304,7 +301,6 @@ fun Queue(
                             }
                         }
                     }
-
 
                     Spacer(modifier = Modifier.weight(1f))
 
@@ -627,38 +623,38 @@ fun Queue(
 
         Box(
             modifier =
-            Modifier
-                .fillMaxSize()
-                .background(backgroundColor),
+                Modifier
+                    .fillMaxSize()
+                    .background(backgroundColor),
         ) {
             LazyColumn(
                 state = lazyListState,
                 contentPadding =
-                WindowInsets.systemBars
-                    .add(
-                        WindowInsets(
-                            top = ListItemHeight + 8.dp,
-                            bottom = ListItemHeight + 8.dp,
-                        ),
-                    ).asPaddingValues(),
+                    WindowInsets.systemBars
+                        .add(
+                            WindowInsets(
+                                top = ListItemHeight + 8.dp,
+                                bottom = ListItemHeight + 8.dp,
+                            ),
+                        ).asPaddingValues(),
                 modifier = Modifier.nestedScroll(state.preUpPostDownNestedScrollConnection)
             ) {
                 item {
                     Spacer(
                         modifier =
-                        Modifier
-                            .animateContentSize()
-                            .height(if (selection) 48.dp else 0.dp),
+                            Modifier
+                                .animateContentSize()
+                                .height(if (selection) 48.dp else 0.dp),
                     )
                 }
 
                 itemsIndexed(
                     items = mutableQueueWindows,
-                    key = { _, item -> item.uid.hashCode() },
+                    key = { index, item -> "${item.uid.hashCode()}_$index" },
                 ) { index, window ->
                     ReorderableItem(
                         state = reorderableState,
-                        key = window.uid.hashCode(),
+                        key = "${window.uid.hashCode()}_$index",
                     ) {
                         val currentItem by rememberUpdatedState(window)
                         val dismissBoxState =
@@ -670,9 +666,9 @@ fun Queue(
                         LaunchedEffect(dismissBoxState.currentValue) {
                             val dv = dismissBoxState.currentValue
                             if (!processedDismiss && (
-                                    dv == SwipeToDismissBoxValue.StartToEnd ||
-                                    dv == SwipeToDismissBoxValue.EndToStart
-                                )
+                                        dv == SwipeToDismissBoxValue.StartToEnd ||
+                                                dv == SwipeToDismissBoxValue.EndToStart
+                                        )
                             ) {
                                 processedDismiss = true
                                 playerConnection.player.removeMediaItem(currentItem.firstPeriodIndex)
@@ -748,39 +744,39 @@ fun Queue(
                                         }
                                     },
                                     modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .background(backgroundColor)
-                                        .combinedClickable(
-                                            onClick = {
-                                                if (selection) {
-                                                    if (window.mediaItem.metadata!! in selectedSongs) {
-                                                        selectedSongs.remove(window.mediaItem.metadata!!)
-                                                        selectedItems.remove(currentItem)
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .background(backgroundColor)
+                                            .combinedClickable(
+                                                onClick = {
+                                                    if (selection) {
+                                                        if (window.mediaItem.metadata!! in selectedSongs) {
+                                                            selectedSongs.remove(window.mediaItem.metadata!!)
+                                                            selectedItems.remove(currentItem)
+                                                        } else {
+                                                            selectedSongs.add(window.mediaItem.metadata!!)
+                                                            selectedItems.add(currentItem)
+                                                        }
                                                     } else {
-                                                        selectedSongs.add(window.mediaItem.metadata!!)
-                                                        selectedItems.add(currentItem)
+                                                        if (index == currentWindowIndex) {
+                                                            playerConnection.player.togglePlayPause()
+                                                        } else {
+                                                            playerConnection.player.seekToDefaultPosition(
+                                                                window.firstPeriodIndex,
+                                                            )
+                                                            playerConnection.player.playWhenReady = true
+                                                        }
                                                     }
-                                                } else {
-                                                    if (index == currentWindowIndex) {
-                                                        playerConnection.player.togglePlayPause()
-                                                    } else {
-                                                        playerConnection.player.seekToDefaultPosition(
-                                                            window.firstPeriodIndex,
-                                                        )
-                                                        playerConnection.player.playWhenReady = true
+                                                },
+                                                onLongClick = {
+                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                    if (!selection) {
+                                                        selection = true
                                                     }
-                                                }
-                                            },
-                                            onLongClick = {
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                if (!selection) {
-                                                    selection = true
-                                                }
-                                                selectedSongs.clear() // Clear all selections
-                                                selectedSongs.add(window.mediaItem.metadata!!) // Select current item
-                                            },
-                                        ),
+                                                    selectedSongs.clear() // Clear all selections
+                                                    selectedSongs.add(window.mediaItem.metadata!!) // Select current item
+                                                },
+                                            ),
                                 )
                             }
                         }
@@ -848,30 +844,30 @@ fun Queue(
                                     }
                                 },
                                 modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .combinedClickable(
-                                        onClick = {},
-                                        onLongClick = {
-                                            menuState.show {
-                                                PlayerMenu(
-                                                    mediaMetadata = item.metadata!!,
-                                                    navController = navController,
-                                                    playerBottomSheetState = playerBottomSheetState,
-                                                    isQueueTrigger = true,
-                                                    onShowDetailsDialog = {
-                                                        item.mediaId.let {
-                                                            bottomSheetPageState.show {
-                                                                ShowMediaInfo(it)
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .combinedClickable(
+                                            onClick = {},
+                                            onLongClick = {
+                                                menuState.show {
+                                                    PlayerMenu(
+                                                        mediaMetadata = item.metadata!!,
+                                                        navController = navController,
+                                                        playerBottomSheetState = playerBottomSheetState,
+                                                        isQueueTrigger = true,
+                                                        onShowDetailsDialog = {
+                                                            item.mediaId.let {
+                                                                bottomSheetPageState.show {
+                                                                    ShowMediaInfo(it)
+                                                                }
                                                             }
-                                                        }
-                                                    },
-                                                    onDismiss = menuState::dismiss,
-                                                )
-                                            }
-                                        },
-                                    )
-                                    .animateItem(),
+                                                        },
+                                                        onDismiss = menuState::dismiss,
+                                                    )
+                                                }
+                                            },
+                                        )
+                                        .animateItem(),
                             )
                         }
                     }
@@ -881,25 +877,25 @@ fun Queue(
 
         Column(
             modifier =
-            Modifier
-                .background(
-                    if (pureBlack) Color.Black
-                    else MaterialTheme.colorScheme
-                        .secondaryContainer
-                        .copy(alpha = 0.90f),
-                )
-                .windowInsetsPadding(
-                    WindowInsets.systemBars
-                        .only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
-                ),
+                Modifier
+                    .background(
+                        if (pureBlack) Color.Black
+                        else MaterialTheme.colorScheme
+                            .secondaryContainer
+                            .copy(alpha = 0.90f),
+                    )
+                    .windowInsetsPadding(
+                        WindowInsets.systemBars
+                            .only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                    ),
         ) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 modifier =
-                Modifier
-                    .height(ListItemHeight)
-                    .padding(horizontal = 12.dp),
+                    Modifier
+                        .height(ListItemHeight)
+                        .padding(horizontal = 12.dp),
             ) {
                 Text(
                     text = queueTitle.orEmpty(),
@@ -954,8 +950,8 @@ fun Queue(
             ) {
                 Row(
                     modifier =
-                    Modifier
-                        .height(48.dp),
+                        Modifier
+                            .height(48.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     val count = selectedSongs.size
@@ -990,13 +986,13 @@ fun Queue(
                     ) {
                         Icon(
                             painter =
-                            painterResource(
-                                if (count == mutableQueueWindows.size) {
-                                    R.drawable.deselect
-                                } else {
-                                    R.drawable.select_all
-                                },
-                            ),
+                                painterResource(
+                                    if (count == mutableQueueWindows.size) {
+                                        R.drawable.deselect
+                                    } else {
+                                        R.drawable.select_all
+                                    },
+                                ),
                             contentDescription = null,
                         )
                     }
@@ -1025,7 +1021,7 @@ fun Queue(
                 }
             }
             if (pureBlack) {
-                    HorizontalDivider()
+                HorizontalDivider()
             }
         }
 
@@ -1033,29 +1029,29 @@ fun Queue(
 
         Box(
             modifier =
-            Modifier
-                .background(
-                    if (pureBlack) Color.Black
-                    else MaterialTheme.colorScheme
-                        .secondaryContainer
-                        .copy(alpha = 0.90f),
-                )
-                .fillMaxWidth()
-                .height(
-                    ListItemHeight +
-                            WindowInsets.systemBars
-                                .asPaddingValues()
-                                .calculateBottomPadding(),
-                )
-                .align(Alignment.BottomCenter)
-                .clickable {
-                    state.collapseSoft()
-                }
-                .windowInsetsPadding(
-                    WindowInsets.systemBars
-                        .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal),
-                )
-                .padding(12.dp),
+                Modifier
+                    .background(
+                        if (pureBlack) Color.Black
+                        else MaterialTheme.colorScheme
+                            .secondaryContainer
+                            .copy(alpha = 0.90f),
+                    )
+                    .fillMaxWidth()
+                    .height(
+                        ListItemHeight +
+                                WindowInsets.systemBars
+                                    .asPaddingValues()
+                                    .calculateBottomPadding(),
+                    )
+                    .align(Alignment.BottomCenter)
+                    .clickable {
+                        state.collapseSoft()
+                    }
+                    .windowInsetsPadding(
+                        WindowInsets.systemBars
+                            .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal),
+                    )
+                    .padding(12.dp),
         ) {
             IconButton(
                 modifier = Modifier.align(Alignment.CenterStart),
@@ -1090,13 +1086,13 @@ fun Queue(
             ) {
                 Icon(
                     painter =
-                    painterResource(
-                        when (repeatMode) {
-                            Player.REPEAT_MODE_OFF, Player.REPEAT_MODE_ALL -> R.drawable.repeat
-                            Player.REPEAT_MODE_ONE -> R.drawable.repeat_one
-                            else -> throw IllegalStateException()
-                        },
-                    ),
+                        painterResource(
+                            when (repeatMode) {
+                                Player.REPEAT_MODE_OFF, Player.REPEAT_MODE_ALL -> R.drawable.repeat
+                                Player.REPEAT_MODE_ONE -> R.drawable.repeat_one
+                                else -> throw IllegalStateException()
+                            },
+                        ),
                     contentDescription = null,
                     modifier = Modifier.alpha(if (repeatMode == Player.REPEAT_MODE_OFF) 0.5f else 1f),
                 )
@@ -1106,15 +1102,15 @@ fun Queue(
         SnackbarHost(
             hostState = snackbarHostState,
             modifier =
-            Modifier
-                .padding(
-                    bottom =
-                    ListItemHeight +
-                            WindowInsets.systemBars
-                                .asPaddingValues()
-                                .calculateBottomPadding(),
-                )
-                .align(Alignment.BottomCenter),
+                Modifier
+                    .padding(
+                        bottom =
+                            ListItemHeight +
+                                    WindowInsets.systemBars
+                                        .asPaddingValues()
+                                        .calculateBottomPadding(),
+                    )
+                    .align(Alignment.BottomCenter),
         )
     }
 }
