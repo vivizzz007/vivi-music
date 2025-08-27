@@ -701,6 +701,8 @@ fun LyricsScreen(
                         .padding(WindowInsets.systemBars.asPaddingValues())
                 ) {
                     // Header with Down arrow and More button
+                    // Replace your current header Row in both portrait and landscape modes with this:
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -708,44 +710,46 @@ fun LyricsScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        // Down arrow button (left)
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = ripple(
-                                        bounded = true,
-                                        radius = 16.dp
-                                    )
-                                ) { onBackClick() },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.expand_more),
-                                contentDescription = stringResource(R.string.close),
-                                tint = textBackgroundColor,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-
-                        // Centered content
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
+                        // Center content with album artwork - like in the image
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text(
-                                text = stringResource(R.string.now_playing),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = textBackgroundColor
+                            // Album artwork thumbnail
+                            AsyncImage(
+                                model = mediaMetadata.thumbnailUrl,
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(RoundedCornerShape(8.dp))
                             )
-                            Text(
-                                text = mediaMetadata.title,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = textBackgroundColor.copy(alpha = 0.8f),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
+
+                            Spacer(modifier = Modifier.width(12.dp))
+
+                            // Text content
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.now_playing),
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Medium
+                                    ),
+                                    color = textBackgroundColor
+                                )
+                                Text(
+                                    text = "${mediaMetadata.title}${if (mediaMetadata.artists.isNotEmpty()) " • ${mediaMetadata.artists.joinToString(", ")}" else ""}",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontSize = 14.sp
+                                    ),
+                                    color = textBackgroundColor.copy(alpha = 0.8f),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
                         }
 
                         // More button (right)
