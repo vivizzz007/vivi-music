@@ -2,6 +2,7 @@ package com.music.vivi.update.experiment
 
 
 
+import android.app.NotificationManager
 import android.content.ActivityNotFoundException
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -50,9 +51,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Feedback
 import androidx.compose.material3.Button
@@ -76,87 +82,161 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 
 import androidx.compose.material.icons.filled.Delete // or use another available icon
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import androidx.work.WorkManager
 import com.music.vivi.MainActivity
+import com.music.vivi.update.mordernswitch.ModernSwitch
+import com.music.vivi.update.notificationupdate.NotificationActionReceiver
 
 @Composable
 fun SettingsListItem(
     title: String,
-    value: String? = null,
+    subtitle: String? = null,
     onClick: (() -> Unit)? = null,
     leadingContent: @Composable (() -> Unit)? = null,
-    trailingContent: @Composable (() -> Unit)? = null
+    trailingContent: @Composable (() -> Unit)? = null,
+    isHighlighted: Boolean = false,
+    isLast: Boolean = false
 ) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 64.dp)
-            .clickable(enabled = onClick != null) { onClick?.invoke() }
+            .heightIn(min = if (subtitle != null) 72.dp else 64.dp)
+            .clickable(enabled = onClick != null) { onClick?.invoke() },
+        color = if (isHighlighted) {
+            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+        } else {
+            Color.Transparent
+        }
     ) {
-        Row(
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            leadingContent?.let {
-                Box(modifier = Modifier.padding(end = 16.dp)) {
-                    it()
+        Column {
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 20.dp, vertical = 12.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                leadingContent?.let {
+                    Box(modifier = Modifier.padding(end = 16.dp)) {
+                        it()
+                    }
                 }
-            }
 
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                value?.let {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.Center
+                ) {
                     Text(
-                        text = it,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        text = title,
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 16.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface
                     )
+                    subtitle?.let {
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontSize = 14.sp
+                            ),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
+                        )
+                    }
+                }
+
+                trailingContent?.let {
+                    Box(modifier = Modifier.padding(start = 12.dp)) {
+                        it()
+                    }
                 }
             }
 
-            trailingContent?.let {
-                Box(modifier = Modifier.padding(start = 16.dp)) {
-                    it()
-                }
+            // Add divider if not last item
+            if (!isLast) {
+                Divider(
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                    thickness = 0.5.dp
+                )
             }
         }
     }
 }
 
-private const val PREFS_NAME = "app_settings"
-private const val KEY_AUTO_UPDATE_CHECK = "auto_update_check_enabled"
-private const val KEY_BETA_UPDATER_ENABLED = "beta_updater_enabled"
-private const val KEY_UPDATE_CHECK_INTERVAL = "update_check_interval"
-private const val DEFAULT_UPDATE_CHECK_INTERVAL = 4 // hours
+@Composable
+fun SettingsSection(
+    title: String,
+    content: @Composable () -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        if (title.isNotEmpty()) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 18.sp
+                ),
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
+            )
+        }
 
-private fun getUpdateCheckInterval(context: Context): Int {
-    val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    return prefs.getInt(KEY_UPDATE_CHECK_INTERVAL, DEFAULT_UPDATE_CHECK_INTERVAL)
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainer
+            ),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        ) {
+            Column {
+                content()
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+    }
 }
 
-private fun saveUpdateCheckInterval(context: Context, hours: Int) {
-    val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    prefs.edit().putInt(KEY_UPDATE_CHECK_INTERVAL, hours).apply()
-}
+//fun saveAutoUpdateCheckSetting(context: Context, enabled: Boolean) {
+//    context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().apply {
+//        putBoolean(KEY_AUTO_UPDATE_CHECK, enabled)
+//        apply()
+//    }
+//}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExperimentalSettingsScreen(navController: NavController) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    val scrollState = rememberScrollState()
+
+    // Calculate scroll-based animations
+    val titleAlpha by remember {
+        derivedStateOf {
+            1f - (scrollState.value / 200f).coerceIn(0f, 1f)
+        }
+    }
+
+    val titleScale by remember {
+        derivedStateOf {
+            1f - (scrollState.value / 400f).coerceIn(0f, 0.3f)
+        }
+    }
 
     var autoUpdateCheckEnabled by remember { mutableStateOf(getAutoUpdateCheckSetting(context)) }
     var betaUpdaterEnabled by remember { mutableStateOf(getBetaUpdaterSetting(context)) }
     var updateCheckInterval by remember { mutableStateOf(getUpdateCheckInterval(context)) }
-
-    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.experimental))
-    val partyComposition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.gmailfeedback))
-    val confettiComposition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.githubfeedback))
 
     val resetSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showResetSheet by remember { mutableStateOf(false) }
@@ -190,6 +270,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
         Runtime.getRuntime().exit(0)
     }
 
+    // Bottom Sheets
     if (showBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = {
@@ -202,35 +283,63 @@ fun ExperimentalSettingsScreen(navController: NavController) {
             dragHandle = { SheetDragHandle() }
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
-                Text("Send Feedback", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 16.dp))
-                Text("Choose how you want to send your feedback.", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    "Send Feedback",
+                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold),
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Text(
+                    "Choose how you want to send your feedback.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 Spacer(modifier = Modifier.height(24.dp))
 
-                Button(onClick = {
-                    sendFeedbackEmail(context)
-                    coroutineScope.launch {
-                        bottomSheetState.hide(); showBottomSheet = false
-                    }
-                }, modifier = Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = {
+                        sendFeedbackEmail(context)
+                        coroutineScope.launch {
+                            bottomSheetState.hide()
+                            showBottomSheet = false
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        LottieAnimation(composition = partyComposition, iterations = LottieConstants.IterateForever, modifier = Modifier.size(40.dp).padding(end = 8.dp))
-                        Text("Send Email")
+                        Icon(
+                            imageVector = Icons.Default.Email,
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 12.dp)
+                        )
+                        Text("Send Email", style = MaterialTheme.typography.labelLarge)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                Button(onClick = {
-                    openGitHubIssues(context)
-                    coroutineScope.launch {
-                        bottomSheetState.hide(); showBottomSheet = false
-                    }
-                }, modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(
+                    onClick = {
+                        openGitHubIssues(context)
+                        coroutineScope.launch {
+                            bottomSheetState.hide()
+                            showBottomSheet = false
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        LottieAnimation(composition = confettiComposition, iterations = LottieConstants.IterateForever, modifier = Modifier.size(40.dp).padding(end = 8.dp))
-                        Text("Report on GitHub")
+                        Icon(
+                            imageVector = Icons.Default.BugReport,
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 12.dp)
+                        )
+                        Text("Report on GitHub", style = MaterialTheme.typography.labelLarge)
                     }
                 }
+
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }
@@ -247,44 +356,137 @@ fun ExperimentalSettingsScreen(navController: NavController) {
             dragHandle = { SheetDragHandle() }
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
-                Text("Set Update Check Interval", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    "Update check interval",
+                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold)
+                )
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("How often should we check for updates?", style = MaterialTheme.typography.bodyMedium)
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Slider(
-                    value = updateCheckInterval.toFloat(),
-                    onValueChange = { updateCheckInterval = it.toInt() },
-                    valueRange = 1f..24f,
-                    steps = 23,
-                    modifier = Modifier.fillMaxWidth()
+                Text(
+                    "Choose how often to check for app updates automatically.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                Text("$updateCheckInterval hours", modifier = Modifier.align(Alignment.CenterHorizontally))
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(20.dp)) {
+                        Text(
+                            "$updateCheckInterval hours",
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Slider(
+                            value = updateCheckInterval.toFloat(),
+                            onValueChange = { updateCheckInterval = it.toInt() },
+                            valueRange = 1f..24f,
+                            steps = 23,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                    OutlinedButton(onClick = {
-                        coroutineScope.launch {
-                            intervalSheetState.hide()
-                            showIntervalSheet = false
-                        }
-                    }, modifier = Modifier.weight(1f)) {
+                    OutlinedButton(
+                        onClick = {
+                            coroutineScope.launch {
+                                intervalSheetState.hide()
+                                showIntervalSheet = false
+                            }
+                        },
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
                         Text("Cancel")
                     }
 
-                    Button(onClick = {
-                        saveUpdateCheckInterval(context, updateCheckInterval)
-                        coroutineScope.launch {
-                            intervalSheetState.hide()
-                            showIntervalSheet = false
-                        }
-                    }, modifier = Modifier.weight(1f)) {
+                    Button(
+                        onClick = {
+                            saveUpdateCheckInterval(context, updateCheckInterval)
+                            coroutineScope.launch {
+                                intervalSheetState.hide()
+                                showIntervalSheet = false
+                            }
+                        },
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
                         Text("Save")
                     }
                 }
+
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+        }
+    }
+
+    if (showResetSheet) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                coroutineScope.launch {
+                    resetSheetState.hide()
+                    showResetSheet = false
+                }
+            },
+            sheetState = resetSheetState,
+            dragHandle = { SheetDragHandle() }
+        ) {
+            Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
+                Text(
+                    "Reset app data?",
+                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold),
+                    color = MaterialTheme.colorScheme.error
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    "This will clear all settings, cache, and local data. The app will restart and you'll need to set up everything again. This action cannot be undone.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                    OutlinedButton(
+                        onClick = {
+                            coroutineScope.launch {
+                                resetSheetState.hide()
+                                showResetSheet = false
+                            }
+                        },
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Cancel")
+                    }
+
+                    Button(
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                        onClick = {
+                            resetApp(context)
+                            coroutineScope.launch {
+                                resetSheetState.hide()
+                                showResetSheet = false
+                            }
+                        },
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Reset", color = MaterialTheme.colorScheme.onError)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }
@@ -292,196 +494,216 @@ fun ExperimentalSettingsScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Experimental Features") },
+                title = { },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
             )
         }
     ) { paddingValues ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(MaterialTheme.colorScheme.background)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .background(MaterialTheme.colorScheme.background),
+            contentPadding = PaddingValues(vertical = 8.dp)
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            LottieAnimation(
-                composition = composition,
-                iterations = LottieConstants.IterateForever,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .height(180.dp)
-                    .clip(RoundedCornerShape(12.dp))
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            SettingsListItem(
-                title = "Auto Check for Updates",
-                value = if (autoUpdateCheckEnabled) "Enabled" else "Disabled",
-                onClick = {
-                    autoUpdateCheckEnabled = !autoUpdateCheckEnabled
-                    saveAutoUpdateCheckSetting(context, autoUpdateCheckEnabled)
-                },
-                trailingContent = {
-                    Switch(
-                        checked = autoUpdateCheckEnabled,
-                        onCheckedChange = { isChecked ->
-                            autoUpdateCheckEnabled = isChecked
-                            saveAutoUpdateCheckSetting(context, isChecked)
+            item {
+                // Header Section with scroll animations
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 24.dp)
+                        .graphicsLayer {
+                            alpha = titleAlpha
+                            scaleX = titleScale
+                            scaleY = titleScale
                         }
-                    )
-                }
-            )
-
-            if (autoUpdateCheckEnabled) {
-                SettingsListItem(
-                    title = "Update Check Interval",
-                    value = "$updateCheckInterval hours",
-                    onClick = {
-                        coroutineScope.launch {
-                            showIntervalSheet = true
-                            intervalSheetState.show()
-                        }
-                    }
-                )
-            }
-
-            SettingsListItem(
-                title = "Beta Updater",
-                value = if (betaUpdaterEnabled) "Enabled" else "Disabled",
-                trailingContent = {
-                    Switch(
-                        checked = betaUpdaterEnabled,
-                        onCheckedChange = { isChecked ->
-                            betaUpdaterEnabled = isChecked
-                            saveBetaUpdaterSetting(context, isChecked)
-                        }
-                    )
-                }
-            )
-
-            if (betaUpdaterEnabled) {
-                SettingsListItem(
-                    title = "Beta-Updater",
-                    value = "Enabled",
-                    onClick = {
-                        navController.navigate("settings/dpi")
-                    }
-                )
-            }
-
-            SettingsListItem(
-                title = "Reset App",
-                value = "Clear all settings & data",
-                onClick = {
-                    coroutineScope.launch {
-                        showResetSheet = true
-                        resetSheetState.show()
-                    }
-                },
-                trailingContent = {
-                    Icon(Icons.Default.Delete, contentDescription = "Reset App")
-                }
-            )
-
-            if (showResetSheet) {
-                ModalBottomSheet(
-                    onDismissRequest = {
-                        coroutineScope.launch {
-                            resetSheetState.hide()
-                            showResetSheet = false
-                        }
-                    },
-                    sheetState = resetSheetState,
-                    dragHandle = { SheetDragHandle() }
                 ) {
-                    Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
-                        Text("Reset App?", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.error)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text("If you face bug do it. This will reset all your settings, clear cache, and remove local data. This action cannot be undone.", style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        text = "Experimental features",
+                        style = MaterialTheme.typography.displaySmall.copy(
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 32.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
 
-                        Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
-                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                            OutlinedButton(
-                                onClick = {
-                                    coroutineScope.launch {
-                                        resetSheetState.hide()
-                                        showResetSheet = false
-                                    }
-                                },
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text("Close")
-                            }
-
-                            Button(
-                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-                                onClick = {
-                                    resetApp(context)
-                                    coroutineScope.launch {
-                                        resetSheetState.hide()
-                                        showResetSheet = false
-                                    }
-                                },
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text("Reset")
-                            }
+            item {
+                SettingsSection("Updates") {
+                    SettingsListItem(
+                        title = "Auto check for updates",
+                        subtitle = if (autoUpdateCheckEnabled) "Enabled" else "Disabled",
+                        onClick = {
+                            autoUpdateCheckEnabled = !autoUpdateCheckEnabled
+                            saveAutoUpdateCheckSetting(context, autoUpdateCheckEnabled)
+                        },
+                        isHighlighted = false, // Changed from autoUpdateCheckEnabled to false
+                        isLast = !autoUpdateCheckEnabled,
+                        trailingContent = {
+                            ModernSwitch(
+                                checked = autoUpdateCheckEnabled,
+                                onCheckedChange = { isChecked ->
+                                    autoUpdateCheckEnabled = isChecked
+                                    saveAutoUpdateCheckSetting(context, isChecked)
+                                }
+                            )
                         }
+                    )
+
+                    if (autoUpdateCheckEnabled) {
+                        SettingsListItem(
+                            title = "Update check interval",
+                            subtitle = "After $updateCheckInterval hours of inactivity",
+                            onClick = {
+                                coroutineScope.launch {
+                                    showIntervalSheet = true
+                                    intervalSheetState.show()
+                                }
+                            },
+                            isLast = true,
+                            trailingContent = {
+                                Icon(
+                                    imageVector = Icons.Default.ChevronRight,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        )
                     }
                 }
             }
 
-            SettingsListItem(
-                title = "Debug Mode",
-                value = "Not Enabled",
-                onClick = { }
-            )
+            item {
+                SettingsSection("Beta features") {
+                    SettingsListItem(
+                        title = "Beta updater",
+                        subtitle = "Automatically applies updates to more features for improved functionality",
+                        isHighlighted = false, // Changed from betaUpdaterEnabled to false
+                        isLast = !betaUpdaterEnabled,
+                        trailingContent = {
+                            ModernSwitch(
+                                checked = betaUpdaterEnabled,
+                                onCheckedChange = { isChecked ->
+                                    betaUpdaterEnabled = isChecked
+                                    saveBetaUpdaterSetting(context, isChecked)
+                                }
+                            )
+                        }
+                    )
 
-            SettingsListItem(
-                title = "Send Feedback",
-                value = "Gmail and Github",
-                onClick = {
-                    coroutineScope.launch {
-                        showBottomSheet = true
-                        bottomSheetState.show()
+                    if (betaUpdaterEnabled) {
+                        SettingsListItem(
+                            title = "Beta updater settings",
+                            subtitle = "Configure beta update preferences",
+                            onClick = {
+                                navController.navigate("settings/dpi")
+                            },
+                            isLast = true,
+                            trailingContent = {
+                                Icon(
+                                    imageVector = Icons.Default.ChevronRight,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        )
                     }
-                },
-                trailingContent = {
-                    Icon(imageVector = Icons.Default.Feedback, contentDescription = "Send Feedback")
                 }
-            )
+            }
+
+//            item {
+//                SettingsSection("Developer options") {
+//                    SettingsListItem(
+//                        title = "Debug mode",
+//                        subtitle = "Enable advanced debugging features",
+//                        onClick = { },
+//                        isLast = true,
+//                        trailingContent = {
+//                            ModernSwitch(
+//                                checked = false,
+//                                onCheckedChange = { }
+//                            )
+//                        }
+//                    )
+//                }
+//            }
+
+            item {
+                SettingsSection("Support") {
+                    SettingsListItem(
+                        title = "Send feedback",
+                        subtitle = "Email or GitHub issue",
+                        onClick = {
+                            coroutineScope.launch {
+                                showBottomSheet = true
+                                bottomSheetState.show()
+                            }
+                        },
+                        isLast = false,
+                        trailingContent = {
+                            Icon(
+                                imageVector = Icons.Default.Feedback,
+                                contentDescription = "Send Feedback",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    )
+
+                    SettingsListItem(
+                        title = "Reset app",
+                        subtitle = "Clear all settings and data",
+                        onClick = {
+                            coroutineScope.launch {
+                                showResetSheet = true
+                                resetSheetState.show()
+                            }
+                        },
+                        isLast = true,
+                        trailingContent = {
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = "Reset App",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    )
+                }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(50.dp))
+            }
         }
     }
 }
 
 @Composable
-private fun SheetDragHandle() {
+ fun SheetDragHandle() {
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.Center
     ) {
         Box(
             modifier = Modifier
-                .padding(vertical = 8.dp)
-                .size(width = 40.dp, height = 4.dp)
+                .padding(vertical = 12.dp)
+                .size(width = 32.dp, height = 4.dp)
                 .background(
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
                     shape = RoundedCornerShape(2.dp)
                 )
         )
     }
 }
-
 
 private fun openGitHubIssues(context: Context) {
     try {
@@ -543,6 +765,29 @@ fun saveAutoUpdateCheckSetting(context: Context, enabled: Boolean) {
         putBoolean(KEY_AUTO_UPDATE_CHECK, enabled)
         apply()
     }
+
+    if (enabled) {
+        // Enable update checks
+        NotificationActionReceiver().schedulePeriodicUpdateCheck(context)
+        NotificationActionReceiver.checkForUpdatesOnStartup(context)
+    } else {
+        // Disable update checks
+        cancelAllUpdateChecks(context)
+        cancelNotification(context)
+    }
+}
+
+private fun cancelAllUpdateChecks(context: Context) {
+    // Cancel periodic work
+    WorkManager.getInstance(context).cancelUniqueWork("periodic_update_check")
+
+    // Cancel any pending one-time checks
+    WorkManager.getInstance(context).cancelAllWorkByTag("UpdateCheckWorker")
+}
+
+private fun cancelNotification(context: Context) {
+    val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    notificationManager.cancel(NotificationActionReceiver.NOTIFICATION_ID)
 }
 
 fun getAutoUpdateCheckSetting(context: Context): Boolean {
@@ -560,4 +805,21 @@ fun saveBetaUpdaterSetting(context: Context, enabled: Boolean) {
 fun getBetaUpdaterSetting(context: Context): Boolean {
     return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         .getBoolean(KEY_BETA_UPDATER_ENABLED, false)
+}
+
+
+private const val PREFS_NAME = "app_settings"
+private const val KEY_AUTO_UPDATE_CHECK = "auto_update_check_enabled"
+private const val KEY_BETA_UPDATER_ENABLED = "beta_updater_enabled"
+private const val KEY_UPDATE_CHECK_INTERVAL = "update_check_interval"
+private const val DEFAULT_UPDATE_CHECK_INTERVAL = 4 // hours
+
+private fun getUpdateCheckInterval(context: Context): Int {
+    val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    return prefs.getInt(KEY_UPDATE_CHECK_INTERVAL, DEFAULT_UPDATE_CHECK_INTERVAL)
+}
+
+private fun saveUpdateCheckInterval(context: Context, hours: Int) {
+    val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    prefs.edit().putInt(KEY_UPDATE_CHECK_INTERVAL, hours).apply()
 }

@@ -180,8 +180,8 @@ fun SettingsScreen(
         val backgroundColor: Color = Color.Blue.copy(alpha = 0.1f)
     )
 
-    // Android 16 style settings
-    // Updated settings items with standardized colors
+// Android 16 style settings
+// Updated settings items with standardized colors
     val settingsItems = listOf(
         SettingItem(
             title = stringResource(R.string.update),
@@ -189,8 +189,8 @@ fun SettingsScreen(
             route = "settings/update",
             description = if (isUpdateAvailable) "Update available" else "Check for app updates",
             keywords = listOf("update", "version", "upgrade", "new"),
-            iconColor = if (isUpdateAvailable) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-            backgroundColor = if (isUpdateAvailable) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.surfaceVariant
+            iconColor = if (isUpdateAvailable) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            backgroundColor = if (isUpdateAvailable) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
         ),
         SettingItem(
             title = stringResource(R.string.appearance),

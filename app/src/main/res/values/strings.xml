@@ -350,6 +350,9 @@
     <string name="downloaded">downloaded</string>
     <string name="download">Download</string>
     <string name="sync_failed">Sync failed</string>
+    <string name="remove_all_downloads">Remove all downloads</string>
+    <string name="gestures">Lyrics Gestures</string>
+
 
 
 </resources>

@@ -49,6 +49,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.material3.*
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -56,15 +57,25 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 
@@ -86,7 +97,23 @@ fun BackupAndRestore(
     var progressPercentage by rememberSaveable {
         mutableIntStateOf(0)
     }
+
     val context = LocalContext.current
+    val scrollState = rememberScrollState()
+
+    // Calculate scroll-based animations
+    val titleAlpha by remember {
+        derivedStateOf {
+            1f - (scrollState.value / 200f).coerceIn(0f, 1f)
+        }
+    }
+
+    val titleScale by remember {
+        derivedStateOf {
+            1f - (scrollState.value / 400f).coerceIn(0f, 0.3f)
+        }
+    }
+
     val backupLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
             if (uri != null) {
@@ -121,63 +148,86 @@ fun BackupAndRestore(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { },
+                navigationIcon = {
+                    IconButton(
+                        onClick = navController::navigateUp,
+                        onLongClick = navController::backToMain,
+                    ) {
+                        Icon(
+                            painterResource(R.drawable.arrow_back),
+                            contentDescription = null,
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            )
+        }
+    ) { paddingValues ->
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp)
+                .padding(paddingValues)
+                .background(MaterialTheme.colorScheme.background),
+            contentPadding = PaddingValues(vertical = 8.dp)
         ) {
-            Spacer(modifier = Modifier.height(100.dp))
-
-            // Lottie Animation in a Card
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .padding(vertical = 8.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                ),
-                border = BorderStroke(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                )
-            ) {
-                val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.storage))
-                LottieAnimation(
-                    composition = composition,
-                    iterations = LottieConstants.IterateForever,
-                    modifier = Modifier.fillMaxSize()
-                )
+            item {
+                // Header Section with scroll animations
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 24.dp)
+                        .graphicsLayer {
+                            alpha = titleAlpha
+                            scaleX = titleScale
+                            scaleY = titleScale
+                        }
+                ) {
+                    Text(
+                        text = stringResource(R.string.backup_restore),
+                        style = MaterialTheme.typography.displaySmall.copy(
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 32.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
 
-            // Backup & Restore Section
-            PreferenceGroupTitle(
-                title = stringResource(R.string.backup_restore),
-                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
-            )
+            item {
+                // Lottie Animation Card
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                ) {
+                    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.storage))
+                    LottieAnimation(
+                        composition = composition,
+                        iterations = LottieConstants.IterateForever,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
 
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                ),
-                shape = RoundedCornerShape(16.dp),
-                border = BorderStroke(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                )
-            ) {
-                Column {
-                    Spacer(modifier = Modifier.height(10.dp))
-                    PreferenceEntry(
-                        title = { Text(stringResource(R.string.action_backup)) },
-                        icon = { Icon(painterResource(R.drawable.backup), null) },
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            item {
+                SettingsSection("Backup & Restore") {
+                    SettingsListItem(
+                        title = stringResource(R.string.action_backup),
+                        subtitle = "Export all your data and settings",
                         onClick = {
                             val formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
                             backupLauncher.launch(
@@ -186,96 +236,102 @@ fun BackupAndRestore(
                                 }.backup"
                             )
                         },
+                        isLast = false,
+                        leadingContent = {
+                            Icon(
+                                painterResource(R.drawable.backup),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        },
+                        trailingContent = {
+                            Icon(
+                                imageVector = Icons.Default.ChevronRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     )
-                    Spacer(modifier = Modifier.height(10.dp))
 
-                    Divider(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f),
-                        thickness = 1.dp
-                    )
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    PreferenceEntry(
-                        title = { Text(stringResource(R.string.action_restore)) },
-                        icon = { Icon(painterResource(R.drawable.restore), null) },
+                    SettingsListItem(
+                        title = stringResource(R.string.action_restore),
+                        subtitle = "Import previously saved data",
                         onClick = {
                             restoreLauncher.launch(arrayOf("application/octet-stream"))
                         },
+                        isLast = true,
+                        leadingContent = {
+                            Icon(
+                                painterResource(R.drawable.restore),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.secondary
+                            )
+                        },
+                        trailingContent = {
+                            Icon(
+                                imageVector = Icons.Default.ChevronRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     )
-                    Spacer(modifier = Modifier.height(10.dp))
                 }
             }
 
-            // Import Section
-            Text(
-                text = "Import",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp, start = 4.dp)
-            )
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                ),
-                shape = RoundedCornerShape(16.dp),
-                border = BorderStroke(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                )
-            ) {
-                Column {
-                    Spacer(modifier = Modifier.height(10.dp))
-                    PreferenceEntry(
-                        title = { Text(stringResource(R.string.import_online)) },
-                        icon = { Icon(painterResource(R.drawable.playlist_add), null) },
+            item {
+                SettingsSection("Import") {
+                    SettingsListItem(
+                        title = stringResource(R.string.import_online),
+                        subtitle = "Import playlists from M3U files",
                         onClick = {
                             importM3uLauncherOnline.launch(arrayOf("audio/*"))
+                        },
+                        isLast = false,
+                        leadingContent = {
+                            Icon(
+                                painterResource(R.drawable.playlist_add),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.tertiary
+                            )
+                        },
+                        trailingContent = {
+                            Icon(
+                                imageVector = Icons.Default.ChevronRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Divider(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f),
-                        thickness = 1.dp
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    PreferenceEntry(
-                        title = { Text(stringResource(R.string.import_csv)) },
-                        icon = { Icon(painterResource(R.drawable.playlist_add), null) },
+
+                    SettingsListItem(
+                        title = stringResource(R.string.import_csv),
+                        subtitle = "Import playlists from CSV files",
                         onClick = {
                             importPlaylistFromCsv.launch(arrayOf("text/csv"))
+                        },
+                        isLast = true,
+                        leadingContent = {
+                            Icon(
+                                painterResource(R.drawable.playlist_add),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.tertiary
+                            )
+                        },
+                        trailingContent = {
+                            Icon(
+                                imageVector = Icons.Default.ChevronRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     )
-                    Spacer(modifier = Modifier.height(10.dp))
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            item {
+                Spacer(modifier = Modifier.height(50.dp))
+            }
         }
-
-        // Top App Bar
-        TopAppBar(
-            title = { Text(stringResource(R.string.backup_restore)) },
-            navigationIcon = {
-                IconButton(
-                    onClick = navController::navigateUp,
-                    onLongClick = navController::backToMain,
-                ) {
-                    Icon(
-                        painterResource(R.drawable.arrow_back),
-                        contentDescription = null,
-                    )
-                }
-            },
-            scrollBehavior = scrollBehavior,
-            modifier = Modifier.align(Alignment.TopCenter)
-        )
     }
 
     AddToPlaylistDialogOnline(
@@ -303,3 +359,5 @@ fun BackupAndRestore(
         value = progressPercentage,
     )
 }
+
+// Reuse the same components from the experimental settings
