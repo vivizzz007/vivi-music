@@ -141,10 +141,20 @@ import androidx.compose.ui.graphics.CompositingStrategy
 import com.music.vivi.Dotlyrics.AnimatedMusicBeatDots
 // Coroutines
 import kotlinx.coroutines.withTimeoutOrNull
-
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.graphics.graphicsLayer
+import kotlin.math.abs
 // Animation
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.foundation.gestures.detectTapGestures
+import com.music.vivi.constants.EnableDoubleTapGesturesKey
+import com.music.vivi.constants.EnableSwipeGesturesKey
+import com.music.vivi.db.entities.Song
+import com.music.vivi.playback.PlayerConnection
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -167,6 +177,7 @@ fun LyricsScreen(
     val shuffleModeEnabled by playerConnection.shuffleModeEnabled.collectAsState()
     val playerVolume = playerConnection.service.playerVolume.collectAsState()
     val currentLyrics by playerConnection.currentLyrics.collectAsState(initial = null)
+    val currentSong by playerConnection.currentSong.collectAsState(initial = null)
 
     // Add lyrics position preference using your existing preference system
     val lyricsTextPosition by rememberPreference(LyricsTextPositionKey, "CENTER")
@@ -174,14 +185,17 @@ fun LyricsScreen(
     // slider style preference
     val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.DEFAULT)
 
+    // Gesture preferences
+    val (enableSwipeGestures, onEnableSwipeGesturesChange) = rememberPreference(
+        EnableSwipeGesturesKey,
+        defaultValue = true
+    )
+    val (enableDoubleTapGestures, onEnableDoubleTapGesturesChange) = rememberPreference(
+        EnableDoubleTapGesturesKey,
+        defaultValue = true
+    )
     // Add loading state for better UX
     var isLoadingLyrics by remember { mutableStateOf(false) }
-
-    // Debug: Let's see what we're getting
-    LaunchedEffect(currentLyrics) {
-        Log.d("LyricsDebug", "currentLyrics changed: $currentLyrics")
-        Log.d("LyricsDebug", "lyrics text: ${currentLyrics?.lyrics}")
-    }
 
     val lyricsPosition = when (lyricsTextPosition) {
         "LEFT" -> LyricsPosition.LEFT
@@ -189,46 +203,47 @@ fun LyricsScreen(
         else -> LyricsPosition.CENTER
     }
 
-    // Optimized auto-fetch lyrics with better error handling and faster execution
-    LaunchedEffect(mediaMetadata.id, currentLyrics) {
-        if (currentLyrics == null && !isLoadingLyrics) {
-            isLoadingLyrics = true
+    // Add this near the top of your LyricsScreen function, after the existing state declarations
+    var displayLyrics by remember { mutableStateOf<String?>(null) }
 
-            // Start fetch immediately without delay for faster response
-            coroutineScope.launch(Dispatchers.IO) {
-                try {
-                    Log.d("LyricsDebug", "Starting lyrics fetch for: ${mediaMetadata.title}")
+// Update display lyrics when currentLyrics changes OR when new lyrics are fetched
+    LaunchedEffect(currentLyrics) {
+        displayLyrics = currentLyrics?.lyrics
+    }
 
-                    // Get LyricsHelper from Hilt
-                    val entryPoint = EntryPointAccessors.fromApplication(
-                        context.applicationContext,
-                        com.music.vivi.di.LyricsHelperEntryPoint::class.java
-                    )
-                    val lyricsHelper = entryPoint.lyricsHelper()
 
-                    // Fetch lyrics with timeout to prevent hanging
-                    val lyrics = withTimeoutOrNull(10000) { // 10 second timeout
-                        lyricsHelper.getLyrics(mediaMetadata)
-                    }
+// Update your LaunchedEffect to set loading immediately
+    LaunchedEffect(mediaMetadata.id) {
+        // Set loading state immediately when track changes
+        isLoadingLyrics = true
+        displayLyrics = null // Clear previous lyrics immediately
 
-                    if (lyrics != null) {
-                        Log.d("LyricsDebug", "Lyrics fetched successfully, saving to database")
+        delay(10)
 
-                        // Save to database
-                        database.query {
-                            upsert(LyricsEntity(mediaMetadata.id, lyrics))
-                        }
+        coroutineScope.launch(Dispatchers.IO) {
+            try {
+                val entryPoint = EntryPointAccessors.fromApplication(
+                    context.applicationContext,
+                    com.music.vivi.di.LyricsHelperEntryPoint::class.java
+                )
+                val lyricsHelper = entryPoint.lyricsHelper()
 
-                        Log.d("LyricsDebug", "Lyrics saved to database")
-                    } else {
-                        Log.w("LyricsDebug", "Lyrics fetch timed out for: ${mediaMetadata.title}")
-                    }
+                val lyrics = lyricsHelper.getLyrics(mediaMetadata)
 
-                } catch (e: Exception) {
-                    // Log error for debugging but don't crash the app
-                    Log.w("LyricsScreen", "Failed to auto-fetch lyrics for ${mediaMetadata.title}: ${e.message}")
-                    // User can still manually refetch if needed
-                } finally {
+                database.query {
+                    upsert(LyricsEntity(mediaMetadata.id, lyrics))
+                }
+
+                // Update display lyrics immediately
+                withContext(Dispatchers.Main) {
+                    displayLyrics = lyrics
+                }
+
+            } catch (e: Exception) {
+                Log.w("LyricsScreen", "Failed to auto-fetch lyrics for ${mediaMetadata.title}: ${e.message}")
+            } finally {
+                // Always reset loading state
+                withContext(Dispatchers.Main) {
                     isLoadingLyrics = false
                 }
             }
@@ -238,8 +253,6 @@ fun LyricsScreen(
     var position by remember { mutableLongStateOf(0L) }
     var duration by remember { mutableLongStateOf(C.TIME_UNSET) }
     var sliderPosition by remember { mutableStateOf<Long?>(null) }
-    //like button
-    val currentSong by playerConnection.currentSong.collectAsState(initial = null)
 
     val playerBackground by rememberEnumPreference(PlayerBackgroundStyleKey, PlayerBackgroundStyle.GRADIENT)
 
@@ -257,7 +270,6 @@ fun LyricsScreen(
                 if (cachedColors != null) {
                     gradientColors = cachedColors
                 } else {
-                    // Use a separate coroutine to avoid blocking lyrics loading
                     launch(Dispatchers.IO) {
                         val request = ImageRequest.Builder(context)
                             .data(mediaMetadata.thumbnailUrl)
@@ -392,89 +404,27 @@ fun LyricsScreen(
                         .fillMaxSize()
                         .windowInsetsPadding(WindowInsets.systemBars)
                 ) {
-                    // Unified header across full width
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 24.dp, vertical = 16.dp)
-                            .zIndex(1f),  // Ensure header is above content
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        // Down arrow button (left)
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = ripple(
-                                        bounded = true,
-                                        radius = 16.dp
-                                    )
-                                ) { onBackClick() },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.expand_more),
-                                contentDescription = stringResource(R.string.close),
-                                tint = textBackgroundColor,
-                                modifier = Modifier.size(24.dp)
-                            )
+                    // Unified header across full width with swipe gestures
+                    SwipeableHeader(
+                        mediaMetadata = mediaMetadata,
+                        textBackgroundColor = textBackgroundColor,
+                        onBackClick = onBackClick,
+                        onPrevious = { player.seekToPrevious() },
+                        onNext = { player.seekToNext() },
+                        onMenuClick = {
+                            menuState.show {
+                                LyricsMenu(
+                                    lyricsProvider = { currentLyrics },
+                                    mediaMetadataProvider = { mediaMetadata },
+                                    onDismiss = menuState::dismiss
+                                )
+                            }
                         }
-
-                        // Now Playing info in center
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.now_playing),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = textBackgroundColor
-                            )
-                            Text(
-                                text = mediaMetadata.title,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = textBackgroundColor.copy(alpha = 0.8f),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-
-                        // More button (right)
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = ripple(
-                                        bounded = true,
-                                        radius = 16.dp
-                                    )
-                                ) {
-                                    menuState.show {
-                                        LyricsMenu(
-                                            lyricsProvider = { currentLyrics },
-                                            mediaMetadataProvider = { mediaMetadata },
-                                            onDismiss = menuState::dismiss
-                                        )
-                                    }
-                                },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.more_horiz),
-                                contentDescription = stringResource(R.string.more_options),
-                                tint = textBackgroundColor,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                    }
+                    )
 
                     // Main content row
                     Row(
-                        modifier = Modifier
-                            .fillMaxSize()
+                        modifier = Modifier.fillMaxSize()
                     ) {
                         // Right side - Lyrics only
                         Column(
@@ -482,14 +432,13 @@ fun LyricsScreen(
                                 .weight(1f)
                                 .fillMaxSize()
                         ) {
-                            // Apple-like Lyrics content - fill available space in landscape
                             AppleLikeLyrics(
                                 lyrics = currentLyrics?.lyrics,
                                 currentPosition = position,
                                 lyricsPosition = lyricsPosition,
                                 isPlaying = isPlaying,
                                 textColor = textBackgroundColor,
-                                isLoading = isLoadingLyrics, // Pass loading state
+                                isLoading = isLoadingLyrics,
                                 onSeek = { timestamp -> player.seekTo(timestamp) },
                                 modifier = Modifier
                                     .weight(1f)
@@ -498,7 +447,7 @@ fun LyricsScreen(
                             )
                         }
 
-                        // Left side - Controls only (from slider to volume)
+                        // Left side - Controls only
                         Column(
                             modifier = Modifier
                                 .weight(1f)
@@ -513,9 +462,7 @@ fun LyricsScreen(
                                     Slider(
                                         value = (sliderPosition ?: position).toFloat(),
                                         valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
-                                        onValueChange = {
-                                            sliderPosition = it.toLong()
-                                        },
+                                        onValueChange = { sliderPosition = it.toLong() },
                                         onValueChangeFinished = {
                                             sliderPosition?.let {
                                                 player.seekTo(it)
@@ -531,9 +478,7 @@ fun LyricsScreen(
                                     SquigglySlider(
                                         value = (sliderPosition ?: position).toFloat(),
                                         valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
-                                        onValueChange = {
-                                            sliderPosition = it.toLong()
-                                        },
+                                        onValueChange = { sliderPosition = it.toLong() },
                                         onValueChangeFinished = {
                                             sliderPosition?.let {
                                                 player.seekTo(it)
@@ -553,9 +498,7 @@ fun LyricsScreen(
                                     Slider(
                                         value = (sliderPosition ?: position).toFloat(),
                                         valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
-                                        onValueChange = {
-                                            sliderPosition = it.toLong()
-                                        },
+                                        onValueChange = { sliderPosition = it.toLong() },
                                         onValueChangeFinished = {
                                             sliderPosition?.let {
                                                 player.seekTo(it)
@@ -702,131 +645,29 @@ fun LyricsScreen(
                         .fillMaxSize()
                         .padding(WindowInsets.systemBars.asPaddingValues())
                 ) {
-                    // Header with Down arrow and More button
-                    // Replace your portrait mode header Row with this updated version:
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        // Left side - Album artwork and text info
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            // Album artwork
-                            AsyncImage(
-                                model = mediaMetadata.thumbnailUrl,
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                            )
-
-                            Spacer(modifier = Modifier.width(12.dp))
-
-                            // Song and artist info
-                            Column(
-                                verticalArrangement = Arrangement.Center,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text(
-                                    text = mediaMetadata.title,
-                                    style = MaterialTheme.typography.titleMedium.copy(
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.SemiBold
-                                    ),
-                                    color = textBackgroundColor,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                                Text(
-                                    text = if (mediaMetadata.artists.isNotEmpty()) {
-                                        mediaMetadata.artists.joinToString(", ") { it.name }
-                                    } else {
-                                        "Unknown Artist"
-                                    },
-                                    style = MaterialTheme.typography.bodyMedium.copy(
-                                        fontSize = 14.sp
-                                    ),
-                                    color = textBackgroundColor.copy(alpha = 0.7f),
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
+                    // Header with swipe gestures
+                    SwipeableHeader(
+                        mediaMetadata = mediaMetadata,
+                        currentSong = currentSong,
+                        textBackgroundColor = textBackgroundColor,
+                        playerConnection = playerConnection,
+                        onBackClick = onBackClick,
+                        onPrevious = { player.seekToPrevious() },
+                        onNext = { player.seekToNext() },
+                        enableSwipeGestures = enableSwipeGestures,
+                        enableDoubleTapGestures = enableDoubleTapGestures,
+                        onMenuClick = {
+                            menuState.show {
+                                LyricsMenu(
+                                    lyricsProvider = { currentLyrics },
+                                    mediaMetadataProvider = { mediaMetadata },
+                                    onDismiss = menuState::dismiss
                                 )
                             }
                         }
+                    )
 
-                        // Right side - Action buttons
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            // Favorite button
-                            Box(
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .clickable(
-                                        interactionSource = remember { MutableInteractionSource() },
-                                        indication = ripple(
-                                            bounded = true,
-                                            radius = 16.dp
-                                        )
-                                    ) {
-                                        playerConnection.toggleLike()
-                                    },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    painter = painterResource(
-                                        if (currentSong?.song?.liked == true)
-                                            R.drawable.favorite
-                                        else R.drawable.favorite_border
-                                    ),
-                                    contentDescription = if (currentSong?.song?.liked == true) "Remove from favorites" else "Add to favorites",
-                                    tint = if (currentSong?.song?.liked == true)
-                                        MaterialTheme.colorScheme.error
-                                    else
-                                        textBackgroundColor.copy(alpha = 0.8f),
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-
-                            // More button
-                            Box(
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .clickable(
-                                        interactionSource = remember { MutableInteractionSource() },
-                                        indication = ripple(
-                                            bounded = true,
-                                            radius = 16.dp
-                                        )
-                                    ) {
-                                        menuState.show {
-                                            LyricsMenu(
-                                                lyricsProvider = { currentLyrics },
-                                                mediaMetadataProvider = { mediaMetadata },
-                                                onDismiss = menuState::dismiss
-                                            )
-                                        }
-                                    },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.more_horiz),
-                                    contentDescription = stringResource(R.string.more_options),
-                                    tint = textBackgroundColor,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-                        }
-                    }
-
-                    // Apple-like Lyrics - taking up the remaining space (FIXED - no more centering)
+                    // Apple-like Lyrics - taking up the remaining space
                     AppleLikeLyrics(
                         lyrics = currentLyrics?.lyrics,
                         currentPosition = position,
@@ -845,6 +686,288 @@ fun LyricsScreen(
     }
 }
 
+@Composable
+fun SwipeableHeader(
+    mediaMetadata: MediaMetadata,
+    currentSong: Song? = null,
+    textBackgroundColor: Color,
+    playerConnection: PlayerConnection? = null,
+    enableSwipeGestures: Boolean = true,
+    enableDoubleTapGestures: Boolean = true,
+    onBackClick: () -> Unit = {},
+    onPrevious: () -> Unit,
+    onNext: () -> Unit,
+    onMenuClick: () -> Unit,
+    isLandscape: Boolean = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+) {
+    var offsetX by remember { mutableFloatStateOf(0f) }
+    var isDragging by remember { mutableStateOf(false) }
+    val animatedOffsetX by animateFloatAsState(
+        targetValue = if (isDragging) offsetX else 0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        )
+    )
+
+    val swipeThreshold = 100f
+    val haptic = LocalHapticFeedback.current
+
+    if (isLandscape) {
+        // Landscape header (simple header without swipe for now, can be added if needed)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 16.dp)
+                .zIndex(1f),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = ripple(bounded = true, radius = 16.dp)
+                    ) { onBackClick() },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.expand_more),
+                    contentDescription = stringResource(R.string.close),
+                    tint = textBackgroundColor,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = stringResource(R.string.now_playing),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = textBackgroundColor
+                )
+                Text(
+                    text = mediaMetadata.title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = textBackgroundColor.copy(alpha = 0.8f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = ripple(bounded = true, radius = 16.dp)
+                    ) { onMenuClick() },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.more_horiz),
+                    contentDescription = stringResource(R.string.more_options),
+                    tint = textBackgroundColor,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+    } else {
+        // Portrait header with conditional swipe and double-tap functionality
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .then(
+                    if (enableDoubleTapGestures) {
+                        Modifier.pointerInput(Unit) {
+                            var lastTapTime = 0L
+                            val doubleTapTimeWindow = 300L
+
+                            detectTapGestures(
+                                onTap = { offset ->
+                                    val currentTime = System.currentTimeMillis()
+                                    if (currentTime - lastTapTime < doubleTapTimeWindow) {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        playerConnection?.player?.togglePlayPause()
+                                        lastTapTime = 0L
+                                    } else {
+                                        lastTapTime = currentTime
+                                    }
+                                }
+                            )
+                        }
+                    } else {
+                        Modifier
+                    }
+                )
+                .then(
+                    if (enableSwipeGestures) {
+                        Modifier.pointerInput(Unit) {
+                            detectHorizontalDragGestures(
+                                onDragStart = { isDragging = true },
+                                onDragEnd = {
+                                    if (abs(offsetX) > swipeThreshold) {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        if (offsetX > 0) {
+                                            onPrevious()
+                                        } else {
+                                            onNext()
+                                        }
+                                    }
+                                    isDragging = false
+                                    offsetX = 0f
+                                }
+                            ) { _, dragAmount ->
+                                offsetX = (offsetX + dragAmount).coerceIn(-200f, 200f)
+
+                                if (abs(offsetX) > swipeThreshold && abs(offsetX - dragAmount) <= swipeThreshold) {
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                }
+                            }
+                        }
+                    } else {
+                        Modifier
+                    }
+                )
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .graphicsLayer {
+                        translationX = animatedOffsetX
+                        alpha = 1f - (abs(animatedOffsetX) / 400f).coerceIn(0f, 0.3f)
+                    },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                // Left side - Album artwork and text info
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    AsyncImage(
+                        model = mediaMetadata.thumbnailUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                    )
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = mediaMetadata.title,
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold
+                            ),
+                            color = textBackgroundColor,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = if (mediaMetadata.artists.isNotEmpty()) {
+                                mediaMetadata.artists.joinToString(", ") { it.name }
+                            } else {
+                                "Unknown Artist"
+                            },
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontSize = 14.sp
+                            ),
+                            color = textBackgroundColor.copy(alpha = 0.7f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+
+                // Right side - Action buttons
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Favorite button
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = ripple(bounded = true, radius = 16.dp)
+                            ) {
+                                playerConnection?.toggleLike()
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(
+                                if (currentSong?.song?.liked == true)
+                                    R.drawable.favorite
+                                else R.drawable.favorite_border
+                            ),
+                            contentDescription = if (currentSong?.song?.liked == true) "Remove from favorites" else "Add to favorites",
+                            tint = if (currentSong?.song?.liked == true)
+                                MaterialTheme.colorScheme.error
+                            else
+                                textBackgroundColor.copy(alpha = 0.8f),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
+                    // More button
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = ripple(bounded = true, radius = 16.dp)
+                            ) { onMenuClick() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.more_horiz),
+                            contentDescription = stringResource(R.string.more_options),
+                            tint = textBackgroundColor,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+            }
+
+            // Visual feedback for swipe direction
+            if (isDragging && abs(offsetX) > 50f) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            if (offsetX > 0) Color.Green.copy(alpha = 0.1f)
+                            else Color.Blue.copy(alpha = 0.1f)
+                        ),
+                    contentAlignment = if (offsetX > 0) Alignment.CenterStart else Alignment.CenterEnd
+                ) {
+                    Icon(
+                        painter = painterResource(
+                            if (offsetX > 0) R.drawable.skip_previous else R.drawable.skip_next
+                        ),
+                        contentDescription = null,
+                        tint = textBackgroundColor.copy(alpha = 0.6f),
+                        modifier = Modifier
+                            .size(32.dp)
+                            .padding(horizontal = 16.dp)
+                    )
+                }
+            }
+        }
+    }
+}
 
 @Composable
 fun AppleLikeLyrics(
@@ -857,7 +980,6 @@ fun AppleLikeLyrics(
     onSeek: (Long) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    // Try to parse LRC first, fallback to simple lyrics
     val parsedLyrics = remember(lyrics) {
         when {
             lyrics.isNullOrBlank() -> emptyList()
@@ -875,12 +997,10 @@ fun AppleLikeLyrics(
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
-    // Check if we're in an instrumental section
     val isInInstrumental = remember(currentPosition, parsedLyrics) {
         isInstrumentalSection(parsedLyrics, currentPosition)
     }
 
-    // Find current active line with smooth transition logic
     val currentLineData = remember(currentPosition, parsedLyrics) {
         if (parsedLyrics.isEmpty()) return@remember LyricsState(-1, 0f)
 
@@ -910,21 +1030,17 @@ fun AppleLikeLyrics(
         LyricsState(activeIndex, progress)
     }
 
-    // Smooth auto-scroll with better timing (starts moving closer to line completion)
+    // Smooth auto-scroll with better timing
     LaunchedEffect(currentLineData.activeIndex, currentLineData.progress) {
         if (currentLineData.activeIndex >= 0 && parsedLyrics.isNotEmpty()) {
             coroutineScope.launch {
-                // Start scrolling when we're 85% through the current line (much later)
                 if (currentLineData.progress > 0.85f) {
                     val targetIndex = (currentLineData.activeIndex + 1).coerceAtMost(parsedLyrics.size - 1)
-
-                    // Smooth scroll with custom animation
                     lazyListState.animateScrollToItem(
                         index = targetIndex,
                         scrollOffset = 0
                     )
                 } else if (currentLineData.progress == 0f) {
-                    // Just became active, ensure it's visible
                     lazyListState.animateScrollToItem(
                         index = currentLineData.activeIndex,
                         scrollOffset = 0
@@ -934,7 +1050,6 @@ fun AppleLikeLyrics(
         }
     }
 
-    // Determine alignment based on lyrics position preference
     val horizontalAlignment = when (lyricsPosition) {
         LyricsPosition.LEFT -> Alignment.Start
         LyricsPosition.CENTER -> Alignment.CenterHorizontally
@@ -1084,6 +1199,7 @@ fun AppleLikeLyrics(
         }
     }
 }
+
 @Composable
 fun SmoothAppleLyricLine(
     text: String,
@@ -1095,7 +1211,6 @@ fun SmoothAppleLyricLine(
     onClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    // Determine line state with smooth transitions
     val lineState = when {
         lineIndex == currentLineIndex -> LineState.ACTIVE
         lineIndex == currentLineIndex + 1 -> LineState.UPCOMING
@@ -1103,13 +1218,12 @@ fun SmoothAppleLyricLine(
         else -> LineState.INACTIVE
     }
 
-    // Smooth animations with custom easing
     val customEasing = CubicBezierEasing(0.4f, 0.0f, 0.2f, 1.0f)
 
     val scale by animateFloatAsState(
         targetValue = when (lineState) {
-            LineState.ACTIVE -> 1.03f + (progress * 0.02f) // Subtle scale increase during progress
-            LineState.UPCOMING -> 1.0f + (progress * 0.01f) // Anticipation scaling
+            LineState.ACTIVE -> 1.03f + (progress * 0.02f)
+            LineState.UPCOMING -> 1.0f + (progress * 0.01f)
             else -> 1.0f
         },
         animationSpec = spring(
@@ -1122,7 +1236,7 @@ fun SmoothAppleLyricLine(
     val alpha by animateFloatAsState(
         targetValue = when (lineState) {
             LineState.ACTIVE -> 1.0f
-            LineState.UPCOMING -> 0.75f + (progress * 0.15f) // Gradual brightening
+            LineState.UPCOMING -> 0.75f + (progress * 0.15f)
             LineState.PASSED -> 0.45f
             LineState.INACTIVE -> 0.25f
         },
@@ -1135,7 +1249,7 @@ fun SmoothAppleLyricLine(
 
     val fontSize by animateDpAsState(
         targetValue = when (lineState) {
-            LineState.ACTIVE -> (30f + (progress * 1f)).dp // Subtle size increase during progress
+            LineState.ACTIVE -> (30f + (progress * 1f)).dp
             LineState.UPCOMING -> (26f + (progress * 1f)).dp
             else -> 26.dp
         },
@@ -1159,7 +1273,6 @@ fun SmoothAppleLyricLine(
         label = "fontWeight"
     )
 
-    // Color transitions with smooth interpolation
     val color by animateColorAsState(
         targetValue = when (lineState) {
             LineState.ACTIVE -> textColor
@@ -1209,9 +1322,8 @@ fun SmoothAppleLyricLine(
                     scaleY = scale
                     this.alpha = alpha
 
-                    // Add subtle translation for flowing effect
                     translationY = when (lineState) {
-                        LineState.UPCOMING -> -progress * 8f // Subtle upward movement as it becomes active
+                        LineState.UPCOMING -> -progress * 8f
                         else -> 0f
                     }
                 }
@@ -1219,10 +1331,9 @@ fun SmoothAppleLyricLine(
     }
 }
 
-
 data class LyricsState(
     val activeIndex: Int,
-    val progress: Float // 0f to 1f indicating progress through current line
+    val progress: Float
 )
 
 enum class LineState {
@@ -1232,59 +1343,11 @@ enum class LineState {
     INACTIVE
 }
 
-// Keep existing helper functions
-@Composable
-fun AnimatedMusicBeatDots(
-    isPlaying: Boolean,
-    textColor: Color,
-    modifier: Modifier = Modifier
-) {
-    val infiniteTransition = rememberInfiniteTransition(label = "beat_dots")
-
-    val dotCount = 3
-    val animationDuration = 1200
-    val delayBetweenDots = animationDuration / dotCount
-
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        repeat(dotCount) { index ->
-            val animatedScale by infiniteTransition.animateFloat(
-                initialValue = if (isPlaying) 0.4f else 0.6f,
-                targetValue = if (isPlaying) 1.2f else 0.6f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(
-                        durationMillis = animationDuration,
-                        delayMillis = delayBetweenDots * index,
-                        easing = FastOutSlowInEasing
-                    ),
-                    repeatMode = RepeatMode.Reverse
-                ),
-                label = "dot_scale_$index"
-            )
-
-            Box(
-                modifier = Modifier
-                    .size(12.dp)
-                    .graphicsLayer {
-                        scaleX = animatedScale
-                        scaleY = animatedScale
-                    }
-                    .background(
-                        color = textColor.copy(alpha = 0.6f),
-                        shape = CircleShape
-                    )
-            )
-        }
-    }
-}
-
 data class LyricLine(
     val timestamp: Long,
     val text: String
 )
+
 
 fun parseLrcLyrics(lyricsText: String): List<LyricLine> {
     val lines = lyricsText.split("\n")

@@ -21,6 +21,11 @@ val UseNewMiniPlayerDesignKey = booleanPreferencesKey("useNewMiniPlayerDesign")
 val HidePlayerThumbnailKey = booleanPreferencesKey("hidePlayerThumbnail")
 val SeekExtraSeconds = booleanPreferencesKey("seekExtraSeconds")
 
+//double tap and sipe in lyrics
+val EnableSwipeGesturesKey = booleanPreferencesKey("enable_swipe_gestures")
+val EnableDoubleTapGesturesKey = booleanPreferencesKey("enable_double_tap_gestures")
+
+
 enum class SliderStyle {
     DEFAULT,
     SQUIGGLY,
