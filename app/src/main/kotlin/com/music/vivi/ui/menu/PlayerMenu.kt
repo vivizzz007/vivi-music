@@ -124,7 +124,7 @@ fun PlayerMenu(
     val context = LocalContext.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
-    val playerVolume = playerConnection.service.playerVolume.collectAsState()
+//    val playerVolume = playerConnection.service.playerVolume.collectAsState()
     val activityResultLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { }
     val librarySong by database.song(mediaMetadata.id).collectAsState(initial = null)
@@ -244,40 +244,40 @@ fun PlayerMenu(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         // Volume Control Section (only if not queue trigger)
-        if (isQueueTrigger != true) {
-            item {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
-                    ),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(20.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.volume_up),
-                            contentDescription = null,
-                            modifier = Modifier.size(28.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-
-                        BigSeekBar(
-                            progressProvider = playerVolume::value,
-                            onProgressChange = { playerConnection.service.playerVolume.value = it },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(36.dp)
-                        )
-                    }
-                }
-            }
-        }
+//        if (isQueueTrigger != true) {
+//            item {
+//                Card(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .padding(horizontal = 8.dp),
+//                    colors = CardDefaults.cardColors(
+//                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+//                    ),
+//                    shape = RoundedCornerShape(16.dp)
+//                ) {
+//                    Row(
+//                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+//                        verticalAlignment = Alignment.CenterVertically,
+//                        modifier = Modifier.padding(20.dp)
+//                    ) {
+//                        Icon(
+//                            painter = painterResource(R.drawable.volume_up),
+//                            contentDescription = null,
+//                            modifier = Modifier.size(28.dp),
+//                            tint = MaterialTheme.colorScheme.primary
+//                        )
+//
+//                        BigSeekBar(
+//                            progressProvider = playerVolume::value,
+//                            onProgressChange = { playerConnection.service.playerVolume.value = it },
+//                            modifier = Modifier
+//                                .weight(1f)
+//                                .height(36.dp)
+//                        )
+//                    }
+//                }
+//            }
+//        }
 
         // Quick Actions Section
         item {
