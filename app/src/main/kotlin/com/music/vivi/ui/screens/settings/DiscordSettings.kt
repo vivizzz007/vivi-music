@@ -100,6 +100,7 @@ import com.music.vivi.ui.component.PreferenceEntry
 import com.music.vivi.ui.component.PreferenceGroupTitle
 import com.music.vivi.ui.component.SwitchPreference
 import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.update.mordernswitch.ModernSwitch
 import com.music.vivi.utils.makeTimeString
 import com.music.vivi.utils.rememberPreference
 import com.my.kizzy.rpc.KizzyRPC
@@ -246,13 +247,42 @@ fun DiscordSettings(
             }
 
             item {
-                PixelSwitchCard(
-                    title = stringResource(R.string.enable_discord_rpc),
-                    description = "Show your music activity on Discord",
-                    checked = discordRPC,
-                    onCheckedChange = onDiscordRPCChange,
-                    enabled = isLoggedIn
-                )
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.enable_discord_rpc),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = "Show your music activity on Discord",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+                        }
+
+                        ModernSwitch(
+                            checked = discordRPC && isLoggedIn,
+                            onCheckedChange = { if (isLoggedIn) onDiscordRPCChange(it) },
+                            modifier = Modifier.padding(start = 16.dp)
+                        )
+                    }
+                }
             }
 
             // Preview Section
@@ -442,64 +472,64 @@ fun PixelAccountCard(
     }
 }
 
-@Composable
-fun PixelSwitchCard(
-    title: String,
-    description: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    enabled: Boolean
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .alpha(if (enabled) 1f else 0.6f),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-        ),
-        shape = RoundedCornerShape(24.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(enabled = enabled) { onCheckedChange(!checked) }
-                .padding(24.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Medium
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Switch(
-                checked = checked,
-                onCheckedChange = if (enabled) onCheckedChange else null,
-                enabled = enabled,
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
-                    checkedTrackColor = MaterialTheme.colorScheme.primary,
-                    uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-            )
-        }
-    }
-}
+//@Composable
+//fun PixelSwitchCard(
+//    title: String,
+//    description: String,
+//    checked: Boolean,
+//    onCheckedChange: (Boolean) -> Unit,
+//    enabled: Boolean
+//) {
+//    Card(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .alpha(if (enabled) 1f else 0.6f),
+//        colors = CardDefaults.cardColors(
+//            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+//        ),
+//        shape = RoundedCornerShape(24.dp),
+//        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+//    ) {
+//        Row(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .clickable(enabled = enabled) { onCheckedChange(!checked) }
+//                .padding(24.dp),
+//            verticalAlignment = Alignment.CenterVertically
+//        ) {
+//            Column(modifier = Modifier.weight(1f)) {
+//                Text(
+//                    text = title,
+//                    style = MaterialTheme.typography.titleMedium,
+//                    color = MaterialTheme.colorScheme.onSurface,
+//                    fontWeight = FontWeight.Medium
+//                )
+//
+//                Spacer(modifier = Modifier.height(4.dp))
+//
+//                Text(
+//                    text = description,
+//                    style = MaterialTheme.typography.bodyMedium,
+//                    color = MaterialTheme.colorScheme.onSurfaceVariant
+//                )
+//            }
+//
+//            Spacer(modifier = Modifier.width(16.dp))
+//
+//            Switch(
+//                checked = checked,
+//                onCheckedChange = if (enabled) onCheckedChange else null,
+//                enabled = enabled,
+//                colors = SwitchDefaults.colors(
+//                    checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+//                    checkedTrackColor = MaterialTheme.colorScheme.primary,
+//                    uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+//                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
+//                )
+//            )
+//        }
+//    }
+//}
 
 @Composable
 fun RichPresence(song: Song?, currentPlaybackTimeMillis: Long = 0L) {
