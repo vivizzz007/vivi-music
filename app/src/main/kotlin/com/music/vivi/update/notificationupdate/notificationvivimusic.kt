@@ -43,16 +43,25 @@ import java.util.concurrent.TimeUnit
 
 class NotificationActionReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
+        // Check if auto-update is enabled before proceeding
+        val autoUpdateEnabled = getAutoUpdateCheckSetting(context)
+
         when (intent?.action) {
             ACTION_OPEN_APP -> handleOpenApp(context)
             ACTION_REMIND_LATER -> handleRemindLater(context)
             ACTION_DISMISS -> handleDismiss(context)
             ACTION_UPDATE_NOW -> handleUpdateNow(context, intent.getStringExtra(EXTRA_VERSION) ?: "")
             Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED -> {
-                schedulePeriodicUpdateCheck(context)
-                checkForUpdatesImmediately(context)
+                if (autoUpdateEnabled) {
+                    schedulePeriodicUpdateCheck(context)
+                    checkForUpdatesImmediately(context)
+                }
             }
-            ACTION_CHECK_UPDATES -> checkForUpdatesImmediately(context)
+            ACTION_CHECK_UPDATES -> {
+                if (autoUpdateEnabled) {
+                    checkForUpdatesImmediately(context)
+                }
+            }
         }
     }
 
@@ -100,7 +109,7 @@ class NotificationActionReceiver : BroadcastReceiver() {
         notificationManager.cancel(NOTIFICATION_ID)
     }
 
-    private fun schedulePeriodicUpdateCheck(context: Context) {
+    fun schedulePeriodicUpdateCheck(context: Context) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val intervalHours = prefs.getInt(KEY_UPDATE_CHECK_INTERVAL, DEFAULT_UPDATE_CHECK_INTERVAL).toLong()
 
@@ -155,11 +164,12 @@ class NotificationActionReceiver : BroadcastReceiver() {
         val intervalHours = prefs.getInt(KEY_UPDATE_CHECK_INTERVAL, DEFAULT_UPDATE_CHECK_INTERVAL)
         return intervalHours * 60 * 60 * 1000L // Convert hours to milliseconds
     }
-//
+
     companion object {
         private const val TAG = "UpdateNotification"
         private const val PREFS_NAME = "app_settings"
         private const val KEY_UPDATE_CHECK_INTERVAL = "update_check_interval"
+        private const val KEY_AUTO_UPDATE_CHECK = "auto_update_check_enabled"
         private const val DEFAULT_UPDATE_CHECK_INTERVAL = 4 // hours
         private const val WORKER_BACKOFF_DELAY = 5L // 5 minutes
 
@@ -173,22 +183,69 @@ class NotificationActionReceiver : BroadcastReceiver() {
         const val EXTRA_VERSION = "extra_version"
 
         fun checkForUpdatesOnStartup(context: Context) {
-            val checkIntent = Intent(context, NotificationActionReceiver::class.java).apply {
-                action = ACTION_CHECK_UPDATES
+            val autoUpdateEnabled = getAutoUpdateCheckSetting(context)
+            if (autoUpdateEnabled) {
+                val checkIntent = Intent(context, NotificationActionReceiver::class.java).apply {
+                    action = ACTION_CHECK_UPDATES
+                }
+                context.sendBroadcast(checkIntent)
             }
-            context.sendBroadcast(checkIntent)
         }
 
         fun scheduleInitialCheck(context: Context) {
-            NotificationActionReceiver().schedulePeriodicUpdateCheck(context)
-            checkForUpdatesOnStartup(context)
+            val autoUpdateEnabled = getAutoUpdateCheckSetting(context)
+            if (autoUpdateEnabled) {
+                NotificationActionReceiver().schedulePeriodicUpdateCheck(context)
+                checkForUpdatesOnStartup(context)
+            }
+        }
+
+        fun getAutoUpdateCheckSetting(context: Context): Boolean {
+            return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .getBoolean(KEY_AUTO_UPDATE_CHECK, true)
+        }
+
+        fun saveAutoUpdateCheckSetting(context: Context, enabled: Boolean) {
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().apply {
+                putBoolean(KEY_AUTO_UPDATE_CHECK, enabled)
+                apply()
+            }
+
+            if (enabled) {
+                // Enable update checks
+                NotificationActionReceiver().schedulePeriodicUpdateCheck(context)
+                checkForUpdatesOnStartup(context)
+            } else {
+                // Disable update checks
+                cancelAllUpdateChecks(context)
+                cancelNotification(context)
+            }
+        }
+
+        private fun cancelAllUpdateChecks(context: Context) {
+            // Cancel periodic work
+            WorkManager.getInstance(context).cancelUniqueWork("periodic_update_check")
+
+            // Cancel any pending one-time checks
+            WorkManager.getInstance(context).cancelAllWorkByTag("UpdateCheckWorker")
+        }
+
+        private fun cancelNotification(context: Context) {
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.cancel(NOTIFICATION_ID)
         }
     }
 }
 
-
 class UpdateCheckWorker(context: Context, workerParams: WorkerParameters) : CoroutineWorker(context, workerParams) {
     override suspend fun doWork(): Result {
+        // Check if auto-update is enabled before proceeding
+        val autoUpdateEnabled = getAutoUpdateCheckSetting(applicationContext)
+        if (!autoUpdateEnabled) {
+            Log.d(TAG, "Auto update check is disabled, skipping")
+            return Result.success()
+        }
+
         return try {
             val latestRelease = checkGitHubForUpdates()
             latestRelease?.let { release ->
@@ -396,6 +453,19 @@ class UpdateCheckWorker(context: Context, workerParams: WorkerParameters) : Coro
         private const val TAG = "UpdateCheckWorker"
         const val NOTIFICATION_CHANNEL_ID = "vivi_music_updates"
         const val NOTIFICATION_ID = 1001
+
+        fun getAutoUpdateCheckSetting(context: Context): Boolean {
+            return context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+                .getBoolean("auto_update_check_enabled", true)
+        }
     }
 }
 
+// Helper function for the Settings screen
+fun saveAutoUpdateCheckSetting(context: Context, enabled: Boolean) {
+    NotificationActionReceiver.saveAutoUpdateCheckSetting(context, enabled)
+}
+
+fun getAutoUpdateCheckSetting(context: Context): Boolean {
+    return NotificationActionReceiver.getAutoUpdateCheckSetting(context)
+}
