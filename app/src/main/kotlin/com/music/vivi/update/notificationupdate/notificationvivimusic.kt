@@ -88,21 +88,25 @@ class NotificationActionReceiver : BroadcastReceiver() {
     private fun handleUpdateNow(context: Context, version: String) {
         Log.d(TAG, "Update Now clicked for version: $version")
         cancelNotification(context)
-        openDownloadPage(context, version)
+        openApp(context, version) // Changed from openDownloadPage
     }
 
-    private fun openDownloadPage(context: Context, version: String) {
+    private fun openApp(context: Context, version: String) {
         try {
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                data = Uri.parse("https://github.com/vivizzz007/vivi-music/releases/tag/v$version")
+            val mainIntent = Intent(context, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                // Optionally pass the version info to show an update dialog
+                putExtra("show_update_dialog", true)
+                putExtra("available_version", version)
             }
-            context.startActivity(intent)
+            context.startActivity(mainIntent)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to open download page", e)
-            Toast.makeText(context, "Failed to open download page", Toast.LENGTH_SHORT).show()
+            Log.e(TAG, "Failed to open app", e)
+            Toast.makeText(context, "Failed to open app", Toast.LENGTH_SHORT).show()
         }
     }
+
+
 
     private fun cancelNotification(context: Context) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -461,11 +465,11 @@ class UpdateCheckWorker(context: Context, workerParams: WorkerParameters) : Coro
     }
 }
 
-// Helper function for the Settings screen
-fun saveAutoUpdateCheckSetting(context: Context, enabled: Boolean) {
-    NotificationActionReceiver.saveAutoUpdateCheckSetting(context, enabled)
-}
-
-fun getAutoUpdateCheckSetting(context: Context): Boolean {
-    return NotificationActionReceiver.getAutoUpdateCheckSetting(context)
-}
+//// Helper function for the Settings screen
+//fun saveAutoUpdateCheckSetting(context: Context, enabled: Boolean) {
+//    NotificationActionReceiver.saveAutoUpdateCheckSetting(context, enabled)
+//}
+//
+//fun getAutoUpdateCheckSetting(context: Context): Boolean {
+//    return NotificationActionReceiver.getAutoUpdateCheckSetting(context)
+//}

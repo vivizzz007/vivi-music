@@ -592,17 +592,17 @@ fun AccountviviSettings(
         )
 
         /* Give feedback footer (only when not signed in) */
-        if (!isLoggedIn) {
-            Text(
-                text = "Give feedback",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary,
-                textDecoration = TextDecoration.Underline,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 16.dp)
-            )
-        }
+//        if (!isLoggedIn) {
+//            Text(
+//                text = "Give feedback",
+//                style = MaterialTheme.typography.bodyMedium,
+//                color = MaterialTheme.colorScheme.primary,
+//                textDecoration = TextDecoration.Underline,
+//                modifier = Modifier
+//                    .align(Alignment.BottomCenter)
+//                    .padding(bottom = 16.dp)
+//            )
+//        }
     }
 
     /* === Token editor dialog (unchanged) === */

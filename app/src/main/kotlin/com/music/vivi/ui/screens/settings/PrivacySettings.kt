@@ -326,7 +326,7 @@ fun PrivacySettings(
             }
 
             item {
-                Spacer(modifier = Modifier.height(50.dp))
+                Spacer(modifier = Modifier.height(80.dp))
             }
         }
     }
@@ -391,7 +391,7 @@ fun SettingsListItem(
                 }
 
                 trailingContent?.let {
-                    Box(modifier = Modifier.padding(start = 12.dp)) {
+                    Box(modifier = Modifier.padding(start = 4.dp)) {
                         it()
                     }
                 }
