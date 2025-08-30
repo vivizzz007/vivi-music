@@ -162,6 +162,7 @@ fun LyricsScreen(
     mediaMetadata: MediaMetadata,
     onBackClick: () -> Unit,
     navController: NavController,
+    preloadedLyrics: String? = null,
     modifier: Modifier = Modifier
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
@@ -179,13 +180,9 @@ fun LyricsScreen(
     val currentLyrics by playerConnection.currentLyrics.collectAsState(initial = null)
     val currentSong by playerConnection.currentSong.collectAsState(initial = null)
 
-    // Add lyrics position preference using your existing preference system
     val lyricsTextPosition by rememberPreference(LyricsTextPositionKey, "CENTER")
-
-    // slider style preference
     val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.DEFAULT)
 
-    // Gesture preferences
     val (enableSwipeGestures, onEnableSwipeGesturesChange) = rememberPreference(
         EnableSwipeGesturesKey,
         defaultValue = true
@@ -194,7 +191,7 @@ fun LyricsScreen(
         EnableDoubleTapGesturesKey,
         defaultValue = true
     )
-    // Add loading state for better UX
+
     var isLoadingLyrics by remember { mutableStateOf(false) }
 
     val lyricsPosition = when (lyricsTextPosition) {
@@ -203,20 +200,38 @@ fun LyricsScreen(
         else -> LyricsPosition.CENTER
     }
 
-    // Add this near the top of your LyricsScreen function, after the existing state declarations
     var displayLyrics by remember { mutableStateOf<String?>(null) }
 
-// Update display lyrics when currentLyrics changes OR when new lyrics are fetched
-    LaunchedEffect(currentLyrics) {
-        displayLyrics = currentLyrics?.lyrics
+    // Initialize with preloaded lyrics if available
+    LaunchedEffect(preloadedLyrics, mediaMetadata.id) {
+        if (preloadedLyrics != null) {
+            displayLyrics = preloadedLyrics
+            isLoadingLyrics = false
+        } else {
+            // Only set loading if we don't have preloaded lyrics
+            isLoadingLyrics = true
+            displayLyrics = null
+        }
     }
 
+    // Update display lyrics when currentLyrics changes
+    LaunchedEffect(currentLyrics) {
+        val lyrics = currentLyrics
+        if (lyrics?.lyrics != null) {
+            displayLyrics = lyrics.lyrics
+            isLoadingLyrics = false
+        }
+    }
 
-// Update your LaunchedEffect to set loading immediately
+    // Modified lyrics fetching - only fetch if we don't have preloaded lyrics
     LaunchedEffect(mediaMetadata.id) {
-        // Set loading state immediately when track changes
+        // Skip fetching if we already have preloaded lyrics
+        if (preloadedLyrics != null) {
+            return@LaunchedEffect
+        }
+
         isLoadingLyrics = true
-        displayLyrics = null // Clear previous lyrics immediately
+        displayLyrics = null
 
         delay(10)
 
@@ -234,7 +249,6 @@ fun LyricsScreen(
                     upsert(LyricsEntity(mediaMetadata.id, lyrics))
                 }
 
-                // Update display lyrics immediately
                 withContext(Dispatchers.Main) {
                     displayLyrics = lyrics
                 }
@@ -242,7 +256,6 @@ fun LyricsScreen(
             } catch (e: Exception) {
                 Log.w("LyricsScreen", "Failed to auto-fetch lyrics for ${mediaMetadata.title}: ${e.message}")
             } finally {
-                // Always reset loading state
                 withContext(Dispatchers.Main) {
                     isLoadingLyrics = false
                 }
@@ -250,6 +263,7 @@ fun LyricsScreen(
         }
     }
 
+    // Rest of your existing LyricsScreen implementation...
     var position by remember { mutableLongStateOf(0L) }
     var duration by remember { mutableLongStateOf(C.TIME_UNSET) }
     var sliderPosition by remember { mutableStateOf<Long?>(null) }
@@ -262,7 +276,6 @@ fun LyricsScreen(
     val defaultGradientColors = listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surfaceVariant)
     val fallbackColor = MaterialTheme.colorScheme.surface.toArgb()
 
-    // Optimize gradient loading with better caching
     LaunchedEffect(mediaMetadata.id, playerBackground) {
         if (playerBackground == PlayerBackgroundStyle.GRADIENT) {
             if (mediaMetadata.thumbnailUrl != null) {
@@ -398,13 +411,12 @@ fun LyricsScreen(
         // Check orientation and layout accordingly
         when (LocalConfiguration.current.orientation) {
             Configuration.ORIENTATION_LANDSCAPE -> {
-                // Landscape layout - split screen horizontally
+                // Landscape layout
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .windowInsetsPadding(WindowInsets.systemBars)
                 ) {
-                    // Unified header across full width with swipe gestures
                     SwipeableHeader(
                         mediaMetadata = mediaMetadata,
                         textBackgroundColor = textBackgroundColor,
@@ -422,18 +434,14 @@ fun LyricsScreen(
                         }
                     )
 
-                    // Main content row
-                    Row(
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        // Right side - Lyrics only
+                    Row(modifier = Modifier.fillMaxSize()) {
                         Column(
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxSize()
                         ) {
                             AppleLikeLyrics(
-                                lyrics = currentLyrics?.lyrics,
+                                lyrics = displayLyrics, // Use displayLyrics instead of currentLyrics?.lyrics
                                 currentPosition = position,
                                 lyricsPosition = lyricsPosition,
                                 isPlaying = isPlaying,
@@ -447,7 +455,6 @@ fun LyricsScreen(
                             )
                         }
 
-                        // Left side - Controls only
                         Column(
                             modifier = Modifier
                                 .weight(1f)
@@ -456,7 +463,7 @@ fun LyricsScreen(
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            // Slider
+                            // Complete slider implementation with all styles
                             when (sliderStyle) {
                                 SliderStyle.DEFAULT -> {
                                     Slider(
@@ -518,7 +525,6 @@ fun LyricsScreen(
                                 }
                             }
 
-                            // Time display below slider
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -547,7 +553,6 @@ fun LyricsScreen(
                                 horizontalArrangement = Arrangement.SpaceEvenly,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                // Repeat button
                                 IconButton(
                                     onClick = { playerConnection.player.toggleRepeatMode() },
                                     modifier = Modifier.size(40.dp)
@@ -561,12 +566,7 @@ fun LyricsScreen(
                                                 else -> R.drawable.repeat
                                             }
                                         ),
-                                        contentDescription = when (repeatMode) {
-                                            Player.REPEAT_MODE_OFF -> "Repeat Off"
-                                            Player.REPEAT_MODE_ALL -> "Repeat All"
-                                            Player.REPEAT_MODE_ONE -> "Repeat One"
-                                            else -> "Repeat"
-                                        },
+                                        contentDescription = "Repeat",
                                         tint = if (repeatMode == Player.REPEAT_MODE_OFF) {
                                             textBackgroundColor.copy(alpha = 0.4f)
                                         } else {
@@ -576,7 +576,6 @@ fun LyricsScreen(
                                     )
                                 }
 
-                                // Previous button
                                 IconButton(
                                     onClick = { player.seekToPrevious() },
                                     modifier = Modifier.size(40.dp)
@@ -589,7 +588,6 @@ fun LyricsScreen(
                                     )
                                 }
 
-                                // Play/Pause button
                                 IconButton(
                                     onClick = { player.togglePlayPause() },
                                     modifier = Modifier.size(56.dp)
@@ -598,13 +596,12 @@ fun LyricsScreen(
                                         painter = painterResource(
                                             if (isPlaying) R.drawable.pause else R.drawable.play
                                         ),
-                                        contentDescription = if (isPlaying) "Pause" else stringResource(R.string.play),
+                                        contentDescription = if (isPlaying) "Pause" else "Play",
                                         tint = textBackgroundColor,
                                         modifier = Modifier.size(36.dp)
                                     )
                                 }
 
-                                // Next button
                                 IconButton(
                                     onClick = { player.seekToNext() },
                                     modifier = Modifier.size(40.dp)
@@ -617,14 +614,13 @@ fun LyricsScreen(
                                     )
                                 }
 
-                                // Shuffle button
                                 IconButton(
                                     onClick = { playerConnection.player.shuffleModeEnabled = !shuffleModeEnabled },
                                     modifier = Modifier.size(40.dp)
                                 ) {
                                     Icon(
                                         painter = painterResource(R.drawable.shuffle),
-                                        contentDescription = if (shuffleModeEnabled) stringResource(R.string.shuffle) else stringResource(R.string.shuffle),
+                                        contentDescription = "Shuffle",
                                         tint = if (shuffleModeEnabled) {
                                             textBackgroundColor
                                         } else {
@@ -639,13 +635,12 @@ fun LyricsScreen(
                 }
             }
             else -> {
-                // Portrait layout - Apple-like lyrics only layout
+                // Portrait layout
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(WindowInsets.systemBars.asPaddingValues())
                 ) {
-                    // Header with swipe gestures
                     SwipeableHeader(
                         mediaMetadata = mediaMetadata,
                         currentSong = currentSong,
@@ -667,9 +662,8 @@ fun LyricsScreen(
                         }
                     )
 
-                    // Apple-like Lyrics - taking up the remaining space
                     AppleLikeLyrics(
-                        lyrics = currentLyrics?.lyrics,
+                        lyrics = displayLyrics, // Use displayLyrics instead of currentLyrics?.lyrics
                         currentPosition = position,
                         lyricsPosition = lyricsPosition,
                         isPlaying = isPlaying,
@@ -685,7 +679,6 @@ fun LyricsScreen(
         }
     }
 }
-
 @Composable
 fun SwipeableHeader(
     mediaMetadata: MediaMetadata,
@@ -1001,36 +994,62 @@ fun AppleLikeLyrics(
         isInstrumentalSection(parsedLyrics, currentPosition)
     }
 
+    // Fixed lyrics line calculation with proper reset logic
     val currentLineData = remember(currentPosition, parsedLyrics) {
         if (parsedLyrics.isEmpty()) return@remember LyricsState(-1, 0f)
 
         var activeIndex = -1
         var progress = 0f
 
+        // Check if position is before first line (song start/restart)
+        if (currentPosition < parsedLyrics.first().timestamp) {
+            return@remember LyricsState(-1, 0f)
+        }
+
+        // Find the current active line
         for (i in parsedLyrics.indices) {
-            if (currentPosition >= parsedLyrics[i].timestamp) {
-                activeIndex = i
+            val currentLine = parsedLyrics[i]
+            val nextLine = parsedLyrics.getOrNull(i + 1)
 
-                // Calculate progress to next line for smooth transitions
-                val nextIndex = i + 1
-                if (nextIndex < parsedLyrics.size) {
-                    val currentLineStart = parsedLyrics[i].timestamp
-                    val nextLineStart = parsedLyrics[nextIndex].timestamp
-                    val lineDuration = nextLineStart - currentLineStart
+            if (currentPosition >= currentLine.timestamp) {
+                // Check if we're still within this line's duration
+                if (nextLine == null || currentPosition < nextLine.timestamp) {
+                    activeIndex = i
 
-                    if (lineDuration > 0) {
-                        progress = ((currentPosition - currentLineStart).toFloat() / lineDuration.toFloat()).coerceIn(0f, 1f)
+                    // Calculate progress to next line
+                    if (nextLine != null) {
+                        val lineDuration = nextLine.timestamp - currentLine.timestamp
+                        if (lineDuration > 0) {
+                            progress = ((currentPosition - currentLine.timestamp).toFloat() / lineDuration.toFloat()).coerceIn(0f, 1f)
+                        }
+                    } else {
+                        // Last line - calculate progress based on time since line started
+                        val timeSinceLineStart = currentPosition - currentLine.timestamp
+                        // Assume each line lasts 4 seconds if it's the last line
+                        val estimatedLineDuration = 4000L
+                        progress = (timeSinceLineStart.toFloat() / estimatedLineDuration.toFloat()).coerceIn(0f, 1f)
                     }
+                    break
                 }
-            } else {
-                break
+            }
+        }
+
+        // If we went past all lyrics, check if we should reset (song restarted)
+        if (activeIndex == -1 && parsedLyrics.isNotEmpty()) {
+            val lastLine = parsedLyrics.last()
+            // If current position is way past the last line, song might have restarted
+            if (currentPosition > lastLine.timestamp + 10000L) { // 10 second buffer
+                // Check if position is now closer to start
+                if (currentPosition < parsedLyrics.first().timestamp + 30000L) { // Within 30 seconds of first line
+                    activeIndex = -1 // Reset to beginning state
+                }
             }
         }
 
         LyricsState(activeIndex, progress)
     }
 
-    // Smooth auto-scroll with better timing
+    // Smooth auto-scroll with better timing and reset handling
     LaunchedEffect(currentLineData.activeIndex, currentLineData.progress) {
         if (currentLineData.activeIndex >= 0 && parsedLyrics.isNotEmpty()) {
             coroutineScope.launch {
@@ -1046,6 +1065,11 @@ fun AppleLikeLyrics(
                         scrollOffset = 0
                     )
                 }
+            }
+        } else if (currentLineData.activeIndex == -1 && parsedLyrics.isNotEmpty()) {
+            // Reset scroll to top when lyrics reset
+            coroutineScope.launch {
+                lazyListState.animateScrollToItem(0, scrollOffset = 0)
             }
         }
     }

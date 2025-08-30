@@ -3,6 +3,7 @@ package com.music.vivi.ui.player
 import androidx.activity.compose.BackHandler
 import android.annotation.SuppressLint
 import android.text.format.Formatter
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -46,6 +47,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -98,6 +100,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
 import androidx.navigation.NavController
+import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.ListItemHeight
@@ -105,6 +108,7 @@ import com.music.vivi.constants.UseNewPlayerDesignKey
 import com.music.vivi.constants.PlayerButtonsStyle
 import com.music.vivi.constants.PlayerButtonsStyleKey
 import com.music.vivi.constants.QueueEditLockKey
+import com.music.vivi.db.entities.LyricsEntity
 import com.music.vivi.extensions.metadata
 import com.music.vivi.extensions.move
 import com.music.vivi.extensions.togglePlayPause
@@ -121,10 +125,13 @@ import com.music.vivi.ui.menu.SelectionMediaMetadataMenu
 import com.music.vivi.ui.utils.ShowMediaInfo
 import com.music.vivi.utils.makeTimeString
 import com.music.vivi.utils.rememberPreference
+import dagger.hilt.android.EntryPointAccessors
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import kotlin.math.roundToInt
@@ -150,6 +157,8 @@ fun Queue(
     val clipboardManager = LocalClipboard.current
     val menuState = LocalMenuState.current
     val bottomSheetPageState = LocalBottomSheetPageState.current
+    val database = LocalDatabase.current
+    val coroutineScope = rememberCoroutineScope()
 
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isPlaying.collectAsState()
@@ -159,6 +168,48 @@ fun Queue(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
     val currentFormat by playerConnection.currentFormat.collectAsState(initial = null)
+
+    // Add lyrics preloading state
+    var preloadedLyrics by remember { mutableStateOf<String?>(null) }
+    var isPreloadingLyrics by remember { mutableStateOf(false) }
+
+    // Preload lyrics when media changes - simplified approach
+    LaunchedEffect(mediaMetadata) {
+        val currentMedia = mediaMetadata
+        if (currentMedia != null && !isPreloadingLyrics) {
+            isPreloadingLyrics = true
+
+            coroutineScope.launch(Dispatchers.IO) {
+                try {
+                    // Fetch lyrics in background using same pattern as LyricsScreen
+                    val entryPoint = EntryPointAccessors.fromApplication(
+                        context.applicationContext,
+                        com.music.vivi.di.LyricsHelperEntryPoint::class.java
+                    )
+                    val lyricsHelper = entryPoint.lyricsHelper()
+
+                    val lyrics = lyricsHelper.getLyrics(currentMedia)
+
+                    // Store in database using same pattern as LyricsScreen
+                    database.query {
+                        upsert(LyricsEntity(currentMedia.id, lyrics))
+                    }
+
+                    // Update preloaded lyrics
+                    withContext(Dispatchers.Main) {
+                        preloadedLyrics = lyrics
+                    }
+                } catch (e: Exception) {
+                    Log.w("Queue", "Failed to preload lyrics for ${currentMedia.title}: ${e.message}")
+                    preloadedLyrics = null
+                } finally {
+                    withContext(Dispatchers.Main) {
+                        isPreloadingLyrics = false
+                    }
+                }
+            }
+        }
+    }
 
     val selectedSongs = remember { mutableStateListOf<MediaMetadata>() }
     val selectedItems = remember { mutableStateListOf<Timeline.Window>() }
@@ -225,7 +276,6 @@ fun Queue(
                     val buttonSize = 42.dp
                     val iconSize = 24.dp
                     val borderColor = TextBackgroundColor.copy(alpha = 0.35f)
-
 
                     Box(
                         modifier = Modifier
@@ -304,22 +354,32 @@ fun Queue(
 
                     Spacer(modifier = Modifier.weight(1f))
 
+                    // Modified lyrics button with loading indicator and preloaded data
                     Box(
                         modifier = Modifier
                             .size(buttonSize)
                             .clip(RoundedCornerShape(10.dp))
                             .border(1.dp, borderColor, RoundedCornerShape(10.dp))
                             .clickable {
+                                // Pass preloaded lyrics to the screen
                                 onShowLyrics()
                             },
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.lyrics),
-                            contentDescription = null,
-                            modifier = Modifier.size(iconSize),
-                            tint = TextBackgroundColor
-                        )
+                        if (isPreloadingLyrics) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(iconSize),
+                                color = TextBackgroundColor,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Icon(
+                                painter = painterResource(id = R.drawable.lyrics),
+                                contentDescription = null,
+                                modifier = Modifier.size(iconSize),
+                                tint = TextBackgroundColor
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.weight(1f))
@@ -367,7 +427,7 @@ fun Queue(
                     }
                 }
             } else {
-                // Old design
+                // Old design with similar preloading logic
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
@@ -455,6 +515,7 @@ fun Queue(
                         }
                     }
 
+                    // Modified lyrics button with preloading indicator
                     TextButton(
                         onClick = { onShowLyrics() },
                         modifier = Modifier.weight(1f)
@@ -464,12 +525,20 @@ fun Queue(
                             horizontalArrangement = Arrangement.Center,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.lyrics),
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp),
-                                tint = TextBackgroundColor
-                            )
+                            if (isPreloadingLyrics) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    color = TextBackgroundColor,
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.lyrics),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp),
+                                    tint = TextBackgroundColor
+                                )
+                            }
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = stringResource(id = R.string.lyrics),
@@ -484,6 +553,7 @@ fun Queue(
                 }
             }
 
+            // Rest of your existing sleep timer dialog code...
             if (showSleepTimerDialog) {
                 ActionPromptDialog(
                     titleBar = {
@@ -508,7 +578,7 @@ fun Queue(
                         showSleepTimerDialog = false
                     },
                     onReset = {
-                        sleepTimerValue = 30f // Default value
+                        sleepTimerValue = 30f
                     },
                     content = {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -546,7 +616,8 @@ fun Queue(
                 )
             }
         },
-    ) {
+    )
+    {
         val queueTitle by playerConnection.queueTitle.collectAsState()
         val queueWindows by playerConnection.queueWindows.collectAsState()
         val automix by playerConnection.service.automixItems.collectAsState()
