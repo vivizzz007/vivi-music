@@ -230,6 +230,20 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
     // for the notification
     implementation("androidx.core:core-ktx:1.13.1")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("androidx.work:work-runtime-ktx:2.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
+    implementation("com.google.android.material:material:1.9.0")
+    implementation("com.squareup.retrofit2:converter-scalars:2.9.0")
+    // OkHttp Logging Interceptor
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+// Make sure you also have these:
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+
+
 }
 
 kapt {
