@@ -1,0 +1,15 @@
+Brand-new enhanced Lyrics Screen (Apple Music style)
+
+Faster loading speed
+
+Lyrics Full-Screen: swipe to change, double-tap to play/pause
+
+Settings Page in Android 16 style
+
+Album Screen redesigned; explicit & fav on right
+
+Song, Player & Album menus redesigned (volume disabled in Player)
+
+Experimental Screen update toggle
+
+Google & Discord login
