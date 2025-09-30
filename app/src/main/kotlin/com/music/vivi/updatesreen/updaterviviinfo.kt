@@ -1,7 +1,6 @@
 package com.music.vivi.updatesreen
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -13,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -35,10 +33,14 @@ import com.music.vivi.ui.utils.backToMain
 import java.net.HttpURLConnection
 import java.net.URL
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import com.music.vivi.ui.screens.getAutoUpdateCheckSetting
+import com.music.vivi.update.settingstyle.ModernInfoItem
 
 
 @RequiresApi(Build.VERSION_CODES.P)
@@ -151,9 +153,10 @@ fun SoftwareUpdatesScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    painter = painterResource(R.drawable.arrow_downward),
+                                    imageVector = Icons.Filled.NewReleases,
                                     contentDescription = null,
-                                    modifier = Modifier.size(32.dp)
+                                    modifier = Modifier.size(32.dp),
+                                    tint = MaterialTheme.colorScheme.error
                                 )
                             }
 
@@ -202,7 +205,7 @@ fun SoftwareUpdatesScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    painter = painterResource(R.drawable.check),
+                                    imageVector = Icons.Filled.Check,
                                     contentDescription = null,
                                     tint = Color.White,
                                     modifier = Modifier.size(32.dp)
@@ -226,153 +229,159 @@ fun SoftwareUpdatesScreen(
             Spacer(Modifier.height(32.dp))
 
             // Update items container
-            Box(
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        shape = RoundedCornerShape(16.dp)
-                    )
+                    .padding(horizontal = 16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                ),
+                shape = RoundedCornerShape(20.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
-                Column {
+                Column(modifier = Modifier.padding(vertical = 8.dp)) {
                     // System update item
                     when (val status = updateStatus) {
                         is UpdateStatus.UpdateAvailable -> {
-                            PixelUpdateItem(
-                                icon = R.drawable.arrow_downward,
-                                iconTint = Color(0xFFEA4335),
+                            ModernInfoItem(
+                                icon = {
+                                    Icon(
+                                        imageVector = Icons.Filled.NewReleases,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(22.dp),
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                },
                                 title = "System update",
                                 subtitle = "Update available - ${status.latestVersion}",
                                 onClick = {
                                     navController.navigate("settings/update")
                                 },
-                                showDivider = true
+                                showArrow = true,
+                                iconBackgroundColor = MaterialTheme.colorScheme.error.copy(alpha = 0.2f)
                             )
                         }
                         else -> {
-                            PixelUpdateItem(
-                                icon = R.drawable.check,
-                                iconTint = Color(0xFF34A853),
+                            ModernInfoItem(
+                                icon = {
+                                    Icon(
+                                        imageVector = Icons.Filled.Check,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(22.dp),
+                                        tint = Color(0xFF34A853)
+                                    )
+                                },
                                 title = "System update",
                                 subtitle = "Updated to $lastUpdatedDate",
                                 onClick = {
                                     navController.navigate("settings/update")
                                 },
-                                showDivider = true
+                                showArrow = true,
+                                iconBackgroundColor = Color(0xFF34A853).copy(alpha = 0.2f)
                             )
                         }
                     }
 
-                    PixelUpdateItem(
-                        icon = R.drawable.explore_outlined,
-                        iconTint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                    )
+
+                    ModernInfoItem(
+                        icon = {
+                            Icon(
+                                painter = painterResource(R.drawable.explore_outlined),
+                                contentDescription = null,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        },
                         title = "Experimental",
                         subtitle = "Experimental feature",
                         onClick = { navController.navigate("settings/experimental") },
-                        showDivider = true
+                        showArrow = true
                     )
 
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                    )
 
-                    PixelUpdateItem(
-                        icon = R.drawable.notification,
-                        iconTint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    ModernInfoItem(
+                        icon = {
+                            Icon(
+                                painter = painterResource(R.drawable.notification),
+                                contentDescription = null,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        },
                         title = "Notification",
                         subtitle = "Check for updates",
                         onClick = { navController.navigate("settings/updater") },
-                        showDivider = true
+                        showArrow = true
                     )
 
-                    PixelUpdateItem(
-                        icon = R.drawable.history,
-                        iconTint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                    )
+
+                    ModernInfoItem(
+                        icon = {
+                            Icon(
+                                painter = painterResource(R.drawable.history),
+                                contentDescription = null,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        },
                         title = "Changelog",
                         subtitle = "Current app version",
                         onClick = { navController.navigate("settings/changelog") },
-                        showDivider = true
+                        showArrow = true
+                    )
+
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                     )
 
                     // Build version
-                    PixelUpdateItem(
-                        icon = R.drawable.info,
-                        iconTint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    ModernInfoItem(
+                        icon = {
+                            Icon(
+                                painter = painterResource(R.drawable.info),
+                                contentDescription = null,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        },
                         title = "Build version",
                         subtitle = buildVersion,
                         onClick = { },
-                        showDivider = true
+                        showArrow = false
+                    )
+
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                     )
 
                     // App build info
-                    PixelUpdateItem(
-                        icon = R.drawable.info,
-                        iconTint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    ModernInfoItem(
+                        icon = {
+                            Icon(
+                                painter = painterResource(R.drawable.info),
+                                contentDescription = null,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        },
                         title = "App build info",
                         subtitle = "Installed on $firstInstallDate",
                         onClick = { },
-                        showDivider = false
+                        showArrow = false
                     )
                 }
             }
 
             Spacer(Modifier.height(32.dp))
-        }
-    }
-}
-
-@Composable
-private fun PixelUpdateItem(
-    icon: Int,
-    iconTint: Color,
-    title: String,
-    subtitle: String,
-    onClick: () -> Unit,
-    showDivider: Boolean = false
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-    ) {
-        Row(
-            modifier = Modifier.padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                painter = painterResource(icon),
-                contentDescription = null,
-                tint = iconTint,
-                modifier = Modifier.size(24.dp)
-            )
-
-            Spacer(Modifier.width(16.dp))
-
-            Column {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 16.sp
-                )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 2.dp),
-                    fontSize = 14.sp
-                )
-            }
-        }
-
-        // Divider
-        if (showDivider) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 60.dp, end = 20.dp)
-                    .height(1.dp)
-                    .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
-            )
         }
     }
 }
