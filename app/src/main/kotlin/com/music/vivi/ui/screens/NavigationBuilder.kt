@@ -41,6 +41,12 @@ import com.music.vivi.ui.screens.settings.UpdaterScreen
 import com.music.vivi.update.account.AccountViewScreen
 import com.music.vivi.update.betaupdate.ViviDpiSettings
 import com.music.vivi.update.experiment.ExperimentalSettingsScreen
+import com.music.vivi.update.settingstyle.AudioQualityScreen
+import com.music.vivi.update.settingstyle.LyricsPositionScreen
+import com.music.vivi.update.settingstyle.LyricsProviderSettings
+import com.music.vivi.update.settingstyle.PlayerBackgroundStyleScreen
+import com.music.vivi.update.settingstyle.PlayerSliderStyleScreen
+import com.music.vivi.update.settingstyle.ThemeSettingsScreen
 import com.music.vivi.updatesreen.SoftwareUpdatesScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -326,6 +332,42 @@ fun NavGraphBuilder.navigationBuilder(
             navController = navController,
             onBack = { navController.popBackStack() },
             latestVersionName = latestVersionName
+        )
+    }
+    composable("audioQuality") {
+        AudioQualityScreen(
+            navController = navController,
+            scrollBehavior = scrollBehavior
+        )
+    }
+    composable("settings/content/lyrics") {
+        LyricsProviderSettings(
+            navController = navController,
+            scrollBehavior = scrollBehavior
+        )
+    }
+    composable("themeSettings") {
+        ThemeSettingsScreen(
+            navController = navController,
+            scrollBehavior = scrollBehavior
+        )
+    }
+    composable("playerBackgroundStyle") {
+        PlayerBackgroundStyleScreen(
+            navController = navController,
+            scrollBehavior = scrollBehavior
+        )
+    }
+    composable("playerSliderStyle") {
+        PlayerSliderStyleScreen(
+            navController = navController,
+            scrollBehavior = scrollBehavior
+        )
+    }
+    composable("lyricsPosition") {
+        LyricsPositionScreen(
+            navController = navController,
+            scrollBehavior = scrollBehavior
         )
     }
 

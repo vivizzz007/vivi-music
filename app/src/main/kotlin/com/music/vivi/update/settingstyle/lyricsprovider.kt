@@ -1,37 +1,29 @@
-package com.music.vivi.ui.screens.settings
+package com.music.vivi.update.settingstyle
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -40,7 +32,7 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,109 +44,71 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.music.vivi.LocalDatabase
-import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
-import com.music.vivi.constants.DisableScreenshotKey
-import com.music.vivi.constants.PauseListenHistoryKey
-import com.music.vivi.constants.PauseSearchHistoryKey
+import com.music.vivi.constants.EnableKugouKey
+import com.music.vivi.constants.EnableLrcLibKey
+import com.music.vivi.constants.PreferredLyricsProvider
+import com.music.vivi.constants.PreferredLyricsProviderKey
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.component.PreferenceEntry
-import com.music.vivi.ui.component.PreferenceGroupTitle
-import com.music.vivi.ui.component.SwitchPreference
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.update.mordernswitch.ModernSwitch
-import com.music.vivi.update.settingstyle.ModernInfoItem
+import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PrivacySettings(
+fun LyricsProviderSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
-    val database = LocalDatabase.current
-    val (pauseListenHistory, onPauseListenHistoryChange) = rememberPreference(
-        key = PauseListenHistoryKey,
-        defaultValue = false
-    )
-    val (pauseSearchHistory, onPauseSearchHistoryChange) = rememberPreference(
-        key = PauseSearchHistoryKey,
-        defaultValue = false
-    )
-    val (disableScreenshot, onDisableScreenshotChange) = rememberPreference(
-        key = DisableScreenshotKey,
-        defaultValue = false
-    )
-
-    var showClearListenHistoryDialog by remember {
-        mutableStateOf(false)
-    }
-
-    if (showClearListenHistoryDialog) {
-        DefaultDialog(
-            onDismiss = { showClearListenHistoryDialog = false },
-            content = {
-                Text(
-                    text = stringResource(R.string.clear_listen_history_confirm),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(horizontal = 18.dp),
-                )
-            },
-            buttons = {
-                TextButton(
-                    onClick = { showClearListenHistoryDialog = false },
-                ) {
-                    Text(text = stringResource(android.R.string.cancel))
-                }
-
-                TextButton(
-                    onClick = {
-                        showClearListenHistoryDialog = false
-                        database.query {
-                            clearListenHistory()
-                        }
-                    },
-                ) {
-                    Text(text = stringResource(android.R.string.ok))
-                }
-            },
+    val (enableKugou, onEnableKugouChange) = rememberPreference(key = EnableKugouKey, defaultValue = true)
+    val (enableLrclib, onEnableLrclibChange) = rememberPreference(key = EnableLrcLibKey, defaultValue = true)
+    val (preferredProvider, onPreferredProviderChange) =
+        rememberEnumPreference(
+            key = PreferredLyricsProviderKey,
+            defaultValue = PreferredLyricsProvider.LRCLIB,
         )
-    }
 
-    var showClearSearchHistoryDialog by remember {
-        mutableStateOf(false)
-    }
+    var showPreferredProviderDialog by rememberSaveable { mutableStateOf(false) }
 
-    if (showClearSearchHistoryDialog) {
+    // Preferred Provider Dialog
+    if (showPreferredProviderDialog) {
         DefaultDialog(
-            onDismiss = { showClearSearchHistoryDialog = false },
+            onDismiss = { showPreferredProviderDialog = false },
             content = {
-                Text(
-                    text = stringResource(R.string.clear_search_history_confirm),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(horizontal = 18.dp),
-                )
+                Column(modifier = Modifier.padding(horizontal = 18.dp)) {
+                    listOf(PreferredLyricsProvider.LRCLIB, PreferredLyricsProvider.KUGOU).forEach { value ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onPreferredProviderChange(value)
+                                    showPreferredProviderDialog = false
+                                }
+                                .padding(vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = value == preferredProvider,
+                                onClick = null
+                            )
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Text(
+                                when (value) {
+                                    PreferredLyricsProvider.LRCLIB -> "LrcLib"
+                                    PreferredLyricsProvider.KUGOU -> "KuGou"
+                                }
+                            )
+                        }
+                    }
+                }
             },
             buttons = {
-                TextButton(
-                    onClick = { showClearSearchHistoryDialog = false },
-                ) {
+                TextButton(onClick = { showPreferredProviderDialog = false }) {
                     Text(text = stringResource(android.R.string.cancel))
                 }
-
-                TextButton(
-                    onClick = {
-                        showClearSearchHistoryDialog = false
-                        database.query {
-                            clearSearchHistory()
-                        }
-                    },
-                ) {
-                    Text(text = stringResource(android.R.string.ok))
-                }
-            },
+            }
         )
     }
 
@@ -212,14 +166,14 @@ fun PrivacySettings(
                             .padding(horizontal = 16.dp, vertical = 8.dp)
                     ) {
                         Text(
-                            text = stringResource(R.string.privacy),
+                            text = stringResource(R.string.lyrics),
                             style = MaterialTheme.typography.headlineLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(
-                            text = "Manage your privacy and data",
+                            text = "Configure lyrics providers",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -227,10 +181,10 @@ fun PrivacySettings(
                     Spacer(modifier = Modifier.height(10.dp))
                 }
 
-                // Listen History Section
+                // Providers Section
                 item {
                     Text(
-                        text = stringResource(R.string.listen_history).uppercase(),
+                        text = "PROVIDERS",
                         style = MaterialTheme.typography.labelLarge.copy(
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp
@@ -252,21 +206,27 @@ fun PrivacySettings(
                         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                     ) {
                         Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            // Pause Listen History
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Box(modifier = Modifier.weight(1f)) {
                                     ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.history), null, modifier = Modifier.size(22.dp)) },
-                                        title = stringResource(R.string.pause_listen_history),
-                                        subtitle = "Stop recording listening activity"
+                                        icon = {
+                                            Icon(
+                                                painterResource(R.drawable.lyrics),
+                                                null,
+                                                modifier = Modifier.size(22.dp),
+                                                tint = MaterialTheme.colorScheme.primary
+                                            )
+                                        },
+                                        title = "LrcLib",
+                                        subtitle = "Community-driven lyrics database"
                                     )
                                 }
                                 ModernSwitch(
-                                    checked = pauseListenHistory,
-                                    onCheckedChange = onPauseListenHistoryChange,
+                                    checked = enableLrclib,
+                                    onCheckedChange = onEnableLrclibChange,
                                     modifier = Modifier.padding(end = 20.dp)
                                 )
                             }
@@ -276,83 +236,38 @@ fun PrivacySettings(
                                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                             )
 
-                            // Clear Listen History
-                            ModernInfoItem(
-                                icon = { Icon(painterResource(R.drawable.delete_history), null, modifier = Modifier.size(22.dp)) },
-                                title = stringResource(R.string.clear_listen_history),
-                                subtitle = "Delete all listening history",
-                                onClick = { showClearListenHistoryDialog = true },
-                                showArrow = true
-                            )
-                        }
-                    }
-                }
-
-                // Search History Section
-                item {
-                    Text(
-                        text = stringResource(R.string.search_history).uppercase(),
-                        style = MaterialTheme.typography.labelLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.sp
-                        ),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
-                    )
-                }
-
-                item {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer
-                        ),
-                        shape = RoundedCornerShape(20.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            // Pause Search History
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Box(modifier = Modifier.weight(1f)) {
                                     ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.search_off), null, modifier = Modifier.size(22.dp)) },
-                                        title = stringResource(R.string.pause_search_history),
-                                        subtitle = "Stop recording search queries"
+                                        icon = {
+                                            Icon(
+                                                painterResource(R.drawable.lyrics),
+                                                null,
+                                                modifier = Modifier.size(22.dp),
+                                                tint = MaterialTheme.colorScheme.secondary
+                                            )
+                                        },
+                                        title = "KuGou",
+                                        subtitle = "Chinese lyrics provider"
                                     )
                                 }
                                 ModernSwitch(
-                                    checked = pauseSearchHistory,
-                                    onCheckedChange = onPauseSearchHistoryChange,
+                                    checked = enableKugou,
+                                    onCheckedChange = onEnableKugouChange,
                                     modifier = Modifier.padding(end = 20.dp)
                                 )
                             }
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            // Clear Search History
-                            ModernInfoItem(
-                                icon = { Icon(painterResource(R.drawable.clear_all), null, modifier = Modifier.size(22.dp)) },
-                                title = stringResource(R.string.clear_search_history),
-                                subtitle = "Delete all search history",
-                                onClick = { showClearSearchHistoryDialog = true },
-                                showArrow = true
-                            )
                         }
                     }
                 }
 
-                // Misc Section
+                // Priority Section
                 item {
                     Text(
-                        text = stringResource(R.string.misc).uppercase(),
+                        text = "PRIORITY",
                         style = MaterialTheme.typography.labelLarge.copy(
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp
@@ -374,23 +289,83 @@ fun PrivacySettings(
                         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                     ) {
                         Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            // Disable Screenshot
+                            ModernInfoItem(
+                                icon = {
+                                    Icon(
+                                        painterResource(R.drawable.arrow_upward),
+                                        null,
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                },
+                                title = "Preferred provider",
+                                subtitle = when (preferredProvider) {
+                                    PreferredLyricsProvider.LRCLIB -> "LrcLib (searched first)"
+                                    PreferredLyricsProvider.KUGOU -> "KuGou (searched first)"
+                                },
+                                onClick = { showPreferredProviderDialog = true },
+                                showArrow = true
+                            )
+                        }
+                    }
+                }
+
+                // Info Section
+                item {
+                    Text(
+                        text = "ABOUT",
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
+                    )
+                }
+
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer
+                        ),
+                        shape = RoundedCornerShape(20.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp)
+                        ) {
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
+                                verticalAlignment = Alignment.Top,
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                Box(modifier = Modifier.weight(1f)) {
-                                    ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.screenshot), null, modifier = Modifier.size(22.dp)) },
-                                        title = stringResource(R.string.disable_screenshot),
-                                        subtitle = stringResource(R.string.disable_screenshot_desc)
+                                Icon(
+                                    painterResource(R.drawable.info),
+                                    null,
+                                    modifier = Modifier
+                                        .size(20.dp)
+                                        .padding(top = 2.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Column {
+                                    Text(
+                                        text = "How it works",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = "When a song plays, the app searches for lyrics from enabled providers. The preferred provider is searched first, followed by other enabled providers.",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        lineHeight = 20.sp
                                     )
                                 }
-                                ModernSwitch(
-                                    checked = disableScreenshot,
-                                    onCheckedChange = onDisableScreenshotChange,
-                                    modifier = Modifier.padding(end = 20.dp)
-                                )
                             }
                         }
                     }

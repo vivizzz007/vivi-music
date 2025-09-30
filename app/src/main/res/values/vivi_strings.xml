@@ -258,4 +258,30 @@
 <!-- swipeGesture-->
     <string name="swipe_to_change_track">Swipe to change track</string>
     <string name="swipe_to_change_track_description">Swipe left/right on header to skip songs</string>
+    <string name="skip_silence_desc">Skip silent parts in audio</string>
+    <string name="audio_normalization_desc">Normalize audio volume</string>
+    <string name="stop_music_on_task_clear_desc">Stop playback when app is closed</string>
+<!--    //appearence-->
+    <string name="new_player_design_desc">Use the modern player design with improved layout</string>
+    <string name="new_mini_player_design_desc">Use the modern mini player design</string>
+    <string name="enable_swipe_thumbnail_desc">Swipe on album art to seek through tracks</string>
+
+    <!-- Lyrics Section -->
+    <string name="lyrics_click_change_desc">Tap lyrics to jump to specific timestamp</string>
+    <string name="lyrics_auto_scroll_desc">Automatically scroll lyrics with playback</string>
+
+    <!-- Interface Section -->
+    <string name="swipe_song_to_add_desc">Swipe songs in lists to add to queue</string>
+    <string name="slim_navbar_desc">Use compact navigation bar design</string>
+
+    <!-- Auto Playlists Section -->
+    <string name="show_liked_playlist_desc">Show liked songs playlist in library</string>
+    <string name="show_downloaded_playlist_desc">Show downloaded songs playlist</string>
+    <string name="show_top_playlist_desc">Show top played songs playlist</string>
+    <string name="show_cached_playlist_desc">Show cached songs playlist</string>
+    <string name="show_uploaded_playlist_desc">Show uploaded songs playlist</string>
+    <string name="enable_dynamic_theme_desc">Use colors from album artwork to dynamically theme the app</string>
+    <string name="pure_black_desc">Use true black for dark theme instead of dark gray</string>
+
+
 </resources>
