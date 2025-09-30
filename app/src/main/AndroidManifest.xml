@@ -45,6 +45,18 @@
         android:supportsRtl="false"
         android:theme="@style/Theme.music"
         tools:targetApi="tiramisu">
+
+        <receiver
+            android:name=".update.updatenotification.BootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
         <uses-library
             android:name="org.apache.http.legacy"
             android:required="false" />
@@ -55,6 +67,7 @@
             android:launchMode="singleTask"
             android:theme="@style/Theme.music"
             android:windowSoftInputMode="adjustResize">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />
