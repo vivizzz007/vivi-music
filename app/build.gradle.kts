@@ -25,8 +25,10 @@ android {
         vectorDrawables.useSupportLibrary = true
     }
 
-    flavorDimensions += "abi"
+    flavorDimensions += listOf("abi", "distribution")
+
     productFlavors {
+        // ABI Dimension (Architecture)
         create("universal") {
             dimension = "abi"
             ndk {
@@ -54,8 +56,19 @@ android {
             ndk { abiFilters += "x86_64" }
             buildConfigField("String", "ARCHITECTURE", "\"x86_64\"")
         }
-    }
 
+        // Distribution Dimension (Build Type)
+        create("foss") {
+            dimension = "distribution"
+            buildConfigField("String", "BUILD_TYPE", "\"foss\"")
+
+        }
+        create("standard") {
+            dimension = "distribution"
+            buildConfigField("String", "BUILD_TYPE", "\"standard\"")
+
+        }
+    }
     signingConfigs {
         create("release") {
             storeFile = file("keystore/release.keystore")
