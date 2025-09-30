@@ -177,7 +177,7 @@ fun LyricsScreen(
     var duration by remember { mutableLongStateOf(C.TIME_UNSET) }
     var sliderPosition by remember { mutableStateOf<Long?>(null) }
 
-    val playerBackground by rememberEnumPreference(PlayerBackgroundStyleKey, PlayerBackgroundStyle.DEFAULT)
+    val playerBackground by rememberEnumPreference(PlayerBackgroundStyleKey, PlayerBackgroundStyle.GRADIENT)
 
     val isSystemInDarkTheme = isSystemInDarkTheme()
     val useDarkTheme = isSystemInDarkTheme
