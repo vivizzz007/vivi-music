@@ -377,25 +377,6 @@ fun AppearanceSettings(
                                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                             )
 
-                            // New Mini Player Design
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(modifier = Modifier.weight(1f)) {
-                                    ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.nav_bar), null, modifier = Modifier.size(22.dp)) },
-                                        title = stringResource(R.string.new_mini_player_design),
-                                        subtitle = stringResource(R.string.new_mini_player_design_desc)
-                                    )
-                                }
-                                ModernSwitch(
-                                    checked = useNewMiniPlayerDesign,
-                                    onCheckedChange = onUseNewMiniPlayerDesignChange,
-                                    modifier = Modifier.padding(end = 20.dp)
-                                )
-                            }
-
                             // Player Background Style - Navigates to separate screen
                             HorizontalDivider(
                                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),

@@ -223,7 +223,7 @@ fun AboutScreen(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Text(
-                            text = BuildConfig.VERSION_NAME,
+                            text = "${BuildConfig.VERSION_NAME} • Stable",
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
