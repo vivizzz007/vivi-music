@@ -213,6 +213,7 @@ import java.util.Locale
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.days
 import coil3.compose.AsyncImage
+import com.music.vivi.update.updatenotification.UpdateNotificationManager
 
 @Suppress("DEPRECATION", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
 @AndroidEntryPoint
@@ -281,6 +282,18 @@ class MainActivity : ComponentActivity() {
             stopService(Intent(this, MusicService::class.java))
             unbindService(serviceConnection)
             playerConnection = null
+        }
+    }
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>, // Remove the (out) type projection
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == 1000 && grantResults.isNotEmpty() &&
+            grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            UpdateNotificationManager(applicationContext).schedulePeriodicUpdateCheck()
         }
     }
 
