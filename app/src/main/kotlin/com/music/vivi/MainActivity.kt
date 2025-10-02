@@ -214,6 +214,8 @@ import javax.inject.Inject
 import kotlin.time.Duration.Companion.days
 import coil3.compose.AsyncImage
 import com.music.vivi.update.updatenotification.UpdateNotificationManager
+import kotlin.compareTo
+import kotlin.text.get
 
 @Suppress("DEPRECATION", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
 @AndroidEntryPoint
@@ -251,6 +253,8 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+    private var isServiceBound = false
+
     override fun onStart() {
         super.onStart()
         // Request notification permission on Android 13+
@@ -265,10 +269,14 @@ class MainActivity : ComponentActivity() {
             serviceConnection,
             Context.BIND_AUTO_CREATE
         )
+        isServiceBound = true
     }
 
     override fun onStop() {
-        unbindService(serviceConnection)
+        if (isServiceBound) {
+            unbindService(serviceConnection)
+            isServiceBound = false
+        }
         super.onStop()
     }
 
@@ -280,7 +288,7 @@ class MainActivity : ComponentActivity() {
             ) && playerConnection?.isPlaying?.value == true && isFinishing
         ) {
             stopService(Intent(this, MusicService::class.java))
-            unbindService(serviceConnection)
+            // Don't unbind here - already done in onStop()
             playerConnection = null
         }
     }
@@ -340,7 +348,41 @@ class MainActivity : ComponentActivity() {
         setContent {
             val checkForUpdates by rememberPreference(CheckForUpdatesKey, defaultValue = true)
 
+            LaunchedEffect(checkForUpdates) {
+                if (checkForUpdates) {
+                    withContext(Dispatchers.IO) {
+                        if (System.currentTimeMillis() - Updater.lastCheckTime > 1.days.inWholeMilliseconds) {
+                            val updatesEnabled = dataStore.get(CheckForUpdatesKey, true)
+                            val notifEnabled = dataStore.get(UpdateNotificationsEnabledKey, true)
+                            if (!updatesEnabled) return@withContext
+                            Updater.getLatestVersionName().onSuccess {
+                                latestVersionName = it
+                                if (it != BuildConfig.VERSION_NAME && notifEnabled) {
+                                    val downloadUrl = Updater.getLatestDownloadUrl()
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(downloadUrl))
 
+                                    val flags = PendingIntent.FLAG_UPDATE_CURRENT or
+                                            (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0)
+                                    val pending = PendingIntent.getActivity(this@MainActivity, 1001, intent, flags)
+
+                                    val notif = NotificationCompat.Builder(this@MainActivity, "updates")
+                                        .setSmallIcon(R.drawable.update)
+                                        .setContentTitle(getString(R.string.update_available_title))
+                                        .setContentText(it)
+                                        .setContentIntent(pending)
+                                        .setAutoCancel(true)
+                                        .build()
+                                    NotificationManagerCompat.from(this@MainActivity).notify(1001, notif)
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // when the user disables updates, reset to the current version
+                    // to trick the app into thinking it's on the latest version
+                    latestVersionName = BuildConfig.VERSION_NAME
+                }
+            }
 
             val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)
             val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
