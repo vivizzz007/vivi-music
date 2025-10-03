@@ -41,7 +41,9 @@ import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.update.mordernswitch.ModernSwitch
 import com.music.vivi.utils.rememberPreference
 import android.content.Context
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
@@ -55,6 +57,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import com.music.vivi.ui.screens.KEY_AUTO_UPDATE_CHECK
 import com.music.vivi.ui.screens.PREFS_NAME
 import com.music.vivi.update.experiment.SheetDragHandle
@@ -384,5 +387,53 @@ fun UpdaterScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
         }
+    }
+}
+@Composable
+fun SettingItem(
+    icon: @Composable () -> Unit,
+    title: String,
+    subtitle: String? = null,
+    subtitleColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    trailing: @Composable (() -> Unit)? = null,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(horizontal = 16.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier.size(40.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            icon()
+        }
+
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = 16.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            if (subtitle != null) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = subtitleColor
+                )
+            }
+        }
+
+        trailing?.invoke()
     }
 }
