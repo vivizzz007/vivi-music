@@ -8,12 +8,16 @@ import android.content.Intent
 
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == Intent.ACTION_BOOT_COMPLETED ||
-            intent.action == Intent.ACTION_MY_PACKAGE_REPLACED) {
+        if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
+            // Check if automatic update check is enabled
+            val prefs = context.getSharedPreferences("update_checker", Context.MODE_PRIVATE)
+            val autoCheckEnabled = prefs.getBoolean("notification_enabled", true)
 
-            // Initialize update notifications after device boot or app update
-            val updateManager = UpdateNotificationManager(context.applicationContext)
-            updateManager.schedulePeriodicUpdateCheck()
+            if (autoCheckEnabled) {
+                // Restart the periodic update check after device reboot
+                val updateManager = UpdateNotificationManager(context)
+                updateManager.schedulePeriodicUpdateCheck()
+            }
         }
     }
 }

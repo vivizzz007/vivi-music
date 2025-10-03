@@ -88,13 +88,13 @@ fun SoftwareUpdatesScreen(
             .nestedScroll(scrollBehaviorLocal.nestedScrollConnection)
     ) {
         // Large collapsing toolbar
-        LargeTopAppBar(
+        TopAppBar(
             title = {
-                Text(
-                    "App updates",
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+//                Text(
+//                    "App updates",
+//                    maxLines = 1,
+//                    overflow = TextOverflow.Ellipsis
+//                )
             },
             navigationIcon = {
                 IconButton(
@@ -125,6 +125,27 @@ fun SoftwareUpdatesScreen(
                     )
                 )
         ) {
+            // Header section
+            Spacer(modifier = Modifier.height(40.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                Text(
+                    text = "App Updates",
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "Manage app updates and version information",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Spacer(modifier = Modifier.height(10.dp))
 
             Spacer(Modifier.height(24.dp))
 
