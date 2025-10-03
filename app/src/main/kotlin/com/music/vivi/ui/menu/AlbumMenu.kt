@@ -2,6 +2,9 @@ package com.music.vivi.ui.menu
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -84,17 +87,37 @@ import androidx.compose.material3.TextButton
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MediumExtendedFloatingActionButton
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.ui.layout.ContentScale
+import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @SuppressLint("MutableCollectionMutableState")
 @Composable
 fun AlbumMenu(
@@ -142,6 +165,14 @@ fun AlbumMenu(
                     STATE_STOPPED
                 }
         }
+    }
+
+    // Play/Pause state tracking
+    val isPlaying by playerConnection.isPlaying.collectAsState()
+    val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+
+    val isCurrentAlbumPlaying = remember(mediaMetadata, songs) {
+        songs.any { it.id == mediaMetadata?.id }
     }
 
     var refetchIconDegree by remember { mutableFloatStateOf(0f) }
@@ -209,6 +240,49 @@ fun AlbumMenu(
         )
     }
 
+    // Design variables from SongInfoBottomSheet
+    val evenCornerRadiusElems = 26.dp
+    val listItemShape = AbsoluteSmoothCornerShape(
+        cornerRadiusTR = 20.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = 20.dp,
+        smoothnessAsPercentTL = 60, cornerRadiusTL = 20.dp, smoothnessAsPercentBL = 60,
+        cornerRadiusBL = 20.dp, smoothnessAsPercentTR = 60
+    )
+    val albumArtShape = AbsoluteSmoothCornerShape(
+        cornerRadiusTR = evenCornerRadiusElems, smoothnessAsPercentBR = 60, cornerRadiusBR = evenCornerRadiusElems,
+        smoothnessAsPercentTL = 60, cornerRadiusTL = evenCornerRadiusElems, smoothnessAsPercentBL = 60,
+        cornerRadiusBL = evenCornerRadiusElems, smoothnessAsPercentTR = 60
+    )
+    val playButtonShape = AbsoluteSmoothCornerShape(
+        cornerRadiusTR = evenCornerRadiusElems, smoothnessAsPercentBR = 60, cornerRadiusBR = evenCornerRadiusElems,
+        smoothnessAsPercentTL = 60, cornerRadiusTL = evenCornerRadiusElems, smoothnessAsPercentBL = 60,
+        cornerRadiusBL = evenCornerRadiusElems, smoothnessAsPercentTR = 60
+    )
+
+    val isFavorite = album.album.bookmarkedAt != null
+    val favoriteButtonCornerRadius by animateDpAsState(
+        targetValue = if (isFavorite) evenCornerRadiusElems else 60.dp,
+        animationSpec = tween(durationMillis = 300), label = "FavoriteCornerAnimation"
+    )
+    val favoriteButtonContainerColor by animateColorAsState(
+        targetValue = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+        animationSpec = tween(durationMillis = 300), label = "FavoriteContainerColorAnimation"
+    )
+    val favoriteButtonContentColor by animateColorAsState(
+        targetValue = if (isFavorite) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+        animationSpec = tween(durationMillis = 300), label = "FavoriteContentColorAnimation"
+    )
+
+    val favoriteButtonShape = AbsoluteSmoothCornerShape(
+        cornerRadiusTR = favoriteButtonCornerRadius,
+        smoothnessAsPercentBR = 60,
+        cornerRadiusBR = favoriteButtonCornerRadius,
+        smoothnessAsPercentTL = 60,
+        cornerRadiusTL = favoriteButtonCornerRadius,
+        smoothnessAsPercentBL = 60,
+        cornerRadiusBL = favoriteButtonCornerRadius,
+        smoothnessAsPercentTR = 60
+    )
+
     if (showSelectArtistDialog) {
         ListDialog(
             onDismiss = { showSelectArtistDialog = false },
@@ -271,371 +345,430 @@ fun AlbumMenu(
         }
     }
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            start = 0.dp,
-            top = 0.dp,
-            end = 0.dp,
-            bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding(),
-        ),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+    // Main Content (previously inside ModalBottomSheet)
+    Column(
+        modifier = Modifier
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
-        // Album Header Section
-        item {
-            Card(
+        // Header Row - Album Art and Title
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(80.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AsyncImage(
+                model = album.album.thumbnailUrl,
+                contentDescription = "Album Art",
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
-                ),
-                shape = RoundedCornerShape(16.dp)
+                    .size(80.dp)
+                    .clip(albumArtShape),
+                contentScale = ContentScale.Crop
+            )
+
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+                contentAlignment = Alignment.CenterStart
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    AsyncImage(
-                        model = album.album.thumbnailUrl,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(80.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                    )
+                Text(
+                    text = album.album.title,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Light
+                    ),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
 
-                    Spacer(modifier = Modifier.width(16.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = album.album.title,
-                            style = MaterialTheme.typography.titleLarge.copy(
-                                fontWeight = FontWeight.Bold
-                            ),
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
-
-                        Text(
-                            text = album.artists.joinToString { it.name },
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-
-                        Text(
-                            text = "${songs.size} songs",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                        )
+            FilledTonalIconButton(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(vertical = 6.dp),
+                colors = IconButtonDefaults.filledTonalIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceBright,
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                ),
+                onClick = {
+                    database.query {
+                        update(album.album.toggleLike())
                     }
-
-                    IconButton(
-                        onClick = {
-                            database.query {
-                                update(album.album.toggleLike())
-                            }
-                        },
-                    ) {
-                        Icon(
-                            painter = painterResource(if (album.album.bookmarkedAt != null) R.drawable.favorite else R.drawable.favorite_border),
-                            tint = if (album.album.bookmarkedAt != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-                            contentDescription = null,
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
-                }
+                },
+            ) {
+                Icon(
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                    painter = painterResource(if (isFavorite) R.drawable.favorite else R.drawable.favorite_border),
+                    contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
+                    tint = if (isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+                )
             }
         }
 
-        // Quick Actions Section
-        item {
-            Text(
-                text = "Quick Actions",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.SemiBold
-                ),
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Action Buttons Row
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            // Play/Pause Button
+            MediumExtendedFloatingActionButton(
+                modifier = Modifier
+                    .weight(0.5f)
+                    .fillMaxHeight(),
+                onClick = {
+                    if (isCurrentAlbumPlaying && isPlaying) {
+                        playerConnection.player.pause()
+                    } else if (isCurrentAlbumPlaying && !isPlaying) {
+                        playerConnection.player.play()
+                    } else {
+                        onDismiss()
+                        if (songs.isNotEmpty()) {
+                            playerConnection.playQueue(
+                                ListQueue(
+                                    title = album.album.title,
+                                    items = songs.map(Song::toMediaItem)
+                                )
+                            )
+                        }
+                    }
+                },
+                elevation = FloatingActionButtonDefaults.elevation(0.dp),
+                shape = playButtonShape,
+                icon = {
+                    Icon(
+                        painter = painterResource(
+                            if (isCurrentAlbumPlaying && isPlaying) R.drawable.pause else R.drawable.play
+                        ),
+                        contentDescription = if (isCurrentAlbumPlaying && isPlaying) "Pause" else "Play"
+                    )
+                },
+                text = {
+                    Text(
+                        modifier = Modifier.padding(end = 8.dp),
+                        text = if (isCurrentAlbumPlaying && isPlaying) "Pause" else "Play"
+                    )
+                }
             )
 
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp)
+            // Favorite Button
+            FilledIconButton(
+                modifier = Modifier
+                    .weight(0.25f)
+                    .fillMaxHeight(),
+                onClick = {
+                    database.query {
+                        update(album.album.toggleLike())
+                    }
+                },
+                shape = favoriteButtonShape,
+                colors = IconButtonDefaults.filledIconButtonColors(
+                    containerColor = favoriteButtonContainerColor,
+                    contentColor = favoriteButtonContentColor
+                )
             ) {
-                // Play Action
-                item {
-                    ModernActionCard(
-                        icon = R.drawable.play,
-                        title = "Play",
-                        subtitle = "Play album",
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        onClick = {
-                            onDismiss()
-                            if (songs.isNotEmpty()) {
-                                playerConnection.playQueue(
-                                    ListQueue(
-                                        title = album.album.title,
-                                        items = songs.map(Song::toMediaItem)
-                                    )
-                                )
-                            }
-                        }
-                    )
-                }
+                Icon(
+                    modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
+                    painter = painterResource(if (isFavorite) R.drawable.favorite else R.drawable.favorite_border),
+                    contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
+                    tint = if (isFavorite) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
 
-                // Shuffle Action
-                item {
-                    ModernActionCard(
-                        icon = R.drawable.shuffle,
-                        title = "Shuffle",
-                        subtitle = "Shuffle play",
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                        onClick = {
-                            onDismiss()
-                            if (songs.isNotEmpty()) {
-                                album.album.playlistId?.let { playlistId ->
-                                    playerConnection.service.getAutomix(playlistId)
-                                }
-                                playerConnection.playQueue(
-                                    ListQueue(
-                                        title = album.album.title,
-                                        items = songs.shuffled().map(Song::toMediaItem)
-                                    )
-                                )
-                            }
-                        }
-                    )
-                }
+            // Share Button
+            FilledTonalIconButton(
+                modifier = Modifier
+                    .weight(0.25f)
+                    .fillMaxHeight(),
+                onClick = {
+                    onDismiss()
+                    val intent = Intent().apply {
+                        action = Intent.ACTION_SEND
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, "https://music.youtube.com/playlist?list=${album.album.playlistId}")
+                    }
+                    context.startActivity(Intent.createChooser(intent, null))
+                },
+                shape = CircleShape
+            ) {
+                Icon(
+                    modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
+                    painter = painterResource(R.drawable.share),
+                    contentDescription = "Share album"
+                )
+            }
+        }
 
-                // Download Action
-                item {
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Download Button
+        FilledTonalButton(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 66.dp),
+            colors = ButtonDefaults.filledTonalButtonColors(
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+            ),
+            shape = CircleShape,
+            onClick = {
+                when (downloadState) {
+                    STATE_COMPLETED -> {
+                        songs.forEach { song ->
+                            DownloadService.sendRemoveDownload(
+                                context,
+                                ExoDownloadService::class.java,
+                                song.id,
+                                false,
+                            )
+                        }
+                    }
+                    STATE_QUEUED, STATE_DOWNLOADING -> {
+                        songs.forEach { song ->
+                            DownloadService.sendRemoveDownload(
+                                context,
+                                ExoDownloadService::class.java,
+                                song.id,
+                                false,
+                            )
+                        }
+                    }
+                    else -> {
+                        songs.forEach { song ->
+                            val downloadRequest = DownloadRequest
+                                .Builder(song.id, song.id.toUri())
+                                .setCustomCacheKey(song.id)
+                                .setData(song.song.title.toByteArray())
+                                .build()
+                            DownloadService.sendAddDownload(
+                                context,
+                                ExoDownloadService::class.java,
+                                downloadRequest,
+                                false,
+                            )
+                        }
+                    }
+                }
+            }
+        ) {
+            Icon(
+                painter = painterResource(
                     when (downloadState) {
-                        STATE_COMPLETED -> {
-                            ModernActionCard(
-                                icon = R.drawable.offline,
-                                title = "Downloaded",
-                                subtitle = "Remove offline",
-                                containerColor = MaterialTheme.colorScheme.errorContainer,
-                                contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                                onClick = {
-                                    songs.forEach { song ->
-                                        DownloadService.sendRemoveDownload(
-                                            context,
-                                            ExoDownloadService::class.java,
-                                            song.id,
-                                            false,
-                                        )
-                                    }
-                                }
-                            )
-                        }
-                        STATE_QUEUED, STATE_DOWNLOADING -> {
-                            ModernActionCard(
-                                icon = R.drawable.download,
-                                title = "Downloading",
-                                subtitle = "In progress...",
-                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                                showProgress = true,
-                                onClick = {
-                                    songs.forEach { song ->
-                                        DownloadService.sendRemoveDownload(
-                                            context,
-                                            ExoDownloadService::class.java,
-                                            song.id,
-                                            false,
-                                        )
-                                    }
-                                }
-                            )
-                        }
-                        else -> {
-                            ModernActionCard(
-                                icon = R.drawable.download,
-                                title = "Download",
-                                subtitle = "Save offline",
-                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                                onClick = {
-                                    songs.forEach { song ->
-                                        val downloadRequest = DownloadRequest
-                                            .Builder(song.id, song.id.toUri())
-                                            .setCustomCacheKey(song.id)
-                                            .setData(song.song.title.toByteArray())
-                                            .build()
-                                        DownloadService.sendAddDownload(
-                                            context,
-                                            ExoDownloadService::class.java,
-                                            downloadRequest,
-                                            false,
-                                        )
-                                    }
-                                }
-                            )
+                        STATE_COMPLETED -> R.drawable.offline
+                        STATE_QUEUED, STATE_DOWNLOADING -> R.drawable.download
+                        else -> R.drawable.download
+                    }
+                ),
+                contentDescription = "Download album"
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = when (downloadState) {
+                    STATE_COMPLETED -> "Remove Offline"
+                    STATE_QUEUED, STATE_DOWNLOADING -> "Downloading..."
+                    else -> "Download Album"
+                }
+            )
+        }
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // Details Section
+        Column(
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            // Artist
+            FilledTonalButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 66.dp),
+                shape = CircleShape,
+                onClick = {
+                    if (album.artists.size == 1) {
+                        navController.navigate("artist/${album.artists[0].id}")
+                        onDismiss()
+                    } else {
+                        showSelectArtistDialog = true
+                    }
+                }
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.artist),
+                    contentDescription = "Artist icon"
+                )
+                Spacer(Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "Artist",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        album.artists.joinToString { it.name },
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+
+            // Songs Count
+            FilledTonalButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 66.dp),
+                shape = CircleShape,
+                onClick = { }
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.music_note),
+                    contentDescription = "Songs icon"
+                )
+                Spacer(Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "Songs",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        "${songs.size} tracks",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+
+            // Play Next
+            FilledTonalButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 66.dp),
+                shape = CircleShape,
+                onClick = {
+                    onDismiss()
+                    playerConnection.playNext(songs.map { it.toMediaItem() })
+                }
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.playlist_play),
+                    contentDescription = "Play next icon"
+                )
+                Spacer(Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "Play Next",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        "Play after current",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+
+            // Add to Queue
+            FilledTonalButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 66.dp),
+                shape = CircleShape,
+                onClick = {
+                    onDismiss()
+                    playerConnection.addToQueue(songs.map { it.toMediaItem() })
+                }
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.queue_music),
+                    contentDescription = "Add to queue icon"
+                )
+                Spacer(Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "Add to Queue",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        "Add to queue end",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+
+            // Add to Playlist
+            FilledTonalButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 66.dp),
+                shape = CircleShape,
+                onClick = {
+                    showChoosePlaylistDialog = true
+                }
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.playlist_add),
+                    contentDescription = "Add to playlist icon"
+                )
+                Spacer(Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "Add to Playlist",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        "Add to existing playlist",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+
+            // Refetch
+            FilledTonalButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 66.dp),
+                shape = CircleShape,
+                onClick = {
+                    refetchIconDegree -= 360
+                    scope.launch(Dispatchers.IO) {
+                        YouTube.album(album.id).onSuccess {
+                            database.transaction {
+                                update(album.album, it, album.artists)
+                            }
                         }
                     }
                 }
-
-                // Share Action
-                item {
-                    ModernActionCard(
-                        icon = R.drawable.share,
-                        title = "Share",
-                        subtitle = "Share album",
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        onClick = {
-                            onDismiss()
-                            val intent = Intent().apply {
-                                action = Intent.ACTION_SEND
-                                type = "text/plain"
-                                putExtra(Intent.EXTRA_TEXT, "https://music.youtube.com/playlist?list=${album.album.playlistId}")
-                            }
-                            context.startActivity(Intent.createChooser(intent, null))
-                        }
-                    )
-                }
-            }
-        }
-
-        // Playback Section
-        item {
-            Text(
-                text = "Playback",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.SemiBold
-                ),
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-            )
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
             ) {
-                Column {
-                    ModernListItem(
-                        icon = R.drawable.playlist_play,
-                        title = stringResource(R.string.play_next),
-                        subtitle = "Play after current",
-                        onClick = {
-                            onDismiss()
-                            playerConnection.playNext(songs.map { it.toMediaItem() })
-                        }
+                Icon(
+                    painter = painterResource(R.drawable.sync),
+                    contentDescription = "Refetch icon"
+                )
+                Spacer(Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "Refetch",
+                        style = MaterialTheme.typography.bodyLarge
                     )
-
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f)
-                    )
-
-                    ModernListItem(
-                        icon = R.drawable.queue_music,
-                        title = stringResource(R.string.add_to_queue),
-                        subtitle = "Add to queue end",
-                        onClick = {
-                            onDismiss()
-                            playerConnection.addToQueue(songs.map { it.toMediaItem() })
-                        }
+                    Text(
+                        "Update album information",
+                        style = MaterialTheme.typography.bodySmall
                     )
                 }
+                Icon(
+                    painter = painterResource(R.drawable.sync),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .graphicsLayer(rotationZ = rotationAnimation),
+                    tint = MaterialTheme.colorScheme.primary
+                )
             }
         }
 
-        // Management Section
-        item {
-            Text(
-                text = "Management",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.SemiBold
-                ),
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-            )
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
-            ) {
-                Column {
-                    ModernListItem(
-                        icon = R.drawable.playlist_add,
-                        title = stringResource(R.string.add_to_playlist),
-                        subtitle = "Add to existing playlist",
-                        onClick = {
-                            showChoosePlaylistDialog = true
-                        }
-                    )
-
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f)
-                    )
-
-                    ModernListItem(
-                        icon = R.drawable.artist,
-                        title = stringResource(R.string.view_artist),
-                        subtitle = if (album.artists.size == 1) album.artists.first().name else "${album.artists.size} artists",
-                        onClick = {
-                            if (album.artists.size == 1) {
-                                navController.navigate("artist/${album.artists[0].id}")
-                                onDismiss()
-                            } else {
-                                showSelectArtistDialog = true
-                            }
-                        }
-                    )
-
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f)
-                    )
-
-                    ModernListItem(
-                        icon = R.drawable.sync,
-                        title = stringResource(R.string.refetch),
-                        subtitle = "Update album information",
-                        onClick = {
-                            refetchIconDegree -= 360
-                            scope.launch(Dispatchers.IO) {
-                                YouTube.album(album.id).onSuccess {
-                                    database.transaction {
-                                        update(album.album, it, album.artists)
-                                    }
-                                }
-                            }
-                        },
-                        trailingContent = {
-                            Icon(
-                                painter = painterResource(R.drawable.sync),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .graphicsLayer(rotationZ = rotationAnimation),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    )
-                }
-            }
-        }
-
-        // Bottom spacing
-        item {
-            Spacer(modifier = Modifier.height(8.dp))
-        }
     }
 }

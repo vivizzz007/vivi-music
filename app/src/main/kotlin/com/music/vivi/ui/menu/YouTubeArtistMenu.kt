@@ -35,7 +35,38 @@ import com.music.vivi.ui.component.NewAction
 import com.music.vivi.ui.component.NewActionGrid
 import com.music.vivi.ui.component.YouTubeListItem
 
-@OptIn(ExperimentalMaterial3Api::class)
+
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MediumExtendedFloatingActionButton
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import coil3.compose.AsyncImage
+import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun YouTubeArtistMenu(
     artist: ArtistItem,
@@ -46,114 +77,205 @@ fun YouTubeArtistMenu(
     val playerConnection = LocalPlayerConnection.current ?: return
     val libraryArtist by database.artist(artist.id).collectAsState(initial = null)
 
-    YouTubeListItem(
-        item = artist,
-        trailingContent = {},
+    // Design variables from original SongMenu
+    val evenCornerRadiusElems = 26.dp
+    val albumArtShape = AbsoluteSmoothCornerShape(
+        cornerRadiusTR = evenCornerRadiusElems, smoothnessAsPercentBR = 60, cornerRadiusBR = evenCornerRadiusElems,
+        smoothnessAsPercentTL = 60, cornerRadiusTL = evenCornerRadiusElems, smoothnessAsPercentBL = 60,
+        cornerRadiusBL = evenCornerRadiusElems, smoothnessAsPercentTR = 60
+    )
+    val playButtonShape = AbsoluteSmoothCornerShape(
+        cornerRadiusTR = evenCornerRadiusElems, smoothnessAsPercentBR = 60, cornerRadiusBR = evenCornerRadiusElems,
+        smoothnessAsPercentTL = 60, cornerRadiusTL = evenCornerRadiusElems, smoothnessAsPercentBL = 60,
+        cornerRadiusBL = evenCornerRadiusElems, smoothnessAsPercentTR = 60
     )
 
-    HorizontalDivider()
+    Column(
+        modifier = Modifier
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(0.dp)
+    ) {
+        Spacer(modifier = Modifier.height(1.dp))
 
-    Spacer(modifier = Modifier.height(12.dp))
+        // Header Row - Artist Art and Name
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(80.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AsyncImage(
+                model = artist.thumbnail,
+                contentDescription = "Artist Art",
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(albumArtShape),
+                contentScale = ContentScale.Crop
+            )
 
-    // Enhanced Action Grid using NewMenuComponents
-    NewActionGrid(
-        actions = buildList {
-            // Start Radio button
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Column {
+                    Text(
+                        text = artist.title,
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Light
+                        ),
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = artist.channelId ?: "",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+
+            FilledTonalIconButton(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(vertical = 6.dp),
+                colors = IconButtonDefaults.filledTonalIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceBright,
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                ),
+                onClick = {
+                    database.query {
+                        val libraryArtist = libraryArtist
+                        if (libraryArtist != null) {
+                            update(libraryArtist.artist.toggleLike())
+                        } else {
+                            insert(
+                                ArtistEntity(
+                                    id = artist.id,
+                                    name = artist.title,
+                                    channelId = artist.channelId,
+                                    thumbnailUrl = artist.thumbnail,
+                                ).toggleLike()
+                            )
+                        }
+                    }
+                },
+            ) {
+                Icon(
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                    painter = painterResource(if (libraryArtist?.artist?.bookmarkedAt != null) R.drawable.subscribed else R.drawable.subscribe),
+                    contentDescription = if (libraryArtist?.artist?.bookmarkedAt != null) "Unsubscribe" else "Subscribe",
+                    tint = if (libraryArtist?.artist?.bookmarkedAt != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Action Buttons Row
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            // Radio Button
             artist.radioEndpoint?.let { watchEndpoint ->
-                add(
-                    NewAction(
-                        icon = {
-                            Icon(
-                                painter = painterResource(R.drawable.radio),
-                                contentDescription = null,
-                                modifier = Modifier.size(28.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        },
-                        text = stringResource(R.string.start_radio),
-                        onClick = {
-                            playerConnection.playQueue(YouTubeQueue(watchEndpoint))
-                            onDismiss()
-                        }
-                    )
-                )
-            }
-
-            // Shuffle button
-            artist.shuffleEndpoint?.let { watchEndpoint ->
-                add(
-                    NewAction(
-                        icon = {
-                            Icon(
-                                painter = painterResource(R.drawable.shuffle),
-                                contentDescription = null,
-                                modifier = Modifier.size(28.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        },
-                        text = stringResource(R.string.shuffle),
-                        onClick = {
-                            playerConnection.playQueue(YouTubeQueue(watchEndpoint))
-                            onDismiss()
-                        }
-                    )
-                )
-            }
-
-            // Share button
-            add(
-                NewAction(
+                MediumExtendedFloatingActionButton(
+                    modifier = Modifier
+                        .weight(0.5f)
+                        .fillMaxHeight(),
+                    onClick = {
+                        playerConnection.playQueue(YouTubeQueue(watchEndpoint))
+                        onDismiss()
+                    },
+                    elevation = FloatingActionButtonDefaults.elevation(0.dp),
+                    shape = playButtonShape,
                     icon = {
                         Icon(
-                            painter = painterResource(R.drawable.share),
-                            contentDescription = null,
-                            modifier = Modifier.size(28.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            painter = painterResource(R.drawable.radio),
+                            contentDescription = "Start Radio"
                         )
                     },
-                    text = stringResource(R.string.share),
-                    onClick = {
-                        val intent = Intent().apply {
-                            action = Intent.ACTION_SEND
-                            type = "text/plain"
-                            putExtra(Intent.EXTRA_TEXT, artist.shareLink)
-                        }
-                        context.startActivity(Intent.createChooser(intent, null))
-                        onDismiss()
+                    text = {
+                        Text(
+                            modifier = Modifier.padding(end = 10.dp),
+                            text = "Radio"
+                        )
                     }
                 )
-            )
-        },
-        modifier = Modifier.padding(horizontal = 4.dp, vertical = 16.dp)
-    )
+            }
 
-    LazyColumn(
-        contentPadding = PaddingValues(
-            start = 0.dp,
-            top = 0.dp,
-            end = 0.dp,
-            bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding(),
-        ),
-    ) {
-        // Subscribe/Subscribed button
-        item {
-            ListItem(
-                headlineContent = { 
-                    Text(text = if (libraryArtist?.artist?.bookmarkedAt != null) stringResource(R.string.subscribed) else stringResource(R.string.subscribe))
-                },
-                leadingContent = {
-                    Icon(
-                        painter = painterResource(
-                            if (libraryArtist?.artist?.bookmarkedAt != null) {
-                                R.drawable.subscribed
-                            } else {
-                                R.drawable.subscribe
-                            }
-                        ),
-                        contentDescription = null,
+            // Shuffle Button
+            artist.shuffleEndpoint?.let { watchEndpoint ->
+                FilledIconButton(
+                    modifier = Modifier
+                        .weight(0.25f)
+                        .fillMaxHeight(),
+                    onClick = {
+                        playerConnection.playQueue(YouTubeQueue(watchEndpoint))
+                        onDismiss()
+                    },
+                    shape = playButtonShape,
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                ) {
+                    Icon(
+                        modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
+                        painter = painterResource(R.drawable.shuffle),
+                        contentDescription = "Shuffle"
+                    )
+                }
+            }
+
+            // Share Button
+            FilledTonalIconButton(
+                modifier = Modifier
+                    .weight(0.25f)
+                    .fillMaxHeight(),
+                onClick = {
+                    onDismiss()
+                    val intent = Intent().apply {
+                        action = Intent.ACTION_SEND
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, artist.shareLink)
+                    }
+                    context.startActivity(Intent.createChooser(intent, null))
                 },
-                modifier = Modifier.clickable {
+                shape = CircleShape
+            ) {
+                Icon(
+                    modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
+                    painter = painterResource(R.drawable.share),
+                    contentDescription = "Share artist"
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // Details Section
+        Column(
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            // Subscribe/Unsubscribe Button
+            FilledTonalButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 66.dp),
+                shape = CircleShape,
+                onClick = {
                     database.query {
                         val libraryArtist = libraryArtist
                         if (libraryArtist != null) {
@@ -170,7 +292,23 @@ fun YouTubeArtistMenu(
                         }
                     }
                 }
-            )
+            ) {
+                Icon(
+                    painter = painterResource(if (libraryArtist?.artist?.bookmarkedAt != null) R.drawable.subscribed else R.drawable.subscribe),
+                    contentDescription = "Subscribe icon"
+                )
+                Spacer(Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        if (libraryArtist?.artist?.bookmarkedAt != null) "Subscribed" else "Subscribe",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        if (libraryArtist?.artist?.bookmarkedAt != null) "Unsubscribe from artist" else "Subscribe to artist",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
         }
     }
 }
