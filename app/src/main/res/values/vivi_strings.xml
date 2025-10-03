@@ -283,5 +283,7 @@
     <string name="enable_dynamic_theme_desc">Use colors from album artwork to dynamically theme the app</string>
     <string name="pure_black_desc">Use true black for dark theme instead of dark gray</string>
 
+    <string name="favorite">Favorite</string>
+    <string name="favorited">Favorited</string>
 
 </resources>
