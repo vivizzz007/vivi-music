@@ -41,10 +41,12 @@ import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.update.mordernswitch.ModernSwitch
 import com.music.vivi.utils.rememberPreference
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Button
@@ -63,11 +65,14 @@ import com.music.vivi.ui.screens.PREFS_NAME
 import com.music.vivi.update.experiment.SheetDragHandle
 import com.music.vivi.update.experiment.getUpdateCheckInterval
 import com.music.vivi.update.experiment.saveUpdateCheckInterval
+import com.music.vivi.update.updatenotification.UpdateChecker
+import com.music.vivi.update.updatenotification.saveUpdateNotificationPreference
 import kotlinx.coroutines.launch
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-
 fun UpdaterScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
@@ -75,19 +80,44 @@ fun UpdaterScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
+    // State for preferences
     val (checkForUpdates, onCheckForUpdatesChange) = rememberPreference(CheckForUpdatesKey, true)
     val (updateNotifications, onUpdateNotificationsChange) = rememberPreference(UpdateNotificationsEnabledKey, true)
     var updateCheckInterval by remember { mutableStateOf(getUpdateCheckInterval(context)) }
 
+    // Bottom sheet state
     val intervalSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showIntervalSheet by remember { mutableStateOf(false) }
 
     // Function to handle automatic update check toggle
     fun onAutoUpdateCheckChange(newValue: Boolean) {
         onCheckForUpdatesChange(newValue)
-        // Save to SharedPreferences for the UpdateScreen to read
+
+        // Save to SharedPreferences
         val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         sharedPrefs.edit().putBoolean(KEY_AUTO_UPDATE_CHECK, newValue).apply()
+
+        // Schedule or cancel update checks based on the new value
+        if (newValue) {
+            UpdateChecker.scheduleUpdateCheck(context, updateCheckInterval.toLong())
+            Toast.makeText(context, "Automatic update checks enabled", Toast.LENGTH_SHORT).show()
+        } else {
+            UpdateChecker.cancelUpdateChecks(context)
+            Toast.makeText(context, "Automatic update checks disabled", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // Function to handle notification preference changes
+    fun onUpdateNotificationsChangeWithSave(newValue: Boolean) {
+        onUpdateNotificationsChange(newValue)
+        saveUpdateNotificationPreference(context, newValue)
+
+        val message = if (newValue) {
+            "Update notifications enabled"
+        } else {
+            "Update notifications disabled"
+        }
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
     }
 
     // Bottom Sheet for interval selection
@@ -124,7 +154,10 @@ fun UpdaterScreen(
                 ) {
                     Column(modifier = Modifier.padding(20.dp)) {
                         Text(
-                            "$updateCheckInterval hours",
+                            text = when (updateCheckInterval) {
+                                1 -> "$updateCheckInterval hour"
+                                else -> "$updateCheckInterval hours"
+                            },
                             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
                             modifier = Modifier.align(Alignment.CenterHorizontally)
                         )
@@ -135,17 +168,40 @@ fun UpdaterScreen(
                             value = updateCheckInterval.toFloat(),
                             onValueChange = { updateCheckInterval = it.toInt() },
                             valueRange = 1f..24f,
-                            steps = 23,
+                            steps = 22, // 24 - 2 = 22 (excluding start and end)
                             modifier = Modifier.fillMaxWidth()
                         )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "1 hour",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "24 hours",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     OutlinedButton(
                         onClick = {
+                            // Reset to saved value
+                            updateCheckInterval = getUpdateCheckInterval(context)
                             coroutineScope.launch {
                                 intervalSheetState.hide()
                                 showIntervalSheet = false
@@ -160,6 +216,17 @@ fun UpdaterScreen(
                     Button(
                         onClick = {
                             saveUpdateCheckInterval(context, updateCheckInterval)
+
+                            // Reschedule with new interval if auto-update is enabled
+                            if (checkForUpdates) {
+                                UpdateChecker.scheduleUpdateCheck(context, updateCheckInterval.toLong())
+                                Toast.makeText(
+                                    context,
+                                    "Update check interval set to $updateCheckInterval ${if (updateCheckInterval == 1) "hour" else "hours"}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+
                             coroutineScope.launch {
                                 intervalSheetState.hide()
                                 showIntervalSheet = false
@@ -225,7 +292,7 @@ fun UpdaterScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Single unified settings card
+            // Main settings card
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
@@ -234,7 +301,6 @@ fun UpdaterScreen(
                 ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
-
                 Column {
                     // Automatic Update Check
                     SettingItem(
@@ -243,7 +309,11 @@ fun UpdaterScreen(
                                 painter = painterResource(R.drawable.update),
                                 contentDescription = null,
                                 modifier = Modifier.size(24.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = if (checkForUpdates) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                }
                             )
                         },
                         title = stringResource(R.string.check_for_updates),
@@ -276,7 +346,7 @@ fun UpdaterScreen(
                                 )
                             },
                             title = "Update check interval",
-                            subtitle = "After $updateCheckInterval hours of inactivity",
+                            subtitle = "Every $updateCheckInterval ${if (updateCheckInterval == 1) "hour" else "hours"}",
                             onClick = {
                                 coroutineScope.launch {
                                     showIntervalSheet = true
@@ -306,7 +376,11 @@ fun UpdaterScreen(
                                     painter = painterResource(R.drawable.notification),
                                     contentDescription = null,
                                     modifier = Modifier.size(24.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    tint = if (updateNotifications) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    }
                                 )
                             },
                             title = stringResource(R.string.update_notifications),
@@ -314,14 +388,48 @@ fun UpdaterScreen(
                             trailing = {
                                 ModernSwitch(
                                     checked = updateNotifications,
-                                    onCheckedChange = onUpdateNotificationsChange,
+                                    onCheckedChange = { onUpdateNotificationsChangeWithSave(it) },
                                     enabled = checkForUpdates
                                 )
                             },
                             onClick = {
                                 if (checkForUpdates) {
-                                    onUpdateNotificationsChange(!updateNotifications)
+                                    onUpdateNotificationsChangeWithSave(!updateNotifications)
                                 }
+                            }
+                        )
+
+                        // Manual Check Now button
+                        HorizontalDivider(
+                            modifier = Modifier.padding(start = 56.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                        )
+
+                        SettingItem(
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.refresh),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            },
+                            title = "Check for updates now",
+                            subtitle = "Manually check for the latest version",
+                            onClick = {
+                                UpdateChecker.checkForUpdateNow(context)
+                                Toast.makeText(
+                                    context,
+                                    "Checking for updates...",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            },
+                            trailing = {
+                                Icon(
+                                    imageVector = Icons.Default.ChevronRight,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
                             }
                         )
                     }
@@ -342,53 +450,109 @@ fun UpdaterScreen(
                 Column(
                     modifier = Modifier.padding(20.dp)
                 ) {
-                    Text(
-                        text = "About Update Settings",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.info),
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "About Update Settings",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    Text(
-                        text = "• Automatic update check: When enabled, the app will check for updates when you open the update screen",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = 20.sp
+                    InfoItem(
+                        title = "Automatic update check",
+                        description = "When enabled, the app will check for updates at the specified interval"
                     )
 
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Text(
-                        text = "• Update check interval: How often to automatically check for updates (1-24 hours)",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = 20.sp
+                    InfoItem(
+                        title = "Update check interval",
+                        description = "Set how frequently the app checks for new versions (1-24 hours)"
                     )
 
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Text(
-                        text = "• Update notifications: Get notified when new versions are available (requires automatic check to be enabled)",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = 20.sp
+                    InfoItem(
+                        title = "Update notifications",
+                        description = "Get notified when new versions are available for download"
                     )
 
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Text(
-                        text = "• Current version: ${BuildConfig.VERSION_NAME}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    InfoItem(
+                        title = "Check now",
+                        description = "Instantly check for updates without waiting for the scheduled check"
                     )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Current version",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = BuildConfig.VERSION_NAME,
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
+
+@Composable
+private fun InfoItem(
+    title: String,
+    description: String
+) {
+    Column(modifier = Modifier.padding(vertical = 6.dp)) {
+        Row(verticalAlignment = Alignment.Top) {
+            Text(
+                text = "•",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(end = 8.dp)
+            )
+            Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 18.sp
+                )
+            }
+        }
+    }
+}
+
 @Composable
 fun SettingItem(
     icon: @Composable () -> Unit,
