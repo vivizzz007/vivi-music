@@ -751,7 +751,7 @@ class MainActivity : ComponentActivity() {
                                             actions = {
                                                 IconButton(onClick = { navController.navigate("history") }) {
                                                     Icon(
-                                                        painter = painterResource(R.drawable.history),
+                                                        painter = painterResource(R.drawable.music_history),
                                                         contentDescription = stringResource(R.string.history)
                                                     )
                                                 }
