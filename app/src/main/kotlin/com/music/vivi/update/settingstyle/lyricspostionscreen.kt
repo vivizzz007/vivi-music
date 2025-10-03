@@ -57,7 +57,7 @@ fun LyricsPositionScreen(
 ) {
     val (lyricsPosition, onLyricsPositionChange) = rememberEnumPreference(
         LyricsTextPositionKey,
-        defaultValue = LyricsPosition.CENTER
+        defaultValue = LyricsPosition.LEFT
     )
 
     val scrollState = rememberLazyListState()
@@ -180,7 +180,7 @@ fun LyricsPositionScreen(
                                         painter = when (position) {
                                             LyricsPosition.LEFT -> painterResource(R.drawable.format_align_left)
                                             LyricsPosition.CENTER -> painterResource(R.drawable.format_align_center)
-                                            LyricsPosition.RIGHT -> painterResource(R.drawable.lyrics)
+                                            LyricsPosition.RIGHT -> painterResource(R.drawable.align_right)
                                         },
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.primary,
