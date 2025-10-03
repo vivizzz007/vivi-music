@@ -17,8 +17,8 @@ android {
         applicationId = "com.vivi.vivimusic"
         minSdk = 26
         targetSdk = 36
-        versionCode = 8 ///49
-        versionName = "4.0.0"
+        versionCode = 9 ///49
+        versionName = "4.0.1"
 
         multiDexEnabled = true
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -241,6 +241,8 @@ dependencies {
 
     implementation(libs.androidx.work.runtime.ktx)
 
+//    implementation(libs.wavy.slider)
+
     implementation("androidx.compose.material:material-icons-core:1.7.8")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation("com.airbnb.android:lottie-compose:6.6.9")
@@ -248,5 +250,9 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:5.1.0")
     implementation("com.google.code.gson:gson:2.13.2")
     implementation("com.github.racra:smooth-corner-rect-android-compose:v1.0.0")
-
+    implementation("com.squareup.retrofit2:retrofit:3.0.0")
+    implementation("com.squareup.retrofit2:converter-gson:3.0.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:5.1.0")
+    implementation("androidx.core:core-ktx:1.17.0")
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
 }
