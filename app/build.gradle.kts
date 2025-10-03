@@ -17,7 +17,7 @@ android {
         applicationId = "com.vivi.vivimusic"
         minSdk = 26
         targetSdk = 36
-        versionCode = 8
+        versionCode = 8 ///49
         versionName = "4.0.0"
 
         multiDexEnabled = true
@@ -228,6 +228,8 @@ dependencies {
     implementation(project(":lrclib"))
     implementation(project(":kizzy"))
 
+    implementation(libs.smooth.corner.rect)
+
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.serialization.json)
 
@@ -241,17 +243,10 @@ dependencies {
 
     implementation("androidx.compose.material:material-icons-core:1.7.8")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
-    implementation("com.airbnb.android:lottie-compose:6.4.0")
+    implementation("com.airbnb.android:lottie-compose:6.6.9")
     implementation("io.coil-kt:coil-compose:2.7.0")
-    implementation("com.airbnb.android:lottie-compose:6.6.7")
-    implementation("androidx.work:work-runtime-ktx:2.10.3")
-    implementation("androidx.work:work-runtime-ktx:2.9.0")
+    implementation("com.squareup.okhttp3:okhttp:5.1.0")
+    implementation("com.google.code.gson:gson:2.13.2")
+    implementation("com.github.racra:smooth-corner-rect-android-compose:v1.0.0")
 
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("com.google.code.gson:gson:2.10.1")
-
-//// Make sure you also have these:
-//    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-//    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-//    implementation("com.squareup.okhttp3:okhttp:4.11.0")
 }
