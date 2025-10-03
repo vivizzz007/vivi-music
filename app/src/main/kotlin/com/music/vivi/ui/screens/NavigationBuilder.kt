@@ -1,5 +1,7 @@
 package com.music.vivi.ui.screens
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -42,13 +44,18 @@ import com.music.vivi.update.account.AccountViewScreen
 import com.music.vivi.update.betaupdate.ViviDpiSettings
 import com.music.vivi.update.experiment.ExperimentalSettingsScreen
 import com.music.vivi.update.settingstyle.AudioQualityScreen
+import com.music.vivi.update.settingstyle.DefaultOpenTabScreen
+import com.music.vivi.update.settingstyle.GridItemSizeScreen
+import com.music.vivi.update.settingstyle.LibraryChipScreen
 import com.music.vivi.update.settingstyle.LyricsPositionScreen
 import com.music.vivi.update.settingstyle.LyricsProviderSettings
 import com.music.vivi.update.settingstyle.PlayerBackgroundStyleScreen
+import com.music.vivi.update.settingstyle.PlayerButtonsStyleScreen
 import com.music.vivi.update.settingstyle.PlayerSliderStyleScreen
 import com.music.vivi.update.settingstyle.ThemeSettingsScreen
 import com.music.vivi.updatesreen.SoftwareUpdatesScreen
 
+@RequiresApi(Build.VERSION_CODES.P)
 @OptIn(ExperimentalMaterial3Api::class)
 fun NavGraphBuilder.navigationBuilder(
     navController: NavHostController,
@@ -366,6 +373,35 @@ fun NavGraphBuilder.navigationBuilder(
     }
     composable("lyricsPosition") {
         LyricsPositionScreen(
+            navController = navController,
+            scrollBehavior = scrollBehavior
+        )
+    }
+    // In your navigation setup
+    composable("defaultOpenTab") {
+        DefaultOpenTabScreen(
+            navController = navController,
+            scrollBehavior = scrollBehavior
+        )
+    }
+    // In your navigation setup
+    composable("LibraryChip") {
+        LibraryChipScreen(
+            navController = navController,
+            scrollBehavior = scrollBehavior
+        )
+    }
+    // In your navigation setup
+    composable("gridItemSize") {
+        GridItemSizeScreen(
+            navController = navController,
+            scrollBehavior = scrollBehavior
+        )
+    }
+
+    // In your navigation setup
+    composable("playerButtonsStyle") {
+        PlayerButtonsStyleScreen(
             navController = navController,
             scrollBehavior = scrollBehavior
         )

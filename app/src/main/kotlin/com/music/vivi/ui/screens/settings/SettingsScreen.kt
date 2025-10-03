@@ -175,6 +175,7 @@ fun SettingsScreen(
             Text(
                 text = "Settings",
                 style = MaterialTheme.typography.headlineMedium.copy(fontSize = 40.sp),
+                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(start = 8.dp, bottom = 16.dp)
             )
@@ -418,52 +419,3 @@ fun SettingsScreen(
     }
 }
 
-
-@Composable
-fun SettingItem(
-    icon: @Composable () -> Unit,
-    title: String,
-    subtitle: String? = null,
-    subtitleColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
-    trailing: @Composable (() -> Unit)? = null,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier.size(40.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            icon()
-        }
-
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(start = 16.dp)
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            if (subtitle != null) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = subtitleColor
-                )
-            }
-        }
-
-        trailing?.invoke()
-    }
-}

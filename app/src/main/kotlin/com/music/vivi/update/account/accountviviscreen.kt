@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -47,6 +49,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
@@ -83,6 +87,7 @@ import com.music.vivi.viewmodels.AccountSettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+
 fun AccountViewScreen(
     navController: NavController,
     onBack: () -> Unit,
@@ -115,334 +120,405 @@ fun AccountViewScreen(
         "SAPISID" in parseCookieString(innerTubeCookie)
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    // Empty title like other screens
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = onBack,
-                        onLongClick = {
-                            // Add your backToMain function if available
-                            // navController.backToMain()
-                        }
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.arrow_back),
-                            contentDescription = stringResource(R.string.back)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.surface,
+                        MaterialTheme.colorScheme.background
+                    )
                 )
             )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .background(MaterialTheme.colorScheme.background)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp)
-        ) {
-            Spacer(modifier = Modifier.height(40.dp))
-
-            // Settings Title (outside the card)
-            Text(
-                text = "Account",
-                style = MaterialTheme.typography.headlineMedium.copy(fontSize = 40.sp),
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(start = 8.dp, bottom = 16.dp)
-            )
-
-            Spacer(modifier = Modifier.height(30.dp))
-
-            // Google Account Card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
+                        // Empty title like other screens
+                    },
+                    navigationIcon = {
+                        IconButton(
+                            onClick = onBack,
+                            onLongClick = {
+                                // Add your backToMain function if available
+                                // navController.backToMain()
+                            }
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.arrow_back),
+                                contentDescription = stringResource(R.string.back)
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        scrolledContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
+                    )
+                )
+            },
+            containerColor = Color.Transparent
+        ) { paddingValues ->
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(
+                    top = paddingValues.calculateTopPadding(),
+                    bottom = 32.dp
+                )
             ) {
-                Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                    // Profile Section
-                    ModernInfoItem(
-                        icon = {
-                            if (isLoggedIn && accountImageUrl != null) {
-                                AsyncImage(
-                                    model = accountImageUrl,
-                                    contentDescription = stringResource(R.string.profile_image),
-                                    contentScale = ContentScale.Crop,
+                item {
+                    Spacer(modifier = Modifier.height(25.dp))
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = "Account Settings",
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = "Manage your account and preferences",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
+
+                // Account Section
+                item {
+                    Text(
+                        text = "ACCOUNT",
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
+                    )
+                }
+
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer
+                        ),
+                        shape = RoundedCornerShape(20.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                            // Profile Section
+                            ModernInfoItem(
+                                icon = {
+                                    if (isLoggedIn && accountImageUrl != null) {
+                                        AsyncImage(
+                                            model = accountImageUrl,
+                                            contentDescription = stringResource(R.string.profile_image),
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier
+                                                .size(28.dp)
+                                                .clip(CircleShape)
+                                        )
+                                    } else {
+                                        Icon(
+                                            painter = painterResource(
+                                                if (isLoggedIn) R.drawable.person else R.drawable.account
+                                            ),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(22.dp),
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                },
+                                title = if (isLoggedIn) {
+                                    accountName.ifBlank { stringResource(R.string.signed_in) }
+                                } else {
+                                    stringResource(R.string.not_signed_in)
+                                },
+                                subtitle = if (isLoggedIn) {
+                                    when {
+                                        accountEmail.isNotBlank() && accountChannelHandle.isNotBlank() ->
+                                            "$accountEmail • @$accountChannelHandle"
+                                        accountEmail.isNotBlank() -> accountEmail
+                                        accountChannelHandle.isNotBlank() -> "@$accountChannelHandle"
+                                        else -> stringResource(R.string.signed_in)
+                                    }
+                                } else {
+                                    stringResource(R.string.sign_in_to_access_features)
+                                },
+                                onClick = {
+                                    if (isLoggedIn) {
+                                        // Show account details or logout dialog
+                                    } else {
+                                        navController.navigate("login")
+                                    }
+                                },
+                                showArrow = true,
+                                iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
+                            )
+
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                            )
+
+                            // Login/Logout Action
+                            ModernInfoItem(
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(if (isLoggedIn) R.drawable.logout else R.drawable.login),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(22.dp),
+                                        tint = if (isLoggedIn) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                                    )
+                                },
+                                title = if (isLoggedIn) stringResource(R.string.action_logout) else stringResource(R.string.sign_in),
+                                subtitle = if (isLoggedIn) "Sign out of your account" else "Sign in to access features",
+                                onClick = {
+                                    if (isLoggedIn) {
+                                        accountSettingsViewModel.logoutAndClearSyncedContent(context, onInnerTubeCookieChange)
+                                    } else {
+                                        navController.navigate("login")
+                                    }
+                                },
+                                showArrow = true,
+                                iconBackgroundColor = if (isLoggedIn) {
+                                    MaterialTheme.colorScheme.error.copy(alpha = 0.2f)
+                                } else {
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                                },
+                                titleColor = if (isLoggedIn) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                                subtitleColor = if (isLoggedIn) MaterialTheme.colorScheme.error.copy(alpha = 0.8f) else MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                            )
+                        }
+                    }
+                }
+
+                // Settings Section (only when logged in)
+                if (isLoggedIn) {
+                    item {
+                        Text(
+                            text = "SETTINGS",
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp
+                            ),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
+                        )
+                    }
+
+                    item {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer
+                            ),
+                            shape = RoundedCornerShape(20.dp),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                                // More Content Setting - Custom row with switch (no arrow needed)
+                                Row(
                                     modifier = Modifier
-                                        .size(28.dp)
-                                        .clip(CircleShape)
-                                )
-                            } else {
-                                Icon(
-                                    painter = painterResource(
-                                        if (isLoggedIn) R.drawable.person else R.drawable.account
-                                    ),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(22.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        },
-                        title = if (isLoggedIn) {
-                            accountName.ifBlank { stringResource(R.string.signed_in) }
-                        } else {
-                            stringResource(R.string.not_signed_in)
-                        },
-                        subtitle = if (isLoggedIn) {
-                            when {
-                                accountEmail.isNotBlank() && accountChannelHandle.isNotBlank() ->
-                                    "$accountEmail • @$accountChannelHandle"
-                                accountEmail.isNotBlank() -> accountEmail
-                                accountChannelHandle.isNotBlank() -> "@$accountChannelHandle"
-                                else -> stringResource(R.string.signed_in)
-                            }
-                        } else {
-                            stringResource(R.string.sign_in_to_access_features)
-                        },
-                        onClick = {
-                            if (isLoggedIn) {
-                                // Show account details or logout dialog
-                            } else {
-                                navController.navigate("login")
-                            }
-                        },
-                        showArrow = false,
-                        iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
-                    )
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            val newValue = !useLoginForBrowse
+                                            YouTube.useLoginForBrowse = newValue
+                                            onUseLoginForBrowseChange(newValue)
+                                        }
+                                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .background(
+                                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
+                                                CircleShape
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.add_circle),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(22.dp),
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
 
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                    )
+                                    Spacer(modifier = Modifier.width(16.dp))
 
-                    // Login/Logout Action
-                    ModernInfoItem(
-                        icon = {
-                            Icon(
-                                painter = painterResource(if (isLoggedIn) R.drawable.logout else R.drawable.login),
-                                contentDescription = null,
-                                modifier = Modifier.size(22.dp),
-                                tint = if (isLoggedIn) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
-                            )
-                        },
-                        title = if (isLoggedIn) stringResource(R.string.action_logout) else stringResource(R.string.sign_in),
-                        subtitle = if (isLoggedIn) "Sign out of your account" else "Sign in to access features",
-                        onClick = {
-                            if (isLoggedIn) {
-                                accountSettingsViewModel.logoutAndClearSyncedContent(context, onInnerTubeCookieChange)
-                            } else {
-                                navController.navigate("login")
-                            }
-                        },
-                        showArrow = true,
-                        iconBackgroundColor = if (isLoggedIn) {
-                            MaterialTheme.colorScheme.error.copy(alpha = 0.2f)
-                        } else {
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-                        },
-                        titleColor = if (isLoggedIn) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-                        subtitleColor = if (isLoggedIn) MaterialTheme.colorScheme.error.copy(alpha = 0.8f) else MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
-                    )
-                }
-            }
+                                    Column(
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text(
+                                            text = stringResource(R.string.more_content),
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = "Personalized content and recommendations",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Account Settings Card (only when logged in)
-            if (isLoggedIn) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainer
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                ) {
-                    Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                        // More Content Setting - Custom row with switch
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    val newValue = !useLoginForBrowse
-                                    YouTube.useLoginForBrowse = newValue
-                                    onUseLoginForBrowseChange(newValue)
+                                    ModernSwitch(
+                                        checked = useLoginForBrowse,
+                                        onCheckedChange = {
+                                            YouTube.useLoginForBrowse = it
+                                            onUseLoginForBrowseChange(it)
+                                        }
+                                    )
                                 }
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .background(
-                                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
-                                        CircleShape
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.add_circle),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(22.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
 
-                            Spacer(modifier = Modifier.width(16.dp))
-
-                            Column(
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.more_content),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurface
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                                 )
-                                Text(
-                                    text = "Personalized content and recommendations",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
 
-                            ModernSwitch(
-                                checked = useLoginForBrowse,
-                                onCheckedChange = {
-                                    YouTube.useLoginForBrowse = it
-                                    onUseLoginForBrowseChange(it)
+                                // YouTube Music Sync Setting - Custom row with switch (no arrow needed)
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            onYtmSyncChange(!ytmSync)
+                                        }
+                                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .background(
+                                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
+                                                CircleShape
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.cached),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(22.dp),
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.width(16.dp))
+
+                                    Column(
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text(
+                                            text = stringResource(R.string.yt_sync),
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = "Sync with YouTube Music",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+
+                                    ModernSwitch(
+                                        checked = ytmSync,
+                                        onCheckedChange = onYtmSyncChange
+                                    )
                                 }
-                            )
-                        }
-
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                        )
-
-                        // YouTube Music Sync Setting - Custom row with switch
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    onYtmSyncChange(!ytmSync)
-                                }
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .background(
-                                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
-                                        CircleShape
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.cached),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(22.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
                             }
-
-                            Spacer(modifier = Modifier.width(16.dp))
-
-                            Column(
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.yt_sync),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    text = "Sync with YouTube Music",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-
-                            ModernSwitch(
-                                checked = ytmSync,
-                                onCheckedChange = onYtmSyncChange
-                            )
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            // Discord Integration Card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-            ) {
-                Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                    // Discord Integration
-                    ModernInfoItem(
-                        icon = {
-                            Icon(
-                                painter = painterResource(R.drawable.discord),
-                                contentDescription = null,
-                                modifier = Modifier.size(22.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        },
-                        title = stringResource(R.string.discord_integration),
-                        subtitle = "Connect with Discord",
-                        onClick = {
-                            navController.navigate("settings/discord")
-                        },
-                        showArrow = true,
-                        iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
+                // Integration Section
+                item {
+                    Text(
+                        text = "INTEGRATION",
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
                     )
+                }
 
-                    // Advanced Login (only when not logged in)
-                    if (!isLoggedIn) {
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                        )
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer
+                        ),
+                        shape = RoundedCornerShape(20.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                            // Discord Integration
+                            ModernInfoItem(
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.discord),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(22.dp),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                },
+                                title = stringResource(R.string.discord_integration),
+                                subtitle = "Connect with Discord",
+                                onClick = {
+                                    navController.navigate("settings/discord")
+                                },
+                                showArrow = true,
+                                iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
+                            )
 
-                        ModernInfoItem(
-                            icon = {
-                                Icon(
-                                    painter = painterResource(R.drawable.token),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(22.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            // Advanced Login (only when not logged in)
+                            if (!isLoggedIn) {
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                                 )
-                            },
-                            title = stringResource(R.string.advanced_login),
-                            subtitle = "Manual token authentication",
-                            onClick = {
-                                showTokenEditor = true
-                            },
-                            showArrow = true,
-                            iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
-                        )
+
+                                ModernInfoItem(
+                                    icon = {
+                                        Icon(
+                                            painter = painterResource(R.drawable.token),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(22.dp),
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    },
+                                    title = stringResource(R.string.advanced_login),
+                                    subtitle = "Manual token authentication",
+                                    onClick = {
+                                        showTokenEditor = true
+                                    },
+                                    showArrow = true,
+                                    iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
+                                )
+                            }
+                        }
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(100.dp))
+                item {
+                    Spacer(modifier = Modifier.height(80.dp))
+                }
+            }
         }
     }
 

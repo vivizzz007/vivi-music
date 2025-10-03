@@ -1,9 +1,9 @@
 package com.music.vivi.update.settingstyle
 
-
-import android.os.Build
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -34,32 +35,33 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.music.vivi.R
-import com.music.vivi.constants.PlayerBackgroundStyle
-import com.music.vivi.constants.PlayerBackgroundStyleKey
+import com.music.vivi.constants.DefaultOpenTabKey
+import com.music.vivi.constants.GridItemSize
+import com.music.vivi.constants.GridItemsSizeKey
+import com.music.vivi.constants.PlayerButtonsStyle
+import com.music.vivi.constants.PlayerButtonsStyleKey
+import com.music.vivi.ui.screens.settings.NavigationTab
 import com.music.vivi.utils.rememberEnumPreference
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PlayerBackgroundStyleScreen(
+fun PlayerButtonsStyleScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior
 ) {
-    val (playerBackground, onPlayerBackgroundChange) = rememberEnumPreference(
-        PlayerBackgroundStyleKey,
-        defaultValue = PlayerBackgroundStyle.DEFAULT
+    val (playerButtonsStyle, onPlayerButtonsStyleChange) = rememberEnumPreference(
+        PlayerButtonsStyleKey,
+        defaultValue = PlayerButtonsStyle.DEFAULT
     )
-
-    val availableBackgroundStyles = PlayerBackgroundStyle.entries.filter {
-        it != PlayerBackgroundStyle.BLUR || Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-    }
 
     val scrollState = rememberLazyListState()
 
@@ -78,7 +80,13 @@ fun PlayerBackgroundStyleScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { /* Text("Background Style") */ },
+                    title = {
+//                        Text(
+//                            "Player Buttons Style",
+//                            style = MaterialTheme.typography.headlineSmall,
+//                            fontWeight = FontWeight.SemiBold
+//                        )
+                    },
                     navigationIcon = {
                         IconButton(onClick = navController::navigateUp) {
                             Icon(
@@ -105,29 +113,28 @@ fun PlayerBackgroundStyleScreen(
                 )
             ) {
                 item {
-                    Spacer(modifier = Modifier.height(25.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 8.dp)
                     ) {
                         Text(
-                            text = "Player Background Style",
-                            style = MaterialTheme.typography.headlineLarge,
+                            text = "Choose Player Buttons Style",
+                            style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
-                        Spacer(modifier = Modifier.height(10.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Choose your preferred player background style",
+                            text = "Select the color style for player control buttons",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                // Background Style Options
                 item {
                     Card(
                         modifier = Modifier
@@ -140,17 +147,21 @@ fun PlayerBackgroundStyleScreen(
                         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                     ) {
                         Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            availableBackgroundStyles.forEach { style ->
+                            enumValues<PlayerButtonsStyle>().forEachIndexed { index, style ->
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clickable { onPlayerBackgroundChange(style) }
+                                        .clickable {
+                                            onPlayerButtonsStyleChange(style)
+                                        }
                                         .padding(vertical = 16.dp, horizontal = 20.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     RadioButton(
-                                        selected = style == playerBackground,
-                                        onClick = { onPlayerBackgroundChange(style) }
+                                        selected = style == playerButtonsStyle,
+                                        onClick = {
+                                            onPlayerButtonsStyleChange(style)
+                                        }
                                     )
                                     Spacer(modifier = Modifier.width(16.dp))
                                     Column(
@@ -158,37 +169,43 @@ fun PlayerBackgroundStyleScreen(
                                     ) {
                                         Text(
                                             text = when (style) {
-                                                PlayerBackgroundStyle.DEFAULT -> stringResource(R.string.follow_theme)
-                                                PlayerBackgroundStyle.GRADIENT -> stringResource(R.string.gradient)
-                                                PlayerBackgroundStyle.BLUR -> stringResource(R.string.player_background_blur)
+                                                PlayerButtonsStyle.DEFAULT -> "Default"
+                                                PlayerButtonsStyle.SECONDARY -> "Secondary Color"
                                             },
                                             style = MaterialTheme.typography.bodyLarge,
+                                            fontWeight = FontWeight.Medium,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
                                         Text(
                                             text = when (style) {
-                                                PlayerBackgroundStyle.DEFAULT -> "Follow the current theme colors"
-                                                PlayerBackgroundStyle.GRADIENT -> "Use gradient background based on artwork"
-                                                PlayerBackgroundStyle.BLUR -> "Blurred artwork background effect"
+                                                PlayerButtonsStyle.DEFAULT -> "Use primary color for player buttons"
+                                                PlayerButtonsStyle.SECONDARY -> "Use secondary color for player buttons"
                                             },
                                             style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.padding(top = 4.dp)
                                         )
                                     }
 
-                                    // Preview icon for each style
-                                    Icon(
-                                        painter = when (style) {
-                                            PlayerBackgroundStyle.DEFAULT -> painterResource(R.drawable.gradient)
-                                            PlayerBackgroundStyle.GRADIENT -> painterResource(R.drawable.gradient)
-                                            PlayerBackgroundStyle.BLUR -> painterResource(R.drawable.gradient)
-                                        },
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(24.dp)
+                                    // Visual color representation
+                                    Box(
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .clip(CircleShape)
+                                            .background(
+                                                when (style) {
+                                                    PlayerButtonsStyle.DEFAULT -> MaterialTheme.colorScheme.primary
+                                                    PlayerButtonsStyle.SECONDARY -> MaterialTheme.colorScheme.secondary
+                                                }
+                                            )
+                                            .border(
+                                                1.dp,
+                                                MaterialTheme.colorScheme.outlineVariant,
+                                                CircleShape
+                                            )
                                     )
                                 }
-                                if (style != availableBackgroundStyles.last()) {
+                                if (index != enumValues<PlayerButtonsStyle>().lastIndex) {
                                     HorizontalDivider(
                                         modifier = Modifier.padding(horizontal = 20.dp),
                                         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
@@ -199,6 +216,39 @@ fun PlayerBackgroundStyleScreen(
                     }
                 }
 
+                item {
+                    Spacer(modifier = Modifier.height(32.dp))
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                        ),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Text(
+                                text = "Current Selection",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = when (playerButtonsStyle) {
+                                    PlayerButtonsStyle.DEFAULT -> "Default - Using primary color for player buttons"
+                                    PlayerButtonsStyle.SECONDARY -> "Secondary Color - Using secondary color for player buttons"
+                                },
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+                }
                 item {
                     Spacer(modifier = Modifier.height(80.dp))
                 }

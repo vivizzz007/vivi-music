@@ -1,8 +1,7 @@
 package com.music.vivi.update.settingstyle
 
 
-import android.os.Build
-import androidx.compose.foundation.background
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -37,29 +35,31 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.music.vivi.R
-import com.music.vivi.constants.PlayerBackgroundStyle
-import com.music.vivi.constants.PlayerBackgroundStyleKey
+import com.music.vivi.constants.DefaultOpenTabKey
+import com.music.vivi.ui.screens.settings.NavigationTab
 import com.music.vivi.utils.rememberEnumPreference
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.TextButton
+import com.music.vivi.constants.ChipSortTypeKey
+import com.music.vivi.constants.LibraryFilter
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PlayerBackgroundStyleScreen(
+fun LibraryChipScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior
 ) {
-    val (playerBackground, onPlayerBackgroundChange) = rememberEnumPreference(
-        PlayerBackgroundStyleKey,
-        defaultValue = PlayerBackgroundStyle.DEFAULT
+    val (defaultChip, onDefaultChipChange) = rememberEnumPreference(
+        key = ChipSortTypeKey,
+        defaultValue = LibraryFilter.LIBRARY
     )
-
-    val availableBackgroundStyles = PlayerBackgroundStyle.entries.filter {
-        it != PlayerBackgroundStyle.BLUR || Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-    }
 
     val scrollState = rememberLazyListState()
 
@@ -78,7 +78,13 @@ fun PlayerBackgroundStyleScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { /* Text("Background Style") */ },
+                    title = {
+//                        Text(
+//                            "Default Library Section",
+//                            style = MaterialTheme.typography.headlineSmall,
+//                            fontWeight = FontWeight.SemiBold
+//                        )
+                    },
                     navigationIcon = {
                         IconButton(onClick = navController::navigateUp) {
                             Icon(
@@ -105,29 +111,28 @@ fun PlayerBackgroundStyleScreen(
                 )
             ) {
                 item {
-                    Spacer(modifier = Modifier.height(25.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 8.dp)
                     ) {
                         Text(
-                            text = "Player Background Style",
-                            style = MaterialTheme.typography.headlineLarge,
+                            text = "Choose Default Library Section",
+                            style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
-                        Spacer(modifier = Modifier.height(10.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Choose your preferred player background style",
+                            text = "Select which section opens first in your Library tab",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                // Background Style Options
                 item {
                     Card(
                         modifier = Modifier
@@ -140,61 +145,118 @@ fun PlayerBackgroundStyleScreen(
                         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                     ) {
                         Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            availableBackgroundStyles.forEach { style ->
+                            val libraryOptions = listOf(
+                                LibraryFilter.LIBRARY,
+                                LibraryFilter.PLAYLISTS,
+                                LibraryFilter.SONGS,
+                                LibraryFilter.ALBUMS,
+                                LibraryFilter.ARTISTS
+                            )
+
+                            libraryOptions.forEachIndexed { index, chip ->
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clickable { onPlayerBackgroundChange(style) }
+                                        .clickable {
+                                            onDefaultChipChange(chip)
+                                        }
                                         .padding(vertical = 16.dp, horizontal = 20.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     RadioButton(
-                                        selected = style == playerBackground,
-                                        onClick = { onPlayerBackgroundChange(style) }
+                                        selected = chip == defaultChip,
+                                        onClick = {
+                                            onDefaultChipChange(chip)
+                                        }
                                     )
                                     Spacer(modifier = Modifier.width(16.dp))
                                     Column(
                                         modifier = Modifier.weight(1f)
                                     ) {
                                         Text(
-                                            text = when (style) {
-                                                PlayerBackgroundStyle.DEFAULT -> stringResource(R.string.follow_theme)
-                                                PlayerBackgroundStyle.GRADIENT -> stringResource(R.string.gradient)
-                                                PlayerBackgroundStyle.BLUR -> stringResource(R.string.player_background_blur)
+                                            text = when (chip) {
+                                                LibraryFilter.SONGS -> "Songs"
+                                                LibraryFilter.ARTISTS -> "Artists"
+                                                LibraryFilter.ALBUMS -> "Albums"
+                                                LibraryFilter.PLAYLISTS -> "Playlists"
+                                                LibraryFilter.LIBRARY -> "Library Overview"
                                             },
                                             style = MaterialTheme.typography.bodyLarge,
+                                            fontWeight = FontWeight.Medium,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
                                         Text(
-                                            text = when (style) {
-                                                PlayerBackgroundStyle.DEFAULT -> "Follow the current theme colors"
-                                                PlayerBackgroundStyle.GRADIENT -> "Use gradient background based on artwork"
-                                                PlayerBackgroundStyle.BLUR -> "Blurred artwork background effect"
+                                            text = when (chip) {
+                                                LibraryFilter.SONGS -> "Browse all your individual songs"
+                                                LibraryFilter.ARTISTS -> "View your collection by artist"
+                                                LibraryFilter.ALBUMS -> "Explore your music by albums"
+                                                LibraryFilter.PLAYLISTS -> "Access your created and saved playlists"
+                                                LibraryFilter.LIBRARY -> "General overview of your music library"
                                             },
                                             style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.padding(top = 4.dp)
                                         )
                                     }
 
-                                    // Preview icon for each style
+                                    // Icon for each option
                                     Icon(
-                                        painter = when (style) {
-                                            PlayerBackgroundStyle.DEFAULT -> painterResource(R.drawable.gradient)
-                                            PlayerBackgroundStyle.GRADIENT -> painterResource(R.drawable.gradient)
-                                            PlayerBackgroundStyle.BLUR -> painterResource(R.drawable.gradient)
+                                        painter = when (chip) {
+                                            LibraryFilter.SONGS -> painterResource(R.drawable.music_note)
+                                            LibraryFilter.ARTISTS -> painterResource(R.drawable.artist)
+                                            LibraryFilter.ALBUMS -> painterResource(R.drawable.album)
+                                            LibraryFilter.PLAYLISTS -> painterResource(R.drawable.playlist_play)
+                                            LibraryFilter.LIBRARY -> painterResource(R.drawable.library_music)
                                         },
                                         contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(24.dp)
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(20.dp)
                                     )
                                 }
-                                if (style != availableBackgroundStyles.last()) {
+                                if (index != libraryOptions.lastIndex) {
                                     HorizontalDivider(
                                         modifier = Modifier.padding(horizontal = 20.dp),
                                         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                                     )
                                 }
                             }
+                        }
+                    }
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(32.dp))
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                        ),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Text(
+                                text = "Current Selection",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = when (defaultChip) {
+                                    LibraryFilter.SONGS -> "Songs - Browse all your individual songs"
+                                    LibraryFilter.ARTISTS -> "Artists - View your collection by artist"
+                                    LibraryFilter.ALBUMS -> "Albums - Explore your music by albums"
+                                    LibraryFilter.PLAYLISTS -> "Playlists - Access your created and saved playlists"
+                                    LibraryFilter.LIBRARY -> "Library Overview - General overview of your music library"
+                                },
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.fillMaxWidth()
+                            )
                         }
                     }
                 }

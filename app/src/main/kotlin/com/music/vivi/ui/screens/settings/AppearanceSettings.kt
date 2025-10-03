@@ -372,11 +372,6 @@ fun AppearanceSettings(
                                 )
                             }
 
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
                             // Player Background Style - Navigates to separate screen
                             HorizontalDivider(
                                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
@@ -426,8 +421,6 @@ fun AppearanceSettings(
                                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                             )
 
-                            // Player Buttons Style with Dialog
-                            var showButtonsStyleDialog by remember { mutableStateOf(false) }
                             ModernInfoItem(
                                 icon = { Icon(painterResource(R.drawable.palette), null, modifier = Modifier.size(22.dp)) },
                                 title = stringResource(R.string.player_buttons_style),
@@ -435,50 +428,11 @@ fun AppearanceSettings(
                                     PlayerButtonsStyle.DEFAULT -> stringResource(R.string.default_style)
                                     PlayerButtonsStyle.SECONDARY -> stringResource(R.string.secondary_color_style)
                                 },
-                                onClick = { showButtonsStyleDialog = true },
+                                onClick = {
+                                    navController.navigate("playerButtonsStyle")
+                                },
                                 showArrow = true
                             )
-
-                            if (showButtonsStyleDialog) {
-                                AlertDialog(
-                                    onDismissRequest = { showButtonsStyleDialog = false },
-                                    title = { Text(stringResource(R.string.player_buttons_style)) },
-                                    text = {
-                                        Column {
-                                            enumValues<PlayerButtonsStyle>().forEach { value ->
-                                                Row(
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .clickable {
-                                                            onPlayerButtonsStyleChange(value)
-                                                            showButtonsStyleDialog = false
-                                                        }
-                                                        .padding(vertical = 12.dp),
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
-                                                    RadioButton(
-                                                        selected = value == playerButtonsStyle,
-                                                        onClick = {
-                                                            onPlayerButtonsStyleChange(value)
-                                                            showButtonsStyleDialog = false
-                                                        }
-                                                    )
-                                                    Spacer(modifier = Modifier.width(8.dp))
-                                                    Text(when (value) {
-                                                        PlayerButtonsStyle.DEFAULT -> stringResource(R.string.default_style)
-                                                        PlayerButtonsStyle.SECONDARY -> stringResource(R.string.secondary_color_style)
-                                                    })
-                                                }
-                                            }
-                                        }
-                                    },
-                                    confirmButton = {
-                                        TextButton(onClick = { showButtonsStyleDialog = false }) {
-                                            Text("Cancel")
-                                        }
-                                    }
-                                )
-                            }
 
                             // Player Slider Style - Navigates to separate screen
                             HorizontalDivider(
@@ -769,11 +723,6 @@ fun AppearanceSettings(
                         Column(modifier = Modifier.padding(vertical = 8.dp)) {
                             // Lyrics Position with Dialog
                             var showLyricsPositionDialog by remember { mutableStateOf(false) }
-                            // Lyrics Position - Navigates to separate screen
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
 
                             ModernInfoItem(
                                 icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
@@ -917,59 +866,21 @@ fun AppearanceSettings(
                                     NavigationTab.SEARCH -> stringResource(R.string.search)
                                     NavigationTab.LIBRARY -> stringResource(R.string.filter_library)
                                 },
-                                onClick = { showTabDialog = true },
+                                onClick = {
+                                    navController.navigate("defaultOpenTab")
+                                },
                                 showArrow = true
                             )
 
-                            if (showTabDialog) {
-                                AlertDialog(
-                                    onDismissRequest = { showTabDialog = false },
-                                    title = { Text(stringResource(R.string.default_open_tab)) },
-                                    text = {
-                                        Column {
-                                            enumValues<NavigationTab>().forEach { value ->
-                                                Row(
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .clickable {
-                                                            onDefaultOpenTabChange(value)
-                                                            showTabDialog = false
-                                                        }
-                                                        .padding(vertical = 12.dp),
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
-                                                    RadioButton(
-                                                        selected = value == defaultOpenTab,
-                                                        onClick = {
-                                                            onDefaultOpenTabChange(value)
-                                                            showTabDialog = false
-                                                        }
-                                                    )
-                                                    Spacer(modifier = Modifier.width(8.dp))
-                                                    Text(when (value) {
-                                                        NavigationTab.HOME -> stringResource(R.string.home)
-                                                        NavigationTab.SEARCH -> stringResource(R.string.search)
-                                                        NavigationTab.LIBRARY -> stringResource(R.string.filter_library)
-                                                    })
-                                                }
-                                            }
-                                        }
-                                    },
-                                    confirmButton = {
-                                        TextButton(onClick = { showTabDialog = false }) {
-                                            Text("Cancel")
-                                        }
-                                    }
-                                )
-                            }
 
+                            // In your AppearanceSettings function, replace the Default Library Chip dialog code with this:
+
+// Default Library Chip - Navigates to separate screen
                             HorizontalDivider(
                                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
                                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                             )
 
-                            // Default Library Chip with Dialog
-                            var showChipDialog by remember { mutableStateOf(false) }
                             ModernInfoItem(
                                 icon = { Icon(painterResource(R.drawable.tab), null, modifier = Modifier.size(22.dp)) },
                                 title = stringResource(R.string.default_lib_chips),
@@ -980,59 +891,11 @@ fun AppearanceSettings(
                                     LibraryFilter.PLAYLISTS -> stringResource(R.string.playlists)
                                     LibraryFilter.LIBRARY -> stringResource(R.string.filter_library)
                                 },
-                                onClick = { showChipDialog = true },
+                                onClick = {
+                                    navController.navigate("LibraryChip")
+                                },
                                 showArrow = true
                             )
-
-                            if (showChipDialog) {
-                                AlertDialog(
-                                    onDismissRequest = { showChipDialog = false },
-                                    title = { Text(stringResource(R.string.default_lib_chips)) },
-                                    text = {
-                                        Column {
-                                            listOf(
-                                                LibraryFilter.LIBRARY,
-                                                LibraryFilter.PLAYLISTS,
-                                                LibraryFilter.SONGS,
-                                                LibraryFilter.ALBUMS,
-                                                LibraryFilter.ARTISTS
-                                            ).forEach { value ->
-                                                Row(
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .clickable {
-                                                            onDefaultChipChange(value)
-                                                            showChipDialog = false
-                                                        }
-                                                        .padding(vertical = 12.dp),
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
-                                                    RadioButton(
-                                                        selected = value == defaultChip,
-                                                        onClick = {
-                                                            onDefaultChipChange(value)
-                                                            showChipDialog = false
-                                                        }
-                                                    )
-                                                    Spacer(modifier = Modifier.width(8.dp))
-                                                    Text(when (value) {
-                                                        LibraryFilter.SONGS -> stringResource(R.string.songs)
-                                                        LibraryFilter.ARTISTS -> stringResource(R.string.artists)
-                                                        LibraryFilter.ALBUMS -> stringResource(R.string.albums)
-                                                        LibraryFilter.PLAYLISTS -> stringResource(R.string.playlists)
-                                                        LibraryFilter.LIBRARY -> stringResource(R.string.filter_library)
-                                                    })
-                                                }
-                                            }
-                                        }
-                                    },
-                                    confirmButton = {
-                                        TextButton(onClick = { showChipDialog = false }) {
-                                            Text("Cancel")
-                                        }
-                                    }
-                                )
-                            }
 
                             HorizontalDivider(
                                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
@@ -1087,8 +950,6 @@ fun AppearanceSettings(
                                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                             )
 
-                            // Grid Item Size with Dialog
-                            var showGridSizeDialog by remember { mutableStateOf(false) }
                             ModernInfoItem(
                                 icon = { Icon(painterResource(R.drawable.grid_view), null, modifier = Modifier.size(22.dp)) },
                                 title = stringResource(R.string.grid_cell_size),
@@ -1096,50 +957,11 @@ fun AppearanceSettings(
                                     GridItemSize.BIG -> stringResource(R.string.big)
                                     GridItemSize.SMALL -> stringResource(R.string.small)
                                 },
-                                onClick = { showGridSizeDialog = true },
+                                onClick = {
+                                    navController.navigate("gridItemSize")
+                                },
                                 showArrow = true
                             )
-
-                            if (showGridSizeDialog) {
-                                AlertDialog(
-                                    onDismissRequest = { showGridSizeDialog = false },
-                                    title = { Text(stringResource(R.string.grid_cell_size)) },
-                                    text = {
-                                        Column {
-                                            enumValues<GridItemSize>().forEach { value ->
-                                                Row(
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .clickable {
-                                                            onGridItemSizeChange(value)
-                                                            showGridSizeDialog = false
-                                                        }
-                                                        .padding(vertical = 12.dp),
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
-                                                    RadioButton(
-                                                        selected = value == gridItemSize,
-                                                        onClick = {
-                                                            onGridItemSizeChange(value)
-                                                            showGridSizeDialog = false
-                                                        }
-                                                    )
-                                                    Spacer(modifier = Modifier.width(8.dp))
-                                                    Text(when (value) {
-                                                        GridItemSize.BIG -> stringResource(R.string.big)
-                                                        GridItemSize.SMALL -> stringResource(R.string.small)
-                                                    })
-                                                }
-                                            }
-                                        }
-                                    },
-                                    confirmButton = {
-                                        TextButton(onClick = { showGridSizeDialog = false }) {
-                                            Text("Cancel")
-                                        }
-                                    }
-                                )
-                            }
                         }
                     }
                 }
