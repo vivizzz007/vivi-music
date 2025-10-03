@@ -213,7 +213,7 @@ import java.util.Locale
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.days
 import coil3.compose.AsyncImage
-import com.music.vivi.update.updatenotification.UpdateNotificationManager
+import com.music.vivi.update.updatenotification.UpdateChecker
 import kotlin.compareTo
 import kotlin.text.get
 
@@ -292,18 +292,6 @@ class MainActivity : ComponentActivity() {
             playerConnection = null
         }
     }
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>, // Remove the (out) type projection
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
-        if (requestCode == 1000 && grantResults.isNotEmpty() &&
-            grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            UpdateNotificationManager(applicationContext).schedulePeriodicUpdateCheck()
-        }
-    }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
@@ -328,6 +316,10 @@ class MainActivity : ComponentActivity() {
                 ?: Locale.getDefault()
             setAppLocale(this, locale)
         }
+
+
+        // Check for updates when app opens
+        UpdateChecker.checkForUpdateNow(this)
         
         lifecycleScope.launch {
             dataStore.data
@@ -346,43 +338,9 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            val checkForUpdates by rememberPreference(CheckForUpdatesKey, defaultValue = true)
+//            val checkForUpdates by rememberPreference(CheckForUpdatesKey, defaultValue = true)
 
-            LaunchedEffect(checkForUpdates) {
-                if (checkForUpdates) {
-                    withContext(Dispatchers.IO) {
-                        if (System.currentTimeMillis() - Updater.lastCheckTime > 1.days.inWholeMilliseconds) {
-                            val updatesEnabled = dataStore.get(CheckForUpdatesKey, true)
-                            val notifEnabled = dataStore.get(UpdateNotificationsEnabledKey, true)
-                            if (!updatesEnabled) return@withContext
-                            Updater.getLatestVersionName().onSuccess {
-                                latestVersionName = it
-                                if (it != BuildConfig.VERSION_NAME && notifEnabled) {
-                                    val downloadUrl = Updater.getLatestDownloadUrl()
-                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(downloadUrl))
 
-                                    val flags = PendingIntent.FLAG_UPDATE_CURRENT or
-                                            (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0)
-                                    val pending = PendingIntent.getActivity(this@MainActivity, 1001, intent, flags)
-
-                                    val notif = NotificationCompat.Builder(this@MainActivity, "updates")
-                                        .setSmallIcon(R.drawable.update)
-                                        .setContentTitle(getString(R.string.update_available_title))
-                                        .setContentText(it)
-                                        .setContentIntent(pending)
-                                        .setAutoCancel(true)
-                                        .build()
-                                    NotificationManagerCompat.from(this@MainActivity).notify(1001, notif)
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    // when the user disables updates, reset to the current version
-                    // to trick the app into thinking it's on the latest version
-                    latestVersionName = BuildConfig.VERSION_NAME
-                }
-            }
 
             val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)
             val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)

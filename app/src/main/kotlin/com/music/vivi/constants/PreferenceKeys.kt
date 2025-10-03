@@ -30,6 +30,12 @@ enum class SliderStyle {
 //swipegesture
 val SwipeGestureEnabledKey = booleanPreferencesKey("swipe_gesture_enabled")
 
+//new update notification
+val CheckForUpdatesKey = booleanPreferencesKey("check_for_updates")
+val UpdateNotificationsEnabledKey = booleanPreferencesKey("update_notifications_enabled")
+
+val UpdateCheckIntervalKey = intPreferencesKey("update_check_interval")
+
 const val SYSTEM_DEFAULT = "SYSTEM_DEFAULT"
 val AppLanguageKey = stringPreferencesKey("appLanguage")
 val ContentLanguageKey = stringPreferencesKey("contentLanguage")
@@ -43,8 +49,7 @@ val ProxyTypeKey = stringPreferencesKey("proxyType")
 val ProxyUsernameKey = stringPreferencesKey("proxyUsername")
 val ProxyPasswordKey = stringPreferencesKey("proxyPassword")
 val YtmSyncKey = booleanPreferencesKey("ytmSync")
-val CheckForUpdatesKey = booleanPreferencesKey("checkForUpdates")
-val UpdateNotificationsEnabledKey = booleanPreferencesKey("updateNotifications")
+
 
 val AudioQualityKey = stringPreferencesKey("audioQuality")
 

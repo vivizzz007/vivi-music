@@ -23,6 +23,7 @@ import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.reportException
 import com.music.innertube.YouTube
 import com.music.innertube.models.YouTubeLocale
+import com.music.vivi.update.updatenotification.UpdateChecker
 import com.music.vivi.utils.get
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -66,6 +67,8 @@ class App : Application(), SingletonImageLoader.Factory {
         if (languageTag == "zh-TW") {
             KuGou.useTraditionalChinese = true
         }
+        // Schedule periodic update checks
+        UpdateChecker.scheduleUpdateCheck(this)
 
         if (dataStore[ProxyEnabledKey] == true) {
             val username = dataStore[ProxyUsernameKey].orEmpty()

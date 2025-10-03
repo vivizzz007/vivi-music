@@ -400,38 +400,38 @@ fun UpdaterScreen(
                         )
 
                         // Manual Check Now button
-                        HorizontalDivider(
-                            modifier = Modifier.padding(start = 56.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                        )
-
-                        SettingItem(
-                            icon = {
-                                Icon(
-                                    painter = painterResource(R.drawable.refresh),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(24.dp),
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            },
-                            title = "Check for updates now",
-                            subtitle = "Manually check for the latest version",
-                            onClick = {
-                                UpdateChecker.checkForUpdateNow(context)
-                                Toast.makeText(
-                                    context,
-                                    "Checking for updates...",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            },
-                            trailing = {
-                                Icon(
-                                    imageVector = Icons.Default.ChevronRight,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        )
+//                        HorizontalDivider(
+//                            modifier = Modifier.padding(start = 56.dp),
+//                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+//                        )
+//
+//                        SettingItem(
+//                            icon = {
+//                                Icon(
+//                                    painter = painterResource(R.drawable.refresh),
+//                                    contentDescription = null,
+//                                    modifier = Modifier.size(24.dp),
+//                                    tint = MaterialTheme.colorScheme.primary
+//                                )
+//                            },
+//                            title = "Check for updates now",
+//                            subtitle = "Manually check for the latest version",
+//                            onClick = {
+//                                UpdateChecker.checkForUpdateNow(context)
+//                                Toast.makeText(
+//                                    context,
+//                                    "Checking for updates...",
+//                                    Toast.LENGTH_SHORT
+//                                ).show()
+//                            },
+//                            trailing = {
+//                                Icon(
+//                                    imageVector = Icons.Default.ChevronRight,
+//                                    contentDescription = null,
+//                                    tint = MaterialTheme.colorScheme.primary
+//                                )
+//                            }
+//                        )
                     }
                 }
             }
@@ -486,10 +486,10 @@ fun UpdaterScreen(
                         description = "Get notified when new versions are available for download"
                     )
 
-                    InfoItem(
-                        title = "Check now",
-                        description = "Instantly check for updates without waiting for the scheduled check"
-                    )
+//                    InfoItem(
+//                        title = "Check now",
+//                        description = "Instantly check for updates without waiting for the scheduled check"
+//                    )
 
                     Spacer(modifier = Modifier.height(12.dp))
 
