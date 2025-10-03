@@ -2,7 +2,10 @@ package com.music.vivi.ui.component
 
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
@@ -10,10 +13,12 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -26,6 +31,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -36,7 +42,9 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -243,6 +251,194 @@ fun GridItem(
     thumbnailRatio = thumbnailRatio,
     fillMaxWidth = fillMaxWidth
 )
+
+
+@Composable
+fun AlbumSongButtonItem(
+    song: Song,
+    albumIndex: Int,
+    isActive: Boolean,
+    isPlaying: Boolean,
+    isSelected: Boolean,
+    onMenuClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val download by LocalDownloadUtil.current.getDownload(song.id)
+        .collectAsState(initial = null)
+
+    // Animated colors based on active state (using original AlbumScreen colors)
+    val containerColor by animateColorAsState(
+        targetValue = if (isActive) {
+            MaterialTheme.colorScheme.primaryContainer
+        } else {
+            MaterialTheme.colorScheme.surfaceContainer
+        },
+        animationSpec = spring(dampingRatio = 0.6f, stiffness = 400f),
+        label = "containerColor"
+    )
+
+    val contentColor = if (isActive) {
+        MaterialTheme.colorScheme.onPrimaryContainer
+    } else {
+        MaterialTheme.colorScheme.onSurface
+    }
+
+    Surface(
+        modifier = modifier,
+//            .border(
+//                width = 1.dp,
+//                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+//                shape = CircleShape
+//            ),
+        shape = CircleShape,
+        color = containerColor,
+        contentColor = contentColor
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 66.dp)
+                .padding(horizontal = 20.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Album artwork with track number or playing indicator
+            val cornerRadius by animateDpAsState(
+                targetValue = if (isActive) 21.dp else 8.dp,
+                animationSpec = spring(dampingRatio = 0.7f, stiffness = 300f),
+                label = "cornerRadius"
+            )
+
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(RoundedCornerShape(cornerRadius))
+            ) {
+                AsyncImage(
+                    model = song.song.thumbnailUrl?.resize(96, 96),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            if (isActive) {
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                            } else {
+                                Color.Black.copy(alpha = 0.4f)
+                            }
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    when {
+                        isActive && isPlaying -> {
+                            PlayingIndicator(
+                                color = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        isActive && !isPlaying -> {
+                            Icon(
+                                painter = painterResource(R.drawable.play),
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        else -> {
+                            Text(
+                                text = albumIndex.toString(),
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            // Song info
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = song.song.title,
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium
+                    ),
+                    color = contentColor,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = song.artists.joinToString { it.name },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = contentColor.copy(alpha = 0.7f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+
+                    // Badges
+                    if (song.song.liked) {
+                        Icon(
+                            painter = painterResource(R.drawable.favorite),
+                            contentDescription = null,
+                            tint = contentColor.copy(alpha = 0.7f),
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
+                    if (song.song.explicit) {
+                        Icon(
+                            painter = painterResource(R.drawable.explicit),
+                            contentDescription = null,
+                            tint = contentColor.copy(alpha = 0.7f),
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
+                    if (song.song.inLibrary != null) {
+                        Icon(
+                            painter = painterResource(R.drawable.library_add_check),
+                            contentDescription = null,
+                            tint = contentColor.copy(alpha = 0.7f),
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
+                    if (download?.state == Download.STATE_COMPLETED) {
+                        Icon(
+                            painter = painterResource(R.drawable.offline),
+                            contentDescription = null,
+                            tint = contentColor.copy(alpha = 0.7f),
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            // Menu button
+            IconButton(
+                onClick = onMenuClick,
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.more_vert),
+                    contentDescription = null,
+                    tint = contentColor,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+    }
+}
 
 @Composable
 fun SongListItem(
