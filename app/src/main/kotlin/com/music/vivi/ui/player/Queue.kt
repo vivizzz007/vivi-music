@@ -215,6 +215,7 @@ fun Queue(
                     val iconSize = 24.dp
                     val borderColor = TextBackgroundColor.copy(alpha = 0.35f)
 
+                    Spacer(modifier = Modifier.weight(1f))
 
                     Box(
                         modifier = Modifier
@@ -247,7 +248,7 @@ fun Queue(
                             tint = TextBackgroundColor
                         )
                     }
-                    Spacer(modifier = Modifier.weight(1f))
+
 
                     Box(
                         modifier = Modifier
@@ -289,7 +290,7 @@ fun Queue(
                             }
                         }
                     }
-                    Spacer(modifier = Modifier.weight(1f))
+//                    Spacer(modifier = Modifier.weight(1f))
 
                     Box(
                         modifier = Modifier
@@ -309,7 +310,7 @@ fun Queue(
                         )
                     }
 
-                    Spacer(modifier = Modifier.weight(1f))
+//                    Spacer(modifier = Modifier.weight(1f))
 
                     Box(
                         modifier = Modifier
@@ -352,7 +353,7 @@ fun Queue(
                             tint = TextBackgroundColor
                         )
                     }
-
+                    Spacer(modifier = Modifier.weight(1f))
 //                    Spacer(modifier = Modifier.weight(1f))
 //
 //                    Box(
