@@ -73,10 +73,12 @@ import androidx.compose.material.icons.filled.Warning
 
 
 import androidx.compose.material.icons.filled.SystemUpdate
+import com.music.vivi.update.experiment.getSelectedApkVariant
 import java.util.regex.Pattern
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+
 fun UpdateScreen(navController: NavHostController) {
     // State variables
     var updateAvailable by remember { mutableStateOf(false) }
@@ -223,15 +225,14 @@ fun UpdateScreen(navController: NavHostController) {
                     .padding(horizontal = 24.dp),
                 horizontalAlignment = Alignment.Start
             ) {
-                Spacer(modifier = Modifier.height(24.dp)) // Reduced from 40dp
-                // System update icon for installing
+                Spacer(modifier = Modifier.height(24.dp))
                 Icon(
                     imageVector = Icons.Default.SystemUpdate,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary, // Use theme color instead of fixed yellow
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(48.dp)
                 )
-                Spacer(modifier = Modifier.height(24.dp)) // Reduced from 40dp
+                Spacer(modifier = Modifier.height(24.dp))
                 Text(
                     text = "Installing system\nupdate...",
                     style = MaterialTheme.typography.headlineMedium.copy(
@@ -242,13 +243,12 @@ fun UpdateScreen(navController: NavHostController) {
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(32.dp))
-                // Progress bar
                 LinearProgressIndicator(
                     progress = installProgress,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(8.dp), // Increased thickness
-                    color = MaterialTheme.colorScheme.primary, // Use theme color
+                        .height(8.dp),
+                    color = MaterialTheme.colorScheme.primary,
                     trackColor = MaterialTheme.colorScheme.surfaceVariant
                 )
                 Spacer(modifier = Modifier.height(32.dp))
@@ -310,7 +310,6 @@ fun UpdateScreen(navController: NavHostController) {
                         val annotatedText = buildAnnotatedString {
                             append(item.trim())
 
-                            // Add URL annotations
                             urls.forEach { (range, url) ->
                                 addStringAnnotation(
                                     tag = "URL",
@@ -329,7 +328,6 @@ fun UpdateScreen(navController: NavHostController) {
                             }
                         }
 
-                        // Remove the Row with bullet point and just use ClickableText directly
                         ClickableText(
                             text = annotatedText,
                             onClick = { offset ->
@@ -353,7 +351,6 @@ fun UpdateScreen(navController: NavHostController) {
                     }
                 }
                 Spacer(modifier = Modifier.height(40.dp))
-                // Pause button at bottom - improved styling
                 TextButton(
                     onClick = {
                         isInstalling = false
@@ -385,20 +382,17 @@ fun UpdateScreen(navController: NavHostController) {
                             .fillMaxWidth()
                             .padding(horizontal = 24.dp)
                     ) {
-                        Spacer(modifier = Modifier.height(24.dp)) // Reduced from 40dp
-                        // System update icon (more authentic to Pixel)
+                        Spacer(modifier = Modifier.height(24.dp))
                         Icon(
                             imageVector = Icons.Default.SystemUpdate,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(48.dp)
                         )
-                        Spacer(modifier = Modifier.height(20.dp)) // Reduced from 40dp to 20dp
-                        // Main title
+                        Spacer(modifier = Modifier.height(20.dp))
                         when {
                             updateAvailable -> {
                                 Text(
-//                                    text = "App update\navailable",
                                     text = "Update Available",
                                     style = MaterialTheme.typography.headlineMedium.copy(
                                         fontSize = 36.sp,
@@ -443,7 +437,6 @@ fun UpdateScreen(navController: NavHostController) {
                             }
                         }
                         Spacer(modifier = Modifier.height(20.dp))
-                        // Content based on state
                         when {
                             updateAvailable -> {
                                 Text(
@@ -462,12 +455,6 @@ fun UpdateScreen(navController: NavHostController) {
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
-//                                Spacer(modifier = Modifier.height(8.dp))
-//                                Text(
-//                                    text = "Get the latest version.",
-//                                    style = MaterialTheme.typography.bodyLarge,
-//                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-//                                )
                                 Spacer(modifier = Modifier.height(10.dp))
                                 val annotatedString = buildAnnotatedString {
                                     append("Your app will update to ${updateMessageVersion}.\nLearn more ")
@@ -497,15 +484,14 @@ fun UpdateScreen(navController: NavHostController) {
                                         lineHeight = 24.sp
                                     )
                                 )
-                                // Progress bar for downloading
                                 if (isDownloading) {
                                     Spacer(modifier = Modifier.height(24.dp))
                                     LinearProgressIndicator(
                                         progress = downloadProgress,
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(8.dp), // Increased thickness
-                                        color = MaterialTheme.colorScheme.primary, // Use theme color
+                                            .height(8.dp),
+                                        color = MaterialTheme.colorScheme.primary,
                                         trackColor = MaterialTheme.colorScheme.surfaceVariant
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
@@ -528,7 +514,6 @@ fun UpdateScreen(navController: NavHostController) {
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Spacer(modifier = Modifier.height(12.dp))
-                                // Display changelog
                                 if (changelog.isNotEmpty()) {
                                     val changelogItems = changelog.split("\n").filter { it.isNotBlank() }
                                     changelogItems.forEach { item ->
@@ -536,7 +521,6 @@ fun UpdateScreen(navController: NavHostController) {
                                         val annotatedText = buildAnnotatedString {
                                             append(item.trim())
 
-                                            // Add URL annotations
                                             urls.forEach { (range, url) ->
                                                 addStringAnnotation(
                                                     tag = "URL",
@@ -555,7 +539,6 @@ fun UpdateScreen(navController: NavHostController) {
                                             }
                                         }
 
-                                        // NO BULLET POINTS - Direct ClickableText
                                         ClickableText(
                                             text = annotatedText,
                                             onClick = { offset ->
@@ -597,13 +580,12 @@ fun UpdateScreen(navController: NavHostController) {
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
-
                             }
                             isChecking -> {
                                 LinearProgressIndicator(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .height(8.dp), // Increased thickness
+                                        .height(8.dp),
                                     color = MaterialTheme.colorScheme.primary,
                                     trackColor = MaterialTheme.colorScheme.surfaceVariant
                                 )
@@ -631,10 +613,10 @@ fun UpdateScreen(navController: NavHostController) {
                                 }
                             }
                         }
-                        Spacer(modifier = Modifier.height(100.dp)) // Space for bottom button
+                        Spacer(modifier = Modifier.height(100.dp))
                     }
                 }
-//button updater
+
                 // Bottom button with background container
                 Surface(
                     modifier = Modifier
@@ -658,10 +640,11 @@ fun UpdateScreen(navController: NavHostController) {
                             onClick = {
                                 when {
                                     updateAvailable && !isDownloading && !isDownloadComplete -> {
-                                        // Start download
+                                        // Start download with selected APK variant
                                         isDownloading = true
                                         downloadProgress = 0f
-                                        val apkUrl = "https://github.com/vivizzz007/vivi-music/releases/download/v$updateMessageVersion/vivi.apk"
+                                        val selectedVariant = getSelectedApkVariant(context)
+                                        val apkUrl = "https://github.com/vivizzz007/vivi-music/releases/download/v$updateMessageVersion/$selectedVariant"
                                         downloadApk(
                                             context = context,
                                             apkUrl = apkUrl,
@@ -671,7 +654,6 @@ fun UpdateScreen(navController: NavHostController) {
                                             onDownloadComplete = {
                                                 isDownloading = false
                                                 isDownloadComplete = true
-                                                // Don't reset to check for update state
                                             }
                                         )
                                     }
@@ -679,13 +661,13 @@ fun UpdateScreen(navController: NavHostController) {
                                         // Pause download
                                         isDownloading = false
                                         downloadProgress = 0f
-                                        // Reset to initial update available state
                                     }
                                     isDownloadComplete -> {
-                                        // Install the APK
+                                        // Install the APK with selected variant
+                                        val selectedVariant = getSelectedApkVariant(context)
                                         val file = File(
                                             context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),
-                                            "vivi.apk"
+                                            selectedVariant
                                         )
                                         val uri = FileProvider.getUriForFile(
                                             context,
@@ -700,7 +682,6 @@ fun UpdateScreen(navController: NavHostController) {
                                         ContextCompat.startActivity(context, installIntent, null)
                                     }
                                     !isChecking && !updateAvailable -> {
-                                        // Only trigger update check when no update is available
                                         triggerUpdateCheck()
                                         updateMessage = ""
                                     }
@@ -734,7 +715,6 @@ fun UpdateScreen(navController: NavHostController) {
                             )
                         }
                     }
-
                 }
             }
         }
@@ -742,9 +722,9 @@ fun UpdateScreen(navController: NavHostController) {
 }
 
 // Utility functions for SharedPreferences
- const val PREFS_NAME = "app_settings"
- const val KEY_AUTO_UPDATE_CHECK = "auto_update_check_enabled"
- const val KEY_LAST_CHECKED_TIME = "last_checked_time"
+const val PREFS_NAME = "app_settings"
+const val KEY_AUTO_UPDATE_CHECK = "auto_update_check_enabled"
+const val KEY_LAST_CHECKED_TIME = "last_checked_time"
 
 fun getAutoUpdateCheckSetting(context: Context): Boolean {
     val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -772,18 +752,18 @@ private fun formatGitHubDate(githubDate: String): String {
     }
 }
 
-
 private fun downloadApk(
     context: Context,
     apkUrl: String,
     onProgress: (Float) -> Unit,
     onDownloadComplete: () -> Unit
 ) {
+    val selectedVariant = getSelectedApkVariant(context)
     val request = DownloadManager.Request(Uri.parse(apkUrl))
         .setDestinationInExternalFilesDir(
             context,
             Environment.DIRECTORY_DOWNLOADS,
-            "vivi.apk"
+            selectedVariant
         )
         .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
         .setTitle("Downloading Vivi Music Update")
@@ -832,8 +812,7 @@ private fun downloadApk(
     }
 }
 
-// Robust version comparison: returns true if latestVersion > currentVersion
- fun isNewerVersion(latestVersion: String, currentVersion: String): Boolean {
+fun isNewerVersion(latestVersion: String, currentVersion: String): Boolean {
     val latestParts = latestVersion.split(".").map { it.toIntOrNull() ?: 0 }
     val currentParts = currentVersion.split(".").map { it.toIntOrNull() ?: 0 }
     for (i in 0 until maxOf(latestParts.size, currentParts.size)) {
@@ -847,8 +826,7 @@ private fun downloadApk(
     return false
 }
 
-// Fetches ALL releases, finds the latest version > current, and returns its info
- suspend fun checkForUpdate(
+suspend fun checkForUpdate(
     onSuccess: (String, String, String, String) -> Unit,
     onError: () -> Unit
 ) {
@@ -861,7 +839,6 @@ private fun downloadApk(
 
             val currentVersion = BuildConfig.VERSION_NAME
 
-            // Find the highest version > currentVersion
             for (i in 0 until releases.length()) {
                 val release = releases.getJSONObject(i)
                 val tag = release.getString("tag_name").removePrefix("v")
@@ -890,7 +867,6 @@ private fun downloadApk(
                     withContext(Dispatchers.Main) { onError() }
                 }
             } else {
-                // No update found; fallback to latest for message
                 val latest = if (releases.length() > 0) releases.getJSONObject(0) else null
                 if (latest != null) {
                     val tag = latest.getString("tag_name").removePrefix("v")
@@ -924,11 +900,9 @@ fun String.extractUrls(): List<Pair<IntRange, String>> {
     while (matcher.find()) {
         val url = matcher.group(1)?.trim() ?: continue
         val range = IntRange(matcher.start(1), matcher.end(1) - 1)
-        // Ensure URL has proper scheme
         val fullUrl = if (url.startsWith("http")) url else "https://$url"
         urlList.add(range to fullUrl)
     }
 
     return urlList
 }
-

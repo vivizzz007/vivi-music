@@ -57,6 +57,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
@@ -81,6 +82,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
@@ -89,6 +91,10 @@ import androidx.work.WorkManager
 import com.music.vivi.MainActivity
 import com.music.vivi.ui.screens.getAutoUpdateCheckSetting
 import com.music.vivi.update.mordernswitch.ModernSwitch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.net.URL
 
 
 @Composable
@@ -156,7 +162,6 @@ fun SettingsListItem(
                 }
             }
 
-            // Add divider if not last item
             if (!isLast) {
                 Divider(
                     modifier = Modifier.padding(horizontal = 20.dp),
@@ -205,14 +210,6 @@ fun SettingsSection(
     }
 }
 
-//fun saveAutoUpdateCheckSetting(context: Context, enabled: Boolean) {
-//    context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().apply {
-//        putBoolean(KEY_AUTO_UPDATE_CHECK, enabled)
-//        apply()
-//    }
-//}
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExperimentalSettingsScreen(navController: NavController) {
@@ -220,7 +217,6 @@ fun ExperimentalSettingsScreen(navController: NavController) {
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
 
-    // Calculate scroll-based animations
     val titleAlpha by remember {
         derivedStateOf {
             1f - (scrollState.value / 200f).coerceIn(0f, 1f)
@@ -236,6 +232,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
     var autoUpdateCheckEnabled by remember { mutableStateOf(getAutoUpdateCheckSetting(context)) }
     var betaUpdaterEnabled by remember { mutableStateOf(getBetaUpdaterSetting(context)) }
     var updateCheckInterval by remember { mutableStateOf(getUpdateCheckInterval(context)) }
+    var selectedApkVariant by remember { mutableStateOf(getSelectedApkVariant(context)) }
 
     val resetSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showResetSheet by remember { mutableStateOf(false) }
@@ -245,6 +242,9 @@ fun ExperimentalSettingsScreen(navController: NavController) {
 
     val intervalSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showIntervalSheet by remember { mutableStateOf(false) }
+
+    val variantSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var showVariantSheet by remember { mutableStateOf(false) }
 
     fun resetApp(context: Context) {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().clear().apply()
@@ -269,7 +269,182 @@ fun ExperimentalSettingsScreen(navController: NavController) {
         Runtime.getRuntime().exit(0)
     }
 
-    // Bottom Sheets
+    // APK Variant Selection Bottom Sheet
+    // APK Variant Selection Bottom Sheet
+    if (showVariantSheet) {
+        var apkVariants by remember { mutableStateOf<List<Pair<String, String>>>(emptyList()) }
+        var isLoadingVariants by remember { mutableStateOf(true) }
+        var loadError by remember { mutableStateOf(false) }
+
+        LaunchedEffect(Unit) {
+            isLoadingVariants = true
+            loadError = false
+            try {
+                apkVariants = fetchAvailableApkVariants()
+                isLoadingVariants = false
+            } catch (e: Exception) {
+                loadError = true
+                isLoadingVariants = false
+                apkVariants = listOf(DEFAULT_APK_VARIANT to "Universal (Recommended)")
+            }
+        }
+
+        ModalBottomSheet(
+            onDismissRequest = {
+                coroutineScope.launch {
+                    variantSheetState.hide()
+                    showVariantSheet = false
+                }
+            },
+            sheetState = variantSheetState,
+            dragHandle = { SheetDragHandle() }
+        ) {
+            Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
+                Text(
+                    "Select APK variant",
+                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    "Choose which APK file to download during updates. These are the available variants from the latest release.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                when {
+                    isLoadingVariants -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                CircularProgressIndicator(modifier = Modifier.size(40.dp))
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    "Fetching available APK variants...",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                    loadError -> {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Error,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    "Unable to fetch APK variants",
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+                                    color = MaterialTheme.colorScheme.onErrorContainer
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    "Using default variant: vivi.apk",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f)
+                                )
+                            }
+                        }
+                    }
+                    else -> {
+                        if (apkVariants.isEmpty()) {
+                            Text(
+                                "No APK variants found in the latest release.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        } else {
+                            apkVariants.forEach { (variant, description) ->
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 6.dp)
+                                        .clickable {
+                                            selectedApkVariant = variant
+                                            saveSelectedApkVariant(context, variant)
+                                            coroutineScope.launch {
+                                                variantSheetState.hide()
+                                                showVariantSheet = false
+                                            }
+                                        },
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = if (selectedApkVariant == variant) {
+                                            MaterialTheme.colorScheme.primaryContainer
+                                        } else {
+                                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                        }
+                                    ),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                variant,
+                                                style = MaterialTheme.typography.bodyLarge.copy(
+                                                    fontWeight = FontWeight.SemiBold
+                                                ),
+                                                color = if (selectedApkVariant == variant) {
+                                                    MaterialTheme.colorScheme.onPrimaryContainer
+                                                } else {
+                                                    MaterialTheme.colorScheme.onSurface
+                                                }
+                                            )
+                                            Spacer(modifier = Modifier.height(2.dp))
+                                            Text(
+                                                description,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = if (selectedApkVariant == variant) {
+                                                    MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                                                } else {
+                                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                                }
+                                            )
+                                        }
+                                        if (selectedApkVariant == variant) {
+                                            Icon(
+                                                imageVector = Icons.Default.CheckCircle,
+                                                contentDescription = "Selected",
+                                                tint = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.size(24.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+        }
+    }
+
+    // Feedback Bottom Sheet
     if (showBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = {
@@ -343,6 +518,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
         }
     }
 
+    // Update Interval Bottom Sheet
     if (showIntervalSheet) {
         ModalBottomSheet(
             onDismissRequest = {
@@ -429,6 +605,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
         }
     }
 
+    // Reset App Bottom Sheet
     if (showResetSheet) {
         ModalBottomSheet(
             onDismissRequest = {
@@ -513,7 +690,6 @@ fun ExperimentalSettingsScreen(navController: NavController) {
             contentPadding = PaddingValues(vertical = 8.dp)
         ) {
             item {
-                // Header Section with scroll animations
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -538,48 +714,26 @@ fun ExperimentalSettingsScreen(navController: NavController) {
             }
 
             item {
-//                SettingsSection("Updates") {
-//                    SettingsListItem(
-//                        title = "Auto check for updates",
-//                        subtitle = if (autoUpdateCheckEnabled) "Enabled" else "Disabled",
-//                        onClick = {
-//                            autoUpdateCheckEnabled = !autoUpdateCheckEnabled
-//                            saveAutoUpdateCheckSetting(context, autoUpdateCheckEnabled)
-//                        },
-//                        isHighlighted = false, // Changed from autoUpdateCheckEnabled to false
-//                        isLast = !autoUpdateCheckEnabled,
-//                        trailingContent = {
-//                            ModernSwitch(
-//                                checked = autoUpdateCheckEnabled,
-//                                onCheckedChange = { isChecked ->
-//                                    autoUpdateCheckEnabled = isChecked
-//                                    saveAutoUpdateCheckSetting(context, isChecked)
-//                                }
-//                            )
-//                        }
-//                    )
-
-//                    if (autoUpdateCheckEnabled) {
-//                        SettingsListItem(
-//                            title = "Update check interval",
-//                            subtitle = "After $updateCheckInterval hours of inactivity",
-//                            onClick = {
-//                                coroutineScope.launch {
-//                                    showIntervalSheet = true
-//                                    intervalSheetState.show()
-//                                }
-//                            },
-//                            isLast = true,
-//                            trailingContent = {
-//                                Icon(
-//                                    imageVector = Icons.Default.ChevronRight,
-//                                    contentDescription = null,
-//                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-//                                )
-//                            }
-//                        )
-//                    }
-//                }
+                SettingsSection("Updates") {
+                    SettingsListItem(
+                        title = "APK variant",
+                        subtitle = selectedApkVariant,
+                        onClick = {
+                            coroutineScope.launch {
+                                showVariantSheet = true
+                                variantSheetState.show()
+                            }
+                        },
+                        isLast = true,
+                        trailingContent = {
+                            Icon(
+                                imageVector = Icons.Default.ChevronRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
+                }
             }
 
             item {
@@ -587,7 +741,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                     SettingsListItem(
                         title = "Beta updater",
                         subtitle = "Automatically applies updates to more features for improved functionality",
-                        isHighlighted = false, // Changed from betaUpdaterEnabled to false
+                        isHighlighted = false,
                         isLast = !betaUpdaterEnabled,
                         trailingContent = {
                             ModernSwitch(
@@ -619,6 +773,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                     }
                 }
             }
+
             item {
                 SettingsSection("Support") {
                     SettingsListItem(
@@ -669,7 +824,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
 }
 
 @Composable
- fun SheetDragHandle() {
+fun SheetDragHandle() {
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.Center
@@ -741,7 +896,6 @@ private fun sendFeedbackEmail(context: Context) {
     }
 }
 
-
 fun saveBetaUpdaterSetting(context: Context, enabled: Boolean) {
     context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().apply {
         putBoolean(KEY_BETA_UPDATER_ENABLED, enabled)
@@ -754,19 +908,71 @@ fun getBetaUpdaterSetting(context: Context): Boolean {
         .getBoolean(KEY_BETA_UPDATER_ENABLED, false)
 }
 
+// APK Variant Settings
+fun getSelectedApkVariant(context: Context): String {
+    return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        .getString(KEY_SELECTED_APK_VARIANT, DEFAULT_APK_VARIANT) ?: DEFAULT_APK_VARIANT
+}
 
- const val PREFS_NAME = "app_settings"
- const val KEY_AUTO_UPDATE_CHECK = "auto_update_check_enabled"
- const val KEY_BETA_UPDATER_ENABLED = "beta_updater_enabled"
- const val KEY_UPDATE_CHECK_INTERVAL = "update_check_interval"
- const val DEFAULT_UPDATE_CHECK_INTERVAL = 4 // hours
+fun saveSelectedApkVariant(context: Context, variant: String) {
+    context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        .edit()
+        .putString(KEY_SELECTED_APK_VARIANT, variant)
+        .apply()
+}
 
- fun getUpdateCheckInterval(context: Context): Int {
+const val PREFS_NAME = "app_settings"
+const val KEY_AUTO_UPDATE_CHECK = "auto_update_check_enabled"
+const val KEY_BETA_UPDATER_ENABLED = "beta_updater_enabled"
+const val KEY_UPDATE_CHECK_INTERVAL = "update_check_interval"
+const val KEY_SELECTED_APK_VARIANT = "selected_apk_variant"
+const val DEFAULT_UPDATE_CHECK_INTERVAL = 4
+const val DEFAULT_APK_VARIANT = "vivi.apk"
+
+fun getUpdateCheckInterval(context: Context): Int {
     val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     return prefs.getInt(KEY_UPDATE_CHECK_INTERVAL, DEFAULT_UPDATE_CHECK_INTERVAL)
 }
 
- fun saveUpdateCheckInterval(context: Context, hours: Int) {
+fun saveUpdateCheckInterval(context: Context, hours: Int) {
     val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     prefs.edit().putInt(KEY_UPDATE_CHECK_INTERVAL, hours).apply()
+}
+
+
+
+suspend fun fetchAvailableApkVariants(): List<Pair<String, String>> {
+    return withContext(Dispatchers.IO) {
+        try {
+            val url = URL("https://api.github.com/repos/vivizzz007/vivi-music/releases/latest")
+            val json = url.openStream().bufferedReader().use { it.readText() }
+            val release = JSONObject(json)
+            val assets = release.getJSONArray("assets")
+            val apkList = mutableListOf<Pair<String, String>>()
+
+            for (i in 0 until assets.length()) {
+                val asset = assets.getJSONObject(i)
+                val name = asset.getString("name")
+                if (name.endsWith(".apk")) {
+                    val sizeInBytes = asset.getLong("size")
+                    val sizeInMB = String.format("%.1f", sizeInBytes / (1024.0 * 1024.0))
+                    val description = when {
+                        name == "vivi.apk" -> "Universal - $sizeInMB MB (Recommended)"
+                        name.contains("arm64-v8a") -> "ARM64 - $sizeInMB MB (Modern phones)"
+                        name.contains("armeabi-v7a") -> "ARM - $sizeInMB MB (Older phones)"
+                        name.contains("x86_64") -> "x86_64 - $sizeInMB MB (Intel tablets)"
+                        name.contains("x86") -> "x86 - $sizeInMB MB (Emulators)"
+                        else -> "$sizeInMB MB"
+                    }
+                    apkList.add(name to description)
+                }
+            }
+
+            // Sort to put vivi.apk first
+            apkList.sortedBy { if (it.first == "vivi.apk") 0 else 1 }
+        } catch (e: Exception) {
+            Log.e("ExperimentalSettings", "Error fetching APK variants: ${e.message}")
+            listOf(DEFAULT_APK_VARIANT to "Universal (Recommended)")
+        }
+    }
 }
