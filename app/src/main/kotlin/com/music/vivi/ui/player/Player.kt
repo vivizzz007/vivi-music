@@ -42,6 +42,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalIconButton
@@ -94,6 +95,7 @@ import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.Player.STATE_ENDED
 import androidx.media3.common.Player.STATE_READY
+import androidx.media3.exoplayer.offline.Download
 import androidx.palette.graphics.Palette
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -139,6 +141,14 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import me.saket.squiggles.SquigglySlider
 import kotlin.math.roundToInt
+
+
+import androidx.media3.exoplayer.offline.DownloadRequest
+import androidx.media3.exoplayer.offline.DownloadService
+import androidx.core.net.toUri
+import com.music.vivi.LocalDatabase
+import com.music.vivi.playback.ExoDownloadService
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -214,6 +224,8 @@ fun BottomSheetPlayer(
             MaterialTheme.colorScheme.surfaceContainer
         }
     }
+//download button
+    val database = LocalDatabase.current
 
     val playbackState by playerConnection.playbackState.collectAsState()
     val isPlaying by playerConnection.isPlaying.collectAsState()
@@ -668,6 +680,7 @@ fun BottomSheetPlayer(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        // Favorite Button
                         Box(
                             modifier = Modifier
                                 .size(42.dp)
@@ -690,6 +703,84 @@ fun BottomSheetPlayer(
                                     .size(24.dp)
                             )
                         }
+
+                        // Download Button
+                        Box(
+                            modifier = Modifier
+                                .size(42.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(textButtonColor)
+                                .clickable {
+                                    when (download?.state) {
+                                        Download.STATE_COMPLETED -> {
+                                            DownloadService.sendRemoveDownload(
+                                                context,
+                                                ExoDownloadService::class.java,
+                                                mediaMetadata.id,
+                                                false,
+                                            )
+                                        }
+                                        Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
+                                            DownloadService.sendRemoveDownload(
+                                                context,
+                                                ExoDownloadService::class.java,
+                                                mediaMetadata.id,
+                                                false,
+                                            )
+                                        }
+                                        else -> {
+                                            database.transaction {
+                                                insert(mediaMetadata)
+                                            }
+                                            val downloadRequest =
+                                                DownloadRequest
+                                                    .Builder(mediaMetadata.id, mediaMetadata.id.toUri())
+                                                    .setCustomCacheKey(mediaMetadata.id)
+                                                    .setData(mediaMetadata.title.toByteArray())
+                                                    .build()
+                                            DownloadService.sendAddDownload(
+                                                context,
+                                                ExoDownloadService::class.java,
+                                                downloadRequest,
+                                                false,
+                                            )
+                                        }
+                                    }
+                                }
+                        ) {
+                            when (download?.state) {
+                                Download.STATE_COMPLETED -> {
+                                    Image(
+                                        painter = painterResource(R.drawable.offline),
+                                        contentDescription = null,
+                                        colorFilter = ColorFilter.tint(iconButtonColor),
+                                        modifier = Modifier
+                                            .align(Alignment.Center)
+                                            .size(24.dp)
+                                    )
+                                }
+                                Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier
+                                            .align(Alignment.Center)
+                                            .size(20.dp),
+                                        strokeWidth = 2.dp,
+                                        color = iconButtonColor
+                                    )
+                                }
+                                else -> {
+                                    Image(
+                                        painter = painterResource(R.drawable.download),
+                                        contentDescription = null,
+                                        colorFilter = ColorFilter.tint(iconButtonColor),
+                                        modifier = Modifier
+                                            .align(Alignment.Center)
+                                            .size(24.dp)
+                                    )
+                                }
+                            }
+                        }
+
                         // More Options Button
                         Box(
                             modifier = Modifier
