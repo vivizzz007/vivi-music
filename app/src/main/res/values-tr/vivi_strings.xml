@@ -109,7 +109,6 @@
     <string name="show_cached_playlist">"Önbellekteki" listesini göster</string>
 
     <string name="google">Google</string>
-    <string name="google_services">Google Servisleri</string>
     <string name="discord">Discord</string>
     <string name="advanced_login">Token ile giriş yap</string>
     <string name="token_hidden">Token\'ı göstermek için dokun</string>
@@ -200,8 +199,5 @@
     <string name="settings_section_player_content">Oynatıcı &amp; İçerik</string>
     <string name="settings_section_storage">Depolama &amp; Veri</string>
     <string name="settings_section_system">Sistem &amp; Hakkında</string>
-    <string name="update">Sistem Güncellemesi</string>
-    <string name="favourite">Favori</string>
     <string name="pause">Duraklat</string>
-    <string name="homeme">Ana Sayfa</string>
 </resources>
