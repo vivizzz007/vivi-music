@@ -145,7 +145,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.seconds
 
-@RequiresApi(Build.VERSION_CODES.M)
+
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedBoxWithConstraintsScope", "StringFormatInvalid")
 @Composable
@@ -924,47 +924,52 @@ fun Lyrics(
                         )
                     }
 
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                shareDialogData = Triple(lyricsText, songTitle, artists)
-                                showColorPickerDialog = true
-                                showShareDialog = false
-                            }
-                            .padding(vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.share),
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = stringResource(R.string.share_as_image),
-                            fontSize = 16.sp,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+//                    Row(
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .clickable {
+//                                shareDialogData = Triple(lyricsText, songTitle, artists)
+//                                showColorPickerDialog = true
+//                                showShareDialog = false
+//                            }
+//                            .padding(vertical = 12.dp),
+//                        verticalAlignment = Alignment.CenterVertically
+//                    )
+
+//                    {
 
 
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 8.dp, bottom = 4.dp),
-                            horizontalArrangement = Arrangement.End,
-                        ) {
-                            Text(
-                                text = stringResource(R.string.cancel),
-                                fontSize = 16.sp,
-                                color = MaterialTheme.colorScheme.error,
-                                fontWeight = FontWeight.Medium,
-                                modifier = Modifier
-                                    .clickable { showShareDialog = false }
-                                    .padding(vertical = 8.dp, horizontal = 12.dp)
-                            )
-                        }
-                    }
+
+//                        Icon(
+//                            painter = painterResource(id = R.drawable.share),
+//                            contentDescription = null,
+//                            tint = MaterialTheme.colorScheme.primary
+//                        )
+//                        Spacer(modifier = Modifier.width(12.dp))
+//                        Text(
+//                            text = stringResource(R.string.share_as_image),
+//                            fontSize = 16.sp,
+//                            color = MaterialTheme.colorScheme.onSurface
+//                        )
+//
+//
+//                        Row(
+//                            modifier = Modifier
+//                                .fillMaxWidth()
+//                                .padding(top = 8.dp, bottom = 4.dp),
+//                            horizontalArrangement = Arrangement.End,
+//                        ) {
+//                            Text(
+//                                text = stringResource(R.string.cancel),
+//                                fontSize = 16.sp,
+//                                color = MaterialTheme.colorScheme.error,
+//                                fontWeight = FontWeight.Medium,
+//                                modifier = Modifier
+//                                    .clickable { showShareDialog = false }
+//                                    .padding(vertical = 8.dp, horizontal = 12.dp)
+//                            )
+//                        }
+//                    }
                 }
             }
         }
@@ -1165,11 +1170,6 @@ fun Lyrics(
     }
 
 }
-
-// Apple Music style animation constants
-private const val APPLE_MUSIC_AUTO_SCROLL_DURATION = 1000L
-private const val APPLE_MUSIC_INITIAL_SCROLL_DURATION = 800L
-private const val APPLE_MUSIC_SEEK_DURATION = 400L
 
 // Lyrics constants
 private val LyricsPreviewTime = 2.seconds
