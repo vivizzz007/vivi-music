@@ -30,6 +30,7 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.music.vivi.R
 import android.content.Intent
 import android.net.Uri
+import android.os.Environment
 import android.preference.PreferenceManager
 import android.widget.Toast
 import androidx.compose.material.icons.filled.Feedback
@@ -210,6 +211,49 @@ fun SettingsSection(
     }
 }
 
+// Utility functions for clearing APKs
+fun clearDownloadedApks(context: Context): Boolean {
+    return try {
+        val downloadsDir = File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "")
+        var deletedCount = 0
+        var totalSize = 0L
+
+        downloadsDir.listFiles()?.forEach { file ->
+            if (file.name.endsWith(".apk")) {
+                totalSize += file.length()
+                if (file.delete()) {
+                    deletedCount++
+                }
+            }
+        }
+
+        Log.d("ClearAPK", "Cleared $deletedCount APK files, freed ${totalSize / (1024.0 * 1024.0)} MB")
+        true
+    } catch (e: Exception) {
+        Log.e("ClearAPK", "Error clearing APKs: ${e.message}")
+        false
+    }
+}
+
+fun getDownloadedApksInfo(context: Context): Pair<Int, Long> {
+    return try {
+        val downloadsDir = File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "")
+        var count = 0
+        var totalSize = 0L
+
+        downloadsDir.listFiles()?.forEach { file ->
+            if (file.name.endsWith(".apk")) {
+                count++
+                totalSize += file.length()
+            }
+        }
+
+        Pair(count, totalSize)
+    } catch (e: Exception) {
+        Pair(0, 0L)
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExperimentalSettingsScreen(navController: NavController) {
@@ -233,6 +277,8 @@ fun ExperimentalSettingsScreen(navController: NavController) {
     var betaUpdaterEnabled by remember { mutableStateOf(getBetaUpdaterSetting(context)) }
     var updateCheckInterval by remember { mutableStateOf(getUpdateCheckInterval(context)) }
     var selectedApkVariant by remember { mutableStateOf(getSelectedApkVariant(context)) }
+    var downloadedApksCount by remember { mutableStateOf(0) }
+    var downloadedApksSize by remember { mutableStateOf(0L) }
 
     val resetSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showResetSheet by remember { mutableStateOf(false) }
@@ -245,6 +291,13 @@ fun ExperimentalSettingsScreen(navController: NavController) {
 
     val variantSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showVariantSheet by remember { mutableStateOf(false) }
+
+    // Load APK info on launch
+    LaunchedEffect(Unit) {
+        val (count, size) = getDownloadedApksInfo(context)
+        downloadedApksCount = count
+        downloadedApksSize = size
+    }
 
     fun resetApp(context: Context) {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().clear().apply()
@@ -269,7 +322,6 @@ fun ExperimentalSettingsScreen(navController: NavController) {
         Runtime.getRuntime().exit(0)
     }
 
-    // APK Variant Selection Bottom Sheet
     // APK Variant Selection Bottom Sheet
     if (showVariantSheet) {
         var apkVariants by remember { mutableStateOf<List<Pair<String, String>>>(emptyList()) }
@@ -737,6 +789,59 @@ fun ExperimentalSettingsScreen(navController: NavController) {
             }
 
             item {
+                SettingsSection("Storage") {
+                    SettingsListItem(
+                        title = "Clear downloaded APKs",
+                        subtitle = if (downloadedApksCount > 0) {
+                            val sizeInMB = String.format("%.1f", downloadedApksSize / (1024.0 * 1024.0))
+                            "$downloadedApksCount file(s) · $sizeInMB MB"
+                        } else {
+                            "No downloaded files"
+                        },
+                        onClick = {
+                            if (downloadedApksCount > 0) {
+                                val success = clearDownloadedApks(context)
+                                if (success) {
+                                    Toast.makeText(
+                                        context,
+                                        "APK files cleared successfully",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    val (count, size) = getDownloadedApksInfo(context)
+                                    downloadedApksCount = count
+                                    downloadedApksSize = size
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "Failed to clear APK files",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "No APK files to clear",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        },
+                        isLast = true,
+                        trailingContent = {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Clear APKs",
+                                tint = if (downloadedApksCount > 0) {
+                                    MaterialTheme.colorScheme.error
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                }
+                            )
+                        }
+                    )
+                }
+            }
+
+            item {
                 SettingsSection("Beta features") {
                     SettingsListItem(
                         title = "Beta updater",
@@ -908,7 +1013,6 @@ fun getBetaUpdaterSetting(context: Context): Boolean {
         .getBoolean(KEY_BETA_UPDATER_ENABLED, false)
 }
 
-// APK Variant Settings
 fun getSelectedApkVariant(context: Context): String {
     return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         .getString(KEY_SELECTED_APK_VARIANT, DEFAULT_APK_VARIANT) ?: DEFAULT_APK_VARIANT
@@ -938,8 +1042,6 @@ fun saveUpdateCheckInterval(context: Context, hours: Int) {
     val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     prefs.edit().putInt(KEY_UPDATE_CHECK_INTERVAL, hours).apply()
 }
-
-
 
 suspend fun fetchAvailableApkVariants(): List<Pair<String, String>> {
     return withContext(Dispatchers.IO) {
