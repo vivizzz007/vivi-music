@@ -266,7 +266,7 @@ class MusicService :
                 }
 
         // Inicializar LoudnessEnhancer
-        initializeLoudnessEnhancer()
+//        initializeLoudnessEnhancer()
 
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         setupAudioFocusRequest()
