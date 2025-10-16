@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.ripple
@@ -40,6 +41,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -56,9 +58,6 @@ import android.app.Activity
 import android.content.res.Configuration
 import android.view.WindowManager
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
@@ -86,7 +85,6 @@ import com.music.vivi.models.MediaMetadata
 import com.music.vivi.ui.component.Lyrics
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.PlayerSliderTrack
-import com.music.vivi.ui.component.BigSeekBar
 import androidx.navigation.NavController
 import com.music.vivi.constants.SwipeGestureEnabledKey
 import me.saket.squiggles.SquigglySlider
@@ -101,7 +99,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.runCatching
 import com.music.vivi.utils.makeTimeString
 import com.music.vivi.utils.rememberPreference
 
@@ -111,17 +108,15 @@ fun LyricsScreen(
     mediaMetadata: MediaMetadata,
     onBackClick: () -> Unit,
     navController: NavController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    backgroundAlpha: Float = 1f
 ) {
     val context = LocalContext.current
     val activity = context as? Activity
 
-    // Keep the screen on when entering the screen
     DisposableEffect(Unit) {
         activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-
         onDispose {
-            // Remove the feature when exiting the screen
             activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
     }
@@ -132,40 +127,25 @@ fun LyricsScreen(
     val coroutineScope = rememberCoroutineScope()
 
     val playbackState by playerConnection.playbackState.collectAsState()
-    val isPlaying by playerConnection.isPlaying.collectAsState()
-    val repeatMode by playerConnection.repeatMode.collectAsState()
-    val shuffleModeEnabled by playerConnection.shuffleModeEnabled.collectAsState()
-    val playerVolume = playerConnection.service.playerVolume.collectAsState()
-
-    // slider style preference
-    val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.DEFAULT)
     val currentLyrics by playerConnection.currentLyrics.collectAsState(initial = null)
     val currentSong by playerConnection.currentSong.collectAsState(initial = null)
 
-    // Auto-fetch lyrics when no lyrics found (same logic as refetch)
     LaunchedEffect(mediaMetadata.id, currentLyrics) {
         if (currentLyrics == null) {
-            // Small delay to ensure database state is stable
             delay(500)
-
             coroutineScope.launch(Dispatchers.IO) {
                 try {
-                    // Get LyricsHelper from Hilt
                     val entryPoint = EntryPointAccessors.fromApplication(
                         context.applicationContext,
                         com.music.vivi.di.LyricsHelperEntryPoint::class.java
                     )
                     val lyricsHelper = entryPoint.lyricsHelper()
-
-                    // Fetch lyrics automatically
                     val lyrics = lyricsHelper.getLyrics(mediaMetadata)
-
-                    // Save to database
                     database.query {
                         upsert(LyricsEntity(mediaMetadata.id, lyrics))
                     }
                 } catch (e: Exception) {
-                    // Handle error silently - user can manually refetch if needed
+                    // Handle error
                 }
             }
         }
@@ -178,13 +158,11 @@ fun LyricsScreen(
     var sliderPosition by remember { mutableStateOf<Long?>(null) }
 
     val playerBackground by rememberEnumPreference(PlayerBackgroundStyleKey, PlayerBackgroundStyle.GRADIENT)
-
     val isSystemInDarkTheme = isSystemInDarkTheme()
     val useDarkTheme = isSystemInDarkTheme
 
     var gradientColors by remember { mutableStateOf<List<Color>>(emptyList()) }
     val gradientColorsCache = remember { mutableMapOf<String, List<Color>>() }
-
     val defaultGradientColors = listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surfaceVariant)
     val fallbackColor = MaterialTheme.colorScheme.surface.toArgb()
 
@@ -214,12 +192,10 @@ fun LyricsScreen(
                                 .resizeBitmapArea(PlayerColorExtractor.Config.BITMAP_AREA)
                                 .generate()
                         }
-
                         val extractedColors = PlayerColorExtractor.extractGradientColors(
                             palette = palette,
                             fallbackColor = fallbackColor
                         )
-
                         gradientColorsCache[mediaMetadata.id] = extractedColors
                         gradientColors = extractedColors
                     } else {
@@ -236,14 +212,7 @@ fun LyricsScreen(
 
     val textBackgroundColor = when (playerBackground) {
         PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.onBackground
-        PlayerBackgroundStyle.BLUR -> Color.White
-        PlayerBackgroundStyle.GRADIENT -> Color.White
-    }
-
-    val icBackgroundColor = when (playerBackground) {
-        PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.surface
-        PlayerBackgroundStyle.BLUR -> Color.Black
-        PlayerBackgroundStyle.GRADIENT -> Color.Black
+        PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT -> Color.White
     }
 
     LaunchedEffect(playbackState) {
@@ -259,76 +228,75 @@ fun LyricsScreen(
     BackHandler(onBack = onBackClick)
 
     Box(modifier = modifier.fillMaxSize()) {
-        // Background Layer
-        if (playerBackground == PlayerBackgroundStyle.BLUR) {
-            Crossfade(
-                targetState = mediaMetadata?.thumbnailUrl,
-                animationSpec = tween(600)
-            ) { thumbnailUrl ->
-                if (thumbnailUrl != null) {
-                    AsyncImage(
-                        model = thumbnailUrl,
-                        contentDescription = null,
-                        contentScale = ContentScale.FillBounds,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .blur(60.dp)
-                    )
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.3f))
-                    )
-                }
-            }
-        } else if (playerBackground == PlayerBackgroundStyle.GRADIENT) {
-            Crossfade(
-                targetState = gradientColors,
-                animationSpec = tween(600)
-            ) { colors ->
-                if (colors.isNotEmpty()) {
-                    val gradientColorStops = if (colors.size >= 3) {
-                        arrayOf(
-                            0.0f to colors[0], // Top
-                            0.5f to colors[1], // Middle
-                            1.0f to colors[2]  // Bottom
-                        )
-                    } else {
-                        arrayOf(
-                            0.0f to colors[0], // Top
-                            0.6f to colors[0].copy(alpha = 0.7f), // Middle
-                            1.0f to Color.Black // Bottom
-                        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .alpha(backgroundAlpha)
+        ) {
+            when (playerBackground) {
+                PlayerBackgroundStyle.BLUR -> {
+                    Crossfade(
+                        targetState = mediaMetadata.thumbnailUrl,
+                        animationSpec = tween(600)
+                    ) { thumbnailUrl ->
+                        if (thumbnailUrl != null) {
+                            AsyncImage(
+                                model = thumbnailUrl,
+                                contentDescription = null,
+                                contentScale = ContentScale.FillBounds,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .blur(220.dp)
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Color.Black.copy(alpha = 0.3f))
+                            )
+                        }
                     }
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Brush.verticalGradient(colorStops = gradientColorStops))
-                            .background(Color.Black.copy(alpha = 0.2f))
-                    )
                 }
+                PlayerBackgroundStyle.GRADIENT -> {
+                    Crossfade(
+                        targetState = gradientColors,
+                        animationSpec = tween(600)
+                    ) { colors ->
+                        if (colors.isNotEmpty()) {
+                            val gradientColorStops = if (colors.size >= 3) {
+                                arrayOf(0.0f to colors[0], 0.5f to colors[1], 1.0f to colors[2])
+                            } else {
+                                arrayOf(0.0f to colors[0], 0.6f to colors[0].copy(alpha = 0.7f), 1.0f to Color.Black)
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Brush.verticalGradient(colorStops = gradientColorStops))
+                                    .background(Color.Black.copy(alpha = 0.2f))
+                            )
+                        }
+                    }
+                }
+                else -> {
+                    // DEFAULT background
+                }
+            }
+
+            if (playerBackground != PlayerBackgroundStyle.DEFAULT) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.3f))
+                )
             }
         }
 
-        if (playerBackground != PlayerBackgroundStyle.DEFAULT) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.3f))
-            )
-        }
-
-        // Check orientation and layout accordingly
         when (LocalConfiguration.current.orientation) {
             Configuration.ORIENTATION_LANDSCAPE -> {
-                // Landscape layout - split screen horizontally
-
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .windowInsetsPadding(WindowInsets.systemBars)
                 ) {
-                    // Unified header across full width
                     // Detailed header with album art, song info, and action buttons
                     Row(
                         modifier = Modifier
@@ -449,35 +417,17 @@ fun LyricsScreen(
                         }
                     }
 
-                    // Main content row
-                    Row(
+                    Box(
                         modifier = Modifier
                             .fillMaxSize()
+                            .padding(horizontal = 16.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        // Left side - Lyrics only
-                        Column(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxSize()
-                        ) {
-                            // Lyrics content - centered in landscape
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp),
-                                contentAlignment = Alignment.Center  // Center lyrics in landscape
-                            ) {
-                                Lyrics(
-                                    sliderPositionProvider = { sliderPosition }
-                                )
-                            }
-                        }
+                        Lyrics(sliderPositionProvider = { sliderPosition })
                     }
                 }
             }
             else -> {
-                // Portrait layout - original layout
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -605,15 +555,11 @@ fun LyricsScreen(
 
                     Box(
                         modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        contentAlignment = Alignment.TopStart
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp),
+                        contentAlignment = Alignment.TopCenter
                     ) {
-                        Lyrics(
-                            sliderPositionProvider = { sliderPosition },
-                            modifier = Modifier.fillMaxSize()
-                        )
+                        Lyrics(sliderPositionProvider = { sliderPosition })
                     }
                 }
             }

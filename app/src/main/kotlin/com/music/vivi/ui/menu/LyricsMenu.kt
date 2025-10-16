@@ -464,49 +464,4 @@ fun LyricsMenu(
             )
         }
     }
-    /* if (showRomanizationDialog) {
-        var isChecked by remember { mutableStateOf(songProvider()?.romanizeLyrics ?: true) }
-
-        // Sync with song changes
-        LaunchedEffect(songProvider()) {
-            isChecked = songProvider()?.romanizeLyrics ?: true
-        }
-
-        DefaultDialog(
-            onDismiss = { showRomanizationDialog = false },
-            title = { Text(stringResource(R.string.romanization)) }
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        // Toggle isChecked when the row is clicked
-                        isChecked = !isChecked
-                        songProvider()?.let { song ->
-                            database.query {
-                                upsert(song.copy(romanizeLyrics = isChecked))
-                            }
-                        }
-                    }
-                    .padding(vertical = 8.dp, horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(R.string.romanize_current_track),
-                    modifier = Modifier.weight(1f)
-                )
-                Switch(
-                    checked = isChecked,
-                    onCheckedChange = { newCheckedState ->
-                        isChecked = newCheckedState
-                        songProvider()?.let { song ->
-                            database.query {
-                                upsert(song.copy(romanizeLyrics = newCheckedState))
-                            }
-                        }
-                    }
-                )
-            }
-        }
-    } */
 }
