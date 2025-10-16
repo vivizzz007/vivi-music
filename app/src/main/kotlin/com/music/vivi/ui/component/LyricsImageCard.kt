@@ -29,6 +29,7 @@ import coil3.request.crossfade
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.R
 
+
 @Composable
 fun rememberAdjustedFontSize(
     text: String,
@@ -139,7 +140,7 @@ fun LyricsImageCard(
     val painter = rememberAsyncImagePainter(
         ImageRequest.Builder(context)
             .data(mediaMetadata.thumbnailUrl)
-            .crossfade(true)
+            .crossfade(false)
             .build()
     )
 
@@ -264,7 +265,7 @@ fun LyricsImageCard(
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.small_icon),
+                            painter = painterResource(id = R.drawable.library_music),
                             contentDescription = null,
                             modifier = Modifier
                                 .size(16.dp),
