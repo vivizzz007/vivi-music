@@ -858,24 +858,6 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                             )
                         }
                     )
-
-                    if (betaUpdaterEnabled) {
-                        SettingsListItem(
-                            title = "Beta updater settings",
-                            subtitle = "Configure beta update preferences",
-                            onClick = {
-                                navController.navigate("settings/dpi")
-                            },
-                            isLast = true,
-                            trailingContent = {
-                                Icon(
-                                    imageVector = Icons.Default.ChevronRight,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        )
-                    }
                 }
             }
 

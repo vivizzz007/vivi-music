@@ -73,12 +73,12 @@ import androidx.compose.material.icons.filled.Warning
 
 
 import androidx.compose.material.icons.filled.SystemUpdate
+import com.music.vivi.update.experiment.getBetaUpdaterSetting
 import com.music.vivi.update.experiment.getSelectedApkVariant
 import java.util.regex.Pattern
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-
 fun UpdateScreen(navController: NavHostController) {
     // State variables
     var updateAvailable by remember { mutableStateOf(false) }
@@ -103,6 +103,7 @@ fun UpdateScreen(navController: NavHostController) {
     val pixelBlue = MaterialTheme.colorScheme.primary
     val progressBarBackground = if (isSystemInDarkTheme()) Color(0xFF3C4043) else Color(0xFFE0E0E0)
     val autoUpdateCheckEnabled = getAutoUpdateCheckSetting(context)
+    val betaUpdaterEnabled = getBetaUpdaterSetting(context)
 
     LaunchedEffect(Unit) {
         lastCheckedTime = getLastCheckedTime(context)
@@ -124,6 +125,7 @@ fun UpdateScreen(navController: NavHostController) {
         coroutineScope.launch {
             delay(1500L)
             checkForUpdate(
+                isBetaEnabled = betaUpdaterEnabled,
                 onSuccess = { latestVersion, latestChangelog, latestSize, latestReleaseDate ->
                     isChecking = false
                     lastCheckedTime = getCurrentTimestamp()
@@ -644,7 +646,18 @@ fun UpdateScreen(navController: NavHostController) {
                                         isDownloading = true
                                         downloadProgress = 0f
                                         val selectedVariant = getSelectedApkVariant(context)
-                                        val apkUrl = "https://github.com/vivizzz007/vivi-music/releases/download/v$updateMessageVersion/$selectedVariant"
+                                        // Use appropriate tag prefix based on beta setting
+                                        val tagPrefix = if (betaUpdaterEnabled) "b" else "v"
+//                                        val apkUrl = "https://github.com/vivizzz007/vivi-music/releases/download/$tagPrefix$updateMessageVersion/$selectedVariant"
+
+                                        val apkUrl = if (betaUpdaterEnabled) {
+                                            // For beta, try vivi-beta.apk first, fall back to vivi.apk
+                                            "https://github.com/vivizzz007/vivi-music/releases/download/b$updateMessageVersion/vivi-beta.apk"
+                                        } else {
+                                            // For stable, use vivi.apk
+                                            "https://github.com/vivizzz007/vivi-music/releases/download/v$updateMessageVersion/vivi.apk"
+                                        }
+
                                         downloadApk(
                                             context = context,
                                             apkUrl = apkUrl,
@@ -827,6 +840,7 @@ fun isNewerVersion(latestVersion: String, currentVersion: String): Boolean {
 }
 
 suspend fun checkForUpdate(
+    isBetaEnabled: Boolean,
     onSuccess: (String, String, String, String) -> Unit,
     onError: () -> Unit
 ) {
@@ -838,26 +852,67 @@ suspend fun checkForUpdate(
             var foundRelease: JSONObject? = null
 
             val currentVersion = BuildConfig.VERSION_NAME
+            val tagPrefix = if (isBetaEnabled) "b" else "v"
 
             for (i in 0 until releases.length()) {
                 val release = releases.getJSONObject(i)
-                val tag = release.getString("tag_name").removePrefix("v")
-                if (!tag.matches(Regex("""\d+(\.\d+){1,2}"""))) continue
-                if (isNewerVersion(tag, currentVersion)) {
-                    if (foundRelease == null || isNewerVersion(tag, foundRelease.getString("tag_name").removePrefix("v"))) {
+                val tag = release.getString("tag_name")
+
+                // Check if tag starts with the correct prefix
+                if (!tag.startsWith(tagPrefix)) continue
+
+                // Remove prefix for version comparison
+                val versionNumber = tag.removePrefix(tagPrefix)
+
+                // Validate version format
+                if (!versionNumber.matches(Regex("""\d+(\.\d+){1,2}"""))) continue
+
+                // For beta releases, only consider versions >= 1.1.1
+                if (isBetaEnabled) {
+                    val minBetaVersion = "1.1.1"
+                    if (!isNewerVersion(versionNumber, minBetaVersion) && versionNumber != minBetaVersion) {
+                        continue
+                    }
+                }
+
+                if (isNewerVersion(versionNumber, currentVersion)) {
+                    if (foundRelease == null ||
+                        isNewerVersion(versionNumber, foundRelease.getString("tag_name").removePrefix(tagPrefix))) {
                         foundRelease = release
                     }
                 }
             }
 
             if (foundRelease != null) {
-                val tag = foundRelease.getString("tag_name").removePrefix("v")
+                val tag = foundRelease.getString("tag_name").removePrefix(tagPrefix)
                 val changelog = foundRelease.optString("body", "")
                 val publishedAt = foundRelease.getString("published_at")
                 val formattedReleaseDate = formatGitHubDate(publishedAt)
                 val assets = foundRelease.getJSONArray("assets")
-                if (assets.length() > 0) {
-                    val apkAsset = assets.getJSONObject(0)
+
+                // Look for the appropriate APK file
+                var apkAsset: JSONObject? = null
+                for (j in 0 until assets.length()) {
+                    val asset = assets.getJSONObject(j)
+                    val assetName = asset.getString("name")
+                    if (isBetaEnabled) {
+                        // For beta, prioritize vivi-beta.apk, fall back to vivi.apk
+                        if (assetName == "vivi-beta.apk") {
+                            apkAsset = asset
+                            break
+                        } else if (assetName == "vivi.apk" && apkAsset == null) {
+                            apkAsset = asset
+                        }
+                    } else {
+                        // For stable, use vivi.apk
+                        if (assetName == "vivi.apk") {
+                            apkAsset = asset
+                            break
+                        }
+                    }
+                }
+
+                if (apkAsset != null) {
                     val apkSizeInBytes = apkAsset.getLong("size")
                     val apkSizeInMB = String.format("%.1f", apkSizeInBytes / (1024.0 * 1024.0))
                     withContext(Dispatchers.Main) {
@@ -869,16 +924,42 @@ suspend fun checkForUpdate(
             } else {
                 val latest = if (releases.length() > 0) releases.getJSONObject(0) else null
                 if (latest != null) {
-                    val tag = latest.getString("tag_name").removePrefix("v")
-                    val changelog = latest.optString("body", "")
-                    val publishedAt = latest.getString("published_at")
-                    val formattedReleaseDate = formatGitHubDate(publishedAt)
-                    val assets = latest.getJSONArray("assets")
-                    val apkSizeInMB = if (assets.length() > 0)
-                        String.format("%.1f", assets.getJSONObject(0).getLong("size") / (1024.0 * 1024.0))
-                    else ""
-                    withContext(Dispatchers.Main) {
-                        onSuccess(tag, changelog, apkSizeInMB, formattedReleaseDate)
+                    val tag = latest.getString("tag_name")
+                    if (tag.startsWith(tagPrefix)) {
+                        val versionNumber = tag.removePrefix(tagPrefix)
+                        val changelog = latest.optString("body", "")
+                        val publishedAt = latest.getString("published_at")
+                        val formattedReleaseDate = formatGitHubDate(publishedAt)
+                        val assets = latest.getJSONArray("assets")
+
+                        // Same APK selection logic for the latest release
+                        var apkAsset: JSONObject? = null
+                        for (j in 0 until assets.length()) {
+                            val asset = assets.getJSONObject(j)
+                            val assetName = asset.getString("name")
+                            if (isBetaEnabled) {
+                                if (assetName == "vivi-beta.apk") {
+                                    apkAsset = asset
+                                    break
+                                } else if (assetName == "vivi.apk" && apkAsset == null) {
+                                    apkAsset = asset
+                                }
+                            } else {
+                                if (assetName == "vivi.apk") {
+                                    apkAsset = asset
+                                    break
+                                }
+                            }
+                        }
+
+                        val apkSizeInMB = if (apkAsset != null)
+                            String.format("%.1f", apkAsset.getLong("size") / (1024.0 * 1024.0))
+                        else ""
+                        withContext(Dispatchers.Main) {
+                            onSuccess(versionNumber, changelog, apkSizeInMB, formattedReleaseDate)
+                        }
+                    } else {
+                        withContext(Dispatchers.Main) { onError() }
                     }
                 } else {
                     withContext(Dispatchers.Main) { onError() }
