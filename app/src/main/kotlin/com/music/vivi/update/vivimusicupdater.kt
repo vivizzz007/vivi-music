@@ -339,19 +339,13 @@ fun UpdateScreen(navController: NavHostController) {
         },
         bottomBar = {
             // BOTTOM BUTTON - This ensures it's always visible and properly positioned
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.surface,
-                shadowElevation = 8.dp,
-                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-                border = BorderStroke(
-                    1.dp,
-                    MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
-                )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface)
             ) {
-                Column {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Box(
+                Spacer(modifier = Modifier.height(16.dp))
+                Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
@@ -426,7 +420,7 @@ fun UpdateScreen(navController: NavHostController) {
                     }
                     Spacer(modifier = Modifier.height(32.dp))
                 }
-            }
+
         }
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize()) {
