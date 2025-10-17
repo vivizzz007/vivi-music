@@ -40,6 +40,7 @@ import com.music.vivi.ui.screens.settings.RomanizationSettings
 import com.music.vivi.ui.screens.settings.SettingsScreen
 import com.music.vivi.ui.screens.settings.StorageSettings
 import com.music.vivi.ui.screens.settings.UpdaterScreen
+import com.music.vivi.update.UpdateDetailsScreen
 import com.music.vivi.update.account.AccountViewScreen
 import com.music.vivi.update.betaupdate.ViviDpiSettings
 import com.music.vivi.update.experiment.ExperimentalSettingsScreen
@@ -305,6 +306,8 @@ fun NavGraphBuilder.navigationBuilder(
     composable("login") {
         LoginScreen(navController)
     }
+
+
     // Navigation Builder
     composable("settings/software_updates") {
         SoftwareUpdatesScreen(navController, scrollBehavior)
@@ -406,5 +409,7 @@ fun NavGraphBuilder.navigationBuilder(
             scrollBehavior = scrollBehavior
         )
     }
-
+    composable("update/details") {
+        UpdateDetailsScreen(navController)
+    }
 }

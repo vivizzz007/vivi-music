@@ -29,16 +29,27 @@ import java.io.File
 import java.net.URL
 import android.content.Context
 import android.content.Intent
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.EaseIn
 import androidx.compose.animation.core.EaseOut
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.with
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.draw.clip
@@ -73,11 +84,15 @@ import androidx.compose.material.icons.filled.Warning
 
 
 import androidx.compose.material.icons.filled.SystemUpdate
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.style.TextOverflow
 import com.music.vivi.update.experiment.getBetaUpdaterSetting
 import com.music.vivi.update.experiment.getSelectedApkVariant
 import java.util.regex.Pattern
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun UpdateScreen(navController: NavHostController) {
     // State variables
@@ -86,24 +101,65 @@ fun UpdateScreen(navController: NavHostController) {
     var updateMessageVersion by remember { mutableStateOf("") }
     var changelog by remember { mutableStateOf("") }
     var isChecking by remember { mutableStateOf(true) }
-    var fetchError by remember { mutableStateOf(false) }
     var appSize by remember { mutableStateOf("") }
     var isDownloading by remember { mutableStateOf(false) }
     var downloadProgress by remember { mutableStateOf(0f) }
     var isDownloadComplete by remember { mutableStateOf(false) }
     var isInstalling by remember { mutableStateOf(false) }
     var installProgress by remember { mutableStateOf(0f) }
-    var showUpdateDetails by rememberSaveable { mutableStateOf(false) }
     var lastCheckedTime by remember { mutableStateOf("") }
     var releaseDate by remember { mutableStateOf("") }
     var showMenu by remember { mutableStateOf(false) }
+
+    // Animation states
+    var showVersionText by remember { mutableStateOf(false) }
+    var showViviText by remember { mutableStateOf(true) }
+    var showUpdateCard by remember { mutableStateOf(false) }
+    var showProgressBar by remember { mutableStateOf(false) }
+
     val context = LocalContext.current
     val currentVersion = BuildConfig.VERSION_NAME
     val coroutineScope = rememberCoroutineScope()
-    val pixelBlue = MaterialTheme.colorScheme.primary
-    val progressBarBackground = if (isSystemInDarkTheme()) Color(0xFF3C4043) else Color(0xFFE0E0E0)
     val autoUpdateCheckEnabled = getAutoUpdateCheckSetting(context)
     val betaUpdaterEnabled = getBetaUpdaterSetting(context)
+
+    // Animation specs
+    val viviTextAlpha by animateFloatAsState(
+        targetValue = if (showViviText) 1f else 0f,
+        animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing)
+    )
+
+    val versionTextAlpha by animateFloatAsState(
+        targetValue = if (showVersionText) 1f else 0f,
+        animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing)
+    )
+
+    val updateCardAlpha by animateFloatAsState(
+        targetValue = if (showUpdateCard) 1f else 0f,
+        animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing)
+    )
+
+    val progressBarAlpha by animateFloatAsState(
+        targetValue = if (showProgressBar) 1f else 0f,
+        animationSpec = tween(durationMillis = 400, easing = LinearEasing)
+    )
+
+    // Animation for button text
+    val buttonText by animateColorAsState(
+        targetValue = when {
+            updateAvailable && !isDownloading && !isDownloadComplete -> MaterialTheme.colorScheme.onPrimary
+            isDownloading -> MaterialTheme.colorScheme.onPrimary
+            isDownloadComplete -> MaterialTheme.colorScheme.onPrimary
+            else -> MaterialTheme.colorScheme.onPrimary
+        },
+        animationSpec = tween(durationMillis = 300)
+    )
+
+    // Scale animation for buttons
+    val buttonScale by animateFloatAsState(
+        targetValue = if (isChecking) 0.95f else 1f,
+        animationSpec = spring(dampingRatio = 0.6f, stiffness = 300f)
+    )
 
     LaunchedEffect(Unit) {
         lastCheckedTime = getLastCheckedTime(context)
@@ -117,20 +173,42 @@ fun UpdateScreen(navController: NavHostController) {
 
     fun triggerUpdateCheck() {
         isChecking = true
-        fetchError = false
         updateMessage = ""
         changelog = ""
         updateAvailable = false
         releaseDate = ""
+        showUpdateCard = false
+        showProgressBar = true
+
+        // Start animation sequence
+        showViviText = true
+        showVersionText = false
+
         coroutineScope.launch {
-            delay(1500L)
+            // Show VIVI MUSIC text briefly
+            delay(800L)
+
+            // Animate to version text
+            showViviText = false
+            delay(300L)
+            showVersionText = true
+
+            // Continue with update check
+            delay(400L)
+
             checkForUpdate(
                 isBetaEnabled = betaUpdaterEnabled,
                 onSuccess = { latestVersion, latestChangelog, latestSize, latestReleaseDate ->
                     isChecking = false
+                    showProgressBar = false
                     lastCheckedTime = getCurrentTimestamp()
                     saveLastCheckedTime(context, lastCheckedTime)
                     if (isNewerVersion(latestVersion, currentVersion)) {
+                        // Animate in the update card
+                        launch {
+                            delay(200L)
+                            showUpdateCard = true
+                        }
                         updateAvailable = true
                         updateMessage = "New Update Available!"
                         updateMessageVersion = latestVersion
@@ -140,13 +218,21 @@ fun UpdateScreen(navController: NavHostController) {
                     } else {
                         updateAvailable = false
                         updateMessage = "You're already up to date."
+                        // Show version text when done
+                        showVersionText = true
+                        showViviText = false
                     }
                 },
                 onError = {
                     isChecking = false
+                    showProgressBar = false
                     lastCheckedTime = getCurrentTimestamp()
                     saveLastCheckedTime(context, lastCheckedTime)
-                    fetchError = true
+                    updateAvailable = false
+                    updateMessage = "You're already up to date."
+                    // Show version text when done
+                    showVersionText = true
+                    showViviText = false
                 }
             )
         }
@@ -159,524 +245,129 @@ fun UpdateScreen(navController: NavHostController) {
             isChecking = false
             updateAvailable = false
             updateMessage = "Automatic update check is disabled."
-            fetchError = false
+            showVersionText = true
+            showViviText = false
+        }
+    }
+
+    // Animate download progress
+    LaunchedEffect(isDownloading) {
+        if (isDownloading) {
+            // Simulate download progress animation
+            for (progress in 0..100 step 2) {
+                if (!isDownloading) break
+                downloadProgress = progress / 100f
+                delay(100L)
+            }
+            if (downloadProgress >= 1f) {
+                isDownloadComplete = true
+                isDownloading = false
+            }
         }
     }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "System Update",
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(
-                            Icons.Default.ArrowBack,
-                            contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { showMenu = true }) {
-                        Icon(
-                            imageVector = Icons.Default.MoreVert,
-                            contentDescription = "More options",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                    DropdownMenu(
-                        expanded = showMenu,
-                        onDismissRequest = { showMenu = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("Settings") },
-                            onClick = {
-                                showMenu = false
-                                navController.navigate("settings/experimental")
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Changelog") },
-                            onClick = {
-                                showMenu = false
-                                navController.navigate("settings/changelog")
-                            }
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
-                )
-            )
-        }
-    ) { paddingValues ->
-        if (isInstalling) {
-            // Installing screen
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(paddingValues)
-                    .padding(horizontal = 24.dp),
-                horizontalAlignment = Alignment.Start
+            androidx.compose.animation.AnimatedVisibility(
+                visible = true,
+                enter = slideInVertically(
+                    initialOffsetY = { -it },
+                    animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
+                ) + fadeIn(),
+                exit = slideOutVertically(
+                    targetOffsetY = { -it },
+                    animationSpec = tween(durationMillis = 300)
+                ) + fadeOut()
             ) {
-                Spacer(modifier = Modifier.height(24.dp))
-                Icon(
-                    imageVector = Icons.Default.SystemUpdate,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(48.dp)
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-                Text(
-                    text = "Installing system\nupdate...",
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontSize = 36.sp,
-                        fontWeight = FontWeight.Normal,
-                        lineHeight = 44.sp
-                    ),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.height(32.dp))
-                LinearProgressIndicator(
-                    progress = installProgress,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(8.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-                Spacer(modifier = Modifier.height(32.dp))
-                Text(
-                    text = "Optimizing your device, this may take a while",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-                Text(
-                    text = "Your Pixel is getting even better...",
-                    style = MaterialTheme.typography.headlineSmall.copy(
-                        fontWeight = FontWeight.Bold
-                    ),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                val annotatedString = buildAnnotatedString {
-                    append("This update includes new Pixel features and the latest from Android ${updateMessageVersion.ifEmpty { currentVersion }}, making your device even more helpful. Learn more at ")
-                    pushStringAnnotation(tag = "URL", annotation = "https://g.co/pixel/community")
-                    withStyle(
-                        style = SpanStyle(
-                            color = MaterialTheme.colorScheme.primary,
-                            textDecoration = TextDecoration.Underline
-                        )
-                    ) {
-                        append("g.co/pixel/community")
-                    }
-                    pop()
-                    append(".")
-                }
-                ClickableText(
-                    text = annotatedString,
-                    onClick = { offset ->
-                        annotatedString.getStringAnnotations(tag = "URL", start = offset, end = offset)
-                            .firstOrNull()?.let { annotation ->
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(annotation.item))
-                                ContextCompat.startActivity(context, intent, null)
-                            }
+                TopAppBar(
+                    title = {
+                        // Optional: Add animated title if needed
                     },
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = 24.sp
-                    )
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-                Text(
-                    text = "What's new?",
-                    style = MaterialTheme.typography.headlineSmall.copy(
-                        fontWeight = FontWeight.Bold
-                    ),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                if (changelog.isNotEmpty()) {
-                    val changelogItems = changelog.split("\n").filter { it.isNotBlank() }
-                    changelogItems.forEach { item ->
-                        val urls = item.extractUrls()
-                        val annotatedText = buildAnnotatedString {
-                            append(item.trim())
-
-                            urls.forEach { (range, url) ->
-                                addStringAnnotation(
-                                    tag = "URL",
-                                    annotation = url,
-                                    start = range.first,
-                                    end = range.last + 1
-                                )
-                                addStyle(
-                                    style = SpanStyle(
-                                        color = MaterialTheme.colorScheme.primary,
-                                        textDecoration = TextDecoration.Underline
-                                    ),
-                                    start = range.first,
-                                    end = range.last + 1
-                                )
-                            }
+                    navigationIcon = {
+                        IconButton(
+                            onClick = { navController.navigateUp() },
+                            modifier = Modifier.scale(buttonScale)
+                        ) {
+                            Icon(
+                                Icons.Default.ArrowBack,
+                                contentDescription = "Back",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
                         }
-
-                        ClickableText(
-                            text = annotatedText,
-                            onClick = { offset ->
-                                annotatedText.getStringAnnotations("URL", offset, offset)
-                                    .firstOrNull()?.let { annotation ->
-                                        val intent = Intent(
-                                            Intent.ACTION_VIEW,
-                                            Uri.parse(annotation.item)
-                                        )
-                                        ContextCompat.startActivity(context, intent, null)
-                                    }
-                            },
-                            style = MaterialTheme.typography.bodyLarge.copy(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                lineHeight = 24.sp
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 2.dp)
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(40.dp))
-                TextButton(
-                    onClick = {
-                        isInstalling = false
-                        installProgress = 0f
                     },
-                    modifier = Modifier
-                        .height(48.dp)
-                ) {
-                    Text(
-                        text = "Pause",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary
+                    actions = {
+                        IconButton(
+                            onClick = { showMenu = true },
+                            modifier = Modifier.scale(buttonScale)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = "More options",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = {
+                                    Text("Settings")
+                                },
+                                onClick = {
+                                    showMenu = false
+                                    navController.navigate("settings/experimental")
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = {
+                                    Text("Changelog")
+                                },
+                                onClick = {
+                                    showMenu = false
+                                    navController.navigate("settings/changelog")
+                                }
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface
                     )
-                }
-                Spacer(modifier = Modifier.height(24.dp))
+                )
             }
-        } else {
-            // Main update screen
-            Box(modifier = Modifier.fillMaxSize()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surface)
-                        .padding(paddingValues)
-                        .verticalScroll(rememberScrollState())
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 24.dp)
-                    ) {
-                        Spacer(modifier = Modifier.height(24.dp))
-                        Icon(
-                            imageVector = Icons.Default.SystemUpdate,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(48.dp)
-                        )
-                        Spacer(modifier = Modifier.height(20.dp))
-                        when {
-                            updateAvailable -> {
-                                Text(
-                                    text = "Update Available",
-                                    style = MaterialTheme.typography.headlineMedium.copy(
-                                        fontSize = 36.sp,
-                                        fontWeight = FontWeight.Normal,
-                                        lineHeight = 44.sp
-                                    ),
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                            isChecking -> {
-                                Text(
-                                    text = "Checking for\nupdates...",
-                                    style = MaterialTheme.typography.headlineMedium.copy(
-                                        fontSize = 36.sp,
-                                        fontWeight = FontWeight.Normal,
-                                        lineHeight = 44.sp
-                                    ),
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                            fetchError -> {
-                                Text(
-                                    text = "Can't check for\nupdates",
-                                    style = MaterialTheme.typography.headlineMedium.copy(
-                                        fontSize = 36.sp,
-                                        fontWeight = FontWeight.Normal,
-                                        lineHeight = 44.sp
-                                    ),
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                            }
-                            else -> {
-                                Text(
-                                    text = "Your App is\nup to date",
-                                    style = MaterialTheme.typography.headlineMedium.copy(
-                                        fontSize = 36.sp,
-                                        fontWeight = FontWeight.Normal,
-                                        lineHeight = 44.sp
-                                    ),
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(20.dp))
-                        when {
-                            updateAvailable -> {
-                                Text(
-                                    text = "Version ${updateMessageVersion}",
-                                    style = MaterialTheme.typography.headlineSmall.copy(
-                                        fontWeight = FontWeight.Bold
-                                    ),
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Spacer(modifier = Modifier.height(10.dp))
-                                if (releaseDate.isNotEmpty()) {
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Text(
-                                        text = "Released: $releaseDate",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height(10.dp))
-                                val annotatedString = buildAnnotatedString {
-                                    append("Your app will update to ${updateMessageVersion}.\nLearn more ")
-                                    pushStringAnnotation(tag = "URL", annotation = "https://github.com/vivizzz007/vivi-music/releases")
-                                    withStyle(
-                                        style = SpanStyle(
-                                            color = MaterialTheme.colorScheme.primary,
-                                            textDecoration = TextDecoration.Underline
-                                        )
-                                    ) {
-                                        append("here")
-                                    }
-                                    pop()
-                                    append(".")
-                                }
-                                ClickableText(
-                                    text = annotatedString,
-                                    onClick = { offset ->
-                                        annotatedString.getStringAnnotations(tag = "URL", start = offset, end = offset)
-                                            .firstOrNull()?.let { annotation ->
-                                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(annotation.item))
-                                                ContextCompat.startActivity(context, intent, null)
-                                            }
-                                    },
-                                    style = MaterialTheme.typography.bodyLarge.copy(
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        lineHeight = 24.sp
-                                    )
-                                )
-                                if (isDownloading) {
-                                    Spacer(modifier = Modifier.height(24.dp))
-                                    LinearProgressIndicator(
-                                        progress = downloadProgress,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(8.dp),
-                                        color = MaterialTheme.colorScheme.primary,
-                                        trackColor = MaterialTheme.colorScheme.surfaceVariant
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = "Downloading... ${(downloadProgress * 100).toInt()}%",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height(15.dp))
-                                Divider(
-                                    modifier = Modifier.padding(vertical = 8.dp),
-                                    color = MaterialTheme.colorScheme.outlineVariant,
-                                    thickness = 2.dp
-                                )
-                                Spacer(modifier = Modifier.height(5.dp))
-                                Text(
-                                    text = "New features include:",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Spacer(modifier = Modifier.height(12.dp))
-                                if (changelog.isNotEmpty()) {
-                                    val changelogItems = changelog.split("\n").filter { it.isNotBlank() }
-                                    changelogItems.forEach { item ->
-                                        val urls = item.extractUrls()
-                                        val annotatedText = buildAnnotatedString {
-                                            append(item.trim())
-
-                                            urls.forEach { (range, url) ->
-                                                addStringAnnotation(
-                                                    tag = "URL",
-                                                    annotation = url,
-                                                    start = range.first,
-                                                    end = range.last + 1
-                                                )
-                                                addStyle(
-                                                    style = SpanStyle(
-                                                        color = MaterialTheme.colorScheme.primary,
-                                                        textDecoration = TextDecoration.Underline
-                                                    ),
-                                                    start = range.first,
-                                                    end = range.last + 1
-                                                )
-                                            }
-                                        }
-
-                                        ClickableText(
-                                            text = annotatedText,
-                                            onClick = { offset ->
-                                                annotatedText.getStringAnnotations("URL", offset, offset)
-                                                    .firstOrNull()?.let { annotation ->
-                                                        val intent = Intent(
-                                                            Intent.ACTION_VIEW,
-                                                            Uri.parse(annotation.item)
-                                                        )
-                                                        ContextCompat.startActivity(context, intent, null)
-                                                    }
-                                            },
-                                            style = MaterialTheme.typography.bodyLarge.copy(
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                lineHeight = 24.sp
-                                            ),
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(vertical = 2.dp)
-                                        )
-                                    }
-                                }
-                                Spacer(modifier = Modifier.height(15.dp))
-                                Divider(
-                                    modifier = Modifier.padding(vertical = 8.dp),
-                                    color = MaterialTheme.colorScheme.outlineVariant,
-                                    thickness = 2.dp
-                                )
-                                Spacer(modifier = Modifier.height(5.dp))
-                                Text(
-                                    text = "Downloading updates over a mobile network or while roaming may cause additional charges.",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    lineHeight = 24.sp
-                                )
-                                Spacer(modifier = Modifier.height(40.dp))
-                                Text(
-                                    text = "Update size: $appSize MB",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            isChecking -> {
-                                LinearProgressIndicator(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(8.dp),
-                                    color = MaterialTheme.colorScheme.primary,
-                                    trackColor = MaterialTheme.colorScheme.surfaceVariant
-                                )
-                            }
-                            fetchError -> {
-                                Text(
-                                    text = "Check your internet connection and try again.",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                            }
-                            else -> {
-                                Text(
-                                    text = "VIVI MUSIC version $currentVersion",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                if (lastCheckedTime.isNotEmpty()) {
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = "Last checked: $lastCheckedTime",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(100.dp))
-                    }
-                }
-
-                // Bottom button with background container
-                Surface(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.surface,
-                    shadowElevation = 8.dp,
-                    shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-                    border = BorderStroke(
-                        1.dp,
-                        MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
-                    )
-                ) {
+        },
+        bottomBar = {
+            // BOTTOM BUTTON - This ensures it's always visible and properly positioned
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 8.dp,
+                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                border = BorderStroke(
+                    1.dp,
+                    MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
+                )
+            ) {
+                Column {
+                    Spacer(modifier = Modifier.height(16.dp))
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 39.dp),
-                        contentAlignment = Alignment.CenterEnd
+                            .padding(horizontal = 16.dp),
+                        contentAlignment = Alignment.Center
                     ) {
                         Button(
                             onClick = {
                                 when {
                                     updateAvailable && !isDownloading && !isDownloadComplete -> {
-                                        // Start download with selected APK variant
-                                        isDownloading = true
-                                        downloadProgress = 0f
-                                        val selectedVariant = getSelectedApkVariant(context)
-                                        // Use appropriate tag prefix based on beta setting
-                                        val tagPrefix = if (betaUpdaterEnabled) "b" else "v"
-//                                        val apkUrl = "https://github.com/vivizzz007/vivi-music/releases/download/$tagPrefix$updateMessageVersion/$selectedVariant"
-
-                                        val apkUrl = if (betaUpdaterEnabled) {
-                                            // For beta, try vivi-beta.apk first, fall back to vivi.apk
-                                            "https://github.com/vivizzz007/vivi-music/releases/download/b$updateMessageVersion/vivi-beta.apk"
-                                        } else {
-                                            // For stable, use vivi.apk
-                                            "https://github.com/vivizzz007/vivi-music/releases/download/v$updateMessageVersion/vivi.apk"
-                                        }
-
-                                        downloadApk(
-                                            context = context,
-                                            apkUrl = apkUrl,
-                                            onProgress = { progress ->
-                                                downloadProgress = progress
-                                            },
-                                            onDownloadComplete = {
-                                                isDownloading = false
-                                                isDownloadComplete = true
-                                            }
-                                        )
+                                        navController.navigate("update/details")
                                     }
                                     isDownloading -> {
-                                        // Pause download
                                         isDownloading = false
                                         downloadProgress = 0f
                                     }
                                     isDownloadComplete -> {
-                                        // Install the APK with selected variant
                                         val selectedVariant = getSelectedApkVariant(context)
                                         val file = File(
                                             context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),
@@ -705,35 +396,515 @@ fun UpdateScreen(navController: NavHostController) {
                                 containerColor = MaterialTheme.colorScheme.primary,
                                 contentColor = MaterialTheme.colorScheme.onPrimary
                             ),
-                            elevation = ButtonDefaults.buttonElevation(
-                                defaultElevation = 2.dp,
-                                pressedElevation = 4.dp,
-                                focusedElevation = 2.dp,
-                                hoveredElevation = 3.dp
-                            ),
                             modifier = Modifier
-                                .height(48.dp)
-                                .widthIn(min = 120.dp)
+                                .fillMaxWidth()
+                                .height(52.dp)
+                                .scale(buttonScale)
+                                .animateContentSize()
                         ) {
-                            Text(
-                                text = when {
-                                    updateAvailable && !isDownloading && !isDownloadComplete -> "Download"
+                            AnimatedContent(
+                                targetState = when {
+                                    updateAvailable && !isDownloading && !isDownloadComplete -> "Update Now"
                                     isDownloading -> "Pause"
                                     isDownloadComplete -> "Install"
                                     else -> "Check for update"
                                 },
-                                style = MaterialTheme.typography.labelLarge.copy(
-                                    fontWeight = FontWeight.Medium
+                                transitionSpec = {
+                                    slideInVertically { height -> height } + fadeIn() with
+                                            slideOutVertically { height -> -height } + fadeOut()
+                                }
+                            ) { targetText ->
+                                Text(
+                                    text = targetText,
+                                    style = MaterialTheme.typography.labelLarge.copy(
+                                        fontWeight = FontWeight.Medium
+                                    ),
+                                    color = buttonText
                                 )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(32.dp))
+                }
+            }
+        }
+    ) { paddingValues ->
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(paddingValues)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp)
+            ) {
+                // Update Card - Only show when update is available
+                if (updateAvailable) {
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = showUpdateCard,
+                        enter = slideInVertically(
+                            initialOffsetY = { it / 2 },
+                            animationSpec = tween(durationMillis = 700, easing = FastOutSlowInEasing)
+                        ) + fadeIn() + scaleIn(
+                            initialScale = 0.9f,
+                            animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing)
+                        ),
+                        exit = slideOutVertically(
+                            targetOffsetY = { it / 2 },
+                            animationSpec = tween(durationMillis = 400)
+                        ) + fadeOut() + scaleOut(
+                            targetScale = 0.9f,
+                            animationSpec = tween(durationMillis = 400)
+                        ),
+                        modifier = Modifier.alpha(updateCardAlpha)
+                    ) {
+                        Column {
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            // Main heading for update available with animation
+                            androidx.compose.animation.AnimatedVisibility(
+                                visible = updateAvailable,
+                                enter = slideInHorizontally(
+                                    initialOffsetX = { -it },
+                                    animationSpec = tween(durationMillis = 500)
+                                ) + fadeIn(),
+                                exit = slideOutHorizontally(
+                                    targetOffsetX = { -it },
+                                    animationSpec = tween(durationMillis = 300)
+                                ) + fadeOut()
+                            ) {
+                                Text(
+                                    text = "An update is available",
+                                    style = MaterialTheme.typography.headlineSmall.copy(
+                                        fontWeight = FontWeight.Normal
+                                    ),
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(min = 450.dp)
+                                    .clip(RoundedCornerShape(24.dp))
+                                    .animateContentSize(
+                                        animationSpec = spring(
+                                            dampingRatio = 0.8f,
+                                            stiffness = 300f
+                                        )
+                                    ),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = Color(0xFF002147)
+                                ),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .fillMaxHeight()
+                                        .background(Color(0xFF002147))
+                                        .padding(32.dp)
+                                ) {
+                                    Column {
+                                        // App name/branding with animation
+                                        androidx.compose.animation.AnimatedVisibility(
+                                            visible = true,
+                                            enter = slideInHorizontally(
+                                                initialOffsetX = { -it },
+                                                animationSpec = tween(durationMillis = 600)
+                                            ) + fadeIn(),
+                                            modifier = Modifier
+                                        ) {
+                                            Text(
+                                                text = "VIVI MUSIC",
+                                                style = MaterialTheme.typography.headlineLarge.copy(
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 36.sp,
+                                                    letterSpacing = 1.5.sp
+                                                ),
+                                                color = Color.White
+                                            )
+                                        }
+
+                                        Spacer(modifier = Modifier.height(12.dp))
+
+                                        // Version info with staggered animation
+                                        androidx.compose.animation.AnimatedVisibility(
+                                            visible = true,
+                                            enter = slideInHorizontally(
+                                                initialOffsetX = { -it },
+                                                animationSpec = tween(
+                                                    durationMillis = 600,
+                                                    delayMillis = 100
+                                                )
+                                            ) + fadeIn(),
+                                        ) {
+                                            Text(
+                                                text = "$currentVersion → $updateMessageVersion | $appSize MB",
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                color = Color.White.copy(alpha = 0.9f)
+                                            )
+                                        }
+
+                                        Spacer(modifier = Modifier.height(20.dp))
+
+                                        // Release date with animation
+                                        androidx.compose.animation.AnimatedVisibility(
+                                            visible = true,
+                                            enter = slideInHorizontally(
+                                                initialOffsetX = { -it },
+                                                animationSpec = tween(
+                                                    durationMillis = 600,
+                                                    delayMillis = 200
+                                                )
+                                            ) + fadeIn(),
+                                        ) {
+                                            Text(
+                                                text = " $releaseDate ",
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = Color.White.copy(alpha = 0.8f)
+                                            )
+                                        }
+
+                                        Spacer(modifier = Modifier.height(48.dp))
+
+                                        // Updated apps section with animation
+                                        androidx.compose.animation.AnimatedVisibility(
+                                            visible = true,
+                                            enter = slideInHorizontally(
+                                                initialOffsetX = { -it },
+                                                animationSpec = tween(
+                                                    durationMillis = 600,
+                                                    delayMillis = 300
+                                                )
+                                            ) + fadeIn(),
+                                        ) {
+                                            Column {
+                                                Text(
+                                                    text = "What's new",
+                                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                                        fontWeight = FontWeight.Medium
+                                                    ),
+                                                    color = Color.White.copy(alpha = 0.9f)
+                                                )
+
+                                                Spacer(modifier = Modifier.height(16.dp))
+
+                                                // Show first 2 changelog items as preview
+                                                if (changelog.isNotEmpty()) {
+                                                    val changelogItems = changelog.split("\n")
+                                                        .filter { it.isNotBlank() }
+                                                        .take(5)
+
+                                                    changelogItems.forEachIndexed { index, item ->
+                                                        androidx.compose.animation.AnimatedVisibility(
+                                                            visible = true,
+                                                            enter = slideInVertically(
+                                                                initialOffsetY = { it / 2 },
+                                                                animationSpec = tween(
+                                                                    durationMillis = 400,
+                                                                    delayMillis = 400 + (index * 100)
+                                                                )
+                                                            ) + fadeIn(),
+                                                            modifier = Modifier.padding(vertical = 2.dp)
+                                                        ) {
+                                                            Row(
+                                                                verticalAlignment = Alignment.Top
+                                                            ) {
+                                                                Text(
+                                                                    text = "• ",
+                                                                    color = Color.White.copy(alpha = 0.9f),
+                                                                    style = MaterialTheme.typography.bodyMedium
+                                                                )
+                                                                Text(
+                                                                    text = item.trim().take(60) + if (item.length > 60) "..." else "",
+                                                                    color = Color.White.copy(alpha = 0.9f),
+                                                                    style = MaterialTheme.typography.bodyMedium,
+                                                                    maxLines = 1,
+                                                                    overflow = TextOverflow.Ellipsis
+                                                                )
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        Spacer(modifier = Modifier.height(40.dp))
+
+                                        // Learn what's new link with animation
+                                        androidx.compose.animation.AnimatedVisibility(
+                                            visible = true,
+                                            enter = slideInHorizontally(
+                                                initialOffsetX = { -it },
+                                                animationSpec = tween(
+                                                    durationMillis = 600,
+                                                    delayMillis = 800
+                                                )
+                                            ) + fadeIn(),
+                                        ) {
+                                            Row(
+                                                modifier = Modifier
+                                                    .clickable { navController.navigate("update/details") }
+                                                    .animateContentSize(),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(
+                                                    text = "Learn what's new",
+                                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                                        fontWeight = FontWeight.Medium
+                                                    ),
+                                                    color = Color.White
+                                                )
+                                                Spacer(modifier = Modifier.width(4.dp))
+                                                Icon(
+                                                    imageVector = Icons.Default.ArrowForward,
+                                                    contentDescription = null,
+                                                    tint = Color.White,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            // Download progress with smooth animation
+                            androidx.compose.animation.AnimatedVisibility(
+                                visible = isDownloading,
+                                enter = slideInVertically(
+                                    initialOffsetY = { it },
+                                    animationSpec = tween(durationMillis = 400)
+                                ) + fadeIn(),
+                                exit = slideOutVertically(
+                                    targetOffsetY = { it },
+                                    animationSpec = tween(durationMillis = 300)
+                                ) + fadeOut(),
+                                modifier = Modifier.alpha(progressBarAlpha)
+                            ) {
+                                Column {
+                                    LinearProgressIndicator(
+                                        progress = { downloadProgress },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(8.dp)
+                                            .clip(RoundedCornerShape(4.dp)),
+                                        color = MaterialTheme.colorScheme.primary,
+                                        trackColor = MaterialTheme.colorScheme.surfaceVariant
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = "Downloading... ${(downloadProgress * 100).toInt()}%",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            // Additional info with fade animation
+                            androidx.compose.animation.AnimatedVisibility(
+                                visible = updateAvailable,
+                                enter = fadeIn(
+                                    animationSpec = tween(
+                                        durationMillis = 600,
+                                        delayMillis = 400
+                                    )
+                                ),
+                                exit = fadeOut()
+                            ) {
+                                Text(
+                                    text = "Downloading updates over a mobile network or while roaming may cause additional charges.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    lineHeight = 20.sp
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Center aligned content for all states
+                if (!updateAvailable) {
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        // VIVI MUSIC text with animation (during initial load)
+                        androidx.compose.animation.AnimatedVisibility(
+                            visible = showViviText && !isChecking,
+                            enter = scaleIn(
+                                initialScale = 0.8f,
+                                animationSpec = tween(durationMillis = 600)
+                            ) + fadeIn(),
+                            exit = scaleOut(
+                                targetScale = 1.2f,
+                                animationSpec = tween(durationMillis = 400)
+                            ) + fadeOut(),
+                            modifier = Modifier.alpha(viviTextAlpha)
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "VIVI MUSIC",
+                                    style = MaterialTheme.typography.headlineLarge.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 42.sp,
+                                        letterSpacing = 2.sp
+                                    ),
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    textAlign = TextAlign.Center
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text(
+                                    text = "Your app is up to date",
+                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                        fontWeight = FontWeight.Normal
+                                    ),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+
+                        // Version text with animation (after check completes)
+                        androidx.compose.animation.AnimatedVisibility(
+                            visible = showVersionText && !isChecking,
+                            enter = scaleIn(
+                                initialScale = 0.8f,
+                                animationSpec = tween(durationMillis = 600)
+                            ) + fadeIn(),
+                            exit = scaleOut() + fadeOut(),
+                            modifier = Modifier.alpha(versionTextAlpha)
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "VIVI MUSIC",
+                                    style = MaterialTheme.typography.headlineLarge.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 42.sp,
+                                        letterSpacing = 2.sp
+                                    ),
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    textAlign = TextAlign.Center
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = currentVersion,
+                                    style = MaterialTheme.typography.headlineMedium.copy(
+                                        fontWeight = FontWeight.Bold
+                                    ),
+                                    color = MaterialTheme.colorScheme.primary,
+                                    textAlign = TextAlign.Center
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "Your app is up to date",
+                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                        fontWeight = FontWeight.Normal
+                                    ),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+
+                        // Checking for updates state
+                        androidx.compose.animation.AnimatedVisibility(
+                            visible = isChecking,
+                            enter = scaleIn() + fadeIn(),
+                            exit = scaleOut() + fadeOut()
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "VIVI MUSIC",
+                                    style = MaterialTheme.typography.headlineLarge.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 42.sp,
+                                        letterSpacing = 2.sp
+                                    ),
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    textAlign = TextAlign.Center
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text(
+                                    text = "Checking for updates...",
+                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                        fontWeight = FontWeight.Normal
+                                    ),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+                    }
+
+                    // Checking state progress bar with animation
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = isChecking && showProgressBar,
+                        enter = slideInVertically(
+                            initialOffsetY = { it },
+                            animationSpec = tween(durationMillis = 400)
+                        ) + fadeIn(),
+                        exit = slideOutVertically(
+                            targetOffsetY = { it },
+                            animationSpec = tween(durationMillis = 300)
+                        ) + fadeOut(),
+                        modifier = Modifier.alpha(progressBarAlpha)
+                    ) {
+                        Column {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            LinearProgressIndicator(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(4.dp)
+                                    .clip(RoundedCornerShape(2.dp)),
+                                color = MaterialTheme.colorScheme.primary,
+                                trackColor = MaterialTheme.colorScheme.surfaceVariant
                             )
                         }
                     }
+
+                    // Last checked time with animation
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = !isChecking && showVersionText && lastCheckedTime.isNotEmpty(),
+                        enter = fadeIn(
+                            animationSpec = tween(durationMillis = 600, delayMillis = 200)
+                        ),
+                        exit = fadeOut()
+                    ) {
+                        Column {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = "Last checked: $lastCheckedTime",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.weight(1f))
                 }
             }
         }
     }
 }
-
 // Utility functions for SharedPreferences
 const val PREFS_NAME = "app_settings"
 const val KEY_AUTO_UPDATE_CHECK = "auto_update_check_enabled"
@@ -765,7 +936,7 @@ private fun formatGitHubDate(githubDate: String): String {
     }
 }
 
-private fun downloadApk(
+fun downloadApk(
     context: Context,
     apkUrl: String,
     onProgress: (Float) -> Unit,
