@@ -111,6 +111,7 @@ import androidx.core.app.NotificationCompat
 import android.app.PendingIntent
 import android.Manifest
 import android.content.pm.PackageManager
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.layout.ContentScale
 import androidx.core.content.ContextCompat
@@ -137,14 +138,12 @@ import com.music.innertube.models.SongItem
 import com.music.innertube.models.WatchEndpoint
 import com.music.vivi.constants.AppBarHeight
 import com.music.vivi.constants.AppLanguageKey
-import com.music.vivi.constants.CheckForUpdatesKey
 import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.DefaultOpenTabKey
 import com.music.vivi.constants.DisableScreenshotKey
 import com.music.vivi.constants.DynamicThemeKey
 import com.music.vivi.constants.MiniPlayerHeight
 import com.music.vivi.constants.MiniPlayerBottomSpacing
-import com.music.vivi.constants.UpdateNotificationsEnabledKey
 import com.music.vivi.constants.UseNewMiniPlayerDesignKey
 import com.music.vivi.constants.NavigationBarAnimationSpec
 import com.music.vivi.constants.NavigationBarHeight
@@ -213,7 +212,6 @@ import java.util.Locale
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.days
 import coil3.compose.AsyncImage
-import com.music.vivi.update.updatenotification.UpdateChecker
 import kotlin.compareTo
 import kotlin.text.get
 
@@ -302,6 +300,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.P)
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -317,9 +316,6 @@ class MainActivity : ComponentActivity() {
             setAppLocale(this, locale)
         }
 
-
-        // Check for updates when app opens
-        UpdateChecker.checkForUpdateNow(this)
         
         lifecycleScope.launch {
             dataStore.data
@@ -336,7 +332,6 @@ class MainActivity : ComponentActivity() {
                     }
                 }
         }
-
         setContent {
 //            val checkForUpdates by rememberPreference(CheckForUpdatesKey, defaultValue = true)
 
