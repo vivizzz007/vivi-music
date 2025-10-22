@@ -7,6 +7,7 @@ import android.widget.Toast
 import android.widget.Toast.LENGTH_SHORT
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.util.Log
 import androidx.datastore.preferences.core.edit
 import coil3.ImageLoader
 import coil3.PlatformContext
@@ -23,7 +24,7 @@ import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.reportException
 import com.music.innertube.YouTube
 import com.music.innertube.models.YouTubeLocale
-import com.music.vivi.update.updatenotification.UpdateChecker
+import com.music.vivi.update.updatenotification.UpdateCheckerWorker
 import com.music.vivi.utils.get
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -67,8 +68,13 @@ class App : Application(), SingletonImageLoader.Factory {
         if (languageTag == "zh-TW") {
             KuGou.useTraditionalChinese = true
         }
-        // Schedule periodic update checks
-        UpdateChecker.scheduleUpdateCheck(this)
+        //update checker
+
+        // Initialize update checker - checks every 6 hours
+        UpdateCheckerWorker.schedulePeriodicCheck(this)
+
+        // For testing: Force check immediately (remove after testing)
+        UpdateCheckerWorker.forceCheckNow(this)
 
         if (dataStore[ProxyEnabledKey] == true) {
             val username = dataStore[ProxyUsernameKey].orEmpty()
@@ -99,15 +105,17 @@ class App : Application(), SingletonImageLoader.Factory {
 
         // Create update notification channel (O+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                "updates",
-                getString(R.string.update_channel_name),
-                NotificationManager.IMPORTANCE_DEFAULT
-            ).apply {
-                description = getString(R.string.update_channel_desc)
-            }
+//            val channel = NotificationChannel(
+//                "updates",
+//                getString(R.string.update_channel_name),
+//                NotificationManager.IMPORTANCE_LOW // or IMPORTANCE_MIN
+//            ).apply {
+//                description = getString(R.string.update_channel_desc)
+//                // Optional: disable badge icon
+//                setShowBadge(false)
+//            }
             val nm = getSystemService(NotificationManager::class.java)
-            nm.createNotificationChannel(channel)
+//            nm.createNotificationChannel(channel)
         }
 
         applicationScope.launch(Dispatchers.IO) {
