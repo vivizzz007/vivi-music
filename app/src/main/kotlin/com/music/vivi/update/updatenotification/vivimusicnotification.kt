@@ -7,19 +7,25 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.work.*
+import androidx.work.Constraints
+import androidx.work.CoroutineWorker
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.WorkerParameters
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.TimeUnit
-import android.content.pm.PackageManager
-import androidx.core.app.ActivityCompat
 
 
 class UpdateCheckerWorker(
@@ -40,7 +46,7 @@ class UpdateCheckerWorker(
                 .build()
 
             val periodicWork = PeriodicWorkRequestBuilder<UpdateCheckerWorker>(
-                4, TimeUnit.HOURS // Check every 6 hours
+                4, TimeUnit.HOURS // Check every 4 hours
             )
                 .setConstraints(constraints)
                 .setInitialDelay(1, TimeUnit.MINUTES)
@@ -85,6 +91,7 @@ class UpdateCheckerWorker(
 
             if (releaseInfo != null && isNewVersion(releaseInfo.version)) {
                 android.util.Log.d("UpdateChecker", "New version found: ${releaseInfo.version}")
+                android.util.Log.d("UpdateChecker", "Download URL: ${releaseInfo.downloadUrl}")
                 createNotificationChannel()
                 showUpdateNotification(releaseInfo)
                 saveLastVersion(releaseInfo.version)
@@ -112,7 +119,12 @@ class UpdateCheckerWorker(
             if (connection.responseCode == HttpURLConnection.HTTP_OK) {
                 val response = connection.inputStream.bufferedReader().use { it.readText() }
                 return parseReleaseInfo(response)
+            } else {
+                android.util.Log.e("UpdateChecker", "HTTP error: ${connection.responseCode}")
             }
+        } catch (e: Exception) {
+            android.util.Log.e("UpdateChecker", "Error fetching release", e)
+            throw e
         } finally {
             connection.disconnect()
         }
@@ -128,16 +140,32 @@ class UpdateCheckerWorker(
             val htmlUrl = jsonObject.optString("html_url", "")
             val publishedAt = jsonObject.optString("published_at", "")
 
-            // Get download URL for APK
+            // Get download URL for vivi.apk specifically
             val assets = jsonObject.optJSONArray("assets")
             var downloadUrl = ""
             if (assets != null) {
                 for (i in 0 until assets.length()) {
                     val asset = assets.getJSONObject(i)
                     val assetName = asset.optString("name", "")
-                    if (assetName.endsWith(".apk", ignoreCase = true)) {
+                    // Look specifically for vivi.apk
+                    if (assetName.equals("vivi.apk", ignoreCase = true)) {
                         downloadUrl = asset.optString("browser_download_url", "")
+                        android.util.Log.d("UpdateChecker", "Found vivi.apk: $downloadUrl")
                         break
+                    }
+                }
+
+                // If vivi.apk not found, fall back to any APK (optional)
+                if (downloadUrl.isEmpty()) {
+                    android.util.Log.d("UpdateChecker", "vivi.apk not found, checking for any APK...")
+                    for (i in 0 until assets.length()) {
+                        val asset = assets.getJSONObject(i)
+                        val assetName = asset.optString("name", "")
+                        if (assetName.endsWith(".apk", ignoreCase = true)) {
+                            downloadUrl = asset.optString("browser_download_url", "")
+                            android.util.Log.d("UpdateChecker", "Using fallback APK: $assetName")
+                            break
+                        }
                     }
                 }
             }
@@ -151,6 +179,7 @@ class UpdateCheckerWorker(
                 publishedAt = publishedAt
             )
         } catch (e: Exception) {
+            android.util.Log.e("UpdateChecker", "Error parsing release info", e)
             e.printStackTrace()
         }
         return null
@@ -256,12 +285,14 @@ class UpdateCheckerWorker(
         val builder = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
             .setSmallIcon(iconResId)
             .setContentTitle("New Update Available!")
-            .setContentText("Tap to view update")
+            .setContentText("Version ${releaseInfo.version} is available")
+            .setStyle(NotificationCompat.BigTextStyle()
+                .bigText("Version ${releaseInfo.version}: ${releaseInfo.name}"))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
-        // Add download action if APK is available
+        // Add download action only if vivi.apk (or fallback APK) is available
         if (releaseInfo.downloadUrl.isNotEmpty()) {
             val downloadIntent = Intent(Intent.ACTION_VIEW, Uri.parse(releaseInfo.downloadUrl))
             val downloadPendingIntent = PendingIntent.getActivity(
@@ -272,9 +303,12 @@ class UpdateCheckerWorker(
             )
             builder.addAction(
                 android.R.drawable.stat_sys_download,
-                "Download",
+                "Download APK",
                 downloadPendingIntent
             )
+            android.util.Log.d("UpdateChecker", "Download action added for APK")
+        } else {
+            android.util.Log.d("UpdateChecker", "No APK found in release assets")
         }
 
         // Show notification
@@ -283,6 +317,9 @@ class UpdateCheckerWorker(
             android.util.Log.d("UpdateChecker", "Notification shown successfully!")
         } catch (e: SecurityException) {
             android.util.Log.e("UpdateChecker", "SecurityException showing notification", e)
+            e.printStackTrace()
+        } catch (e: Exception) {
+            android.util.Log.e("UpdateChecker", "Error showing notification", e)
             e.printStackTrace()
         }
     }

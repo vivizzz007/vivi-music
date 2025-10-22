@@ -264,7 +264,7 @@ fun UpdateDetailsScreen(navController: NavHostController) {
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
-                        .padding(bottom = 80.dp),
+                        .padding(bottom = 90.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Button(

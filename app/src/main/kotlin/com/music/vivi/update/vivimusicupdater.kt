@@ -993,6 +993,7 @@ fun UpdateScreen(navController: NavHostController) {
     }
 }
 
+
 // Utility functions for SharedPreferences
 const val PREFS_NAME = "app_settings"
 const val KEY_AUTO_UPDATE_CHECK = "auto_update_check_enabled"

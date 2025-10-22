@@ -23,6 +23,7 @@ import org.json.JSONObject
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.Image
 import com.music.vivi.BuildConfig
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import java.text.SimpleDateFormat
@@ -36,6 +37,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.NewReleases
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.sp
 import com.music.vivi.ui.screens.getAutoUpdateCheckSetting
@@ -221,13 +223,13 @@ fun SoftwareUpdatesScreen(
                                 modifier = Modifier
                                     .size(64.dp)
                                     .clip(CircleShape)
-                                    .background(Color(0xFF34A853)),
+                                    .background(MaterialTheme.colorScheme.primary),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    imageVector = Icons.Filled.Check,
+                                    painter = painterResource(R.drawable.updated),
                                     contentDescription = null,
-                                    tint = Color.White,
+                                    tint = MaterialTheme.colorScheme.onPrimary,
                                     modifier = Modifier.size(32.dp)
                                 )
                             }
@@ -266,7 +268,7 @@ fun SoftwareUpdatesScreen(
                             ModernInfoItem(
                                 icon = {
                                     Icon(
-                                        imageVector = Icons.Filled.NewReleases,
+                                        painter = painterResource(R.drawable.rocket_new_update),
                                         contentDescription = null,
                                         modifier = Modifier.size(22.dp),
                                         tint = MaterialTheme.colorScheme.error
@@ -285,10 +287,10 @@ fun SoftwareUpdatesScreen(
                             ModernInfoItem(
                                 icon = {
                                     Icon(
-                                        imageVector = Icons.Filled.Check,
+                                        painter = painterResource(R.drawable.updated),
                                         contentDescription = null,
                                         modifier = Modifier.size(22.dp),
-                                        tint = Color(0xFF34A853)
+                                        tint = MaterialTheme.colorScheme.surfaceTint
                                     )
                                 },
                                 title = "System update",
@@ -297,7 +299,7 @@ fun SoftwareUpdatesScreen(
                                     navController.navigate("settings/update")
                                 },
                                 showArrow = true,
-                                iconBackgroundColor = Color(0xFF34A853).copy(alpha = 0.2f)
+//                                iconBackgroundColor = MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.2f)
                             )
                         }
                     }
@@ -356,6 +358,25 @@ fun SoftwareUpdatesScreen(
                         title = "Changelog",
                         subtitle = "Current app version",
                         onClick = { navController.navigate("settings/changelog") },
+                        showArrow = true
+                    )
+
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                    )
+
+                    ModernInfoItem(
+                        icon = {
+                            Icon(
+                                painter = painterResource(R.drawable.rocket),
+                                contentDescription = null,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        },
+                        title = "About",
+                        subtitle = "app & dev information",
+                        onClick = { navController.navigate("settings/about") },
                         showArrow = true
                     )
 

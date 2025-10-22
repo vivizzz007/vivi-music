@@ -399,7 +399,7 @@ fun SettingsScreen(
                     ModernInfoItem(
                         icon = {
                             Icon(
-                                painter = painterResource(R.drawable.info),
+                                painter = painterResource(R.drawable.rocket),
                                 contentDescription = null,
                                 modifier = Modifier.size(22.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
