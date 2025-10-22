@@ -2,6 +2,7 @@ package com.music.vivi.ui.screens.settings
 
 
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BugReport
@@ -21,7 +23,6 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.NewReleases
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -42,9 +43,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
@@ -79,7 +82,6 @@ fun AboutScreen(
 
     var latestRelease by remember { mutableStateOf<String?>(null) }
     val isUpdateAvailable = remember { mutableStateOf(false) }
-    var buildVersionClickCount by remember { mutableStateOf(0) }
 
     // Parallax effect for header
     val headerOffset by remember {
@@ -89,13 +91,6 @@ fun AboutScreen(
     }
 
     // Calculate scroll-based animations for title
-    val titleAlpha by remember {
-        derivedStateOf {
-            if (scrollState.firstVisibleItemIndex == 0) {
-                1f - (scrollState.firstVisibleItemScrollOffset / 200f).coerceIn(0f, 1f)
-            } else 0f
-        }
-    }
 
     // Get app install date
     val installedDate = remember {
@@ -103,7 +98,7 @@ fun AboutScreen(
             val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
             val installTime = packageInfo.firstInstallTime
             SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date(installTime))
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             "Unknown"
         }
     }
@@ -176,7 +171,8 @@ fun AboutScreen(
                         ) {
                             Icon(
                                 painterResource(R.drawable.arrow_back),
-                                contentDescription = null
+                                contentDescription = null,
+                                modifier = Modifier.size(28.dp) // Increased back icon size
                             )
                         }
                     },
@@ -260,7 +256,7 @@ fun AboutScreen(
                                     Icon(
                                         imageVector = Icons.Filled.NewReleases,
                                         contentDescription = null,
-                                        modifier = Modifier.size(22.dp),
+                                        modifier = Modifier.size(28.dp), // Increased size
                                         tint = MaterialTheme.colorScheme.primary
                                     )
                                 },
@@ -272,53 +268,6 @@ fun AboutScreen(
                                 titleColor = MaterialTheme.colorScheme.onPrimaryContainer,
                                 subtitleColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
                                 arrowColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
-                            )
-                        }
-                    }
-                }
-
-                // App Information Section
-                item {
-                    Text(
-                        text = "APP INFO",
-                        style = MaterialTheme.typography.labelLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.sp
-                        ),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
-                    )
-                }
-
-                item {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer
-                        ),
-                        shape = RoundedCornerShape(20.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            ModernInfoItem(
-                                icon = { Icon(painterResource(R.drawable.info), null, modifier = Modifier.size(22.dp)) },
-                                title = "Installed Date",
-                                subtitle = installedDate
-                            )
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            ModernInfoItem(
-                                icon = { Icon(Icons.Filled.History, null, modifier = Modifier.size(22.dp)) },
-                                title = "Changelog",
-                                subtitle = "View version history",
-                                onClick = { navController.navigate("settings/changelog") },
-                                showArrow = true
                             )
                         }
                     }
@@ -350,7 +299,23 @@ fun AboutScreen(
                     ) {
                         Column(modifier = Modifier.padding(vertical = 8.dp)) {
                             ModernInfoItem(
-                                icon = { Icon(Icons.Filled.Person, null, modifier = Modifier.size(22.dp)) },
+                                icon = {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(48.dp) // Increased from 30dp to 48dp
+                                            .clip(CircleShape)
+                                            .background(MaterialTheme.colorScheme.primaryContainer)
+                                    ) {
+                                        Image(
+                                            painter = painterResource(R.drawable.dev),
+                                            contentDescription = "Developer",
+                                            modifier = Modifier
+                                                .size(48.dp) // Increased from 30dp to 48dp
+                                                .clip(CircleShape),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    }
+                                },
                                 title = "VIVIDH P ASHOKAN",
                                 subtitle = "App Developer",
                                 onClick = { uriHandler.openUri("https://github.com/vivizzz007") },
@@ -363,10 +328,75 @@ fun AboutScreen(
                             )
 
                             ModernInfoItem(
-                                icon = { Icon(Icons.Filled.Language, null, modifier = Modifier.size(22.dp)) },
+                                icon = {
+                                    Icon(
+                                        Icons.Filled.Language,
+                                        null,
+                                        modifier = Modifier.size(28.dp) // Increased from 22dp to 28dp
+                                    )
+                                },
                                 title = "Website",
                                 subtitle = "vivimusicwebcom.vercel.app",
                                 onClick = { uriHandler.openUri("https://vivi-music-web-com.vercel.app/") },
+                                showArrow = true
+                            )
+                        }
+                    }
+                }
+
+                // App Information Section
+                item {
+                    Text(
+                        text = "APP INFO",
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
+                    )
+                }
+
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer
+                        ),
+                        shape = RoundedCornerShape(20.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                            ModernInfoItem(
+                                icon = {
+                                    Icon(
+                                        painterResource(R.drawable.info),
+                                        null,
+                                        modifier = Modifier.size(28.dp) // Increased from 22dp to 28dp
+                                    )
+                                },
+                                title = "Installed Date",
+                                subtitle = installedDate
+                            )
+
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                            )
+
+                            ModernInfoItem(
+                                icon = {
+                                    Icon(
+                                        Icons.Filled.History,
+                                        null,
+                                        modifier = Modifier.size(28.dp) // Increased from 22dp to 28dp
+                                    )
+                                },
+                                title = "Changelog",
+                                subtitle = "View version history",
+                                onClick = { navController.navigate("settings/changelog") },
                                 showArrow = true
                             )
                         }
@@ -403,7 +433,7 @@ fun AboutScreen(
                                     Icon(
                                         painter = painterResource(R.drawable.github_icon_about),
                                         contentDescription = null,
-                                        modifier = Modifier.size(22.dp),
+                                        modifier = Modifier.size(28.dp), // Increased from 22dp to 28dp
                                         tint = Color.Unspecified
                                     )
                                 },
@@ -419,7 +449,13 @@ fun AboutScreen(
                             )
 
                             ModernInfoItem(
-                                icon = { Icon(Icons.Filled.BugReport, null, modifier = Modifier.size(22.dp)) },
+                                icon = {
+                                    Icon(
+                                        Icons.Filled.BugReport,
+                                        null,
+                                        modifier = Modifier.size(28.dp) // Increased from 22dp to 28dp
+                                    )
+                                },
                                 title = "Report Issue",
                                 subtitle = "Bugs & feedback",
                                 onClick = { navController.navigate("settings/report_issue") },
@@ -432,7 +468,14 @@ fun AboutScreen(
                             )
 
                             ModernInfoItem(
-                                icon = { Icon(Icons.Filled.Favorite, null, modifier = Modifier.size(22.dp), tint = Color(0xFFE91E63)) },
+                                icon = {
+                                    Icon(
+                                        Icons.Filled.Favorite,
+                                        null,
+                                        modifier = Modifier.size(28.dp), // Increased from 22dp to 28dp
+                                        tint = Color(0xFFE91E63)
+                                    )
+                                },
                                 title = "Donate",
                                 subtitle = "Support development",
                                 onClick = { navController.navigate("settings/support") },
@@ -449,4 +492,3 @@ fun AboutScreen(
         }
     }
 }
-
