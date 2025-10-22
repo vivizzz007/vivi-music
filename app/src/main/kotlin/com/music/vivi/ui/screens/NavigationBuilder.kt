@@ -39,7 +39,6 @@ import com.music.vivi.ui.screens.settings.PrivacySettings
 import com.music.vivi.ui.screens.settings.RomanizationSettings
 import com.music.vivi.ui.screens.settings.SettingsScreen
 import com.music.vivi.ui.screens.settings.StorageSettings
-import com.music.vivi.ui.screens.settings.UpdaterScreen
 import com.music.vivi.update.UpdateDetailsScreen
 import com.music.vivi.update.account.AccountViewScreen
 import com.music.vivi.update.betaupdate.ViviDpiSettings
@@ -54,6 +53,7 @@ import com.music.vivi.update.settingstyle.PlayerBackgroundStyleScreen
 import com.music.vivi.update.settingstyle.PlayerButtonsStyleScreen
 import com.music.vivi.update.settingstyle.PlayerSliderStyleScreen
 import com.music.vivi.update.settingstyle.ThemeSettingsScreen
+import com.music.vivi.update.updatenotification.UpdateInfoScreen
 import com.music.vivi.updatesreen.SoftwareUpdatesScreen
 
 @RequiresApi(Build.VERSION_CODES.P)
@@ -297,15 +297,16 @@ fun NavGraphBuilder.navigationBuilder(
     composable("settings/discord/login") {
         DiscordLoginScreen(navController)
     }
-    composable("settings/updater") {
-        UpdaterScreen(navController, scrollBehavior)
-    }
     composable("settings/about") {
         AboutScreen(navController, scrollBehavior)
     }
     composable("login") {
         LoginScreen(navController)
     }
+
+     composable("settings/updateinfo") {
+     UpdateInfoScreen(navController, scrollBehavior)
+ }
 
 
     // Navigation Builder

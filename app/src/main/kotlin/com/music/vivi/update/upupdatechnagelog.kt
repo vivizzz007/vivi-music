@@ -260,97 +260,85 @@ fun UpdateDetailsScreen(navController: NavHostController) {
                     Spacer(modifier = Modifier.height(120.dp))
                 }
 
-                // Bottom button
-                Surface(
+                Box(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.surface,
-                    shadowElevation = 8.dp,
-                    shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-                    border = BorderStroke(
-                        1.dp,
-                        MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
-                    )
+                        .fillMaxWidth()
+                        .padding(bottom = 80.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Box(
+                    Button(
+                        onClick = {
+                            when {
+                                !isDownloading && !isDownloadComplete -> {
+                                    // Start download
+                                    isDownloading = true
+                                    downloadProgress = 0f
+                                    val selectedVariant = getSelectedApkVariant(context)
+                                    val apkUrl = if (betaUpdaterEnabled) {
+                                        "https://github.com/vivizzz007/vivi-music/releases/download/b$updateVersion/vivi-beta.apk"
+                                    } else {
+                                        "https://github.com/vivizzz007/vivi-music/releases/download/v$updateVersion/vivi.apk"
+                                    }
+                                    downloadApk(
+                                        context = context,
+                                        apkUrl = apkUrl,
+                                        onProgress = { progress ->
+                                            downloadProgress = progress
+                                        },
+                                        onDownloadComplete = {
+                                            isDownloading = false
+                                            isDownloadComplete = true
+                                        }
+                                    )
+                                }
+                                isDownloading -> {
+                                    // Pause download
+                                    isDownloading = false
+                                    downloadProgress = 0f
+                                }
+                                isDownloadComplete -> {
+                                    // Install the APK
+                                    val selectedVariant = getSelectedApkVariant(context)
+                                    val file = File(
+                                        context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),
+                                        selectedVariant
+                                    )
+                                    val uri = FileProvider.getUriForFile(
+                                        context,
+                                        "${context.packageName}.FileProvider",
+                                        file
+                                    )
+                                    val installIntent = Intent(Intent.ACTION_VIEW).apply {
+                                        setDataAndType(uri, "application/vnd.android.package-archive")
+                                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    }
+                                    ContextCompat.startActivity(context, installIntent, null)
+                                }
+                            }
+                        },
+                        shape = RoundedCornerShape(24.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 32.dp),
-                        contentAlignment = Alignment.Center
+                            .height(52.dp)
+                            .padding(horizontal = 16.dp)
                     ) {
-                        Button(
-                            onClick = {
-                                when {
-                                    !isDownloading && !isDownloadComplete -> {
-                                        // Start download
-                                        isDownloading = true
-                                        downloadProgress = 0f
-                                        val selectedVariant = getSelectedApkVariant(context)
-                                        val apkUrl = if (betaUpdaterEnabled) {
-                                            "https://github.com/vivizzz007/vivi-music/releases/download/b$updateVersion/vivi-beta.apk"
-                                        } else {
-                                            "https://github.com/vivizzz007/vivi-music/releases/download/v$updateVersion/vivi.apk"
-                                        }
-                                        downloadApk(
-                                            context = context,
-                                            apkUrl = apkUrl,
-                                            onProgress = { progress ->
-                                                downloadProgress = progress
-                                            },
-                                            onDownloadComplete = {
-                                                isDownloading = false
-                                                isDownloadComplete = true
-                                            }
-                                        )
-                                    }
-                                    isDownloading -> {
-                                        // Pause download
-                                        isDownloading = false
-                                        downloadProgress = 0f
-                                    }
-                                    isDownloadComplete -> {
-                                        // Install the APK
-                                        val selectedVariant = getSelectedApkVariant(context)
-                                        val file = File(
-                                            context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),
-                                            selectedVariant
-                                        )
-                                        val uri = FileProvider.getUriForFile(
-                                            context,
-                                            "${context.packageName}.FileProvider",
-                                            file
-                                        )
-                                        val installIntent = Intent(Intent.ACTION_VIEW).apply {
-                                            setDataAndType(uri, "application/vnd.android.package-archive")
-                                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                        }
-                                        ContextCompat.startActivity(context, installIntent, null)
-                                    }
-                                }
+                        Text(
+                            text = when {
+                                !isDownloading && !isDownloadComplete -> "Download update"
+                                isDownloading -> "Pause"
+                                isDownloadComplete -> "Install"
+                                else -> "Download update"
                             },
-                            shape = RoundedCornerShape(24.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                contentColor = MaterialTheme.colorScheme.onPrimary
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(52.dp)
-                        ) {
-                            Text(
-                                text = when {
-                                    !isDownloading && !isDownloadComplete -> "Download update"
-                                    isDownloading -> "Pause"
-                                    isDownloadComplete -> "Install"
-                                    else -> "Download update"
-                                },
-                                style = MaterialTheme.typography.labelLarge.copy(
-                                    fontWeight = FontWeight.Medium
-                                )
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontWeight = FontWeight.Medium
                             )
-                        }
+                        )
                     }
                 }
             }
