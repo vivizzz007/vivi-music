@@ -87,7 +87,6 @@ import com.music.vivi.viewmodels.AccountSettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-
 fun AccountViewScreen(
     navController: NavController,
     onBack: () -> Unit,
@@ -106,6 +105,7 @@ fun AccountViewScreen(
     val (useLoginForBrowse, onUseLoginForBrowseChange) = rememberPreference(UseLoginForBrowse, true)
     val (ytmSync, onYtmSyncChange) = rememberPreference(YtmSyncKey, true)
 
+    var showToken by remember { mutableStateOf(false) }
     var showTokenEditor by remember { mutableStateOf(false) }
 
     // ViewModels
@@ -118,6 +118,20 @@ fun AccountViewScreen(
 
     val isLoggedIn = remember(innerTubeCookie) {
         "SAPISID" in parseCookieString(innerTubeCookie)
+    }
+
+    // Determine what to display for account section
+    val accountTitle = when {
+        isLoggedIn && accountName.isNotBlank() -> accountName
+        isLoggedIn && accountNamePref.isNotBlank() -> accountNamePref
+        isLoggedIn -> stringResource(R.string.account)
+        else -> stringResource(R.string.account)
+    }
+
+    val accountSubtitle = if (isLoggedIn && accountEmail.isNotBlank()) {
+        accountEmail
+    } else {
+        "Manage your account and preferences"
     }
 
     Box(
@@ -230,7 +244,7 @@ fun AccountViewScreen(
                                     } else {
                                         Icon(
                                             painter = painterResource(
-                                                if (isLoggedIn) R.drawable.person else R.drawable.account
+                                                if (isLoggedIn) R.drawable.person else R.drawable.login
                                             ),
                                             contentDescription = null,
                                             modifier = Modifier.size(22.dp),
@@ -238,25 +252,11 @@ fun AccountViewScreen(
                                         )
                                     }
                                 },
-                                title = if (isLoggedIn) {
-                                    accountName.ifBlank { stringResource(R.string.signed_in) }
-                                } else {
-                                    stringResource(R.string.not_signed_in)
-                                },
-                                subtitle = if (isLoggedIn) {
-                                    when {
-                                        accountEmail.isNotBlank() && accountChannelHandle.isNotBlank() ->
-                                            "$accountEmail • @$accountChannelHandle"
-                                        accountEmail.isNotBlank() -> accountEmail
-                                        accountChannelHandle.isNotBlank() -> "@$accountChannelHandle"
-                                        else -> stringResource(R.string.signed_in)
-                                    }
-                                } else {
-                                    stringResource(R.string.sign_in_to_access_features)
-                                },
+                                title = accountTitle,
+                                subtitle = accountSubtitle,
                                 onClick = {
                                     if (isLoggedIn) {
-                                        // Show account details or logout dialog
+                                        navController.navigate("account")
                                     } else {
                                         navController.navigate("login")
                                     }
@@ -265,39 +265,33 @@ fun AccountViewScreen(
                                 iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
                             )
 
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
+                            // Show logout button if logged in
+                            if (isLoggedIn) {
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                                )
 
-                            // Login/Logout Action
-                            ModernInfoItem(
-                                icon = {
-                                    Icon(
-                                        painter = painterResource(if (isLoggedIn) R.drawable.logout else R.drawable.login),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(22.dp),
-                                        tint = if (isLoggedIn) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
-                                    )
-                                },
-                                title = if (isLoggedIn) stringResource(R.string.action_logout) else stringResource(R.string.sign_in),
-                                subtitle = if (isLoggedIn) "Sign out of your account" else "Sign in to access features",
-                                onClick = {
-                                    if (isLoggedIn) {
+                                // Logout Option
+                                ModernInfoItem(
+                                    icon = {
+                                        Icon(
+                                            painter = painterResource(R.drawable.logout),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(22.dp),
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
+                                    },
+                                    title = stringResource(R.string.action_logout),
+                                    subtitle = "Sign out from your account",
+                                    titleColor = MaterialTheme.colorScheme.error,
+                                    onClick = {
                                         accountSettingsViewModel.logoutAndClearSyncedContent(context, onInnerTubeCookieChange)
-                                    } else {
-                                        navController.navigate("login")
-                                    }
-                                },
-                                showArrow = true,
-                                iconBackgroundColor = if (isLoggedIn) {
-                                    MaterialTheme.colorScheme.error.copy(alpha = 0.2f)
-                                } else {
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-                                },
-                                titleColor = if (isLoggedIn) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-                                subtitleColor = if (isLoggedIn) MaterialTheme.colorScheme.error.copy(alpha = 0.8f) else MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
-                            )
+                                    },
+                                    showArrow = false,
+                                    iconBackgroundColor = MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
+                                )
+                            }
                         }
                     }
                 }
@@ -546,6 +540,7 @@ fun AccountViewScreen(
                         it.startsWith("***ACCOUNT CHANNEL HANDLE*** =") -> onAccountChannelHandleChange(it.substringAfter("="))
                     }
                 }
+                showTokenEditor = false
             },
             onDismiss = { showTokenEditor = false },
             singleLine = false,
