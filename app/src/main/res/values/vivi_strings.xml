@@ -286,4 +286,10 @@
     <string name="favorite">Favorite</string>
     <string name="favorited">Favorited</string>
 
+
+    <string name="download_playlist">Download playlist</string>
+    <string name="remove_download_playlist">Remove download</string>
+    <string name="delete_playlist">Delete playlist</string>
+    <string name="cancel_download">Cancel download</string>
+
 </resources>
