@@ -117,6 +117,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.core.content.ContextCompat
 import androidx.core.app.ActivityCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -316,21 +318,23 @@ class MainActivity : ComponentActivity() {
             setAppLocale(this, locale)
         }
 
-        
+
         lifecycleScope.launch {
-            dataStore.data
-                .map { it[DisableScreenshotKey] ?: false }
-                .distinctUntilChanged()
-                .collectLatest {
-                    if (it) {
-                        window.setFlags(
-                            WindowManager.LayoutParams.FLAG_SECURE,
-                            WindowManager.LayoutParams.FLAG_SECURE,
-                        )
-                    } else {
-                        window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                dataStore.data
+                    .map { it[DisableScreenshotKey] ?: false }
+                    .distinctUntilChanged()
+                    .collectLatest { // causing memory leak now fixed
+                        if (it) {
+                            window.setFlags(
+                                WindowManager.LayoutParams.FLAG_SECURE,
+                                WindowManager.LayoutParams.FLAG_SECURE,
+                            )
+                        } else {
+                            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                        }
                     }
-                }
+            }
         }
         setContent {
 //            val checkForUpdates by rememberPreference(CheckForUpdatesKey, defaultValue = true)
