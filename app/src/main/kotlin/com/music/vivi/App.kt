@@ -103,21 +103,6 @@ class App : Application(), SingletonImageLoader.Factory {
             YouTube.useLoginForBrowse = true
         }
 
-        // Create update notification channel (O+)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//            val channel = NotificationChannel(
-//                "updates",
-//                getString(R.string.update_channel_name),
-//                NotificationManager.IMPORTANCE_LOW // or IMPORTANCE_MIN
-//            ).apply {
-//                description = getString(R.string.update_channel_desc)
-//                // Optional: disable badge icon
-//                setShowBadge(false)
-//            }
-            val nm = getSystemService(NotificationManager::class.java)
-//            nm.createNotificationChannel(channel)
-        }
-
         applicationScope.launch(Dispatchers.IO) {
             dataStore.data
                 .map { it[VisitorDataKey] }
