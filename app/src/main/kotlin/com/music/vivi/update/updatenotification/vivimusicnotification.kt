@@ -31,6 +31,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.withTimeout
+import com.music.vivi.R
 
 class UpdateCheckerWorker(
     context: Context,
@@ -233,6 +234,7 @@ class UpdateCheckerWorker(
         }
     }
 
+
     private fun showUpdateNotification(releaseInfo: ReleaseInfo) {
         val sharedPrefs = applicationContext.getSharedPreferences("update_prefs", Context.MODE_PRIVATE)
         val showNotifications = sharedPrefs.getBoolean("show_update_notification", true)
@@ -256,10 +258,8 @@ class UpdateCheckerWorker(
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        val iconResId = applicationContext.applicationInfo.icon
-
         val builder = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
-            .setSmallIcon(iconResId)
+            .setSmallIcon(R.drawable.library_music)
             .setContentTitle("New Update Available!")
             .setContentText("Version ${releaseInfo.version} is available")
             .setStyle(NotificationCompat.BigTextStyle()
