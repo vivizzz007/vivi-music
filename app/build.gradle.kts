@@ -17,7 +17,7 @@ android {
         applicationId = "com.vivi.vivimusic"
         minSdk = 26
         targetSdk = 36
-        versionCode = 11 ///51
+        versionCode = 11 ///52
         versionName = "4.0.3"
 
         multiDexEnabled = true
@@ -186,7 +186,7 @@ dependencies {
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.util)
     implementation(libs.compose.ui.tooling)
-    implementation(libs.compose.animation)
+//    implementation(libs.compose.animation)
     implementation(libs.compose.reorderable)
 
     implementation(libs.viewmodel)
@@ -228,8 +228,6 @@ dependencies {
     implementation(project(":lrclib"))
     implementation(project(":kizzy"))
 
-    implementation(libs.smooth.corner.rect)
-
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.serialization.json)
 
@@ -241,9 +239,6 @@ dependencies {
 
     implementation(libs.androidx.work.runtime.ktx)
 
-//    implementation(libs.wavy.slider)
-
-    implementation("androidx.compose.material:material-icons-core:1.7.8")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation("com.airbnb.android:lottie-compose:6.6.9")
     implementation("io.coil-kt:coil-compose:2.7.0")
