@@ -199,6 +199,13 @@ fun AlbumMenu(
         mutableStateOf(mutableListOf<Song>())
     }
 
+    // Fixed favorite button handler - single source of truth
+    val onFavoriteClick = {
+        database.query {
+            update(album.album.toggleLike())
+        }
+    }
+
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
         onGetSong = { playlist ->
@@ -395,11 +402,7 @@ fun AlbumMenu(
                     containerColor = MaterialTheme.colorScheme.surfaceBright,
                     contentColor = MaterialTheme.colorScheme.onSurface
                 ),
-                onClick = {
-                    database.query {
-                        update(album.album.toggleLike())
-                    }
-                },
+                onClick = onFavoriteClick, // Use the fixed handler
             ) {
                 Icon(
                     modifier = Modifier.padding(horizontal = 8.dp),
@@ -465,11 +468,7 @@ fun AlbumMenu(
                 modifier = Modifier
                     .weight(0.25f)
                     .fillMaxHeight(),
-                onClick = {
-                    database.query {
-                        update(album.album.toggleLike())
-                    }
-                },
+                onClick = onFavoriteClick, // Use the fixed handler
                 shape = favoriteButtonShape,
                 colors = IconButtonDefaults.filledIconButtonColors(
                     containerColor = favoriteButtonContainerColor,
@@ -769,6 +768,5 @@ fun AlbumMenu(
                 )
             }
         }
-
     }
 }

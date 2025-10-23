@@ -229,6 +229,17 @@ fun SongMenu(
         song.id == mediaMetadata?.id
     }
 
+    // Fixed favorite button handler - single source of truth
+    val onFavoriteClick = {
+        val currentSong = song.song
+        val updatedSong = currentSong.copy(liked = !currentSong.liked)
+
+        database.query {
+            update(updatedSong)
+        }
+        syncUtils.likeSong(updatedSong)
+    }
+
     Column(
         modifier = Modifier
             .padding(16.dp)
@@ -290,11 +301,7 @@ fun SongMenu(
                     containerColor = MaterialTheme.colorScheme.surfaceBright,
                     contentColor = MaterialTheme.colorScheme.onSurface
                 ),
-                onClick = {
-                    val s = song.song.toggleLike()
-                    database.query { update(s) }
-                    syncUtils.likeSong(s)
-                },
+                onClick = onFavoriteClick, // Use the fixed handler
             ) {
                 Icon(
                     modifier = Modifier.padding(horizontal = 8.dp),
@@ -358,11 +365,7 @@ fun SongMenu(
                 modifier = Modifier
                     .weight(0.25f)
                     .fillMaxHeight(),
-                onClick = {
-                    val s = song.song.toggleLike()
-                    database.query { update(s) }
-                    syncUtils.likeSong(s)
-                },
+                onClick = onFavoriteClick, // Use the fixed handler
                 shape = favoriteButtonShape,
                 colors = IconButtonDefaults.filledIconButtonColors(
                     containerColor = favoriteButtonContainerColor,

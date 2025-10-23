@@ -94,6 +94,7 @@ fun LyricsMenu(
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current
+    val playerConnection = LocalPlayerConnection.current
 
     // State management
     var showEditDialog by rememberSaveable { mutableStateOf(false) }
@@ -122,10 +123,14 @@ fun LyricsMenu(
         mutableStateOf(TextFieldValue(text = mediaMetadataProvider().artists.joinToString { it.name }))
     }
 
-    // Romanization state
+    // Romanization state - fixed to use proper state management
     var isRomanizationChecked by remember { mutableStateOf(songProvider()?.romanizeLyrics ?: true) }
+
+    // Fixed: Proper state update when song changes
     LaunchedEffect(songProvider()) {
-        isRomanizationChecked = songProvider()?.romanizeLyrics ?: true
+        songProvider()?.let { song ->
+            isRomanizationChecked = song.romanizeLyrics ?: true
+        }
     }
 
     // Swipe gesture state
@@ -134,6 +139,19 @@ fun LyricsMenu(
         .map { it[SwipeGestureEnabledKey] ?: true }
         .collectAsState(initial = true)
     val scope = rememberCoroutineScope()
+
+    // Fixed favorite button handler - single source of truth with non-nullable Unit
+    val onFavoriteClick = {
+        playerConnection?.toggleLike()
+        // Explicitly return Unit to ensure non-nullable return type
+        Unit
+    }
+
+    // Get the current song state properly
+    val currentSong by remember(songProvider()) {
+        derivedStateOf { songProvider() }
+    }
+    val isFavorite = currentSong?.liked == true
 
     Column(
         modifier = Modifier
@@ -189,14 +207,7 @@ fun LyricsMenu(
                 }
             }
 
-            // Get the current song state and player connection properly
-            val playerConnection = LocalPlayerConnection.current
-            val currentSong by remember(songProvider()) {
-                derivedStateOf { songProvider() }
-            }
-            val isFavorite = currentSong?.liked == true
-
-            // Favorite Button (replacing close button)
+            // Favorite Button (replacing close button) - using fixed handler
             FilledTonalIconButton(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -205,10 +216,7 @@ fun LyricsMenu(
                     containerColor = MaterialTheme.colorScheme.surfaceBright,
                     contentColor = MaterialTheme.colorScheme.onSurface
                 ),
-                onClick = {
-                    // Toggle like using player connection
-                    playerConnection?.toggleLike()
-                },
+                onClick = onFavoriteClick, // Use the fixed handler
             ) {
                 Icon(
                     modifier = Modifier.padding(horizontal = 8.dp),
@@ -229,7 +237,6 @@ fun LyricsMenu(
                 )
             }
         }
-
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -349,17 +356,18 @@ fun LyricsMenu(
         Column(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Romanize Lyrics Toggle
+            // Romanize Lyrics Toggle - Fixed to prevent race conditions
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
                 shape = buttonShape,
                 onClick = {
-                    isRomanizationChecked = !isRomanizationChecked
+                    val newValue = !isRomanizationChecked
+                    isRomanizationChecked = newValue
                     songProvider()?.let { song ->
                         database.query {
-                            upsert(song.copy(romanizeLyrics = isRomanizationChecked))
+                            upsert(song.copy(romanizeLyrics = newValue))
                         }
                     }
                 }
