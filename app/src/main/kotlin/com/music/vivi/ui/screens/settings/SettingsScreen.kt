@@ -56,6 +56,7 @@ import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.screens.checkForUpdate
 import com.music.vivi.ui.screens.getAutoUpdateCheckSetting
 import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.update.isNewerVersion
 import com.music.vivi.update.settingstyle.ModernInfoItem
 import com.music.vivi.updatesreen.UpdateStatus
 import com.music.vivi.utils.rememberPreference
@@ -114,7 +115,6 @@ fun SettingsScreen(
     val isUpdateAvailable = updateStatus is UpdateStatus.UpdateAvailable
 
     // Launch effect to check for updates ONLY if automatic update is enabled
-    // Launch effect to check for updates ONLY if automatic update is enabled
     LaunchedEffect(Unit) {
         if (autoUpdateCheckEnabled.value) {
             withContext(Dispatchers.IO) {
@@ -123,7 +123,12 @@ fun SettingsScreen(
                         checkForUpdate(
                             isBetaEnabled = false,
                             onSuccess = { version, _, _, _ ->
-                                updateStatus = UpdateStatus.UpdateAvailable(version, "")
+                                // ✅ ADD PROPER VERSION COMPARISON HERE
+                                if (isNewerVersion(version, BuildConfig.VERSION_NAME)) {
+                                    updateStatus = UpdateStatus.UpdateAvailable(version, "")
+                                } else {
+                                    updateStatus = UpdateStatus.UpToDate
+                                }
                             },
                             onError = {
                                 updateStatus = UpdateStatus.UpToDate
@@ -194,7 +199,6 @@ fun SettingsScreen(
             ) {
                 Column(modifier = Modifier.padding(vertical = 8.dp)) {
 
-
                     ModernInfoItem(
                         icon = {
                             Icon(
@@ -259,6 +263,7 @@ fun SettingsScreen(
                         iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
                     )
 
+                    // ... rest of your existing settings items remain exactly the same
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
@@ -419,4 +424,3 @@ fun SettingsScreen(
         }
     }
 }
-

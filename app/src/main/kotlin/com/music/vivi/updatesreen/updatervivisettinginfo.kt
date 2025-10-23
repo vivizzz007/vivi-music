@@ -52,12 +52,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.music.vivi.BuildConfig
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.screens.checkForUpdate
 import com.music.vivi.ui.screens.getAutoUpdateCheckSetting
 import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.update.experiment.getBetaUpdaterSetting
 import com.music.vivi.update.settingstyle.ModernInfoItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
@@ -71,7 +73,6 @@ import java.util.Locale
 @RequiresApi(Build.VERSION_CODES.P)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-
 fun SoftwareUpdatesScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
@@ -81,47 +82,48 @@ fun SoftwareUpdatesScreen(
     val context = LocalContext.current
     val packageManager = context.packageManager
     val packageName = context.packageName
+    val currentVersion = BuildConfig.VERSION_NAME
+
     var updateStatus by remember { mutableStateOf<UpdateStatus>(UpdateStatus.Loading) }
     var lastUpdatedDate by remember { mutableStateOf("") }
     var firstInstallDate by remember { mutableStateOf("") }
     var buildVersion by remember { mutableStateOf("") }
     var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
-    val scope = rememberCoroutineScope()
 
     val autoUpdateCheckEnabled = remember {
         mutableStateOf(getAutoUpdateCheckSetting(context))
     }
+    val betaUpdaterEnabled = remember {
+        mutableStateOf(getBetaUpdaterSetting(context))
+    }
 
-    // Check for updates when screen loads
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
             try {
-                withTimeout(10000L) {
-                    if (autoUpdateCheckEnabled.value) {
-                        checkForUpdate(
-                            isBetaEnabled = false, // TODO: Read from settings if you have beta toggle
-                            onSuccess = { version, changelog, apkSize, releaseDate ->
+                val packageInfo = getPackageInfo(packageManager, packageName)
+                withContext(Dispatchers.Main) {
+                    lastUpdatedDate = packageInfo.lastUpdatedDate
+                    firstInstallDate = packageInfo.firstInstallDate
+                    buildVersion = packageInfo.buildVersion
+                }
+
+                if (autoUpdateCheckEnabled.value) {
+                    checkForUpdate(
+                        isBetaEnabled = betaUpdaterEnabled.value,
+                        onSuccess = { version, changelog, apkSize, releaseDate ->
+                            if (isNewerVersion(version, currentVersion)) {
                                 updateStatus = UpdateStatus.UpdateAvailable(version, "")
                                 updateInfo = UpdateInfo(version, changelog, apkSize, releaseDate)
-                            },
-                            onError = {
+                            } else {
                                 updateStatus = UpdateStatus.UpToDate
                             }
-                        )
-                    } else {
-                        updateStatus = UpdateStatus.UpToDate
-                    }
-
-                    val packageInfo = getPackageInfo(packageManager, packageName)
-                    withContext(Dispatchers.Main) {
-                        lastUpdatedDate = packageInfo.lastUpdatedDate
-                        firstInstallDate = packageInfo.firstInstallDate
-                        buildVersion = packageInfo.buildVersion
-                    }
-                }
-            } catch (e: TimeoutCancellationException) {
-                withContext(Dispatchers.Main) {
-                    updateStatus = UpdateStatus.Error
+                        },
+                        onError = {
+                            updateStatus = UpdateStatus.UpToDate
+                        }
+                    )
+                } else {
+                    updateStatus = UpdateStatus.UpToDate
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
@@ -137,7 +139,6 @@ fun SoftwareUpdatesScreen(
             .background(MaterialTheme.colorScheme.surface)
             .nestedScroll(scrollBehaviorLocal.nestedScrollConnection)
     ) {
-        // Large collapsing toolbar
         TopAppBar(
             title = { },
             navigationIcon = {
@@ -158,7 +159,6 @@ fun SoftwareUpdatesScreen(
             )
         )
 
-        // Scrollable content
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -169,7 +169,6 @@ fun SoftwareUpdatesScreen(
                     )
                 )
         ) {
-            // Header section
             Spacer(modifier = Modifier.height(40.dp))
             Column(
                 modifier = Modifier
@@ -193,10 +192,8 @@ fun SoftwareUpdatesScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // Main status container
             when (val status = updateStatus) {
                 is UpdateStatus.UpdateAvailable -> {
-                    // Update available container
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -244,7 +241,6 @@ fun SoftwareUpdatesScreen(
                                     modifier = Modifier.padding(top = 4.dp)
                                 )
 
-                                // Show additional info if available
                                 updateInfo?.let { info ->
                                     if (info.apkSize.isNotEmpty()) {
                                         Text(
@@ -260,7 +256,6 @@ fun SoftwareUpdatesScreen(
                     }
                 }
                 is UpdateStatus.Loading -> {
-                    // Loading container
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -292,7 +287,6 @@ fun SoftwareUpdatesScreen(
                     }
                 }
                 else -> {
-                    // Up to date container
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -337,7 +331,6 @@ fun SoftwareUpdatesScreen(
 
             Spacer(Modifier.height(32.dp))
 
-            // Update items container
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -349,7 +342,6 @@ fun SoftwareUpdatesScreen(
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                    // System update item
                     when (val status = updateStatus) {
                         is UpdateStatus.UpdateAvailable -> {
                             ModernInfoItem(
@@ -471,7 +463,6 @@ fun SoftwareUpdatesScreen(
                         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                     )
 
-                    // Build version
                     ModernInfoItem(
                         icon = {
                             Icon(
@@ -491,7 +482,6 @@ fun SoftwareUpdatesScreen(
                         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                     )
 
-                    // App build info
                     ModernInfoItem(
                         icon = {
                             Icon(
