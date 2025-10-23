@@ -40,8 +40,11 @@ import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.sp
+import com.music.vivi.ui.screens.checkForUpdate
 import com.music.vivi.ui.screens.getAutoUpdateCheckSetting
 import com.music.vivi.update.settingstyle.ModernInfoItem
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.withTimeout
 
 
 @RequiresApi(Build.VERSION_CODES.P)
@@ -61,24 +64,49 @@ fun SoftwareUpdatesScreen(
     var lastUpdatedDate by remember { mutableStateOf("") }
     var firstInstallDate by remember { mutableStateOf("") }
     var buildVersion by remember { mutableStateOf("") }
+    var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
     val scope = rememberCoroutineScope()
 
     val autoUpdateCheckEnabled = remember {
         mutableStateOf(getAutoUpdateCheckSetting(context))
     }
 
-    // Check for updates when screen loads ONLY if automatic update is enabled
+    // Check for updates when screen loads
     LaunchedEffect(Unit) {
-        scope.launch {
-            if (autoUpdateCheckEnabled.value) {
-                updateStatus = checkForUpdates()
-            } else {
-                updateStatus = UpdateStatus.UpToDate // Or whatever status you want when disabled
+        withContext(Dispatchers.IO) {
+            try {
+                withTimeout(10000L) {
+                    if (autoUpdateCheckEnabled.value) {
+                        checkForUpdate(
+                            isBetaEnabled = false, // TODO: Read from settings if you have beta toggle
+                            onSuccess = { version, changelog, apkSize, releaseDate ->
+                                updateStatus = UpdateStatus.UpdateAvailable(version, "")
+                                updateInfo = UpdateInfo(version, changelog, apkSize, releaseDate)
+                            },
+                            onError = {
+                                updateStatus = UpdateStatus.UpToDate
+                            }
+                        )
+                    } else {
+                        updateStatus = UpdateStatus.UpToDate
+                    }
+
+                    val packageInfo = getPackageInfo(packageManager, packageName)
+                    withContext(Dispatchers.Main) {
+                        lastUpdatedDate = packageInfo.lastUpdatedDate
+                        firstInstallDate = packageInfo.firstInstallDate
+                        buildVersion = packageInfo.buildVersion
+                    }
+                }
+            } catch (e: TimeoutCancellationException) {
+                withContext(Dispatchers.Main) {
+                    updateStatus = UpdateStatus.Error
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    updateStatus = UpdateStatus.Error
+                }
             }
-            val packageInfo = getPackageInfo(packageManager, packageName)
-            lastUpdatedDate = packageInfo.lastUpdatedDate
-            firstInstallDate = packageInfo.firstInstallDate
-            buildVersion = packageInfo.buildVersion
         }
     }
 
@@ -90,13 +118,7 @@ fun SoftwareUpdatesScreen(
     ) {
         // Large collapsing toolbar
         TopAppBar(
-            title = {
-//                Text(
-//                    "App updates",
-//                    maxLines = 1,
-//                    overflow = TextOverflow.Ellipsis
-//                )
-            },
+            title = { },
             navigationIcon = {
                 IconButton(
                     onClick = navController::navigateUp,
@@ -200,7 +222,51 @@ fun SoftwareUpdatesScreen(
                                     fontWeight = FontWeight.Medium,
                                     modifier = Modifier.padding(top = 4.dp)
                                 )
+
+                                // Show additional info if available
+                                updateInfo?.let { info ->
+                                    if (info.apkSize.isNotEmpty()) {
+                                        Text(
+                                            text = "${info.apkSize} MB • ${info.releaseDate}",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.6f),
+                                            modifier = Modifier.padding(top = 2.dp)
+                                        )
+                                    }
+                                }
                             }
+                        }
+                    }
+                }
+                is UpdateStatus.Loading -> {
+                    // Loading container
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(24.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(32.dp),
+                                strokeWidth = 3.dp
+                            )
+
+                            Spacer(Modifier.width(20.dp))
+
+                            Text(
+                                text = "Checking for updates...",
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontSize = 22.sp
+                            )
                         }
                     }
                 }
@@ -294,12 +360,11 @@ fun SoftwareUpdatesScreen(
                                     )
                                 },
                                 title = "System update",
-                                subtitle = "Updated to $lastUpdatedDate",
+                                subtitle = if (lastUpdatedDate.isNotEmpty()) "Updated to $lastUpdatedDate" else "Checking...",
                                 onClick = {
                                     navController.navigate("settings/update")
                                 },
-                                showArrow = true,
-//                                iconBackgroundColor = MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.2f)
+                                showArrow = true
                             )
                         }
                     }
@@ -395,7 +460,7 @@ fun SoftwareUpdatesScreen(
                             )
                         },
                         title = "Build version",
-                        subtitle = buildVersion,
+                        subtitle = buildVersion.ifEmpty { "Loading..." },
                         onClick = { },
                         showArrow = false
                     )
@@ -415,7 +480,7 @@ fun SoftwareUpdatesScreen(
                             )
                         },
                         title = "App build info",
-                        subtitle = "Installed on $firstInstallDate",
+                        subtitle = if (firstInstallDate.isNotEmpty()) "Installed on $firstInstallDate" else "Loading...",
                         onClick = { },
                         showArrow = false
                     )
@@ -427,6 +492,14 @@ fun SoftwareUpdatesScreen(
     }
 }
 
+// Data class to hold update info
+data class UpdateInfo(
+    val version: String,
+    val changelog: String,
+    val apkSize: String,
+    val releaseDate: String
+)
+
 sealed class UpdateStatus {
     object Loading : UpdateStatus()
     object UpToDate : UpdateStatus()
@@ -437,37 +510,7 @@ sealed class UpdateStatus {
     object Error : UpdateStatus()
 }
 
-suspend fun checkForUpdates(): UpdateStatus = withContext(Dispatchers.IO) {
-    try {
-        val url = URL("https://api.github.com/repos/vivizzz007/vivi-music/releases/latest")
-        val connection = url.openConnection() as HttpURLConnection
-        connection.requestMethod = "GET"
-        connection.setRequestProperty("Accept", "application/vnd.github.v3+json")
-        connection.connectTimeout = 5000
-        connection.readTimeout = 10000
-
-        if (connection.responseCode != 200) {
-            return@withContext UpdateStatus.Error
-        }
-
-        val response = connection.inputStream.bufferedReader().use { it.readText() }
-        val json = JSONObject(response)
-        val latestVersion = json.getString("tag_name").removePrefix("v")
-        val downloadUrl = json.getString("html_url")
-
-        val currentVersion = BuildConfig.VERSION_NAME
-
-        if (isNewerVersion(latestVersion, currentVersion)) {
-            UpdateStatus.UpdateAvailable(latestVersion, downloadUrl)
-        } else {
-            UpdateStatus.UpToDate
-        }
-    } catch (e: Exception) {
-        e.printStackTrace()
-        UpdateStatus.Error
-    }
-}
-
+// Keep existing helper functions
 private fun isNewerVersion(latest: String, current: String): Boolean {
     try {
         val latestParts = latest.split(".").map { it.toIntOrNull() ?: 0 }
@@ -496,7 +539,6 @@ data class PackageInfoData(
     val buildVersion: String
 )
 
-@RequiresApi(Build.VERSION_CODES.P)
 private fun getPackageInfo(packageManager: PackageManager, packageName: String): PackageInfoData {
     return try {
         val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -512,8 +554,12 @@ private fun getPackageInfo(packageManager: PackageManager, packageName: String):
 
         val lastUpdatedDate = dateFormat.format(Date(lastUpdateTime))
         val firstInstallDate = dateFormat.format(Date(firstInstallTime))
-        val buildVersion = "${packageInfo.versionName} (${packageInfo.longVersionCode})"
-
+        val buildVersion = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            "${packageInfo.versionName} (${packageInfo.longVersionCode})"
+        } else {
+            @Suppress("DEPRECATION")
+            "${packageInfo.versionName} (${packageInfo.versionCode})"
+        }
         PackageInfoData(lastUpdatedDate, firstInstallDate, buildVersion)
     } catch (e: Exception) {
         PackageInfoData(
@@ -523,4 +569,3 @@ private fun getPackageInfo(packageManager: PackageManager, packageName: String):
         )
     }
 }
-

@@ -92,6 +92,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.style.TextOverflow
 import com.music.vivi.update.experiment.getBetaUpdaterSetting
 import com.music.vivi.update.experiment.getSelectedApkVariant
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.withTimeout
+import java.net.HttpURLConnection
 import java.util.regex.Pattern
 
 @OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class)
@@ -1106,125 +1109,127 @@ suspend fun checkForUpdate(
 ) {
     withContext(Dispatchers.IO) {
         try {
-            val url = URL("https://api.github.com/repos/vivizzz007/vivi-music/releases")
-            val json = url.openStream().bufferedReader().use { it.readText() }
-            val releases = JSONArray(json)
-            var foundRelease: JSONObject? = null
+            withTimeout(8000L) { // ⚠️ ADD TIMEOUT
+                val url = URL("https://api.github.com/repos/vivizzz007/vivi-music/releases")
+                val connection = url.openConnection() as HttpURLConnection // ⚠️ USE HttpURLConnection
+                connection.connectTimeout = 5000 // ⚠️ ADD CONNECTION TIMEOUT
+                connection.readTimeout = 5000     // ⚠️ ADD READ TIMEOUT
 
-            val currentVersion = BuildConfig.VERSION_NAME
-            val tagPrefix = if (isBetaEnabled) "b" else "v"
+                val json = connection.inputStream.bufferedReader().use { it.readText() }
+                val releases = JSONArray(json)
+                var foundRelease: JSONObject? = null
 
-            for (i in 0 until releases.length()) {
-                val release = releases.getJSONObject(i)
-                val tag = release.getString("tag_name")
+                val currentVersion = BuildConfig.VERSION_NAME
+                val tagPrefix = if (isBetaEnabled) "b" else "v"
 
-                // Check if tag starts with the correct prefix
-                if (!tag.startsWith(tagPrefix)) continue
+                for (i in 0 until releases.length()) {
+                    val release = releases.getJSONObject(i)
+                    val tag = release.getString("tag_name")
 
-                // Remove prefix for version comparison
-                val versionNumber = tag.removePrefix(tagPrefix)
+                    if (!tag.startsWith(tagPrefix)) continue
 
-                // Validate version format
-                if (!versionNumber.matches(Regex("""\d+(\.\d+){1,2}"""))) continue
+                    val versionNumber = tag.removePrefix(tagPrefix)
 
-                // For beta releases, only consider versions >= 1.1.1
-                if (isBetaEnabled) {
-                    val minBetaVersion = "1.1.1"
-                    if (!isNewerVersion(versionNumber, minBetaVersion) && versionNumber != minBetaVersion) {
-                        continue
-                    }
-                }
+                    if (!versionNumber.matches(Regex("""\d+(\.\d+){1,2}"""))) continue
 
-                if (isNewerVersion(versionNumber, currentVersion)) {
-                    if (foundRelease == null ||
-                        isNewerVersion(versionNumber, foundRelease.getString("tag_name").removePrefix(tagPrefix))) {
-                        foundRelease = release
-                    }
-                }
-            }
-
-            if (foundRelease != null) {
-                val tag = foundRelease.getString("tag_name").removePrefix(tagPrefix)
-                val changelog = foundRelease.optString("body", "")
-                val publishedAt = foundRelease.getString("published_at")
-                val formattedReleaseDate = formatGitHubDate(publishedAt)
-                val assets = foundRelease.getJSONArray("assets")
-
-                // Look for the appropriate APK file
-                var apkAsset: JSONObject? = null
-                for (j in 0 until assets.length()) {
-                    val asset = assets.getJSONObject(j)
-                    val assetName = asset.getString("name")
                     if (isBetaEnabled) {
-                        // For beta, prioritize vivi-beta.apk, fall back to vivi.apk
-                        if (assetName == "vivi-beta.apk") {
-                            apkAsset = asset
-                            break
-                        } else if (assetName == "vivi.apk" && apkAsset == null) {
-                            apkAsset = asset
+                        val minBetaVersion = "1.1.1"
+                        if (!isNewerVersion(versionNumber, minBetaVersion) && versionNumber != minBetaVersion) {
+                            continue
                         }
-                    } else {
-                        // For stable, use vivi.apk
-                        if (assetName == "vivi.apk") {
-                            apkAsset = asset
-                            break
+                    }
+
+                    if (isNewerVersion(versionNumber, currentVersion)) {
+                        if (foundRelease == null ||
+                            isNewerVersion(versionNumber, foundRelease.getString("tag_name").removePrefix(tagPrefix))) {
+                            foundRelease = release
                         }
                     }
                 }
 
-                if (apkAsset != null) {
-                    val apkSizeInBytes = apkAsset.getLong("size")
-                    val apkSizeInMB = String.format("%.1f", apkSizeInBytes / (1024.0 * 1024.0))
-                    withContext(Dispatchers.Main) {
-                        onSuccess(tag, changelog, apkSizeInMB, formattedReleaseDate)
-                    }
-                } else {
-                    withContext(Dispatchers.Main) { onError() }
-                }
-            } else {
-                val latest = if (releases.length() > 0) releases.getJSONObject(0) else null
-                if (latest != null) {
-                    val tag = latest.getString("tag_name")
-                    if (tag.startsWith(tagPrefix)) {
-                        val versionNumber = tag.removePrefix(tagPrefix)
-                        val changelog = latest.optString("body", "")
-                        val publishedAt = latest.getString("published_at")
-                        val formattedReleaseDate = formatGitHubDate(publishedAt)
-                        val assets = latest.getJSONArray("assets")
+                if (foundRelease != null) {
+                    val tag = foundRelease.getString("tag_name").removePrefix(tagPrefix)
+                    val changelog = foundRelease.optString("body", "")
+                    val publishedAt = foundRelease.getString("published_at")
+                    val formattedReleaseDate = formatGitHubDate(publishedAt)
+                    val assets = foundRelease.getJSONArray("assets")
 
-                        // Same APK selection logic for the latest release
-                        var apkAsset: JSONObject? = null
-                        for (j in 0 until assets.length()) {
-                            val asset = assets.getJSONObject(j)
-                            val assetName = asset.getString("name")
-                            if (isBetaEnabled) {
-                                if (assetName == "vivi-beta.apk") {
-                                    apkAsset = asset
-                                    break
-                                } else if (assetName == "vivi.apk" && apkAsset == null) {
-                                    apkAsset = asset
-                                }
-                            } else {
-                                if (assetName == "vivi.apk") {
-                                    apkAsset = asset
-                                    break
-                                }
+                    var apkAsset: JSONObject? = null
+                    for (j in 0 until assets.length()) {
+                        val asset = assets.getJSONObject(j)
+                        val assetName = asset.getString("name")
+                        if (isBetaEnabled) {
+                            if (assetName == "vivi-beta.apk") {
+                                apkAsset = asset
+                                break
+                            } else if (assetName == "vivi.apk" && apkAsset == null) {
+                                apkAsset = asset
+                            }
+                        } else {
+                            if (assetName == "vivi.apk") {
+                                apkAsset = asset
+                                break
                             }
                         }
+                    }
 
-                        val apkSizeInMB = if (apkAsset != null)
-                            String.format("%.1f", apkAsset.getLong("size") / (1024.0 * 1024.0))
-                        else ""
+                    if (apkAsset != null) {
+                        val apkSizeInBytes = apkAsset.getLong("size")
+                        val apkSizeInMB = String.format("%.1f", apkSizeInBytes / (1024.0 * 1024.0))
                         withContext(Dispatchers.Main) {
-                            onSuccess(versionNumber, changelog, apkSizeInMB, formattedReleaseDate)
+                            onSuccess(tag, changelog, apkSizeInMB, formattedReleaseDate)
                         }
                     } else {
                         withContext(Dispatchers.Main) { onError() }
                     }
                 } else {
-                    withContext(Dispatchers.Main) { onError() }
+                    val latest = if (releases.length() > 0) releases.getJSONObject(0) else null
+                    if (latest != null) {
+                        val tag = latest.getString("tag_name")
+                        if (tag.startsWith(tagPrefix)) {
+                            val versionNumber = tag.removePrefix(tagPrefix)
+                            val changelog = latest.optString("body", "")
+                            val publishedAt = latest.getString("published_at")
+                            val formattedReleaseDate = formatGitHubDate(publishedAt)
+                            val assets = latest.getJSONArray("assets")
+
+                            var apkAsset: JSONObject? = null
+                            for (j in 0 until assets.length()) {
+                                val asset = assets.getJSONObject(j)
+                                val assetName = asset.getString("name")
+                                if (isBetaEnabled) {
+                                    if (assetName == "vivi-beta.apk") {
+                                        apkAsset = asset
+                                        break
+                                    } else if (assetName == "vivi.apk" && apkAsset == null) {
+                                        apkAsset = asset
+                                    }
+                                } else {
+                                    if (assetName == "vivi.apk") {
+                                        apkAsset = asset
+                                        break
+                                    }
+                                }
+                            }
+
+                            val apkSizeInMB = if (apkAsset != null)
+                                String.format("%.1f", apkAsset.getLong("size") / (1024.0 * 1024.0))
+                            else ""
+                            withContext(Dispatchers.Main) {
+                                onSuccess(versionNumber, changelog, apkSizeInMB, formattedReleaseDate)
+                            }
+                        } else {
+                            withContext(Dispatchers.Main) { onError() }
+                        }
+                    } else {
+                        withContext(Dispatchers.Main) { onError() }
+                    }
                 }
+
+                connection.disconnect() // ⚠️ DISCONNECT
             }
+        } catch (e: TimeoutCancellationException) {
+            withContext(Dispatchers.Main) { onError() }
         } catch (e: Exception) {
             withContext(Dispatchers.Main) { onError() }
         }

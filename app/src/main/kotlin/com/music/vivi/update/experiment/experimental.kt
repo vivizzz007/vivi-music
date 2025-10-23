@@ -88,7 +88,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import androidx.work.WorkManager
 import com.music.vivi.MainActivity
 import com.music.vivi.ui.screens.getAutoUpdateCheckSetting
 import com.music.vivi.update.mordernswitch.ModernSwitch

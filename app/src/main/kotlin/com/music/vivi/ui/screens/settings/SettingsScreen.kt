@@ -1,29 +1,11 @@
 package com.music.vivi.ui.screens.settings
 
 import android.os.Build
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -33,8 +15,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.NewReleases
-import androidx.compose.material.icons.filled.SystemUpdate
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -42,12 +33,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
@@ -61,34 +48,31 @@ import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.music.innertube.utils.parseCookieString
 import com.music.vivi.BuildConfig
-import com.music.vivi.LocalPlayerAwareWindowInsets
-import com.music.vivi.ui.component.Material3SettingsGroup
-import com.music.vivi.ui.component.Material3SettingsItem
-
-import com.music.vivi.ui.utils.backToMain
-import com.music.vivi.utils.Updater
 import com.music.vivi.R
 import com.music.vivi.constants.AccountEmailKey
 import com.music.vivi.constants.AccountNameKey
 import com.music.vivi.constants.InnerTubeCookieKey
 import com.music.vivi.ui.component.IconButton
+import com.music.vivi.ui.screens.checkForUpdate
 import com.music.vivi.ui.screens.getAutoUpdateCheckSetting
+import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.update.settingstyle.ModernInfoItem
 import com.music.vivi.updatesreen.UpdateStatus
-import com.music.vivi.updatesreen.checkForUpdates
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.HomeViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
-    latestVersionName: String,
 ) {
-    val uriHandler = LocalUriHandler.current
+    LocalUriHandler.current
     val context = LocalContext.current
-    val isAndroid12OrLater = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
     // Add these preferences to get account information
     val (accountNamePref, _) = rememberPreference(AccountNameKey, "")
@@ -130,9 +114,26 @@ fun SettingsScreen(
     val isUpdateAvailable = updateStatus is UpdateStatus.UpdateAvailable
 
     // Launch effect to check for updates ONLY if automatic update is enabled
+    // Launch effect to check for updates ONLY if automatic update is enabled
     LaunchedEffect(Unit) {
         if (autoUpdateCheckEnabled.value) {
-            updateStatus = checkForUpdates()
+            withContext(Dispatchers.IO) {
+                try {
+                    withTimeout(8000L) {
+                        checkForUpdate(
+                            isBetaEnabled = false,
+                            onSuccess = { version, _, _, _ ->
+                                updateStatus = UpdateStatus.UpdateAvailable(version, "")
+                            },
+                            onError = {
+                                updateStatus = UpdateStatus.UpToDate
+                            }
+                        )
+                    }
+                } catch (e: Exception) {
+                    updateStatus = UpdateStatus.UpToDate
+                }
+            }
         } else {
             updateStatus = UpdateStatus.UpToDate
         }
