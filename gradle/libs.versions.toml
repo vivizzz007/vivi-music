@@ -2,15 +2,15 @@
 androidGradlePlugin = "8.13.0"
 annotation = "1.9.1"
 json = "20250517"
-kotlin = "2.2.10"
-compose = "1.9.2"
+kotlin = "2.2.20"
+compose = "1.9.3"
 lifecycle = "2.9.4"
-material3 = "1.5.0-alpha04"
+material3 = "1.5.0-alpha06"
 appcompat = "1.7.1"
 media3 = "1.7.1"
 room = "2.7.2"
 hilt = "2.57.1"
-ktor = "3.3.0"
+ktor = "3.3.1"
 ksp = "2.2.10-2.0.2"
 jsoup = "1.21.2"
 multidex = "2.0.1"
@@ -32,22 +32,23 @@ brotli = "0.1.2"
 desugaring = "2.1.5"
 junit = "4.13.2"
 timber = "5.0.1"
-materialKolor = "3.0.1"
+materialKolor = "4.0.1"
 kuromojiIpadic = "0.9.0"
 extractor = "06b7ae2"
-workmanager = "2.9.0"
-roomKtx = "2.8.1"
-compose-smooth-corner-rect = "1.0.0"
-smooth-corner-rect = "1.0.0"
+
+workmanager = "2.10.5"
+roomKtx = "2.8.2"
+
 
 [libraries]
 annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
+
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
+
 coroutines-guava = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-guava", version.ref = "coroutinesGuava" }
+
 concurrent-futures = { module = "androidx.concurrent:concurrent-futures-ktx", version.ref = "concurrentFutures" }
 
-smooth-corner-rect = { group = "com.github.racra", name = "smooth-corner-rect-android-compose", version.ref = "smooth-corner-rect" }
-compose-smooth-corner-rect = { group = "com.github.raheemadamboev", name = "compose-smooth-corner-rect", version.ref = "compose-smooth-corner-rect" }
 
 gradle = { module = "com.android.tools.build:gradle", version.ref = "androidGradlePlugin" }
 activity = { module = "androidx.activity:activity-compose", version.ref = "activity" }
@@ -60,7 +61,7 @@ compose-foundation = { module = "androidx.compose.foundation:foundation", versio
 compose-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
 compose-ui-util = { module = "androidx.compose.ui:ui-util", version.ref = "compose" }
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
-compose-animation = { module = "androidx.compose.animation:animation-graphics", version.ref = "compose" }
+#compose-animation = { module = "androidx.compose.animation:animation-graphics", version.ref = "compose" }
 compose-reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "composeReorderable" }
 
 squigglyslider = { module = "me.saket.squigglyslider:squigglyslider", version.ref = "squigglyslider" }
