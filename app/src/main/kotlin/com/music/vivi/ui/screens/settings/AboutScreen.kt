@@ -57,10 +57,12 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.music.vivi.BuildConfig
 import com.music.vivi.R
+import com.music.vivi.constants.CheckForUpdatesKey
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.update.isNewerVersion
 import com.music.vivi.update.settingstyle.ModernInfoItem
+import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -83,14 +85,15 @@ fun AboutScreen(
     var latestRelease by remember { mutableStateOf<String?>(null) }
     val isUpdateAvailable = remember { mutableStateOf(false) }
 
+    // Get auto-update preference
+    val (checkForUpdates, _) = rememberPreference(CheckForUpdatesKey, true)
+
     // Parallax effect for header
     val headerOffset by remember {
         derivedStateOf {
             (scrollState.firstVisibleItemScrollOffset * 0.5f).coerceAtMost(300f)
         }
     }
-
-    // Calculate scroll-based animations for title
 
     // Get app install date
     val installedDate = remember {
@@ -103,43 +106,49 @@ fun AboutScreen(
         }
     }
 
-    // Update check LaunchedEffect
-    LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-            try {
-                val apiUrl = "https://api.github.com/repos/vivizzz007/vivi-music/releases"
-                val url = URL(apiUrl)
-                val connection = url.openConnection() as HttpURLConnection
-                connection.requestMethod = "GET"
-                if (connection.responseCode == HttpURLConnection.HTTP_OK) {
-                    val inputStream = connection.inputStream
-                    val response = inputStream.bufferedReader().use { it.readText() }
-                    val releases = JSONArray(response)
-                    var highestVersion: String? = null
-                    var highestTagName: String? = null
-                    for (i in 0 until releases.length()) {
-                        val tag = releases.getJSONObject(i).getString("tag_name")
-                        if (tag.startsWith("v")) {
-                            val ver = tag.removePrefix("v")
-                            if (highestVersion == null || isNewerVersion(ver, highestVersion)) {
-                                highestVersion = ver
-                                highestTagName = tag
+    // Update check LaunchedEffect - only run if auto-update is enabled
+    LaunchedEffect(checkForUpdates) {
+        if (checkForUpdates) {
+            withContext(Dispatchers.IO) {
+                try {
+                    val apiUrl = "https://api.github.com/repos/vivizzz007/vivi-music/releases"
+                    val url = URL(apiUrl)
+                    val connection = url.openConnection() as HttpURLConnection
+                    connection.requestMethod = "GET"
+                    if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+                        val inputStream = connection.inputStream
+                        val response = inputStream.bufferedReader().use { it.readText() }
+                        val releases = JSONArray(response)
+                        var highestVersion: String? = null
+                        var highestTagName: String? = null
+                        for (i in 0 until releases.length()) {
+                            val tag = releases.getJSONObject(i).getString("tag_name")
+                            if (tag.startsWith("v")) {
+                                val ver = tag.removePrefix("v")
+                                if (highestVersion == null || isNewerVersion(ver, highestVersion)) {
+                                    highestVersion = ver
+                                    highestTagName = tag
+                                }
                             }
                         }
+                        if (highestVersion != null) {
+                            latestRelease = highestTagName
+                            isUpdateAvailable.value = isNewerVersion(highestVersion, BuildConfig.VERSION_NAME)
+                        } else {
+                            isUpdateAvailable.value = false
+                            latestRelease = null
+                        }
+                        inputStream.close()
                     }
-                    if (highestVersion != null) {
-                        latestRelease = highestTagName
-                        isUpdateAvailable.value = isNewerVersion(highestVersion, BuildConfig.VERSION_NAME)
-                    } else {
-                        isUpdateAvailable.value = false
-                        latestRelease = null
-                    }
-                    inputStream.close()
+                    connection.disconnect()
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
-                connection.disconnect()
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
+        } else {
+            // If auto-update is disabled, reset the update state
+            isUpdateAvailable.value = false
+            latestRelease = null
         }
     }
 
@@ -226,8 +235,8 @@ fun AboutScreen(
                     }
                 }
 
-                // Update Banner (if available)
-                if (isUpdateAvailable.value) {
+                // Update Banner (only show if update is available AND auto-update is enabled)
+                if (checkForUpdates && isUpdateAvailable.value) {
                     item {
                         Text(
                             text = "UPDATE",
