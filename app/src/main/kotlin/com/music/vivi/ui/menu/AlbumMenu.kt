@@ -416,8 +416,9 @@ fun AlbumMenu(
         }
 
         Spacer(modifier = Modifier.height(12.dp))
+        // Replace the entire Action Buttons Row section and Details Section with this fixed version:
 
-        // Action Buttons Row
+// Action Buttons Row
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -425,7 +426,7 @@ fun AlbumMenu(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // Play/Pause Button
+            // Play/Pause Button - FIXED
             MediumExtendedFloatingActionButton(
                 modifier = Modifier
                     .weight(0.5f)
@@ -460,12 +461,15 @@ fun AlbumMenu(
                 text = {
                     Text(
                         modifier = Modifier.padding(end = 8.dp),
-                        text = if (isCurrentAlbumPlaying && isPlaying) "Pause" else "Play"
+                        text = if (isCurrentAlbumPlaying && isPlaying) "Pause" else "Play",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        softWrap = false
                     )
                 }
             )
 
-            // FIXED: Action row favorite button
+            // Favorite Button
             FilledIconButton(
                 modifier = Modifier
                     .weight(0.25f)
@@ -517,7 +521,7 @@ fun AlbumMenu(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Download Button
+// Download Button - FIXED
         FilledTonalButton(
             modifier = Modifier
                 .fillMaxWidth()
@@ -583,12 +587,16 @@ fun AlbumMenu(
                     STATE_COMPLETED -> "Remove Offline"
                     STATE_QUEUED, STATE_DOWNLOADING -> "Downloading..."
                     else -> "Download Album"
-                }
+                },
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                softWrap = false
             )
         }
+
         Spacer(modifier = Modifier.height(14.dp))
 
-        // Details Section
+// Details Section - ALL FIXED
         Column(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
@@ -615,7 +623,9 @@ fun AlbumMenu(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         "Artist",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         album.artists.joinToString { it.name },
@@ -642,11 +652,15 @@ fun AlbumMenu(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         "Songs",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         "${songs.size} tracks",
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -670,11 +684,15 @@ fun AlbumMenu(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         "Play Next",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         "Play after current",
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -698,11 +716,15 @@ fun AlbumMenu(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         "Add to Queue",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         "Add to queue end",
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -725,11 +747,15 @@ fun AlbumMenu(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         "Add to Playlist",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         "Add to existing playlist",
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -759,11 +785,15 @@ fun AlbumMenu(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         "Refetch",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         "Update album information",
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
                 Icon(

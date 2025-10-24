@@ -258,9 +258,13 @@ fun YouTubeAlbumMenu(
             }
         }
 
+
         Spacer(modifier = Modifier.height(12.dp))
 
         // Action Buttons Row (added favorite button here)
+        // Replace the Action Buttons Row and entire Details Section with this fixed version:
+
+// Action Buttons Row - FIXED
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -292,12 +296,15 @@ fun YouTubeAlbumMenu(
                 text = {
                     Text(
                         modifier = Modifier.padding(end = 10.dp),
-                        text = "Play"
+                        text = "Play",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        softWrap = false
                     )
                 }
             )
 
-            // Favorite Button (moved from header with animations)
+            // Favorite Button
             FilledIconButton(
                 modifier = Modifier
                     .weight(0.25f)
@@ -340,12 +347,9 @@ fun YouTubeAlbumMenu(
             }
         }
 
-
-
-
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Download Button
+// Download Button - FIXED
         FilledTonalButton(
             modifier = Modifier
                 .fillMaxWidth()
@@ -401,17 +405,20 @@ fun YouTubeAlbumMenu(
                     Download.STATE_COMPLETED -> "Remove Offline"
                     Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> "Downloading..."
                     else -> "Download Album"
-                }
+                },
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                softWrap = false
             )
         }
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // Details Section
+// Details Section - ALL FIXED
         Column(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // Shuffle Button (moved from action row to details section)
+            // Shuffle Button
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -434,11 +441,15 @@ fun YouTubeAlbumMenu(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         "Shuffle",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         "Play in random order",
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -468,7 +479,9 @@ fun YouTubeAlbumMenu(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 "Artist",
-                                style = MaterialTheme.typography.bodyLarge
+                                style = MaterialTheme.typography.bodyLarge,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                             Text(
                                 artists.joinToString { it.name },
@@ -500,11 +513,15 @@ fun YouTubeAlbumMenu(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         "Play Next",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         "Play after current",
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -528,11 +545,15 @@ fun YouTubeAlbumMenu(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         "Add to Queue",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         "Add to queue end",
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -555,11 +576,15 @@ fun YouTubeAlbumMenu(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         "Add to Playlist",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         "Add to existing playlist",
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }

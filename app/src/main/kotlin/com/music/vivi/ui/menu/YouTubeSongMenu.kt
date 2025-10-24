@@ -234,6 +234,9 @@ fun YouTubeSongMenu(
         Spacer(modifier = Modifier.height(12.dp))
 
         // Action Buttons Row
+        // Replace the Action Buttons Row and entire Details Section with this fixed version:
+
+// Action Buttons Row - FIXED
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -274,12 +277,15 @@ fun YouTubeSongMenu(
                 text = {
                     Text(
                         modifier = Modifier.padding(end = 10.dp),
-                        text = if (isCurrentSongPlaying && isPlaying) "Pause" else "Play"
+                        text = if (isCurrentSongPlaying && isPlaying) "Pause" else "Play",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        softWrap = false
                     )
                 }
             )
 
-            // Favorite Button (fixed with shared toggle function)
+            // Favorite Button
             FilledIconButton(
                 modifier = Modifier
                     .weight(0.25f)
@@ -324,7 +330,7 @@ fun YouTubeSongMenu(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Download Button
+// Download Button - FIXED
         FilledTonalButton(
             modifier = Modifier
                 .fillMaxWidth()
@@ -377,13 +383,16 @@ fun YouTubeSongMenu(
                     Download.STATE_COMPLETED -> "Remove Offline"
                     Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> "Downloading..."
                     else -> "Download Song"
-                }
+                },
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                softWrap = false
             )
         }
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // Details Section
+// Details Section - ALL FIXED
         Column(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
@@ -413,7 +422,9 @@ fun YouTubeSongMenu(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             "Artist",
-                            style = MaterialTheme.typography.bodyLarge
+                            style = MaterialTheme.typography.bodyLarge,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             artists.joinToString { it.name },
@@ -445,11 +456,15 @@ fun YouTubeSongMenu(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             "Album",
-                            style = MaterialTheme.typography.bodyLarge
+                            style = MaterialTheme.typography.bodyLarge,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             "View full album",
-                            style = MaterialTheme.typography.bodySmall
+                            style = MaterialTheme.typography.bodySmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -474,11 +489,15 @@ fun YouTubeSongMenu(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         "Play Next",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         "Play after current",
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -502,11 +521,15 @@ fun YouTubeSongMenu(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         "Add to Queue",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         "Add to queue end",
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -530,11 +553,15 @@ fun YouTubeSongMenu(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         "Start Radio",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         "Play similar songs",
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -557,11 +584,15 @@ fun YouTubeSongMenu(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         "Add to Playlist",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         "Add to existing playlist",
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -606,11 +637,15 @@ fun YouTubeSongMenu(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         if (librarySong?.song?.inLibrary == null) "Add to Library" else "Remove from Library",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         if (librarySong?.song?.inLibrary == null) "Save to your music" else "Remove from your music",
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -639,11 +674,15 @@ fun YouTubeSongMenu(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             "Remove from History",
-                            style = MaterialTheme.typography.bodyLarge
+                            style = MaterialTheme.typography.bodyLarge,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             "Delete from listening history",
-                            style = MaterialTheme.typography.bodySmall
+                            style = MaterialTheme.typography.bodySmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -670,11 +709,15 @@ fun YouTubeSongMenu(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         "Song Details",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         "View information",
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }

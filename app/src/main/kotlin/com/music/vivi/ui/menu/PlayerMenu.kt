@@ -225,7 +225,8 @@ fun PlayerMenu(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // Start Radio Button
+
+// Start Radio Button
             MediumExtendedFloatingActionButton(
                 modifier = Modifier
                     .weight(0.5f)
@@ -243,7 +244,10 @@ fun PlayerMenu(
                 text = {
                     Text(
                         modifier = Modifier.padding(end = 10.dp),
-                        text = "Radio"
+                        text = "Radio",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        softWrap = false
                     )
                 }
             )
