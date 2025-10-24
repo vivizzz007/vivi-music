@@ -2,6 +2,9 @@ package com.music.vivi.ui.menu
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -109,7 +112,7 @@ fun YouTubeAlbumMenu(
     val album by database.albumWithSongs(albumItem.id).collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
 
-    // Design variables from original SongMenu
+    // Design variables
     val evenCornerRadiusElems = 26.dp
     val albumArtShape = AbsoluteSmoothCornerShape(
         cornerRadiusTR = evenCornerRadiusElems,
@@ -125,6 +128,38 @@ fun YouTubeAlbumMenu(
         cornerRadiusTR = evenCornerRadiusElems, smoothnessAsPercentBR = 60, cornerRadiusBR = evenCornerRadiusElems,
         smoothnessAsPercentTL = 60, cornerRadiusTL = evenCornerRadiusElems, smoothnessAsPercentBL = 60,
         cornerRadiusBL = evenCornerRadiusElems, smoothnessAsPercentTR = 60
+    )
+
+    // Shared favorite toggle function
+    val toggleFavorite: () -> Unit = {
+        database.query {
+            album?.album?.toggleLike()?.let(::update)
+        }
+    }
+
+    val isFavorite = album?.album?.bookmarkedAt != null
+    val favoriteButtonCornerRadius by animateDpAsState(
+        targetValue = if (isFavorite) evenCornerRadiusElems else 60.dp,
+        animationSpec = tween(durationMillis = 300), label = "FavoriteCornerAnimation"
+    )
+    val favoriteButtonContainerColor by animateColorAsState(
+        targetValue = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+        animationSpec = tween(durationMillis = 300), label = "FavoriteContainerColorAnimation"
+    )
+    val favoriteButtonContentColor by animateColorAsState(
+        targetValue = if (isFavorite) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+        animationSpec = tween(durationMillis = 300), label = "FavoriteContentColorAnimation"
+    )
+
+    val favoriteButtonShape = AbsoluteSmoothCornerShape(
+        cornerRadiusTR = favoriteButtonCornerRadius,
+        smoothnessAsPercentBR = 60,
+        cornerRadiusBR = favoriteButtonCornerRadius,
+        smoothnessAsPercentTL = 60,
+        cornerRadiusTL = favoriteButtonCornerRadius,
+        smoothnessAsPercentBL = 60,
+        cornerRadiusBL = favoriteButtonCornerRadius,
+        smoothnessAsPercentTR = 60
     )
 
     LaunchedEffect(Unit) {
@@ -167,12 +202,7 @@ fun YouTubeAlbumMenu(
     }
 
     var showChoosePlaylistDialog by rememberSaveable { mutableStateOf(false) }
-    var showErrorPlaylistAddDialog by rememberSaveable { mutableStateOf(false) }
     var showSelectArtistDialog by rememberSaveable { mutableStateOf(false) }
-
-    val notAddedList by remember {
-        mutableStateOf(mutableListOf<Song>())
-    }
 
     Column(
         modifier = Modifier
@@ -183,7 +213,7 @@ fun YouTubeAlbumMenu(
     ) {
         Spacer(modifier = Modifier.height(1.dp))
 
-        // Header Row - Album Art and Title
+        // Header Row - Album Art and Title (removed duplicate favorite button)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -226,33 +256,11 @@ fun YouTubeAlbumMenu(
                     )
                 }
             }
-
-            FilledTonalIconButton(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .padding(vertical = 6.dp),
-                colors = IconButtonDefaults.filledTonalIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceBright,
-                    contentColor = MaterialTheme.colorScheme.onSurface
-                ),
-                onClick = {
-                    database.query {
-                        album?.album?.toggleLike()?.let(::update)
-                    }
-                },
-            ) {
-                Icon(
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                    painter = painterResource(if (album?.album?.bookmarkedAt != null) R.drawable.favorite else R.drawable.favorite_border),
-                    contentDescription = if (album?.album?.bookmarkedAt != null) "Remove from favorites" else "Add to favorites",
-                    tint = if (album?.album?.bookmarkedAt != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
-                )
-            }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Action Buttons Row
+        // Action Buttons Row (added favorite button here)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -289,29 +297,22 @@ fun YouTubeAlbumMenu(
                 }
             )
 
-            // Shuffle Button
+            // Favorite Button (moved from header with animations)
             FilledIconButton(
                 modifier = Modifier
                     .weight(0.25f)
                     .fillMaxHeight(),
-                onClick = {
-                    onDismiss()
-                    album?.songs?.let { songs ->
-                        if (songs.isNotEmpty()) {
-                            playerConnection.playQueue(YouTubeAlbumRadio(albumItem.playlistId))
-                        }
-                    }
-                },
-                shape = playButtonShape,
+                onClick = toggleFavorite,
+                shape = favoriteButtonShape,
                 colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    containerColor = favoriteButtonContainerColor,
+                    contentColor = favoriteButtonContentColor
                 )
             ) {
                 Icon(
                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
-                    painter = painterResource(R.drawable.shuffle),
-                    contentDescription = "Shuffle"
+                    painter = painterResource(if (isFavorite) R.drawable.favorite else R.drawable.favorite_border),
+                    contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites"
                 )
             }
 
@@ -339,7 +340,10 @@ fun YouTubeAlbumMenu(
             }
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
+
+
+
+        Spacer(modifier = Modifier.height(20.dp))
 
         // Download Button
         FilledTonalButton(
@@ -407,6 +411,38 @@ fun YouTubeAlbumMenu(
         Column(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+            // Shuffle Button (moved from action row to details section)
+            FilledTonalButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 66.dp),
+                shape = CircleShape,
+                onClick = {
+                    onDismiss()
+                    album?.songs?.let { songs ->
+                        if (songs.isNotEmpty()) {
+                            playerConnection.playQueue(YouTubeAlbumRadio(albumItem.playlistId))
+                        }
+                    }
+                }
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.shuffle),
+                    contentDescription = "Shuffle icon"
+                )
+                Spacer(Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "Shuffle",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        "Play in random order",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+
             // Artist
             albumItem.artists?.let { artists ->
                 if (artists.isNotEmpty()) {
@@ -580,6 +616,5 @@ fun YouTubeAlbumMenu(
                 }
             }
         }
-
     }
 }

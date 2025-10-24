@@ -77,7 +77,7 @@ fun YouTubeArtistMenu(
     val playerConnection = LocalPlayerConnection.current ?: return
     val libraryArtist by database.artist(artist.id).collectAsState(initial = null)
 
-    // Design variables from original SongMenu
+    // Design variables
     val evenCornerRadiusElems = 26.dp
     val albumArtShape = AbsoluteSmoothCornerShape(
         cornerRadiusTR = evenCornerRadiusElems, smoothnessAsPercentBR = 60, cornerRadiusBR = evenCornerRadiusElems,
@@ -90,6 +90,27 @@ fun YouTubeArtistMenu(
         cornerRadiusBL = evenCornerRadiusElems, smoothnessAsPercentTR = 60
     )
 
+    // Shared subscribe toggle function
+    val toggleSubscribe: () -> Unit = {
+        database.query {
+            val libraryArtist = libraryArtist
+            if (libraryArtist != null) {
+                update(libraryArtist.artist.toggleLike())
+            } else {
+                insert(
+                    ArtistEntity(
+                        id = artist.id,
+                        name = artist.title,
+                        channelId = artist.channelId,
+                        thumbnailUrl = artist.thumbnail,
+                    ).toggleLike()
+                )
+            }
+        }
+    }
+
+    val isSubscribed = libraryArtist?.artist?.bookmarkedAt != null
+
     Column(
         modifier = Modifier
             .padding(16.dp)
@@ -99,7 +120,7 @@ fun YouTubeArtistMenu(
     ) {
         Spacer(modifier = Modifier.height(1.dp))
 
-        // Header Row - Artist Art and Name
+        // Header Row - Artist Art and Name (removed duplicate subscribe button)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -142,40 +163,6 @@ fun YouTubeArtistMenu(
                     )
                 }
             }
-
-            FilledTonalIconButton(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .padding(vertical = 6.dp),
-                colors = IconButtonDefaults.filledTonalIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceBright,
-                    contentColor = MaterialTheme.colorScheme.onSurface
-                ),
-                onClick = {
-                    database.query {
-                        val libraryArtist = libraryArtist
-                        if (libraryArtist != null) {
-                            update(libraryArtist.artist.toggleLike())
-                        } else {
-                            insert(
-                                ArtistEntity(
-                                    id = artist.id,
-                                    name = artist.title,
-                                    channelId = artist.channelId,
-                                    thumbnailUrl = artist.thumbnail,
-                                ).toggleLike()
-                            )
-                        }
-                    }
-                },
-            ) {
-                Icon(
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                    painter = painterResource(if (libraryArtist?.artist?.bookmarkedAt != null) R.drawable.subscribed else R.drawable.subscribe),
-                    contentDescription = if (libraryArtist?.artist?.bookmarkedAt != null) "Unsubscribe" else "Subscribe",
-                    tint = if (libraryArtist?.artist?.bookmarkedAt != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
-                )
-            }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -188,11 +175,11 @@ fun YouTubeArtistMenu(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // Radio Button
+            // Radio Button (conditional)
             artist.radioEndpoint?.let { watchEndpoint ->
                 MediumExtendedFloatingActionButton(
                     modifier = Modifier
-                        .weight(0.5f)
+                        .weight(if (artist.shuffleEndpoint != null) 0.5f else 0.75f)
                         .fillMaxHeight(),
                     onClick = {
                         playerConnection.playQueue(YouTubeQueue(watchEndpoint))
@@ -215,7 +202,7 @@ fun YouTubeArtistMenu(
                 )
             }
 
-            // Shuffle Button
+            // Shuffle Button (conditional)
             artist.shuffleEndpoint?.let { watchEndpoint ->
                 FilledIconButton(
                     modifier = Modifier
@@ -269,42 +256,28 @@ fun YouTubeArtistMenu(
         Column(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // Subscribe/Unsubscribe Button
+            // Subscribe/Unsubscribe Button (uses shared toggle function)
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
                 shape = CircleShape,
-                onClick = {
-                    database.query {
-                        val libraryArtist = libraryArtist
-                        if (libraryArtist != null) {
-                            update(libraryArtist.artist.toggleLike())
-                        } else {
-                            insert(
-                                ArtistEntity(
-                                    id = artist.id,
-                                    name = artist.title,
-                                    channelId = artist.channelId,
-                                    thumbnailUrl = artist.thumbnail,
-                                ).toggleLike()
-                            )
-                        }
-                    }
-                }
+                onClick = toggleSubscribe
             ) {
                 Icon(
-                    painter = painterResource(if (libraryArtist?.artist?.bookmarkedAt != null) R.drawable.subscribed else R.drawable.subscribe),
+                    painter = painterResource(
+                        if (isSubscribed) R.drawable.subscribed else R.drawable.subscribe
+                    ),
                     contentDescription = "Subscribe icon"
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        if (libraryArtist?.artist?.bookmarkedAt != null) "Subscribed" else "Subscribe",
+                        if (isSubscribed) "Subscribed" else "Subscribe",
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
-                        if (libraryArtist?.artist?.bookmarkedAt != null) "Unsubscribe from artist" else "Subscribe to artist",
+                        if (isSubscribed) "Unsubscribe from artist" else "Subscribe to artist",
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
