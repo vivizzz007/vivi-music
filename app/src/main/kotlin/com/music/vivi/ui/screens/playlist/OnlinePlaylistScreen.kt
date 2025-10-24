@@ -237,6 +237,9 @@ fun OnlinePlaylistScreen(
             }
     }
 
+    // FIXED: Proper favorite state tracking
+    val isPlaylistFavorited = dbPlaylist?.playlist?.bookmarkedAt != null
+
     Box(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -402,7 +405,7 @@ fun OnlinePlaylistScreen(
                                             horizontalArrangement = Arrangement.Center,
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
-                                            // Like Button Box
+                                            // FIXED: Like Button Box
                                             if (playlist.id != "LM") {
                                                 Box(
                                                     modifier = Modifier
@@ -437,7 +440,6 @@ fun OnlinePlaylistScreen(
                                                                 }
                                                             } else {
                                                                 database.transaction {
-                                                                    // Update playlist information including thumbnail before toggling like
                                                                     val currentPlaylist = dbPlaylist!!.playlist
                                                                     update(currentPlaylist, playlist)
                                                                     update(currentPlaylist.toggleLike())
@@ -447,10 +449,16 @@ fun OnlinePlaylistScreen(
                                                 ) {
                                                     Icon(
                                                         painter = painterResource(
-                                                            if (dbPlaylist?.playlist?.bookmarkedAt != null) R.drawable.favorite else R.drawable.favorite_border
+                                                            if (isPlaylistFavorited)
+                                                                R.drawable.favorite
+                                                            else
+                                                                R.drawable.favorite_border
                                                         ),
-                                                        contentDescription = null,
-                                                        tint = if (dbPlaylist?.playlist?.bookmarkedAt != null) {
+                                                        contentDescription = if (isPlaylistFavorited)
+                                                            "Remove from favorites"
+                                                        else
+                                                            "Add to favorites",
+                                                        tint = if (isPlaylistFavorited) {
                                                             MaterialTheme.colorScheme.error
                                                         } else {
                                                             LocalContentColor.current
@@ -561,7 +569,7 @@ fun OnlinePlaylistScreen(
                                                 }
                                             }
 
-// Shuffle Button
+                                            // Shuffle Button
                                             Surface(
                                                 onClick = {
                                                     val shuffledSongs = songs.map { it.toMediaItem() }.shuffled()
@@ -606,8 +614,6 @@ fun OnlinePlaylistScreen(
                                                             LocalContentColor.current
                                                         }
                                                     )
-
-
                                                 }
                                             }
                                         }

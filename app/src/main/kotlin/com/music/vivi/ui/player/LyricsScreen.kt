@@ -58,6 +58,7 @@ import android.app.Activity
 import android.content.res.Configuration
 import android.view.WindowManager
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
@@ -361,16 +362,20 @@ fun LyricsScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            // Favorite button
+                            // Replace the favorite button section in both portrait and landscape orientations
+
                             Box(
                                 modifier = Modifier
                                     .size(32.dp)
+                                    .clip(CircleShape)
                                     .clickable(
+                                        enabled = true,
                                         interactionSource = remember { MutableInteractionSource() },
-                                        indication = ripple(bounded = true, radius = 16.dp)
-                                    ) {
-                                        playerConnection.toggleLike()
-                                    },
+                                        indication = ripple(bounded = true, radius = 16.dp),
+                                        onClick = {
+                                            playerConnection.toggleLike()
+                                        }
+                                    ),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
@@ -379,7 +384,10 @@ fun LyricsScreen(
                                             R.drawable.favorite
                                         else R.drawable.favorite_border
                                     ),
-                                    contentDescription = if (currentSong?.song?.liked == true) "Remove from favorites" else "Add to favorites",
+                                    contentDescription = if (currentSong?.song?.liked == true)
+                                        "Remove from favorites"
+                                    else
+                                        "Add to favorites",
                                     tint = if (currentSong?.song?.liked == true)
                                         MaterialTheme.colorScheme.error
                                     else

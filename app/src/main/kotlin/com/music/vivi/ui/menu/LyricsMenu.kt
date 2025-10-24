@@ -123,10 +123,9 @@ fun LyricsMenu(
         mutableStateOf(TextFieldValue(text = mediaMetadataProvider().artists.joinToString { it.name }))
     }
 
-    // Romanization state - fixed to use proper state management
+    // Romanization state
     var isRomanizationChecked by remember { mutableStateOf(songProvider()?.romanizeLyrics ?: true) }
 
-    // Fixed: Proper state update when song changes
     LaunchedEffect(songProvider()) {
         songProvider()?.let { song ->
             isRomanizationChecked = song.romanizeLyrics ?: true
@@ -140,17 +139,8 @@ fun LyricsMenu(
         .collectAsState(initial = true)
     val scope = rememberCoroutineScope()
 
-    // Fixed favorite button handler - single source of truth with non-nullable Unit
-    val onFavoriteClick = {
-        playerConnection?.toggleLike()
-        // Explicitly return Unit to ensure non-nullable return type
-        Unit
-    }
-
-    // Get the current song state properly
-    val currentSong by remember(songProvider()) {
-        derivedStateOf { songProvider() }
-    }
+    // FIXED: Proper favorite state management
+    val currentSong = songProvider()
     val isFavorite = currentSong?.liked == true
 
     Column(
@@ -162,7 +152,7 @@ fun LyricsMenu(
     ) {
         Spacer(modifier = Modifier.height(1.dp))
 
-        // Header Row - Song Art and Title (like in song details)
+        // Header Row - Song Art and Title
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -170,7 +160,7 @@ fun LyricsMenu(
             horizontalArrangement = Arrangement.spacedBy(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Song artwork instead of lyrics icon
+            // Song artwork
             AsyncImage(
                 model = mediaMetadataProvider().thumbnailUrl,
                 contentDescription = "Song Art",
@@ -207,7 +197,7 @@ fun LyricsMenu(
                 }
             }
 
-            // Favorite Button (replacing close button) - using fixed handler
+            // FIXED: Favorite Button with proper click handling
             FilledTonalIconButton(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -216,7 +206,9 @@ fun LyricsMenu(
                     containerColor = MaterialTheme.colorScheme.surfaceBright,
                     contentColor = MaterialTheme.colorScheme.onSurface
                 ),
-                onClick = onFavoriteClick, // Use the fixed handler
+                onClick = {
+                    playerConnection?.toggleLike()
+                }
             ) {
                 Icon(
                     modifier = Modifier.padding(horizontal = 8.dp),
@@ -327,7 +319,6 @@ fun LyricsMenu(
                 ),
                 shape = buttonShape,
                 onClick = {
-                    // Expand to show full lyrics
                     showEditDialog = true
                 }
             ) {
@@ -356,7 +347,7 @@ fun LyricsMenu(
         Column(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Romanize Lyrics Toggle - Fixed to prevent race conditions
+            // Romanize Lyrics Toggle
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -497,7 +488,7 @@ fun LyricsMenu(
         }
     }
 
-    // Dialogs (keeping original functionality)
+    // Dialogs
     if (showEditDialog) {
         TextFieldDialog(
             onDismiss = { showEditDialog = false },

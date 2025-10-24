@@ -671,11 +671,6 @@ fun BottomSheetPlayer(
                         topEnd = 50.dp, bottomEnd = 50.dp
                     )
 
-//                    val favShape = RoundedCornerShape(
-//                        topStart = 10.dp, bottomStart = 10.dp,
-//                        topEnd = 50.dp, bottomEnd = 50.dp
-//                    )
-
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -686,7 +681,11 @@ fun BottomSheetPlayer(
                                 .size(42.dp)
                                 .clip(favShape)
                                 .background(textButtonColor)
-                                .clickable {
+                                .clickable(
+                                    enabled = true,
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() }
+                                ) {
                                     playerConnection.toggleLike()
                                 }
                         ) {
@@ -703,6 +702,9 @@ fun BottomSheetPlayer(
                                     .size(24.dp)
                             )
                         }
+
+
+
 
                         // Download Button
                         Box(

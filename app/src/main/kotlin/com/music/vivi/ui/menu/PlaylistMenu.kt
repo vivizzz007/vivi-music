@@ -125,10 +125,10 @@ fun PlaylistMenu(
             title = { Text(text = stringResource(R.string.edit_playlist)) },
             onDismiss = { showEditDialog = false },
             initialTextFieldValue =
-            TextFieldValue(
-                playlist.playlist.name,
-                TextRange(playlist.playlist.name.length),
-            ),
+                TextFieldValue(
+                    playlist.playlist.name,
+                    TextRange(playlist.playlist.name.length),
+                ),
             onDone = { name ->
                 onDismiss()
                 database.query {
@@ -239,21 +239,38 @@ fun PlaylistMenu(
         )
     }
 
+    // FIXED: Proper favorite state tracking
+    val isPlaylistFavorited = dbPlaylist?.playlist?.bookmarkedAt != null
+
     PlaylistListItem(
         playlist = playlist,
         trailingContent = {
             if (playlist.playlist.isEditable != true) {
+                // FIXED: Improved IconButton with proper click handling
                 IconButton(
                     onClick = {
                         database.query {
-                            dbPlaylist?.playlist?.toggleLike()?.let { update(it) }
+                            dbPlaylist?.playlist?.toggleLike()?.let { updated ->
+                                update(updated)
+                            }
                         }
                     }
                 ) {
                     Icon(
-                        painter = painterResource(if (dbPlaylist?.playlist?.bookmarkedAt != null) R.drawable.favorite else R.drawable.favorite_border),
-                        tint = if (dbPlaylist?.playlist?.bookmarkedAt != null) MaterialTheme.colorScheme.error else LocalContentColor.current,
-                        contentDescription = null
+                        painter = painterResource(
+                            if (isPlaylistFavorited)
+                                R.drawable.favorite
+                            else
+                                R.drawable.favorite_border
+                        ),
+                        tint = if (isPlaylistFavorited)
+                            MaterialTheme.colorScheme.error
+                        else
+                            LocalContentColor.current,
+                        contentDescription = if (isPlaylistFavorited)
+                            "Remove from favorites"
+                        else
+                            "Add to favorites"
                     )
                 }
             }

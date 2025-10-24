@@ -197,7 +197,9 @@ fun SongMenu(
         cornerRadiusBL = evenCornerRadiusElems, smoothnessAsPercentTR = 60
     )
 
+    // FIXED: Proper favorite state tracking
     val isFavorite = song.song.liked
+
     val favoriteButtonCornerRadius by animateDpAsState(
         targetValue = if (isFavorite) evenCornerRadiusElems else 60.dp,
         animationSpec = tween(durationMillis = 300), label = "FavoriteCornerAnimation"
@@ -227,17 +229,6 @@ fun SongMenu(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val isCurrentSongPlaying = remember(mediaMetadata, song) {
         song.id == mediaMetadata?.id
-    }
-
-    // Fixed favorite button handler - single source of truth
-    val onFavoriteClick = {
-        val currentSong = song.song
-        val updatedSong = currentSong.copy(liked = !currentSong.liked)
-
-        database.query {
-            update(updatedSong)
-        }
-        syncUtils.likeSong(updatedSong)
     }
 
     Column(
@@ -293,6 +284,7 @@ fun SongMenu(
                 }
             }
 
+            // FIXED: Header favorite button
             FilledTonalIconButton(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -301,11 +293,20 @@ fun SongMenu(
                     containerColor = MaterialTheme.colorScheme.surfaceBright,
                     contentColor = MaterialTheme.colorScheme.onSurface
                 ),
-                onClick = onFavoriteClick, // Use the fixed handler
+                onClick = {
+                    val currentSong = song.song
+                    val updatedSong = currentSong.copy(liked = !currentSong.liked)
+                    database.query {
+                        update(updatedSong)
+                    }
+                    syncUtils.likeSong(updatedSong)
+                }
             ) {
                 Icon(
                     modifier = Modifier.padding(horizontal = 8.dp),
-                    painter = painterResource(if (isFavorite) R.drawable.favorite else R.drawable.favorite_border),
+                    painter = painterResource(
+                        if (isFavorite) R.drawable.favorite else R.drawable.favorite_border
+                    ),
                     contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
                     tint = if (isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                 )
@@ -360,12 +361,19 @@ fun SongMenu(
                 }
             )
 
-            // Favorite Button
+            // FIXED: Action row favorite button
             FilledIconButton(
                 modifier = Modifier
                     .weight(0.25f)
                     .fillMaxHeight(),
-                onClick = onFavoriteClick, // Use the fixed handler
+                onClick = {
+                    val currentSong = song.song
+                    val updatedSong = currentSong.copy(liked = !currentSong.liked)
+                    database.query {
+                        update(updatedSong)
+                    }
+                    syncUtils.likeSong(updatedSong)
+                },
                 shape = favoriteButtonShape,
                 colors = IconButtonDefaults.filledIconButtonColors(
                     containerColor = favoriteButtonContainerColor,
@@ -374,7 +382,9 @@ fun SongMenu(
             ) {
                 Icon(
                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
-                    painter = painterResource(if (isFavorite) R.drawable.favorite else R.drawable.favorite_border),
+                    painter = painterResource(
+                        if (isFavorite) R.drawable.favorite else R.drawable.favorite_border
+                    ),
                     contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
                     tint = if (isFavorite) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                 )

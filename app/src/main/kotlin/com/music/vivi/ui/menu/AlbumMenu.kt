@@ -199,13 +199,6 @@ fun AlbumMenu(
         mutableStateOf(mutableListOf<Song>())
     }
 
-    // Fixed favorite button handler - single source of truth
-    val onFavoriteClick = {
-        database.query {
-            update(album.album.toggleLike())
-        }
-    }
-
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
         onGetSong = { playlist ->
@@ -265,7 +258,9 @@ fun AlbumMenu(
         cornerRadiusBL = evenCornerRadiusElems, smoothnessAsPercentTR = 60
     )
 
+    // FIXED: Proper favorite state tracking
     val isFavorite = album.album.bookmarkedAt != null
+
     val favoriteButtonCornerRadius by animateDpAsState(
         targetValue = if (isFavorite) evenCornerRadiusElems else 60.dp,
         animationSpec = tween(durationMillis = 300), label = "FavoriteCornerAnimation"
@@ -352,7 +347,7 @@ fun AlbumMenu(
         }
     }
 
-    // Main Content (previously inside ModalBottomSheet)
+    // Main Content
     Column(
         modifier = Modifier
             .padding(16.dp)
@@ -394,6 +389,7 @@ fun AlbumMenu(
                 )
             }
 
+            // FIXED: Header favorite button
             FilledTonalIconButton(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -402,11 +398,17 @@ fun AlbumMenu(
                     containerColor = MaterialTheme.colorScheme.surfaceBright,
                     contentColor = MaterialTheme.colorScheme.onSurface
                 ),
-                onClick = onFavoriteClick, // Use the fixed handler
+                onClick = {
+                    database.query {
+                        update(album.album.toggleLike())
+                    }
+                }
             ) {
                 Icon(
                     modifier = Modifier.padding(horizontal = 8.dp),
-                    painter = painterResource(if (isFavorite) R.drawable.favorite else R.drawable.favorite_border),
+                    painter = painterResource(
+                        if (isFavorite) R.drawable.favorite else R.drawable.favorite_border
+                    ),
                     contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
                     tint = if (isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                 )
@@ -463,12 +465,16 @@ fun AlbumMenu(
                 }
             )
 
-            // Favorite Button
+            // FIXED: Action row favorite button
             FilledIconButton(
                 modifier = Modifier
                     .weight(0.25f)
                     .fillMaxHeight(),
-                onClick = onFavoriteClick, // Use the fixed handler
+                onClick = {
+                    database.query {
+                        update(album.album.toggleLike())
+                    }
+                },
                 shape = favoriteButtonShape,
                 colors = IconButtonDefaults.filledIconButtonColors(
                     containerColor = favoriteButtonContainerColor,
@@ -477,7 +483,9 @@ fun AlbumMenu(
             ) {
                 Icon(
                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
-                    painter = painterResource(if (isFavorite) R.drawable.favorite else R.drawable.favorite_border),
+                    painter = painterResource(
+                        if (isFavorite) R.drawable.favorite else R.drawable.favorite_border
+                    ),
                     contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
                     tint = if (isFavorite) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                 )
