@@ -212,10 +212,7 @@ import java.net.URLDecoder
 import java.net.URLEncoder
 import java.util.Locale
 import javax.inject.Inject
-import kotlin.time.Duration.Companion.days
-import coil3.compose.AsyncImage
-import kotlin.compareTo
-import kotlin.text.get
+
 
 @Suppress("DEPRECATION", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
 @AndroidEntryPoint
@@ -234,7 +231,7 @@ class MainActivity : ComponentActivity() {
     private var latestVersionName by mutableStateOf(BuildConfig.VERSION_NAME)
 
     private var playerConnection by mutableStateOf<PlayerConnection?>(null)
-    
+
     private val serviceConnection =
         object : ServiceConnection {
             override fun onServiceConnected(
@@ -280,6 +277,7 @@ class MainActivity : ComponentActivity() {
         super.onStop()
     }
 
+    //reverted 
     override fun onDestroy() {
         super.onDestroy()
         if (dataStore.get(
@@ -288,7 +286,7 @@ class MainActivity : ComponentActivity() {
             ) && playerConnection?.isPlaying?.value == true && isFinishing
         ) {
             stopService(Intent(this, MusicService::class.java))
-            // Don't unbind here - already done in onStop()
+            unbindService(serviceConnection)
             playerConnection = null
         }
     }
