@@ -1103,7 +1103,7 @@ class MusicService :
 
     override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
         updateNotification()
-        if (shuffleModeEnabled) {
+        if (shuffleModeEnabled && player.mediaItemCount > 0) {
             // Always put current playing item at first
             val shuffledIndices = IntArray(player.mediaItemCount) { it }
             shuffledIndices.shuffle()
