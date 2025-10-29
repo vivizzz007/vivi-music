@@ -54,7 +54,7 @@ fun PlayerBackgroundStyleScreen(
 ) {
     val (playerBackground, onPlayerBackgroundChange) = rememberEnumPreference(
         PlayerBackgroundStyleKey,
-        defaultValue = PlayerBackgroundStyle.DEFAULT
+        defaultValue = PlayerBackgroundStyle.GRADIENT
     )
 
     val availableBackgroundStyles = PlayerBackgroundStyle.entries.filter {
