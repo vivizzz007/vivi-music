@@ -1,0 +1,29 @@
+New Features
+
+Added Last.fm integration
+
+Added Android TV launcher support
+
+Improvements
+
+Improved bottom sheet menu scrolling and gesture handling
+
+Enhanced overall app performance
+
+Correctly hide local sections when a mood chip is selected
+
+Fixes
+
+Fixed remote history after playback changes
+
+Fixed Android Auto search to play the correct song
+
+Fixed button shapes in Queue and Player UI to match M3E
+
+Fixed crash on shuffle empty queue
+
+Updated album view and applied internal fixes
+
+Minor enhancements and bug fixes
+
+Reverted to old Updater
