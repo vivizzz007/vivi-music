@@ -1,0 +1,343 @@
+
+@file:OptIn(ExperimentalMaterial3Api::class)
+
+package com.music.vivi.update.account
+
+
+import android.widget.Toast
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import coil3.compose.AsyncImage
+import com.music.innertube.YouTube
+import com.music.innertube.models.Context
+import com.music.innertube.utils.parseCookieString
+import com.music.vivi.LocalPlayerAwareWindowInsets
+import com.music.vivi.R
+import com.music.vivi.constants.AccountChannelHandleKey
+import com.music.vivi.constants.AccountEmailKey
+import com.music.vivi.constants.AccountNameKey
+import com.music.vivi.constants.DataSyncIdKey
+import com.music.vivi.constants.InnerTubeCookieKey
+import com.music.vivi.constants.UseLoginForBrowse
+import com.music.vivi.constants.VisitorDataKey
+import com.music.vivi.constants.YtmSyncKey
+import com.music.vivi.ui.component.IconButton
+import com.music.vivi.ui.component.InfoLabel
+import com.music.vivi.ui.component.TextFieldDialog
+import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.update.mordernswitch.ModernSwitch
+import com.music.vivi.update.settingstyle.ModernInfoItem
+import com.music.vivi.utils.rememberPreference
+import com.music.vivi.viewmodels.AccountSettingsViewModel
+import com.music.vivi.viewmodels.AccountViewModel
+import com.music.vivi.viewmodels.HomeViewModel
+import kotlin.text.contains
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AccountView(
+    navController: NavController,
+    scrollBehavior: TopAppBarScrollBehavior,
+) {
+    val context = LocalContext.current
+
+    // Get account information from preferences
+    val (accountNamePref, setAccountNamePref) = rememberPreference(AccountNameKey, "")
+    val (accountEmail, setAccountEmail) = rememberPreference(AccountEmailKey, "")
+    val (innerTubeCookie, setInnerTubeCookie) = rememberPreference(InnerTubeCookieKey, "")
+
+    // Get account data from ViewModel
+    val homeViewModel = hiltViewModel<HomeViewModel>()
+    val accountName by homeViewModel.accountName.collectAsState()
+    val accountImageUrl by homeViewModel.accountImageUrl.collectAsState()
+
+    // Check if user is logged in
+    val isLoggedIn = remember(innerTubeCookie) {
+        "SAPISID" in parseCookieString(innerTubeCookie)
+    }
+
+    // Determine what to display
+    val displayName = when {
+        isLoggedIn && accountName.isNotBlank() -> accountName
+        isLoggedIn && accountNamePref.isNotBlank() -> accountNamePref
+        else -> "Guest User"
+    }
+
+    val displayEmail = if (isLoggedIn && accountEmail.isNotBlank()) {
+        accountEmail
+    } else {
+        "Not signed in"
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.account)) },
+                navigationIcon = {
+                    IconButton(
+                        onClick = navController::navigateUp,
+                        onLongClick = navController::backToMain
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.arrow_back),
+                            contentDescription = null
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                ),
+                scrollBehavior = scrollBehavior
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(MaterialTheme.colorScheme.background)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp)
+        ) {
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Profile Section Card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Profile Image
+                    if (isLoggedIn && accountImageUrl != null) {
+                        AsyncImage(
+                            model = accountImageUrl,
+                            contentDescription = stringResource(R.string.profile_image),
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(80.dp)
+                                .clip(CircleShape)
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(80.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primaryContainer),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.person),
+                                contentDescription = null,
+                                modifier = Modifier.size(40.dp),
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Account Name
+                    Text(
+                        text = displayName,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    // Account Email
+                    Text(
+                        text = displayEmail,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Account Actions Card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            ) {
+                Column(modifier = Modifier.padding(vertical = 8.dp)) {
+
+                    if (isLoggedIn) {
+                        // My Library
+                        ModernInfoItem(
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.library_music),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
+                            title = "My Library",
+                            subtitle = "View your playlists, albums and artists",
+                            onClick = { navController.navigate("account") },
+                            showArrow = true,
+                            iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
+                        )
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                        )
+
+                        // Sign Out
+                        ModernInfoItem(
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.logout),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp),
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            },
+                            title = "Sign Out",
+                            subtitle = "Sign out from your account",
+                            titleColor = MaterialTheme.colorScheme.error,
+                            onClick = {
+                                // Clear account preferences using the setter functions
+                                setAccountNamePref("")
+                                setAccountEmail("")
+                                setInnerTubeCookie("")
+
+                                // Navigate to login screen and clear back stack
+                                navController.navigate("login") {
+                                    popUpTo(0) { inclusive = true }
+                                }
+                            },
+                            showArrow = false,
+                            iconBackgroundColor = MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
+                        )
+                    } else {
+                        // Sign In
+                        ModernInfoItem(
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.login),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            },
+                            title = "Sign In",
+                            subtitle = "Sign in to access your account",
+                            titleColor = MaterialTheme.colorScheme.primary,
+                            onClick = {
+                                // Handle sign in
+                                navController.navigate("login")
+                            },
+                            showArrow = true,
+                            iconBackgroundColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                            arrowColor = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            ) {
+                Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                    ModernInfoItem(
+                        icon = {
+                            Icon(
+                                painter = painterResource(R.drawable.integration),
+                                contentDescription = null,
+                                modifier = Modifier.size(22.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        title = "Integrations",
+                        subtitle = "Connect with other services",
+                        onClick = {
+                            navController.navigate("settings/integrations")
+                        },
+                        showArrow = true,
+                        iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(100.dp))
+        }
+    }
+}

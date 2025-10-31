@@ -1,0 +1,218 @@
+package com.music.vivi
+
+import android.app.Application
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
+import android.os.Build
+import android.widget.Toast
+import androidx.datastore.preferences.core.edit
+import coil3.ImageLoader
+import coil3.PlatformContext
+import coil3.SingletonImageLoader
+import coil3.disk.DiskCache
+import coil3.disk.directory
+import coil3.request.CachePolicy
+import coil3.request.allowHardware
+import coil3.request.crossfade
+import com.music.innertube.YouTube
+import com.music.innertube.models.YouTubeLocale
+import com.music.kugou.KuGou
+import com.music.lastfm.LastFM
+import com.music.vivi.BuildConfig
+import com.music.vivi.constants.*
+import com.music.vivi.di.ApplicationScope
+import com.music.vivi.extensions.toEnum
+import com.music.vivi.extensions.toInetSocketAddress
+import com.music.vivi.utils.dataStore
+import com.music.vivi.utils.get
+import com.music.vivi.utils.reportException
+import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.Credentials
+import timber.log.Timber
+import java.net.Authenticator
+import java.net.PasswordAuthentication
+import java.net.Proxy
+import java.util.Locale
+import javax.inject.Inject
+
+@HiltAndroidApp
+class App : Application(), SingletonImageLoader.Factory {
+
+    @Inject
+    @ApplicationScope
+    lateinit var applicationScope: CoroutineScope
+
+    override fun onCreate() {
+        super.onCreate()
+        Timber.plant(Timber.DebugTree())
+
+
+        applicationScope.launch {
+            initializeSettings()
+            observeSettingsChanges()
+        }
+    }
+
+    private suspend fun initializeSettings() {
+        val settings = dataStore.data.first()
+        val locale = Locale.getDefault()
+        val languageTag = locale.toLanguageTag().replace("-Hant", "")
+
+        YouTube.locale = YouTubeLocale(
+            gl = settings[ContentCountryKey]?.takeIf { it != SYSTEM_DEFAULT }
+                ?: locale.country.takeIf { it in CountryCodeToName }
+                ?: "US",
+            hl = settings[ContentLanguageKey]?.takeIf { it != SYSTEM_DEFAULT }
+                ?: locale.language.takeIf { it in LanguageCodeToName }
+                ?: languageTag.takeIf { it in LanguageCodeToName }
+                ?: "en"
+        )
+
+        if (languageTag == "zh-TW") {
+            KuGou.useTraditionalChinese = true
+        }
+
+        // Initialize LastFM with API keys from BuildConfig (GitHub Secrets)
+        LastFM.initialize(
+            apiKey = BuildConfig.LASTFM_API_KEY.takeIf { it.isNotEmpty() } ?: "",
+            secret = BuildConfig.LASTFM_SECRET.takeIf { it.isNotEmpty() } ?: ""
+        )
+
+        if (settings[ProxyEnabledKey] == true) {
+            val username = settings[ProxyUsernameKey].orEmpty()
+            val password = settings[ProxyPasswordKey].orEmpty()
+            val type = settings[ProxyTypeKey].toEnum(defaultValue = Proxy.Type.HTTP)
+
+            if (username.isNotEmpty() || password.isNotEmpty()) {
+                if (type == Proxy.Type.HTTP) {
+                    YouTube.proxyAuth = Credentials.basic(username, password)
+                } else {
+                    Authenticator.setDefault(object : Authenticator() {
+                        override fun getPasswordAuthentication(): PasswordAuthentication =
+                            PasswordAuthentication(username, password.toCharArray())
+                    })
+                }
+            }
+            try {
+                settings[ProxyUrlKey]?.let {
+                    YouTube.proxy = Proxy(type, it.toInetSocketAddress())
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@App, "Failed to parse proxy url.", Toast.LENGTH_SHORT).show()
+                }
+                reportException(e)
+            }
+        }
+
+        YouTube.useLoginForBrowse = settings[UseLoginForBrowse] ?: true
+
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            val channel = NotificationChannel(
+//                "updates",
+//                getString(R.string.update_channel_name),
+//                NotificationManager.IMPORTANCE_DEFAULT
+//            ).apply {
+//                description = getString(R.string.update_channel_desc)
+//            }
+//            val nm = getSystemService(NotificationManager::class.java)
+//            nm.createNotificationChannel(channel)
+//        }
+    }
+
+    private fun observeSettingsChanges() {
+        applicationScope.launch(Dispatchers.IO) {
+            dataStore.data
+                .map { it[VisitorDataKey] }
+                .distinctUntilChanged()
+                .collect { visitorData ->
+                    YouTube.visitorData = visitorData?.takeIf { it != "null" }
+                        ?: YouTube.visitorData().getOrNull()?.also { newVisitorData ->
+                            dataStore.edit { settings ->
+                                settings[VisitorDataKey] = newVisitorData
+                            }
+                        }
+                }
+        }
+
+        applicationScope.launch(Dispatchers.IO) {
+            dataStore.data
+                .map { it[DataSyncIdKey] }
+                .distinctUntilChanged()
+                .collect { dataSyncId ->
+                    YouTube.dataSyncId = dataSyncId?.let {
+                        it.takeIf { !it.contains("||") }
+                            ?: it.takeIf { it.endsWith("||") }?.substringBefore("||")
+                            ?: it.substringAfter("||")
+                    }
+                }
+        }
+
+        applicationScope.launch(Dispatchers.IO) {
+            dataStore.data
+                .map { it[InnerTubeCookieKey] }
+                .distinctUntilChanged()
+                .collect { cookie ->
+                    try {
+                        YouTube.cookie = cookie
+                    } catch (e: Exception) {
+                        Timber.e(e, "Could not parse cookie. Clearing existing cookie.")
+                        forgetAccount(this@App)
+                    }
+                }
+        }
+
+        applicationScope.launch(Dispatchers.IO) {
+            dataStore.data
+                .map { it[LastFMSessionKey] }
+                .distinctUntilChanged()
+                .collect { session ->
+                    try {
+                        LastFM.sessionKey = session
+                    } catch (e: Exception) {
+                        Timber.e("Error while loading last.fm session key. %s", e.message)
+                    }
+                }
+        }
+    }
+
+    override fun newImageLoader(context: PlatformContext): ImageLoader {
+        val cacheSize = dataStore.get(MaxImageCacheSizeKey, 512)
+
+        return ImageLoader.Builder(this).apply {
+            crossfade(true)
+            allowHardware(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+            if (cacheSize == 0) {
+                diskCachePolicy(CachePolicy.DISABLED)
+            } else {
+                diskCache(
+                    DiskCache.Builder()
+                        .directory(cacheDir.resolve("coil"))
+                        .maxSizeBytes(cacheSize * 1024 * 1024L)
+                        .build()
+                )
+            }
+        }.build()
+    }
+
+    companion object {
+        suspend fun forgetAccount(context: Context) {
+            context.dataStore.edit { settings ->
+                settings.remove(InnerTubeCookieKey)
+                settings.remove(VisitorDataKey)
+                settings.remove(DataSyncIdKey)
+                settings.remove(AccountNameKey)
+                settings.remove(AccountEmailKey)
+                settings.remove(AccountChannelHandleKey)
+            }
+        }
+    }
+}
