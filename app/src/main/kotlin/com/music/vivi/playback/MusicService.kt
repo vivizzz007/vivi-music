@@ -250,7 +250,7 @@ class MusicService :
                 R.string.music_player
             )
                 .apply {
-                    setSmallIcon(R.drawable.small_icon)
+                    setSmallIcon(R.drawable.library_music)
                 },
         )
         player =
