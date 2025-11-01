@@ -84,8 +84,7 @@ import com.music.vivi.playback.ExoDownloadService
 import com.music.vivi.playback.queues.ListQueue
 import com.music.vivi.ui.component.ListDialog
 import com.music.vivi.ui.component.LocalBottomSheetPageState
-import com.music.vivi.ui.utils.ShowMediaInfo
-import com.music.vivi.update.menu.ModernListItem
+import com.music.vivi.update.mordernlistmenu.ModernListItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
