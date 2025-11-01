@@ -18,7 +18,8 @@
   <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/6.png?raw=true" width="30%" />
   <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/7.png?raw=true" width="30%" />
 
-[//]: # (  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/9.png?raw=true" width="30%" />)
+<!-- [//]: # (  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/9.png?raw=true" width="30%" />) -->
+
   <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/8.png?raw=true" width="30%" />
 
 <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/10.png?raw=true" width="30%" />
