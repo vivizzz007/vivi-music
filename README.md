@@ -1,141 +1,260 @@
 <div align="center">
  <img src="https://github.com/vivizzz007/vivi-music/blob/main/fastlane/metadata/android/en-US/images/icon-playstore.png.png?raw=true" width="160" height="160" style="display: block; margin: 0 auto"/>
- <h1>vivi</h1>
-<h1>More Than Just Music</h1>
+ <h1>VIVI Music</h1>
+ <h3>More Than Just Music — Your Ultimate Audio Experience</h3>
+
+ <p>
+   <a href="https://github.com/vivizzz007/vivi-music/releases">
+     <img src="https://img.shields.io/github/v/release/vivizzz007/vivi-music?label=Download&style=for-the-badge&color=4CAF50" alt="Download Latest">
+   </a>
+   <a href="https://github.com/vivizzz007/vivi-music/releases">
+     <img src="https://img.shields.io/github/downloads/vivizzz007/vivi-music/total?style=for-the-badge&color=blue" alt="Downloads">
+   </a>
+   <a href="LICENSE">
+     <img src="https://img.shields.io/github/license/vivizzz007/vivi-music?style=for-the-badge" alt="License">
+   </a>
+ </p>
 
 </div>
 
-<div> VIVI isn't just another music player — it's a complete audio experience. With a sleek design, intelligent features, and deep personalization, VIVI redefines how you connect with your music. From stunning visual effects to smooth, intuitive controls, it’s built to match your vibe and elevate every beat. This is your music, your way — only with VIVI
-</div>
+<hr>
 
-<h1>Screenshots</h1>
-<p>
-<img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/1.png?raw=true" width="30%" />
+<h2>🎵 About VIVI</h2>
+
+<p><strong>VIVI</strong> isn't just another music player — it's a complete audio experience designed for music lovers who demand more. With a sleek Material You-inspired design, intelligent features, and deep personalization, VIVI redefines how you connect with your music.</p>
+
+<p>From stunning visual effects to smooth, intuitive controls, every element is crafted to match your vibe and elevate every beat. Stream from YouTube, enjoy synced lyrics, share songs via QR codes, and experience your music library like never before.</p>
+
+<p><strong>This is your music, your way — only with VIVI.</strong></p>
+
+<hr>
+
+<h2>📸 Screenshots</h2>
+
+<p align="center">
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/1.png?raw=true" width="30%" />
   <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/2.png?raw=true" width="30%" />
   <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/3.png?raw=true" width="30%" />
+</p>
+
+<p align="center">
   <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/4.png?raw=true" width="30%" />
   <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/5.png?raw=true" width="30%" />
   <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/6.png?raw=true" width="30%" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/7.png?raw=true" width="30%" />
-
-<!-- [//]: # (  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/9.png?raw=true" width="30%" />) -->
-
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/8.png?raw=true" width="30%" />
-
-<img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/10.png?raw=true" width="30%" />
-<img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/11.png?raw=true" width="30%" />
-
-<img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/12.png?raw=true" width="30%" />
 </p>
 
-<div align="center">
-  <h1>📢 OTA Update Notice</h1>
-  <p style="font-size: 18px; max-width: 800px; padding: 0 16px;">
-    ⚠️ <strong>If you download the APK from a tag starting with <code>IZ</code></strong>, you <b>will NOT receive OTA (Over-The-Air) updates</b> via the in-app updater.<br><br>
-    ✅ <strong>If you download the APK from a tag starting with <code>v</code></strong> (like <code>v3.2.1</code>), you <b>WILL receive OTA updates</b> directly in the app.
-  </p>
-</div>
+<p align="center">
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/7.png?raw=true" width="30%" />
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/8.png?raw=true" width="30%" />
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/10.png?raw=true" width="30%" />
+</p>
 
-<h1 class="features-section-title">✨ Features</h1>
+<p align="center">
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/11.png?raw=true" width="30%" />
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/12.png?raw=true" width="30%" />
+</p>
 
-<div class="features-grid">
-  <div class="feature-card">
-    <h3>🎧 Modern UI</h3>
-    <p>Material You-inspired design with smooth transitions and dynamic theming.</p>
-  </div>
-  <div class="feature-card">
-    <h3>📷 QR Music Sharing</h3>
-    <p>Share any song or playlist instantly using a QR code.</p>
-  </div>
-  <div class="feature-card">
-    <h3>🎵 YouTube & YT Music Playback</h3>
-    <p>Stream music from YouTube without ads and enjoy background playback.</p>
-  </div>
-  <div class="feature-card">
-    <h3>⬇️ Offline Downloads</h3>
-    <p>Cache and download music for offline listening anytime, anywhere.</p>
-  </div>
-  <div class="feature-card">
-    <h3>📝 Synced Lyrics</h3>
-    <p>Enjoy karaoke-style synced lyrics with your favorite tracks.</p>
-  </div>
-  <div class="feature-card">
-    <h3>🔇 Skip Silence</h3>
-    <p>Automatically skip silent sections for uninterrupted music flow.</p>
-  </div>
-  <div class="feature-card">
-    <h3>🎚️ Audio Normalization</h3>
-    <p>Keep all tracks playing at consistent volume levels.</p>
-  </div>
-  <div class="feature-card">
-    <h3>🌍 Localization</h3>
-    <p>Available in multiple languages for a global experience.</p>
-  </div>
-  <div class="feature-card">
-    <h3>🚗 Android Auto</h3>
-    <p>Full support for Android Auto with optimized car-friendly UI.</p>
-  </div>
-  <div class="feature-card">
-    <h3>⚙️ Built-in Updater</h3>
-    <p>Receive OTA updates directly inside the app—no hassle!</p>
-  </div>
-</div>
+<hr>
 
+<h2>✨ Features</h2>
 
-<div align="center">
-  <h1>📥 Download Now</h1>
-  <a href="https://github.com/vivizzz007/vivi-music/releases" target="_blank" style="
-    display: inline-block;
-    background-color: #4CAF50;
-    color: white;
-    padding: 14px 28px;
-    font-size: 18px;
-    border-radius: 8px;
-    text-decoration: none;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    transition: background-color 0.3s ease, transform 0.2s ease;
-  " onmouseover="this.style.backgroundColor='#45a049'; this.style.transform='scale(1.05)';" onmouseout="this.style.backgroundColor='#4CAF50'; this.style.transform='scale(1)';">
-    Get Latest Version →
-  </a>
-</div>
+<h3>🎨 Modern Design</h3>
+<ul>
+  <li><strong>Material You</strong> inspired UI with dynamic theming</li>
+  <li>Smooth animations and transitions</li>
+  <li>Adaptive color schemes based on album art</li>
+  <li>Clean, intuitive interface</li>
+</ul>
 
-<div align="center">
-  <h1>🔄 How to Enable OTA Updates?</h1>
-  <p style="font-size: 16px; max-width: 800px; padding: 0 16px;">
-    To receive Over-The-Air (OTA) updates directly within the Vivi Music app, you must allow the app to install updates on your device. This requires enabling the <b>"Install unknown apps"</b> permission.
-  </p>
-</div>
+<h3>🎵 Streaming & Playback</h3>
+<ul>
+  <li><strong>YouTube & YT Music</strong> integration with ad-free playback</li>
+  <li>Background playback support</li>
+  <li>High-quality audio streaming</li>
+  <li>Seamless playback controls</li>
+</ul>
 
-<div style="max-width: 700px; margin: 0 auto; font-size: 15px; padding: 20px;">
-  <ol>
-    <li>Go to your device's <b>Settings</b>.</li>
-    <li>Navigate to <b>Apps & notifications</b> (or <b>Apps</b> depending on your phone).</li>
-    <li>Find and tap on <b>Vivi Music</b> from the list of installed apps.</li>
-    <li>Scroll down and select <b>Install unknown apps</b>.</li>
-    <li>Toggle ON the option <b>"Allow from this source"</b>.</li>
-    <li>You're done! OTA updates will now be able to install automatically from within the app.</li>
-  </ol>
-</div>
+<h3>📥 Offline Experience</h3>
+<ul>
+  <li>Download and cache music for offline listening</li>
+  <li>Smart storage management</li>
+  <li>Queue downloads for batch processing</li>
+  <li>Listen anytime, anywhere without internet</li>
+</ul>
 
+<h3>📝 Enhanced Listening</h3>
+<ul>
+  <li><strong>Synced Lyrics</strong> with karaoke-style highlighting</li>
+  <li>Skip silence automatically for uninterrupted flow</li>
+  <li>Audio normalization for consistent volume</li>
+  <li>Equalizer and audio effects</li>
+</ul>
+
+<h3>🔗 Smart Sharing</h3>
+<ul>
+  <li><strong>QR Code Sharing</strong> for instant song/playlist transfers</li>
+  <li>Share to social media platforms</li>
+  <li>Generate shareable links</li>
+  <li>Cross-device music sync</li>
+</ul>
+
+<h3>🚗 Android Auto Support</h3>
+<ul>
+  <li>Fully optimized car-friendly interface</li>
+  <li>Voice command integration</li>
+  <li>Safe, hands-free music control</li>
+  <li>Seamless driving experience</li>
+</ul>
+
+<h3>🌐 Global & Accessible</h3>
+<ul>
+  <li>Multi-language localization</li>
+  <li>Accessibility features</li>
+  <li>Customizable controls</li>
+  <li>Theme customization</li>
+</ul>
+
+<h3>🔄 Built-in Updater</h3>
+<ul>
+  <li>OTA (Over-The-Air) updates</li>
+  <li>No need to manually check for updates</li>
+  <li>Seamless update installation</li>
+  <li>Always stay up-to-date</li>
+</ul>
+
+<hr>
+
+<h2 align="center">📥 Download</h2>
 
 <div align="center">
-<h1> Q: Why vivimusic isn't showing in Android Auto? </h1>
+  <h3><a href="https://github.com/vivizzz007/vivi-music/releases">🚀 Download Latest Release</a></h3>
+  <p><strong>Current Version:</strong> Check the <a href="https://github.com/vivizzz007/vivi-music/releases">releases page</a> for the latest stable version.</p>
 </div>
 
-1. Go to Android Auto's settings and tap multiple times on the version in the bottom to enable
-   developer settings
-2. In the three dots menu at the top-right of the screen, click "Developer settings"
-3. Enable "Unknown sources"
+<h3>⚠️ Important: OTA Update Notice</h3>
+
+<p><strong>Understanding Version Tags:</strong></p>
+
+<table align="center">
+  <thead>
+    <tr>
+      <th>Tag Format</th>
+      <th>Example</th>
+      <th>OTA Updates</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>v*.*.*</code></td>
+      <td><code>v3.2.1</code></td>
+      <td>✅ <strong>YES</strong></td>
+      <td>Stable releases with OTA support</td>
+    </tr>
+    <tr>
+      <td><code>IZ*</code></td>
+      <td><code>IZ-v3.2</code></td>
+      <td>❌ <strong>NO</strong></td>
+      <td>Development/Test builds without OTA</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Recommendation:</strong> Always download releases tagged with <code>v*.*.*</code> (e.g., <code>v3.2.1</code>) to receive automatic updates through the app.</p>
+
+<hr>
+
+<h2>🔄 Setting Up OTA Updates</h2>
+
+<p>To receive automatic updates within VIVI Music, you need to grant the app permission to install updates:</p>
+
+<h3>Step-by-Step Guide:</h3>
+
+<ol>
+  <li>Open your device's <strong>Settings</strong></li>
+  <li>Navigate to <strong>Apps & notifications</strong> (or <strong>Apps</strong>)</li>
+  <li>Find and select <strong>VIVI Music</strong></li>
+  <li>Scroll down and tap <strong>Install unknown apps</strong></li>
+  <li>Toggle <strong>ON</strong> the option "Allow from this source"</li>
+  <li>Done! You'll now receive automatic OTA updates</li>
+</ol>
+
+<blockquote>
+  <p>💡 <strong>Note:</strong> This permission is only used for app updates and follows Android's security guidelines.</p>
+</blockquote>
+
+<hr>
+
+<h2>🚗 Android Auto Setup</h2>
+
+<p>If VIVI Music doesn't appear in Android Auto:</p>
+
+<ol>
+  <li>Open <strong>Android Auto</strong> on your phone</li>
+  <li>Tap the <strong>hamburger menu</strong> (three lines) and go to <strong>Settings</strong></li>
+  <li>Scroll to the bottom and tap the <strong>version number</strong> multiple times to enable Developer Settings</li>
+  <li>Tap the <strong>three dots menu</strong> (⋮) at the top-right</li>
+  <li>Select <strong>Developer settings</strong></li>
+  <li>Enable <strong>Unknown sources</strong></li>
+  <li>Restart Android Auto and connect to your car</li>
+</ol>
+
+<hr>
+
+<h2>🛠️ Technical Details</h2>
+
+<ul>
+  <li><strong>Platform:</strong> Android 5.0+</li>
+  <li><strong>Architecture:</strong> Native Android with Kotlin/Java</li>
+  <li><strong>Streaming:</strong> YouTube Data API integration</li>
+  <li><strong>Audio:</strong> ExoPlayer for high-quality playback</li>
+  <li><strong>UI Framework:</strong> Material Design 3 (Material You)</li>
+  <li><strong>Updates:</strong> Custom OTA implementation</li>
+</ul>
+
+<hr>
+
+<h2>🤝 Contributing</h2>
+
+<p>Contributions are welcome! Whether it's bug reports, feature requests, or code contributions:</p>
+
+<ol>
+  <li>Fork the repository</li>
+  <li>Create your feature branch (<code>git checkout -b feature/AmazingFeature</code>)</li>
+  <li>Commit your changes (<code>git commit -m 'Add some AmazingFeature'</code>)</li>
+  <li>Push to the branch (<code>git push origin feature/AmazingFeature</code>)</li>
+  <li>Open a Pull Request</li>
+</ol>
+
+<hr>
+
+<h2>📜 Disclaimer</h2>
+
+<p>This project and its contents are <strong>not affiliated with, funded, authorized, endorsed by, or in any way associated with</strong> YouTube, Google LLC, or any of their affiliates and subsidiaries.</p>
+
+<p>Any trademark, service mark, trade name, or other intellectual property rights used in this project are owned by their respective owners.</p>
+
+<p><strong>VIVI Music</strong> is an independent project created for educational and personal use purposes.</p>
+
+<hr>
+
+<h2>📄 License</h2>
+
+<p>This project is licensed under the terms specified in the <a href="LICENSE">LICENSE</a> file.</p>
+
+<hr>
+
+<h2>💬 Support & Community</h2>
+
+<ul>
+  <li><strong>Issues:</strong> Report bugs or request features in <a href="https://github.com/vivizzz007/vivi-music/issues">GitHub Issues</a></li>
+  <li><strong>Discussions:</strong> Join conversations in <a href="https://github.com/vivizzz007/vivi-music/discussions">GitHub Discussions</a></li>
+  <li><strong>Releases:</strong> Stay updated with <a href="https://github.com/vivizzz007/vivi-music/releases">latest releases</a></li>
+</ul>
+
+<hr>
 
 <div align="center">
-<h1>Disclaimer</h1>
-</div>
-
-This project and its contents are not affiliated with, funded, authorized, endorsed by, or in any way associated with YouTube, Google LLC, VIVI Group LLC or any of its affiliates and subsidiaries.
-
-Any trademark, service mark, trade name, or other intellectual property rights used in this project are owned by the respective owners.
-
-
-<div align="center">
-
+  <p><strong>Made with ❤️ for music lovers everywhere</strong></p>
+  <p>⭐ Star this repo if you enjoy VIVI Music!</p>
 </div>
