@@ -313,10 +313,15 @@ fun AudioDeviceBottomSheet(
                     // "Audio will play on" header
                     Surface(
                         shape = RoundedCornerShape(16.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 24.dp)
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                                shape = RoundedCornerShape(16.dp)
+                            )
                     ) {
                         Row(
                             modifier = Modifier
@@ -327,17 +332,18 @@ fun AudioDeviceBottomSheet(
                         ) {
                             Column {
                                 Text(
-                                    text = "Audio will play on",
+                                    text = "Streaming to",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontSize = 12.sp
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Medium
                                 )
-                                Spacer(modifier = Modifier.height(2.dp))
+                                Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = activeDevice?.name ?: "This phone",
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.onSurface,
-                                    fontWeight = FontWeight.Medium
+                                    fontWeight = FontWeight.SemiBold
                                 )
                             }
                             Icon(
@@ -350,7 +356,7 @@ fun AudioDeviceBottomSheet(
                                     else -> Icons.Filled.PhoneAndroid
                                 },
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(24.dp)
                             )
                         }
@@ -358,7 +364,7 @@ fun AudioDeviceBottomSheet(
 
                     // Title
                     Text(
-                        text = "Media",
+                        text = "Volume",
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold,
@@ -367,7 +373,7 @@ fun AudioDeviceBottomSheet(
 
                     // Media Volume Control
                     VolumeControlRow(
-                        label = "Media",
+                        label = "Volume",
                         icon = Icons.Filled.MusicNote,
                         volume = currentVolume,
                         maxVolume = maxVolume,
