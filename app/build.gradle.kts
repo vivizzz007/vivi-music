@@ -16,8 +16,8 @@ android {
         applicationId = "com.vivi.vivimusic"
         minSdk = 26
         targetSdk = 36
-        versionCode = 13 //13 //53
-        versionName = "4.0.5"
+        versionCode = 14 //14 //55
+        versionName = "4.0.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -236,5 +236,6 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:5.1.0")
     implementation("androidx.core:core-ktx:1.17.0")
     implementation("androidx.work:work-runtime-ktx:2.9.0")
+    implementation("androidx.core:core-ktx:1.12.0")
 
 }
