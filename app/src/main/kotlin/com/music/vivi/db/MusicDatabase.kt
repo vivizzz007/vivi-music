@@ -88,7 +88,7 @@ class MusicDatabase(
         SortedSongAlbumMap::class,
         PlaylistSongMapPreview::class,
     ],
-    version = 24,
+    version = 25, // Change from 24 to 25
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 2, to = 3),
@@ -112,9 +112,11 @@ class MusicDatabase(
         AutoMigration(from = 20, to = 21, spec = Migration20To21::class),
         AutoMigration(from = 21, to = 22, spec = Migration21To22::class),
         AutoMigration(from = 22, to = 23, spec = Migration22To23::class),
-        AutoMigration(from = 23, to = 24)
+        AutoMigration(from = 23, to = 24),
+        AutoMigration(from = 24, to = 25) // added for auto migration
     ],
 )
+
 @TypeConverters(Converters::class)
 abstract class InternalDatabase : RoomDatabase() {
     abstract val dao: DatabaseDao
