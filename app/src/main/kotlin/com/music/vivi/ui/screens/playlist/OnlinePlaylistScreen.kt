@@ -161,8 +161,8 @@ fun OnlinePlaylistScreen(
     }
 
     val filteredSongs =
-        remember(songs, query) {
-            if (query.text.isEmpty()) {
+        remember(songs, query, hideExplicit) {  // Add hideExplicit here
+            val searchFiltered = if (query.text.isEmpty()) {
                 songs.mapIndexed { index, song -> index to song }
             } else {
                 songs
@@ -176,6 +176,13 @@ fun OnlinePlaylistScreen(
                                     )
                                 }
                     }
+            }
+
+            // Apply explicit content filter
+            if (hideExplicit) {
+                searchFiltered.filter { (_, song) -> !song.explicit }
+            } else {
+                searchFiltered
             }
         }
 
@@ -766,7 +773,7 @@ fun OnlinePlaylistScreen(
                                     .fillMaxWidth()
                                     .animateItem()
                                     .combinedClickable(
-                                        enabled = !hideExplicit || !songWrapper.item.second.explicit,
+//                                        enabled = !hideExplicit || !songWrapper.item.second.explicit,
                                         onClick = {
                                             if (!selection) {
                                                 if (songWrapper.item.second.id == mediaMetadata?.id) {
