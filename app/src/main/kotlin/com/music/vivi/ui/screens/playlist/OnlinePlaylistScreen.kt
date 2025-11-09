@@ -159,7 +159,7 @@ fun OnlinePlaylistScreen(
     var query by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue())
     }
-
+//fixed issue
     val filteredSongs =
         remember(songs, query, hideExplicit) {  // Add hideExplicit here
             val searchFiltered = if (query.text.isEmpty()) {
