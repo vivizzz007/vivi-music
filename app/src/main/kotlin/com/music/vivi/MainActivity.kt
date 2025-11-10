@@ -54,6 +54,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRail
@@ -182,6 +183,7 @@ import com.music.vivi.ui.theme.extractThemeColor
 import com.music.vivi.ui.utils.appBarScrollBehavior
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.ui.utils.resetHeightOffset
+import com.music.vivi.update.changelog.ChangelogBottomSheet
 import com.music.vivi.utils.SyncUtils
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.get
@@ -427,6 +429,9 @@ class MainActivity : ComponentActivity() {
                     val windowsInsets = WindowInsets.systemBars
                     val bottomInset = with(density) { windowsInsets.getBottom(density).toDp() }
                     val bottomInsetDp = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
+
+
+                    var showChangelogBottomSheet by remember { mutableStateOf(false) }
 
                     val navController = rememberNavController()
                     val homeViewModel: HomeViewModel = hiltViewModel()
@@ -755,6 +760,12 @@ class MainActivity : ComponentActivity() {
                                                 )
                                             },
                                             actions = {
+                                                IconButton(onClick = { showChangelogBottomSheet = true }) {
+                                                    Icon(
+                                                        painter = painterResource(R.drawable.newspaper_vivi),
+                                                        contentDescription = "Changelog"
+                                                    )
+                                                }
                                                 IconButton(onClick = { navController.navigate("history") }) {
                                                     Icon(
                                                         painter = painterResource(R.drawable.music_history),
@@ -1268,6 +1279,14 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             }
+                        }
+                    }
+
+                    if (showChangelogBottomSheet) {
+                        ModalBottomSheet(
+                            onDismissRequest = { showChangelogBottomSheet = false }
+                        ) {
+                            ChangelogBottomSheet()
                         }
                     }
 
