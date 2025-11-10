@@ -1,12 +1,24 @@
 package com.music.vivi.ui.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
@@ -28,7 +40,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -116,7 +130,9 @@ import kotlinx.coroutines.withContext
 import kotlin.math.min
 import kotlin.random.Random
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class
+)
 @Composable
 fun HomeScreen(
     navController: NavController,
@@ -380,90 +396,124 @@ fun HomeScreen(
                     }
                 )
             }
+// This goes in the LazyColumn items block where quick picks are displayed
 
-            if (selectedChip == null) {
-                quickPicks?.takeIf { it.isNotEmpty() }?.let { quickPicks ->
-                    item(key = "quick_picks_title") {
-                        NavigationTitle(
-                            title = stringResource(R.string.quick_picks),
-                            modifier = Modifier.animateItem()
-                        )
-                    }
+            quickPicks?.takeIf { it.isNotEmpty() }?.let { quickPicks ->
+                item(key = "quick_picks_title") {
+                    NavigationTitle(
+                        title = stringResource(R.string.quick_picks),
+                        modifier = Modifier.animateItem()
+                    )
+                }
 
-                    item(key = "quick_picks_list") {
-                        LazyHorizontalGrid(
-                            state = quickPicksLazyGridState,
-                            rows = GridCells.Fixed(4),
-                            flingBehavior = rememberSnapFlingBehavior(quickPicksSnapLayoutInfoProvider),
-                            contentPadding = WindowInsets.systemBars.only(WindowInsetsSides.Horizontal)
-                                .asPaddingValues(),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(ListItemHeight * 4)
-                                .animateItem()
-                        ) {
-                            items(
-                                items = quickPicks.distinctBy { it.id },
-                                key = { it.id }
-                            ) { originalSong ->
-                                // fetch song from database to keep updated
-                                val song by database.song(originalSong.id)
-                                    .collectAsState(initial = originalSong)
+                item(key = "quick_picks_list") {
+                    // Group songs into chunks of 4
+                    val songGroups = quickPicks.distinctBy { it.id }.chunked(4)
 
-                                SongListItem(
-                                    song = song!!,
-                                    showInLibraryIcon = true,
-                                    isActive = song!!.id == mediaMetadata?.id,
-                                    isPlaying = isPlaying,
-                                    isSwipeable = false,
-                                    trailingContent = {
-                                        IconButton(
-                                            onClick = {
-                                                menuState.show {
-                                                    SongMenu(
-                                                        originalSong = song!!,
-                                                        navController = navController,
-                                                        onDismiss = menuState::dismiss
-                                                    )
-                                                }
-                                            }
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.more_vert),
-                                                contentDescription = null
+                    LazyRow(
+                        state = rememberLazyListState(),
+                        contentPadding = WindowInsets.systemBars.only(WindowInsetsSides.Horizontal)
+                            .asPaddingValues(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .animateItem()
+                    ) {
+                        items(
+                            items = songGroups,
+                            key = { group -> group.firstOrNull()?.id ?: "" }
+                        ) { songGroup ->
+                            Column(
+                                modifier = Modifier
+                                    .width(horizontalLazyGridItemWidth)
+                                    .padding(end = 12.dp)
+                            ) {
+                                songGroup.forEachIndexed { index, originalSong ->
+                                    val song by database.song(originalSong.id)
+                                        .collectAsState(initial = originalSong)
+
+                                    val isFirst = index == 0
+                                    val isLast = index == songGroup.size - 1
+
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(ListItemHeight)
+                                            .clip(
+                                                RoundedCornerShape(
+                                                    topStart = if (isFirst) 20.dp else 0.dp,
+                                                    topEnd = if (isFirst) 20.dp else 0.dp,
+                                                    bottomStart = if (isLast) 20.dp else 0.dp,
+                                                    bottomEnd = if (isLast) 20.dp else 0.dp
+                                                )
                                             )
-                                        }
-                                    },
-                                    modifier = Modifier
-                                        .width(horizontalLazyGridItemWidth)
-                                        .combinedClickable(
-                                            onClick = {
-                                                if (song!!.id == mediaMetadata?.id) {
-                                                    playerConnection.player.togglePlayPause()
-                                                } else {
-                                                    playerConnection.playQueue(
-                                                        YouTubeQueue.radio(
-                                                            song!!.toMediaMetadata()
-                                                        )
+                                            .background(MaterialTheme.colorScheme.surfaceContainer)
+                                    ) {
+                                        SongListItem(
+                                            song = song!!,
+                                            showInLibraryIcon = true,
+                                            isActive = song!!.id == mediaMetadata?.id,
+                                            isPlaying = isPlaying,
+                                            isSwipeable = false,
+                                            trailingContent = {
+                                                IconButton(
+                                                    onClick = {
+                                                        menuState.show {
+                                                            SongMenu(
+                                                                originalSong = song!!,
+                                                                navController = navController,
+                                                                onDismiss = menuState::dismiss
+                                                            )
+                                                        }
+                                                    }
+                                                ) {
+                                                    Icon(
+                                                        painter = painterResource(R.drawable.more_vert),
+                                                        contentDescription = null
                                                     )
                                                 }
                                             },
-                                            onLongClick = {
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                menuState.show {
-                                                    SongMenu(
-                                                        originalSong = song!!,
-                                                        navController = navController,
-                                                        onDismiss = menuState::dismiss
-                                                    )
-                                                }
-                                            }
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .combinedClickable(
+                                                    onClick = {
+                                                        if (song!!.id == mediaMetadata?.id) {
+                                                            playerConnection.player.togglePlayPause()
+                                                        } else {
+                                                            playerConnection.playQueue(
+                                                                YouTubeQueue.radio(
+                                                                    song!!.toMediaMetadata()
+                                                                )
+                                                            )
+                                                        }
+                                                    },
+                                                    onLongClick = {
+                                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                        menuState.show {
+                                                            SongMenu(
+                                                                originalSong = song!!,
+                                                                navController = navController,
+                                                                onDismiss = menuState::dismiss
+                                                            )
+                                                        }
+                                                    }
+                                                )
                                         )
-                                )
+                                    }
+
+                                    // Add 2dp spacer between items (except after last)
+                                    if (!isLast) {
+                                        Spacer(modifier = Modifier.height(3.dp))
+                                    }
+                                }
                             }
                         }
                     }
                 }
+
+
+
+
+                ////
 
                 keepListening?.takeIf { it.isNotEmpty() }?.let { keepListening ->
                     item(key = "keep_listening_title") {
@@ -857,12 +907,37 @@ fun HomeScreen(
             }
         )
 
-        Indicator(
-            isRefreshing = isRefreshing,
-            state = pullRefreshState,
+        val refreshProgress by animateFloatAsState(
+            targetValue = if (isRefreshing) 1f else pullRefreshState.distanceFraction.coerceIn(0f, 1f),
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioNoBouncy,
+                stiffness = Spring.StiffnessVeryLow,
+            ),
+            label = "refresh_progress"
+        )
+
+        Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .padding(LocalPlayerAwareWindowInsets.current.asPaddingValues()),
-        )
+                .padding(LocalPlayerAwareWindowInsets.current.asPaddingValues())
+        ) {
+            AnimatedVisibility(
+                visible = isRefreshing || pullRefreshState.distanceFraction > 0,
+                enter = fadeIn() + scaleIn(),
+                exit = fadeOut() + scaleOut()
+            ) {
+                if (isRefreshing) {
+                    ContainedLoadingIndicator(
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                } else {
+                    ContainedLoadingIndicator(
+                        progress = { refreshProgress },
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                }
+            }
+        }
+
     }
 }
