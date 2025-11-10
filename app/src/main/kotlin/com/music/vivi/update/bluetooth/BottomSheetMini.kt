@@ -3,7 +3,7 @@
 
 package com.music.vivi.bluetooth
 
-
+import androidx.compose.material3.ToggleButtonDefaults
 import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
@@ -61,8 +61,11 @@ import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material.icons.filled.Usb
 import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -71,12 +74,14 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -86,6 +91,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -361,15 +369,15 @@ fun AudioDeviceBottomSheet(
                             )
                         }
                     }
-
-                    // Title
-                    Text(
-                        text = "Volume",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 12.dp)
-                    )
+//
+//                    // Title
+//                    Text(
+//                        text = "Volume",
+//                        style = MaterialTheme.typography.titleLarge,
+//                        color = MaterialTheme.colorScheme.onSurface,
+//                        fontWeight = FontWeight.Bold,
+//                        modifier = Modifier.padding(bottom = 12.dp)
+//                    )
 
                     // Media Volume Control
                     VolumeControlRow(
@@ -462,122 +470,40 @@ fun VolumeControlRow(
     onDragEnd: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val TRACK_HEIGHT: Dp = 48.dp         // Much thicker track
-    val TRACK_CORNER_RADIUS: Dp = 24.dp  // Full pill shape (half of height)
-    val THUMB_WIDTH: Dp = 4.dp
-    val THUMB_HEIGHT: Dp = 56.dp         // Taller thumb that protrudes
-
-    val interactionSource = remember { MutableInteractionSource() }
-    val isDragging by interactionSource.collectIsDraggedAsState()
-
-    LaunchedEffect(isDragging) {
-        if (isDragging) {
-            onDragStart()
-        } else {
-            onDragEnd()
-        }
-    }
-
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Slider container with icon inside
-        BoxWithConstraints(
-            modifier = Modifier
-                .weight(1f)
-                .height(THUMB_HEIGHT),
-            contentAlignment = Alignment.Center
-        ) {
-            val fullTrackWidth = maxWidth
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.size(22.dp)
+        )
 
-            Slider(
-                value = volume.coerceIn(0f, maxVolume.toFloat()),
-                onValueChange = onVolumeChange,
-                valueRange = 0f..maxVolume.toFloat(),
-                steps = maxVolume - 1,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = TRACK_HEIGHT, max = TRACK_HEIGHT),
-                interactionSource = interactionSource,
-                colors = SliderDefaults.colors(
-                    thumbColor = Color.Transparent,
-                    activeTrackColor = Color.Transparent,
-                    inactiveTrackColor = Color.Transparent,
-                ),
-                thumb = {
-                    Box(
-                        modifier = Modifier
-                            .size(THUMB_WIDTH, THUMB_HEIGHT)
-                            .background(
-                                MaterialTheme.colorScheme.onSurface,
-                                RoundedCornerShape(THUMB_WIDTH / 2)
-                            )
-                    )
-                },
-                track = { sliderState ->
-                    val fraction = (sliderState.value - sliderState.valueRange.start) /
-                            (sliderState.valueRange.endInclusive - sliderState.valueRange.start)
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.Medium
+        )
 
-                    val activeSegmentWidth = fullTrackWidth * fraction.coerceIn(0f, 1f)
-                    val inactiveSegmentWidth = fullTrackWidth - activeSegmentWidth
+        Spacer(modifier = Modifier.weight(1f))
 
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(TRACK_HEIGHT)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            // Active segment with left rounding
-                            Box(
-                                modifier = Modifier
-                                    .width(activeSegmentWidth)
-                                    .fillMaxHeight()
-                                    .clip(RoundedCornerShape(topStart = TRACK_CORNER_RADIUS, bottomStart = TRACK_CORNER_RADIUS))
-                                    .background(MaterialTheme.colorScheme.primaryContainer)
-                            )
-
-                            // Inactive segment with right rounding
-                            Box(
-                                modifier = Modifier
-                                    .width(inactiveSegmentWidth)
-                                    .fillMaxHeight()
-                                    .clip(RoundedCornerShape(topEnd = TRACK_CORNER_RADIUS, bottomEnd = TRACK_CORNER_RADIUS))
-                                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                            )
-                        }
-
-                        // Icon and label positioned on the left side
-                        Row(
-                            modifier = Modifier
-                                .align(Alignment.CenterStart)
-                                .padding(start = 20.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Icon(
-                                imageVector = icon,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(22.dp)
-                            )
-                            Text(
-                                text = label,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-                    }
-                }
-            )
-        }
+        Slider(
+            modifier = Modifier.width(300.dp),
+            value = volume / maxVolume, // Convert to 0..1 range
+            valueRange = 0f..1f,
+            onValueChange = {
+                val newVolume = it * maxVolume
+                onVolumeChange(newVolume)
+            },
+        )
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AudioQualitySelector(context: Context) {
     val (audioQuality, onAudioQualityChange) = rememberEnumPreference(
@@ -591,75 +517,59 @@ fun AudioQualitySelector(context: Context) {
         Text(
             text = "Audio Quality",
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(bottom = 12.dp)
         )
-        Spacer(modifier = Modifier.height(12.dp))
 
-        Surface(
-            tonalElevation = 1.dp,
-            shape = RoundedCornerShape(24.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant,
-            modifier = Modifier
+        val options = listOf("Auto", "High", "Low")
+        var selectedIndex by remember {
+            mutableIntStateOf(
+                when (audioQuality) {
+                    AudioQuality.AUTO -> 0
+                    AudioQuality.HIGH -> 1
+                    AudioQuality.LOW -> 2
+                }
+            )
+        }
+
+        Row(
+            Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(24.dp))
-                .border(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                    shape = RoundedCornerShape(24.dp)
-                )
-                .padding(horizontal = 8.dp, vertical = 4.dp)
+                .padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                AudioQuality.values().forEach { quality ->
-                    val isSelected = quality == audioQuality
+            val modifiers = listOf(
+                Modifier.weight(1f),
+                Modifier.weight(1f),
+                Modifier.weight(1f),
+            )
 
-                    Surface(
-                        shape = RoundedCornerShape(20.dp),
-                        color = if (isSelected)
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                        else
-                            Color.Transparent,
-                        border = if (isSelected)
-                            BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
-                        else
-                            BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)),
-                        onClick = {
-                            onAudioQualityChange(quality)
-                            applyAudioQuality(context, quality)
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 4.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier.padding(vertical = 10.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = when (quality) {
-                                    AudioQuality.AUTO -> "Auto"
-                                    AudioQuality.HIGH -> "High"
-                                    AudioQuality.LOW -> "Low"
-                                },
-                                style = MaterialTheme.typography.labelLarge,
-                                color = if (isSelected)
-                                    MaterialTheme.colorScheme.primary
-                                else
-                                    MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.align(Alignment.Center)
-                            )
+            options.forEachIndexed { index, label ->
+                ToggleButton(
+                    checked = selectedIndex == index,
+                    onCheckedChange = {
+                        selectedIndex = index
+                        val newQuality = when (index) {
+                            0 -> AudioQuality.AUTO
+                            1 -> AudioQuality.HIGH
+                            else -> AudioQuality.LOW
                         }
-                    }
+                        onAudioQualityChange(newQuality)
+                        applyAudioQuality(context, newQuality)
+                    },
+                    modifier = modifiers[index].semantics { role = Role.RadioButton },
+                    shapes = when (index) {
+                        0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                        options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                    },
+                ) {
+                    Text(label)
                 }
             }
         }
     }
 }
-
 
 private fun loadDevices(
     context: Context,
