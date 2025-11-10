@@ -223,13 +223,22 @@ fun AboutScreen(
                             color = MaterialTheme.colorScheme.onSurface
                         )
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(10.dp))
 
-                        Text(
-                            text = "${BuildConfig.VERSION_NAME} • Stable",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    shape = CircleShape,
+                                    color = MaterialTheme.colorScheme.tertiaryContainer
+                                )
+                        ) {
+                            Text(
+                                modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp),
+                                text = "${BuildConfig.VERSION_NAME} • Stable",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer
+                            )
+                        }
                     }
                 }
 
@@ -260,10 +269,16 @@ fun AboutScreen(
                         ) {
                             ModernInfoItem(
                                 icon = {
+//                                    Icon(
+//                                        imageVector = Icons.Filled.NewReleases,
+//                                        contentDescription = null,
+//                                        modifier = Modifier.size(28.dp), // Increased size
+//                                        tint = MaterialTheme.colorScheme.primary
+//                                    )
                                     Icon(
-                                        imageVector = Icons.Filled.NewReleases,
+                                        painter = painterResource(R.drawable.network_intelligence_update_vivi),
                                         contentDescription = null,
-                                        modifier = Modifier.size(28.dp), // Increased size
+                                        modifier = Modifier.size(28.dp),
                                         tint = MaterialTheme.colorScheme.primary
                                     )
                                 },
@@ -338,7 +353,7 @@ fun AboutScreen(
                             ModernInfoItem(
                                 icon = {
                                     Icon(
-                                        Icons.Filled.Language,
+                                        painterResource(R.drawable.web_vivi),
                                         null,
                                         modifier = Modifier.size(28.dp) // Increased from 22dp to 28dp
                                     )
