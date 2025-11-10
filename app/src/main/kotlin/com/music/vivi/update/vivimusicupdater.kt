@@ -9,21 +9,26 @@ import android.os.Environment
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material3.Button
@@ -32,9 +37,11 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -45,6 +52,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -53,7 +61,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -65,20 +76,24 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.navigation.NavHostController
 import com.music.vivi.BuildConfig
+import com.music.vivi.update.downloadmanager.CustomDownloadManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import java.io.FileOutputStream
+import java.net.HttpURLConnection
 import java.net.URL
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.regex.Pattern
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun UpdateScreen(navController: NavHostController) {
     // State variables
@@ -88,6 +103,11 @@ fun UpdateScreen(navController: NavHostController) {
     var changelog by remember { mutableStateOf("") }
     var isChecking by remember { mutableStateOf(true) }
     var fetchError by remember { mutableStateOf(false) }
+    //new downloadmanager
+    val downloadManager = remember { CustomDownloadManager() }
+    var downloadError by remember { mutableStateOf<String?>(null) }
+    var downloadedFile by remember { mutableStateOf<File?>(null) }
+
     var appSize by remember { mutableStateOf("") }
     var isDownloading by remember { mutableStateOf(false) }
     var downloadProgress by remember { mutableStateOf(0f) }
@@ -104,6 +124,18 @@ fun UpdateScreen(navController: NavHostController) {
     val pixelBlue = MaterialTheme.colorScheme.primary
     val progressBarBackground = if (isSystemInDarkTheme()) Color(0xFF3C4043) else Color(0xFFE0E0E0)
     val autoUpdateCheckEnabled = getAutoUpdateCheckSetting(context)
+
+    var checkingProgress by remember { mutableFloatStateOf(0f) }
+
+    LaunchedEffect(isChecking) {
+        if (isChecking) {
+            checkingProgress = 0f
+            while (isChecking) {
+                checkingProgress = (checkingProgress + 0.01f) % 1f
+                delay(50L)
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         lastCheckedTime = getLastCheckedTime(context)
@@ -123,7 +155,7 @@ fun UpdateScreen(navController: NavHostController) {
         updateAvailable = false
         releaseDate = ""
         coroutineScope.launch {
-            delay(1500L)
+            delay(6500L) //1500
             checkForUpdate(
                 onSuccess = { latestVersion, latestChangelog, latestSize, latestReleaseDate ->
                     isChecking = false
@@ -245,15 +277,16 @@ fun UpdateScreen(navController: NavHostController) {
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(32.dp))
-                // Progress bar
-                LinearProgressIndicator(
-                    progress = installProgress,
+
+                LinearWavyProgressIndicator(
+                    progress = { installProgress },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(8.dp), // Increased thickness
-                    color = MaterialTheme.colorScheme.primary, // Use theme color
+                        .height(8.dp),
+                    color = MaterialTheme.colorScheme.primary,
                     trackColor = MaterialTheme.colorScheme.surfaceVariant
                 )
+
                 Spacer(modifier = Modifier.height(32.dp))
                 Text(
                     text = "Optimizing your device, this may take a while",
@@ -306,6 +339,8 @@ fun UpdateScreen(navController: NavHostController) {
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(16.dp))
+
+
                 if (changelog.isNotEmpty()) {
                     val changelogItems = changelog.split("\n").filter { it.isNotBlank() }
                     changelogItems.forEach { item ->
@@ -332,29 +367,44 @@ fun UpdateScreen(navController: NavHostController) {
                             }
                         }
 
-                        // Remove the Row with bullet point and just use ClickableText directly
-                        ClickableText(
-                            text = annotatedText,
-                            onClick = { offset ->
-                                annotatedText.getStringAnnotations("URL", offset, offset)
-                                    .firstOrNull()?.let { annotation ->
-                                        val intent = Intent(
-                                            Intent.ACTION_VIEW,
-                                            Uri.parse(annotation.item)
-                                        )
-                                        ContextCompat.startActivity(context, intent, null)
-                                    }
-                            },
-                            style = MaterialTheme.typography.bodyLarge.copy(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                lineHeight = 24.sp
-                            ),
+                        // ADD BULLET POINT
+                        Row(
+                            verticalAlignment = Alignment.Top,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 2.dp)
-                        )
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .padding(top = 6.dp)
+                                    .size(8.dp)
+                                    .background(MaterialTheme.colorScheme.primary, CircleShape)
+                            )
+                            ClickableText(
+                                text = annotatedText,
+                                onClick = { offset ->
+                                    annotatedText.getStringAnnotations("URL", offset, offset)
+                                        .firstOrNull()?.let { annotation ->
+                                            val intent = Intent(
+                                                Intent.ACTION_VIEW,
+                                                Uri.parse(annotation.item)
+                                            )
+                                            ContextCompat.startActivity(context, intent, null)
+                                        }
+                                },
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    lineHeight = 24.sp
+                                ),
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
                     }
                 }
+
+
+
                 Spacer(modifier = Modifier.height(40.dp))
                 // Pause button at bottom - improved styling
                 TextButton(
@@ -448,76 +498,106 @@ fun UpdateScreen(navController: NavHostController) {
                         Spacer(modifier = Modifier.height(20.dp))
                         // Content based on state
                         when {
-                            updateAvailable -> {
-                                Text(
-                                    text = "Version ${updateMessageVersion}",
-                                    style = MaterialTheme.typography.headlineSmall.copy(
-                                        fontWeight = FontWeight.Bold
-                                    ),
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Spacer(modifier = Modifier.height(10.dp))
-                                if (releaseDate.isNotEmpty()) {
-                                    Spacer(modifier = Modifier.height(4.dp))
+                                updateAvailable -> {
                                     Text(
-                                        text = "Released: $releaseDate",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        text = "Version ${updateMessageVersion}",
+                                        style = MaterialTheme.typography.headlineSmall.copy(
+                                            fontWeight = FontWeight.Bold
+                                        ),
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
-                                }
-//                                Spacer(modifier = Modifier.height(8.dp))
-//                                Text(
-//                                    text = "Get the latest version.",
-//                                    style = MaterialTheme.typography.bodyLarge,
-//                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-//                                )
-                                Spacer(modifier = Modifier.height(10.dp))
-                                val annotatedString = buildAnnotatedString {
-                                    append("Your app will update to ${updateMessageVersion}.\nLearn more ")
-                                    pushStringAnnotation(tag = "URL", annotation = "https://github.com/vivizzz007/vivi-music/releases")
-                                    withStyle(
-                                        style = SpanStyle(
-                                            color = MaterialTheme.colorScheme.primary,
-                                            textDecoration = TextDecoration.Underline
+                                    Spacer(modifier = Modifier.height(10.dp))
+                                    if (releaseDate.isNotEmpty()) {
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = "Released: $releaseDate",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
-                                    ) {
-                                        append("here")
                                     }
-                                    pop()
-                                    append(".")
-                                }
-                                ClickableText(
-                                    text = annotatedString,
-                                    onClick = { offset ->
-                                        annotatedString.getStringAnnotations(tag = "URL", start = offset, end = offset)
-                                            .firstOrNull()?.let { annotation ->
-                                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(annotation.item))
-                                                ContextCompat.startActivity(context, intent, null)
+                                    Spacer(modifier = Modifier.height(10.dp))
+                                    val annotatedString = buildAnnotatedString {
+                                        append("Your app will update to ${updateMessageVersion}.\nLearn more ")
+                                        pushStringAnnotation(tag = "URL", annotation = "https://github.com/vivizzz007/vivi-music/releases")
+                                        withStyle(
+                                            style = SpanStyle(
+                                                color = MaterialTheme.colorScheme.primary,
+                                                textDecoration = TextDecoration.Underline
+                                            )
+                                        ) {
+                                            append("here")
+                                        }
+                                        pop()
+                                        append(".")
+                                    }
+                                    ClickableText(
+                                        text = annotatedString,
+                                        onClick = { offset ->
+                                            annotatedString.getStringAnnotations(tag = "URL", start = offset, end = offset)
+                                                .firstOrNull()?.let { annotation ->
+                                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(annotation.item))
+                                                    ContextCompat.startActivity(context, intent, null)
+                                                }
+                                        },
+                                        style = MaterialTheme.typography.bodyLarge.copy(
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            lineHeight = 24.sp
+                                        )
+                                    )
+
+                                    // Progress bar for downloading
+                                    if (isDownloading) {
+                                        Spacer(modifier = Modifier.height(24.dp))
+                                        LinearWavyProgressIndicator(
+                                            progress = { downloadProgress },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(8.dp),
+                                            color = MaterialTheme.colorScheme.primary,
+                                            trackColor = MaterialTheme.colorScheme.surfaceVariant
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = "Downloading... ${(downloadProgress * 100).toInt()}%",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    // 👇 ADD THE ERROR DISPLAY CODE HERE 👇
+                                    downloadError?.let { error ->
+                                        Spacer(modifier = Modifier.height(16.dp))
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .background(
+                                                    MaterialTheme.colorScheme.errorContainer,
+                                                    RoundedCornerShape(12.dp)
+                                                )
+                                                .padding(16.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Error,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.error,
+                                                modifier = Modifier.size(24.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(12.dp))
+                                            Column {
+                                                Text(
+                                                    text = "Download Failed",
+                                                    style = MaterialTheme.typography.titleSmall,
+                                                    color = MaterialTheme.colorScheme.onErrorContainer,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                                Text(
+                                                    text = error,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = MaterialTheme.colorScheme.onErrorContainer
+                                                )
                                             }
-                                    },
-                                    style = MaterialTheme.typography.bodyLarge.copy(
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        lineHeight = 24.sp
-                                    )
-                                )
-                                // Progress bar for downloading
-                                if (isDownloading) {
-                                    Spacer(modifier = Modifier.height(24.dp))
-                                    LinearProgressIndicator(
-                                        progress = downloadProgress,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(8.dp), // Increased thickness
-                                        color = MaterialTheme.colorScheme.primary, // Use theme color
-                                        trackColor = MaterialTheme.colorScheme.surfaceVariant
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = "Downloading... ${(downloadProgress * 100).toInt()}%",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
+                                        }
+                                    }
                                 Spacer(modifier = Modifier.height(15.dp))
                                 Divider(
                                     modifier = Modifier.padding(vertical = 8.dp),
@@ -531,7 +611,9 @@ fun UpdateScreen(navController: NavHostController) {
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Spacer(modifier = Modifier.height(12.dp))
-                                // Display changelog
+                                ////
+
+                                // For the "Update Available" screen changelog section (around line 470):
                                 if (changelog.isNotEmpty()) {
                                     val changelogItems = changelog.split("\n").filter { it.isNotBlank() }
                                     changelogItems.forEach { item ->
@@ -558,29 +640,45 @@ fun UpdateScreen(navController: NavHostController) {
                                             }
                                         }
 
-                                        // NO BULLET POINTS - Direct ClickableText
-                                        ClickableText(
-                                            text = annotatedText,
-                                            onClick = { offset ->
-                                                annotatedText.getStringAnnotations("URL", offset, offset)
-                                                    .firstOrNull()?.let { annotation ->
-                                                        val intent = Intent(
-                                                            Intent.ACTION_VIEW,
-                                                            Uri.parse(annotation.item)
-                                                        )
-                                                        ContextCompat.startActivity(context, intent, null)
-                                                    }
-                                            },
-                                            style = MaterialTheme.typography.bodyLarge.copy(
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                lineHeight = 24.sp
-                                            ),
+                                        // ADD BULLET POINT
+                                        Row(
+                                            verticalAlignment = Alignment.Top,
+                                            horizontalArrangement = Arrangement.spacedBy(12.dp),
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .padding(vertical = 2.dp)
-                                        )
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .padding(top = 6.dp)
+                                                    .size(8.dp)
+                                                    .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                            )
+                                            ClickableText(
+                                                text = annotatedText,
+                                                onClick = { offset ->
+                                                    annotatedText.getStringAnnotations("URL", offset, offset)
+                                                        .firstOrNull()?.let { annotation ->
+                                                            val intent = Intent(
+                                                                Intent.ACTION_VIEW,
+                                                                Uri.parse(annotation.item)
+                                                            )
+                                                            ContextCompat.startActivity(context, intent, null)
+                                                        }
+                                                },
+                                                style = MaterialTheme.typography.bodyLarge.copy(
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    lineHeight = 24.sp
+                                                ),
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                        }
                                     }
                                 }
+
+
+
+                                ////
                                 Spacer(modifier = Modifier.height(15.dp))
                                 Divider(
                                     modifier = Modifier.padding(vertical = 8.dp),
@@ -603,10 +701,18 @@ fun UpdateScreen(navController: NavHostController) {
 
                             }
                             isChecking -> {
-                                LinearProgressIndicator(
+                                val thickStrokeWidth = with(LocalDensity.current) { 8.dp.toPx() }
+                                val thickStroke = remember(thickStrokeWidth) {
+                                    Stroke(width = thickStrokeWidth, cap = StrokeCap.Round)
+                                }
+
+                                LinearWavyProgressIndicator(
+                                    progress = { checkingProgress },
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .height(8.dp), // Increased thickness
+                                        .height(22.dp),
+                                    stroke = thickStroke,
+                                    trackStroke = thickStroke,
                                     color = MaterialTheme.colorScheme.primary,
                                     trackColor = MaterialTheme.colorScheme.surfaceVariant
                                 )
@@ -661,49 +767,53 @@ fun UpdateScreen(navController: NavHostController) {
                             onClick = {
                                 when {
                                     updateAvailable && !isDownloading && !isDownloadComplete -> {
-                                        // Start download
+                                        // Start download with custom manager
                                         isDownloading = true
                                         downloadProgress = 0f
+                                        downloadError = null
                                         val apkUrl = "https://github.com/vivizzz007/vivi-music/releases/download/v$updateMessageVersion/vivi.apk"
-                                        downloadApk(
+
+                                        downloadManager.downloadApk(
                                             context = context,
                                             apkUrl = apkUrl,
                                             onProgress = { progress ->
                                                 downloadProgress = progress
                                             },
-                                            onDownloadComplete = {
+                                            onDownloadComplete = { file ->
                                                 isDownloading = false
                                                 isDownloadComplete = true
-                                                // Don't reset to check for update state
+                                                downloadedFile = file
+                                            },
+                                            onError = { error ->
+                                                isDownloading = false
+                                                isDownloadComplete = false
+                                                downloadError = error
                                             }
                                         )
                                     }
                                     isDownloading -> {
                                         // Pause download
+                                        downloadManager.pauseDownload()
                                         isDownloading = false
                                         downloadProgress = 0f
-                                        // Reset to initial update available state
                                     }
                                     isDownloadComplete -> {
                                         // Install the APK
-                                        val file = File(
-                                            context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),
-                                            "vivi.apk"
-                                        )
-                                        val uri = FileProvider.getUriForFile(
-                                            context,
-                                            "${context.packageName}.FileProvider",
-                                            file
-                                        )
-                                        val installIntent = Intent(Intent.ACTION_VIEW).apply {
-                                            setDataAndType(uri, "application/vnd.android.package-archive")
-                                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                        downloadedFile?.let { file ->
+                                            val uri = FileProvider.getUriForFile(
+                                                context,
+                                                "${context.packageName}.FileProvider",
+                                                file
+                                            )
+                                            val installIntent = Intent(Intent.ACTION_VIEW).apply {
+                                                setDataAndType(uri, "application/vnd.android.package-archive")
+                                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                            }
+                                            ContextCompat.startActivity(context, installIntent, null)
                                         }
-                                        ContextCompat.startActivity(context, installIntent, null)
                                     }
                                     !isChecking && !updateAvailable -> {
-                                        // Only trigger update check when no update is available
                                         triggerUpdateCheck()
                                         updateMessage = ""
                                     }
@@ -772,66 +882,6 @@ private fun formatGitHubDate(githubDate: String): String {
         dateTime.format(displayFormatter)
     } catch (e: Exception) {
         githubDate
-    }
-}
-
-
-private fun downloadApk(
-    context: Context,
-    apkUrl: String,
-    onProgress: (Float) -> Unit,
-    onDownloadComplete: () -> Unit
-) {
-    val request = DownloadManager.Request(Uri.parse(apkUrl))
-        .setDestinationInExternalFilesDir(
-            context,
-            Environment.DIRECTORY_DOWNLOADS,
-            "vivi.apk"
-        )
-        .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-        .setTitle("Downloading Vivi Music Update")
-        .setDescription("Version ${BuildConfig.VERSION_NAME}")
-        .setAllowedOverMetered(true)
-        .setAllowedOverRoaming(true)
-
-    val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-    val downloadId = downloadManager.enqueue(request)
-
-    CoroutineScope(Dispatchers.IO).launch {
-        var downloading = true
-        while (downloading) {
-            val cursor = downloadManager.query(DownloadManager.Query().setFilterById(downloadId))
-            cursor?.use {
-                if (it.moveToFirst()) {
-                    val bytesDownloaded = it.getLong(
-                        it.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
-                    )
-                    val bytesTotal = it.getLong(
-                        it.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
-                    )
-
-                    if (bytesTotal > 0) {
-                        val progress = (bytesDownloaded.toFloat() / bytesTotal.toFloat())
-                            .coerceIn(0f, 1f)
-                        withContext(Dispatchers.Main) {
-                            onProgress(progress)
-                        }
-                    }
-
-                    val status = it.getInt(
-                        it.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS)
-                    )
-                    if (status == DownloadManager.STATUS_SUCCESSFUL ||
-                        status == DownloadManager.STATUS_FAILED) {
-                        downloading = false
-                    }
-                }
-            }
-            delay(500)
-        }
-        withContext(Dispatchers.Main) {
-            onDownloadComplete()
-        }
     }
 }
 
@@ -934,4 +984,6 @@ fun String.extractUrls(): List<Pair<IntRange, String>> {
 
     return urlList
 }
+
+
 
