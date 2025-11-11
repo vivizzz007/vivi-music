@@ -194,6 +194,8 @@ import com.music.vivi.ui.utils.appBarScrollBehavior
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.ui.utils.resetHeightOffset
 import com.music.vivi.update.changelog.ChangelogBottomSheet
+import com.music.vivi.update.downloadmanager.DownloadNotificationManager
+//import com.music.vivi.update.updatenotification.UpdateNotificationManager
 import com.music.vivi.updatesreen.UpdateStatus
 import com.music.vivi.utils.SyncUtils
 import com.music.vivi.utils.dataStore
@@ -302,6 +304,19 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         window.decorView.layoutDirection = View.LAYOUT_DIRECTION_LTR
         WindowCompat.setDecorFitsSystemWindows(window, false)
+
+
+        //new download manager and update manager
+//        UpdateNotificationManager.initialize(this)
+        DownloadNotificationManager.initialize(this)
+        // Check for updates on app start (pass VERSION_NAME, not VERSION_CODE)
+//        lifecycleScope.launch {
+//            UpdateNotificationManager.checkForUpdates(
+//                this@MainActivity,
+//                BuildConfig.VERSION_NAME,  // Pass version name like "1.0.0"
+//                BuildConfig.VERSION_CODE   // Pass version code as fallback
+//            )
+//        }
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             val locale = dataStore[AppLanguageKey]
