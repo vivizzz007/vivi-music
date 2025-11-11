@@ -20,10 +20,13 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -46,6 +49,9 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -93,6 +99,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
@@ -171,6 +179,8 @@ import com.music.vivi.ui.component.shimmer.ShimmerTheme
 import com.music.vivi.ui.menu.YouTubeSongMenu
 import com.music.vivi.ui.player.BottomSheetPlayer
 import com.music.vivi.ui.screens.Screens
+import com.music.vivi.ui.screens.checkForUpdate
+import com.music.vivi.ui.screens.isNewerVersion
 import com.music.vivi.ui.screens.navigationBuilder
 import com.music.vivi.ui.screens.search.LocalSearchScreen
 import com.music.vivi.ui.screens.search.OnlineSearchScreen
@@ -184,6 +194,7 @@ import com.music.vivi.ui.utils.appBarScrollBehavior
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.ui.utils.resetHeightOffset
 import com.music.vivi.update.changelog.ChangelogBottomSheet
+import com.music.vivi.updatesreen.UpdateStatus
 import com.music.vivi.utils.SyncUtils
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.get
@@ -319,41 +330,32 @@ class MainActivity : ComponentActivity() {
         setContent {
             val checkForUpdates by rememberPreference(CheckForUpdatesKey, defaultValue = true)
 
-//            LaunchedEffect(checkForUpdates) {
-//                if (checkForUpdates) {
-//                    withContext(Dispatchers.IO) {
-//                        if (System.currentTimeMillis() - Updater.lastCheckTime > 1.days.inWholeMilliseconds) {
-//                            val updatesEnabled = dataStore.get(CheckForUpdatesKey, true)
-//                            val notifEnabled = dataStore.get(UpdateNotificationsEnabledKey, true)
-//                            if (!updatesEnabled) return@withContext
-//                            Updater.getLatestVersionName().onSuccess {
-//                                latestVersionName = it
-//                                if (it != BuildConfig.VERSION_NAME && notifEnabled) {
-//                                    val downloadUrl = Updater.getLatestDownloadUrl()
-//                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(downloadUrl))
-//
-//                                    val flags = PendingIntent.FLAG_UPDATE_CURRENT or
-//                                        (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0)
-//                                    val pending = PendingIntent.getActivity(this@MainActivity, 1001, intent, flags)
-//
-//                                    val notif = NotificationCompat.Builder(this@MainActivity, "updates")
-//                                        .setSmallIcon(R.drawable.update)
-//                                        .setContentTitle(getString(R.string.update_available_title))
-//                                        .setContentText(it)
-//                                        .setContentIntent(pending)
-//                                        .setAutoCancel(true)
-//                                        .build()
-//                                    NotificationManagerCompat.from(this@MainActivity).notify(1001, notif)
-//                                }
-//                            }
-//                        }
-//                    }
-//                } else {
-//                    // when the user disables updates, reset to the current version
-//                    // to trick the app into thinking it's on the latest version
-//                    latestVersionName = BuildConfig.VERSION_NAME
-//                }
-//            }
+            // Add this state variable
+            var updateStatus by remember { mutableStateOf<UpdateStatus>(UpdateStatus.Loading) }
+
+            // Add this LaunchedEffect to check for updates
+            LaunchedEffect(checkForUpdates) {
+                if (checkForUpdates) {
+                    updateStatus = UpdateStatus.Loading
+
+                    withContext(Dispatchers.IO) {
+                        checkForUpdate(
+                            onSuccess = { latestVersion, changelog, apkSize, releaseDate ->
+                                if (isNewerVersion(latestVersion, BuildConfig.VERSION_NAME)) {
+                                    updateStatus = UpdateStatus.UpdateAvailable(latestVersion)
+                                } else {
+                                    updateStatus = UpdateStatus.UpToDate
+                                }
+                            },
+                            onError = {
+                                updateStatus = UpdateStatus.Error
+                            }
+                        )
+                    }
+                } else {
+                    updateStatus = UpdateStatus.Disabled
+                }
+            }
 
             val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)
             val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
@@ -760,12 +762,45 @@ class MainActivity : ComponentActivity() {
                                                 )
                                             },
                                             actions = {
-                                                IconButton(onClick = { showChangelogBottomSheet = true }) {
-                                                    Icon(
-                                                        painter = painterResource(R.drawable.newspaper_vivi),
-                                                        contentDescription = "Changelog"
-                                                    )
+//                                                IconButton(onClick = { showChangelogBottomSheet = true }) {
+//                                                    Icon(
+//                                                        painter = painterResource(R.drawable.newspaper_vivi),
+//                                                        contentDescription = "Changelog"
+//                                                    )
+//                                                }
+
+                                                IconButton(onClick = {
+                                                    if (updateStatus is UpdateStatus.UpdateAvailable) {
+                                                        navController.navigate("settings/update")
+                                                    } else {
+                                                        showChangelogBottomSheet = true
+                                                    }
+                                                }) {
+                                                    Row(
+                                                        verticalAlignment = Alignment.CenterVertically,
+                                                        horizontalArrangement = Arrangement.Center
+                                                    ) {
+                                                        Crossfade(
+                                                            targetState = updateStatus is UpdateStatus.UpdateAvailable,
+                                                            animationSpec = tween(300),
+                                                            label = "icon_crossfade"
+                                                        ) { isUpdateAvailable ->
+                                                            if (isUpdateAvailable) {
+                                                                Icon(
+                                                                    imageVector = Icons.Filled.NewReleases,
+                                                                    contentDescription = "Update available",
+                                                                    tint = Color.Red
+                                                                )
+                                                            } else {
+                                                                Icon(
+                                                                    painter = painterResource(R.drawable.newspaper_vivi),
+                                                                    contentDescription = "Changelog"
+                                                                )
+                                                            }
+                                                        }
+                                                    }
                                                 }
+
                                                 IconButton(onClick = { navController.navigate("history") }) {
                                                     Icon(
                                                         painter = painterResource(R.drawable.music_history),
