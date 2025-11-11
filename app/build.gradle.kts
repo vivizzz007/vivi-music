@@ -220,7 +220,7 @@ dependencies {
     implementation(libs.ktor.serialization.json)
 
     coreLibraryDesugaring(libs.desugaring)
-
+    implementation(libs.androidx.graphics.shapes)
     implementation(libs.timber)
     implementation(libs.androidx.work.runtime.ktx)
 
