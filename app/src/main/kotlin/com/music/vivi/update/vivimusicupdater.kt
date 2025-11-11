@@ -77,6 +77,7 @@ import androidx.core.content.FileProvider
 import androidx.navigation.NavHostController
 import com.music.vivi.BuildConfig
 import com.music.vivi.update.downloadmanager.CustomDownloadManager
+import com.music.vivi.update.downloadmanager.DownloadNotificationManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -126,6 +127,12 @@ fun UpdateScreen(navController: NavHostController) {
     val autoUpdateCheckEnabled = getAutoUpdateCheckSetting(context)
 
     var checkingProgress by remember { mutableFloatStateOf(0f) }
+
+
+    LaunchedEffect(Unit) {
+        DownloadNotificationManager.initialize(context)
+    }
+
 
     LaunchedEffect(isChecking) {
         if (isChecking) {
@@ -767,35 +774,58 @@ fun UpdateScreen(navController: NavHostController) {
                             onClick = {
                                 when {
                                     updateAvailable && !isDownloading && !isDownloadComplete -> {
-                                        // Start download with custom manager
+                                        // Start download with notifications
                                         isDownloading = true
                                         downloadProgress = 0f
                                         downloadError = null
                                         val apkUrl = "https://github.com/vivizzz007/vivi-music/releases/download/v$updateMessageVersion/vivi.apk"
+
+                                        // SHOW STARTING NOTIFICATION
+                                        DownloadNotificationManager.showDownloadStarting(
+                                            version = updateMessageVersion,
+                                            fileSize = appSize
+                                        )
 
                                         downloadManager.downloadApk(
                                             context = context,
                                             apkUrl = apkUrl,
                                             onProgress = { progress ->
                                                 downloadProgress = progress
+                                                // UPDATE NOTIFICATION WITH PROGRESS
+                                                DownloadNotificationManager.updateDownloadProgress(
+                                                    progress = (progress * 100).toInt(),
+                                                    version = updateMessageVersion
+                                                )
                                             },
                                             onDownloadComplete = { file ->
                                                 isDownloading = false
                                                 isDownloadComplete = true
                                                 downloadedFile = file
+                                                // SHOW COMPLETION NOTIFICATION
+                                                DownloadNotificationManager.showDownloadComplete(
+                                                    version = updateMessageVersion,
+                                                    filePath = file.absolutePath
+                                                )
                                             },
                                             onError = { error ->
                                                 isDownloading = false
                                                 isDownloadComplete = false
                                                 downloadError = error
+                                                // SHOW ERROR NOTIFICATION
+                                                DownloadNotificationManager.showDownloadFailed(
+                                                    version = updateMessageVersion,
+                                                    errorMessage = error
+                                                )
                                             }
                                         )
                                     }
                                     isDownloading -> {
-                                        // Pause download
+                                        // Pause download and cancel notification
                                         downloadManager.pauseDownload()
                                         isDownloading = false
                                         downloadProgress = 0f
+                                        // CANCEL NOTIFICATION
+                                        DownloadNotificationManager.cancelNotification()
                                     }
                                     isDownloadComplete -> {
                                         // Install the APK
