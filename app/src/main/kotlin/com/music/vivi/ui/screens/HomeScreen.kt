@@ -2,9 +2,13 @@ package com.music.vivi.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -129,6 +133,17 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.min
 import kotlin.random.Random
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.material3.Text
+import androidx.compose.ui.unit.LayoutDirection
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class,
     ExperimentalMaterial3ExpressiveApi::class
@@ -387,15 +402,67 @@ fun HomeScreen(
             state = lazylistState,
             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
         ) {
+//            item {
+//                ChipsRow(
+//                    chips = homePage?.chips?.map { it to it.title } ?: emptyList(),
+//                    currentValue = selectedChip,
+//                    onValueUpdate = {
+//                        viewModel.toggleChip(it)
+//                    }
+//                )
+//            }
+
             item {
-                ChipsRow(
-                    chips = homePage?.chips?.map { it to it.title } ?: emptyList(),
-                    currentValue = selectedChip,
-                    onValueUpdate = {
-                        viewModel.toggleChip(it)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    homePage?.chips?.forEachIndexed { index, chip ->
+                        val isSelected = selectedChip == chip
+
+                        // Animate the corner radius based on selection
+                        val cornerRadius by animateDpAsState(
+                            targetValue = if (isSelected) 20.dp else 8.dp,
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessMedium
+                            ),
+                            label = "corner_radius"
+                        )
+
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = {
+                                viewModel.toggleChip(chip)
+                            },
+                            label = { Text(chip.title) },
+                            leadingIcon = if (isSelected) {
+                                {
+                                    Icon(
+                                        imageVector = Icons.Filled.Done,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(FilterChipDefaults.IconSize),
+                                    )
+                                }
+                            } else {
+                                null
+                            },
+                            shape = RoundedCornerShape(cornerRadius),
+                            modifier = Modifier.animateContentSize(
+                                animationSpec = spring(
+                                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                                    stiffness = Spring.StiffnessMedium
+                                )
+                            )
+                        )
                     }
-                )
+                }
             }
+
+
 // This goes in the LazyColumn items block where quick picks are displayed
 
             quickPicks?.takeIf { it.isNotEmpty() }?.let { quickPicks ->
@@ -413,7 +480,16 @@ fun HomeScreen(
                     LazyRow(
                         state = rememberLazyListState(),
                         contentPadding = WindowInsets.systemBars.only(WindowInsetsSides.Horizontal)
-                            .asPaddingValues(),
+                            .asPaddingValues()
+                            .let {
+                                PaddingValues(
+                                    start = it.calculateStartPadding(LayoutDirection.Ltr) + 12.dp,
+                                    end = it.calculateEndPadding(LayoutDirection.Ltr),
+                                    top = it.calculateTopPadding(),
+                                    bottom = it.calculateBottomPadding()
+                                )
+                            },
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
                         modifier = Modifier
                             .fillMaxWidth()
                             .animateItem()
@@ -424,8 +500,8 @@ fun HomeScreen(
                         ) { songGroup ->
                             Column(
                                 modifier = Modifier
-                                    .width(horizontalLazyGridItemWidth)
-                                    .padding(end = 12.dp)
+                                    .width(horizontalLazyGridItemWidth),
+                                verticalArrangement = Arrangement.spacedBy(3.dp)
                             ) {
                                 songGroup.forEachIndexed { index, originalSong ->
                                     val song by database.song(originalSong.id)
@@ -433,25 +509,30 @@ fun HomeScreen(
 
                                     val isFirst = index == 0
                                     val isLast = index == songGroup.size - 1
+                                    val isActive = song!!.id == mediaMetadata?.id
+
+                                    // Static shape without animation
+                                    val shape = RoundedCornerShape(
+                                        topStart = if (isFirst) 20.dp else 0.dp,
+                                        topEnd = if (isFirst) 20.dp else 0.dp,
+                                        bottomStart = if (isLast) 20.dp else 0.dp,
+                                        bottomEnd = if (isLast) 20.dp else 0.dp
+                                    )
 
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .height(ListItemHeight)
-                                            .clip(
-                                                RoundedCornerShape(
-                                                    topStart = if (isFirst) 20.dp else 0.dp,
-                                                    topEnd = if (isFirst) 20.dp else 0.dp,
-                                                    bottomStart = if (isLast) 20.dp else 0.dp,
-                                                    bottomEnd = if (isLast) 20.dp else 0.dp
-                                                )
+                                            .clip(shape)
+                                            .background(
+                                                if (isActive) MaterialTheme.colorScheme.secondaryContainer
+                                                else MaterialTheme.colorScheme.surfaceContainer
                                             )
-                                            .background(MaterialTheme.colorScheme.surfaceContainer)
                                     ) {
                                         SongListItem(
                                             song = song!!,
                                             showInLibraryIcon = true,
-                                            isActive = song!!.id == mediaMetadata?.id,
+                                            isActive = isActive,
                                             isPlaying = isPlaying,
                                             isSwipeable = false,
                                             trailingContent = {
@@ -499,17 +580,11 @@ fun HomeScreen(
                                                 )
                                         )
                                     }
-
-                                    // Add 2dp spacer between items (except after last)
-                                    if (!isLast) {
-                                        Spacer(modifier = Modifier.height(3.dp))
-                                    }
                                 }
                             }
                         }
                     }
                 }
-
 
 
 
