@@ -13,9 +13,6 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.graphics.toColorInt
 import com.music.vivi.R
-import androidx.core.app.NotificationCompat
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 
 object DownloadNotificationManager {
     private lateinit var notificationManager: NotificationManager
