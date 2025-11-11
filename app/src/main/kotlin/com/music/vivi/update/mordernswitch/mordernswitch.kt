@@ -16,25 +16,31 @@ import androidx.compose.ui.unit.dp
 fun ModernSwitch(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
-    enabled: Boolean = true, // Add enabled parameter
+    enabled: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     Switch(
         checked = checked,
         onCheckedChange = onCheckedChange,
-        enabled = enabled, // Pass enabled to Switch
+        enabled = enabled,
         modifier = modifier,
         thumbContent = {
-            Icon(
-                imageVector = if (checked) Icons.Default.Check else Icons.Default.Close,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-                tint = if (checked) {
-                    if (enabled) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
-                } else {
-                    if (enabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
-                }
-            )
+            // Animated visibility like SwitchWithThumbIconSample
+            if (checked) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = if (enabled) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                )
+            }
         },
         colors = SwitchDefaults.colors(
             checkedThumbColor = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f),
