@@ -52,6 +52,7 @@
 <p align="center">
   <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/11.png?raw=true" width="30%" />
   <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/12.png?raw=true" width="30%" />
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/13.png?raw=true" width="30%" />
 </p>
 
 <hr>
