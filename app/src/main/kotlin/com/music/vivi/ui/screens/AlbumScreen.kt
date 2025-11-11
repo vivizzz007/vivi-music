@@ -474,14 +474,13 @@ fun AlbumScreen(
                         Spacer(Modifier.height(24.dp))
 
                         // Additional action buttons
-// Connected Button Group for Album Actions
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 32.dp),
                             horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
                         ) {
-                            // Download Button
+
                             ToggleButton(
                                 checked = downloadState == Download.STATE_COMPLETED || downloadState == Download.STATE_DOWNLOADING,
                                 onCheckedChange = {
@@ -615,6 +614,7 @@ fun AlbumScreen(
                             wrappedSongs.forEachIndexed { index, songWrapper ->
                                 val isFirst = index == 0
                                 val isLast = index == wrappedSongs.size - 1
+                                val isActive = songWrapper.item.id == mediaMetadata?.id
 
                                 Box(
                                     modifier = Modifier
@@ -628,11 +628,14 @@ fun AlbumScreen(
                                                 bottomEnd = if (isLast) 20.dp else 0.dp
                                             )
                                         )
-                                        .background(MaterialTheme.colorScheme.surfaceContainer)
+                                        .background(
+                                            if (isActive) MaterialTheme.colorScheme.secondaryContainer
+                                            else MaterialTheme.colorScheme.surfaceContainer
+                                        )
                                 ) {
                                     SongListItem(
                                         song = songWrapper.item,
-                                        isActive = songWrapper.item.id == mediaMetadata?.id,
+                                        isActive = isActive,
                                         isPlaying = isPlaying,
                                         showInLibraryIcon = true,
                                         isSwipeable = false,
