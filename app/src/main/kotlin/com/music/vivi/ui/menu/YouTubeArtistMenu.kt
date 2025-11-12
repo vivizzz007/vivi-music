@@ -156,42 +156,42 @@ fun YouTubeArtistMenu(
                 }
             }
 
-            // Header subscribe button
-            FilledTonalIconButton(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .padding(vertical = 6.dp),
-                colors = IconButtonDefaults.filledTonalIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceBright,
-                    contentColor = MaterialTheme.colorScheme.onSurface
-                ),
-                onClick = {
-                    database.query {
-                        val libraryArtist = libraryArtist
-                        if (libraryArtist != null) {
-                            update(libraryArtist.artist.toggleLike())
-                        } else {
-                            insert(
-                                ArtistEntity(
-                                    id = artist.id,
-                                    name = artist.title,
-                                    channelId = artist.channelId,
-                                    thumbnailUrl = artist.thumbnail,
-                                ).toggleLike()
-                            )
+                FilledIconButton(
+                    modifier = Modifier
+                        .weight(0.25f)
+                        .fillMaxHeight(),
+                    onClick = {
+                        database.query {
+                            val libraryArtist = libraryArtist
+                            if (libraryArtist != null) {
+                                update(libraryArtist.artist.toggleLike())
+                            } else {
+                                insert(
+                                    ArtistEntity(
+                                        id = artist.id,
+                                        name = artist.title,
+                                        channelId = artist.channelId,
+                                        thumbnailUrl = artist.thumbnail,
+                                    ).toggleLike()
+                                )
+                            }
                         }
-                    }
+                    },
+                    shape = subscribeButtonShape,
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = subscribeButtonContainerColor,
+                        contentColor = subscribeButtonContentColor
+                    )
+                ) {
+                    Icon(
+                        modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
+                        painter = painterResource(
+                            if (isSubscribed) R.drawable.subscribed else R.drawable.subscribe
+                        ),
+                        contentDescription = if (isSubscribed) "Unsubscribe" else "Subscribe",
+                        tint = if (isSubscribed) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
-            ) {
-                Icon(
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                    painter = painterResource(
-                        if (isSubscribed) R.drawable.subscribed else R.drawable.subscribe
-                    ),
-                    contentDescription = if (isSubscribed) "Unsubscribe" else "Subscribe",
-                    tint = if (isSubscribed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                )
-            }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -292,42 +292,42 @@ fun YouTubeArtistMenu(
                 }
 
                 // Subscribe Button
-                FilledIconButton(
-                    modifier = Modifier
-                        .weight(0.25f)
-                        .fillMaxHeight(),
-                    onClick = {
-                        database.query {
-                            val libraryArtist = libraryArtist
-                            if (libraryArtist != null) {
-                                update(libraryArtist.artist.toggleLike())
-                            } else {
-                                insert(
-                                    ArtistEntity(
-                                        id = artist.id,
-                                        name = artist.title,
-                                        channelId = artist.channelId,
-                                        thumbnailUrl = artist.thumbnail,
-                                    ).toggleLike()
-                                )
-                            }
-                        }
-                    },
-                    shape = subscribeButtonShape,
-                    colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = subscribeButtonContainerColor,
-                        contentColor = subscribeButtonContentColor
-                    )
-                ) {
-                    Icon(
-                        modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
-                        painter = painterResource(
-                            if (isSubscribed) R.drawable.subscribed else R.drawable.subscribe
-                        ),
-                        contentDescription = if (isSubscribed) "Unsubscribe" else "Subscribe",
-                        tint = if (isSubscribed) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+//                FilledIconButton(
+//                    modifier = Modifier
+//                        .weight(0.25f)
+//                        .fillMaxHeight(),
+//                    onClick = {
+//                        database.query {
+//                            val libraryArtist = libraryArtist
+//                            if (libraryArtist != null) {
+//                                update(libraryArtist.artist.toggleLike())
+//                            } else {
+//                                insert(
+//                                    ArtistEntity(
+//                                        id = artist.id,
+//                                        name = artist.title,
+//                                        channelId = artist.channelId,
+//                                        thumbnailUrl = artist.thumbnail,
+//                                    ).toggleLike()
+//                                )
+//                            }
+//                        }
+//                    },
+//                    shape = subscribeButtonShape,
+//                    colors = IconButtonDefaults.filledIconButtonColors(
+//                        containerColor = subscribeButtonContainerColor,
+//                        contentColor = subscribeButtonContentColor
+//                    )
+//                ) {
+//                    Icon(
+//                        modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
+//                        painter = painterResource(
+//                            if (isSubscribed) R.drawable.subscribed else R.drawable.subscribe
+//                        ),
+//                        contentDescription = if (isSubscribed) "Unsubscribe" else "Subscribe",
+//                        tint = if (isSubscribed) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+//                    )
+//                }
 
                 // Share Button
                 FilledTonalIconButton(
