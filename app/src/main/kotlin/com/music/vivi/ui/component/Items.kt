@@ -8,6 +8,7 @@ import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkOut
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -26,10 +27,15 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
@@ -51,8 +57,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -1528,4 +1537,34 @@ private object Icon {
                 .padding(end = 2.dp)
         )
     }
+
+//    @Composable
+//    fun Explicit() {
+//        Canvas(
+//            modifier = Modifier.size(16.dp)
+//        ) {
+//            // Draw yellow background
+//            drawRoundRect(
+//                color = Color(0xFFFFC107),
+//                cornerRadius = CornerRadius(4f, 4f)
+//            )
+//
+//            // Draw centered "E"
+//            drawIntoCanvas { canvas ->
+//                val paint = android.graphics.Paint().apply {
+//                    color = android.graphics.Color.BLACK
+//                    textSize = 12.sp.toPx()
+//                    textAlign = android.graphics.Paint.Align.CENTER
+//                    typeface = android.graphics.Typeface.DEFAULT_BOLD
+//                    isAntiAlias = true
+//                }
+//
+//                val x = size.width / 2
+//                val y = size.height / 2 - (paint.ascent() + paint.descent()) / 2
+//
+//                canvas.nativeCanvas.drawText("E", x, y, paint)
+//            }
+//        }
+//
+//    }
 }
