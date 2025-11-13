@@ -81,10 +81,7 @@ class App : Application(), SingletonImageLoader.Factory {
         }
 
         // Initialize LastFM with API keys from BuildConfig (GitHub Secrets)
-        LastFM.initialize(
-            apiKey = BuildConfig.LASTFM_API_KEY.takeIf { it.isNotEmpty() } ?: "",
-            secret = BuildConfig.LASTFM_SECRET.takeIf { it.isNotEmpty() } ?: ""
-        )
+        LastFM.initialize()
 
         if (settings[ProxyEnabledKey] == true) {
             val username = settings[ProxyUsernameKey].orEmpty()

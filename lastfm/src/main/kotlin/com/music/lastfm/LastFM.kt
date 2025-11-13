@@ -21,11 +21,6 @@ object LastFM {
             install(ContentNegotiation) {
                 json(Json { isLenient = true; ignoreUnknownKeys = true })
             }
-            install(HttpTimeout) {
-                requestTimeoutMillis = 15_000
-                connectTimeoutMillis = 10_000
-                socketTimeoutMillis = 15_000
-            }
             defaultRequest { url("https://ws.audioscrobbler.com/2.0/") }
             expectSuccess = true
         }
@@ -46,7 +41,7 @@ object LastFM {
         extra: Map<String, String> = emptyMap()
     ) {
         contentType(ContentType.Application.FormUrlEncoded)
-        userAgent("VIvimusic (https://github.com/vivizzz007/vivi-music)")
+        userAgent("vivi-music (https://github.com/vivizzz007/vivi-music)")
         val params = mutableMapOf(
             "method" to method,
             "api_key" to apiKey
@@ -125,9 +120,10 @@ object LastFM {
      * @param apiKey LastFM API key
      * @param secret LastFM secret key
      */
-    fun initialize(apiKey: String, secret: String) {
-        API_KEY = apiKey
-        SECRET = secret
+
+    fun initialize() {
+        API_KEY = "694cbaa17c78202a133eac4656dff651"
+        SECRET = "a0fdaf6060f19128c4a84f297c71e627"
     }
 
     const val DEFAULT_SCROBBLE_DELAY_PERCENT = 0.5f
