@@ -500,9 +500,9 @@ fun BottomSheetPlayer(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
                 modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = PlayerHorizontalPadding),
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = PlayerHorizontalPadding),
             )
             {
                 Column(
@@ -521,26 +521,26 @@ fun BottomSheetPlayer(
                             overflow = TextOverflow.Ellipsis,
                             color = TextBackgroundColor,
                             modifier =
-                            Modifier
-                                .basicMarquee()
-                                .combinedClickable(
-                                    enabled = true,
-                                    indication = null,
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    onClick = {
-                                        if (mediaMetadata.album != null) {
-                                            navController.navigate("album/${mediaMetadata.album.id}")
-                                            state.collapseSoft()
+                                Modifier
+                                    .basicMarquee()
+                                    .combinedClickable(
+                                        enabled = true,
+                                        indication = null,
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        onClick = {
+                                            if (mediaMetadata.album != null) {
+                                                navController.navigate("album/${mediaMetadata.album.id}")
+                                                state.collapseSoft()
+                                            }
+                                        },
+                                        onLongClick = {
+                                            val clip = ClipData.newPlainText("Copied Title", title)
+                                            clipboardManager.setPrimaryClip(clip)
+                                            Toast
+                                                .makeText(context, "Copied Title", Toast.LENGTH_SHORT)
+                                                .show()
                                         }
-                                    },
-                                    onLongClick = {
-                                        val clip = ClipData.newPlainText("Copied Title", title)
-                                        clipboardManager.setPrimaryClip(clip)
-                                        Toast
-                                            .makeText(context, "Copied Title", Toast.LENGTH_SHORT)
-                                            .show()
-                                    }
-                                )
+                                    )
                             ,
                         )
                     }
@@ -800,31 +800,31 @@ fun BottomSheetPlayer(
                 } else {
                     Box(
                         modifier =
-                        Modifier
-                            .size(40.dp)
-                            .clip(RoundedCornerShape(24.dp))
-                            .background(textButtonColor)
-                            .clickable {
-                                val intent =
-                                    Intent().apply {
-                                        action = Intent.ACTION_SEND
-                                        type = "text/plain"
-                                        putExtra(
-                                            Intent.EXTRA_TEXT,
-                                            "https://music.youtube.com/watch?v=${mediaMetadata.id}"
-                                        )
-                                    }
-                                context.startActivity(Intent.createChooser(intent, null))
-                            },
+                            Modifier
+                                .size(40.dp)
+                                .clip(RoundedCornerShape(24.dp))
+                                .background(textButtonColor)
+                                .clickable {
+                                    val intent =
+                                        Intent().apply {
+                                            action = Intent.ACTION_SEND
+                                            type = "text/plain"
+                                            putExtra(
+                                                Intent.EXTRA_TEXT,
+                                                "https://music.youtube.com/watch?v=${mediaMetadata.id}"
+                                            )
+                                        }
+                                    context.startActivity(Intent.createChooser(intent, null))
+                                },
                     ) {
                         Image(
                             painter = painterResource(R.drawable.share),
                             contentDescription = null,
                             colorFilter = ColorFilter.tint(iconButtonColor),
                             modifier =
-                            Modifier
-                                .align(Alignment.Center)
-                                .size(24.dp),
+                                Modifier
+                                    .align(Alignment.Center)
+                                    .size(24.dp),
                         )
                     }
 
@@ -833,27 +833,27 @@ fun BottomSheetPlayer(
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier =
-                        Modifier
-                            .size(40.dp)
-                            .clip(RoundedCornerShape(24.dp))
-                            .background(textButtonColor)
-                            .clickable {
-                                menuState.show {
-                                    PlayerMenu(
-                                        mediaMetadata = mediaMetadata,
-                                        navController = navController,
-                                        playerBottomSheetState = state,
-                                        onShowDetailsDialog = {
-                                            mediaMetadata.id.let {
-                                                bottomSheetPageState.show {
-                                                    ShowMediaInfo(it)
+                            Modifier
+                                .size(40.dp)
+                                .clip(RoundedCornerShape(24.dp))
+                                .background(textButtonColor)
+                                .clickable {
+                                    menuState.show {
+                                        PlayerMenu(
+                                            mediaMetadata = mediaMetadata,
+                                            navController = navController,
+                                            playerBottomSheetState = state,
+                                            onShowDetailsDialog = {
+                                                mediaMetadata.id.let {
+                                                    bottomSheetPageState.show {
+                                                        ShowMediaInfo(it)
+                                                    }
                                                 }
-                                            }
-                                        },
-                                        onDismiss = menuState::dismiss,
-                                    )
-                                }
-                            },
+                                            },
+                                            onDismiss = menuState::dismiss,
+                                        )
+                                    }
+                                },
                     ) {
                         Image(
                             painter = painterResource(R.drawable.more_horiz),
@@ -903,10 +903,10 @@ fun BottomSheetPlayer(
                         colors = PlayerSliderColors.squigglySliderColors(textButtonColor, playerBackground, useDarkTheme),
                         modifier = Modifier.padding(horizontal = PlayerHorizontalPadding),
                         squigglesSpec =
-                        SquigglySlider.SquigglesSpec(
-                            amplitude = if (isPlaying) (2.dp).coerceAtLeast(2.dp) else 0.dp,
-                            strokeWidth = 3.dp,
-                        ),
+                            SquigglySlider.SquigglesSpec(
+                                amplitude = if (isPlaying) (2.dp).coerceAtLeast(2.dp) else 0.dp,
+                                strokeWidth = 3.dp,
+                            ),
                     )
                 }
 
@@ -942,9 +942,9 @@ fun BottomSheetPlayer(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
                 modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = PlayerHorizontalPadding + 4.dp),
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = PlayerHorizontalPadding + 4.dp),
             ) {
                 Text(
                     text = makeTimeString(sliderPosition ?: position),
@@ -1056,9 +1056,9 @@ fun BottomSheetPlayer(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = PlayerHorizontalPadding),
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = PlayerHorizontalPadding),
                 ) {
                     Box(modifier = Modifier.weight(1f)) {
                         ResizableIconButton(
@@ -1085,9 +1085,9 @@ fun BottomSheetPlayer(
                             enabled = canSkipPrevious,
                             color = TextBackgroundColor,
                             modifier =
-                            Modifier
-                                .size(32.dp)
-                                .align(Alignment.Center),
+                                Modifier
+                                    .size(32.dp)
+                                    .align(Alignment.Center),
                             onClick = playerConnection::seekToPrevious,
                         )
                     }
@@ -1096,38 +1096,38 @@ fun BottomSheetPlayer(
 
                     Box(
                         modifier =
-                        Modifier
-                            .size(72.dp)
-                            .clip(RoundedCornerShape(playPauseRoundness))
-                            .background(textButtonColor)
-                            .clickable {
-                                if (playbackState == STATE_ENDED) {
-                                    playerConnection.player.seekTo(0, 0)
-                                    playerConnection.player.playWhenReady = true
-                                } else {
-                                    playerConnection.player.togglePlayPause()
-                                }
-                            },
+                            Modifier
+                                .size(72.dp)
+                                .clip(RoundedCornerShape(playPauseRoundness))
+                                .background(textButtonColor)
+                                .clickable {
+                                    if (playbackState == STATE_ENDED) {
+                                        playerConnection.player.seekTo(0, 0)
+                                        playerConnection.player.playWhenReady = true
+                                    } else {
+                                        playerConnection.player.togglePlayPause()
+                                    }
+                                },
                     ) {
                         Image(
                             painter =
-                            painterResource(
-                                if (playbackState ==
-                                    STATE_ENDED
-                                ) {
-                                    R.drawable.replay
-                                } else if (isPlaying) {
-                                    R.drawable.pause
-                                } else {
-                                    R.drawable.play
-                                },
-                            ),
+                                painterResource(
+                                    if (playbackState ==
+                                        STATE_ENDED
+                                    ) {
+                                        R.drawable.replay
+                                    } else if (isPlaying) {
+                                        R.drawable.pause
+                                    } else {
+                                        R.drawable.play
+                                    },
+                                ),
                             contentDescription = null,
                             colorFilter = ColorFilter.tint(iconButtonColor),
                             modifier =
-                            Modifier
-                                .align(Alignment.Center)
-                                .size(36.dp),
+                                Modifier
+                                    .align(Alignment.Center)
+                                    .size(36.dp),
                         )
                     }
 
@@ -1139,9 +1139,9 @@ fun BottomSheetPlayer(
                             enabled = canSkipNext,
                             color = TextBackgroundColor,
                             modifier =
-                            Modifier
-                                .size(32.dp)
-                                .align(Alignment.Center),
+                                Modifier
+                                    .size(32.dp)
+                                    .align(Alignment.Center),
                             onClick = playerConnection::seekToNext,
                         )
                     }
@@ -1243,9 +1243,9 @@ fun BottomSheetPlayer(
             Configuration.ORIENTATION_LANDSCAPE -> {
                 Row(
                     modifier =
-                    Modifier
-                        .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
-                        .padding(bottom = queueSheetState.collapsedBound + 48.dp),
+                        Modifier
+                            .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
+                            .padding(bottom = queueSheetState.collapsedBound + 48.dp),
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,
@@ -1262,9 +1262,9 @@ fun BottomSheetPlayer(
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier =
-                        Modifier
-                            .weight(1f)
-                            .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top)),
+                            Modifier
+                                .weight(1f)
+                                .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top)),
                     ) {
                         Spacer(Modifier.weight(1f))
 
@@ -1281,9 +1281,9 @@ fun BottomSheetPlayer(
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier =
-                    Modifier
-                        .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
-                        .padding(bottom = queueSheetState.collapsedBound),
+                        Modifier
+                            .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
+                            .padding(bottom = queueSheetState.collapsedBound),
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,
@@ -1310,11 +1310,11 @@ fun BottomSheetPlayer(
             playerBottomSheetState = state,
             navController = navController,
             backgroundColor =
-            if (useBlackBackground) {
-                Color.Black
-            } else {
-                MaterialTheme.colorScheme.surfaceContainer
-            },
+                if (useBlackBackground) {
+                    Color.Black
+                } else {
+                    MaterialTheme.colorScheme.surfaceContainer
+                },
             onBackgroundColor = onBackgroundColor,
             TextBackgroundColor = TextBackgroundColor,
             textButtonColor = textButtonColor,

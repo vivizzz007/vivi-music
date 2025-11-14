@@ -1,6 +1,12 @@
 package com.music.vivi.ui.player
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -28,6 +34,7 @@ import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -64,6 +71,8 @@ import androidx.media3.common.C
 import androidx.media3.common.Player
 import coil3.compose.AsyncImage
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material3.toShape
 import androidx.compose.ui.text.style.TextOverflow
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
@@ -79,7 +88,7 @@ import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.delay
 import kotlin.math.abs
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun Thumbnail(
     sliderPositionProvider: () -> Long?,
@@ -104,7 +113,7 @@ fun Thumbnail(
     // Player background style for consistent theming
     val playerBackground by rememberEnumPreference(
         key = PlayerBackgroundStyleKey,
-        defaultValue = PlayerBackgroundStyle.DEFAULT
+        defaultValue = PlayerBackgroundStyle.GRADIENT
     )
     
     val textBackgroundColor = when (playerBackground) {
@@ -244,16 +253,16 @@ fun Thumbnail(
                     Text(
                         text = stringResource(R.string.now_playing),
                         style = MaterialTheme.typography.titleMedium,
-                        color = textBackgroundColor
+                        color = textBackgroundColor // Using primary color
                     )
 
-                    // Add the current song title (this was missing!)
+                    // Add the current song title
                     mediaMetadata?.let { metadata ->
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = metadata.title,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = textBackgroundColor.copy(alpha = 0.8f),
+                            color = textBackgroundColor.copy(alpha = 0.8f),  // Using onSurface with transparency
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.basicMarquee()
@@ -329,10 +338,33 @@ fun Thumbnail(
                                     },
                                 contentAlignment = Alignment.Center
                             ) {
+// Add this before the Box to create rotation animation that stops when paused
+
+                                val isPlaying by playerConnection.isPlaying.collectAsState()
+
+                                val infiniteTransition = rememberInfiniteTransition(label = "rotation")
+                                val rotation by infiniteTransition.animateFloat(
+                                    initialValue = 0f,
+                                    targetValue = if (isPlaying) 360f else 0f, // Stop rotation when paused
+                                    animationSpec = infiniteRepeatable(
+                                        animation = tween(20000, easing = LinearEasing), // 20 seconds for full rotation
+                                        repeatMode = RepeatMode.Restart
+                                    ),
+                                    label = "rotation"
+                                )
+
+// Replace the Box that displays the thumbnail with this:
+                                @OptIn(ExperimentalMaterial3ExpressiveApi::class)
                                 Box(
                                     modifier = Modifier
                                         .size(containerMaxWidth - (PlayerHorizontalPadding * 2))
-                                        .clip(RoundedCornerShape(ThumbnailCornerRadius * 2))
+                                        .graphicsLayer {
+                                            rotationZ = rotation  // Rotate the clipping shape
+                                        }
+                                        .clip(MaterialShapes.Clover8Leaf.toShape())  // Changed from RoundedCornerShape
+                                        .graphicsLayer {
+                                            rotationZ = -rotation  // Counter-rotate the content so image stays upright
+                                        }
                                 ) {
                                     if (hidePlayerThumbnail) {
                                         // Show app logo when thumbnail is hidden
@@ -382,6 +414,8 @@ fun Thumbnail(
                                         )
                                     }
                                 }
+
+
                             }
                         }
                     }
