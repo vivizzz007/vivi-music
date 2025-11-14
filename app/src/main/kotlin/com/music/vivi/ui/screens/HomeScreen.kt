@@ -402,15 +402,6 @@ fun HomeScreen(
             state = lazylistState,
             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
         ) {
-//            item {
-//                ChipsRow(
-//                    chips = homePage?.chips?.map { it to it.title } ?: emptyList(),
-//                    currentValue = selectedChip,
-//                    onValueUpdate = {
-//                        viewModel.toggleChip(it)
-//                    }
-//                )
-//            }
 
             item {
                 Row(
@@ -875,6 +866,8 @@ fun HomeScreen(
                     }
                 }
             }
+
+            //mood
 
             if (selectedChip == null) {
                 explorePage?.moodAndGenres?.let { moodAndGenres ->

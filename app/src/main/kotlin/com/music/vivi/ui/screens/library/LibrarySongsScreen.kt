@@ -1,19 +1,28 @@
 package com.music.vivi.ui.screens.library
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -29,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -45,6 +55,7 @@ import com.music.vivi.R
 import com.music.vivi.constants.CONTENT_TYPE_HEADER
 import com.music.vivi.constants.CONTENT_TYPE_SONG
 import com.music.vivi.constants.HideExplicitKey
+import com.music.vivi.constants.ListItemHeight
 import com.music.vivi.constants.SongFilter
 import com.music.vivi.constants.SongFilterKey
 import com.music.vivi.constants.SongSortDescendingKey
@@ -133,8 +144,13 @@ fun LibrarySongsScreen(
                 key = "filter",
                 contentType = CONTENT_TYPE_HEADER,
             ) {
-                Row {
-                    Spacer(Modifier.width(12.dp))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState())
+                        .padding(horizontal = 12.dp)
+                ) {
                     FilterChip(
                         label = { Text(stringResource(R.string.songs)) },
                         selected = true,
@@ -148,20 +164,30 @@ fun LibrarySongsScreen(
                             )
                         },
                     )
-                    ChipsRow(
-                        chips =
-                        listOf(
-                            SongFilter.LIKED to stringResource(R.string.filter_liked),
-                            SongFilter.LIBRARY to stringResource(R.string.filter_library),
-                            SongFilter.UPLOADED to stringResource(R.string.filter_uploaded),
-                            SongFilter.DOWNLOADED to stringResource(R.string.filter_downloaded),
-                        ),
-                        currentValue = filter,
-                        onValueUpdate = {
-                            filter = it
-                        },
-                        modifier = Modifier.weight(1f),
-                    )
+
+                    listOf(
+                        SongFilter.LIKED to stringResource(R.string.filter_liked),
+                        SongFilter.LIBRARY to stringResource(R.string.filter_library),
+                        SongFilter.UPLOADED to stringResource(R.string.filter_uploaded),
+                        SongFilter.DOWNLOADED to stringResource(R.string.filter_downloaded),
+                    ).forEach { (songFilter, label) ->
+                        FilterChip(
+                            selected = filter == songFilter,
+                            onClick = { filter = songFilter },
+                            label = { Text(label) },
+                            leadingIcon = if (filter == songFilter) {
+                                {
+                                    Icon(
+                                        imageVector = Icons.Filled.Done,
+                                        contentDescription = "Selected",
+                                        modifier = Modifier.size(FilterChipDefaults.IconSize),
+                                    )
+                                }
+                            } else {
+                                null
+                            },
+                        )
+                    }
                 }
             }
 
@@ -259,70 +285,101 @@ fun LibrarySongsScreen(
             } else {
                 wrappedSongs
             }
-            itemsIndexed(
-                items = filteredSongs,
-                key = { _, item -> item.item.song.id },
-                contentType = { _, _ -> CONTENT_TYPE_SONG },
-            ) { index, songWrapper ->
-                SongListItem(
-                    song = songWrapper.item,
-                    showInLibraryIcon = true,
-                    isActive = songWrapper.item.id == mediaMetadata?.id,
-                    isPlaying = isPlaying,
 
-                    trailingContent = {
-                        IconButton(
-                            onClick = {
-                                menuState.show {
-                                    SongMenu(
-                                        originalSong = songWrapper.item,
-                                        navController = navController,
-                                        onDismiss = menuState::dismiss,
-                                    )
-                                }
-                            },
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.more_vert),
-                                contentDescription = null,
-                            )
-                        }
-                    },
-                    isSelected = songWrapper.isSelected && selection,
-                    modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .combinedClickable(
-                            onClick = {
-                                if (!selection) {
-                                    if (songWrapper.item.id == mediaMetadata?.id) {
-                                        playerConnection.player.togglePlayPause()
-                                    } else {
-                                        playerConnection.playQueue(
-                                            ListQueue(
-                                                title = context.getString(R.string.queue_all_songs),
-                                                items = songs.map { it.toMediaItem() },
-                                                startIndex = index,
-                                            ),
+            if (filteredSongs.isNotEmpty()) {
+                item(key = "songs_container") {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                    ) {
+                        filteredSongs.forEachIndexed { index, songWrapper ->
+                            val isFirst = index == 0
+                            val isLast = index == filteredSongs.size - 1
+                            val isActive = songWrapper.item.id == mediaMetadata?.id
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(ListItemHeight)
+                                    .clip(
+                                        RoundedCornerShape(
+                                            topStart = if (isFirst) 20.dp else 0.dp,
+                                            topEnd = if (isFirst) 20.dp else 0.dp,
+                                            bottomStart = if (isLast) 20.dp else 0.dp,
+                                            bottomEnd = if (isLast) 20.dp else 0.dp
                                         )
-                                    }
-                                } else {
-                                    songWrapper.isSelected = !songWrapper.isSelected
-                                }
-                            },
-                            onLongClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                if (!selection) {
-                                    selection = true
-                                }
-                                wrappedSongs.forEach {
-                                    it.isSelected = false
-                                } // Clear previous selections
-                                songWrapper.isSelected = true // Select current item
-                            },
-                        )
-                        .animateItem(),
-                )
+                                    )
+                                    .background(
+                                        if (isActive) MaterialTheme.colorScheme.secondaryContainer
+                                        else MaterialTheme.colorScheme.surfaceContainer
+                                    )
+                            ) {
+                                SongListItem(
+                                    song = songWrapper.item,
+                                    showInLibraryIcon = true,
+                                    isActive = isActive,
+                                    isPlaying = isPlaying,
+                                    trailingContent = {
+                                        IconButton(
+                                            onClick = {
+                                                menuState.show {
+                                                    SongMenu(
+                                                        originalSong = songWrapper.item,
+                                                        navController = navController,
+                                                        onDismiss = menuState::dismiss,
+                                                    )
+                                                }
+                                            },
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.more_vert),
+                                                contentDescription = null,
+                                            )
+                                        }
+                                    },
+                                    isSelected = songWrapper.isSelected && selection,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .combinedClickable(
+                                            onClick = {
+                                                if (!selection) {
+                                                    if (songWrapper.item.id == mediaMetadata?.id) {
+                                                        playerConnection.player.togglePlayPause()
+                                                    } else {
+                                                        playerConnection.playQueue(
+                                                            ListQueue(
+                                                                title = context.getString(R.string.queue_all_songs),
+                                                                items = songs.map { it.toMediaItem() },
+                                                                startIndex = index,
+                                                            ),
+                                                        )
+                                                    }
+                                                } else {
+                                                    songWrapper.isSelected = !songWrapper.isSelected
+                                                }
+                                            },
+                                            onLongClick = {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                if (!selection) {
+                                                    selection = true
+                                                }
+                                                wrappedSongs.forEach {
+                                                    it.isSelected = false
+                                                }
+                                                songWrapper.isSelected = true
+                                            },
+                                        ),
+                                )
+                            }
+
+                            // Add 3dp spacer between items (except after last)
+                            if (!isLast) {
+                                Spacer(modifier = Modifier.height(3.dp))
+                            }
+                        }
+                    }
+                }
             }
         }
 

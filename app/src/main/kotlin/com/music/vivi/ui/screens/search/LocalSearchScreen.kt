@@ -4,11 +4,15 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -89,17 +93,38 @@ fun LocalSearchScreen(
                 } else base
             }
     ) {
-        ChipsRow(
-            chips = listOf(
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp)
+        ) {
+            listOf(
                 LocalFilter.ALL to stringResource(R.string.filter_all),
                 LocalFilter.SONG to stringResource(R.string.filter_songs),
                 LocalFilter.ALBUM to stringResource(R.string.filter_albums),
                 LocalFilter.ARTIST to stringResource(R.string.filter_artists),
                 LocalFilter.PLAYLIST to stringResource(R.string.filter_playlists),
-            ),
-            currentValue = searchFilter,
-            onValueUpdate = { viewModel.filter.value = it },
-        )
+            ).forEach { (filter, label) ->
+                FilterChip(
+                    selected = searchFilter == filter,
+                    onClick = { viewModel.filter.value = filter },
+                    label = { Text(label) },
+                    leadingIcon = if (searchFilter == filter) {
+                        {
+                            Icon(
+                                imageVector = Icons.Filled.Done,
+                                contentDescription = "Selected",
+                                modifier = Modifier.size(FilterChipDefaults.IconSize),
+                            )
+                        }
+                    } else {
+                        null
+                    },
+                )
+            }
+        }
 
         LazyColumn(
             state = lazyListState,

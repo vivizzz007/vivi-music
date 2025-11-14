@@ -196,6 +196,10 @@
     <string name="dislikes">Dislikes</string>
     <string name="subscribe">Subscribe</string>
     <string name="subscribed">Subscribed</string>
+
+    <string name="sub">Sub</string>
+    <string name="subed">Subed</string>
+
     <string name="playlist_not_found">Playlist not found</string>
     <string name="playlist_not_found_desc">The requested playlist could not be loaded</string>
     <string name="empty_playlist">Empty Playlist</string>
@@ -279,5 +283,6 @@
     <string name="library">Library</string>
     <string name="logout">Logout</string>
     <string name="logged_out">Logged out successfully</string>
+    <string name="swipe_song_to_remove">Swipe song to remove it from the playlist</string>
 
 </resources>

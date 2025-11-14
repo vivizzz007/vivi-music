@@ -227,7 +227,7 @@ fun OnlineSearchResult(
         state = lazyListState,
         contentPadding =
             LocalPlayerAwareWindowInsets.current
-                .add(WindowInsets(top = SearchFilterHeight))
+                .add(WindowInsets(top = SearchFilterHeight + 25.dp))
                 .add(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
                 .asPaddingValues(),
     ) {

@@ -80,7 +80,7 @@ class App : Application(), SingletonImageLoader.Factory {
             KuGou.useTraditionalChinese = true
         }
 
-        // Initialize LastFM with API keys from BuildConfig (GitHub Secrets)
+        // Initialize LastFM with API keys
         LastFM.initialize()
 
         if (settings[ProxyEnabledKey] == true) {

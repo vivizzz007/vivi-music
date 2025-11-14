@@ -240,9 +240,9 @@ fun AlbumScreen(
                             modifier = Modifier.padding(horizontal = 32.dp)
                         ) {
                             Icon(
-                                painter = painterResource(R.drawable.newspaper_vivi), // Use your app icon
+                                painter = painterResource(R.drawable.new_album_vivi), // Use your app icon
                                 contentDescription = null,
-                                modifier = Modifier.size(20.dp),
+                                modifier = Modifier.size(30.dp),
                                 tint = MaterialTheme.colorScheme.onSurface
                             )
                             Spacer(Modifier.width(8.dp))
@@ -594,7 +594,9 @@ fun AlbumScreen(
                     }
                 }
 
-                // Songs List with Quick Pick style
+                // Replace the songs list section in your AlbumScreen with this modified version:
+
+// Songs List with Quick Pick style
                 if (!wrappedSongs.isNullOrEmpty()) {
                     item(key = "songs_container") {
                         Column(
@@ -606,6 +608,7 @@ fun AlbumScreen(
                                 val isFirst = index == 0
                                 val isLast = index == wrappedSongs.size - 1
                                 val isActive = songWrapper.item.id == mediaMetadata?.id
+                                val isSingleSong = wrappedSongs.size == 1
 
                                 Box(
                                     modifier = Modifier
@@ -615,8 +618,8 @@ fun AlbumScreen(
                                             RoundedCornerShape(
                                                 topStart = if (isFirst) 20.dp else 0.dp,
                                                 topEnd = if (isFirst) 20.dp else 0.dp,
-                                                bottomStart = if (isLast) 20.dp else 0.dp,
-                                                bottomEnd = if (isLast) 20.dp else 0.dp
+                                                bottomStart = if (isLast && !isSingleSong) 20.dp else 0.dp,
+                                                bottomEnd = if (isLast && !isSingleSong) 20.dp else 0.dp
                                             )
                                         )
                                         .background(
@@ -685,6 +688,8 @@ fun AlbumScreen(
                                     Spacer(modifier = Modifier.height(3.dp))
                                 }
                             }
+
+                            Spacer(modifier = Modifier.height(16.dp))
                         }
                     }
                 }
@@ -852,17 +857,17 @@ fun AlbumScreen(
                         )
                     }
                 } else {
-                    // Search button in normal mode
-                    IconButton(
-                        onClick = {
-                            // Add search functionality
-                        },
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.search),
-                            contentDescription = null
-                        )
-                    }
+//                    // Search button in normal mode
+//                    IconButton(
+//                        onClick = {
+//                            // Add search functionality
+//                        },
+//                    ) {
+//                        Icon(
+//                            painter = painterResource(R.drawable.search),
+//                            contentDescription = null
+//                        )
+//                    }
                 }
             },
             colors = if (transparentAppBar && !selection) {

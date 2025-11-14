@@ -1,12 +1,19 @@
 package com.music.vivi.ui.screens.library
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -16,7 +23,10 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -31,6 +41,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -94,8 +105,13 @@ fun LibraryAlbumsScreen(
     val hideExplicit by rememberPreference(key = HideExplicitKey, defaultValue = false)
 
     val filterContent = @Composable {
-        Row {
-            Spacer(Modifier.width(12.dp))
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 12.dp)
+        ) {
             FilterChip(
                 label = { Text(stringResource(R.string.albums)) },
                 selected = true,
@@ -106,19 +122,29 @@ fun LibraryAlbumsScreen(
                     Icon(painter = painterResource(R.drawable.close), contentDescription = "")
                 },
             )
-            ChipsRow(
-                chips =
-                listOf(
-                    AlbumFilter.LIKED to stringResource(R.string.filter_liked),
-                    AlbumFilter.LIBRARY to stringResource(R.string.filter_library),
-                    AlbumFilter.UPLOADED to stringResource(R.string.filter_uploaded)
-                ),
-                currentValue = filter,
-                onValueUpdate = {
-                    filter = it
-                },
-                modifier = Modifier.weight(1f),
-            )
+
+            listOf(
+                AlbumFilter.LIKED to stringResource(R.string.filter_liked),
+                AlbumFilter.LIBRARY to stringResource(R.string.filter_library),
+                AlbumFilter.UPLOADED to stringResource(R.string.filter_uploaded)
+            ).forEach { (albumFilter, label) ->
+                FilterChip(
+                    selected = filter == albumFilter,
+                    onClick = { filter = albumFilter },
+                    label = { Text(label) },
+                    leadingIcon = if (filter == albumFilter) {
+                        {
+                            Icon(
+                                imageVector = Icons.Filled.Done,
+                                contentDescription = "Selected",
+                                modifier = Modifier.size(FilterChipDefaults.IconSize),
+                            )
+                        }
+                    } else {
+                        null
+                    },
+                )
+            }
         }
     }
 
@@ -240,21 +266,54 @@ fun LibraryAlbumsScreen(
                         } else {
                             albums
                         }
-                        items(
-                            items = filteredAlbumsForList.distinctBy { it.id },
-                            key = { it.id },
-                            contentType = { CONTENT_TYPE_ALBUM },
-                        ) { album ->
-                            LibraryAlbumListItem(
-                                navController = navController,
-                                menuState = menuState,
-                                album = album,
-                                isActive = album.id == mediaMetadata?.album?.id,
-                                isPlaying = isPlaying,
-                                modifier = Modifier
-                                    .animateItem()
-                            )
+
+                        if (filteredAlbumsForList.isNotEmpty()) {
+                            item(key = "albums_container") {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp)
+                                ) {
+                                    filteredAlbumsForList.distinctBy { it.id }.forEachIndexed { index, album ->
+                                        val isFirst = index == 0
+                                        val isLast = index == filteredAlbumsForList.distinctBy { it.id }.size - 1
+                                        val isActive = album.id == mediaMetadata?.album?.id
+
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clip(
+                                                    RoundedCornerShape(
+                                                        topStart = if (isFirst) 20.dp else 0.dp,
+                                                        topEnd = if (isFirst) 20.dp else 0.dp,
+                                                        bottomStart = if (isLast) 20.dp else 0.dp,
+                                                        bottomEnd = if (isLast) 20.dp else 0.dp
+                                                    )
+                                                )
+                                                .background(
+                                                    if (isActive) MaterialTheme.colorScheme.secondaryContainer
+                                                    else MaterialTheme.colorScheme.surfaceContainer
+                                                )
+                                        ) {
+                                            LibraryAlbumListItem(
+                                                navController = navController,
+                                                menuState = menuState,
+                                                album = album,
+                                                isActive = isActive,
+                                                isPlaying = isPlaying,
+                                                modifier = Modifier.fillMaxSize()
+                                            )
+                                        }
+
+                                        // Add 3dp spacer between items (except after last)
+                                        if (!isLast) {
+                                            Spacer(modifier = Modifier.height(3.dp))
+                                        }
+                                    }
+                                }
+                            }
                         }
+
                     }
                 }
 
