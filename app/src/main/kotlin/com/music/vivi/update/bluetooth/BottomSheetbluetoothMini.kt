@@ -3,7 +3,6 @@
 
 package com.music.vivi.bluetooth
 
-import androidx.compose.material3.ToggleButtonDefaults
 import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
@@ -21,30 +20,21 @@ import android.os.Looper
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
+import androidx.compose.animation.core.animate
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.progressSemantics
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Battery1Bar
@@ -61,7 +51,6 @@ import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material.icons.filled.Usb
 import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -69,13 +58,16 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -84,11 +76,11 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
@@ -96,7 +88,6 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
@@ -104,6 +95,8 @@ import androidx.core.content.ContextCompat
 import com.music.vivi.constants.AudioQuality
 import com.music.vivi.constants.AudioQualityKey
 import com.music.vivi.utils.rememberEnumPreference
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 data class AudioDevice(
     val name: String,
@@ -459,7 +452,9 @@ fun AudioDeviceBottomSheet(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
+
 fun VolumeControlRow(
     label: String,
     icon: ImageVector,
@@ -470,39 +465,99 @@ fun VolumeControlRow(
     onDragEnd: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    Row(
+    val coroutineScope = rememberCoroutineScope()
+    val sliderState = rememberSliderState(
+        valueRange = 0f..maxVolume.toFloat(),
+        onValueChangeFinished = {
+            onDragEnd()
+        }
+    )
+
+    val snapAnimationSpec = MaterialTheme.motionScheme.fastEffectsSpec<Float>()
+    var currentValue by rememberSaveable { mutableFloatStateOf(volume) }
+    var animateJob: Job? by remember { mutableStateOf(null) }
+
+    // Update currentValue when external volume changes
+    LaunchedEffect(volume) {
+        if (!sliderState.isDragging) {
+            currentValue = volume
+            sliderState.value = volume
+        }
+    }
+
+    sliderState.shouldAutoSnap = false
+    sliderState.onValueChange = { newValue ->
+        currentValue = newValue
+        // only update the sliderState instantly if dragging
+        if (sliderState.isDragging) {
+            onDragStart()
+            animateJob?.cancel()
+            sliderState.value = newValue
+            onVolumeChange(newValue)
+        }
+    }
+
+    sliderState.onValueChangeFinished = {
+        animateJob = coroutineScope.launch {
+            animate(
+                initialValue = sliderState.value,
+                targetValue = currentValue,
+                animationSpec = snapAnimationSpec,
+            ) { value, _ ->
+                sliderState.value = value
+            }
+        }
+        onDragEnd()
+    }
+
+    val interactionSource = remember { MutableInteractionSource() }
+
+    Column(
         modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.size(22.dp)
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.size(22.dp)
+            )
 
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            fontWeight = FontWeight.Medium
-        )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Medium
+            )
+        }
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.height(16.dp))
 
         Slider(
-            modifier = Modifier.width(300.dp),
-            value = volume / maxVolume, // Convert to 0..1 range
-            valueRange = 0f..1f,
-            onValueChange = {
-                val newVolume = it * maxVolume
-                onVolumeChange(newVolume)
-            },
+            state = sliderState,
+            modifier = Modifier
+                .fillMaxWidth()
+                .progressSemantics(
+                    currentValue,
+                    sliderState.valueRange.start..sliderState.valueRange.endInclusive,
+                    0,
+                ),
+            interactionSource = interactionSource,
+            track = {
+                SliderDefaults.Track(
+                    sliderState = sliderState,
+                    modifier = Modifier.height(36.dp),
+                    trackCornerSize = 12.dp,
+                )
+            }
         )
     }
 }
-
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AudioQualitySelector(context: Context) {
@@ -518,37 +573,31 @@ fun AudioQualitySelector(context: Context) {
             text = "Audio Quality",
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(bottom = 12.dp)
+            modifier = Modifier
+                .padding(bottom = 12.dp)
+                .fillMaxWidth()
         )
 
         val options = listOf("Auto", "High", "Low")
-        var selectedIndex by remember {
-            mutableIntStateOf(
-                when (audioQuality) {
-                    AudioQuality.AUTO -> 0
-                    AudioQuality.HIGH -> 1
-                    AudioQuality.LOW -> 2
-                }
-            )
+        val selectedIndex = when (audioQuality) {
+            AudioQuality.AUTO -> 0
+            AudioQuality.HIGH -> 1
+            AudioQuality.LOW -> 2
         }
 
-        Row(
-            Modifier
+        SingleChoiceSegmentedButtonRow(
+            modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+                .padding(horizontal = 16.dp)
         ) {
-            val modifiers = listOf(
-                Modifier.weight(1f),
-                Modifier.weight(1f),
-                Modifier.weight(1f),
-            )
-
             options.forEachIndexed { index, label ->
-                ToggleButton(
-                    checked = selectedIndex == index,
-                    onCheckedChange = {
-                        selectedIndex = index
+                SegmentedButton(
+                    modifier = Modifier.weight(1f),
+                    shape = SegmentedButtonDefaults.itemShape(
+                        index = index,
+                        count = options.size
+                    ),
+                    onClick = {
                         val newQuality = when (index) {
                             0 -> AudioQuality.AUTO
                             1 -> AudioQuality.HIGH
@@ -557,14 +606,12 @@ fun AudioQualitySelector(context: Context) {
                         onAudioQualityChange(newQuality)
                         applyAudioQuality(context, newQuality)
                     },
-                    modifier = modifiers[index].semantics { role = Role.RadioButton },
-                    shapes = when (index) {
-                        0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                        options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                    },
+                    selected = index == selectedIndex,
                 ) {
-                    Text(label)
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
             }
         }
