@@ -1,7 +1,13 @@
 package com.music.vivi.ui.screens.settings
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -28,6 +34,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -42,6 +49,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -201,43 +211,97 @@ fun AboutScreen(
                 )
             ) {
                 // Hero Header with Parallax
+                // Hero Header with Animated Gradient Background
+                // Hero Header with Animated Gradient Background
                 item {
+                    val cs = MaterialTheme.colorScheme
+                    val colorPrimary = cs.primaryContainer
+                    val colorTertiary = cs.tertiaryContainer
+                    val transition = rememberInfiniteTransition(label = "gradient")
+                    val fraction by transition.animateFloat(
+                        initialValue = 0f,
+                        targetValue = 1f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(durationMillis = 5000),
+                            repeatMode = RepeatMode.Reverse,
+                        ),
+                        label = "gradient_fraction"
+                    )
+                    val cornerRadius = 28.dp
+
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 20.dp, vertical = 32.dp)
+                            .padding(horizontal = 16.dp, vertical = 32.dp)
                             .graphicsLayer {
                                 translationY = -headerOffset
                             },
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Spacer(modifier = Modifier.height(30.dp))
-
-                        Text(
-                            text = "VIVI MUSIC",
-                            style = MaterialTheme.typography.displaySmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 48.sp,
-                                letterSpacing = 2.sp
-                            ),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-
-                        Spacer(modifier = Modifier.height(10.dp))
-
-                        Box(
-                            modifier = Modifier
-                                .background(
-                                    shape = CircleShape,
-                                    color = MaterialTheme.colorScheme.tertiaryContainer
-                                )
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(cornerRadius),
+                            color = Color.Transparent,
+                            shadowElevation = 0.dp,
+                            tonalElevation = 0.dp,
                         ) {
-                            Text(
-                                modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp),
-                                text = "${BuildConfig.VERSION_NAME} • Stable",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onTertiaryContainer
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .drawWithCache {
+                                        val cx = size.width - size.width * fraction
+                                        val cy = size.height * fraction
+
+                                        val gradient = Brush.radialGradient(
+                                            colors = listOf(colorPrimary, colorTertiary),
+                                            center = Offset(cx, cy),
+                                            radius = 800f,
+                                        )
+
+                                        onDrawBehind {
+                                            drawRoundRect(
+                                                brush = gradient,
+                                                cornerRadius = CornerRadius(
+                                                    cornerRadius.toPx(),
+                                                    cornerRadius.toPx(),
+                                                ),
+                                            )
+                                        }
+                                    }
+                                    .padding(32.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        text = "VIVI MUSIC",
+                                        style = MaterialTheme.typography.displaySmall.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 48.sp,
+                                            letterSpacing = 2.sp
+                                        ),
+                                        color = cs.onPrimaryContainer
+                                    )
+
+                                    Spacer(modifier = Modifier.height(16.dp))
+
+                                    Box(
+                                        modifier = Modifier
+                                            .border(
+                                                width = 1.5.dp,
+                                                color = cs.onPrimaryContainer.copy(alpha = 0.4f),
+                                                shape = CircleShape
+                                            )
+                                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                                    ) {
+                                        Text(
+                                            text = "v${BuildConfig.VERSION_NAME} • Stable",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            color = cs.onPrimaryContainer.copy(alpha = 0.85f)
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -252,7 +316,7 @@ fun AboutScreen(
                                 letterSpacing = 1.sp
                             ),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
+                            modifier = Modifier.padding(horizontal = 18.dp, vertical = 8.dp) // Changed from 16.dp to 8.dp
                         )
                     }
 
@@ -269,12 +333,6 @@ fun AboutScreen(
                         ) {
                             ModernInfoItem(
                                 icon = {
-//                                    Icon(
-//                                        imageVector = Icons.Filled.NewReleases,
-//                                        contentDescription = null,
-//                                        modifier = Modifier.size(28.dp), // Increased size
-//                                        tint = MaterialTheme.colorScheme.primary
-//                                    )
                                     Icon(
                                         painter = painterResource(R.drawable.network_intelligence_update_vivi),
                                         contentDescription = null,
