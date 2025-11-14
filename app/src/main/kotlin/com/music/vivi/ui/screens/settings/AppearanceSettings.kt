@@ -87,12 +87,14 @@ import com.music.vivi.constants.SliderStyleKey
 import com.music.vivi.constants.SlimNavBarKey
 import com.music.vivi.constants.SwipeSensitivityKey
 import com.music.vivi.constants.SwipeThumbnailKey
+import com.music.vivi.constants.SwipeToRemoveSongKey
 import com.music.vivi.constants.SwipeToSongKey
 import com.music.vivi.constants.UseNewMiniPlayerDesignKey
 import com.music.vivi.constants.UseNewPlayerDesignKey
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.PlayerSliderTrack
+import com.music.vivi.ui.component.SwitchPreference
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.update.mordernswitch.ModernSwitch
 import com.music.vivi.update.settingstyle.ModernInfoItem
@@ -121,6 +123,14 @@ fun AppearanceSettings(
     val (useNewPlayerDesign, onUseNewPlayerDesignChange) = rememberPreference(
         UseNewPlayerDesignKey,
         defaultValue = true
+    )
+
+
+
+    val (swipeToRemoveSong, onSwipeToRemoveSongChange) = rememberPreference(
+        SwipeToRemoveSongKey,
+        defaultValue = false
+
     )
     val (useNewMiniPlayerDesign, onUseNewMiniPlayerDesignChange) = rememberPreference(
         UseNewMiniPlayerDesignKey,
@@ -1223,6 +1233,30 @@ fun AppearanceSettings(
                                 ModernSwitch(
                                     checked = slimNav,
                                     onCheckedChange = onSlimNavChange,
+                                    modifier = Modifier.padding(end = 20.dp)
+                                )
+                            }
+
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                            )
+
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(modifier = Modifier.weight(1f)) {
+                                    ModernInfoItem(
+                                        icon = { Icon(painterResource(R.drawable.swipe), null, modifier = Modifier.size(22.dp)) },
+                                        title = stringResource(R.string.swipe_song_to_remove),
+                                        subtitle = "Swipe to remove songs"
+                                    )
+                                }
+                                ModernSwitch(
+                                    checked = swipeToRemoveSong,
+                                    onCheckedChange = onSwipeToRemoveSongChange,
                                     modifier = Modifier.padding(end = 20.dp)
                                 )
                             }
