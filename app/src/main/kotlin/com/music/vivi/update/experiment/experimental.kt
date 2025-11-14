@@ -497,28 +497,10 @@ fun ExperimentalSettingsScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(10.dp))
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Updates Section
-            Text(
-                text = "Updates",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
-            )
-
-            // Settings Card
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                ),
-                shape = RoundedCornerShape(20.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-            ) {
-                Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                    // APK Variant
+            // Updates Section using SplicedColumnGroup pattern
+            SplicedColumnGroup(
+                title = "Updates",
+                content = listOf {
                     ModernInfoItem(
                         icon = {
                             Icon(
@@ -540,32 +522,14 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                         showSettingsIcon = true
                     )
                 }
-            }
-
-            Spacer(Modifier.height(24.dp))
-
-            // Storage Section
-            Text(
-                text = "Storage",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
             )
 
-            // Storage Card
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                ),
-                shape = RoundedCornerShape(20.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-            ) {
-                Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                    // Clear APKs
+            Spacer(Modifier.height(16.dp))
+
+            // Storage Section using SplicedColumnGroup pattern
+            SplicedColumnGroup(
+                title = "Storage",
+                content = listOf {
                     ModernInfoItem(
                         icon = {
                             Icon(
@@ -617,84 +581,129 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                         showSettingsIcon = true
                     )
                 }
-            }
-
-            Spacer(Modifier.height(24.dp))
-
-            // Support Section
-            Text(
-                text = "Support",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
             )
 
-            // Support Card
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                ),
-                shape = RoundedCornerShape(20.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-            ) {
-                Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                    // Send Feedback
-                    ModernInfoItem(
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Default.Feedback,
-                                contentDescription = null,
-                                modifier = Modifier.size(22.dp),
-                                tint = MaterialTheme.colorScheme.surfaceTint
-                            )
-                        },
-                        title = "Send feedback",
-                        subtitle = "Email or GitHub issue",
-                        onClick = {
-                            coroutineScope.launch {
-                                showBottomSheet = true
-                                bottomSheetState.show()
-                            }
-                        },
-                        showArrow = true,
-                        showSettingsIcon = true
-                    )
+            Spacer(Modifier.height(16.dp))
 
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                    )
-
-                    // Reset App
-                    ModernInfoItem(
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = null,
-                                modifier = Modifier.size(22.dp),
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                        },
-                        title = "Reset app",
-                        subtitle = "Clear all settings and data",
-                        onClick = {
-                            coroutineScope.launch {
-                                showResetSheet = true
-                                resetSheetState.show()
-                            }
-                        },
-                        showArrow = true,
-                        showSettingsIcon = true,
-                        iconBackgroundColor = MaterialTheme.colorScheme.error.copy(alpha = 0.2f)
-                    )
-                }
-            }
+            // Support Section using SplicedColumnGroup pattern with multiple items
+            SplicedColumnGroup(
+                title = "Support",
+                content = listOf(
+                    {
+                        ModernInfoItem(
+                            icon = {
+                                Icon(
+                                    imageVector = Icons.Default.Feedback,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp),
+                                    tint = MaterialTheme.colorScheme.surfaceTint
+                                )
+                            },
+                            title = "Send feedback",
+                            subtitle = "Email or GitHub issue",
+                            onClick = {
+                                coroutineScope.launch {
+                                    showBottomSheet = true
+                                    bottomSheetState.show()
+                                }
+                            },
+                            showArrow = true,
+                            showSettingsIcon = true
+                        )
+                    },
+                    {
+                        ModernInfoItem(
+                            icon = {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp),
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            },
+                            title = "Reset app",
+                            subtitle = "Clear all settings and data",
+                            onClick = {
+                                coroutineScope.launch {
+                                    showResetSheet = true
+                                    resetSheetState.show()
+                                }
+                            },
+                            showArrow = true,
+                            showSettingsIcon = true,
+                            iconBackgroundColor = MaterialTheme.colorScheme.error.copy(alpha = 0.2f)
+                        )
+                    }
+                )
+            )
 
             Spacer(Modifier.height(32.dp))
+        }
+    }
+}
+
+@Composable
+fun SplicedColumnGroup(
+    modifier: Modifier = Modifier,
+    title: String = "",
+    content: List<@Composable () -> Unit>,
+) {
+    if (content.isEmpty()) return
+
+    val cornerRadius = 16.dp
+    val connectionRadius = 5.dp
+
+    // Define shapes for different positions
+    val topShape = RoundedCornerShape(
+        topStart = cornerRadius,
+        topEnd = cornerRadius,
+        bottomStart = connectionRadius,
+        bottomEnd = connectionRadius
+    )
+    val middleShape = RoundedCornerShape(connectionRadius)
+    val bottomShape = RoundedCornerShape(
+        topStart = connectionRadius,
+        topEnd = connectionRadius,
+        bottomStart = cornerRadius,
+        bottomEnd = cornerRadius
+    )
+    val singleShape = RoundedCornerShape(cornerRadius)
+
+    Column(modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+        // Group title
+        if (title.isNotEmpty()) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
+            )
+        }
+
+        // The container for setting items
+        Column(
+            modifier = Modifier.clip(
+                // Clip the whole column to ensure content stays within the rounded bounds
+                if (content.size == 1) singleShape else RoundedCornerShape(cornerRadius)
+            ),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            content.forEachIndexed { index, itemContent ->
+                // Determine the shape based on the item's position
+                val shape = when {
+                    content.size == 1 -> singleShape
+                    index == 0 -> topShape
+                    index == content.size - 1 -> bottomShape
+                    else -> middleShape
+                }
+
+                // Apply background with the correct shape to the item
+                Column(
+                    modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainer, shape)
+                ) {
+                    itemContent()
+                }
+            }
         }
     }
 }
@@ -716,7 +725,6 @@ fun SheetDragHandle() {
         )
     }
 }
-
 // Utility functions
 fun clearDownloadedApks(context: Context): Boolean {
     return try {
