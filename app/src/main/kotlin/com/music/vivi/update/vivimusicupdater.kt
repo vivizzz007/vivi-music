@@ -205,11 +205,11 @@ fun UpdateScreen(navController: NavHostController) {
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        "System Update",
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+//                    Text(
+//                        "System Update",
+//                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+//                        color = MaterialTheme.colorScheme.onSurface
+//                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
@@ -492,10 +492,10 @@ fun UpdateScreen(navController: NavHostController) {
                             }
                             else -> {
                                 Text(
-                                    text = "Your App is\nup to date",
+                                    text = "App is\nup to date",
                                     style = MaterialTheme.typography.headlineMedium.copy(
                                         fontSize = 36.sp,
-                                        fontWeight = FontWeight.Normal,
+                                        fontWeight = FontWeight.Bold,
                                         lineHeight = 44.sp
                                     ),
                                     color = MaterialTheme.colorScheme.onSurface
@@ -523,46 +523,56 @@ fun UpdateScreen(navController: NavHostController) {
                                         )
                                     }
                                     Spacer(modifier = Modifier.height(10.dp))
-                                    val annotatedString = buildAnnotatedString {
-                                        append("Your app will update to ${updateMessageVersion}.\nLearn more ")
-                                        pushStringAnnotation(tag = "URL", annotation = "https://github.com/vivizzz007/vivi-music/releases")
-                                        withStyle(
-                                            style = SpanStyle(
-                                                color = MaterialTheme.colorScheme.primary,
-                                                textDecoration = TextDecoration.Underline
-                                            )
-                                        ) {
-                                            append("here")
-                                        }
-                                        pop()
-                                        append(".")
-                                    }
-                                    ClickableText(
-                                        text = annotatedString,
-                                        onClick = { offset ->
-                                            annotatedString.getStringAnnotations(tag = "URL", start = offset, end = offset)
-                                                .firstOrNull()?.let { annotation ->
-                                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(annotation.item))
-                                                    ContextCompat.startActivity(context, intent, null)
-                                                }
-                                        },
-                                        style = MaterialTheme.typography.bodyLarge.copy(
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            lineHeight = 24.sp
-                                        )
-                                    )
+//                                    val annotatedString = buildAnnotatedString {
+//                                        append("Your app will update to ${updateMessageVersion}.\nLearn more ")
+//                                        pushStringAnnotation(tag = "URL", annotation = "https://github.com/vivizzz007/vivi-music/releases")
+//                                        withStyle(
+//                                            style = SpanStyle(
+//                                                color = MaterialTheme.colorScheme.primary,
+//                                                textDecoration = TextDecoration.Underline
+//                                            )
+//                                        ) {
+//                                            append("here")
+//                                        }
+//                                        pop()
+//                                        append(".")
+//                                    }
+//                                    ClickableText(
+//                                        text = annotatedString,
+//                                        onClick = { offset ->
+//                                            annotatedString.getStringAnnotations(tag = "URL", start = offset, end = offset)
+//                                                .firstOrNull()?.let { annotation ->
+//                                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(annotation.item))
+//                                                    ContextCompat.startActivity(context, intent, null)
+//                                                }
+//                                        },
+//                                        style = MaterialTheme.typography.bodyLarge.copy(
+//                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+//                                            lineHeight = 24.sp
+//                                        )
+//                                    )
 
+                                    // Progress bar for downloading
                                     // Progress bar for downloading
                                     if (isDownloading) {
                                         Spacer(modifier = Modifier.height(24.dp))
+
+                                        val thickStrokeWidth = with(LocalDensity.current) { 8.dp.toPx() }
+                                        val thickStroke = remember(thickStrokeWidth) {
+                                            Stroke(width = thickStrokeWidth, cap = StrokeCap.Round)
+                                        }
+
                                         LinearWavyProgressIndicator(
                                             progress = { downloadProgress },
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .height(8.dp),
+                                                .height(22.dp),
+                                            stroke = thickStroke,
+                                            trackStroke = thickStroke,
                                             color = MaterialTheme.colorScheme.primary,
                                             trackColor = MaterialTheme.colorScheme.surfaceVariant
                                         )
+
                                         Spacer(modifier = Modifier.height(8.dp))
                                         Text(
                                             text = "Downloading... ${(downloadProgress * 100).toInt()}%",
@@ -570,7 +580,6 @@ fun UpdateScreen(navController: NavHostController) {
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
-                                    // 👇 ADD THE ERROR DISPLAY CODE HERE 👇
                                     downloadError?.let { error ->
                                         Spacer(modifier = Modifier.height(16.dp))
                                         Row(
@@ -605,12 +614,12 @@ fun UpdateScreen(navController: NavHostController) {
                                             }
                                         }
                                     }
-                                Spacer(modifier = Modifier.height(15.dp))
-                                Divider(
-                                    modifier = Modifier.padding(vertical = 8.dp),
-                                    color = MaterialTheme.colorScheme.outlineVariant,
-                                    thickness = 2.dp
-                                )
+//                                Spacer(modifier = Modifier.height(15.dp))
+//                                Divider(
+//                                    modifier = Modifier.padding(vertical = 8.dp),
+//                                    color = MaterialTheme.colorScheme.outlineVariant,
+//                                    thickness = 2.dp
+//                                )
                                 Spacer(modifier = Modifier.height(5.dp))
                                 Text(
                                     text = "New features include:",
@@ -750,8 +759,7 @@ fun UpdateScreen(navController: NavHostController) {
                         Spacer(modifier = Modifier.height(100.dp)) // Space for bottom button
                     }
                 }
-//button updater
-                // Bottom button with background container
+// Bottom button with background container
                 Surface(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
@@ -767,8 +775,8 @@ fun UpdateScreen(navController: NavHostController) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 39.dp),
-                        contentAlignment = Alignment.CenterEnd
+                            .padding(top = 16.dp, start = 24.dp, end = 24.dp, bottom = 39.dp),
+                        contentAlignment = Alignment.Center
                     ) {
                         Button(
                             onClick = {
@@ -780,7 +788,6 @@ fun UpdateScreen(navController: NavHostController) {
                                         downloadError = null
                                         val apkUrl = "https://github.com/vivizzz007/vivi-music/releases/download/v$updateMessageVersion/vivi.apk"
 
-                                        // SHOW STARTING NOTIFICATION
                                         DownloadNotificationManager.showDownloadStarting(
                                             version = updateMessageVersion,
                                             fileSize = appSize
@@ -791,7 +798,6 @@ fun UpdateScreen(navController: NavHostController) {
                                             apkUrl = apkUrl,
                                             onProgress = { progress ->
                                                 downloadProgress = progress
-                                                // UPDATE NOTIFICATION WITH PROGRESS
                                                 DownloadNotificationManager.updateDownloadProgress(
                                                     progress = (progress * 100).toInt(),
                                                     version = updateMessageVersion
@@ -801,7 +807,6 @@ fun UpdateScreen(navController: NavHostController) {
                                                 isDownloading = false
                                                 isDownloadComplete = true
                                                 downloadedFile = file
-                                                // SHOW COMPLETION NOTIFICATION
                                                 DownloadNotificationManager.showDownloadComplete(
                                                     version = updateMessageVersion,
                                                     filePath = file.absolutePath
@@ -811,7 +816,6 @@ fun UpdateScreen(navController: NavHostController) {
                                                 isDownloading = false
                                                 isDownloadComplete = false
                                                 downloadError = error
-                                                // SHOW ERROR NOTIFICATION
                                                 DownloadNotificationManager.showDownloadFailed(
                                                     version = updateMessageVersion,
                                                     errorMessage = error
@@ -820,15 +824,12 @@ fun UpdateScreen(navController: NavHostController) {
                                         )
                                     }
                                     isDownloading -> {
-                                        // Pause download and cancel notification
                                         downloadManager.pauseDownload()
                                         isDownloading = false
                                         downloadProgress = 0f
-                                        // CANCEL NOTIFICATION
                                         DownloadNotificationManager.cancelNotification()
                                     }
                                     isDownloadComplete -> {
-                                        // Install the APK
                                         downloadedFile?.let { file ->
                                             val uri = FileProvider.getUriForFile(
                                                 context,
@@ -849,20 +850,26 @@ fun UpdateScreen(navController: NavHostController) {
                                     }
                                 }
                             },
-                            shape = RoundedCornerShape(24.dp),
+                            shapes = ButtonDefaults.shapes(),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                contentColor = MaterialTheme.colorScheme.onPrimary
+                                containerColor = if (isDownloading) {
+                                    MaterialTheme.colorScheme.surfaceVariant
+                                } else {
+                                    MaterialTheme.colorScheme.primary
+                                },
+                                contentColor = if (isDownloading) {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                } else {
+                                    MaterialTheme.colorScheme.onPrimary
+                                }
                             ),
                             elevation = ButtonDefaults.buttonElevation(
-                                defaultElevation = 2.dp,
-                                pressedElevation = 4.dp,
-                                focusedElevation = 2.dp,
-                                hoveredElevation = 3.dp
+                                defaultElevation = 0.dp,
+                                pressedElevation = 0.dp
                             ),
                             modifier = Modifier
+                                .fillMaxWidth()
                                 .height(48.dp)
-                                .widthIn(min = 120.dp)
                         ) {
                             Text(
                                 text = when {
@@ -877,7 +884,6 @@ fun UpdateScreen(navController: NavHostController) {
                             )
                         }
                     }
-
                 }
             }
         }

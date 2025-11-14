@@ -216,12 +216,12 @@ object DownloadNotificationManager {
 
             progressStartIcon = Icon.createWithResource(
                 appContext,
-                R.drawable.web_browser
+                R.drawable.cloud
             )
 
             progressEndIcon = Icon.createWithResource(
                 appContext,
-                R.drawable.deployed_code_update_server
+                R.drawable.app
             )
 
             progressTrackerIcon = Icon.createWithResource(
@@ -231,7 +231,7 @@ object DownloadNotificationManager {
         }
 
         val notification = Notification.Builder(appContext, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.stat_sys_download_done)
+            .setSmallIcon(R.drawable.done)
             .setContentTitle("Update Ready")
             .setContentText("Tap to install version $version")
             .setAutoCancel(true)

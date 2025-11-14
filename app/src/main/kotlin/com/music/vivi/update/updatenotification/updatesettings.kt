@@ -3,7 +3,6 @@ package com.music.vivi.update.updatenotification
 
 import android.content.Context
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -26,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -36,11 +37,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.navigation.NavController
 import com.music.vivi.R
@@ -55,8 +58,8 @@ import com.music.vivi.update.mordernswitch.ModernSwitch
 import com.music.vivi.utils.rememberPreference
 
 
-@Composable
 @OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun UpdateInfoScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
@@ -67,6 +70,7 @@ fun UpdateInfoScreen(
     val (checkForUpdates, onCheckForUpdatesChange) = rememberPreference(CheckForUpdatesKey, true)
     val (showUpdateNotification, onShowUpdateNotificationChange) = rememberPreference(ShowUpdateNotificationKey, true)
     var updateCheckInterval by remember { mutableStateOf(getUpdateCheckInterval(context)) }
+    var showIntervalDialog by remember { mutableStateOf(false) }
 
     // Function to handle automatic update check toggle
     fun onAutoUpdateCheckChange(newValue: Boolean) {
@@ -117,13 +121,7 @@ fun UpdateInfoScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-//                    Text(
-//                        text = stringResource(R.string.updater),
-//                        style = MaterialTheme.typography.headlineSmall,
-//                        fontWeight = FontWeight.Normal
-//                    )
-                },
+                title = {},
                 navigationIcon = {
                     IconButton(
                         onClick = navController::navigateUp,
@@ -136,7 +134,8 @@ fun UpdateInfoScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
+                    containerColor = MaterialTheme.colorScheme.background,
+                    scrolledContainerColor = MaterialTheme.colorScheme.background
                 ),
                 scrollBehavior = scrollBehavior
             )
@@ -150,28 +149,29 @@ fun UpdateInfoScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
         ) {
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Update Settings",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(horizontal = 8.dp)
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Automatically check for new app updates",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 8.dp)
-            )
-
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Auto Update Check Toggle Card
+            // Main Title
+            Text(
+                text = "Update Settings",
+                style = MaterialTheme.typography.headlineMedium.copy(fontSize = 32.sp),
+                fontWeight = FontWeight.Normal,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Manage Section
+            Text(
+                text = "Manage",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(start = 24.dp, bottom = 12.dp)
+            )
+
+            // Auto Update Check Card - Standalone rounded
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(28.dp),
@@ -188,11 +188,20 @@ fun UpdateInfoScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = stringResource(R.string.check_for_updates),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.check_for_updates),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Automatically check for new updates",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
                     ModernSwitch(
                         checked = checkForUpdates,
                         onCheckedChange = { onAutoUpdateCheckChange(it) }
@@ -200,132 +209,162 @@ fun UpdateInfoScreen(
                 }
             }
 
-            // Show Update Notification Toggle Card
-            AnimatedVisibility(visible = checkForUpdates) {
-                Column {
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(28.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                        ),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onNotificationToggle(!showUpdateNotification) }
-                                .padding(horizontal = 24.dp, vertical = 20.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = "Show notification",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "Get notified when updates are available",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(16.dp))
-                            ModernSwitch(
-                                checked = showUpdateNotification,
-                                onCheckedChange = { onNotificationToggle(it) }
-                            )
-                        }
-                    }
-                }
-            }
-
-            // Update Check Interval Card (only shown when automatic check is enabled)
-            AnimatedVisibility(visible = checkForUpdates) {
-                Column {
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(28.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                        ),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(24.dp)
-                        ) {
-                            Text(
-                                text = "Update check interval",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            Text(
-                                text = "Check every $updateCheckInterval ${if (updateCheckInterval == 1) "hour" else "hours"}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-
-                            Spacer(modifier = Modifier.height(24.dp))
-
-                            Text(
-                                text = when (updateCheckInterval) {
-                                    1 -> "$updateCheckInterval hour"
-                                    else -> "$updateCheckInterval hours"
-                                },
-                                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold),
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.align(Alignment.CenterHorizontally)
-                            )
-
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            Slider(
-                                value = updateCheckInterval.toFloat(),
-                                onValueChange = { updateCheckInterval = it.toInt() },
-                                onValueChangeFinished = { onIntervalChange(updateCheckInterval) },
-                                valueRange = 1f..24f,
-                                steps = 22,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    text = "1 hour",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Text(
-                                    text = "24 hours",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    }
-                }
-            }
             Spacer(modifier = Modifier.height(32.dp))
+
+            // Notifications Section
+            Text(
+                text = "Notifications",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(start = 24.dp, bottom = 12.dp)
+            )
+
+            // Show Update Notification Card - Top rounded
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp, bottomStart = 4.dp, bottomEnd = 4.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(enabled = checkForUpdates) {
+                            onNotificationToggle(!showUpdateNotification)
+                        }
+                        .padding(horizontal = 24.dp, vertical = 20.dp)
+                        .alpha(if (checkForUpdates) 1f else 0.5f),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Show notification",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Get notified when updates are available",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    ModernSwitch(
+                        checked = showUpdateNotification,
+                        onCheckedChange = { onNotificationToggle(it) },
+                        enabled = checkForUpdates
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(2.dp))
+
+            // Update Check Interval Card - Bottom rounded
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 28.dp, bottomEnd = 28.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(enabled = checkForUpdates) { showIntervalDialog = true }
+                        .padding(horizontal = 24.dp, vertical = 20.dp)
+                        .alpha(if (checkForUpdates) 1f else 0.5f),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Update check interval",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Every $updateCheckInterval ${if (updateCheckInterval == 1) "hour" else "hours"}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(100.dp))
         }
+    }
+
+    // Interval Picker Dialog
+    if (showIntervalDialog) {
+        AlertDialog(
+            onDismissRequest = { showIntervalDialog = false },
+            title = {
+                Text(
+                    text = "Update check interval",
+                    style = MaterialTheme.typography.headlineSmall
+                )
+            },
+            text = {
+                Column {
+                    Text(
+                        text = "Check every $updateCheckInterval ${if (updateCheckInterval == 1) "hour" else "hours"}",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    Slider(
+                        value = updateCheckInterval.toFloat(),
+                        onValueChange = { updateCheckInterval = it.toInt() },
+                        valueRange = 1f..24f,
+                        steps = 22,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "1 hour",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "24 hours",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onIntervalChange(updateCheckInterval)
+                        showIntervalDialog = false
+                    }
+                ) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showIntervalDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 
-// Add these constants where you have your other preference keys
+// Constants
 const val KEY_SHOW_UPDATE_NOTIFICATION = "show_update_notification"
 val ShowUpdateNotificationKey = booleanPreferencesKey("show_update_notification")
+//
