@@ -54,7 +54,7 @@ fun ChangelogBottomSheet(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val changelogUrl = "https://github.com/vivizzz007/vivi-music/releases"
+    val changelogUrl = "https://github.com/vivizzz007/vivi-music"
     val currentVersion = BuildConfig.VERSION_NAME // e.g., "4.0.1"
 
     var changelogState by remember { mutableStateOf<ChangelogState>(ChangelogState.Loading) }
