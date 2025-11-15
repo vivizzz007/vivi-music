@@ -284,5 +284,6 @@
     <string name="logout">Logout</string>
     <string name="logged_out">Logged out successfully</string>
     <string name="swipe_song_to_remove">Swipe song to remove it from the playlist</string>
+    <string name="rotating_thumbnail">Rotating Thumbnail</string>
 
 </resources>
