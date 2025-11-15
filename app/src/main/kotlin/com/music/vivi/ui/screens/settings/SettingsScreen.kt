@@ -116,7 +116,7 @@ fun SettingsScreen(
         if (checkForUpdates) {
             updateStatus = UpdateStatus.Loading
             checkForUpdate(
-                onSuccess = { latestVersion, changelog, apkSize, releaseDate ->
+                onSuccess = { latestVersion, changelog, apkSize, releaseDate, description, imageUrl ->
                     if (isNewerVersion(latestVersion, currentVersion)) {
                         updateStatus = UpdateStatus.UpdateAvailable(latestVersion)
                         updateInfo = UpdateInfo(latestVersion, changelog, apkSize, releaseDate)

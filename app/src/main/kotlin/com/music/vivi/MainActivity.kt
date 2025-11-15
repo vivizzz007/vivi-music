@@ -355,7 +355,7 @@ class MainActivity : ComponentActivity() {
 
                     withContext(Dispatchers.IO) {
                         checkForUpdate(
-                            onSuccess = { latestVersion, changelog, apkSize, releaseDate ->
+                            onSuccess = { latestVersion, changelog, apkSize, releaseDate, description, imageUrl ->
                                 if (isNewerVersion(latestVersion, BuildConfig.VERSION_NAME)) {
                                     updateStatus = UpdateStatus.UpdateAvailable(latestVersion)
                                 } else {
@@ -1046,14 +1046,27 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             },
+
+
                             bottomBar = {
+
+                                //now miniplayer wont show in updatescreen
+                                val shouldShowMiniPlayer = remember(navBackStackEntry) {
+                                    val route = navBackStackEntry?.destination?.route
+                                    route != "settings/update"
+                                }
+
                                 if (!showRail) {
                                     Box {
-                                        BottomSheetPlayer(
-                                            state = playerBottomSheetState,
-                                            navController = navController,
-                                            pureBlack = pureBlack
-                                        )
+
+                                        //now miniplayer wont show in updatescreen
+                                        if (shouldShowMiniPlayer) {
+                                            BottomSheetPlayer(
+                                                state = playerBottomSheetState,
+                                                navController = navController,
+                                                pureBlack = pureBlack
+                                            )
+                                        }
                                         NavigationBar(
                                             modifier = Modifier
                                                 .align(Alignment.BottomCenter)
@@ -1136,11 +1149,15 @@ class MainActivity : ComponentActivity() {
                                         )
                                     }
                                 } else {
-                                    BottomSheetPlayer(
-                                        state = playerBottomSheetState,
-                                        navController = navController,
-                                        pureBlack = pureBlack
-                                    )
+                                    //now miniplayer wont show in updatescreen
+
+                                    if (shouldShowMiniPlayer) {
+                                        BottomSheetPlayer(
+                                            state = playerBottomSheetState,
+                                            navController = navController,
+                                            pureBlack = pureBlack
+                                        )
+                                    }
 
                                     Box(
                                         modifier = Modifier
