@@ -296,7 +296,7 @@ fun BackupAndRestore(
                                 title = stringResource(R.string.import_csv),
                                 subtitle = "Import playlists from CSV files",
                                 onClick = {
-                                    importPlaylistFromCsv.launch(arrayOf("text/csv"))
+                                    importPlaylistFromCsv.launch(arrayOf("text/csv", "text/comma-separated-values", "application/csv"))
                                 },
                                 showArrow = true
                             )
