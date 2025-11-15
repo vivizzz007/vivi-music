@@ -264,12 +264,13 @@ fun LyricsImageCard(
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.small_icon),
+                            painter = painterResource(id = R.drawable.library_music),
                             contentDescription = null,
                             modifier = Modifier
                                 .size(16.dp),
-                            colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(backgroundGradient) // الرمز بلون الخلفية
+                            colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(backgroundGradient)
                         )
+
                     }
 
                     Spacer(modifier = Modifier.width(8.dp))
