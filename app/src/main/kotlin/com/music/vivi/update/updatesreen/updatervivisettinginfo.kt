@@ -97,10 +97,10 @@ fun ViviUpdatesScreen(
             updateStatus = UpdateStatus.Loading
 
             checkForUpdate(
-                onSuccess = { latestVersion, changelog, apkSize, releaseDate ->
+                onSuccess = { latestVersion, changelog, apkSize, releaseDate, description, imageUrl ->
                     if (isNewerVersion(latestVersion, currentVersion)) {
                         updateStatus = UpdateStatus.UpdateAvailable(latestVersion)
-                        updateInfo = UpdateInfo(latestVersion, changelog, apkSize, releaseDate)
+                        updateInfo = UpdateInfo(latestVersion, changelog, apkSize, releaseDate, description, imageUrl)
                     } else {
                         updateStatus = UpdateStatus.UpToDate
                     }
@@ -586,9 +586,10 @@ data class UpdateInfo(
     val version: String,
     val changelog: String,
     val apkSize: String,
-    val releaseDate: String
+    val releaseDate: String,
+    val description: String? = null,
+    val imageUrl: String? = null  // Add this
 )
-
 // Helper data class for colors
 data class Quadruple<A, B, C, D>(
     val first: A,

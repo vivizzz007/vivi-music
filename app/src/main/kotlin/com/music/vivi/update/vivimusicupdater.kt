@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Environment
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -60,9 +61,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.SpanStyle
@@ -75,6 +78,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
 import com.music.vivi.BuildConfig
 import com.music.vivi.update.downloadmanager.CustomDownloadManager
 import com.music.vivi.update.downloadmanager.DownloadNotificationManager
@@ -101,7 +105,11 @@ fun UpdateScreen(navController: NavHostController) {
     var updateAvailable by remember { mutableStateOf(false) }
     var updateMessage by remember { mutableStateOf("") }
     var updateMessageVersion by remember { mutableStateOf("") }
+    //changelog
     var changelog by remember { mutableStateOf("") }
+    var updateDescription by remember { mutableStateOf<String?>(null) } // Add this new state
+    var updateImage by remember { mutableStateOf<String?>(null) } //display image
+
     var isChecking by remember { mutableStateOf(true) }
     var fetchError by remember { mutableStateOf(false) }
     //new downloadmanager
@@ -162,9 +170,9 @@ fun UpdateScreen(navController: NavHostController) {
         updateAvailable = false
         releaseDate = ""
         coroutineScope.launch {
-            delay(6500L) //1500
+            delay(6500L)
             checkForUpdate(
-                onSuccess = { latestVersion, latestChangelog, latestSize, latestReleaseDate ->
+                onSuccess = { latestVersion, latestChangelog, latestSize, latestReleaseDate, latestDescription, latestImage ->
                     isChecking = false
                     lastCheckedTime = getCurrentTimestamp()
                     saveLastCheckedTime(context, lastCheckedTime)
@@ -173,6 +181,8 @@ fun UpdateScreen(navController: NavHostController) {
                         updateMessage = "New Update Available!"
                         updateMessageVersion = latestVersion
                         changelog = latestChangelog
+                        updateDescription = latestDescription
+                        updateImage = latestImage
                         appSize = latestSize
                         releaseDate = latestReleaseDate
                     } else {
@@ -523,6 +533,64 @@ fun UpdateScreen(navController: NavHostController) {
                                         )
                                     }
                                     Spacer(modifier = Modifier.height(10.dp))
+
+
+                                      //sync with the image
+                                    updateImage?.let { imageUrl ->
+                                        AsyncImage(
+                                            model = imageUrl,
+                                            contentDescription = "Update preview",
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clip(RoundedCornerShape(12.dp)),
+                                            contentScale = ContentScale.FillWidth
+                                        )
+                                        Spacer(modifier = Modifier.height(16.dp))
+                                    }
+
+                                    //downloading
+
+                                    if (isDownloading) {
+                                        Spacer(modifier = Modifier.height(15.dp))
+
+                                        val thickStrokeWidth = with(LocalDensity.current) { 8.dp.toPx() }
+                                        val thickStroke = remember(thickStrokeWidth) {
+                                            Stroke(width = thickStrokeWidth, cap = StrokeCap.Round)
+                                        }
+
+                                        LinearWavyProgressIndicator(
+                                            progress = { downloadProgress },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(22.dp),
+                                            stroke = thickStroke,
+                                            trackStroke = thickStroke,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            trackColor = MaterialTheme.colorScheme.surfaceVariant
+                                        )
+
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = "Downloading... ${(downloadProgress * 100).toInt()}%",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Spacer(modifier = Modifier.height(16.dp))
+                                    }
+
+                                    // ADD DESCRIPTION HERE (if available)
+                                    updateDescription?.let { desc ->
+                                        Text(
+                                            text = desc,
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            lineHeight = 24.sp
+                                        )
+                                        Spacer(modifier = Modifier.height(16.dp))
+                                    }
+
+
+
 //                                    val annotatedString = buildAnnotatedString {
 //                                        append("Your app will update to ${updateMessageVersion}.\nLearn more ")
 //                                        pushStringAnnotation(tag = "URL", annotation = "https://github.com/vivizzz007/vivi-music/releases")
@@ -554,32 +622,6 @@ fun UpdateScreen(navController: NavHostController) {
 
                                     // Progress bar for downloading
                                     // Progress bar for downloading
-                                    if (isDownloading) {
-                                        Spacer(modifier = Modifier.height(24.dp))
-
-                                        val thickStrokeWidth = with(LocalDensity.current) { 8.dp.toPx() }
-                                        val thickStroke = remember(thickStrokeWidth) {
-                                            Stroke(width = thickStrokeWidth, cap = StrokeCap.Round)
-                                        }
-
-                                        LinearWavyProgressIndicator(
-                                            progress = { downloadProgress },
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(22.dp),
-                                            stroke = thickStroke,
-                                            trackStroke = thickStroke,
-                                            color = MaterialTheme.colorScheme.primary,
-                                            trackColor = MaterialTheme.colorScheme.surfaceVariant
-                                        )
-
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                        Text(
-                                            text = "Downloading... ${(downloadProgress * 100).toInt()}%",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
                                     downloadError?.let { error ->
                                         Spacer(modifier = Modifier.height(16.dp))
                                         Row(
@@ -938,7 +980,7 @@ fun isNewerVersion(latestVersion: String, currentVersion: String): Boolean {
 
 // Fetches ALL releases, finds the latest version > current, and returns its info
 suspend fun checkForUpdate(
-    onSuccess: (String, String, String, String) -> Unit,
+    onSuccess: (String, String, String, String, String?, String?) -> Unit,
     onError: () -> Unit
 ) {
     withContext(Dispatchers.IO) {
@@ -950,7 +992,6 @@ suspend fun checkForUpdate(
 
             val currentVersion = BuildConfig.VERSION_NAME
 
-            // Find the highest version > currentVersion
             for (i in 0 until releases.length()) {
                 val release = releases.getJSONObject(i)
                 val tag = release.getString("tag_name").removePrefix("v")
@@ -964,45 +1005,79 @@ suspend fun checkForUpdate(
 
             if (foundRelease != null) {
                 val tag = foundRelease.getString("tag_name").removePrefix("v")
-                val changelog = foundRelease.optString("body", "")
+                val tagWithV = foundRelease.getString("tag_name")
+
+                // FETCH CHANGELOG.JSON FROM RELEASE ASSETS
+                var changelog = ""
+                var description: String? = null
+                var imageUrl: String? = null
+                try {
+                    val changelogUrl = URL("https://github.com/vivizzz007/vivi-music/releases/download/$tagWithV/changelog.json")
+                    Log.d("UpdateCheck", "Fetching changelog from: $changelogUrl")
+                    val changelogJson = changelogUrl.openStream().bufferedReader().use { it.readText() }
+                    val changelogData = JSONObject(changelogJson)
+
+                    // Get description (optional)
+                    description = changelogData.optString("description", null)
+
+                    // Get image URL (optional)
+                    imageUrl = changelogData.optString("image", null)
+
+                    // Get changelog items
+                    val changelogArray = changelogData.getJSONArray("changelog")
+                    changelog = buildString {
+                        for (i in 0 until changelogArray.length()) {
+                            appendLine(changelogArray.getString(i))
+                        }
+
+                        // Add warning if it exists (as a separate line)
+                        val warning = changelogData.optString("warning", null)
+                        if (!warning.isNullOrBlank()) {
+                            appendLine("")  // Empty line for spacing
+                            appendLine(warning)
+                        }
+                    }.trim()
+                } catch (e: Exception) {
+                    Log.e("UpdateCheck", "Failed to fetch changelog.json: ${e.message}", e)
+                    changelog = foundRelease.optString("body", "No changelog available")
+                }
+
                 val publishedAt = foundRelease.getString("published_at")
                 val formattedReleaseDate = formatGitHubDate(publishedAt)
                 val assets = foundRelease.getJSONArray("assets")
-                if (assets.length() > 0) {
-                    val apkAsset = assets.getJSONObject(0)
-                    val apkSizeInBytes = apkAsset.getLong("size")
-                    val apkSizeInMB = String.format("%.1f", apkSizeInBytes / (1024.0 * 1024.0))
+
+                // FIND THE APK FILE (NOT THE FIRST ASSET)
+                var apkSizeInMB = ""
+                for (i in 0 until assets.length()) {
+                    val asset = assets.getJSONObject(i)
+                    val assetName = asset.getString("name")
+                    // Look for the APK file specifically
+                    if (assetName.endsWith(".apk")) {
+                        val apkSizeInBytes = asset.getLong("size")
+                        apkSizeInMB = String.format("%.1f", apkSizeInBytes / (1024.0 * 1024.0))
+                        break
+                    }
+                }
+
+                if (apkSizeInMB.isNotEmpty()) {
                     withContext(Dispatchers.Main) {
-                        onSuccess(tag, changelog, apkSizeInMB, formattedReleaseDate)
+                        onSuccess(tag, changelog, apkSizeInMB, formattedReleaseDate, description, imageUrl)
                     }
                 } else {
                     withContext(Dispatchers.Main) { onError() }
                 }
             } else {
-                // No update found; fallback to latest for message
-                val latest = if (releases.length() > 0) releases.getJSONObject(0) else null
-                if (latest != null) {
-                    val tag = latest.getString("tag_name").removePrefix("v")
-                    val changelog = latest.optString("body", "")
-                    val publishedAt = latest.getString("published_at")
-                    val formattedReleaseDate = formatGitHubDate(publishedAt)
-                    val assets = latest.getJSONArray("assets")
-                    val apkSizeInMB = if (assets.length() > 0)
-                        String.format("%.1f", assets.getJSONObject(0).getLong("size") / (1024.0 * 1024.0))
-                    else ""
-                    withContext(Dispatchers.Main) {
-                        onSuccess(tag, changelog, apkSizeInMB, formattedReleaseDate)
-                    }
-                } else {
-                    withContext(Dispatchers.Main) { onError() }
+                // App is up to date - return current version info
+                withContext(Dispatchers.Main) {
+                    onSuccess(currentVersion, "", "", "", null, null)
                 }
             }
         } catch (e: Exception) {
+            Log.e("UpdateCheck", "Error checking for updates: ${e.message}", e)
             withContext(Dispatchers.Main) { onError() }
         }
     }
 }
-
 fun String.extractUrls(): List<Pair<IntRange, String>> {
     val urlPattern = Pattern.compile(
         "(?:^|[\\s])((https?://|www\\.|pic\\.)[\\w-]+(\\.[\\w-]+)+([/?].*)?)"
