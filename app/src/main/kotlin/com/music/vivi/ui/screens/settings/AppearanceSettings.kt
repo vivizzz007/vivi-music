@@ -77,6 +77,7 @@ import com.music.vivi.constants.PlayerBackgroundStyleKey
 import com.music.vivi.constants.PlayerButtonsStyle
 import com.music.vivi.constants.PlayerButtonsStyleKey
 import com.music.vivi.constants.PureBlackKey
+import com.music.vivi.constants.RotatingThumbnailKey
 import com.music.vivi.constants.ShowCachedPlaylistKey
 import com.music.vivi.constants.ShowDownloadedPlaylistKey
 import com.music.vivi.constants.ShowLikedPlaylistKey
@@ -123,6 +124,12 @@ fun AppearanceSettings(
     val (useNewPlayerDesign, onUseNewPlayerDesignChange) = rememberPreference(
         UseNewPlayerDesignKey,
         defaultValue = true
+    )
+
+//switch for thumbnail
+    val (rotatingThumbnail, onRotatingThumbnailChange) = rememberPreference(
+        RotatingThumbnailKey,
+        defaultValue = false
     )
 
 
@@ -923,6 +930,30 @@ fun AppearanceSettings(
                                 ModernSwitch(
                                     checked = useNewMiniPlayerDesign,
                                     onCheckedChange = onUseNewMiniPlayerDesignChange,
+                                    modifier = Modifier.padding(end = 20.dp)
+                                )
+                            }
+
+
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                            )
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(modifier = Modifier.weight(1f)) {
+                                    ModernInfoItem(
+                                        icon = { Icon(painterResource(R.drawable.cycle_rotation), null, modifier = Modifier.size(22.dp)) },
+                                        title = stringResource(R.string.rotating_thumbnail),
+                                        subtitle = "Enable rotating clover thumbnail"
+                                    )
+                                }
+                                ModernSwitch(
+                                    checked = rotatingThumbnail,
+                                    onCheckedChange = onRotatingThumbnailChange,
                                     modifier = Modifier.padding(end = 20.dp)
                                 )
                             }

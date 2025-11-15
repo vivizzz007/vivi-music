@@ -14,7 +14,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -87,13 +86,22 @@ import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.delay
 import kotlin.math.abs
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
+import com.music.vivi.constants.RotatingThumbnailKey
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
+import com.music.vivi.ui.utils.SnapLayoutInfoProvider
+
+//import com.music.vivi.ui.utils.SnapLayoutInfoProvider
+
+// Add this import at the top if not already present
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun Thumbnail(
     sliderPositionProvider: () -> Long?,
     modifier: Modifier = Modifier,
-    isPlayerExpanded: Boolean = true, // Add parameter to control swipe based on player state
+    isPlayerExpanded: Boolean = true,
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val context = LocalContext.current
@@ -107,24 +115,25 @@ fun Thumbnail(
 
     val swipeThumbnail by rememberPreference(SwipeThumbnailKey, true)
     val hidePlayerThumbnail by rememberPreference(HidePlayerThumbnailKey, false)
+    val rotatingThumbnail by rememberPreference(RotatingThumbnailKey, false) // NEW: Add this
     val canSkipPrevious by playerConnection.canSkipPrevious.collectAsState()
     val canSkipNext by playerConnection.canSkipNext.collectAsState()
-    
+
     // Player background style for consistent theming
     val playerBackground by rememberEnumPreference(
         key = PlayerBackgroundStyleKey,
         defaultValue = PlayerBackgroundStyle.GRADIENT
     )
-    
+
     val textBackgroundColor = when (playerBackground) {
         PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.onBackground
         PlayerBackgroundStyle.BLUR -> Color.White
         PlayerBackgroundStyle.GRADIENT -> Color.White
     }
-    
+
     // Grid state
     val thumbnailLazyGridState = rememberLazyGridState()
-    
+
     // Create a playlist using correct shuffle-aware logic
     val timeline = playerConnection.player.currentTimeline
     val currentIndex = playerConnection.player.currentMediaItemIndex
@@ -245,7 +254,6 @@ fun Thumbnail(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Now Playing header
-                // Now Playing header
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.padding(horizontal = 32.dp, vertical = 16.dp)
@@ -253,7 +261,7 @@ fun Thumbnail(
                     Text(
                         text = stringResource(R.string.now_playing),
                         style = MaterialTheme.typography.titleMedium,
-                        color = textBackgroundColor // Using primary color
+                        color = textBackgroundColor
                     )
 
                     // Add the current song title
@@ -262,14 +270,14 @@ fun Thumbnail(
                         Text(
                             text = metadata.title,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = textBackgroundColor.copy(alpha = 0.8f),  // Using onSurface with transparency
+                            color = textBackgroundColor.copy(alpha = 0.8f),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.basicMarquee()
                         )
                     }
                 }
-                
+
                 // Thumbnail content
                 BoxWithConstraints(
                     contentAlignment = Alignment.Center,
@@ -282,13 +290,12 @@ fun Thumbnail(
                         state = thumbnailLazyGridState,
                         rows = GridCells.Fixed(1),
                         flingBehavior = rememberSnapFlingBehavior(thumbnailSnapLayoutInfoProvider),
-                        userScrollEnabled = swipeThumbnail && isPlayerExpanded, // Only allow swipe when player is expanded
+                        userScrollEnabled = swipeThumbnail && isPlayerExpanded,
                         modifier = Modifier.fillMaxSize()
                     ) {
                         items(
                             items = mediaItems,
-                            key = { item -> 
-                                // Use mediaId with stable fallback to avoid recomposition issues
+                            key = { item ->
                                 item.mediaId.ifEmpty { "unknown_${item.hashCode()}" }
                             }
                         ) { item ->
@@ -338,84 +345,125 @@ fun Thumbnail(
                                     },
                                 contentAlignment = Alignment.Center
                             ) {
-// Add this before the Box to create rotation animation that stops when paused
-
+                                // Rotation animation (only when rotating thumbnail is enabled)
                                 val isPlaying by playerConnection.isPlaying.collectAsState()
 
                                 val infiniteTransition = rememberInfiniteTransition(label = "rotation")
                                 val rotation by infiniteTransition.animateFloat(
                                     initialValue = 0f,
-                                    targetValue = if (isPlaying) 360f else 0f, // Stop rotation when paused
+                                    targetValue = if (isPlaying && rotatingThumbnail) 360f else 0f,
                                     animationSpec = infiniteRepeatable(
-                                        animation = tween(20000, easing = LinearEasing), // 20 seconds for full rotation
+                                        animation = tween(20000, easing = LinearEasing),
                                         repeatMode = RepeatMode.Restart
                                     ),
                                     label = "rotation"
                                 )
 
-// Replace the Box that displays the thumbnail with this:
-                                @OptIn(ExperimentalMaterial3ExpressiveApi::class)
-                                Box(
-                                    modifier = Modifier
-                                        .size(containerMaxWidth - (PlayerHorizontalPadding * 2))
-                                        .graphicsLayer {
-                                            rotationZ = rotation  // Rotate the clipping shape
-                                        }
-                                        .clip(MaterialShapes.Clover8Leaf.toShape())  // Changed from RoundedCornerShape
-                                        .graphicsLayer {
-                                            rotationZ = -rotation  // Counter-rotate the content so image stays upright
-                                        }
-                                ) {
-                                    if (hidePlayerThumbnail) {
-                                        // Show app logo when thumbnail is hidden
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .background(MaterialTheme.colorScheme.surfaceVariant),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.music_note),
-                                                contentDescription = stringResource(R.string.hide_player_thumbnail),
-                                                tint = textBackgroundColor.copy(alpha = 0.7f),
-                                                modifier = Modifier.size(120.dp)
+                                // Conditional rendering based on rotatingThumbnail preference
+                                if (rotatingThumbnail) {
+                                    // Rotating clover shape thumbnail
+                                    @OptIn(ExperimentalMaterial3ExpressiveApi::class)
+                                    Box(
+                                        modifier = Modifier
+                                            .size(containerMaxWidth - (PlayerHorizontalPadding * 2))
+                                            .graphicsLayer {
+                                                rotationZ = rotation
+                                            }
+                                            .clip(MaterialShapes.Clover8Leaf.toShape())
+                                            .graphicsLayer {
+                                                rotationZ = -rotation
+                                            }
+                                    ) {
+                                        if (hidePlayerThumbnail) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.music_note),
+                                                    contentDescription = stringResource(R.string.hide_player_thumbnail),
+                                                    tint = textBackgroundColor.copy(alpha = 0.7f),
+                                                    modifier = Modifier.size(120.dp)
+                                                )
+                                            }
+                                        } else {
+                                            // Blurred background
+                                            AsyncImage(
+                                                model = coil3.request.ImageRequest.Builder(LocalContext.current)
+                                                    .data(item.mediaMetadata.artworkUri?.toString())
+                                                    .memoryCachePolicy(coil3.request.CachePolicy.ENABLED)
+                                                    .diskCachePolicy(coil3.request.CachePolicy.ENABLED)
+                                                    .networkCachePolicy(coil3.request.CachePolicy.ENABLED)
+                                                    .build(),
+                                                contentDescription = null,
+                                                contentScale = ContentScale.FillBounds,
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .graphicsLayer(
+                                                        renderEffect = BlurEffect(radiusX = 75f, radiusY = 75f),
+                                                        alpha = 0.5f
+                                                    )
+                                            )
+
+                                            // Main image
+                                            AsyncImage(
+                                                model = coil3.request.ImageRequest.Builder(LocalContext.current)
+                                                    .data(item.mediaMetadata.artworkUri?.toString())
+                                                    .memoryCachePolicy(coil3.request.CachePolicy.ENABLED)
+                                                    .diskCachePolicy(coil3.request.CachePolicy.ENABLED)
+                                                    .networkCachePolicy(coil3.request.CachePolicy.ENABLED)
+                                                    .build(),
+                                                contentDescription = null,
+                                                contentScale = ContentScale.Fit,
+                                                modifier = Modifier.fillMaxSize()
                                             )
                                         }
-                                    } else {
-                                        // Blurred background
-                                        AsyncImage(
-                                            model = coil3.request.ImageRequest.Builder(LocalContext.current)
-                                                .data(item.mediaMetadata.artworkUri?.toString())
-                                                .memoryCachePolicy(coil3.request.CachePolicy.ENABLED)
-                                                .diskCachePolicy(coil3.request.CachePolicy.ENABLED)
-                                                .networkCachePolicy(coil3.request.CachePolicy.ENABLED)
-                                                .build(),
-                                            contentDescription = null,
-                                            contentScale = ContentScale.FillBounds,
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .graphicsLayer(
-                                                    renderEffect = BlurEffect(radiusX = 75f, radiusY = 75f),
-                                                    alpha = 0.5f
+                                    }
+                                } else {
+                                    // Square/rounded thumbnail (MetroList style)
+                                    Box(
+                                        modifier = Modifier
+                                            .size(containerMaxWidth - (PlayerHorizontalPadding * 2))
+                                            .clip(RoundedCornerShape(ThumbnailCornerRadius * 2))
+                                    ) {
+                                        if (hidePlayerThumbnail) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.small_icon),
+                                                    contentDescription = stringResource(R.string.hide_player_thumbnail),
+                                                    tint = textBackgroundColor.copy(alpha = 0.7f),
+                                                    modifier = Modifier.size(120.dp)
                                                 )
-                                        )
-
-                                        // Main image
-                                        AsyncImage(
-                                            model = coil3.request.ImageRequest.Builder(LocalContext.current)
-                                                .data(item.mediaMetadata.artworkUri?.toString())
-                                                .memoryCachePolicy(coil3.request.CachePolicy.ENABLED)
-                                                .diskCachePolicy(coil3.request.CachePolicy.ENABLED)
-                                                .networkCachePolicy(coil3.request.CachePolicy.ENABLED)
-                                                .build(),
-                                            contentDescription = null,
-                                            contentScale = ContentScale.Fit,
-                                            modifier = Modifier.fillMaxSize()
-                                        )
+                                            }
+                                        } else {
+                                            // Solid color background
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                            )
+                                            // Main image
+                                            AsyncImage(
+                                                model = coil3.request.ImageRequest.Builder(LocalContext.current)
+                                                    .data(item.mediaMetadata.artworkUri?.toString())
+                                                    .memoryCachePolicy(coil3.request.CachePolicy.ENABLED)
+                                                    .diskCachePolicy(coil3.request.CachePolicy.ENABLED)
+                                                    .networkCachePolicy(coil3.request.CachePolicy.ENABLED)
+                                                    .build(),
+                                                contentDescription = null,
+                                                contentScale = ContentScale.Fit,
+                                                modifier = Modifier.fillMaxSize()
+                                            )
+                                        }
                                     }
                                 }
-
-
                             }
                         }
                     }
@@ -456,7 +504,7 @@ fun Thumbnail(
  * Custom SnapLayoutInfoProvider idea belongs to OuterTune
  */
 
-// SnapLayoutInfoProvider
+// SnapLayoutInfoProvider - KEEP THIS AT THE BOTTOM OF YOUR FILE
 @ExperimentalFoundationApi
 fun SnapLayoutInfoProvider(
     lazyGridState: LazyGridState,
@@ -464,7 +512,7 @@ fun SnapLayoutInfoProvider(
         (layoutSize / 2f - itemSize / 2f)
     },
     velocityThreshold: Float = 1000f,
-): SnapLayoutInfoProvider = object : SnapLayoutInfoProvider {
+): androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider = object : androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider {
     private val layoutInfo: LazyGridLayoutInfo
         get() = lazyGridState.layoutInfo
 
