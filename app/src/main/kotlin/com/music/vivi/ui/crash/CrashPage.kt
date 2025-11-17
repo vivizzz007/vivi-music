@@ -1,5 +1,6 @@
 package com.music.vivi.ui.crash
 
+import android.content.ClipData
 import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -79,7 +80,9 @@ fun CrashPage(
                         subtitle = "Copies the error to clipboard.",
                         titleColor = MaterialTheme.colorScheme.onSurface,
                         subtitleColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        onClick = { TODO("Add Clipboard") },
+                        onClick = {
+
+                        },
                         showArrow = true,
                         iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
                     )
