@@ -77,6 +77,7 @@ data class ArtistItem(
     val playEndpoint: WatchEndpoint? = null,
     val shuffleEndpoint: WatchEndpoint?,
     val radioEndpoint: WatchEndpoint?,
+    val subscriberCountText: String? = null,  // ADD THIS if not already added
 ) : YTItem() {
     override val explicit: Boolean
         get() = false

@@ -127,7 +127,8 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import com.music.vivi.constants.ListItemHeight
-
+//this is more option in artist screen leading to here
+//artistscreen
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class,
     ExperimentalMaterial3ExpressiveApi::class
 )
@@ -328,6 +329,34 @@ fun ArtistScreen(
                                     modifier = Modifier.padding(bottom = 16.dp)
                                 )
 
+//                                Subscriber count badge
+//                                changes from youtube.kt
+//                                subscriptionbutton
+
+                                artistPage?.artist?.subscriberCountText?.let { subscribers ->
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier
+                                            .padding(bottom = 16.dp)
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .background(MaterialTheme.colorScheme.secondaryContainer)
+                                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.person), // or use a subscribers icon if you have one
+                                            contentDescription = null,
+                                            modifier = Modifier.size(16.dp),
+                                            tint = MaterialTheme.colorScheme.onSecondaryContainer
+                                        )
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text(
+                                            text = subscribers,
+                                            style = MaterialTheme.typography.labelLarge,
+                                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                    }
+                                }
 
                                 Text(
                                     text = "About Artist",
@@ -337,8 +366,8 @@ fun ArtistScreen(
                                     modifier = Modifier.padding(bottom = 8.dp)
                                 )
 
+// Replace the description section with this fixed version :
 
-                                // Add this at the top of your ArtistScreen composable, with other state variables
                                 var showDescriptionDialog by rememberSaveable { mutableStateOf(false) }
                                 var isDescriptionTruncated by remember { mutableStateOf(false) }
                                 val description = artistPage?.description ?: run {
@@ -348,12 +377,11 @@ fun ArtistScreen(
                                     }
                                 }
 
+// Build the display text - only show full text, let maxLines handle truncation
+                                val displayText = description
+
                                 Text(
-                                    text = if (isDescriptionTruncated) {
-                                        description.take(190) + "...more"
-                                    } else {
-                                        description
-                                    },
+                                    text = displayText,
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     textAlign = TextAlign.Start,
@@ -369,6 +397,7 @@ fun ArtistScreen(
                                     maxLines = 3,
                                     overflow = TextOverflow.Ellipsis,
                                     onTextLayout = { textLayoutResult ->
+                                        // Check if text is actually truncated by the maxLines constraint
                                         isDescriptionTruncated = textLayoutResult.hasVisualOverflow
                                     }
                                 )
@@ -386,10 +415,14 @@ fun ArtistScreen(
                                             Text(text = artistPage?.artist?.title ?: "Artist Info")
                                         },
                                         text = {
-                                            Text(
-                                                text = artistPage?.description ?: "",
-                                                style = MaterialTheme.typography.bodyMedium
-                                            )
+                                            LazyColumn {
+                                                item {
+                                                    Text(
+                                                        text = description,
+                                                        style = MaterialTheme.typography.bodyMedium
+                                                    )
+                                                }
+                                            }
                                         },
                                         confirmButton = {
                                             TextButton(onClick = { showDescriptionDialog = false }) {
