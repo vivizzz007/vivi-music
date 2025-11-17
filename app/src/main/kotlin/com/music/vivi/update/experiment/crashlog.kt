@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Build
 import android.os.Environment
 import android.util.Log
+import com.music.vivi.ui.crash.CrashPage
 import java.io.File
 import java.io.FileOutputStream
 import java.io.PrintWriter
@@ -71,6 +72,8 @@ class CrashLogHandler(
 
             // Clean up old logs
             cleanupOldLogs()
+
+            CrashPage(thread=thread,throwable=throwable)
         } catch (e: Exception) {
             Log.e(TAG, "Error saving crash log: ${e.message}", e)
         } finally {
