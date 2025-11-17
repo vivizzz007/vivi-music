@@ -73,7 +73,6 @@ class CrashLogHandler(
             // Clean up old logs
             cleanupOldLogs()
 
-            CrashPage(thread=thread,throwable=throwable)
         } catch (e: Exception) {
             Log.e(TAG, "Error saving crash log: ${e.message}", e)
         } finally {
