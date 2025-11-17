@@ -296,7 +296,7 @@ fun TopPlaylistScreen(
                                     modifier = Modifier.padding(horizontal = 32.dp)
                                 ) {
                                     Icon(
-                                        painter = painterResource(R.drawable.new_album_vivi),
+                                        painter = painterResource(R.drawable.featured_play_list),
                                         contentDescription = null,
                                         modifier = Modifier.size(30.dp),
                                         tint = MaterialTheme.colorScheme.onSurface

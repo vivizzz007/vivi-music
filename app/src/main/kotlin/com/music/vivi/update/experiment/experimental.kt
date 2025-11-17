@@ -80,6 +80,9 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.io.File
 import java.net.URL
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -103,11 +106,20 @@ fun ExperimentalSettingsScreen(navController: NavController) {
     val variantSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showVariantSheet by remember { mutableStateOf(false) }
 
-    // Load APK info on launch
+    // Crash log states
+    var crashLogs by remember { mutableStateOf<List<File>>(emptyList()) }
+    var selectedCrashLog by remember { mutableStateOf<File?>(null) }
+    var showCrashLogSheet by remember { mutableStateOf(false) }
+    val crashLogSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var showCrashLogViewerSheet by remember { mutableStateOf(false) }
+    val crashLogViewerSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    // Load APK info and crash logs on launch
     LaunchedEffect(Unit) {
         val (count, size) = getDownloadedApksInfo(context)
         downloadedApksCount = count
         downloadedApksSize = size
+        crashLogs = CrashLogHandler.getAllCrashLogs(context)
     }
 
     fun resetApp(context: Context) {
@@ -439,6 +451,261 @@ fun ExperimentalSettingsScreen(navController: NavController) {
         }
     }
 
+    // Crash Logs List Bottom Sheet
+    if (showCrashLogSheet) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                coroutineScope.launch {
+                    crashLogSheetState.hide()
+                    showCrashLogSheet = false
+                }
+            },
+            sheetState = crashLogSheetState,
+            dragHandle = { SheetDragHandle() }
+        ) {
+            Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Crash Logs",
+                        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold)
+                    )
+                    if (crashLogs.isNotEmpty()) {
+                        OutlinedButton(
+                            onClick = {
+                                CrashLogHandler.clearAllCrashLogs(context)
+                                crashLogs = emptyList()
+                                Toast.makeText(context, "All crash logs cleared", Toast.LENGTH_SHORT).show()
+                            },
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text("Clear All", style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                if (crashLogs.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().height(200.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                modifier = Modifier.size(48.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                "No crash logs found",
+                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                "Your app hasn't crashed recently",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                } else {
+                    Text(
+                        "${crashLogs.size} crash log(s) found",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .verticalScroll(rememberScrollState())
+                            .weight(1f, fill = false),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        crashLogs.forEach { logFile ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = {
+                                    selectedCrashLog = logFile
+                                    showCrashLogViewerSheet = true
+                                },
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                ),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.BugReport,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            logFile.name,
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                        )
+                                        Spacer(modifier = Modifier.height(2.dp))
+                                        Text(
+                                            formatFileDate(logFile.lastModified()),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    IconButton(
+                                        onClick = {
+                                            CrashLogHandler.deleteCrashLog(logFile)
+                                            crashLogs = CrashLogHandler.getAllCrashLogs(context)
+                                            Toast.makeText(context, "Crash log deleted", Toast.LENGTH_SHORT).show()
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = "Delete",
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+        }
+    }
+
+    // Crash Log Viewer Bottom Sheet
+    if (showCrashLogViewerSheet && selectedCrashLog != null) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                coroutineScope.launch {
+                    crashLogViewerSheetState.hide()
+                    showCrashLogViewerSheet = false
+                    selectedCrashLog = null
+                }
+            },
+            sheetState = crashLogViewerSheetState,
+            dragHandle = { SheetDragHandle() }
+        ) {
+            Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            selectedCrashLog!!.name,
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                        )
+                        Text(
+                            formatFileDate(selectedCrashLog!!.lastModified()),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = {
+                            shareLogFile(context, selectedCrashLog!!)
+                        },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Email,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Share", style = MaterialTheme.typography.labelMedium)
+                    }
+
+                    Button(
+                        onClick = {
+                            CrashLogHandler.deleteCrashLog(selectedCrashLog!!)
+                            crashLogs = CrashLogHandler.getAllCrashLogs(context)
+                            Toast.makeText(context, "Crash log deleted", Toast.LENGTH_SHORT).show()
+                            coroutineScope.launch {
+                                crashLogViewerSheetState.hide()
+                                showCrashLogViewerSheet = false
+                                selectedCrashLog = null
+                            }
+                        },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error
+                        ),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Delete", style = MaterialTheme.typography.labelMedium)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f, fill = false),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                            .padding(16.dp)
+                    ) {
+                        Text(
+                            selectedCrashLog!!.readText(),
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+                            ),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -585,6 +852,65 @@ fun ExperimentalSettingsScreen(navController: NavController) {
 
             Spacer(Modifier.height(16.dp))
 
+            // Debugging Section
+            SplicedColumnGroup(
+                title = "Debugging",
+                content = listOf(
+                    {
+                        ModernInfoItem(
+                            icon = {
+                                Icon(
+                                    imageVector = Icons.Default.BugReport,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp),
+                                    tint = if (crashLogs.isNotEmpty()) {
+                                        MaterialTheme.colorScheme.error
+                                    } else {
+                                        MaterialTheme.colorScheme.surfaceTint
+                                    }
+                                )
+                            },
+                            title = "Crash logs",
+                            subtitle = if (crashLogs.isNotEmpty()) {
+                                "${crashLogs.size} crash log(s) available"
+                            } else {
+                                "No crashes detected"
+                            },
+                            onClick = {
+                                coroutineScope.launch {
+                                    crashLogs = CrashLogHandler.getAllCrashLogs(context)
+                                    showCrashLogSheet = true
+                                    crashLogSheetState.show()
+                                }
+                            },
+                            showArrow = true,
+                            showSettingsIcon = true
+                        )
+                    },
+                    {
+                        ModernInfoItem(
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.folder_crash),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp),
+                                    tint = MaterialTheme.colorScheme.surfaceTint
+                                )
+                            },
+                            title = "Open crash logs folder",
+                            subtitle = "Downloads/vivi/crash_logs",
+                            onClick = {
+                                openCrashLogsFolder(context)
+                            },
+                            showArrow = true,
+                            showSettingsIcon = true
+                        )
+                    }
+                )
+            )
+
+            Spacer(Modifier.height(16.dp))
+
             // Support Section using SplicedColumnGroup pattern with multiple items
             SplicedColumnGroup(
                 title = "Support",
@@ -725,6 +1051,7 @@ fun SheetDragHandle() {
         )
     }
 }
+
 // Utility functions
 fun clearDownloadedApks(context: Context): Boolean {
     return try {
@@ -885,5 +1212,91 @@ suspend fun fetchAvailableApkVariants(): List<Pair<String, String>> {
             Log.e("ExperimentalSettings", "Error fetching APK variants: ${e.message}")
             listOf(DEFAULT_APK_VARIANT to "Universal (Recommended)")
         }
+    }
+}
+
+private fun formatFileDate(timestamp: Long): String {
+    val date = Date(timestamp)
+    val now = Date()
+    val diff = now.time - timestamp
+
+    return when {
+        diff < 60000 -> "Just now"
+        diff < 3600000 -> "${diff / 60000} minutes ago"
+        diff < 86400000 -> "${diff / 3600000} hours ago"
+        diff < 604800000 -> "${diff / 86400000} days ago"
+        else -> SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.US).format(date)
+    }
+}
+
+private fun shareLogFile(context: Context, file: File) {
+    try {
+        val uri = androidx.core.content.FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            file
+        )
+
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            putExtra(Intent.EXTRA_SUBJECT, "Crash Log: ${file.name}")
+            putExtra(Intent.EXTRA_TEXT, "Crash log attached from Vivi Music App")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+
+        context.startActivity(Intent.createChooser(shareIntent, "Share crash log"))
+    } catch (e: Exception) {
+        Toast.makeText(context, "Error sharing log: ${e.message}", Toast.LENGTH_SHORT).show()
+    }
+}
+
+private fun openCrashLogsFolder(context: Context) {
+    try {
+        val crashLogsDir = CrashLogHandler.getCrashLogsDir(context)
+
+        // Try to open with file manager
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(
+                Uri.parse(crashLogsDir.absolutePath),
+                "resource/folder"
+            )
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+
+        try {
+            context.startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            // If no file manager, try to open Downloads folder
+            val downloadsIntent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(
+                    Uri.parse(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath),
+                    "resource/folder"
+                )
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+
+            try {
+                context.startActivity(downloadsIntent)
+                Toast.makeText(
+                    context,
+                    "Navigate to vivi/crash_logs folder",
+                    Toast.LENGTH_LONG
+                ).show()
+            } catch (e: ActivityNotFoundException) {
+                // Show path if can't open
+                Toast.makeText(
+                    context,
+                    "Crash logs location:\n${crashLogsDir.absolutePath}",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    } catch (e: Exception) {
+        Toast.makeText(
+            context,
+            "Error opening folder: ${e.message}",
+            Toast.LENGTH_SHORT
+        ).show()
     }
 }

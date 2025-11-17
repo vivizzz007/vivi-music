@@ -256,6 +256,11 @@
 <hr>
 
 <div align="center">
+
+## Special Thanks 🙏
+
+  <p>A heartfelt thank you to <strong><a href="https://github.com/mostafaalagamy">Mostafa Alagamy</a></strong> for their inspiration and contributions to the open source community.</p>
+
   <p><strong>Made with ❤️ for music lovers everywhere</strong></p>
   <p>⭐ Star this repo if you enjoy VIVI Music!</p>
 </div>

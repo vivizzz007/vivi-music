@@ -279,7 +279,7 @@
 
 
     <!-- Account View Strings -->
-
+    <string name="restore_success">restore success</string>
     <string name="library">Library</string>
     <string name="logout">Logout</string>
     <string name="logged_out">Logged out successfully</string>

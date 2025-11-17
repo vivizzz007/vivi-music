@@ -63,6 +63,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
 import com.music.vivi.BuildConfig
 import com.music.vivi.R
 import com.music.vivi.constants.CheckForUpdatesKey

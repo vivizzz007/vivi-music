@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Public Downloads directory - for crash logs accessible to users -->
+    <external-path
+        name="download_crash_logs"
+        path="Download/vivi/crash_logs/" />
+
+    <!-- Public Downloads directory root -->
+    <external-path
+        name="downloads"
+        path="Download/" />
+
+    <!-- External files directory -->
+    <external-files-path
+        name="crash_logs"
+        path="crash_logs/" />
+
+    <!-- General external files -->
+    <external-files-path
+        name="files"
+        path="." />
+</paths>

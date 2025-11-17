@@ -28,71 +28,301 @@ import java.util.zip.ZipEntry
 import javax.inject.Inject
 import kotlin.system.exitProcess
 
+
+
 @HiltViewModel
 class BackupRestoreViewModel @Inject constructor(
     val database: MusicDatabase,
 ) : ViewModel() {
     fun backup(context: Context, uri: Uri) {
+        var backupSuccessful = false
+        var tempBackupCreated = false
+
         runCatching {
-            context.applicationContext.contentResolver.openOutputStream(uri)?.use {
-                it.buffered().zipOutputStream().use { outputStream ->
-                    (context.filesDir / "datastore" / SETTINGS_FILENAME).inputStream().buffered()
-                        .use { inputStream ->
-                            outputStream.putNextEntry(ZipEntry(SETTINGS_FILENAME))
-                            inputStream.copyTo(outputStream)
+            // Validate output stream can be opened
+            val outputStream = context.applicationContext.contentResolver.openOutputStream(uri)
+            if (outputStream == null) {
+                throw IllegalStateException("Unable to open output stream for backup")
+            }
+
+            outputStream.use { outStream ->
+                outStream.buffered().zipOutputStream().use { zipStream ->
+                    var settingsBackedUp = false
+                    var databaseBackedUp = false
+
+                    // Backup settings file
+                    val settingsFile = context.filesDir / "datastore" / SETTINGS_FILENAME
+                    if (settingsFile.exists() && settingsFile.canRead()) {
+                        try {
+                            val settingsSize = settingsFile.length()
+                            if (settingsSize > 0) {
+                                settingsFile.inputStream().buffered().use { inputStream ->
+                                    zipStream.putNextEntry(ZipEntry(SETTINGS_FILENAME))
+                                    val bytesCopied = inputStream.copyTo(zipStream)
+                                    zipStream.closeEntry()
+
+                                    // Verify data was actually written
+                                    if (bytesCopied > 0) {
+                                        settingsBackedUp = true
+                                    }
+                                }
+                            }
+                        } catch (e: Exception) {
+                            reportException(e)
+                            // Continue backup even if settings fail, but log it
                         }
-                    runBlocking(Dispatchers.IO) {
-                        database.checkpoint()
                     }
-                    FileInputStream(database.openHelper.writableDatabase.path).use { inputStream ->
-                        outputStream.putNextEntry(ZipEntry(InternalDatabase.DB_NAME))
-                        inputStream.copyTo(outputStream)
+
+                    // Backup database
+                    try {
+                        // Checkpoint to ensure database is in consistent state
+                        runBlocking(Dispatchers.IO) {
+                            database.checkpoint()
+                        }
+
+                        val dbPath = database.openHelper.writableDatabase.path
+                        if (dbPath == null) {
+                            throw IllegalStateException("Database path is null")
+                        }
+
+                        val dbFile = java.io.File(dbPath)
+                        if (!dbFile.exists()) {
+                            throw IllegalStateException("Database file does not exist")
+                        }
+
+                        if (!dbFile.canRead()) {
+                            throw IllegalStateException("Cannot read database file")
+                        }
+
+                        val dbSize = dbFile.length()
+                        if (dbSize == 0L) {
+                            throw IllegalStateException("Database file is empty")
+                        }
+
+                        FileInputStream(dbPath).use { inputStream ->
+                            zipStream.putNextEntry(ZipEntry(InternalDatabase.DB_NAME))
+                            val bytesCopied = inputStream.copyTo(zipStream)
+                            zipStream.closeEntry()
+
+                            // Verify complete database was copied
+                            if (bytesCopied != dbSize) {
+                                throw IllegalStateException(
+                                    "Database backup incomplete: copied $bytesCopied of $dbSize bytes"
+                                )
+                            }
+
+                            databaseBackedUp = true
+                        }
+                    } catch (e: Exception) {
+                        reportException(e)
+                        throw IllegalStateException("Failed to backup database: ${e.message}", e)
                     }
+
+                    // Ensure critical data was backed up
+                    if (!databaseBackedUp) {
+                        throw IllegalStateException("Database backup failed - no data written")
+                    }
+
+                    // Flush and finish the ZIP properly
+                    zipStream.finish()
+                    zipStream.flush()
+                    outStream.flush()
+
+                    tempBackupCreated = true
                 }
             }
+
+            // Verify the backup file was created and has content
+            context.applicationContext.contentResolver.openInputStream(uri)?.use { verifyStream ->
+                val backupSize = verifyStream.available()
+                if (backupSize <= 0) {
+                    throw IllegalStateException("Backup file is empty after creation")
+                }
+            } ?: throw IllegalStateException("Cannot verify backup file")
+
+            backupSuccessful = true
+
         }.onSuccess {
             Toast.makeText(context, R.string.backup_create_success, Toast.LENGTH_SHORT).show()
-        }.onFailure {
-            reportException(it)
-            Toast.makeText(context, R.string.backup_create_failed, Toast.LENGTH_SHORT).show()
+        }.onFailure { error ->
+            reportException(error)
+
+            // If backup creation started but failed, try to delete the corrupt file
+            if (tempBackupCreated && !backupSuccessful) {
+                try {
+                    context.applicationContext.contentResolver.delete(uri, null, null)
+                } catch (e: Exception) {
+                    reportException(e)
+                }
+            }
+
+            val errorMessage = when {
+                error.message?.contains("space", ignoreCase = true) == true ->
+                    "Backup failed: Not enough storage space"
+                error.message?.contains("permission", ignoreCase = true) == true ->
+                    "Backup failed: Permission denied"
+                error.message?.contains("read", ignoreCase = true) == true ->
+                    "Backup failed: Cannot read database"
+                else ->
+                    context.getString(R.string.backup_create_failed) + ": ${error.message}"
+            }
+
+            Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
         }
     }
 
     fun restore(context: Context, uri: Uri) {
         runCatching {
-            context.applicationContext.contentResolver.openInputStream(uri)?.use {
-                it.zipInputStream().use { inputStream ->
-                    var entry = tryOrNull { inputStream.nextEntry } // prevent ZipException
-                    while (entry != null) {
-                        when (entry.name) {
-                            SETTINGS_FILENAME -> {
-                                (context.filesDir / "datastore" / SETTINGS_FILENAME).outputStream()
-                                    .use { outputStream ->
-                                        inputStream.copyTo(outputStream)
-                                    }
-                            }
+            // Validate input stream can be opened
+            val inputStream = context.applicationContext.contentResolver.openInputStream(uri)
+            if (inputStream == null) {
+                throw IllegalStateException("Unable to open backup file")
+            }
 
-                            InternalDatabase.DB_NAME -> {
-                                runBlocking(Dispatchers.IO) {
-                                    database.checkpoint()
+            var hasValidEntries = false
+            var restoredSettings = false
+            var restoredDatabase = false
+            var isValidZipFile = false
+
+            inputStream.use { stream ->
+                try {
+                    stream.zipInputStream().use { zipStream ->
+                        isValidZipFile = true
+                        var entry = tryOrNull { zipStream.nextEntry }
+
+                        // Check if we can read at least one entry
+                        if (entry == null) {
+                            throw IllegalStateException("Backup file appears to be empty or corrupted")
+                        }
+
+                        while (entry != null) {
+                            hasValidEntries = true
+
+                            when (entry.name) {
+                                SETTINGS_FILENAME -> {
+                                    try {
+                                        val settingsFile = context.filesDir / "datastore" / SETTINGS_FILENAME
+                                        settingsFile.parentFile?.mkdirs() // Ensure directory exists
+
+                                        settingsFile.outputStream().use { outputStream ->
+                                            val bytesCopied = zipStream.copyTo(outputStream)
+                                            if (bytesCopied > 0) {
+                                                restoredSettings = true
+                                            }
+                                        }
+                                    } catch (e: Exception) {
+                                        reportException(e)
+                                        // Continue restore even if settings fail
+                                    }
                                 }
-                                database.close()
-                                FileOutputStream(database.openHelper.writableDatabase.path).use { outputStream ->
-                                    inputStream.copyTo(outputStream)
+
+                                InternalDatabase.DB_NAME -> {
+                                    try {
+                                        runBlocking(Dispatchers.IO) {
+                                            database.checkpoint()
+                                        }
+                                        database.close()
+
+                                        val dbPath = database.openHelper.writableDatabase.path
+                                        if (dbPath == null) {
+                                            throw IllegalStateException("Database path is null")
+                                        }
+
+                                        // Create temporary backup of current database
+                                        val currentDbFile = java.io.File(dbPath)
+                                        val tempBackupFile = java.io.File(dbPath + ".temp_backup")
+
+                                        if (currentDbFile.exists()) {
+                                            try {
+                                                currentDbFile.copyTo(tempBackupFile, overwrite = true)
+                                            } catch (e: Exception) {
+                                                reportException(e)
+                                            }
+                                        }
+
+                                        try {
+                                            FileOutputStream(dbPath).use { outputStream ->
+                                                val bytesCopied = zipStream.copyTo(outputStream)
+                                                if (bytesCopied > 0) {
+                                                    restoredDatabase = true
+                                                    // Delete temp backup on success
+                                                    tempBackupFile.delete()
+                                                } else {
+                                                    throw IllegalStateException("No data was copied from backup")
+                                                }
+                                            }
+                                        } catch (e: Exception) {
+                                            // Restore original database if restore failed
+                                            if (tempBackupFile.exists()) {
+                                                try {
+                                                    tempBackupFile.copyTo(currentDbFile, overwrite = true)
+                                                    tempBackupFile.delete()
+                                                } catch (restoreError: Exception) {
+                                                    reportException(restoreError)
+                                                }
+                                            }
+                                            throw e
+                                        }
+                                    } catch (e: Exception) {
+                                        reportException(e)
+                                        throw IllegalStateException("Failed to restore database: ${e.message}", e)
+                                    }
+                                }
+
+                                else -> {
+                                    // Unknown entry, skip it
                                 }
                             }
+                            entry = tryOrNull { zipStream.nextEntry }
                         }
-                        entry = tryOrNull { inputStream.nextEntry } // prevent ZipException
                     }
+                } catch (e: java.util.zip.ZipException) {
+                    throw IllegalStateException("File is not a valid backup file or is corrupted", e)
                 }
             }
+
+            // Validate restore was successful
+            if (!isValidZipFile) {
+                throw IllegalStateException("This app does not support this backup file format")
+            }
+
+            if (!hasValidEntries) {
+                throw IllegalStateException("Backup file is empty or corrupted. This app cannot restore from this file")
+            }
+
+            if (!restoredDatabase) {
+                throw IllegalStateException("Backup file is missing required data. This app cannot restore from this file")
+            }
+
+            // Show success message
+            Toast.makeText(context, R.string.restore_success, Toast.LENGTH_SHORT).show()
+
+            // Only restart if restore was successful
             context.stopService(Intent(context, MusicService::class.java))
             context.filesDir.resolve(PERSISTENT_QUEUE_FILE).delete()
             context.startActivity(Intent(context, MainActivity::class.java))
             exitProcess(0)
-        }.onFailure {
-            reportException(it)
-            Toast.makeText(context, R.string.restore_failed, Toast.LENGTH_SHORT).show()
+        }.onFailure { error ->
+            reportException(error)
+
+            val errorMessage = when {
+                error.message?.contains("not a valid backup", ignoreCase = true) == true ->
+                    "This app does not support this backup file"
+                error.message?.contains("corrupted", ignoreCase = true) == true ->
+                    "Backup file is corrupted and cannot be restored"
+                error.message?.contains("missing required data", ignoreCase = true) == true ->
+                    "This app does not support this backup file (missing database)"
+                error.message?.contains("empty", ignoreCase = true) == true ->
+                    "Backup file is empty. This app cannot restore from this file"
+                error.message?.contains("format", ignoreCase = true) == true ->
+                    "This app does not support this backup file format"
+                error.message?.contains("permission", ignoreCase = true) == true ->
+                    "Cannot restore: Permission denied"
+                else ->
+                    "This app does not support this backup file: ${error.message}"
+            }
+
+            Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
         }
     }
 
@@ -101,33 +331,76 @@ class BackupRestoreViewModel @Inject constructor(
         runCatching {
             context.contentResolver.openInputStream(uri)?.use { stream ->
                 val lines = stream.bufferedReader().readLines()
-                lines.forEachIndexed { _, line ->
-                    val parts = line.split(",").map { it.trim() }
-                    val title = parts[0]
-                    val artistStr = parts[1]
 
-                    val artists = artistStr.split(";").map { it.trim() }.map {
-                   ArtistEntity(
-                            id = "",
-                            name = it,
+                // Validate file is not empty
+                if (lines.isEmpty()) {
+                    Toast.makeText(
+                        context,
+                        "CSV file is empty or invalid",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return songs
+                }
+
+                lines.forEachIndexed { index, line ->
+                    // Skip empty lines
+                    if (line.isBlank()) return@forEachIndexed
+
+                    try {
+                        val parts = line.split(",").map { it.trim() }
+
+                        // Validate CSV has at least 2 columns (title and artist)
+                        if (parts.size < 2) {
+                            // Skip invalid lines silently or log them
+                            return@forEachIndexed
+                        }
+
+                        val title = parts.getOrNull(0)?.takeIf { it.isNotBlank() } ?: return@forEachIndexed
+                        val artistStr = parts.getOrNull(1)?.takeIf { it.isNotBlank() } ?: "Unknown Artist"
+
+                        val artists = artistStr.split(";").map { it.trim() }
+                            .filter { it.isNotBlank() }
+                            .map {
+                                ArtistEntity(
+                                    id = "",
+                                    name = it,
+                                )
+                            }
+
+                        // Ensure we have at least one artist
+                        val finalArtists = if (artists.isEmpty()) {
+                            listOf(ArtistEntity(id = "", name = "Unknown Artist"))
+                        } else {
+                            artists
+                        }
+
+                        val mockSong = Song(
+                            song = SongEntity(
+                                id = "",
+                                title = title,
+                            ),
+                            artists = finalArtists,
                         )
+                        songs.add(mockSong)
+                    } catch (e: Exception) {
+                        // Log error for this line but continue processing
+                        reportException(e)
                     }
-                    val mockSong = Song(
-                        song = SongEntity(
-                            id = "",
-                            title = title,
-                        ),
-                        artists = artists,
-                    )
-                    songs.add(mockSong)
                 }
             }
+        }.onFailure { e ->
+            reportException(e)
+            Toast.makeText(
+                context,
+                "Failed to read CSV file: ${e.message}",
+                Toast.LENGTH_SHORT
+            ).show()
         }
 
         if (songs.isEmpty()) {
             Toast.makeText(
                 context,
-                "No songs found. Invalid file, or perhaps no song matches were found.",
+                "No valid songs found in CSV file",
                 Toast.LENGTH_SHORT
             ).show()
         }
@@ -143,33 +416,104 @@ class BackupRestoreViewModel @Inject constructor(
         runCatching {
             context.applicationContext.contentResolver.openInputStream(uri)?.use { stream ->
                 val lines = stream.bufferedReader().readLines()
-                if (lines.first().startsWith("#EXTM3U")) {
-                    lines.forEachIndexed { _, rawLine ->
-                        if (rawLine.startsWith("#EXTINF:")) {
-                            // maybe later write this to be more efficient
-                            val artists =
-                                rawLine.substringAfter("#EXTINF:").substringAfter(',').substringBefore(" - ").split(';')
-                            val title = rawLine.substringAfter("#EXTINF:").substringAfter(',').substringAfter(" - ")
+
+                // Validate M3U file format
+                if (lines.isEmpty()) {
+                    Toast.makeText(
+                        context,
+                        "M3U file is empty",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return songs
+                }
+
+                if (!lines.first().startsWith("#EXTM3U")) {
+                    Toast.makeText(
+                        context,
+                        "Invalid M3U file format. File must start with #EXTM3U",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return songs
+                }
+
+                lines.forEachIndexed { index, rawLine ->
+                    if (rawLine.startsWith("#EXTINF:")) {
+                        try {
+                            // Extract metadata after #EXTINF:
+                            val metadata = rawLine.substringAfter("#EXTINF:")
+
+                            // Check if metadata contains comma (required format)
+                            if (!metadata.contains(',')) {
+                                return@forEachIndexed
+                            }
+
+                            val info = metadata.substringAfter(',')
+
+                            // Check if info contains " - " separator
+                            if (!info.contains(" - ")) {
+                                // Fallback: treat entire info as title
+                                val mockSong = Song(
+                                    song = SongEntity(
+                                        id = "",
+                                        title = info.trim(),
+                                    ),
+                                    artists = listOf(ArtistEntity("", "Unknown Artist")),
+                                )
+                                songs.add(mockSong)
+                                return@forEachIndexed
+                            }
+
+                            val artistStr = info.substringBefore(" - ").trim()
+                            val title = info.substringAfter(" - ").trim()
+
+                            // Validate we have both title and artist
+                            if (title.isBlank()) {
+                                return@forEachIndexed
+                            }
+
+                            val artists = if (artistStr.isNotBlank()) {
+                                artistStr.split(';')
+                                    .map { it.trim() }
+                                    .filter { it.isNotBlank() }
+                                    .map { ArtistEntity("", it) }
+                            } else {
+                                listOf(ArtistEntity("", "Unknown Artist"))
+                            }
+
+                            val finalArtists = if (artists.isEmpty()) {
+                                listOf(ArtistEntity("", "Unknown Artist"))
+                            } else {
+                                artists
+                            }
 
                             val mockSong = Song(
                                 song = SongEntity(
                                     id = "",
                                     title = title,
                                 ),
-                                artists = artists.map { ArtistEntity("", it) },
+                                artists = finalArtists,
                             )
                             songs.add(mockSong)
-
+                        } catch (e: Exception) {
+                            // Log error for this line but continue processing
+                            reportException(e)
                         }
                     }
                 }
             }
+        }.onFailure { e ->
+            reportException(e)
+            Toast.makeText(
+                context,
+                "Failed to read M3U file: ${e.message}",
+                Toast.LENGTH_SHORT
+            ).show()
         }
 
         if (songs.isEmpty()) {
             Toast.makeText(
                 context,
-                "No songs found. Invalid file, or perhaps no song matches were found.",
+                "No valid songs found in M3U file",
                 Toast.LENGTH_SHORT
             ).show()
         }
