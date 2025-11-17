@@ -366,7 +366,7 @@ fun ArtistScreen(
                                     modifier = Modifier.padding(bottom = 8.dp)
                                 )
 
-// Replace the description section with this fixed version:
+// Replace the description section with this fixed version
 
                                 var showDescriptionDialog by rememberSaveable { mutableStateOf(false) }
                                 var isDescriptionTruncated by remember { mutableStateOf(false) }
