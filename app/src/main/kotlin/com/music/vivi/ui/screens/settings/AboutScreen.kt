@@ -63,6 +63,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
 import com.music.vivi.BuildConfig
 import com.music.vivi.R
 import com.music.vivi.constants.CheckForUpdatesKey
@@ -424,6 +425,59 @@ fun AboutScreen(
                         }
                     }
                 }
+
+                // Special Thanks Section
+                item {
+                    Text(
+                        text = "SPECIAL THANKS",
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
+                    )
+                }
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer
+                        ),
+                        shape = RoundedCornerShape(20.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                            // Mostafa Alagamy
+                            ModernInfoItem(
+                                icon = {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(48.dp)
+                                            .clip(CircleShape)
+                                            .background(MaterialTheme.colorScheme.primaryContainer)
+                                    ) {
+                                        AsyncImage(
+                                            model = "https://avatars.githubusercontent.com/u/80542861?s=200&v=4",
+                                            contentDescription = "Mostafa Alagamy",
+                                            modifier = Modifier
+                                                .size(48.dp)
+                                                .clip(CircleShape),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    }
+                                },
+                                title = "Mostafa Alagamy",
+                                subtitle = "For Source Code",
+                                onClick = { uriHandler.openUri("https://github.com/mostafaalagamy") },
+                                showArrow = true
+                            )
+                        }
+                    }
+                }
+
 
                 // App Information Section
                 item {
