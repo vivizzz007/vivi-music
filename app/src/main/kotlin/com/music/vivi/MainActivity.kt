@@ -195,6 +195,7 @@ import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.ui.utils.resetHeightOffset
 import com.music.vivi.update.changelog.ChangelogBottomSheet
 import com.music.vivi.update.downloadmanager.DownloadNotificationManager
+import com.music.vivi.update.experiment.CrashLogHandler
 //import com.music.vivi.update.updatenotification.UpdateNotificationManager
 import com.music.vivi.updatesreen.UpdateStatus
 import com.music.vivi.utils.SyncUtils
@@ -317,6 +318,10 @@ class MainActivity : ComponentActivity() {
 //                BuildConfig.VERSION_CODE   // Pass version code as fallback
 //            )
 //        }
+//crash log when appp crash
+        if (savedInstanceState == null) {
+            CrashLogHandler.initialize(applicationContext)
+        }
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             val locale = dataStore[AppLanguageKey]

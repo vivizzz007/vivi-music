@@ -24,6 +24,7 @@ import com.music.vivi.constants.*
 import com.music.vivi.di.ApplicationScope
 import com.music.vivi.extensions.toEnum
 import com.music.vivi.extensions.toInetSocketAddress
+import com.music.vivi.update.experiment.CrashLogHandler
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.get
 import com.music.vivi.utils.reportException
@@ -82,6 +83,9 @@ class App : Application(), SingletonImageLoader.Factory {
 
         // Initialize LastFM with API keys
         LastFM.initialize()
+
+        // Initialize crash log handler app crash
+        CrashLogHandler.initialize(this)
 
         if (settings[ProxyEnabledKey] == true) {
             val username = settings[ProxyUsernameKey].orEmpty()
