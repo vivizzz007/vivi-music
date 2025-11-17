@@ -64,7 +64,6 @@ fun CrashPage(
             ) {
                 Column(modifier = Modifier.padding(vertical = 8.dp)) {
 
-                    // App Updates item with dynamic state
                     ModernInfoItem(
                         icon = {
                             Icon(
