@@ -26,12 +26,15 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.music.vivi.ui.utils.appBarScrollBehavior
 import com.music.vivi.update.settingstyle.ModernInfoItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CrashPage(
-    scrollBehavior: TopAppBarScrollBehavior,
+    scrollBehavior: TopAppBarScrollBehavior = appBarScrollBehavior(canScroll = { true }),
+    thread: Thread,
+    throwable: Throwable
 ) {
     Scaffold(
         topBar = {
@@ -77,6 +80,28 @@ fun CrashPage(
                         titleColor = MaterialTheme.colorScheme.onSurface,
                         subtitleColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         onClick = { TODO("Add Clipboard") },
+                        showArrow = true,
+                        iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
+                    )
+
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                    )
+
+                    ModernInfoItem(
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Filled.CopyAll,
+                                contentDescription = null,
+                                modifier = Modifier.size(22.dp),
+                            )
+                        },
+                        title = "Report Issue",
+                        subtitle = "Opens GitHub to report the issue",
+                        titleColor = MaterialTheme.colorScheme.onSurface,
+                        subtitleColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        onClick = { TODO("Add This One Too") },
                         showArrow = true,
                         iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
                     )
