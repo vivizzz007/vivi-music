@@ -83,7 +83,7 @@ class CrashLogHandler(
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
             }
-            intent.putExtra("Crash Data", )
+            intent.putExtra("Crash Data", crashLog)
             context.startActivity(intent)
             Thread.sleep(1000)
         } catch (e: Exception) {
@@ -93,13 +93,28 @@ class CrashLogHandler(
         }
     }
 
-    private fun saveCrashLog(thread: Thread, throwable: Throwable) {
+    private fun saveCrashLog(crashLog: String) {
         try {
             val timestamp = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US).format(Date())
             val crashFile = File(getCrashLogsDir(context), "crash_$timestamp.txt")
 
             FileOutputStream(crashFile).use { fos ->
                 PrintWriter(fos).use { writer ->
+                    writer.print(crashLog)
+                }
+            }
+
+            Log.i(TAG, "Crash log saved to: ${crashFile.absolutePath}")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error writing crash log: ${e.message}", e)
+        }
+    }
+
+    private fun getCrashLog(thread: Thread, throwable: Throwable): String {
+        try {
+            val timestamp = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US).format(Date())
+            return StringWriter().use { stringwr ->
+                PrintWriter(stringwr).use { writer ->
                     // Write header
                     writer.println("=== CRASH REPORT ===")
                     writer.println("Timestamp: ${SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(Date())}")
@@ -158,12 +173,11 @@ class CrashLogHandler(
                         cause = cause.cause
                         causeLevel++
                     }
-                }
+                }.toString()
             }
-
-            Log.i(TAG, "Crash log saved to: ${crashFile.absolutePath}")
         } catch (e: Exception) {
-            Log.e(TAG, "Error writing crash log: ${e.message}", e)
+            Log.e(TAG, "Error creating crash log: ${e.message}", e)
+            return "Error creating crash log: ${e.message}"
         }
     }
 
