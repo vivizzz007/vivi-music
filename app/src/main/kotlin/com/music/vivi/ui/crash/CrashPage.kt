@@ -119,7 +119,7 @@ fun CrashPage(
                     ModernInfoItem(
                         icon = {
                             Icon(
-                                imageVector = Icons.Filled.CopyAll,
+                                imageVector = Icons.Filled.Email,
                                 contentDescription = null,
                                 modifier = Modifier.size(22.dp),
                             )
@@ -136,6 +136,23 @@ fun CrashPage(
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                    )
+
+                    ModernInfoItem(
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Filled.Refresh,
+                                contentDescription = null,
+                                modifier = Modifier.size(22.dp),
+                            )
+                        },
+                        title = "Restart ViVi",
+                        subtitle = "Restarts ViVi.",
+                        titleColor = MaterialTheme.colorScheme.onSurface,
+                        subtitleColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/vivizzz007/vivi-music/issues/new?template=bug_report.yml"))) },
+                        showArrow = true,
+                        iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
                     )
                 }
             }

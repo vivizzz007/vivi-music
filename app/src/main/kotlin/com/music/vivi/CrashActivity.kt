@@ -11,8 +11,9 @@ class CrashActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        var crashData = intent.getStringExtra("Crash Data")
         setContent {
-            CrashPage(intent.getStringExtra("Crash Data").toString())
+            CrashPage(crashData)
         }
     }
 }
