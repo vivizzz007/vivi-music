@@ -1,10 +1,13 @@
 package com.music.vivi.update.experiment
 
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.os.Environment
 import android.util.Log
+import com.music.vivi.CrashActivity
 import com.music.vivi.ui.crash.CrashPage
+import com.music.vivi.ui.utils.appBarScrollBehavior
 import java.io.File
 import java.io.FileOutputStream
 import java.io.PrintWriter
@@ -64,8 +67,10 @@ class CrashLogHandler(
 
     override fun uncaughtException(thread: Thread, throwable: Throwable) {
         try {
-            // Save crash log
-            saveCrashLog(thread, throwable)
+
+            var crashLog = getCrashLog(thread, throwable)
+
+            saveCrashLog(crashLog)
 
             // Save logcat
             saveLogcat()
@@ -73,11 +78,17 @@ class CrashLogHandler(
             // Clean up old logs
             cleanupOldLogs()
 
-            CrashPage(thread=thread,throwable=throwable)
+            val intent = Intent(context, CrashActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            }
+            intent.putExtra("Crash Data", )
+            context.startActivity(intent)
+            Thread.sleep(1000)
         } catch (e: Exception) {
             Log.e(TAG, "Error saving crash log: ${e.message}", e)
         } finally {
-            // Call the default handler
             defaultHandler?.uncaughtException(thread, throwable)
         }
     }

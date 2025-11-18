@@ -136,6 +136,10 @@
                 android:name="android.app.shortcuts"
                 android:resource="@xml/shortcuts" />
         </activity>
+        <activity
+            android:name=".CrashActivity"
+            android:process=":crash"
+            android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

@@ -1,7 +1,10 @@
 package com.music.vivi.ui.crash
 
 import android.content.ClipData
-import android.os.Build
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,17 +29,21 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat.startActivity
 import com.music.vivi.ui.utils.appBarScrollBehavior
 import com.music.vivi.update.settingstyle.ModernInfoItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CrashPage(
-    scrollBehavior: TopAppBarScrollBehavior = appBarScrollBehavior(canScroll = { true }),
-    thread: Thread,
-    throwable: Throwable
+    errorText: String
 ) {
+    val scrollBehavior = appBarScrollBehavior(canScroll = { true })
+
+    val context = LocalContext.current
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -67,6 +74,20 @@ fun CrashPage(
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                    Text(
+                        text = errorText
+                    )
+                }
+            }
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            ) {
+                Column(modifier = Modifier.padding(vertical = 8.dp)) {
 
                     ModernInfoItem(
                         icon = {
@@ -81,7 +102,10 @@ fun CrashPage(
                         titleColor = MaterialTheme.colorScheme.onSurface,
                         subtitleColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         onClick = {
-
+                            val clipboard =
+                                context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                            val clip = ClipData.newPlainText("Short ViVi Crash Info", errorText)
+                            clipboard.setPrimaryClip(clip)
                         },
                         showArrow = true,
                         iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
@@ -104,7 +128,7 @@ fun CrashPage(
                         subtitle = "Opens GitHub to report the issue",
                         titleColor = MaterialTheme.colorScheme.onSurface,
                         subtitleColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        onClick = { TODO("Add This One Too") },
+                        onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/vivizzz007/vivi-music/issues/new?template=bug_report.yml"))) },
                         showArrow = true,
                         iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
                     )
