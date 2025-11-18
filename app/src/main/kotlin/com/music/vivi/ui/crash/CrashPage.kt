@@ -97,8 +97,8 @@ fun CrashPage(
                                 modifier = Modifier.size(22.dp),
                             )
                         },
-                        title = "Copy Error",
-                        subtitle = "Copies the error to clipboard.",
+                        title = "Copy Log Content",
+                        subtitle = "Copies the crash log to clipboard.",
                         titleColor = MaterialTheme.colorScheme.onSurface,
                         subtitleColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         onClick = {
@@ -125,7 +125,7 @@ fun CrashPage(
                             )
                         },
                         title = "Report Issue",
-                        subtitle = "Opens GitHub to report the issue",
+                        subtitle = "Opens GitHub to report the issue.",
                         titleColor = MaterialTheme.colorScheme.onSurface,
                         subtitleColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/vivizzz007/vivi-music/issues/new?template=bug_report.yml"))) },
@@ -150,7 +150,16 @@ fun CrashPage(
                         subtitle = "Restarts ViVi.",
                         titleColor = MaterialTheme.colorScheme.onSurface,
                         subtitleColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/vivizzz007/vivi-music/issues/new?template=bug_report.yml"))) },
+                        onClick = {
+                            val intent = Intent(context, App::class.java).apply {
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                            }
+                            context.startActivity(intent)
+                            Thread.sleep(1000)
+                            Process.killProcess(Process.myPid())
+                        },
                         showArrow = true,
                         iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
                     )
