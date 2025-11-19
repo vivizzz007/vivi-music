@@ -138,6 +138,7 @@
         </activity>
         <activity
             android:name=".CrashActivity"
+            android:theme="@style/Theme.Music"
             android:process=":crash"
             android:exported="false" />
 
