@@ -79,7 +79,7 @@ fun ViviUpdatesScreen(
     val context = LocalContext.current
     val currentVersion = BuildConfig.VERSION_NAME
 
-    var updateStatus by remember { mutableStateOf<UpdateStatus>(UpdateStatus.Loading) }
+    var updateStatus by remember { mutableStateOf<UpdateStatus>(UpdateStatus.UpToDate) }
     var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
 
     var lastUpdatedDate by remember { mutableStateOf("") }
@@ -90,12 +90,10 @@ fun ViviUpdatesScreen(
     val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     val checkForUpdates = sharedPrefs.getBoolean(KEY_AUTO_UPDATE_CHECK, true)
 
-    // Modified update checking logic - only run if auto-update is enabled
+    // Modified update checking logic - check silently in background without showing loading state
     LaunchedEffect(checkForUpdates) {
         if (checkForUpdates) {
-            // Set loading state first
-            updateStatus = UpdateStatus.Loading
-
+            // Start with UpToDate instead of Loading - check happens silently in background
             checkForUpdate(
                 onSuccess = { latestVersion, changelog, apkSize, releaseDate, description, imageUrl ->
                     if (isNewerVersion(latestVersion, currentVersion)) {
@@ -212,7 +210,7 @@ fun ViviUpdatesScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // Large Box - Shows different states based on update status
+            // Large Box - Shows different states based on update status (Loading state is ignored)
             val (boxColor, iconTint, textColor, subtextColor) = when (updateStatus) {
                 is UpdateStatus.UpdateAvailable -> {
                     Quadruple(
@@ -231,6 +229,7 @@ fun ViviUpdatesScreen(
                     )
                 }
                 else -> {
+                    // This handles Loading, UpToDate, and Error - all show the same "up to date" style
                     Quadruple(
                         MaterialTheme.colorScheme.surfaceContainerHigh,
                         MaterialTheme.colorScheme.primary,
@@ -269,21 +268,8 @@ fun ViviUpdatesScreen(
                                     tint = iconTint
                                 )
                             }
-                            is UpdateStatus.Disabled -> {
-                                Icon(
-                                    painter = painterResource(R.drawable.updated),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(32.dp),
-                                    tint = iconTint
-                                )
-                            }
-                            is UpdateStatus.Loading -> {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(32.dp),
-                                    color = iconTint
-                                )
-                            }
                             else -> {
+                                // Loading, Disabled, UpToDate, Error all show the same icon
                                 Icon(
                                     painter = painterResource(R.drawable.updated),
                                     contentDescription = null,
@@ -305,7 +291,8 @@ fun ViviUpdatesScreen(
                                 Pair("Updates disabled", "Enable automatic checks \nin update settings")
                             }
                             is UpdateStatus.Loading -> {
-                                Pair("Checking for updates", "Please wait...")
+                                // Show as up to date even when loading
+                                Pair("App is up to date", "Current version $currentVersion")
                             }
                             is UpdateStatus.Error -> {
                                 Pair("Check failed", "Unable to check for updates")
@@ -350,7 +337,7 @@ fun ViviUpdatesScreen(
 
             Spacer(Modifier.height(32.dp))
 
-            // Small Box - Shows different states
+            // Small Box - Shows different states (Loading state is ignored)
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -392,7 +379,6 @@ fun ViviUpdatesScreen(
                                         painter = painterResource(R.drawable.updated),
                                         contentDescription = null,
                                         modifier = Modifier.size(22.dp),
-//                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                                         tint = MaterialTheme.colorScheme.surfaceTint
                                     )
                                 },
@@ -405,23 +391,8 @@ fun ViviUpdatesScreen(
                                 showSettingsIcon = true
                             )
                         }
-                        is UpdateStatus.Loading -> {
-                            ModernInfoItem(
-                                icon = {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(22.dp),
-                                        strokeWidth = 2.dp,
-                                        color = MaterialTheme.colorScheme.surfaceTint
-                                    )
-                                },
-                                title = "System update",
-                                subtitle = "Checking for updates...",
-                                onClick = { },
-                                showArrow = false,
-                                showSettingsIcon = false
-                            )
-                        }
                         else -> {
+                            // Loading, UpToDate, Error all show the same "up to date" UI
                             ModernInfoItem(
                                 icon = {
                                     Icon(
@@ -575,10 +546,10 @@ fun ViviUpdatesScreen(
 
 // Required data classes
 sealed class UpdateStatus {
-    object Loading : UpdateStatus()
+    object Loading : UpdateStatus()  // Keep this for MainActivity compatibility
     object UpToDate : UpdateStatus()
     object Error : UpdateStatus()
-    object Disabled : UpdateStatus()  // State when auto-check is disabled
+    object Disabled : UpdateStatus()
     data class UpdateAvailable(val latestVersion: String) : UpdateStatus()
 }
 
@@ -588,8 +559,9 @@ data class UpdateInfo(
     val apkSize: String,
     val releaseDate: String,
     val description: String? = null,
-    val imageUrl: String? = null  // Add this
+    val imageUrl: String? = null
 )
+
 // Helper data class for colors
 data class Quadruple<A, B, C, D>(
     val first: A,
