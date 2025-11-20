@@ -373,7 +373,7 @@ fun BottomSheetPlayer(
                 TextButton(
                     onClick = {
                         showSleepTimerDialog = false
-                        playerConnection.service.sleepTimer.start(sleepTimerValue.roundToInt())
+                        playerConnection.service.sleepTimer.start(sleepTimerValue.roundToInt() * 60 * 1000L)
                     },
                 ) {
                     Text(stringResource(android.R.string.ok))
@@ -407,7 +407,7 @@ fun BottomSheetPlayer(
                     OutlinedIconButton(
                         onClick = {
                             showSleepTimerDialog = false
-                            playerConnection.service.sleepTimer.start(-1)
+                            playerConnection.service.sleepTimer.start(-1L)
                         },
                     ) {
                         Text(stringResource(R.string.end_of_song))
