@@ -322,6 +322,26 @@ fun Queue(
                     Box(
                         modifier = Modifier
                             .size(buttonSize)
+                            .clip(RoundedCornerShape(5.dp))
+                            .border(1.dp, borderColor, RoundedCornerShape(5.dp))
+                            .clickable {
+                                playerConnection.player.shuffleModeEnabled = !playerConnection.player.shuffleModeEnabled
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.shuffle),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(iconSize)
+                                .alpha(if (playerConnection.player.shuffleModeEnabled) 1f else 0.5f),
+                            tint = TextBackgroundColor
+                        )
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .size(buttonSize)
                             .clip(
                                 RoundedCornerShape(
                                     topStart = 5.dp,
