@@ -642,100 +642,169 @@ fun LocalPlaylistScreen(
 
                                 Spacer(Modifier.height(24.dp))
 
-                                Row(
+                                Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(horizontal = 32.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+                                    verticalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
-                                    ToggleButton(
-                                        checked = downloadState == Download.STATE_COMPLETED || downloadState == Download.STATE_DOWNLOADING,
-                                        onCheckedChange = {
-                                            when (downloadState) {
-                                                Download.STATE_COMPLETED, Download.STATE_DOWNLOADING -> {
-                                                    showRemoveDownloadDialog = true
-                                                }
-                                                else -> {
-                                                    songs.forEach { song ->
-                                                        val downloadRequest = DownloadRequest
-                                                            .Builder(song.song.id, song.song.id.toUri())
-                                                            .setCustomCacheKey(song.song.id)
-                                                            .setData(song.song.song.title.toByteArray())
-                                                            .build()
-                                                        DownloadService.sendAddDownload(
-                                                            context,
-                                                            ExoDownloadService::class.java,
-                                                            downloadRequest,
-                                                            false,
-                                                        )
+                                    // First row: Download, Shuffle, and Edit (if editable)
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+                                    ) {
+                                        ToggleButton(
+                                            checked = downloadState == Download.STATE_COMPLETED || downloadState == Download.STATE_DOWNLOADING,
+                                            onCheckedChange = {
+                                                when (downloadState) {
+                                                    Download.STATE_COMPLETED, Download.STATE_DOWNLOADING -> {
+                                                        showRemoveDownloadDialog = true
+                                                    }
+                                                    else -> {
+                                                        songs.forEach { song ->
+                                                            val downloadRequest = DownloadRequest
+                                                                .Builder(song.song.id, song.song.id.toUri())
+                                                                .setCustomCacheKey(song.song.id)
+                                                                .setData(song.song.song.title.toByteArray())
+                                                                .build()
+                                                            DownloadService.sendAddDownload(
+                                                                context,
+                                                                ExoDownloadService::class.java,
+                                                                downloadRequest,
+                                                                false,
+                                                            )
+                                                        }
                                                     }
                                                 }
+                                            },
+                                            modifier = Modifier.weight(1f).semantics { role = Role.Button },
+                                            shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
+                                        ) {
+                                            when (downloadState) {
+                                                Download.STATE_COMPLETED -> {
+                                                    Icon(
+                                                        painter = painterResource(R.drawable.offline),
+                                                        contentDescription = "saved",
+                                                        modifier = Modifier.size(20.dp)
+                                                    )
+                                                }
+                                                Download.STATE_DOWNLOADING -> {
+                                                    CircularProgressIndicator(
+                                                        strokeWidth = 2.dp,
+                                                        modifier = Modifier.size(16.dp),
+                                                        color = MaterialTheme.colorScheme.onSurface
+                                                    )
+                                                }
+                                                else -> {
+                                                    Icon(
+                                                        painter = painterResource(R.drawable.download),
+                                                        contentDescription = "save",
+                                                        modifier = Modifier.size(20.dp)
+                                                    )
+                                                }
                                             }
-                                        },
-                                        modifier = Modifier.weight(1f).semantics { role = Role.Button },
-                                        shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
-                                    ) {
-                                        when (downloadState) {
-                                            Download.STATE_COMPLETED -> {
+                                            Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
+                                            Text(
+                                                text = when (downloadState) {
+                                                    Download.STATE_COMPLETED -> "saved"
+                                                    Download.STATE_DOWNLOADING -> "saving"
+                                                    else -> "save"
+                                                },
+                                                style = MaterialTheme.typography.labelMedium
+                                            )
+                                        }
+
+                                        ToggleButton(
+                                            checked = false,
+                                            onCheckedChange = {
+                                                playerConnection.playQueue(
+                                                    ListQueue(
+                                                        title = playlist.playlist.name,
+                                                        items = songs.shuffled().map { it.song.toMediaItem() },
+                                                    ),
+                                                )
+                                            },
+                                            modifier = Modifier.weight(1f).semantics { role = Role.Button },
+                                            shapes = when {
+                                                editable -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                                                playlist.playlist.browseId != null -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                                                else -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                            },
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.shuffle),
+                                                contentDescription = "Shuffle",
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                            Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
+                                            Text("Shuffle", style = MaterialTheme.typography.labelMedium)
+                                        }
+
+
+                                        // Show Sync button in first row only if NOT editable
+                                        if (!editable && playlist.playlist.browseId != null) {
+                                            ToggleButton(
+                                                checked = false,
+                                                onCheckedChange = {
+                                                    coroutineScope.launch(Dispatchers.IO) {
+                                                        val playlistPage = YouTube.playlist(playlist.playlist.browseId)
+                                                            .completed()
+                                                            .getOrNull() ?: return@launch
+                                                        database.transaction {
+                                                            clearPlaylist(playlist.id)
+                                                            playlistPage.songs
+                                                                .map(SongItem::toMediaMetadata)
+                                                                .onEach(::insert)
+                                                                .mapIndexed { position, song ->
+                                                                    PlaylistSongMap(
+                                                                        songId = song.id,
+                                                                        playlistId = playlist.id,
+                                                                        position = position,
+                                                                        setVideoId = song.setVideoId
+                                                                    )
+                                                                }
+                                                                .forEach(::insert)
+                                                        }
+                                                    }
+                                                    coroutineScope.launch(Dispatchers.Main) {
+                                                        snackbarHostState.showSnackbar(context.getString(R.string.playlist_synced))
+                                                    }
+                                                },
+                                                modifier = Modifier.weight(1f).semantics { role = Role.Button },
+                                                shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
+                                            ) {
                                                 Icon(
-                                                    painter = painterResource(R.drawable.offline),
-                                                    contentDescription = "saved",
+                                                    painter = painterResource(R.drawable.sync),
+                                                    contentDescription = "Sync",
                                                     modifier = Modifier.size(20.dp)
                                                 )
-                                            }
-                                            Download.STATE_DOWNLOADING -> {
-                                                CircularProgressIndicator(
-                                                    strokeWidth = 2.dp,
-                                                    modifier = Modifier.size(16.dp),
-                                                    color = MaterialTheme.colorScheme.onSurface
-                                                )
-                                            }
-                                            else -> {
-                                                Icon(
-                                                    painter = painterResource(R.drawable.download),
-                                                    contentDescription = "save",
-                                                    modifier = Modifier.size(20.dp)
-                                                )
+                                                Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
+                                                Text("Sync", style = MaterialTheme.typography.labelMedium)
                                             }
                                         }
-                                        Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                                        Text(
-                                            text = when (downloadState) {
-                                                Download.STATE_COMPLETED -> "saved"
-                                                Download.STATE_DOWNLOADING -> "saving"
-                                                else -> "save"
-                                            },
-                                            style = MaterialTheme.typography.labelMedium
-                                        )
-                                    }
 
-                                    ToggleButton(
-                                        checked = false,
-                                        onCheckedChange = {
-                                            playerConnection.playQueue(
-                                                ListQueue(
-                                                    title = playlist.playlist.name,
-                                                    items = songs.shuffled().map { it.song.toMediaItem() },
-                                                ),
-                                            )
-                                        },
-                                        modifier = Modifier.weight(1f).semantics { role = Role.Button },
-                                        shapes = when {
-                                            playlist.playlist.browseId != null -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                                            editable -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                                            else -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                                        },
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(R.drawable.shuffle),
-                                            contentDescription = "Shuffle",
-                                            modifier = Modifier.size(20.dp)
-                                        )
-                                        Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                                        Text("Shuffle", style = MaterialTheme.typography.labelMedium)
+                                        // Show Edit button in first row only if editable
+                                        if (editable) {
+                                            ToggleButton(
+                                                checked = false,
+                                                onCheckedChange = {
+                                                    showEditDialog = true
+                                                },
+                                                modifier = Modifier.weight(1f).semantics { role = Role.Button },
+                                                shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.edit),
+                                                    contentDescription = "Edit",
+                                                    modifier = Modifier.size(20.dp)
+                                                )
+                                                Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
+                                                Text("Edit", style = MaterialTheme.typography.labelMedium)
+                                            }
+                                        }
                                     }
-
-                                    if (playlist.playlist.browseId != null) {
+                                    // Second row: Sync button (only if editable and has browseId)
+                                    if (editable && playlist.playlist.browseId != null) {
                                         ToggleButton(
                                             checked = false,
                                             onCheckedChange = {
@@ -763,12 +832,8 @@ fun LocalPlaylistScreen(
                                                     snackbarHostState.showSnackbar(context.getString(R.string.playlist_synced))
                                                 }
                                             },
-                                            modifier = Modifier.weight(1f).semantics { role = Role.Button },
-                                            shapes = if (editable) {
-                                                ButtonGroupDefaults.connectedMiddleButtonShapes()
-                                            } else {
-                                                ButtonGroupDefaults.connectedTrailingButtonShapes()
-                                            },
+                                            modifier = Modifier.fillMaxWidth().semantics { role = Role.Button },
+                                            shapes = ToggleButtonDefaults.shapes(),
                                         ) {
                                             Icon(
                                                 painter = painterResource(R.drawable.sync),
@@ -777,25 +842,6 @@ fun LocalPlaylistScreen(
                                             )
                                             Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
                                             Text("Sync", style = MaterialTheme.typography.labelMedium)
-                                        }
-                                    }
-
-                                    if (editable) {
-                                        ToggleButton(
-                                            checked = false,
-                                            onCheckedChange = {
-                                                showEditDialog = true
-                                            },
-                                            modifier = Modifier.weight(1f).semantics { role = Role.Button },
-                                            shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.edit),
-                                                contentDescription = "Edit",
-                                                modifier = Modifier.size(20.dp)
-                                            )
-                                            Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                                            Text("Edit", style = MaterialTheme.typography.labelMedium)
                                         }
                                     }
                                 }
