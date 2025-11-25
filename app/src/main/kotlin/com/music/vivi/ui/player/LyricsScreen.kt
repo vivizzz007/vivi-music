@@ -309,7 +309,27 @@ fun LyricsScreen(
                                 modifier = Modifier
                                     .size(48.dp)
                                     .clip(RoundedCornerShape(8.dp))
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = ripple(bounded = true, radius = 24.dp)
+                                    ) {
+                                        coroutineScope.launch {
+                                            // Add a small delay for smoother transition
+                                            delay(100)
+                                            onBackClick()
+                                        }
+                                    }
                             )
+
+
+//                            AsyncImage(
+//                                model = mediaMetadata.thumbnailUrl,
+//                                contentDescription = null,
+//                                contentScale = ContentScale.Crop,
+//                                modifier = Modifier
+//                                    .size(48.dp)
+//                                    .clip(RoundedCornerShape(8.dp))
+//                            )
 
                             Spacer(modifier = Modifier.width(12.dp))
 
@@ -445,7 +465,26 @@ fun LyricsScreen(
                                 modifier = Modifier
                                     .size(48.dp)
                                     .clip(RoundedCornerShape(8.dp))
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = ripple(bounded = true, radius = 24.dp)
+                                    ) {
+                                        coroutineScope.launch {
+                                            // Add a small delay for smoother transition
+                                            delay(100)
+                                            onBackClick()
+                                        }
+                                    }
                             )
+
+//                            AsyncImage(
+//                                model = mediaMetadata.thumbnailUrl,
+//                                contentDescription = null,
+//                                contentScale = ContentScale.Crop,
+//                                modifier = Modifier
+//                                    .size(48.dp)
+//                                    .clip(RoundedCornerShape(8.dp))
+//                            )
 
                             Spacer(modifier = Modifier.width(12.dp))
 
