@@ -123,6 +123,7 @@ import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -530,9 +531,21 @@ fun Queue(
                     },
                     onDismiss = { showSleepTimerDialog = false },
                     onConfirm = {
-                        val totalMinutes = sleepTimerState.hour * 60 + sleepTimerState.minute
-                        if (totalMinutes > 0) {
-                            playerConnection.service.sleepTimer.start(totalMinutes)
+                        val calendar = Calendar.getInstance()
+                        val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
+                        val currentMinute = calendar.get(Calendar.MINUTE)
+                        val currentSecond = calendar.get(Calendar.SECOND)
+
+                        val currentTimeInMillis = (currentHour * 3600 + currentMinute * 60 + currentSecond) * 1000L
+                        val targetTimeInMillis = (sleepTimerState.hour * 3600 + sleepTimerState.minute * 60) * 1000L
+
+                        var diff = targetTimeInMillis - currentTimeInMillis
+                        if (diff < 0) {
+                            diff += 24 * 3600 * 1000L
+                        }
+
+                        if (diff > 0) {
+                            playerConnection.service.sleepTimer.start(diff)
                         }
                         showSleepTimerDialog = false
                     },
@@ -553,7 +566,7 @@ fun Queue(
                             OutlinedButton(
                                 onClick = {
                                     showSleepTimerDialog = false
-                                    playerConnection.service.sleepTimer.start(-1)
+                                    playerConnection.service.sleepTimer.start(-1L)
                                 }
                             ) {
                                 Text(stringResource(R.string.end_of_song))
