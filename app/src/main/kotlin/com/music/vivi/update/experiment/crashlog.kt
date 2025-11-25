@@ -1,10 +1,13 @@
 package com.music.vivi.update.experiment
 
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.os.Environment
 import android.util.Log
+import com.music.vivi.CrashActivity
 import com.music.vivi.ui.crash.CrashPage
+import com.music.vivi.ui.utils.appBarScrollBehavior
 import java.io.File
 import java.io.FileOutputStream
 import java.io.PrintWriter
@@ -64,8 +67,10 @@ class CrashLogHandler(
 
     override fun uncaughtException(thread: Thread, throwable: Throwable) {
         try {
-            // Save crash log
-            saveCrashLog(thread, throwable)
+
+            var crashLog = getCrashLog(thread, throwable)
+
+            saveCrashLog(crashLog)
 
             // Save logcat
             saveLogcat()
@@ -73,27 +78,47 @@ class CrashLogHandler(
             // Clean up old logs
             cleanupOldLogs()
 
+            val intent = Intent(context, CrashActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            }
+            intent.putExtra("CrashData", crashLog)
+            context.startActivity(intent)
+            Thread.sleep(1000)
         } catch (e: Exception) {
             Log.e(TAG, "Error saving crash log: ${e.message}", e)
         } finally {
-            // Call the default handler
             defaultHandler?.uncaughtException(thread, throwable)
         }
     }
 
-    private fun saveCrashLog(thread: Thread, throwable: Throwable) {
+    private fun saveCrashLog(crashLog: String) {
         try {
             val timestamp = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US).format(Date())
             val crashFile = File(getCrashLogsDir(context), "crash_$timestamp.txt")
 
             FileOutputStream(crashFile).use { fos ->
                 PrintWriter(fos).use { writer ->
-                    // Write header
+                    writer.print(crashLog)
+                }
+            }
+
+            Log.i(TAG, "Crash log saved to: ${crashFile.absolutePath}")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error writing crash log: ${e.message}", e)
+        }
+    }
+
+    private fun getCrashLog(thread: Thread, throwable: Throwable): String {
+        try {
+            val timestamp = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US).format(Date())
+            return StringWriter().use { stringwr ->
+                PrintWriter(stringwr).use { writer ->
                     writer.println("=== CRASH REPORT ===")
                     writer.println("Timestamp: ${SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(Date())}")
                     writer.println()
 
-                    // Write device info
                     writer.println("=== DEVICE INFO ===")
                     writer.println("Device: ${Build.MANUFACTURER} ${Build.MODEL}")
                     writer.println("Android Version: ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})")
@@ -102,7 +127,6 @@ class CrashLogHandler(
                     writer.println("CPU ABI: ${Build.SUPPORTED_ABIS.joinToString(", ")}")
                     writer.println()
 
-                    // Write app info
                     writer.println("=== APP INFO ===")
                     writer.println("Package: ${context.packageName}")
                     try {
@@ -113,45 +137,38 @@ class CrashLogHandler(
                     }
                     writer.println()
 
-                    // Write thread info
                     writer.println("=== THREAD INFO ===")
                     writer.println("Thread Name: ${thread.name}")
                     writer.println("Thread ID: ${thread.id}")
                     writer.println()
 
-                    // Write exception
                     writer.println("=== EXCEPTION ===")
                     writer.println("Exception Type: ${throwable.javaClass.name}")
                     writer.println("Message: ${throwable.message ?: "No message"}")
                     writer.println()
 
-                    // Write stack trace
                     writer.println("=== STACK TRACE ===")
-                    val sw = StringWriter()
-                    throwable.printStackTrace(PrintWriter(sw))
-                    writer.println(sw.toString())
+                    throwable.printStackTrace(writer) // Simplified - no need for another StringWriter
+                    writer.println()
 
-                    // Write cause chain
                     var cause = throwable.cause
                     var causeLevel = 1
-                    while (cause != null) {
+                    while (cause != null && causeLevel <= 10) { // Limit cause chain depth
                         writer.println()
                         writer.println("=== CAUSED BY ($causeLevel) ===")
                         writer.println("Exception Type: ${cause.javaClass.name}")
                         writer.println("Message: ${cause.message ?: "No message"}")
-                        writer.println()
-                        val causeSw = StringWriter()
-                        cause.printStackTrace(PrintWriter(causeSw))
-                        writer.println(causeSw.toString())
+                        writer.println("Stack Trace:")
+                        cause.printStackTrace(writer)
                         cause = cause.cause
                         causeLevel++
                     }
                 }
+                stringwr.toString()
             }
-
-            Log.i(TAG, "Crash log saved to: ${crashFile.absolutePath}")
         } catch (e: Exception) {
-            Log.e(TAG, "Error writing crash log: ${e.message}", e)
+            Log.e(TAG, "Error creating crash log: ${e.message}", e)
+            return "Error creating crash log: ${e.message}"
         }
     }
 
