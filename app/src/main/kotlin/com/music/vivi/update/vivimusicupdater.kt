@@ -306,13 +306,13 @@ fun UpdateScreen(navController: NavHostController) {
 
                 Spacer(modifier = Modifier.height(32.dp))
                 Text(
-                    text = "Optimizing your device, this may take a while",
+                    text = "Making Update ready , this may take a while",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
-                    text = "Your Pixel is getting even better...",
+                    text = "Your App is getting even better...",
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold
                     ),
@@ -320,15 +320,15 @@ fun UpdateScreen(navController: NavHostController) {
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 val annotatedString = buildAnnotatedString {
-                    append("This update includes new Pixel features and the latest from Android ${updateMessageVersion.ifEmpty { currentVersion }}, making your device even more helpful. Learn more at ")
-                    pushStringAnnotation(tag = "URL", annotation = "https://g.co/pixel/community")
+                    append("This update includes new features and the latest from vivi-music ${updateMessageVersion.ifEmpty { currentVersion }}, making your app even more helpful. Learn more at ")
+                    pushStringAnnotation(tag = "URL", annotation = "https://github.com/vivizzz007/vivi-music")
                     withStyle(
                         style = SpanStyle(
                             color = MaterialTheme.colorScheme.primary,
                             textDecoration = TextDecoration.Underline
                         )
                     ) {
-                        append("g.co/pixel/community")
+                        append("https://github.com/vivizzz007/vivi-music")
                     }
                     pop()
                     append(".")
@@ -871,8 +871,33 @@ fun UpdateScreen(navController: NavHostController) {
                                         downloadProgress = 0f
                                         DownloadNotificationManager.cancelNotification()
                                     }
+
                                     isDownloadComplete -> {
                                         downloadedFile?.let { file ->
+                                            // Check if app can install unknown apps
+                                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                                                if (!context.packageManager.canRequestPackageInstalls()) {
+                                                    // Need to request permission
+                                                    val intent = Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                                                        data = Uri.parse("package:${context.packageName}")
+                                                    }
+                                                    ContextCompat.startActivity(context, intent, null)
+                                                    return@let
+                                                }
+                                            }
+
+                                            // Show installing screen
+                                            isInstalling = true
+                                            isDownloadComplete = false
+
+                                            // Start install progress animation
+                                            coroutineScope.launch {
+                                                while (isInstalling && installProgress < 1f) {
+                                                    delay(100L)
+                                                    installProgress += 0.01f
+                                                }
+                                            }
+
                                             val uri = FileProvider.getUriForFile(
                                                 context,
                                                 "${context.packageName}.FileProvider",
