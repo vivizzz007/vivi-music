@@ -886,18 +886,6 @@ fun UpdateScreen(navController: NavHostController) {
                                                 }
                                             }
 
-                                            // Show installing screen
-                                            isInstalling = true
-                                            isDownloadComplete = false
-
-                                            // Start install progress animation
-                                            coroutineScope.launch {
-                                                while (isInstalling && installProgress < 1f) {
-                                                    delay(100L)
-                                                    installProgress += 0.01f
-                                                }
-                                            }
-
                                             val uri = FileProvider.getUriForFile(
                                                 context,
                                                 "${context.packageName}.FileProvider",
@@ -911,6 +899,7 @@ fun UpdateScreen(navController: NavHostController) {
                                             ContextCompat.startActivity(context, installIntent, null)
                                         }
                                     }
+
                                     !isChecking && !updateAvailable -> {
                                         triggerUpdateCheck()
                                         updateMessage = ""
