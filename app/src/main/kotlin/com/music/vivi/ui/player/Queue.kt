@@ -156,6 +156,7 @@ fun Queue(
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val repeatMode by playerConnection.repeatMode.collectAsState()
+    val shuffleModeEnabled by playerConnection.shuffleModeEnabled.collectAsState() // ADD THIS LINE
 
     val currentWindowIndex by playerConnection.currentWindowIndex.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
@@ -334,7 +335,7 @@ fun Queue(
                             contentDescription = null,
                             modifier = Modifier
                                 .size(iconSize)
-                                .alpha(if (playerConnection.player.shuffleModeEnabled) 1f else 0.5f),
+                                .alpha(if (shuffleModeEnabled) 1f else 0.5f), // CHANGE THIS LINE - use shuffleModeEnabled instead
                             tint = TextBackgroundColor
                         )
                     }
