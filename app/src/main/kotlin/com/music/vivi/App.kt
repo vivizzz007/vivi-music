@@ -189,7 +189,7 @@ class App : Application(), SingletonImageLoader.Factory {
         val cacheSize = dataStore.get(MaxImageCacheSizeKey, 512)
 
         return ImageLoader.Builder(this).apply {
-            crossfade(true)
+            crossfade(false)
             allowHardware(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
             if (cacheSize == 0) {
                 diskCachePolicy(CachePolicy.DISABLED)

@@ -889,9 +889,10 @@ class MainActivity : ComponentActivity() {
                                 }
                                 AnimatedVisibility(
                                     visible = active || inSearchScreen,
-                                    enter = fadeIn(animationSpec = tween(durationMillis = 250)),
-                                    exit = fadeOut(animationSpec = tween(durationMillis = 150))
-                                ) {
+                                    enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(tween(150)),
+                                    exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(tween(100))
+                                )
+                                 {
                                     TopSearch(
                                         query = query,
                                         onQueryChange = onQueryChange,
@@ -982,11 +983,17 @@ class MainActivity : ComponentActivity() {
                                                 }
                                             }
                                         },
-                                        modifier =
-                                        Modifier
-                                            .focusRequester(searchBarFocusRequester)
-                                            .align(Alignment.TopCenter),
                                         focusRequester = searchBarFocusRequester,
+                                        modifier = Modifier
+                                            .align(Alignment.TopCenter)
+                                            .windowInsetsPadding(
+                                                if (showRail) {
+                                                    WindowInsets(left = NavigationBarHeight)
+                                                } else {
+                                                    WindowInsets(0.dp)
+
+                                                }
+                                            ),
                                         colors = if (pureBlack && active) {
                                             SearchBarDefaults.colors(
                                                 containerColor = Color.Black,
@@ -1361,15 +1368,9 @@ class MainActivity : ComponentActivity() {
                             ChangelogBottomSheet()
                         }
                     }
-
                     LaunchedEffect(shouldShowSearchBar, openSearchImmediately) {
                         if (shouldShowSearchBar && openSearchImmediately) {
                             onActiveChange(true)
-                            try {
-                                delay(100)
-                                searchBarFocusRequester.requestFocus()
-                            } catch (_: Exception) {
-                            }
                             openSearchImmediately = false
                         }
                     }
