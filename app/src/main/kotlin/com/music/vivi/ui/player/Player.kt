@@ -169,7 +169,7 @@ fun BottomSheetPlayer(
     )
     val (useNewMiniPlayerDesign) = rememberPreference(
         UseNewMiniPlayerDesignKey,
-        defaultValue = false //true
+        defaultValue = true //true
     )
     val playerBackground by rememberEnumPreference(
         key = PlayerBackgroundStyleKey,
