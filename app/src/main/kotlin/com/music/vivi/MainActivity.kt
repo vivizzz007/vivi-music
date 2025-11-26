@@ -793,7 +793,7 @@ class MainActivity : ComponentActivity() {
                                                     if (updateStatus is UpdateStatus.UpdateAvailable) {
                                                         navController.navigate("settings/update")
                                                     } else {
-                                                        showChangelogBottomSheet = true
+                                                        navController.navigate("settings/changelog")
                                                     }
                                                 }) {
                                                     Row(
