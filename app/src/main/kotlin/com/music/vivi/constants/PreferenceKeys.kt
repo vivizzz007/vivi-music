@@ -283,8 +283,11 @@ enum class PlayerButtonsStyle {
 }
 
 enum class PlayerBackgroundStyle {
-    DEFAULT,
+
     GRADIENT,
+
+    DEFAULT,
+
     BLUR,
 }
 
