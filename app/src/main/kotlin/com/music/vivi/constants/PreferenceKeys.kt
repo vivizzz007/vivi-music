@@ -291,6 +291,7 @@ enum class PlayerBackgroundStyle {
     BLUR,
 }
 
+val MiniPlayerGradientKey = booleanPreferencesKey("mini_player_gradient")
 
 val SwipeGestureEnabledKey = booleanPreferencesKey("swipe_gesture_enabled")
 

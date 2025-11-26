@@ -72,6 +72,7 @@ import com.music.vivi.constants.LibraryFilter
 import com.music.vivi.constants.LyricsClickKey
 import com.music.vivi.constants.LyricsScrollKey
 import com.music.vivi.constants.LyricsTextPositionKey
+import com.music.vivi.constants.MiniPlayerGradientKey
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PlayerBackgroundStyleKey
 import com.music.vivi.constants.PlayerButtonsStyle
@@ -132,6 +133,11 @@ fun AppearanceSettings(
         defaultValue = false
     )
 
+
+    val (miniPlayerGradient, onMiniPlayerGradientChange) = rememberPreference(
+        key = MiniPlayerGradientKey,
+        defaultValue = true
+    )
 
 
     val (swipeToRemoveSong, onSwipeToRemoveSongChange) = rememberPreference(
@@ -934,6 +940,32 @@ fun AppearanceSettings(
                                 )
                             }
 
+// NEW: Mini Player Gradient Switch
+                            AnimatedVisibility(useNewMiniPlayerDesign) {
+                                Column {
+                                    HorizontalDivider(
+                                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                                    )
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Box(modifier = Modifier.weight(1f)) {
+                                            ModernInfoItem(
+                                                icon = { Icon(painterResource(R.drawable.gradient), null, modifier = Modifier.size(22.dp)) },
+                                                title = "Mini Player Gradient",
+                                                subtitle = "Enable gradient background in mini player"
+                                            )
+                                        }
+                                        ModernSwitch(
+                                            checked = miniPlayerGradient,
+                                            onCheckedChange = onMiniPlayerGradientChange,
+                                            modifier = Modifier.padding(end = 20.dp)
+                                        )
+                                    }
+                                }
+                            }
 
                             HorizontalDivider(
                                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
