@@ -385,7 +385,7 @@ fun ViviUpdatesScreen(
                                 title = "System update",
                                 subtitle = "Automatic checks disabled",
                                 onClick = {
-                                    navController.navigate("settings/updateinfo")
+                                    navController.navigate("settings/update")  // Fixed: now navigates to update screen
                                 },
                                 showArrow = true,
                                 showSettingsIcon = true
