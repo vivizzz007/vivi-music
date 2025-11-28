@@ -196,6 +196,7 @@ import com.music.vivi.ui.utils.resetHeightOffset
 import com.music.vivi.update.changelog.ChangelogBottomSheet
 import com.music.vivi.update.downloadmanager.DownloadNotificationManager
 import com.music.vivi.update.experiment.CrashLogHandler
+import com.music.vivi.update.updatenotification.UpdateNotificationManager
 //import com.music.vivi.update.updatenotification.UpdateNotificationManager
 import com.music.vivi.updatesreen.UpdateStatus
 import com.music.vivi.utils.SyncUtils
@@ -258,13 +259,17 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
+
         // Request notification permission on Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1000)
             }
         }
+
 //        startService(Intent(this, MusicService::class.java))
+
+        // ⚠️ REMOVE startService() - only use bindService
         bindService(
             Intent(this, MusicService::class.java),
             serviceConnection,
@@ -307,17 +312,19 @@ class MainActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
 
-        //new download manager and update manager
-//        UpdateNotificationManager.initialize(this)
+        //download notification
         DownloadNotificationManager.initialize(this)
+
+        //new download manager and update manager
+        UpdateNotificationManager.initialize(this)
         // Check for updates on app start (pass VERSION_NAME, not VERSION_CODE)
-//        lifecycleScope.launch {
-//            UpdateNotificationManager.checkForUpdates(
-//                this@MainActivity,
-//                BuildConfig.VERSION_NAME,  // Pass version name like "1.0.0"
-//                BuildConfig.VERSION_CODE   // Pass version code as fallback
-//            )
-//        }
+        lifecycleScope.launch {
+            UpdateNotificationManager.checkForUpdates(
+                this@MainActivity,
+                BuildConfig.VERSION_NAME,  // Pass version name like "1.0.0"
+                BuildConfig.VERSION_CODE   // Pass version code as fallback
+            )
+        }
 //crash log when appp crash
         if (savedInstanceState == null) {
             CrashLogHandler.initialize(applicationContext)

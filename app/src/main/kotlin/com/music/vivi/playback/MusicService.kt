@@ -246,41 +246,6 @@ class MusicService :
 
     override fun onCreate() {
         super.onCreate()
-
-        // START OF FIX - Call startForeground immediately
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-            // Create notification channel if it doesn't exist
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                getString(R.string.music_player),
-                NotificationManager.IMPORTANCE_LOW
-            ).apply {
-                description = "Music playback controls"
-                setShowBadge(false)
-            }
-            notificationManager.createNotificationChannel(channel)
-
-            // Create a minimal notification for the foreground service
-            val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle(getString(R.string.app_name))
-                .setContentText("Loading...")
-                .setSmallIcon(R.drawable.library_music)
-                .setOngoing(true)
-                .build()
-
-            // Start foreground service immediately
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                startForeground(
-                    NOTIFICATION_ID,
-                    notification,
-                    android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
-                )
-            } else {
-                startForeground(NOTIFICATION_ID, notification)
-            }
-        }
         setMediaNotificationProvider(
             DefaultMediaNotificationProvider(
                 this,
