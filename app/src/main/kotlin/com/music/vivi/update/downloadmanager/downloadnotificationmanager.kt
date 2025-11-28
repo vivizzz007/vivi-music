@@ -14,6 +14,8 @@ import androidx.core.app.NotificationCompat
 import androidx.core.graphics.toColorInt
 import com.music.vivi.R
 
+
+
 object DownloadNotificationManager {
     private lateinit var notificationManager: NotificationManager
     private lateinit var appContext: Context
@@ -30,11 +32,11 @@ object DownloadNotificationManager {
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_HIGH  // CHANGED: From LOW to HIGH
+                NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Shows download progress for app updates"
                 setShowBadge(false)
-                lockscreenVisibility = Notification.VISIBILITY_PUBLIC  // ADDED: Show on lock screen
+                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
                 enableVibration(false)
                 enableLights(false)
             }
@@ -86,7 +88,7 @@ object DownloadNotificationManager {
             .setStyle(NotificationCompat.BigTextStyle()
                 .bigText("Failed to download version $version\n$errorMessage"))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)  // ADDED: For lock screen
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setAutoCancel(true)
             .build()
 
@@ -103,38 +105,30 @@ object DownloadNotificationManager {
     // ============ Modern Implementation (Android 16+) ============
     @RequiresApi(Build.VERSION_CODES.BAKLAVA)
     private fun showDownloadStartingModern(version: String, fileSize: String) {
-        val progressStyle = Notification.ProgressStyle().apply {
-            isStyledByProgress = true
-            progress = 0
-            progressSegments = listOf(
-                Notification.ProgressStyle.Segment(100)
-                    .setColor("#4285F4".toColorInt())
-            )
-
-            progressStartIcon = Icon.createWithResource(
-                appContext,
-                R.drawable.web_browser
-            ).setTint("#4285F4".toColorInt())
-
-            progressEndIcon = Icon.createWithResource(
-                appContext,
-                R.drawable.deployed_code_update_server
-            ).setTint("#4285F4".toColorInt())
-
-            progressTrackerIcon = Icon.createWithResource(
-                appContext,
-                R.drawable.delivery_truck
-            )
-        }
+        val progressStyle = Notification.ProgressStyle()
+            .also {
+                // Create 4 segments alternating between primary and tertiary colors
+                for (i in 0 until 4) {
+                    it.addProgressSegment(
+                        Notification.ProgressStyle.Segment(25)
+                            .setColor(
+                                if (i % 2 == 0) "#4285F4".toColorInt() // Primary blue
+                                else "#8E24AA".toColorInt() // Tertiary maroon/purple
+                            )
+                    )
+                }
+            }
+            .setProgress(0)
 
         val notification = Notification.Builder(appContext, CHANNEL_ID)
-            .setSmallIcon(R.drawable.delivery_truck)
+            .setSmallIcon(R.drawable.ic_launcher_foreground) // Your app icon
             .setContentTitle("Downloading Update")
             .setContentText("Version $version • $fileSize")
             .setOngoing(true)
             .setStyle(progressStyle)
-            .setVisibility(Notification.VISIBILITY_PUBLIC)  // ADDED: Show on lock screen
-            .setCategory(Notification.CATEGORY_PROGRESS)    // ADDED: Proper category
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
+            .setCategory(Notification.CATEGORY_PROGRESS)
+            .setWhen(System.currentTimeMillis())
             .build()
 
         notificationManager.notify(NOTIFICATION_ID, notification)
@@ -142,42 +136,30 @@ object DownloadNotificationManager {
 
     @RequiresApi(Build.VERSION_CODES.BAKLAVA)
     private fun updateDownloadProgressModern(progress: Int, version: String) {
-        val progressStyle = Notification.ProgressStyle().apply {
-            isStyledByProgress = true
-            this.progress = progress
-
-            progressSegments = listOf(
-                Notification.ProgressStyle.Segment(100)
-                    .setColor(
-                        if (progress < 100) "#4285F4".toColorInt()
-                        else "#34A853".toColorInt()
+        val progressStyle = Notification.ProgressStyle()
+            .also {
+                // Create 4 segments alternating colors like train carriages
+                for (i in 0 until 4) {
+                    it.addProgressSegment(
+                        Notification.ProgressStyle.Segment(25)
+                            .setColor(
+                                if (i % 2 == 0) "#4285F4".toColorInt() // Primary blue
+                                else "#8E24AA".toColorInt() // Tertiary maroon/purple
+                            )
                     )
-            )
-
-            progressStartIcon = Icon.createWithResource(
-                appContext,
-                R.drawable.cloud
-            )
-
-            progressEndIcon = Icon.createWithResource(
-                appContext,
-                R.drawable.app
-            )
-
-            progressTrackerIcon = Icon.createWithResource(
-                appContext,
-                R.drawable.delivery_truck_me
-            )
-        }
+                }
+            }
+            .setProgress(progress)
 
         val notification = Notification.Builder(appContext, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.stat_sys_download)
+            .setSmallIcon(R.drawable.ic_launcher_foreground) // Your app icon
             .setContentTitle("Downloading Update")
             .setContentText("Version $version • $progress%")
             .setOngoing(progress < 100)
             .setStyle(progressStyle)
-            .setVisibility(Notification.VISIBILITY_PUBLIC)  // ADDED: Show on lock screen
-            .setCategory(Notification.CATEGORY_PROGRESS)    // ADDED: Proper category
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
+            .setCategory(Notification.CATEGORY_PROGRESS)
+            .setWhen(System.currentTimeMillis())
             .build()
 
         notificationManager.notify(NOTIFICATION_ID, notification)
@@ -205,40 +187,31 @@ object DownloadNotificationManager {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        val progressStyle = Notification.ProgressStyle().apply {
-            isStyledByProgress = true
-            progress = 100
-
-            progressSegments = listOf(
-                Notification.ProgressStyle.Segment(100)
-                    .setColor("#34A853".toColorInt())
-            )
-
-            progressStartIcon = Icon.createWithResource(
-                appContext,
-                R.drawable.cloud
-            )
-
-            progressEndIcon = Icon.createWithResource(
-                appContext,
-                R.drawable.app
-            )
-
-            progressTrackerIcon = Icon.createWithResource(
-                appContext,
-                R.drawable.delivery_truck_me
-            )
-        }
+        val progressStyle = Notification.ProgressStyle()
+            .also {
+                // All segments completed - alternating colors
+                for (i in 0 until 4) {
+                    it.addProgressSegment(
+                        Notification.ProgressStyle.Segment(25)
+                            .setColor(
+                                if (i % 2 == 0) "#4285F4".toColorInt() // Primary blue
+                                else "#8E24AA".toColorInt() // Tertiary maroon/purple
+                            )
+                    )
+                }
+            }
+            .setProgress(100)
 
         val notification = Notification.Builder(appContext, CHANNEL_ID)
-            .setSmallIcon(R.drawable.done)
+            .setSmallIcon(R.drawable.updated) // Checkmark icon when complete
             .setContentTitle("Update Ready")
             .setContentText("Tap to install version $version")
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .setStyle(progressStyle)
-            .setVisibility(Notification.VISIBILITY_PUBLIC)  // ADDED: Show on lock screen
-            .setCategory(Notification.CATEGORY_STATUS)      // ADDED: Status category for completion
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
+            .setCategory(Notification.CATEGORY_STATUS)
+            .setWhen(System.currentTimeMillis())
             .build()
 
         notificationManager.notify(NOTIFICATION_ID, notification)
@@ -247,14 +220,14 @@ object DownloadNotificationManager {
     // ============ Legacy Implementation (Pre-Android 16) ============
     private fun showDownloadStartingLegacy(version: String, fileSize: String) {
         val notification = NotificationCompat.Builder(appContext, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.stat_sys_download)
+            .setSmallIcon(R.drawable.ic_launcher_foreground) // Your app icon
             .setContentTitle("Downloading Update")
             .setContentText("Version $version • $fileSize")
             .setProgress(100, 0, false)
             .setOngoing(true)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)  // CHANGED: From LOW to HIGH
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)  // ADDED: For lock screen
-            .setCategory(NotificationCompat.CATEGORY_PROGRESS)   // ADDED: Proper category
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setCategory(NotificationCompat.CATEGORY_PROGRESS)
             .build()
 
         notificationManager.notify(NOTIFICATION_ID, notification)
@@ -262,14 +235,14 @@ object DownloadNotificationManager {
 
     private fun updateDownloadProgressLegacy(progress: Int, version: String) {
         val notification = NotificationCompat.Builder(appContext, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.stat_sys_download)
+            .setSmallIcon(R.drawable.ic_launcher) // Your app icon
             .setContentTitle("Downloading Update")
             .setContentText("Version $version • $progress%")
             .setProgress(100, progress, false)
             .setOngoing(progress < 100)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)  // CHANGED: From LOW to HIGH
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)  // ADDED: For lock screen
-            .setCategory(NotificationCompat.CATEGORY_PROGRESS)   // ADDED: Proper category
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setCategory(NotificationCompat.CATEGORY_PROGRESS)
             .build()
 
         notificationManager.notify(NOTIFICATION_ID, notification)
@@ -297,15 +270,15 @@ object DownloadNotificationManager {
         )
 
         val notification = NotificationCompat.Builder(appContext, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.stat_sys_download_done)
+            .setSmallIcon(R.drawable.updated) // Checkmark icon when complete
             .setContentTitle("Update Ready")
             .setContentText("Tap to install version $version")
             .setProgress(0, 0, false)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)  // ADDED: For lock screen
-            .setCategory(NotificationCompat.CATEGORY_STATUS)      // ADDED: Status category
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setCategory(NotificationCompat.CATEGORY_STATUS)
             .build()
 
         notificationManager.notify(NOTIFICATION_ID, notification)
