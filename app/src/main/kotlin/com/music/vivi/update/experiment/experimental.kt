@@ -73,7 +73,10 @@ import androidx.navigation.NavController
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.MainActivity
 import com.music.vivi.R
+import com.music.vivi.constants.StopMusicOnTaskClearKey
+import com.music.vivi.update.mordernswitch.ModernSwitch
 import com.music.vivi.update.settingstyle.ModernInfoItem
+import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -92,6 +95,8 @@ fun ExperimentalSettingsScreen(navController: NavController) {
     val coroutineScope = rememberCoroutineScope()
     val topAppBarState = rememberTopAppBarState()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
+
+
 
     var selectedApkVariant by remember { mutableStateOf(getSelectedApkVariant(context)) }
     var downloadedApksCount by remember { mutableStateOf(0) }
@@ -113,6 +118,20 @@ fun ExperimentalSettingsScreen(navController: NavController) {
     val crashLogSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showCrashLogViewerSheet by remember { mutableStateOf(false) }
     val crashLogViewerSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+
+    val (stopMusicOnTaskClear, onStopMusicOnTaskClearChange) = rememberPreference(
+        key = StopMusicOnTaskClearKey,
+        defaultValue = false
+    )
+
+    var localStopMusicOnTaskClear by remember { mutableStateOf(stopMusicOnTaskClear) }
+
+    LaunchedEffect(stopMusicOnTaskClear) {
+        localStopMusicOnTaskClear = stopMusicOnTaskClear
+    }
+
+
 
     // Load APK info and crash logs on launch
     LaunchedEffect(Unit) {
@@ -789,6 +808,48 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                         showSettingsIcon = true
                     )
                 }
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+// Playback Behavior Section
+
+            SplicedColumnGroup(
+                title = "Playback Behavior",
+                content = listOf(
+                    {
+                        ModernInfoItem(
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.close),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp),
+                                    tint = if (localStopMusicOnTaskClear) {
+                                        MaterialTheme.colorScheme.error
+                                    } else {
+                                        MaterialTheme.colorScheme.surfaceTint
+                                    }
+                                )
+                            },
+                            title = "Stop music when app is closed",
+                            subtitle = "Stop playback when app is removed from recent apps",
+                            onClick = {
+                                localStopMusicOnTaskClear = !localStopMusicOnTaskClear
+                                onStopMusicOnTaskClearChange(localStopMusicOnTaskClear)
+                            },
+                            trailingContent = {
+                                ModernSwitch(
+                                    checked = localStopMusicOnTaskClear,
+                                    onCheckedChange = { newValue ->
+                                        localStopMusicOnTaskClear = newValue
+                                        onStopMusicOnTaskClearChange(newValue)
+                                    }
+                                )
+                            },
+                            showSettingsIcon = true
+                        )
+                    }
+                )
             )
 
             Spacer(Modifier.height(16.dp))
