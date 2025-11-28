@@ -28,11 +28,11 @@ object LrcLib {
                 )
             }
 
-            install(HttpTimeout) {
-                requestTimeoutMillis = 15000
-                connectTimeoutMillis = 10000
-                socketTimeoutMillis = 15000
-            }
+//            install(HttpTimeout) {
+//                requestTimeoutMillis = 15000
+//                connectTimeoutMillis = 10000
+//                socketTimeoutMillis = 15000
+//            }
 
             defaultRequest {
                 url("https://lrclib.net")

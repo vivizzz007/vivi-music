@@ -32,11 +32,11 @@ class ApiService {
                 encodeDefaults = true
             })
         }
-        install(HttpTimeout) {
-            connectTimeoutMillis = 30_000
-            requestTimeoutMillis = 30_000
-            socketTimeoutMillis = 30_000
-        }
+//        install(HttpTimeout) {
+//            connectTimeoutMillis = 30_000
+//            requestTimeoutMillis = 30_000
+//            socketTimeoutMillis = 30_000
+//        }
         install(HttpCache)
     }
 

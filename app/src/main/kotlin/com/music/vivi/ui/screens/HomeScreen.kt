@@ -143,7 +143,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.material3.Text
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.LayoutDirection
+import com.music.vivi.update.networkmoniter.NetworkConnectivityObserver
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class,
     ExperimentalMaterial3ExpressiveApi::class
@@ -158,6 +161,27 @@ fun HomeScreen(
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val haptic = LocalHapticFeedback.current
+
+
+
+    // Network connectivity monitoring
+    val context = LocalContext.current
+    val networkObserver = remember { NetworkConnectivityObserver(context) }
+
+    // This will only trigger when network status ACTUALLY changes
+    LaunchedEffect(Unit) {
+        var previousStatus: NetworkConnectivityObserver.NetworkStatus? = null
+
+        networkObserver.observe().collect { currentStatus ->
+            // Only refresh if transitioning from Lost/Unavailable to Available
+            if (currentStatus == NetworkConnectivityObserver.NetworkStatus.Available &&
+                (previousStatus == NetworkConnectivityObserver.NetworkStatus.Lost ||
+                        previousStatus == NetworkConnectivityObserver.NetworkStatus.Unavailable)) {
+                viewModel.refresh()
+            }
+            previousStatus = currentStatus
+        }
+    }
 
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
@@ -623,7 +647,7 @@ fun HomeScreen(
                                             .data(url)
                                             .diskCachePolicy(CachePolicy.ENABLED)
                                             .diskCacheKey(url)
-                                            .crossfade(true)
+                                            .crossfade(false)
                                             .build(),
                                         placeholder = painterResource(id = R.drawable.person),
                                         error = painterResource(id = R.drawable.person),

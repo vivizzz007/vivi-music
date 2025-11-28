@@ -88,7 +88,7 @@ fun LocalSearchScreen(
                 if (isLandscape) {
                     // Apply safe horizontal insets only in landscape to avoid notch/rail overlap
                     base.windowInsetsPadding(
-                        WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
+                        WindowInsets.systemBars.only(WindowInsetsSides.Horizontal)
                     )
                 } else base
             }

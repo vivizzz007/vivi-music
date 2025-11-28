@@ -40,11 +40,11 @@ private val client = HttpClient {
         deflate()
     }
 
-    install(HttpTimeout) {
-        requestTimeoutMillis = 15000
-        connectTimeoutMillis = 10000
-        socketTimeoutMillis = 15000
-    }
+//    install(HttpTimeout) {
+//        requestTimeoutMillis = 15000
+//        connectTimeoutMillis = 10000
+//        socketTimeoutMillis = 15000
+//    }
 }
 
 private const val PAGE_SIZE = 8

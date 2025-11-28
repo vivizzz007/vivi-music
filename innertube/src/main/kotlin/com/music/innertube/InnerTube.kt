@@ -73,11 +73,11 @@ class InnerTube {
             deflate(0.8F)
         }
 
-        install(HttpTimeout) {
-            requestTimeoutMillis = 15000
-            connectTimeoutMillis = 10000
-            socketTimeoutMillis = 15000
-        }
+//        install(HttpTimeout) {
+//            requestTimeoutMillis = 15000
+//            connectTimeoutMillis = 10000
+//            socketTimeoutMillis = 15000
+//        }
 
         proxy?.let {
             engine {

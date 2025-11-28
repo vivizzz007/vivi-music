@@ -990,11 +990,16 @@ class MainActivity : ComponentActivity() {
                                                 }
                                             }
                                         },
-                                        modifier =
-                                            Modifier
-                                                .focusRequester(searchBarFocusRequester)
-                                                .align(Alignment.TopCenter),
                                         focusRequester = searchBarFocusRequester,
+                                        modifier = Modifier
+                                            .align(Alignment.TopCenter)
+                                            .windowInsetsPadding(
+                                                if (showRail) {
+                                                    WindowInsets(left = NavigationBarHeight)
+                                                } else {
+                                                    WindowInsets(0.dp)
+                                                }
+                                            ),
                                         colors = if (pureBlack && active) {
                                             SearchBarDefaults.colors(
                                                 containerColor = Color.Black,
@@ -1372,12 +1377,7 @@ class MainActivity : ComponentActivity() {
                     LaunchedEffect(shouldShowSearchBar, openSearchImmediately) {
                         if (shouldShowSearchBar && openSearchImmediately) {
                             onActiveChange(true)
-
-                            try {
-                                delay(100)
-                                searchBarFocusRequester.requestFocus()
-                            } catch (_: Exception) {
-                            }
+                            searchBarFocusRequester.requestFocus()
                             openSearchImmediately = false
                         }
                     }

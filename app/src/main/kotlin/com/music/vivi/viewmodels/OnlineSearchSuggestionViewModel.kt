@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class OnlineSearchSuggestionViewModel
@@ -45,6 +46,8 @@ constructor(
                         }
                     } else {
                         val result = YouTube.searchSuggestions(query).getOrNull()
+                        val hideExplicit = context.dataStore.get(HideExplicitKey, false)
+
                         database
                             .searchHistory(query)
                             .map { it.take(3) }
@@ -52,20 +55,17 @@ constructor(
                                 SearchSuggestionViewState(
                                     history = history,
                                     suggestions =
-                                    result
-                                        ?.queries
-                                        ?.filter { query ->
-                                            history.none { it.query == query }
-                                        }.orEmpty(),
+                                        result
+                                            ?.queries
+                                            ?.filter { suggestionQuery ->
+                                                history.none { it.query == suggestionQuery }
+                                            }.orEmpty(),
                                     items =
-                                    result
-                                        ?.recommendedItems
-                                        ?.filterExplicit(
-                                            context.dataStore.get(
-                                                HideExplicitKey,
-                                                false,
-                                            ),
-                                        ).orEmpty(),
+                                        result
+                                            ?.recommendedItems
+                                            ?.distinctBy { it.id }
+                                            ?.filterExplicit(hideExplicit)
+                                            .orEmpty(),
                                 )
                             }
                     }

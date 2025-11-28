@@ -102,6 +102,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
+import android.content.res.Configuration
+import androidx.compose.ui.platform.LocalConfiguration
+import com.music.vivi.db.entities.ArtistEntity
 
 @Composable
 fun MiniPlayer(
@@ -119,14 +122,26 @@ fun MiniPlayer(
             modifier = modifier,
             pureBlack = pureBlack
         )
-
     } else {
-        LegacyMiniPlayer(
-            position = position,
-            duration = duration,
-            modifier = modifier,
-            pureBlack = pureBlack
-        )
+        // NEW: Wrap LegacyMiniPlayer in a Box to allow alignment on tablet landscape.
+        // The outer Box fills the width, providing a container for the inner player to be aligned within.
+        Box(modifier = modifier.fillMaxWidth()) {
+            LegacyMiniPlayer(
+                position = position,
+                duration = duration,
+                // NEW: Align the player to the end if it's a tablet in landscape.
+                // This modifier is passed to LegacyMiniPlayer and applied to its root Box.
+                modifier = if (
+                    LocalConfiguration.current.screenWidthDp >= 600 &&
+                    LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+                ) {
+                    Modifier.align(Alignment.CenterEnd)
+                } else {
+                    Modifier.align(Alignment.Center)
+                },
+                pureBlack = pureBlack
+            )
+        }
     }
 }
 
@@ -147,23 +162,20 @@ private fun NewMiniPlayer(
     val canSkipPrevious by playerConnection.canSkipPrevious.collectAsState()
 
     val context = LocalContext.current
+    val isBluetoothHeadphoneConnected by remember {
+        derivedStateOf { isBluetoothHeadphoneConnected(context) }
+    }
+    var showBottomSheet by remember { mutableStateOf(false) }
+
     val currentView = LocalView.current
     val layoutDirection = LocalLayoutDirection.current
     val coroutineScope = rememberCoroutineScope()
     val swipeSensitivity by rememberPreference(SwipeSensitivityKey, 0.73f)
     val swipeThumbnail by rememberPreference(com.music.vivi.constants.SwipeThumbnailKey, true)
 
-    // Get mini player gradient preference
-    val miniPlayerGradient by rememberPreference(
-        key = MiniPlayerGradientKey,
-        defaultValue = true
-    )
-
-    // Get player background preference (for reference)
-    val playerBackground by rememberEnumPreference(
-        key = PlayerBackgroundStyleKey,
-        defaultValue = PlayerBackgroundStyle.GRADIENT
-    )
+    val configuration = LocalConfiguration.current
+    val isTabletLandscape = configuration.screenWidthDp >= 600 &&
+            configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     val offsetXAnimatable = remember { Animatable(0f) }
     var dragStartTime by remember { mutableLongStateOf(0L) }
@@ -180,69 +192,17 @@ private fun NewMiniPlayer(
         animationSpec = animationSpec
     )
 
-    // Gradient colors state
-    var gradientColors by remember {
-        mutableStateOf<List<Color>>(emptyList())
-    }
-    val gradientColorsCache = remember { mutableMapOf<String, List<Color>>() }
-    val defaultGradientColors = listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surfaceVariant)
-    val fallbackColor = MaterialTheme.colorScheme.surface.toArgb()
-
-    // Extract gradient colors from thumbnail
-    LaunchedEffect(mediaMetadata?.id, miniPlayerGradient) {
-        if (miniPlayerGradient) {
-            val currentMetadata = mediaMetadata
-            if (currentMetadata != null && currentMetadata.thumbnailUrl != null) {
-                val cachedColors = gradientColorsCache[currentMetadata.id]
-                if (cachedColors != null) {
-                    gradientColors = cachedColors
-                } else {
-                    val request = ImageRequest.Builder(context)
-                        .data(currentMetadata.thumbnailUrl)
-                        .size(PlayerColorExtractor.Config.IMAGE_SIZE, PlayerColorExtractor.Config.IMAGE_SIZE)
-                        .allowHardware(false)
-                        .build()
-
-                    val result = runCatching {
-                        context.imageLoader.execute(request)
-                    }.getOrNull()
-
-                    if (result != null) {
-                        val bitmap = result.image?.toBitmap()
-                        if (bitmap != null) {
-                            val palette = withContext(Dispatchers.Default) {
-                                Palette.from(bitmap)
-                                    .maximumColorCount(PlayerColorExtractor.Config.MAX_COLOR_COUNT)
-                                    .resizeBitmapArea(PlayerColorExtractor.Config.BITMAP_AREA)
-                                    .generate()
-                            }
-                            val extractedColors = PlayerColorExtractor.extractGradientColors(
-                                palette = palette,
-                                fallbackColor = fallbackColor
-                            )
-                            gradientColorsCache[currentMetadata.id] = extractedColors
-                            gradientColors = extractedColors
-                        } else {
-                            gradientColors = defaultGradientColors
-                        }
-                    } else {
-                        gradientColors = defaultGradientColors
-                    }
-                }
-            } else {
-                gradientColors = emptyList()
-            }
-        } else {
-            gradientColors = emptyList()
-        }
-    }
-
-    val isBluetoothHeadphoneConnected by remember {
-        derivedStateOf { isBluetoothHeadphoneConnected(context) }
-    }
-
-    var showBottomSheet by remember { mutableStateOf(false) }
-
+    /**
+     * Calculates the auto-swipe threshold based on swipe sensitivity.
+     * The formula uses a sigmoid function to determine the threshold dynamically.
+     * Constants:
+     * - -11.44748: Controls the steepness of the sigmoid curve.
+     * - 9.04945: Adjusts the midpoint of the curve.
+     * - 600: Base threshold value in pixels.
+     *
+     * @param swipeSensitivity The sensitivity value (typically between 0 and 1).
+     * @return The calculated auto-swipe threshold in pixels.
+     */
     fun calculateAutoSwipeThreshold(swipeSensitivity: Float): Int {
         return (600 / (1f + kotlin.math.exp(-(-11.44748 * swipeSensitivity + 9.04945)))).roundToInt()
     }
@@ -254,6 +214,7 @@ private fun NewMiniPlayer(
             .height(MiniPlayerHeight)
             .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
             .padding(horizontal = 12.dp)
+            // Move the swipe detection to the outer box to affect the entire box
             .let { baseModifier ->
                 if (swipeThumbnail) {
                     baseModifier.pointerInput(Unit) {
@@ -321,21 +282,23 @@ private fun NewMiniPlayer(
                 }
             }
     ) {
-        // Main MiniPlayer box with gradient background
+        // Main MiniPlayer box that moves with swipe
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(64.dp)
-                .offset { IntOffset(offsetXAnimatable.value.roundToInt(), 0) }
-                .clip(RoundedCornerShape(32.dp))
                 .then(
-                    if (miniPlayerGradient && gradientColors.isNotEmpty()) {
-                        // Use only the first (lightest) color from the extracted colors
-                        val primaryColor = gradientColors[0]
-                        Modifier.background(primaryColor)
+                    if (isTabletLandscape) {
+                        Modifier
+                            .width(500.dp)
+                            .align(Alignment.CenterEnd) // Right align
                     } else {
-                        Modifier.background(MaterialTheme.colorScheme.surfaceContainer)
+                        Modifier.fillMaxWidth()
                     }
+                )
+                .height(64.dp) // Circular height
+                .offset { IntOffset(offsetXAnimatable.value.roundToInt(), 0) }
+                .clip(RoundedCornerShape(32.dp)) // Clip first for perfect rounded corners
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainer // Same as navigation bar color
                 )
         ) {
             Row(
@@ -344,27 +307,23 @@ private fun NewMiniPlayer(
                     .fillMaxSize()
                     .padding(horizontal = 8.dp, vertical = 8.dp),
             ) {
-                // Play/Pause button with circular progress indicator
+                // Play/Pause button with circular progress indicator (left side)
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier.size(48.dp)
                 ) {
+                    // Circular progress indicator around the play button
                     if (duration > 0) {
                         CircularProgressIndicator(
                             progress = { (position.toFloat() / duration).coerceIn(0f, 1f) },
                             modifier = Modifier.size(48.dp),
-                            color = if (miniPlayerGradient && gradientColors.isNotEmpty())
-                                Color.White.copy(alpha = 0.8f)
-                            else
-                                MaterialTheme.colorScheme.primary,
+                            color = MaterialTheme.colorScheme.primary,
                             strokeWidth = 3.dp,
-                            trackColor = if (miniPlayerGradient && gradientColors.isNotEmpty())
-                                Color.White.copy(alpha = 0.2f)
-                            else
-                                MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                            trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                         )
                     }
 
+                    // Play/Pause button with thumbnail background
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
@@ -372,10 +331,7 @@ private fun NewMiniPlayer(
                             .clip(CircleShape)
                             .border(
                                 width = 1.dp,
-                                color = if (miniPlayerGradient && gradientColors.isNotEmpty())
-                                    Color.White.copy(alpha = 0.3f)
-                                else
-                                    MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
                                 shape = CircleShape
                             )
                             .clickable {
@@ -387,6 +343,7 @@ private fun NewMiniPlayer(
                                 }
                             }
                     ) {
+                        // Thumbnail background
                         mediaMetadata?.let { metadata ->
                             AsyncImage(
                                 model = metadata.thumbnailUrl,
@@ -398,6 +355,7 @@ private fun NewMiniPlayer(
                             )
                         }
 
+                        // Semi-transparent overlay for better icon visibility
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -430,17 +388,12 @@ private fun NewMiniPlayer(
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                // Song info
+                // Song info - takes most space in the middle
                 Column(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.Center
                 ) {
                     mediaMetadata?.let { metadata ->
-                        val textColor = if (miniPlayerGradient && gradientColors.isNotEmpty())
-                            Color.White
-                        else
-                            MaterialTheme.colorScheme.onSurface
-
                         AnimatedContent(
                             targetState = metadata.title,
                             transitionSpec = { fadeIn() togetherWith fadeOut() },
@@ -448,30 +401,33 @@ private fun NewMiniPlayer(
                         ) { title ->
                             Text(
                                 text = title,
-                                color = textColor,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.basicMarquee(),
+                                modifier = Modifier.basicMarquee(iterations = 1, initialDelayMillis = 3000, velocity = 30.dp),
                             )
                         }
 
-                        AnimatedContent(
-                            targetState = metadata.artists.joinToString { it.name },
-                            transitionSpec = { fadeIn() togetherWith fadeOut() },
-                            label = "",
-                        ) { artists ->
-                            Text(
-                                text = artists,
-                                color = textColor.copy(alpha = 0.7f),
-                                fontSize = 12.sp,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.basicMarquee(),
-                            )
+                        if (metadata.artists.any { it.name.isNotBlank() }) {
+                            AnimatedContent(
+                                targetState = metadata.artists.joinToString { it.name },
+                                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                                label = "",
+                            ) { artists ->
+                                Text(
+                                    text = artists,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                                    fontSize = 12.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.basicMarquee(iterations = 1, initialDelayMillis = 3000, velocity = 30.dp),
+                                )
+                            }
                         }
 
+                        // Error indicator
                         androidx.compose.animation.AnimatedVisibility(
                             visible = error != null,
                             enter = fadeIn(),
@@ -479,10 +435,7 @@ private fun NewMiniPlayer(
                         ) {
                             Text(
                                 text = "Error playing",
-                                color = if (miniPlayerGradient && gradientColors.isNotEmpty())
-                                    Color.White
-                                else
-                                    MaterialTheme.colorScheme.error,
+                                color = MaterialTheme.colorScheme.error,
                                 fontSize = 10.sp,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
@@ -493,7 +446,9 @@ private fun NewMiniPlayer(
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                // Audio Device button
+// Audio Device button (replaces Subscribe/Subscribed button)
+
+
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
@@ -501,10 +456,7 @@ private fun NewMiniPlayer(
                         .clip(CircleShape)
                         .border(
                             width = 1.dp,
-                            color = if (miniPlayerGradient && gradientColors.isNotEmpty())
-                                Color.White.copy(alpha = 0.3f)
-                            else
-                                MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
                             shape = CircleShape
                         )
                         .background(
@@ -526,21 +478,17 @@ private fun NewMiniPlayer(
                         } else {
                             "Audio devices"
                         },
-                        tint = if (miniPlayerGradient && gradientColors.isNotEmpty())
-                            Color.White.copy(alpha = 0.9f)
-                        else
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         modifier = Modifier.size(20.dp)
                     )
                 }
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // Favorite button
+// Favorite button (right side)
                 mediaMetadata?.let { metadata ->
                     val librarySong by database.song(metadata.id).collectAsState(initial = null)
                     val isLiked = librarySong?.song?.liked == true
-                    var isProcessing by remember { mutableStateOf(false) }
 
                     Box(
                         contentAlignment = Alignment.Center,
@@ -551,8 +499,6 @@ private fun NewMiniPlayer(
                                 width = 1.dp,
                                 color = if (isLiked)
                                     Color(0xFFFFC107).copy(alpha = 0.5f)
-                                else if (miniPlayerGradient && gradientColors.isNotEmpty())
-                                    Color.White.copy(alpha = 0.3f)
                                 else
                                     MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
                                 shape = CircleShape
@@ -564,20 +510,8 @@ private fun NewMiniPlayer(
                                     Color.Transparent,
                                 shape = CircleShape
                             )
-                            .clickable(enabled = !isProcessing) {
-                                librarySong?.song?.let { song ->
-                                    isProcessing = true
-                                    coroutineScope.launch(Dispatchers.IO) {
-                                        try {
-                                            val toggledSong = song.toggleLike()
-                                            database.query {
-                                                update(toggledSong)
-                                            }
-                                        } finally {
-                                            isProcessing = false
-                                        }
-                                    }
-                                }
+                            .clickable {
+                                playerConnection.service.toggleLike()
                             }
                     ) {
                         Icon(
@@ -587,8 +521,6 @@ private fun NewMiniPlayer(
                             contentDescription = null,
                             tint = if (isLiked)
                                 Color(0xFFFFC107)
-                            else if (miniPlayerGradient && gradientColors.isNotEmpty())
-                                Color.White.copy(alpha = 0.9f)
                             else
                                 MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                             modifier = Modifier.size(20.dp)
@@ -598,7 +530,6 @@ private fun NewMiniPlayer(
             }
         }
     }
-
     // Bottom Sheet for Audio Devices
     if (showBottomSheet) {
         AudioDeviceBottomSheet(
@@ -628,23 +559,24 @@ private fun LegacyMiniPlayer(
     val swipeSensitivity by rememberPreference(SwipeSensitivityKey, 0.73f)
     val swipeThumbnail by rememberPreference(com.music.vivi.constants.SwipeThumbnailKey, true)
 
+    val configuration = LocalConfiguration.current
+    val isTabletLandscape = configuration.screenWidthDp >= 600 &&
+            configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
     val offsetXAnimatable = remember { Animatable(0f) }
     var dragStartTime by remember { mutableLongStateOf(0L) }
     var totalDragDistance by remember { mutableFloatStateOf(0f) }
+
+    val context = LocalContext.current
+    val isBluetoothHeadphoneConnected by remember {
+        derivedStateOf { isBluetoothHeadphoneConnected(context) }
+    }
+    var showBottomSheet by remember { mutableStateOf(false) }
 
     val animationSpec = spring<Float>(
         dampingRatio = Spring.DampingRatioNoBouncy,
         stiffness = Spring.StiffnessLow
     )
-
-    // Check if Bluetooth headphones are connected
-    val context = LocalContext.current
-
-    val isBluetoothHeadphoneConnected by remember { derivedStateOf { isBluetoothHeadphoneConnected(context) }
-    }
-
-    var showBottomSheet by remember { mutableStateOf(false) }
-    //
 
     fun calculateAutoSwipeThreshold(swipeSensitivity: Float): Int {
         return (600 / (1f + kotlin.math.exp(-(-11.44748 * swipeSensitivity + 9.04945)))).roundToInt()
@@ -653,14 +585,21 @@ private fun LegacyMiniPlayer(
 
     Box(
         modifier = modifier
-            .fillMaxWidth()
+            .then(
+                if (isTabletLandscape) {
+                    Modifier.width(500.dp)
+                } else {
+                    Modifier.fillMaxWidth()
+                }
+            )
             .height(MiniPlayerHeight)
             .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
+            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
             .background(
                 if (pureBlack)
                     Color.Black
                 else
-                    MaterialTheme.colorScheme.surfaceContainer // Fixed background independent of player background
+                    MaterialTheme.colorScheme.surfaceContainer
             )
             .let { baseModifier ->
                 if (swipeThumbnail) {
@@ -755,7 +694,6 @@ private fun LegacyMiniPlayer(
                 }
             }
 
-            // Speaker/Audio Device Icon - shows headphone icon when Bluetooth headphones are connected
             IconButton(
                 onClick = {
                     showBottomSheet = true
@@ -772,31 +710,6 @@ private fun LegacyMiniPlayer(
                     } else {
                         "Audio devices"
                     },
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
-
-            IconButton(
-                onClick = {
-                    if (playbackState == Player.STATE_ENDED) {
-                        playerConnection.player.seekTo(0, 0)
-                        playerConnection.player.playWhenReady = true
-                    } else {
-                        playerConnection.player.togglePlayPause()
-                    }
-                },
-            ) {
-                Icon(
-                    painter = painterResource(
-                        if (playbackState == Player.STATE_ENDED) {
-                            R.drawable.replay
-                        } else if (isPlaying) {
-                            R.drawable.pause
-                        } else {
-                            R.drawable.play
-                        },
-                    ),
-                    contentDescription = null,
                 )
             }
 
@@ -832,15 +745,12 @@ private fun LegacyMiniPlayer(
         }
     }
 
-    // Bottom Sheet for Audio Devices
     if (showBottomSheet) {
         AudioDeviceBottomSheet(
             onDismiss = { showBottomSheet = false }
         )
     }
 }
-
-
 @Composable
 private fun LegacyMiniMediaInfo(
     mediaMetadata: MediaMetadata,
@@ -858,20 +768,11 @@ private fun LegacyMiniMediaInfo(
                 .size(48.dp)
                 .clip(RoundedCornerShape(ThumbnailCornerRadius))
         ) {
-            // Blurred background for thumbnail
-            AsyncImage(
-                model = mediaMetadata.thumbnailUrl,
-                contentDescription = null,
-                contentScale = ContentScale.FillBounds,
+            // Simple background instead of expensive blur
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .graphicsLayer(
-                        renderEffect = BlurEffect(
-                            radiusX = 75f,
-                            radiusY = 75f
-                        ),
-                        alpha = 0.5f
-                    )
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
             )
 
             // Main thumbnail
@@ -928,18 +829,20 @@ private fun LegacyMiniMediaInfo(
                 )
             }
 
-            AnimatedContent(
-                targetState = mediaMetadata.artists.joinToString { it.name },
-                transitionSpec = { fadeIn() togetherWith fadeOut() },
-                label = "",
-            ) { artists ->
-                Text(
-                    text = artists,
-                    color = MaterialTheme.colorScheme.secondary,
-                    fontSize = 12.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+            if (mediaMetadata.artists.any { it.name.isNotBlank() }) {
+                AnimatedContent(
+                    targetState = mediaMetadata.artists.joinToString { it.name },
+                    transitionSpec = { fadeIn() togetherWith fadeOut() },
+                    label = "",
+                ) { artists ->
+                    Text(
+                        text = artists,
+                        color = MaterialTheme.colorScheme.secondary,
+                        fontSize = 12.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
         }
     }

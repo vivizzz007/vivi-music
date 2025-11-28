@@ -135,7 +135,7 @@ fun Queue(
     playerBottomSheetState: BottomSheetState,
     navController: NavController,
     modifier: Modifier = Modifier,
-    backgroundColor: Color,
+    background: Color,
     onBackgroundColor: Color,
     TextBackgroundColor: Color,
     textButtonColor: Color,
@@ -208,7 +208,9 @@ fun Queue(
 
     BottomSheet(
         state = state,
-        backgroundColor = Color.Unspecified,
+        background = {
+            Box(Modifier.fillMaxSize().background(Color.Unspecified))
+        },
         modifier = modifier,
         collapsedContent = {
             if (useNewPlayerDesign) {
@@ -676,7 +678,7 @@ fun Queue(
             modifier =
             Modifier
                 .fillMaxSize()
-                .background(backgroundColor),
+                .background(background),
         ) {
             LazyColumn(
                 state = lazyListState,
@@ -798,7 +800,7 @@ fun Queue(
                                     modifier =
                                     Modifier
                                         .fillMaxWidth()
-                                        .background(backgroundColor)
+                                        .background(background)
                                         .combinedClickable(
                                             onClick = {
                                                 if (selection) {
