@@ -72,6 +72,7 @@ import com.music.vivi.constants.CountryCodeToName
 import com.music.vivi.constants.EnableKugouKey
 import com.music.vivi.constants.EnableLrcLibKey
 import com.music.vivi.constants.HideExplicitKey
+import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.constants.LanguageCodeToName
 import com.music.vivi.constants.PreferredLyricsProvider
 import com.music.vivi.constants.PreferredLyricsProviderKey
@@ -118,6 +119,7 @@ fun ContentSettings(
     val (proxyPassword, onProxyPasswordChange) = rememberPreference(key = ProxyPasswordKey, defaultValue = "password")
     val (enableKugou, onEnableKugouChange) = rememberPreference(key = EnableKugouKey, defaultValue = true)
     val (enableLrclib, onEnableLrclibChange) = rememberPreference(key = EnableLrcLibKey, defaultValue = true)
+    val (hideVideoSongs, onHideVideoSongsChange) = rememberPreference(key = HideVideoSongsKey, defaultValue = false)
     val (preferredProvider, onPreferredProviderChange) =
         rememberEnumPreference(
             key = PreferredLyricsProviderKey,
@@ -702,6 +704,50 @@ fun ContentSettings(
                                     showSettingsIcon = true
                                 )
                             }
+                        }
+                    }
+                }
+
+                // Hide Video Songs Section
+                item {
+                    Text(
+                        text = stringResource(R.string.hide_video_songs).uppercase(),
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
+                    )
+                }
+
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer
+                        ),
+                        shape = RoundedCornerShape(20.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(modifier = Modifier.weight(1f)) {
+                                ModernInfoItem(
+                                    icon = { Icon(painterResource(R.drawable.slow_motion_video), null, modifier = Modifier.size(22.dp)) },
+                                    title = stringResource(R.string.hide_video_songs),
+                                    subtitle = "Hide video content from songs"
+                                )
+                            }
+                            ModernSwitch(
+                                checked = hideVideoSongs,
+                                onCheckedChange = onHideVideoSongsChange,
+                                modifier = Modifier.padding(end = 20.dp)
+                            )
                         }
                     }
                 }

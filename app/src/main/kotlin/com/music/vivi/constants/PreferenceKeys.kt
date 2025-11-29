@@ -21,6 +21,7 @@ val UseNewMiniPlayerDesignKey = booleanPreferencesKey("useNewMiniPlayerDesign")
 val HidePlayerThumbnailKey = booleanPreferencesKey("hidePlayerThumbnail")
 val SeekExtraSeconds = booleanPreferencesKey("seekExtraSeconds")
 
+val HideVideoSongsKey = booleanPreferencesKey("hideVideoSongs")
 val RotatingThumbnailKey = booleanPreferencesKey("rotating_thumbnail")
 
 enum class SliderStyle {

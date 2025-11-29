@@ -18,7 +18,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import android.content.Context
+import com.music.innertube.models.filterVideoSongs
 import com.music.vivi.constants.HideExplicitKey
+import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.extensions.filterExplicit
 import com.music.vivi.extensions.filterExplicitAlbums
 import com.music.vivi.utils.dataStore
@@ -58,7 +60,7 @@ class ArtistViewModel @Inject constructor(
         // Load artist page and reload when hide explicit setting changes
         viewModelScope.launch {
             context.dataStore.data
-                .map { it[HideExplicitKey] ?: false }
+                .map { (it[HideExplicitKey] ?: false) to (it[HideVideoSongsKey] ?: false) }
                 .distinctUntilChanged()
                 .collect {
                     fetchArtistsFromYTM()
@@ -69,6 +71,7 @@ class ArtistViewModel @Inject constructor(
     fun fetchArtistsFromYTM() {
         viewModelScope.launch {
             val hideExplicit = context.dataStore.get(HideExplicitKey, false)
+            val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
             YouTube.artist(artistId)
                 .onSuccess { page ->
                     val filteredSections = page.sections
@@ -76,7 +79,7 @@ class ArtistViewModel @Inject constructor(
                             section.moreEndpoint?.browseId?.startsWith("MPLAUC") == true
                         }
                         .map { section ->
-                            section.copy(items = section.items.filterExplicit(hideExplicit))
+                            section.copy(items = section.items.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs))
                         }
 
                     artistPage = page.copy(sections = filteredSections)

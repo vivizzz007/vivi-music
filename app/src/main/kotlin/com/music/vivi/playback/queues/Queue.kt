@@ -1,6 +1,7 @@
 package com.music.vivi.playback.queues
 
 import androidx.media3.common.MediaItem
+import com.music.innertube.models.filterVideoSongs
 import com.music.vivi.extensions.metadata
 import com.music.vivi.models.MediaMetadata
 
@@ -27,6 +28,14 @@ interface Queue {
             } else {
                 this
             }
+        fun filterVideoSongs(disableVideos: Boolean = false) =
+            if (disableVideos) {
+                copy(
+                    items = items.filterVideoSongs(true),
+                )
+            } else {
+                this
+            }
     }
 }
 
@@ -35,6 +44,12 @@ fun List<MediaItem>.filterExplicit(enabled: Boolean = true) =
         filterNot {
             it.metadata?.explicit == true
         }
+    } else {
+        this
+    }
+fun List<MediaItem>.filterVideoSongs(disableVideos: Boolean = false) =
+    if (disableVideos) {
+        filterNot { it.metadata?.isVideoSong == true }
     } else {
         this
     }

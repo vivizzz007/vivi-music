@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.music.innertube.YouTube
 import com.music.innertube.pages.BrowseResult
 import com.music.vivi.constants.HideExplicitKey
+import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.get
 import com.music.vivi.utils.reportException
@@ -30,10 +31,14 @@ constructor(
 
     init {
         viewModelScope.launch {
+            val hideExplicit = context.dataStore.get(HideExplicitKey, false)
+            val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
             YouTube
                 .browse(browseId, params)
                 .onSuccess {
-                    result.value = it.filterExplicit(context.dataStore.get(HideExplicitKey, false))
+                    result.value = it
+                        .filterExplicit(hideExplicit)
+                        .filterVideoSongs(hideVideoSongs)
                 }.onFailure {
                     reportException(it)
                 }

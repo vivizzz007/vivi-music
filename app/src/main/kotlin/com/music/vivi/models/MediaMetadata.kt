@@ -2,6 +2,7 @@ package com.music.vivi.models
 
 import androidx.compose.runtime.Immutable
 import com.music.innertube.models.SongItem
+import com.music.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_ATV
 import com.music.vivi.db.entities.Song
 import com.music.vivi.db.entities.SongEntity
 import com.music.vivi.ui.utils.resize
@@ -17,6 +18,7 @@ data class MediaMetadata(
     val thumbnailUrl: String? = null,
     val album: Album? = null,
     val setVideoId: String? = null,
+    val musicVideoType: String? = null,
     val explicit: Boolean = false,
     val liked: Boolean = false,
     val likedDate: LocalDateTime? = null,
@@ -24,6 +26,8 @@ data class MediaMetadata(
     val libraryAddToken: String? = null,
     val libraryRemoveToken: String? = null,
 ) : Serializable {
+    val isVideoSong: Boolean
+        get() = musicVideoType != null && musicVideoType != MUSIC_VIDEO_TYPE_ATV
     data class Artist(
         val id: String?,
         val name: String,
@@ -74,8 +78,10 @@ fun Song.toMediaMetadata() =
             MediaMetadata.Album(
                 id = albumId,
                 title = song.albumName.orEmpty(),
+
             )
         },
+        musicVideoType = null,
     )
 
 fun SongItem.toMediaMetadata() =
@@ -100,6 +106,7 @@ fun SongItem.toMediaMetadata() =
         },
         explicit = explicit,
         setVideoId = setVideoId,
+        musicVideoType = musicVideoType,
         libraryAddToken = libraryAddToken,
         libraryRemoveToken = libraryRemoveToken
     )

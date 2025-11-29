@@ -6,7 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.music.innertube.YouTube
 import com.music.innertube.models.YTItem
 import com.music.innertube.models.filterExplicit
+import com.music.innertube.models.filterVideoSongs
 import com.music.vivi.constants.HideExplicitKey
+import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.db.MusicDatabase
 import com.music.vivi.db.entities.SearchHistory
 import com.music.vivi.utils.dataStore
@@ -47,6 +49,7 @@ constructor(
                     } else {
                         val result = YouTube.searchSuggestions(query).getOrNull()
                         val hideExplicit = context.dataStore.get(HideExplicitKey, false)
+                        val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
 
                         database
                             .searchHistory(query)
@@ -65,6 +68,7 @@ constructor(
                                             ?.recommendedItems
                                             ?.distinctBy { it.id }
                                             ?.filterExplicit(hideExplicit)
+                                            ?.filterVideoSongs(hideVideoSongs)
                                             .orEmpty(),
                                 )
                             }

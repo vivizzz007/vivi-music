@@ -345,4 +345,5 @@
     <string name="swipe_to_change_track">Swipe to change track</string>
     <string name="swipe_to_change_track_description">Swipe left/right on header to skip songs</string>
     <string name="use_old_theme">Use Old Theme</string>
+    <string name="hide_video_songs">Hide video songs</string>
 </resources>

@@ -25,8 +25,10 @@ import com.google.common.util.concurrent.SettableFuture
 import com.music.innertube.YouTube
 import com.music.innertube.models.SongItem
 import com.music.innertube.models.filterExplicit
+import com.music.innertube.models.filterVideoSongs
 import com.music.vivi.R
 import com.music.vivi.constants.HideExplicitKey
+import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.constants.MediaSessionConstants
 import com.music.vivi.constants.SongSortType
 import com.music.vivi.db.MusicDatabase
@@ -369,6 +371,7 @@ constructor(
                         ?.items
                         ?.filterIsInstance<SongItem>()
                         ?.filterExplicit(context.dataStore.get(HideExplicitKey, false))
+                        ?.filterVideoSongs(context.dataStore.get(HideVideoSongsKey, false))
                         ?.filter { onlineSong ->
                             !allLocalSongs.any { localSong ->
                                 localSong.id == onlineSong.id ||
@@ -529,6 +532,7 @@ constructor(
                             ?.items
                             ?.filterIsInstance<SongItem>()
                             ?.filterExplicit(context.dataStore.get(HideExplicitKey, false))
+                            ?.filterVideoSongs(context.dataStore.get(HideVideoSongsKey, false))
                             ?.filter { onlineSong ->
                                 !allLocalSongs.any { localSong ->
                                     localSong.id == onlineSong.id ||

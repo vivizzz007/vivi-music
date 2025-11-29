@@ -24,4 +24,10 @@ data class NavigationEndpoint(
     val anyWatchEndpoint: WatchEndpoint?
         get() = watchEndpoint
             ?: watchPlaylistEndpoint
+
+    val musicVideoType: String?
+        get() = anyWatchEndpoint
+            ?.watchEndpointMusicSupportedConfigs
+            ?.watchEndpointMusicConfig
+            ?.musicVideoType
 }

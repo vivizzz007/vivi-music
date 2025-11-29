@@ -7,7 +7,9 @@ import androidx.lifecycle.viewModelScope
 import com.music.innertube.YouTube
 import com.music.innertube.models.BrowseEndpoint
 import com.music.innertube.models.filterExplicit
+import com.music.innertube.models.filterVideoSongs
 import com.music.vivi.constants.HideExplicitKey
+import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.models.ItemsPage
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.get
@@ -41,10 +43,15 @@ constructor(
                         params = params,
                     ),
                 ).onSuccess { artistItemsPage ->
+                    val hideExplicit = context.dataStore.get(HideExplicitKey, false)
+                    val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
                     title.value = artistItemsPage.title
                     itemsPage.value =
                         ItemsPage(
-                            items = artistItemsPage.items.distinctBy { it.id },
+                            items = artistItemsPage.items
+                                .distinctBy { it.id }
+                                .filterExplicit(hideExplicit)
+                                .filterVideoSongs(hideVideoSongs),
                             continuation = artistItemsPage.continuation,
                         )
                 }.onFailure {
@@ -60,12 +67,15 @@ constructor(
             YouTube
                 .artistItemsContinuation(continuation)
                 .onSuccess { artistItemsContinuationPage ->
+                    val hideExplicit = context.dataStore.get(HideExplicitKey, false)
+                    val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
                     itemsPage.update {
                         ItemsPage(
                             items =
                             (oldItemsPage.items + artistItemsContinuationPage.items)
                                 .distinctBy { it.id }
-                                .filterExplicit(context.dataStore.get(HideExplicitKey, false)),
+                                .filterExplicit(hideExplicit)
+                                .filterVideoSongs(hideVideoSongs),
                             continuation = artistItemsContinuationPage.continuation,
                         )
                     }

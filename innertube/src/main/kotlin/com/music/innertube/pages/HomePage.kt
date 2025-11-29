@@ -13,6 +13,7 @@ import com.music.innertube.models.SongItem
 import com.music.innertube.models.YTItem
 import com.music.innertube.models.oddElements
 import com.music.innertube.models.filterExplicit
+import com.music.innertube.models.filterVideoSongs
 
 data class HomePage(
     val chips: List<Chip>?,
@@ -86,6 +87,7 @@ data class HomePage(
                                 )
                             },
                             duration = null,
+                            musicVideoType = renderer.musicVideoType,
                             thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
                             explicit = renderer.subtitleBadges?.any {
                                 it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
@@ -160,6 +162,13 @@ data class HomePage(
         if (enabled) {
             copy(sections = sections.map {
                 it.copy(items = it.items.filterExplicit())
+            })
+        } else this
+
+    fun filterVideoSongs(disableVideos: Boolean = false) =
+        if (disableVideos) {
+            copy(sections = sections.map { section ->
+                section.copy(items = section.items.filterVideoSongs(true))
             })
         } else this
 
