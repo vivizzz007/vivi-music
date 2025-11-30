@@ -20,8 +20,6 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
@@ -50,7 +48,6 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.Badge
@@ -89,7 +86,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -99,8 +95,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
@@ -196,6 +190,7 @@ import com.music.vivi.ui.utils.resetHeightOffset
 import com.music.vivi.update.changelog.ChangelogBottomSheet
 import com.music.vivi.update.downloadmanager.DownloadNotificationManager
 import com.music.vivi.update.experiment.CrashLogHandler
+import com.music.vivi.update.experiment.getUpdateCheckInterval
 import com.music.vivi.update.updatenotification.UpdateNotificationManager
 //import com.music.vivi.update.updatenotification.UpdateNotificationManager
 import com.music.vivi.updatesreen.UpdateStatus
@@ -210,7 +205,6 @@ import com.music.vivi.viewmodels.HomeViewModel
 import com.valentinilk.shimmer.LocalShimmerTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -318,13 +312,7 @@ class MainActivity : ComponentActivity() {
         //new download manager and update manager
         UpdateNotificationManager.initialize(this)
         // Check for updates on app start (pass VERSION_NAME, not VERSION_CODE)
-        lifecycleScope.launch {
-            UpdateNotificationManager.checkForUpdates(
-                this@MainActivity,
-                BuildConfig.VERSION_NAME,  // Pass version name like "1.0.0"
-                BuildConfig.VERSION_CODE   // Pass version code as fallback
-            )
-        }
+
 //crash log when appp crash
         if (savedInstanceState == null) {
             CrashLogHandler.initialize(applicationContext)
@@ -360,30 +348,52 @@ class MainActivity : ComponentActivity() {
             // Add this state variable
             var updateStatus by remember { mutableStateOf<UpdateStatus>(UpdateStatus.Loading) }
 
-            // Add this LaunchedEffect to check for updates
+            // Add this at the top of setContent, before LaunchedEffect
+            var lastCheckTime by remember { mutableStateOf(0L) }
+
+            // Read interval from user preference (in hours, convert to milliseconds)
+            val updateCheckIntervalHours = remember {
+                getUpdateCheckInterval(this@MainActivity) // Get user's setting
+            }
+            val checkInterval = updateCheckIntervalHours * 60 * 60 * 1000L // Convert hours to milliseconds
+
             LaunchedEffect(checkForUpdates) {
                 if (checkForUpdates) {
-                    updateStatus = UpdateStatus.Loading
+                    val currentTime = System.currentTimeMillis()
 
-                    withContext(Dispatchers.IO) {
-                        checkForUpdate(
-                            onSuccess = { latestVersion, changelog, apkSize, releaseDate, description, imageUrl ->
-                                if (isNewerVersion(latestVersion, BuildConfig.VERSION_NAME)) {
-                                    updateStatus = UpdateStatus.UpdateAvailable(latestVersion)
-                                } else {
-                                    updateStatus = UpdateStatus.UpToDate
+                    if (currentTime - lastCheckTime > checkInterval) {
+                        updateStatus = UpdateStatus.Loading
+
+                        withContext(Dispatchers.IO) {
+                            checkForUpdate(
+                                onSuccess = { latestVersion, changelog, apkSize, releaseDate, description, imageUrl ->
+                                    if (isNewerVersion(latestVersion, BuildConfig.VERSION_NAME)) {
+                                        updateStatus = UpdateStatus.UpdateAvailable(latestVersion)
+
+                                        // ✅ Launch coroutine for notification
+                                        lifecycleScope.launch {
+                                            UpdateNotificationManager.checkForUpdates(
+                                                this@MainActivity,
+                                                BuildConfig.VERSION_NAME,
+                                                BuildConfig.VERSION_CODE
+                                            )
+                                        }
+                                    } else {
+                                        updateStatus = UpdateStatus.UpToDate
+                                    }
+                                    lastCheckTime = currentTime
+                                },
+                                onError = {
+                                    updateStatus = UpdateStatus.Error
+                                    lastCheckTime = currentTime
                                 }
-                            },
-                            onError = {
-                                updateStatus = UpdateStatus.Error
-                            }
-                        )
+                            )
+                        }
                     }
                 } else {
                     updateStatus = UpdateStatus.Disabled
                 }
             }
-
             val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)
             val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
             val isSystemInDarkTheme = isSystemInDarkTheme()
@@ -1312,7 +1322,7 @@ class MainActivity : ComponentActivity() {
                                         navigationBuilder(
                                             navController,
                                             topAppBarScrollBehavior,
-                                            latestVersionName
+                                            updateStatus
                                         )
                                     }
                                 }

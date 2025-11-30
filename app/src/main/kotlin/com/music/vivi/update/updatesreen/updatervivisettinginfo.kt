@@ -67,7 +67,6 @@ import java.util.Date
 import java.util.Locale
 
 
-@RequiresApi(Build.VERSION_CODES.P)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ViviUpdatesScreen(
@@ -135,7 +134,6 @@ fun ViviUpdatesScreen(
                 @Suppress("DEPRECATION")
                 packageInfo.versionCode.toLong()
             }
-
             buildVersion = "$versionName (Build $versionCode)"
 
             val firstInstall = packageInfo.firstInstallTime

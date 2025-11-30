@@ -43,6 +43,7 @@ import com.music.vivi.update.account.AccountView
 import com.music.vivi.update.betaupdate.ViviDpiSettings
 import com.music.vivi.update.experiment.ExperimentalSettingsScreen
 import com.music.vivi.update.updatenotification.UpdateInfoScreen
+import com.music.vivi.updatesreen.UpdateStatus
 import com.music.vivi.updatesreen.ViviUpdatesScreen
 
 
@@ -50,7 +51,7 @@ import com.music.vivi.updatesreen.ViviUpdatesScreen
 fun NavGraphBuilder.navigationBuilder(
     navController: NavHostController,
     scrollBehavior: TopAppBarScrollBehavior,
-    latestVersionName: String,
+    updateStatus: UpdateStatus,
 ) {
     composable(Screens.Home.route) {
         HomeScreen(navController)
@@ -257,7 +258,7 @@ fun NavGraphBuilder.navigationBuilder(
         YouTubeBrowseScreen(navController)
     }
     composable("settings") {
-        SettingsScreen(navController, scrollBehavior)
+        SettingsScreen(navController, scrollBehavior, updateStatus)
     }
     composable("settings/appearance") {
         AppearanceSettings(navController, scrollBehavior)
@@ -308,25 +309,19 @@ fun NavGraphBuilder.navigationBuilder(
         UpdateScreen(navController)
     }
     composable("settings/experimental") {
-        ExperimentalSettingsScreen(navController = navController)
+        ExperimentalSettingsScreen(navController)
     }
     composable("settings/dpi") {
         ViviDpiSettings(navController, scrollBehavior)
     }
     composable("settings/changelog") {
-        ChangelogScreen(navController = navController, scrollBehavior = scrollBehavior)
+        ChangelogScreen(navController,scrollBehavior)
     }
     composable("settings/support") {
-        SupportScreen(
-            navController = navController,
-            scrollBehavior = scrollBehavior
-        )
+        SupportScreen(navController, scrollBehavior)
     }
     composable("settings/report_issue") {
-        ViviIssueScreen(
-            navController = navController,
-            scrollBehavior = scrollBehavior
-        )
+        ViviIssueScreen(navController, scrollBehavior)
     }
 
     composable("settings/account_view") {
@@ -336,6 +331,4 @@ fun NavGraphBuilder.navigationBuilder(
     composable("settings/updateinfo") {
         UpdateInfoScreen(navController, scrollBehavior)
     }
-
-
 }

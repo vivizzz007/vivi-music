@@ -184,6 +184,16 @@ object UpdateNotificationManager {
         releaseName: String,
         downloadUrl: String
     ) {
+        // Check if user has enabled update notifications
+        val sharedPrefs = context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+        val showNotifications = sharedPrefs.getBoolean(KEY_SHOW_UPDATE_NOTIFICATION, true)
+
+        // Don't show notification if user disabled it
+        if (!showNotifications) {
+            android.util.Log.d("UpdateChecker", "Update notifications disabled by user")
+            return
+        }
+
         // Intent to open download page
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(downloadUrl))
         val pendingIntent = PendingIntent.getActivity(
@@ -210,6 +220,18 @@ object UpdateNotificationManager {
                 pendingIntent
             )
             .build()
+
+        // Check notification permission for Android 13+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ActivityCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                android.util.Log.d("UpdateChecker", "Notification permission not granted")
+                return
+            }
+        }
 
         with(NotificationManagerCompat.from(context)) {
             notify(NOTIFICATION_ID, notification)

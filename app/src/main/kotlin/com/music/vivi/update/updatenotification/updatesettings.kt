@@ -113,7 +113,12 @@ fun UpdateInfoScreen(
 
         Toast.makeText(
             context,
-            "Update check interval set to $newInterval ${if (newInterval == 1) "hour" else "hours"}",
+            if (newInterval < 24) {
+                "Update check interval set to $newInterval ${if (newInterval == 1) "hour" else "hours"}"
+            } else {
+                val days = newInterval / 24
+                "Update check interval set to $days ${if (days == 1) "day" else "days"}"
+            },
             Toast.LENGTH_SHORT
         ).show()
     }
@@ -290,7 +295,12 @@ fun UpdateInfoScreen(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Every $updateCheckInterval ${if (updateCheckInterval == 1) "hour" else "hours"}",
+                            text = if (updateCheckInterval < 24) {
+                                "Every $updateCheckInterval ${if (updateCheckInterval == 1) "hour" else "hours"}"
+                            } else {
+                                val days = updateCheckInterval / 24
+                                "Every $days ${if (days == 1) "day" else "days"}"
+                            },
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -314,8 +324,14 @@ fun UpdateInfoScreen(
             },
             text = {
                 Column {
+                    // Change the range and display
                     Text(
-                        text = "Check every $updateCheckInterval ${if (updateCheckInterval == 1) "hour" else "hours"}",
+                        text = if (updateCheckInterval < 24) {
+                            "Check every $updateCheckInterval ${if (updateCheckInterval == 1) "hour" else "hours"}"
+                        } else {
+                            val days = updateCheckInterval / 24
+                            "Check every $days ${if (days == 1) "day" else "days"}"
+                        },
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
@@ -323,8 +339,8 @@ fun UpdateInfoScreen(
                     Slider(
                         value = updateCheckInterval.toFloat(),
                         onValueChange = { updateCheckInterval = it.toInt() },
-                        valueRange = 1f..24f,
-                        steps = 22,
+                        valueRange = 1f..168f,  // Changed: 1 hour to 7 days (168 hours)
+                        steps = 166,  // Changed: 167 values minus 1
                         modifier = Modifier.fillMaxWidth()
                     )
 
@@ -338,7 +354,7 @@ fun UpdateInfoScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = "24 hours",
+                            text = "7 days",  // Changed
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

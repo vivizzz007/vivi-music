@@ -64,28 +64,25 @@ import com.music.vivi.updatesreen.UpdateStatus
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.HomeViewModel
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    updateStatus: UpdateStatus = UpdateStatus.Loading, // Accept from MainActivity
 ) {
-    LocalUriHandler.current
     val context = LocalContext.current
-    Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
-    // Add these preferences to get account information
+    // Get account preferences
     val (accountNamePref, _) = rememberPreference(AccountNameKey, "")
     val (accountEmail, _) = rememberPreference(AccountEmailKey, "")
     val (innerTubeCookie, _) = rememberPreference(InnerTubeCookieKey, "")
 
-    // Get auto-update check preference
-    val (checkForUpdates, _) = rememberPreference(CheckForUpdatesKey, true)
-
-    // Add ViewModels to get account data
+    // Get ViewModels to get account data
     val homeViewModel = hiltViewModel<HomeViewModel>()
-    val accountName by homeViewModel.accountName.collectAsState()
-    val accountImageUrl by homeViewModel.accountImageUrl.collectAsState()
+    val accountName by homeViewModel.accountName.collectAsState(initial = "")
+    val accountImageUrl by homeViewModel.accountImageUrl.collectAsState(initial = null)
 
     // Check if user is logged in
     val isLoggedIn = remember(innerTubeCookie) {
@@ -96,8 +93,8 @@ fun SettingsScreen(
     val accountTitle = when {
         isLoggedIn && accountName.isNotBlank() -> accountName
         isLoggedIn && accountNamePref.isNotBlank() -> accountNamePref
-        isLoggedIn -> stringResource(R.string.account) // Fallback if logged in but no name
-        else -> stringResource(R.string.account) // Not logged in
+        isLoggedIn -> stringResource(R.string.account)
+        else -> stringResource(R.string.account)
     }
 
     val accountSubtitle = if (isLoggedIn && accountEmail.isNotBlank()) {
@@ -106,41 +103,13 @@ fun SettingsScreen(
         "Manage your account and preferences"
     }
 
-    // Add update checking state
-    var updateStatus by remember { mutableStateOf<UpdateStatus>(UpdateStatus.Loading) }
-    var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
     val currentVersion = BuildConfig.VERSION_NAME
-
-    // Add update checking logic - only if auto-check is enabled
-    LaunchedEffect(checkForUpdates) {
-        if (checkForUpdates) {
-            updateStatus = UpdateStatus.Loading
-            checkForUpdate(
-                onSuccess = { latestVersion, changelog, apkSize, releaseDate, description, imageUrl ->
-                    if (isNewerVersion(latestVersion, currentVersion)) {
-                        updateStatus = UpdateStatus.UpdateAvailable(latestVersion)
-                        updateInfo = UpdateInfo(latestVersion, changelog, apkSize, releaseDate)
-                    } else {
-                        updateStatus = UpdateStatus.UpToDate
-                    }
-                },
-                onError = {
-                    updateStatus = UpdateStatus.Error
-                }
-            )
-        } else {
-            // When auto-check is disabled, show disabled state
-            updateStatus = UpdateStatus.Disabled
-        }
-    }
-
     val isUpdateAvailable = updateStatus is UpdateStatus.UpdateAvailable
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                },
+                title = { },
                 navigationIcon = {
                     IconButton(
                         onClick = navController::navigateUp,
@@ -169,7 +138,7 @@ fun SettingsScreen(
         ) {
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Settings Title (outside the card)
+            // Settings Title
             Text(
                 text = "Settings",
                 style = MaterialTheme.typography.headlineMedium.copy(fontSize = 40.sp),
@@ -180,7 +149,7 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            // Single unified settings card with proper curves
+            // Unified settings card
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
@@ -214,7 +183,7 @@ fun SettingsScreen(
                         },
                         subtitle = when (updateStatus) {
                             is UpdateStatus.Disabled -> {
-                                "Automatic check disabled • V${BuildConfig.VERSION_NAME}"
+                                "Automatic check disabled • V${currentVersion}"
                             }
                             is UpdateStatus.UpdateAvailable -> {
                                 "${(updateStatus as UpdateStatus.UpdateAvailable).latestVersion} is now available"
@@ -223,7 +192,7 @@ fun SettingsScreen(
                                 "Checking for updates..."
                             }
                             else -> {
-                                "Current version: ${BuildConfig.VERSION_NAME}"
+                                "Current version: ${currentVersion}"
                             }
                         },
                         titleColor = when (updateStatus) {
@@ -263,7 +232,7 @@ fun SettingsScreen(
                         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                     )
 
-                    // Account - Modified to show user name, email and profile image when logged in
+                    // Account
                     ModernInfoItem(
                         icon = {
                             if (isLoggedIn && accountImageUrl != null) {
