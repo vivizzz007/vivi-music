@@ -150,7 +150,11 @@ fun Queue(
     val bottomSheetPageState = LocalBottomSheetPageState.current
 
 
-    val sleepTimerState = rememberTimePickerState()
+    val sleepTimerState = rememberTimePickerState(
+        initialHour = 0,
+        initialMinute = 30,
+        is24Hour = true
+    )
     val formatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
 
     val playerConnection = LocalPlayerConnection.current ?: return
@@ -554,21 +558,11 @@ fun Queue(
                     },
                     onDismiss = { showSleepTimerDialog = false },
                     onConfirm = {
-                        val calendar = Calendar.getInstance()
-                        val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
-                        val currentMinute = calendar.get(Calendar.MINUTE)
-                        val currentSecond = calendar.get(Calendar.SECOND)
+                        // Treat the time picker as a duration (hours and minutes from now)
+                        val durationInMillis = (sleepTimerState.hour * 3600 + sleepTimerState.minute * 60) * 1000L
 
-                        val currentTimeInMillis = (currentHour * 3600 + currentMinute * 60 + currentSecond) * 1000L
-                        val targetTimeInMillis = (sleepTimerState.hour * 3600 + sleepTimerState.minute * 60) * 1000L
-
-                        var diff = targetTimeInMillis - currentTimeInMillis
-                        if (diff < 0) {
-                            diff += 24 * 3600 * 1000L
-                        }
-
-                        if (diff > 0) {
-                            playerConnection.service.sleepTimer.start(diff)
+                        if (durationInMillis > 0) {
+                            playerConnection.service.sleepTimer.start(durationInMillis)
                         }
                         showSleepTimerDialog = false
                     },
