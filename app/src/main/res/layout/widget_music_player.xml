@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/widget_background"
+    android:padding="12dp">
+
+    <!-- Current Song Player (Top Section) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <!-- Album Art -->
+        <ImageView
+            android:id="@+id/widget_album_art"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:scaleType="fitXY"
+            android:contentDescription="Album Art" />
+
+        <!-- Song Info -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="10dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/widget_song_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Not Playing"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="?android:textColorPrimary"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <TextView
+                android:id="@+id/widget_artist_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Tap to play"
+                android:textSize="11sp"
+                android:textColor="?android:textColorSecondary"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+        </LinearLayout>
+
+        <!-- Like Button -->
+        <ImageButton
+            android:id="@+id/widget_like_button"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="4dp"
+            android:background="?android:selectableItemBackgroundBorderless"
+            android:src="@drawable/favorite_border"
+            android:contentDescription="Like" />
+
+        <!-- Play/Pause Button -->
+        <ImageButton
+            android:id="@+id/widget_play_pause"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/widget_play_button_bg"
+            android:src="@drawable/play"
+            android:contentDescription="Play" />
+
+    </LinearLayout>
+
+    <!-- Queue Row - All 6 in horizontal line -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <!-- Queue Item 1 -->
+        <ImageView
+            android:id="@+id/queue_album_1"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_margin="4dp"
+            android:scaleType="centerCrop"
+            android:background="@drawable/widget_queue_album_bg"
+            android:contentDescription="Queue Song 1" />
+
+        <!-- Queue Item 2 -->
+        <ImageView
+            android:id="@+id/queue_album_2"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_margin="4dp"
+            android:scaleType="centerCrop"
+            android:background="@drawable/widget_queue_album_bg"
+            android:contentDescription="Queue Song 2" />
+
+        <!-- Queue Item 3 -->
+        <ImageView
+            android:id="@+id/queue_album_3"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_margin="4dp"
+            android:scaleType="centerCrop"
+            android:background="@drawable/widget_queue_album_bg"
+            android:contentDescription="Queue Song 3" />
+
+        <!-- Queue Item 4 -->
+        <ImageView
+            android:id="@+id/queue_album_4"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_margin="4dp"
+            android:scaleType="centerCrop"
+            android:background="@drawable/widget_queue_album_bg"
+            android:contentDescription="Queue Song 4" />
+
+        <!-- Queue Item 5 -->
+        <ImageView
+            android:id="@+id/queue_album_5"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_margin="4dp"
+            android:scaleType="centerCrop"
+            android:background="@drawable/widget_queue_album_bg"
+            android:contentDescription="Queue Song 5" />
+
+    </LinearLayout>
+
+</LinearLayout>

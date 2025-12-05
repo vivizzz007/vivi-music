@@ -16,7 +16,7 @@ android {
         applicationId = "com.vivi.vivimusic"
         minSdk = 26
         targetSdk = 36
-        versionCode = 16 //16 //56-57
+        versionCode = 57 //16 //57
         versionName = "4.0.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -239,5 +239,7 @@ dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.compose.ui:ui:1.6.1")
     implementation("androidx.graphics:graphics-shapes:1.1.0")
+    implementation("androidx.glance:glance-appwidget:1.1.0")
+    implementation("androidx.glance:glance-material3:1.1.0")
 
 }
