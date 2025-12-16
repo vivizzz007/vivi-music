@@ -75,6 +75,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -766,7 +767,11 @@ class MainActivity : ComponentActivity() {
                     var showAccountDialog by remember { mutableStateOf(false) }
 
                     val baseBg = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer
-                    val insetBg = if (playerBottomSheetState.progress > 0f) Color.Transparent else baseBg
+                    val insetBg by remember(baseBg) {
+    derivedStateOf {
+        if (playerBottomSheetState.progress > 0f) Color.Transparent else baseBg
+    }
+}
 
                     CompositionLocalProvider(
                         LocalDatabase provides database,
@@ -1226,7 +1231,7 @@ class MainActivity : ComponentActivity() {
                                                                 inclusive = false
                                                             }
                                                             launchSingleTop = true
-                                                            restoreState = false  // ✅ CHANGE TO true
+                                                            restoreState = true  // ✅ CHANGE TO true
                                                         }
                                                     }
                                                 },

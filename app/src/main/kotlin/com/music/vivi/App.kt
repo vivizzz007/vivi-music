@@ -143,58 +143,43 @@ class App : Application(), SingletonImageLoader.Factory {
     }
 
     private fun observeSettingsChanges() {
+        // Consolidated observer to reduce overhead of 4 separate coroutines
         applicationScope.launch(Dispatchers.IO) {
-            dataStore.data
-                .map { it[VisitorDataKey] }
-                .distinctUntilChanged()
-                .collect { visitorData ->
-                    YouTube.visitorData = visitorData?.takeIf { it != "null" }
+            dataStore.data.distinctUntilChanged().collect { settings ->
+                // Visitor Data
+                val visitorData = settings[VisitorDataKey]
+                if (visitorData != "null") {
+                    YouTube.visitorData = visitorData
                         ?: YouTube.visitorData().getOrNull()?.also { newVisitorData ->
-                            dataStore.edit { settings ->
-                                settings[VisitorDataKey] = newVisitorData
-                            }
+                            dataStore.edit { it[VisitorDataKey] = newVisitorData }
                         }
                 }
-        }
 
-        applicationScope.launch(Dispatchers.IO) {
-            dataStore.data
-                .map { it[DataSyncIdKey] }
-                .distinctUntilChanged()
-                .collect { dataSyncId ->
-                    YouTube.dataSyncId = dataSyncId?.let {
-                        it.takeIf { !it.contains("||") }
-                            ?: it.takeIf { it.endsWith("||") }?.substringBefore("||")
-                            ?: it.substringAfter("||")
-                    }
+                // Data Sync ID
+                val dataSyncId = settings[DataSyncIdKey]
+                YouTube.dataSyncId = dataSyncId?.let {
+                    it.takeIf { !it.contains("||") }
+                        ?: it.takeIf { it.endsWith("||") }?.substringBefore("||")
+                        ?: it.substringAfter("||")
                 }
-        }
 
-        applicationScope.launch(Dispatchers.IO) {
-            dataStore.data
-                .map { it[InnerTubeCookieKey] }
-                .distinctUntilChanged()
-                .collect { cookie ->
-                    try {
-                        YouTube.cookie = cookie
-                    } catch (e: Exception) {
-                        Timber.e(e, "Could not parse cookie. Clearing existing cookie.")
-                        forgetAccount(this@App)
-                    }
+                // InnerTube Cookie
+                val cookie = settings[InnerTubeCookieKey]
+                try {
+                    YouTube.cookie = cookie
+                } catch (e: Exception) {
+                    Timber.e(e, "Could not parse cookie. Clearing existing cookie.")
+                    forgetAccount(this@App)
                 }
-        }
 
-        applicationScope.launch(Dispatchers.IO) {
-            dataStore.data
-                .map { it[LastFMSessionKey] }
-                .distinctUntilChanged()
-                .collect { session ->
-                    try {
-                        LastFM.sessionKey = session
-                    } catch (e: Exception) {
-                        Timber.e("Error while loading last.fm session key. %s", e.message)
-                    }
+                // LastFM Session
+                val session = settings[LastFMSessionKey]
+                try {
+                    LastFM.sessionKey = session
+                } catch (e: Exception) {
+                    Timber.e("Error while loading last.fm session key. %s", e.message)
                 }
+            }
         }
     }
 
