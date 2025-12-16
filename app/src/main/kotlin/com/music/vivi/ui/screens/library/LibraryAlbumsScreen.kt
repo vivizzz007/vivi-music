@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -47,6 +48,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -256,7 +258,7 @@ fun LibraryAlbumsScreen(
                                 EmptyPlaceholder(
                                     icon = R.drawable.album,
                                     text = stringResource(R.string.library_album_empty),
-                                    modifier = Modifier.animateItem()
+                                    modifier = Modifier
                                 )
                             }
                         }
@@ -268,51 +270,54 @@ fun LibraryAlbumsScreen(
                         }
 
                         if (filteredAlbumsForList.isNotEmpty()) {
-                            item(key = "albums_container") {
+
+                            itemsIndexed(
+                                items = filteredAlbumsForList.distinctBy { it.id },
+                                key = { _, album -> album.id }
+                            ) { index, album ->
+                                val isFirst = index == 0
+                                val isLast = index == filteredAlbumsForList.distinctBy { it.id }.size - 1
+                                val isActive = album.id == mediaMetadata?.album?.id
+
                                 Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(horizontal = 16.dp)
                                 ) {
-                                    filteredAlbumsForList.distinctBy { it.id }.forEachIndexed { index, album ->
-                                        val isFirst = index == 0
-                                        val isLast = index == filteredAlbumsForList.distinctBy { it.id }.size - 1
-                                        val isActive = album.id == mediaMetadata?.album?.id
-
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .clip(
-                                                    RoundedCornerShape(
-                                                        topStart = if (isFirst) 20.dp else 0.dp,
-                                                        topEnd = if (isFirst) 20.dp else 0.dp,
-                                                        bottomStart = if (isLast) 20.dp else 0.dp,
-                                                        bottomEnd = if (isLast) 20.dp else 0.dp
-                                                    )
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(
+                                                RoundedCornerShape(
+                                                    topStart = if (isFirst) 20.dp else 0.dp,
+                                                    topEnd = if (isFirst) 20.dp else 0.dp,
+                                                    bottomStart = if (isLast) 20.dp else 0.dp,
+                                                    bottomEnd = if (isLast) 20.dp else 0.dp
                                                 )
-                                                .background(
-                                                    if (isActive) MaterialTheme.colorScheme.secondaryContainer
-                                                    else MaterialTheme.colorScheme.surfaceContainer
-                                                )
-                                        ) {
-                                            LibraryAlbumListItem(
-                                                navController = navController,
-                                                menuState = menuState,
-                                                album = album,
-                                                isActive = isActive,
-                                                isPlaying = isPlaying,
-                                                modifier = Modifier.fillMaxSize()
                                             )
-                                        }
+                                            .background(
+                                                if (isActive) MaterialTheme.colorScheme.secondaryContainer
+                                                else MaterialTheme.colorScheme.surfaceContainer
+                                            )
+                                    ) {
+                                        LibraryAlbumListItem(
+                                            navController = navController,
+                                            menuState = menuState,
+                                            album = album,
+                                            isActive = isActive,
+                                            isPlaying = isPlaying,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                    }
 
-                                        // Add 3dp spacer between items (except after last)
-                                        if (!isLast) {
-                                            Spacer(modifier = Modifier.height(3.dp))
-                                        }
+                                    // Add 3dp spacer between items (except after last)
+                                    if (!isLast) {
+                                        Spacer(modifier = Modifier.height(3.dp))
                                     }
                                 }
                             }
                         }
+
 
                     }
                 }
@@ -348,7 +353,7 @@ fun LibraryAlbumsScreen(
                                 EmptyPlaceholder(
                                     icon = R.drawable.album,
                                     text = stringResource(R.string.library_album_empty),
-                                    modifier = Modifier.animateItem()
+                                    modifier = Modifier
                                 )
                             }
                         }
@@ -371,7 +376,6 @@ fun LibraryAlbumsScreen(
                                 isActive = album.id == mediaMetadata?.album?.id,
                                 isPlaying = isPlaying,
                                 modifier = Modifier
-                                    .animateItem()
                             )
                         }
                     }

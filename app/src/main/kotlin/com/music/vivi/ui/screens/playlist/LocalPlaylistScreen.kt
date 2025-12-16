@@ -451,7 +451,7 @@ fun LocalPlaylistScreen(
                         EmptyPlaceholder(
                             icon = R.drawable.music_note,
                             text = stringResource(R.string.playlist_is_empty),
-                            modifier = Modifier.animateItem()
+                            modifier = Modifier
                         )
                     }
                 } else {
@@ -855,8 +855,7 @@ fun LocalPlaylistScreen(
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
-                                .padding(start = 16.dp)
-                                .animateItem(),
+                                .padding(start = 16.dp),
                         ) {
                             SortHeader(
                                 sortType = sortType,

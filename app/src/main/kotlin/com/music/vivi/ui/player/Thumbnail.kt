@@ -382,7 +382,7 @@ fun Thumbnail(
                                                 contentAlignment = Alignment.Center
                                             ) {
                                                 Icon(
-                                                    painter = painterResource(R.drawable.music_note),
+                                                    painter = painterResource(R.drawable.playlist_new_vivi),
                                                     contentDescription = stringResource(R.string.hide_player_thumbnail),
                                                     tint = textBackgroundColor.copy(alpha = 0.7f),
                                                     modifier = Modifier.size(120.dp)

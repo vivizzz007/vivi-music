@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -250,49 +251,51 @@ fun LibraryArtistsScreen(
                                 EmptyPlaceholder(
                                     icon = R.drawable.artist,
                                     text = stringResource(R.string.library_artist_empty),
-                                    modifier = Modifier.animateItem()
+                                    modifier = Modifier
                                 )
                             }
                         }
 
                         val distinctArtists = artists.distinctBy { it.id }
                         if (distinctArtists.isNotEmpty()) {
-                            item(key = "artists_container") {
+                            itemsIndexed(
+                                items = distinctArtists,
+                                key = { _, artist -> artist.id },
+                                contentType = { _, _ -> CONTENT_TYPE_ARTIST }
+                            ) { index, artist ->
+                                val isFirst = index == 0
+                                val isLast = index == distinctArtists.size - 1
+
                                 Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(horizontal = 16.dp)
                                 ) {
-                                    distinctArtists.forEachIndexed { index, artist ->
-                                        val isFirst = index == 0
-                                        val isLast = index == distinctArtists.size - 1
-
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .clip(
-                                                    RoundedCornerShape(
-                                                        topStart = if (isFirst) 20.dp else 0.dp,
-                                                        topEnd = if (isFirst) 20.dp else 0.dp,
-                                                        bottomStart = if (isLast) 20.dp else 0.dp,
-                                                        bottomEnd = if (isLast) 20.dp else 0.dp
-                                                    )
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(
+                                                RoundedCornerShape(
+                                                    topStart = if (isFirst) 20.dp else 0.dp,
+                                                    topEnd = if (isFirst) 20.dp else 0.dp,
+                                                    bottomStart = if (isLast) 20.dp else 0.dp,
+                                                    bottomEnd = if (isLast) 20.dp else 0.dp
                                                 )
-                                                .background(MaterialTheme.colorScheme.surfaceContainer)
-                                        ) {
-                                            LibraryArtistListItem(
-                                                navController = navController,
-                                                menuState = menuState,
-                                                coroutineScope = coroutineScope,
-                                                modifier = Modifier.fillMaxSize(),
-                                                artist = artist
                                             )
-                                        }
+                                            .background(MaterialTheme.colorScheme.surfaceContainer)
+                                    ) {
+                                        LibraryArtistListItem(
+                                            navController = navController,
+                                            menuState = menuState,
+                                            coroutineScope = coroutineScope,
+                                            modifier = Modifier.fillMaxSize(),
+                                            artist = artist
+                                        )
+                                    }
 
-                                        // Add 3dp spacer between items (except after last)
-                                        if (!isLast) {
-                                            Spacer(modifier = Modifier.height(3.dp))
-                                        }
+                                    // Add 3dp spacer between items (except after last)
+                                    if (!isLast) {
+                                        Spacer(modifier = Modifier.height(3.dp))
                                     }
                                 }
                             }
@@ -331,7 +334,7 @@ fun LibraryArtistsScreen(
                                 EmptyPlaceholder(
                                     icon = R.drawable.artist,
                                     text = stringResource(R.string.library_artist_empty),
-                                    modifier = Modifier.animateItem()
+                                    modifier = Modifier
                                 )
                             }
                         }
@@ -345,7 +348,7 @@ fun LibraryArtistsScreen(
                                 navController = navController,
                                 menuState = menuState,
                                 coroutineScope = coroutineScope,
-                                modifier = Modifier.animateItem(),
+                                modifier = Modifier,
                                 artist = artist
                             )
                         }

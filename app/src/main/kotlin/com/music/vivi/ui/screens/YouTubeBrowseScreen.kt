@@ -105,7 +105,7 @@ fun YouTubeBrowseScreen(
             if (browseResult == null) {
                 item(key = "shimmer_loading") {
                     ShimmerHost(
-                        modifier = Modifier.animateItem()
+                        modifier = Modifier
                     ) {
                         TextPlaceholder(
                             height = 36.dp,
@@ -143,7 +143,6 @@ fun YouTubeBrowseScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(ListItemHeight * 4)
-                                    .animateItem()
                             ) {
                                 items(
                                     items = it.items,
@@ -185,7 +184,6 @@ fun YouTubeBrowseScreen(
                                                         )
                                                     }
                                                 }
-                                                .animateItem()
                                         )
                                     }
                                 }
@@ -253,7 +251,6 @@ fun YouTubeBrowseScreen(
                                                     }
                                                 }
                                             )
-                                            .animateItem()
                                     )
                                 }
                             }

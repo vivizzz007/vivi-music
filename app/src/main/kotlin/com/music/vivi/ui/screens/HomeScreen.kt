@@ -484,7 +484,7 @@ fun HomeScreen(
                 item(key = "quick_picks_title") {
                     NavigationTitle(
                         title = stringResource(R.string.quick_picks),
-                        modifier = Modifier.animateItem()
+                        modifier = Modifier
                     )
                 }
 
@@ -507,7 +507,6 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .animateItem()
                     ) {
                         items(
                             items = songGroups,
@@ -609,7 +608,7 @@ fun HomeScreen(
                     item(key = "keep_listening_title") {
                         NavigationTitle(
                             title = stringResource(R.string.keep_listening),
-                            modifier = Modifier.animateItem()
+                            modifier = Modifier
                         )
                     }
 
@@ -626,7 +625,6 @@ fun HomeScreen(
                                     MaterialTheme.typography.bodyLarge.lineHeight.toDp() * 2 +
                                             MaterialTheme.typography.bodyMedium.lineHeight.toDp() * 2
                                 }) * rows)
-                                .animateItem()
                         ) {
                             items(keepListening) {
                                 localGridItem(it)
@@ -668,7 +666,7 @@ fun HomeScreen(
                             onClick = {
                                 navController.navigate("account")
                             },
-                            modifier = Modifier.animateItem()
+                            modifier = Modifier
                         )
                     }
 
@@ -677,7 +675,8 @@ fun HomeScreen(
                             contentPadding = WindowInsets.systemBars
                                 .only(WindowInsetsSides.Horizontal)
                                 .asPaddingValues(),
-                            modifier = Modifier.animateItem()
+                            modifier = Modifier
+                                .fillMaxWidth()
                         ) {
                             items(
                                 items = accountPlaylists.distinctBy { it.id },
@@ -693,7 +692,7 @@ fun HomeScreen(
                     item(key = "forgotten_favorites_title") {
                         NavigationTitle(
                             title = stringResource(R.string.forgotten_favorites),
-                            modifier = Modifier.animateItem()
+                            modifier = Modifier
                         )
                     }
 
@@ -711,7 +710,6 @@ fun HomeScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(ListItemHeight * rows)
-                                .animateItem()
                         ) {
                             items(
                                 items = forgottenFavorites.distinctBy { it.id },
@@ -851,7 +849,7 @@ fun HomeScreen(
                                     navController.navigate("browse/$browseId")
                             }
                         },
-                        modifier = Modifier.animateItem()
+                        modifier = Modifier
                     )
                 }
 
@@ -860,9 +858,13 @@ fun HomeScreen(
                         contentPadding = WindowInsets.systemBars
                             .only(WindowInsetsSides.Horizontal)
                             .asPaddingValues(),
-                        modifier = Modifier.animateItem()
+                        modifier = Modifier
+                            .fillMaxWidth()
                     ) {
-                        items(section.items) { item ->
+                        items(
+                            items = section.items,
+                            key = { it.id }
+                        ) { item ->
                             ytGridItem(item)
                         }
                     }
@@ -872,7 +874,7 @@ fun HomeScreen(
             if (isLoading || homePage?.continuation != null && homePage?.sections?.isNotEmpty() == true) {
                 item(key = "loading_shimmer") {
                     ShimmerHost(
-                        modifier = Modifier.animateItem()
+                        modifier = Modifier
                     ) {
                         TextPlaceholder(
                             height = 36.dp,
@@ -901,7 +903,7 @@ fun HomeScreen(
                             onClick = {
                                 navController.navigate("mood_and_genres")
                             },
-                            modifier = Modifier.animateItem()
+                            modifier = Modifier
                         )
                     }
                     item(key = "mood_and_genres_list") {
@@ -910,7 +912,6 @@ fun HomeScreen(
                             contentPadding = PaddingValues(6.dp),
                             modifier = Modifier
                                 .height((MoodAndGenresButtonHeight + 12.dp) * 4 + 12.dp)
-                                .animateItem()
                         ) {
                             items(moodAndGenres) {
                                 MoodAndGenresButton(
@@ -930,7 +931,7 @@ fun HomeScreen(
                 if (isMoodAndGenresLoading) {
                     item(key = "mood_and_genres_shimmer") {
                         ShimmerHost(
-                            modifier = Modifier.animateItem()
+                            modifier = Modifier
                         ) {
                             TextPlaceholder(
                                 height = 36.dp,

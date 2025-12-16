@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -65,7 +64,6 @@ import com.music.vivi.constants.YtmSyncKey
 import com.music.vivi.extensions.toMediaItem
 import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.playback.queues.ListQueue
-import com.music.vivi.ui.component.ChipsRow
 import com.music.vivi.ui.component.HideOnScrollFAB
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.SongListItem
@@ -115,7 +113,9 @@ fun LibrarySongsScreen(
         }
     }
 
-    val wrappedSongs = songs.map { item -> ItemWrapper(item) }.toMutableList()
+    val wrappedSongs = remember(songs) {
+        songs.map { item -> ItemWrapper(item) }.toMutableList()
+    }
     var selection by remember {
         mutableStateOf(false)
     }
@@ -136,6 +136,14 @@ fun LibrarySongsScreen(
     Box(
         modifier = Modifier.fillMaxSize(),
     ) {
+        val filteredSongs = remember(wrappedSongs, hideExplicit) {
+            if (hideExplicit) {
+                wrappedSongs.filter { !it.item.song.explicit }
+            } else {
+                wrappedSongs
+            }
+        }
+
         LazyColumn(
             state = lazyListState,
             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
@@ -280,103 +288,100 @@ fun LibrarySongsScreen(
                 }
             }
 
-            val filteredSongs = if (hideExplicit) {
-                wrappedSongs.filter { !it.item.song.explicit }
-            } else {
-                wrappedSongs
-            }
 
             if (filteredSongs.isNotEmpty()) {
-                item(key = "songs_container") {
+                itemsIndexed(
+                    items = filteredSongs,
+                    key = { _, item -> item.item.id },
+                    contentType = { _, _ -> CONTENT_TYPE_SONG }
+                ) { index, songWrapper ->
+                    val isFirst = index == 0
+                    val isLast = index == filteredSongs.size - 1
+                    val isActive = songWrapper.item.id == mediaMetadata?.id
+
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp)
                     ) {
-                        filteredSongs.forEachIndexed { index, songWrapper ->
-                            val isFirst = index == 0
-                            val isLast = index == filteredSongs.size - 1
-                            val isActive = songWrapper.item.id == mediaMetadata?.id
-
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(ListItemHeight)
-                                    .clip(
-                                        RoundedCornerShape(
-                                            topStart = if (isFirst) 20.dp else 0.dp,
-                                            topEnd = if (isFirst) 20.dp else 0.dp,
-                                            bottomStart = if (isLast) 20.dp else 0.dp,
-                                            bottomEnd = if (isLast) 20.dp else 0.dp
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(ListItemHeight)
+                                .clip(
+                                    RoundedCornerShape(
+                                        topStart = if (isFirst) 20.dp else 0.dp,
+                                        topEnd = if (isFirst) 20.dp else 0.dp,
+                                        bottomStart = if (isLast) 20.dp else 0.dp,
+                                        bottomEnd = if (isLast) 20.dp else 0.dp
+                                    )
+                                )
+                                .background(
+                                    if (isActive) MaterialTheme.colorScheme.secondaryContainer
+                                    else MaterialTheme.colorScheme.surfaceContainer
+                                )
+                        ) {
+                            SongListItem(
+                                song = songWrapper.item,
+                                showInLibraryIcon = true,
+                                isActive = isActive,
+                                isPlaying = isPlaying,
+                                trailingContent = {
+                                    IconButton(
+                                        onClick = {
+                                            menuState.show {
+                                                SongMenu(
+                                                    originalSong = songWrapper.item,
+                                                    navController = navController,
+                                                    onDismiss = menuState::dismiss,
+                                                )
+                                            }
+                                        },
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.more_vert),
+                                            contentDescription = null,
                                         )
-                                    )
-                                    .background(
-                                        if (isActive) MaterialTheme.colorScheme.secondaryContainer
-                                        else MaterialTheme.colorScheme.surfaceContainer
-                                    )
-                            ) {
-                                SongListItem(
-                                    song = songWrapper.item,
-                                    showInLibraryIcon = true,
-                                    isActive = isActive,
-                                    isPlaying = isPlaying,
-                                    trailingContent = {
-                                        IconButton(
-                                            onClick = {
-                                                menuState.show {
-                                                    SongMenu(
-                                                        originalSong = songWrapper.item,
-                                                        navController = navController,
-                                                        onDismiss = menuState::dismiss,
+                                    }
+                                },
+                                isSelected = songWrapper.isSelected && selection,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .combinedClickable(
+                                        onClick = {
+                                            if (!selection) {
+                                                if (songWrapper.item.id == mediaMetadata?.id) {
+                                                    playerConnection.player.togglePlayPause()
+                                                } else {
+                                                    playerConnection.playQueue(
+                                                        ListQueue(
+                                                            title = context.getString(R.string.queue_all_songs),
+                                                            items = songs.map { it.toMediaItem() },
+                                                            startIndex = index,
+                                                        ),
                                                     )
                                                 }
-                                            },
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.more_vert),
-                                                contentDescription = null,
-                                            )
-                                        }
-                                    },
-                                    isSelected = songWrapper.isSelected && selection,
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .combinedClickable(
-                                            onClick = {
-                                                if (!selection) {
-                                                    if (songWrapper.item.id == mediaMetadata?.id) {
-                                                        playerConnection.player.togglePlayPause()
-                                                    } else {
-                                                        playerConnection.playQueue(
-                                                            ListQueue(
-                                                                title = context.getString(R.string.queue_all_songs),
-                                                                items = songs.map { it.toMediaItem() },
-                                                                startIndex = index,
-                                                            ),
-                                                        )
-                                                    }
-                                                } else {
-                                                    songWrapper.isSelected = !songWrapper.isSelected
-                                                }
-                                            },
-                                            onLongClick = {
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                if (!selection) {
-                                                    selection = true
-                                                }
-                                                wrappedSongs.forEach {
-                                                    it.isSelected = false
-                                                }
-                                                songWrapper.isSelected = true
-                                            },
-                                        ),
-                                )
-                            }
+                                            } else {
+                                                songWrapper.isSelected = !songWrapper.isSelected
+                                            }
+                                        },
+                                        onLongClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            if (!selection) {
+                                                selection = true
+                                            }
+                                            wrappedSongs.forEach {
+                                                it.isSelected = false
+                                            }
+                                            songWrapper.isSelected = true
+                                        },
+                                    ),
+                            )
+                        }
 
-                            // Add 3dp spacer between items (except after last)
-                            if (!isLast) {
-                                Spacer(modifier = Modifier.height(3.dp))
-                            }
+                        // Add 3dp spacer between items (except after last)
+                        if (!isLast) {
+                            Spacer(modifier = Modifier.height(3.dp))
                         }
                     }
                 }
