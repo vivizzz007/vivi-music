@@ -45,7 +45,9 @@ import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -128,8 +130,7 @@ import com.music.vivi.lyrics.LyricsUtils.parseLyrics
 import com.music.vivi.lyrics.LyricsUtils.romanizeCyrillic
 import com.music.vivi.lyrics.LyricsUtils.romanizeJapanese
 import com.music.vivi.lyrics.LyricsUtils.romanizeKorean
-import com.music.vivi.ui.component.shimmer.ShimmerHost
-import com.music.vivi.ui.component.shimmer.TextPlaceholder
+
 import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.screens.settings.LyricsPosition
 import com.music.vivi.ui.utils.fadingEdge
@@ -144,7 +145,7 @@ import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.seconds
 
 @RequiresApi(Build.VERSION_CODES.M)
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @SuppressLint("UnusedBoxWithConstraintsScope", "StringFormatInvalid")
 @Composable
 fun Lyrics(
@@ -594,21 +595,12 @@ fun Lyrics(
 
                 if (lyrics == null) {
                     item {
-                        ShimmerHost {
-                            repeat(10) {
-                                Box(
-                                    contentAlignment = when (lyricsTextPosition) {
-                                        LyricsPosition.LEFT -> Alignment.CenterStart
-                                        LyricsPosition.CENTER -> Alignment.Center
-                                        LyricsPosition.RIGHT -> Alignment.CenterEnd
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 24.dp, vertical = 4.dp)
-                                ) {
-                                    TextPlaceholder()
-                                }
-                            }
+                        Box(
+                            modifier = Modifier
+                                .fillParentMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            ContainedLoadingIndicator()
                         }
                     }
                 } else {
