@@ -166,7 +166,8 @@ import androidx.core.app.NotificationCompat
 import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.playback.queues.filterVideoSongs
 
-
+import com.music.vivi.extensions.toEnum
+import com.music.vivi.update.widget.WidgetUpdateService
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @AndroidEntryPoint
 class MusicService :
@@ -200,12 +201,7 @@ class MusicService :
     val waitingForNetworkConnection = MutableStateFlow(false)
     private val isNetworkConnected = MutableStateFlow(false)
 
-    private val audioQuality by enumPreference(
-        this,
-        AudioQualityKey,
-        com.music.vivi.constants.AudioQuality.AUTO
-    )
-
+    private lateinit var audioQuality: com.music.vivi.constants.AudioQuality
     private var currentQueue: Queue = EmptyQueue
     var queueTitle: String? = null
 
@@ -220,7 +216,7 @@ class MusicService :
             database.format(mediaMetadata?.id)
         }
 
-    val playerVolume = MutableStateFlow(dataStore.get(PlayerVolumeKey, 1f).coerceIn(0f, 1f))
+    lateinit var playerVolume: MutableStateFlow<Float>
 
     lateinit var sleepTimer: SleepTimer
 
@@ -315,6 +311,9 @@ class MusicService :
 
         connectivityManager = getSystemService()!!
         connectivityObserver = NetworkConnectivityObserver(this)
+
+        audioQuality = dataStore.get(AudioQualityKey).toEnum(com.music.vivi.constants.AudioQuality.AUTO)
+        playerVolume = MutableStateFlow(dataStore.get(PlayerVolumeKey, 1f).coerceIn(0f, 1f))
 
         scope.launch {
             connectivityObserver.networkStatus.collect { isConnected ->
@@ -1003,6 +1002,7 @@ class MusicService :
                 }
             }
         }
+        updateWidget()
     }
 
     fun toggleStartRadio() {
@@ -1151,6 +1151,7 @@ class MusicService :
         if (dataStore.get(PersistentQueueKey, true)) {
             saveQueueToDisk()
         }
+        updateWidget()
     }
 
     override fun onPlaybackStateChanged(
@@ -1164,12 +1165,14 @@ class MusicService :
         if (playbackState == Player.STATE_IDLE || playbackState == Player.STATE_ENDED) {
             scrobbleManager?.onSongStop()
         }
+        updateWidget()
     }
 
     override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
         if (playWhenReady) {
             setupLoudnessEnhancer()
         }
+        updateWidget()
     }
 
     override fun onEvents(
@@ -1565,6 +1568,17 @@ class MusicService :
     inner class MusicBinder : Binder() {
         val service: MusicService
             get() = this@MusicService
+    }
+
+//added widget updating
+
+    private fun updateWidget() {
+        try {
+            val intent = Intent(this, WidgetUpdateService::class.java)
+            startService(intent)
+        } catch (e: Exception) {
+            reportException(e)
+        }
     }
 
     companion object {
