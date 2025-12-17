@@ -202,7 +202,7 @@ fun ViviIssueScreen(
                         // GitHub Option
                         FilledTonalButton(
                             onClick = {
-                                uriHandler.openUri("https://github.com/vivizzz007/vivi-music/issues/new?template=bug_report.md")
+                                uriHandler.openUri("https://github.com/vivizzz007/vivi-music/issues/new?template=bug_report.yml")
                             },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
