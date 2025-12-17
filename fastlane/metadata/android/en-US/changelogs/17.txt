@@ -1,0 +1,5 @@
+Updated app to version 4.0.9
+Added toggle to disable video playback (Settings → Content)
+Updated lyrics screen with slider control
+Optimized app for better performance
+Other under-the-hood improvements
