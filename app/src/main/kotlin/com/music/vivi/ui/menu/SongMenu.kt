@@ -49,6 +49,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -156,24 +157,42 @@ fun SongMenu(
 
     val bottomSheetPageState = LocalBottomSheetPageState.current
 
-    // Design variables
-    val evenCornerRadiusElems = 26.dp
+    // Design variables - Android 16 style
+    val cornerRadius = 24.dp
     val albumArtShape = AbsoluteSmoothCornerShape(
-        cornerRadiusTR = evenCornerRadiusElems, smoothnessAsPercentBR = 60, cornerRadiusBR = evenCornerRadiusElems,
-        smoothnessAsPercentTL = 60, cornerRadiusTL = evenCornerRadiusElems, smoothnessAsPercentBL = 60,
-        cornerRadiusBL = evenCornerRadiusElems, smoothnessAsPercentTR = 60
+        cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+        smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
+        cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
     )
     val playButtonShape = AbsoluteSmoothCornerShape(
-        cornerRadiusTR = evenCornerRadiusElems, smoothnessAsPercentBR = 60, cornerRadiusBR = evenCornerRadiusElems,
-        smoothnessAsPercentTL = 60, cornerRadiusTL = evenCornerRadiusElems, smoothnessAsPercentBL = 60,
-        cornerRadiusBL = evenCornerRadiusElems, smoothnessAsPercentTR = 60
+        cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+        smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
+        cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+    )
+
+    // Android 16 grouped shapes
+    val topShape = AbsoluteSmoothCornerShape(
+        cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
+        smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
+        cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+    )
+    val middleShape = RectangleShape
+    val bottomShape = AbsoluteSmoothCornerShape(
+        cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+        smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
+        cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
+    )
+    val singleShape = AbsoluteSmoothCornerShape(
+        cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+        smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
+        cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
     )
 
     // Favorite state tracking
     val isFavorite = song.song.liked
 
     val favoriteButtonCornerRadius by animateDpAsState(
-        targetValue = if (isFavorite) evenCornerRadiusElems else 60.dp,
+        targetValue = if (isFavorite) cornerRadius else 60.dp,
         animationSpec = tween(durationMillis = 300), label = "FavoriteCornerAnimation"
     )
     val favoriteButtonContainerColor by animateColorAsState(
@@ -379,7 +398,7 @@ fun SongMenu(
                     }
                     context.startActivity(Intent.createChooser(intent, null))
                 },
-                shape = CircleShape
+                shape = singleShape
             ) {
                 Icon(
                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
@@ -391,7 +410,7 @@ fun SongMenu(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Download Button
+        // Download Button (standalone)
         FilledTonalButton(
             modifier = Modifier
                 .fillMaxWidth()
@@ -400,7 +419,7 @@ fun SongMenu(
                 containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                 contentColor = MaterialTheme.colorScheme.onTertiaryContainer
             ),
-            shape = CircleShape,
+            shape = singleShape,
             onClick = {
                 when (download?.state) {
                     Download.STATE_COMPLETED -> {
@@ -450,16 +469,16 @@ fun SongMenu(
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // Details Section
+        // Details Section - First Group
         Column(
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
-            // Artist
+            // Artist (Top of group)
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = topShape,
                 onClick = {
                     if (song.artists.size == 1) {
                         navController.navigate("artist/${song.artists[0].id}")
@@ -490,13 +509,15 @@ fun SongMenu(
                 }
             }
 
-            // Album
+            Spacer(modifier = Modifier.height(1.dp))
+
+            // Album (Bottom of group or middle if more items)
             if (song.song.albumId != null) {
                 FilledTonalButton(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 66.dp),
-                    shape = CircleShape,
+                    shape = bottomShape,
                     onClick = {
                         onDismiss()
                         navController.navigate("album/${song.song.albumId}")
@@ -523,13 +544,20 @@ fun SongMenu(
                     }
                 }
             }
+        }
 
-            // Play Next
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Queue Management Group
+        Column(
+            verticalArrangement = Arrangement.spacedBy(0.dp)
+        ) {
+            // Play Next (Top)
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = topShape,
                 onClick = {
                     onDismiss()
                     playerConnection.playNext(song.toMediaItem())
@@ -556,12 +584,14 @@ fun SongMenu(
                 }
             }
 
-            // Add to Queue
+            Spacer(modifier = Modifier.height(1.dp))
+
+            // Add to Queue (Middle)
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = middleShape,
                 onClick = {
                     onDismiss()
                     playerConnection.addToQueue(song.toMediaItem())
@@ -588,12 +618,14 @@ fun SongMenu(
                 }
             }
 
-            // Start Radio
+            Spacer(modifier = Modifier.height(1.dp))
+
+            // Start Radio (Bottom)
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = bottomShape,
                 onClick = {
                     onDismiss()
                     playerConnection.playQueue(YouTubeQueue.radio(song.toMediaMetadata()))
@@ -619,13 +651,20 @@ fun SongMenu(
                     )
                 }
             }
+        }
 
-            // Add to Playlist
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Playlist and Edit Group
+        Column(
+            verticalArrangement = Arrangement.spacedBy(0.dp)
+        ) {
+            // Add to Playlist (Top)
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = topShape,
                 onClick = {
                     showChoosePlaylistDialog = true
                 }
@@ -651,12 +690,14 @@ fun SongMenu(
                 }
             }
 
-            // Edit Song
+            Spacer(modifier = Modifier.height(1.dp))
+
+            // Edit Song (Middle)
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = middleShape,
                 onClick = {
                     showEditDialog = true
                 }
@@ -682,12 +723,14 @@ fun SongMenu(
                 }
             }
 
-            // Library Management
+            Spacer(modifier = Modifier.height(1.dp))
+
+            // Library Management (Bottom)
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = bottomShape,
                 onClick = {
                     val currentSong = song.song
                     val isInLibrary = currentSong.inLibrary != null
@@ -727,125 +770,159 @@ fun SongMenu(
                     )
                 }
             }
+        }
 
-            // Conditional items
-            if (event != null) {
-                FilledTonalButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 66.dp),
-                    shape = CircleShape,
-                    onClick = {
-                        onDismiss()
-                        database.query { delete(event) }
-                    }
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.delete),
-                        contentDescription = "Delete icon"
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            "Remove from History",
-                            style = MaterialTheme.typography.bodyLarge,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Text(
-                            "Delete from listening history",
-                            style = MaterialTheme.typography.bodySmall,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-            }
+        Spacer(modifier = Modifier.height(10.dp))
 
-            if (playlistSong != null) {
-                FilledTonalButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 66.dp),
-                    shape = CircleShape,
-                    onClick = {
-                        database.transaction {
-                            coroutineScope.launch {
-                                playlistBrowseId?.let { playlistId ->
-                                    if (playlistSong.map.setVideoId != null) {
-                                        YouTube.removeFromPlaylist(
-                                            playlistId, playlistSong.map.songId, playlistSong.map.setVideoId
-                                        )
-                                    }
+        // Conditional items group
+        val conditionalItems = buildList {
+            if (event != null) add("event")
+            if (playlistSong != null) add("playlist")
+            if (isFromCache) add("cache")
+        }
+
+        if (conditionalItems.isNotEmpty()) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(0.dp)
+            ) {
+                conditionalItems.forEachIndexed { index, item ->
+                    val shape = when {
+                        conditionalItems.size == 1 -> singleShape
+                        index == 0 -> topShape
+                        index == conditionalItems.lastIndex -> bottomShape
+                        else -> middleShape
+                    }
+
+                    when (item) {
+                        "event" -> {
+                            FilledTonalButton(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(min = 66.dp),
+                                shape = shape,
+                                onClick = {
+                                    onDismiss()
+                                    database.query { delete(event!!) }
+                                }
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.delete),
+                                    contentDescription = "Delete icon"
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        "Remove from History",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Text(
+                                        "Delete from listening history",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
                                 }
                             }
-                            move(playlistSong.map.playlistId, playlistSong.map.position, Int.MAX_VALUE)
-                            delete(playlistSong.map.copy(position = Int.MAX_VALUE))
                         }
-                        onDismiss()
+                        "playlist" -> {
+                            FilledTonalButton(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(min = 66.dp),
+                                shape = shape,
+                                onClick = {
+                                    database.transaction {
+                                        coroutineScope.launch {
+                                            playlistBrowseId?.let { playlistId ->
+                                                if (playlistSong!!.map.setVideoId != null) {
+                                                    YouTube.removeFromPlaylist(
+                                                        playlistId, playlistSong.map.songId, playlistSong.map.setVideoId
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        move(playlistSong!!.map.playlistId, playlistSong.map.position, Int.MAX_VALUE)
+                                        delete(playlistSong.map.copy(position = Int.MAX_VALUE))
+                                    }
+                                    onDismiss()
+                                }
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.delete),
+                                    contentDescription = "Delete icon"
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        "Remove from Playlist",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Text(
+                                        "Delete from this playlist",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+                        }
+                        "cache" -> {
+                            FilledTonalButton(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(min = 66.dp),
+                                shape = shape,
+                                onClick = {
+                                    onDismiss()
+                                    cacheViewModel.removeSongFromCache(song.id)
+                                }
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.delete),
+                                    contentDescription = "Delete icon"
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        "Remove from Cache",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Text(
+                                        "Clear cached data",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+                        }
                     }
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.delete),
-                        contentDescription = "Delete icon"
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            "Remove from Playlist",
-                            style = MaterialTheme.typography.bodyLarge,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Text(
-                            "Delete from this playlist",
-                            style = MaterialTheme.typography.bodySmall,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
+
+                    if (index < conditionalItems.lastIndex) {
+                        Spacer(modifier = Modifier.height(1.dp))
                     }
                 }
             }
 
-            if (isFromCache) {
-                FilledTonalButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 66.dp),
-                    shape = CircleShape,
-                    onClick = {
-                        onDismiss()
-                        cacheViewModel.removeSongFromCache(song.id)
-                    }
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.delete),
-                        contentDescription = "Delete icon"
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            "Remove from Cache",
-                            style = MaterialTheme.typography.bodyLarge,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Text(
-                            "Clear cached data",
-                            style = MaterialTheme.typography.bodySmall,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-            }
+            Spacer(modifier = Modifier.height(10.dp))
+        }
 
-            // Refetch
+        // System Actions Group
+        Column(
+            verticalArrangement = Arrangement.spacedBy(0.dp)
+        ) {
+            // Refetch (Top)
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = topShape,
                 onClick = {
                     refetchIconDegree -= 360
                     scope.launch(Dispatchers.IO) {
@@ -889,12 +966,14 @@ fun SongMenu(
                 )
             }
 
-            // Song Details
+            Spacer(modifier = Modifier.height(1.dp))
+
+            // Song Details (Bottom)
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = bottomShape,
                 onClick = {
                     onDismiss()
                     bottomSheetPageState.show {
