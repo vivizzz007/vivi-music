@@ -8,7 +8,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.view.View
-import android.view.Window
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import androidx.compose.foundation.background
@@ -38,18 +37,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat.startActivity
-import androidx.core.view.WindowCompat
-import com.music.vivi.App
 import com.music.vivi.MainActivity
 import com.music.vivi.ui.theme.DefaultThemeColor
 import com.music.vivi.ui.theme.MusicTheme
