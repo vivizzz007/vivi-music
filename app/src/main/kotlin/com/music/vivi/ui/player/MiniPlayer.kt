@@ -694,6 +694,7 @@ private fun LegacyMiniPlayer(
                 }
             }
 
+
             IconButton(
                 onClick = {
                     showBottomSheet = true
@@ -710,6 +711,30 @@ private fun LegacyMiniPlayer(
                     } else {
                         "Audio devices"
                     },
+                )
+            }
+
+            IconButton(
+                onClick = {
+                    if (playbackState == Player.STATE_ENDED) {
+                        playerConnection.player.seekTo(0, 0)
+                        playerConnection.player.playWhenReady = true
+                    } else {
+                        playerConnection.player.togglePlayPause()
+                    }
+                },
+            ) {
+                Icon(
+                    painter = painterResource(
+                        if (playbackState == Player.STATE_ENDED) {
+                            R.drawable.replay
+                        } else if (isPlaying) {
+                            R.drawable.pause
+                        } else {
+                            R.drawable.play
+                        }
+                    ),
+                    contentDescription = null,
                 )
             }
 
