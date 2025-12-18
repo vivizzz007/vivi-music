@@ -1,5 +1,11 @@
 package com.music.vivi.ui.component
 
+import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
+
+import androidx.compose.foundation.background
+import androidx.compose.runtime.remember
+import androidx.compose.ui.draw.clip
+
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.basicMarquee
@@ -31,7 +37,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-// Enhanced Action Button - Material 3 Expressive Design
+// Enhanced Action Button - Material 3 Expressive Design (Box-based)
 @Composable
 fun NewActionButton(
     icon: @Composable () -> Unit,
@@ -39,8 +45,8 @@ fun NewActionButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    backgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant,
-    contentColor: Color = MaterialTheme.colorScheme.onSurfaceVariant
+    backgroundColor: Color = MaterialTheme.colorScheme.secondaryContainer,
+    contentColor: Color = MaterialTheme.colorScheme.onSecondaryContainer
 ) {
     val animatedBackground by animateColorAsState(
         targetValue = if (enabled) backgroundColor else backgroundColor.copy(alpha = 0.5f),
@@ -54,21 +60,17 @@ fun NewActionButton(
         label = "content"
     )
 
-    Card(
+    val shape = remember { AbsoluteSmoothCornerShape(28.dp, 60) }
+    
+    Box(
         modifier = modifier
-            .clickable(enabled = enabled) { onClick() },
-        colors = CardDefaults.cardColors(
-            containerColor = animatedBackground
-        ),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp
-        )
+            .clip(shape)
+            .background(animatedBackground)
+            .clickable(enabled = enabled) { onClick() }
+            .padding(12.dp),
+        contentAlignment = Alignment.Center
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -94,7 +96,22 @@ fun NewActionButton(
     }
 }
 
-// Enhanced Menu Item - Material 3 Expressive Design
+enum class MenuGroupPosition {
+    Top, Middle, Bottom, Single
+}
+
+@Composable
+fun getGroupShape(position: MenuGroupPosition, cornerRadius: androidx.compose.ui.unit.Dp = 28.dp): AbsoluteSmoothCornerShape {
+    return remember(position, cornerRadius) {
+        when (position) {
+            MenuGroupPosition.Top -> AbsoluteSmoothCornerShape(cornerRadiusTL = cornerRadius, cornerRadiusTR = cornerRadius, smoothnessAsPercentTL = 60, smoothnessAsPercentTR = 60)
+            MenuGroupPosition.Middle -> AbsoluteSmoothCornerShape(0.dp, 0)
+            MenuGroupPosition.Bottom -> AbsoluteSmoothCornerShape(cornerRadiusBL = cornerRadius, cornerRadiusBR = cornerRadius, smoothnessAsPercentBL = 60, smoothnessAsPercentBR = 60)
+            MenuGroupPosition.Single -> AbsoluteSmoothCornerShape(cornerRadius, 60)
+        }
+    }
+}
+
 @Composable
 fun NewMenuItem(
     headlineContent: @Composable () -> Unit,
@@ -103,6 +120,7 @@ fun NewMenuItem(
     supportingContent: @Composable (() -> Unit)? = null,
     onClick: (() -> Unit)? = null,
     enabled: Boolean = true,
+    position: MenuGroupPosition = MenuGroupPosition.Single,
     modifier: Modifier = Modifier
 ) {
     androidx.compose.material3.ListItem(
@@ -110,7 +128,11 @@ fun NewMenuItem(
         leadingContent = leadingContent,
         trailingContent = trailingContent,
         supportingContent = supportingContent,
+        colors = androidx.compose.material3.ListItemDefaults.colors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        ),
         modifier = modifier
+            .clip(getGroupShape(position))
             .clickable(enabled = enabled) { onClick?.invoke() }
             .padding(horizontal = 4.dp),
         tonalElevation = 0.dp
@@ -235,13 +257,15 @@ fun NewIconButton(
         label = "content"
     )
 
+    val shape = remember { AbsoluteSmoothCornerShape(28.dp, 60) }
+
     Card(
         modifier = modifier
             .clickable(enabled = enabled) { onClick() },
         colors = CardDefaults.cardColors(
             containerColor = animatedBackground
         ),
-        shape = CircleShape,
+        shape = shape,
         elevation = CardDefaults.cardElevation(
             defaultElevation = 2.dp
         )
@@ -260,8 +284,8 @@ fun NewIconButton(
 // Enhanced Menu Container - Material 3 Expressive Design
 @Composable
 fun NewMenuContainer(
-    content: @Composable () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
 ) {
     Column(
         modifier = modifier
