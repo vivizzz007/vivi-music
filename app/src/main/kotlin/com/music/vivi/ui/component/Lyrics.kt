@@ -680,24 +680,25 @@ fun Lyrics(
                                 else Color.Transparent
                             )
                             .padding(horizontal = 24.dp, vertical = 8.dp)
-                            .alpha(
-                                when {
-                                    !isSynced || (isSelectionModeActive && isSelected) -> 1f
-                                    index == displayedCurrentLineIndex -> 1f // Active line - full opacity
-                                    kotlin.math.abs(index - displayedCurrentLineIndex) == 1 -> 0.7f // Adjacent lines - medium opacity
-                                    kotlin.math.abs(index - displayedCurrentLineIndex) == 2 -> 0.4f // 2 lines away - low opacity
-                                    else -> 0.2f // Far lines - very low opacity (deep water effect)
-                                }
-                            )
-                            // Add subtle scale effect for depth
                             .graphicsLayer {
+                                // Consolidation of alpha and scale logic into draw phase
                                 val distance = kotlin.math.abs(index - displayedCurrentLineIndex)
+                                
+                                alpha = when {
+                                    !isSynced || (isSelectionModeActive && isSelected) -> 1f
+                                    index == displayedCurrentLineIndex -> 1f
+                                    distance == 1 -> 0.7f
+                                    distance == 2 -> 0.4f
+                                    else -> 0.2f
+                                }
+                                
                                 val scale = when {
                                     !isSynced || index == displayedCurrentLineIndex -> 1f
-                                    distance == 1 -> 0.95f // Slightly smaller
-                                    distance >= 2 -> 0.9f // Even smaller for distant lines
+                                    distance == 1 -> 0.95f
+                                    distance >= 2 -> 0.9f
                                     else -> 1f
                                 }
+                                
                                 scaleX = scale
                                 scaleY = scale
                             }

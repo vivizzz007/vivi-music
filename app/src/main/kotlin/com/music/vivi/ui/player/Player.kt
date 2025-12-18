@@ -1339,17 +1339,16 @@ fun BottomSheetPlayer(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(
-                            MaterialTheme.colorScheme.surface.copy(
-                                alpha = lyricsSheetState.progress.coerceIn(0f, 1f)
-                            )
-                        )
+                        .graphicsLayer {
+                            alpha = lyricsSheetState.progress.coerceIn(0f, 1f)
+                        }
+                        .background(MaterialTheme.colorScheme.surface)
                 ) {
                     LyricsScreen(
                         mediaMetadata = metadata,
                         onBackClick = { lyricsSheetState.collapseSoft() },
                         navController = navController,
-                        backgroundAlpha = lyricsSheetState.progress.coerceIn(0f, 1f)
+                        backgroundAlpha = { lyricsSheetState.progress.coerceIn(0f, 1f) }
                     )
                 }
             }

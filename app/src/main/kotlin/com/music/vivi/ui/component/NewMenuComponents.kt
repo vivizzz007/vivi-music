@@ -27,7 +27,9 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -78,7 +80,9 @@ fun NewActionButton(
                 modifier = Modifier.size(28.dp),
                 contentAlignment = Alignment.Center
             ) {
-                icon()
+                CompositionLocalProvider(LocalContentColor provides animatedContent) {
+                    icon()
+                }
             }
             
             Spacer(modifier = Modifier.height(6.dp))
@@ -129,7 +133,11 @@ fun NewMenuItem(
         trailingContent = trailingContent,
         supportingContent = supportingContent,
         colors = androidx.compose.material3.ListItemDefaults.colors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            headlineColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            supportingColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
+            leadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            trailingIconColor = MaterialTheme.colorScheme.onSecondaryContainer
         ),
         modifier = modifier
             .clip(getGroupShape(position))
@@ -263,7 +271,8 @@ fun NewIconButton(
         modifier = modifier
             .clickable(enabled = enabled) { onClick() },
         colors = CardDefaults.cardColors(
-            containerColor = animatedBackground
+            containerColor = animatedBackground,
+            contentColor = animatedContent
         ),
         shape = shape,
         elevation = CardDefaults.cardElevation(

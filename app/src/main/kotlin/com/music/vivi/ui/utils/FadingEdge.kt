@@ -8,73 +8,50 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 
+import androidx.compose.ui.draw.drawWithCache
+
 fun Modifier.fadingEdge(
     left: Dp? = null,
     top: Dp? = null,
     right: Dp? = null,
     bottom: Dp? = null,
 ) = graphicsLayer(alpha = 0.99f)
-    .drawWithContent {
-        drawContent()
-        if (top != null) {
-            drawRect(
-                brush =
-                Brush.verticalGradient(
-                    colors =
-                    listOf(
-                        Color.Transparent,
-                        Color.Black,
-                    ),
-                    startY = 0f,
-                    endY = top.toPx(),
-                ),
-                blendMode = BlendMode.DstIn,
+    .drawWithCache {
+        val topBrush = top?.let {
+            Brush.verticalGradient(
+                colors = listOf(Color.Transparent, Color.Black),
+                startY = 0f,
+                endY = it.toPx()
             )
         }
-        if (bottom != null) {
-            drawRect(
-                brush =
-                Brush.verticalGradient(
-                    colors =
-                    listOf(
-                        Color.Black,
-                        Color.Transparent,
-                    ),
-                    startY = size.height - bottom.toPx(),
-                    endY = size.height,
-                ),
-                blendMode = BlendMode.DstIn,
+        val bottomBrush = bottom?.let {
+            Brush.verticalGradient(
+                colors = listOf(Color.Black, Color.Transparent),
+                startY = size.height - it.toPx(),
+                endY = size.height
             )
         }
-        if (left != null) {
-            drawRect(
-                brush =
-                Brush.horizontalGradient(
-                    colors =
-                    listOf(
-                        Color.Black,
-                        Color.Transparent,
-                    ),
-                    startX = 0f,
-                    endX = left.toPx(),
-                ),
-                blendMode = BlendMode.DstIn,
+        val leftBrush = left?.let {
+            Brush.horizontalGradient(
+                colors = listOf(Color.Black, Color.Transparent),
+                startX = 0f,
+                endX = it.toPx()
             )
         }
-        if (right != null) {
-            drawRect(
-                brush =
-                Brush.horizontalGradient(
-                    colors =
-                    listOf(
-                        Color.Transparent,
-                        Color.Black,
-                    ),
-                    startX = size.width - right.toPx(),
-                    endX = size.width,
-                ),
-                blendMode = BlendMode.DstIn,
+        val rightBrush = right?.let {
+            Brush.horizontalGradient(
+                colors = listOf(Color.Transparent, Color.Black),
+                startX = size.width - it.toPx(),
+                endX = size.width
             )
+        }
+
+        onDrawWithContent {
+            drawContent()
+            topBrush?.let { drawRect(brush = it, blendMode = BlendMode.DstIn) }
+            bottomBrush?.let { drawRect(brush = it, blendMode = BlendMode.DstIn) }
+            leftBrush?.let { drawRect(brush = it, blendMode = BlendMode.DstIn) }
+            rightBrush?.let { drawRect(brush = it, blendMode = BlendMode.DstIn) }
         }
     }
 
