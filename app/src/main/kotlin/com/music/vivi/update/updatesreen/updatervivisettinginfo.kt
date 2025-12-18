@@ -3,6 +3,7 @@ package com.music.vivi.updatesreen
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -46,21 +47,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
 import com.music.vivi.BuildConfig
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
 import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.screens.KEY_AUTO_UPDATE_CHECK
-import com.music.vivi.ui.screens.PREFS_NAME
-import com.music.vivi.ui.screens.checkForUpdate
 import com.music.vivi.ui.utils.backToMain
-import com.music.vivi.update.isNewerVersion
 import com.music.vivi.update.settingstyle.ModernInfoItem
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -68,8 +67,9 @@ import java.util.Locale
 import androidx.compose.runtime.collectAsState
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.music.vivi.update.viewmodelupdate.UpdateViewModel
+import org.json.JSONObject
+import java.io.File
 
-//now uses view model
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ViviUpdatesScreen(
@@ -89,6 +89,21 @@ fun ViviUpdatesScreen(
     var lastUpdatedDate by remember { mutableStateOf("") }
     var firstInstallDate by remember { mutableStateOf("") }
     var buildVersion by remember { mutableStateOf("") }
+    var cachedImageUrl by remember { mutableStateOf<String?>(null) }
+    var isLoadingImage by remember { mutableStateOf(true) }
+
+    // Load cached image for current or latest version
+    LaunchedEffect(updateStatus) {
+        val versionToLoad = when (val status = updateStatus) {
+            is UpdateStatus.UpdateAvailable -> "v${status.latestVersion}"
+            else -> "v$currentVersion"
+        }
+
+        val imageUrl = loadImageFromCache(context, versionToLoad)
+        cachedImageUrl = imageUrl
+        isLoadingImage = false
+        Log.d("ViviUpdatesScreen", "Loaded image for $versionToLoad: $imageUrl")
+    }
 
     // Refresh update status when screen opens
     LaunchedEffect(Unit) {
@@ -166,7 +181,7 @@ fun ViviUpdatesScreen(
                     )
                 )
         ) {
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(20.dp))
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -189,121 +204,205 @@ fun ViviUpdatesScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // Large Box - Shows different states based on update status
-            val (boxColor, iconTint, textColor, subtextColor) = when (updateStatus) {
-                is UpdateStatus.UpdateAvailable -> {
-                    Quadruple(
-                        MaterialTheme.colorScheme.errorContainer,
-                        MaterialTheme.colorScheme.error,
-                        MaterialTheme.colorScheme.onErrorContainer,
-                        MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f)
-                    )
-                }
-                is UpdateStatus.Disabled -> {
-                    Quadruple(
-                        MaterialTheme.colorScheme.surfaceContainerHigh,
-                        MaterialTheme.colorScheme.onSurfaceVariant,
-                        MaterialTheme.colorScheme.onSurface,
-                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                    )
-                }
-                else -> {
-                    // This handles Loading, UpToDate, and Error
-                    Quadruple(
-                        MaterialTheme.colorScheme.surfaceContainerHigh,
-                        MaterialTheme.colorScheme.primary,
-                        MaterialTheme.colorScheme.onSurface,
-                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                    )
-                }
-            }
-
+            // Image Box with overlay - Shows cached changelog image
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)
-                    .background(
-                        color = boxColor,
-                        shape = RoundedCornerShape(24.dp)
-                    )
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(24.dp))
             ) {
-                Row(
-                    modifier = Modifier.padding(24.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(64.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surface),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        when (updateStatus) {
-                            is UpdateStatus.UpdateAvailable -> {
-                                Icon(
-                                    imageVector = Icons.Filled.NewReleases,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(32.dp),
-                                    tint = iconTint
+                when {
+                    isLoadingImage -> {
+                        // Loading state
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(modifier = Modifier.size(32.dp))
+                        }
+                    }
+                    cachedImageUrl != null -> {
+                        // Display cached image
+                        AsyncImage(
+                            model = cachedImageUrl,
+                            contentDescription = "Update preview",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
+                            contentScale = ContentScale.Crop
+                        )
+
+                        // Overlay with gradient and text
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    androidx.compose.ui.graphics.Brush.verticalGradient(
+                                        colors = listOf(
+                                            androidx.compose.ui.graphics.Color.Transparent,
+                                            androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.7f)
+                                        )
+                                    )
                                 )
+                        )
+
+                        // Status info overlay
+                        Column(
+                            modifier = Modifier
+                                .align(Alignment.BottomStart)
+                                .padding(20.dp)
+                        ) {
+                            val (titleText, subtitleText) = when (val status = updateStatus) {
+                                is UpdateStatus.UpdateAvailable -> {
+                                    Pair("Update available", "Version ${status.latestVersion}")
+                                }
+                                is UpdateStatus.Disabled -> {
+                                    Pair("Updates disabled", "Enable in settings")
+                                }
+                                is UpdateStatus.Error -> {
+                                    Pair("Check failed", "Unable to check")
+                                }
+                                else -> {
+                                    Pair("Up to date", "Version $currentVersion")
+                                }
                             }
-                            else -> {
-                                Icon(
-                                    painter = painterResource(R.drawable.updated),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(32.dp),
-                                    tint = iconTint
-                                )
+
+                            Text(
+                                text = titleText,
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = androidx.compose.ui.graphics.Color.White,
+                                fontSize = 22.sp
+                            )
+
+                            Text(
+                                text = subtitleText,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.9f),
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+
+                            // Show size when update is available
+                            if (updateStatus is UpdateStatus.UpdateAvailable) {
+                                updateInfo?.let { info ->
+                                    if (info.apkSize.isNotEmpty()) {
+                                        Text(
+                                            text = "${info.apkSize} MB",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.8f),
+                                            modifier = Modifier.padding(top = 2.dp)
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
-
-                    Spacer(Modifier.width(20.dp))
-
-                    Column {
-                        val (titleText, subtitleText) = when (val status = updateStatus) {
+                    else -> {
+                        // Fallback when no image available
+                        val (boxColor, iconTint, textColor, subtextColor) = when (updateStatus) {
                             is UpdateStatus.UpdateAvailable -> {
-                                Pair("Update available", "Version ${status.latestVersion}")
+                                Quadruple(
+                                    MaterialTheme.colorScheme.errorContainer,
+                                    MaterialTheme.colorScheme.error,
+                                    MaterialTheme.colorScheme.onErrorContainer,
+                                    MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f)
+                                )
                             }
                             is UpdateStatus.Disabled -> {
-                                Pair("Updates disabled", "Enable automatic checks \nin update settings")
-                            }
-                            is UpdateStatus.Loading -> {
-                                Pair("Checking for updates", "Please wait...")
-                            }
-                            is UpdateStatus.Error -> {
-                                Pair("Check failed", "Unable to check for updates")
+                                Quadruple(
+                                    MaterialTheme.colorScheme.surfaceContainerHigh,
+                                    MaterialTheme.colorScheme.onSurfaceVariant,
+                                    MaterialTheme.colorScheme.onSurface,
+                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                )
                             }
                             else -> {
-                                Pair("App is up to date", "Current version $currentVersion")
+                                Quadruple(
+                                    MaterialTheme.colorScheme.surfaceContainerHigh,
+                                    MaterialTheme.colorScheme.primary,
+                                    MaterialTheme.colorScheme.onSurface,
+                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                )
                             }
                         }
 
-                        Text(
-                            text = titleText,
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Medium,
-                            color = textColor,
-                            fontSize = 22.sp
-                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(boxColor)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .padding(24.dp)
+                                    .align(Alignment.CenterStart),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(64.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.surface),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    when (updateStatus) {
+                                        is UpdateStatus.UpdateAvailable -> {
+                                            Icon(
+                                                imageVector = Icons.Filled.NewReleases,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(32.dp),
+                                                tint = iconTint
+                                            )
+                                        }
+                                        else -> {
+                                            Icon(
+                                                painter = painterResource(R.drawable.updated),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(32.dp),
+                                                tint = iconTint
+                                            )
+                                        }
+                                    }
+                                }
 
-                        Text(
-                            text = subtitleText,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = subtextColor,
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
+                                Spacer(Modifier.width(20.dp))
 
-                        // Show size when update is available
-                        if (updateStatus is UpdateStatus.UpdateAvailable) {
-                            updateInfo?.let { info ->
-                                if (info.apkSize.isNotEmpty()) {
+                                Column {
+                                    val (titleText, subtitleText) = when (val status = updateStatus) {
+                                        is UpdateStatus.UpdateAvailable -> {
+                                            Pair("Update available", "Version ${status.latestVersion}")
+                                        }
+                                        is UpdateStatus.Disabled -> {
+                                            Pair("Updates disabled", "Enable automatic checks")
+                                        }
+                                        is UpdateStatus.Loading -> {
+                                            Pair("Checking for updates", "Please wait...")
+                                        }
+                                        is UpdateStatus.Error -> {
+                                            Pair("Check failed", "Unable to check")
+                                        }
+                                        else -> {
+                                            Pair("App is up to date", "Version $currentVersion")
+                                        }
+                                    }
+
                                     Text(
-                                        text = "${info.apkSize} MB",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = subtextColor.copy(alpha = 0.85f),
-                                        modifier = Modifier.padding(top = 2.dp)
+                                        text = titleText,
+                                        style = MaterialTheme.typography.headlineSmall,
+                                        fontWeight = FontWeight.Medium,
+                                        color = textColor,
+                                        fontSize = 22.sp
+                                    )
+
+                                    Text(
+                                        text = subtitleText,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = subtextColor,
+                                        fontWeight = FontWeight.Medium,
+                                        modifier = Modifier.padding(top = 4.dp)
                                     )
                                 }
                             }
@@ -517,6 +616,29 @@ fun ViviUpdatesScreen(
 
             Spacer(Modifier.height(32.dp))
         }
+    }
+}
+
+// Load image URL from cached changelog data
+private fun loadImageFromCache(context: Context, versionTag: String): String? {
+    return try {
+        val cacheFile = File(context.filesDir, "changelog_cache_$versionTag.json")
+        if (!cacheFile.exists()) {
+            Log.d("UpdatesScreen", "No cache found for $versionTag")
+            return null
+        }
+
+        val cacheContent = context.openFileInput("changelog_cache_$versionTag.json").use {
+            it.bufferedReader().readText()
+        }
+
+        val cacheData = JSONObject(cacheContent)
+        val imageUrl = cacheData.optString("image", null)
+
+        if (imageUrl.isNullOrBlank()) null else imageUrl
+    } catch (e: Exception) {
+        Log.e("UpdatesScreen", "Error loading image from cache", e)
+        null
     }
 }
 

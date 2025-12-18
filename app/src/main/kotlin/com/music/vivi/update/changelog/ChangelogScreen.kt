@@ -159,7 +159,8 @@ fun ChangelogScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Vivi Music") },
+                title = { Text("")
+                        },
                 navigationIcon = {
                     IconButton(onClick = navController::navigateUp) {
                         Icon(
