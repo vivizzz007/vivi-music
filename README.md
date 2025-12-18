@@ -1,5 +1,5 @@
 <div align="center">
- <img src="https://github.com/vivizzz007/vivi-music/blob/main/fastlane/metadata/android/en-US/images/icon-playstore.png.png?raw=true" width="160" height="160" style="display: block; margin: 0 auto"/>
+ <img src="https://github.com/vivizzz007/vivi-music/blob/main/fastlane/metadata/android/en-US/images/icon.png?raw=true" width="160" height="160" style="display: block; margin: 0 auto"/>
  <h1>VIVI Music</h1>
  <h3>More Than Just Music — Your Ultimate Audio Experience</h3>
 
@@ -131,35 +131,6 @@
   <h3><a href="https://github.com/vivizzz007/vivi-music/releases">🚀 Download Latest Release</a></h3>
   <p><strong>Current Version:</strong> Check the <a href="https://github.com/vivizzz007/vivi-music/releases">releases page</a> for the latest stable version.</p>
 </div>
-
-<h3>⚠️ Important: OTA Update Notice</h3>
-
-<p><strong>Understanding Version Tags:</strong></p>
-
-<table align="center">
-  <thead>
-    <tr>
-      <th>Tag Format</th>
-      <th>Example</th>
-      <th>OTA Updates</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>v*.*.*</code></td>
-      <td><code>v3.2.1</code></td>
-      <td>✅ <strong>YES</strong></td>
-      <td>Stable releases with OTA support</td>
-    </tr>
-    <tr>
-      <td><code>IZ*</code></td>
-      <td><code>IZ-v3.2</code></td>
-      <td>❌ <strong>NO</strong></td>
-      <td>Development/Test builds without OTA</td>
-    </tr>
-  </tbody>
-</table>
 
 <p><strong>Recommendation:</strong> Always download releases tagged with <code>v*.*.*</code> (e.g., <code>v3.2.1</code>) to receive automatic updates through the app.</p>
 
