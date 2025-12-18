@@ -59,6 +59,7 @@ import com.music.vivi.ui.screens.getAutoUpdateCheckSetting
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.update.isNewerVersion
 import com.music.vivi.update.settingstyle.ModernInfoItem
+import com.music.vivi.update.viewmodelupdate.UpdateViewModel
 import com.music.vivi.updatesreen.UpdateInfo
 import com.music.vivi.updatesreen.UpdateStatus
 import com.music.vivi.utils.rememberPreference
@@ -70,9 +71,21 @@ import com.music.vivi.viewmodels.HomeViewModel
 fun SettingsScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
-    updateStatus: UpdateStatus = UpdateStatus.Loading, // Accept from MainActivity
+    updateViewModel: UpdateViewModel = hiltViewModel() // Use ViewModel instead of parameter
 ) {
     val context = LocalContext.current
+
+    // Collect update status from ViewModel
+    val updateStatus by updateViewModel.updateStatus.collectAsState()
+    val currentVersion = updateViewModel.getCurrentVersion()
+
+    // Monitor preference changes and refresh ViewModel immediately
+    val (checkForUpdatesPreference, _) = rememberPreference(CheckForUpdatesKey, true)
+
+    LaunchedEffect(checkForUpdatesPreference) {
+        // Immediately update ViewModel when preference changes
+        updateViewModel.refreshUpdateStatus()
+    }
 
     // Get account preferences
     val (accountNamePref, _) = rememberPreference(AccountNameKey, "")
@@ -103,7 +116,6 @@ fun SettingsScreen(
         "Manage your account and preferences"
     }
 
-    val currentVersion = BuildConfig.VERSION_NAME
     val isUpdateAvailable = updateStatus is UpdateStatus.UpdateAvailable
 
     Scaffold(
@@ -160,7 +172,7 @@ fun SettingsScreen(
             ) {
                 Column(modifier = Modifier.padding(vertical = 8.dp)) {
 
-                    // App Updates item with dynamic state
+                    // App Updates item with dynamic state from ViewModel
                     ModernInfoItem(
                         icon = {
                             Icon(

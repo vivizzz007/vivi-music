@@ -55,14 +55,16 @@ import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.update.experiment.getUpdateCheckInterval
 import com.music.vivi.update.experiment.saveUpdateCheckInterval
 import com.music.vivi.update.mordernswitch.ModernSwitch
+import com.music.vivi.update.viewmodelupdate.UpdateViewModel
 import com.music.vivi.utils.rememberPreference
 
-
+import androidx.hilt.navigation.compose.hiltViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UpdateInfoScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    updateViewModel: UpdateViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
 
@@ -79,6 +81,8 @@ fun UpdateInfoScreen(
         // Save to SharedPreferences
         val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         sharedPrefs.edit().putBoolean(KEY_AUTO_UPDATE_CHECK, newValue).apply()
+
+        updateViewModel.refreshUpdateStatus()
 
         // Show feedback
         val message = if (newValue) {

@@ -65,6 +65,9 @@ import com.music.vivi.update.settingstyle.ModernInfoItem
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.runtime.collectAsState
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.music.vivi.update.viewmodelupdate.UpdateViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,46 +75,24 @@ import java.util.Locale
 fun ViviUpdatesScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    updateViewModel: UpdateViewModel = hiltViewModel()
 ) {
     val topAppBarState = rememberTopAppBarState()
     val scrollBehaviorLocal = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
     val context = LocalContext.current
-    val currentVersion = BuildConfig.VERSION_NAME
 
-    var updateStatus by remember { mutableStateOf<UpdateStatus>(UpdateStatus.UpToDate) }
-    var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
+    // Collect update status and info from ViewModel
+    val updateStatus by updateViewModel.updateStatus.collectAsState()
+    val updateInfo by updateViewModel.updateInfo.collectAsState()
+    val currentVersion = updateViewModel.getCurrentVersion()
 
     var lastUpdatedDate by remember { mutableStateOf("") }
     var firstInstallDate by remember { mutableStateOf("") }
     var buildVersion by remember { mutableStateOf("") }
 
-    // Get the auto-update check preference
-    val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    val checkForUpdates = sharedPrefs.getBoolean(KEY_AUTO_UPDATE_CHECK, true)
-
-    // Modified update checking logic - check silently in background without showing loading state
-    LaunchedEffect(checkForUpdates) {
-        if (checkForUpdates) {
-            // Start with UpToDate instead of Loading - check happens silently in background
-            checkForUpdate(
-                onSuccess = { latestVersion, changelog, apkSize, releaseDate, description, imageUrl ->
-                    if (isNewerVersion(latestVersion, currentVersion)) {
-                        updateStatus = UpdateStatus.UpdateAvailable(latestVersion)
-                        updateInfo = UpdateInfo(latestVersion, changelog, apkSize, releaseDate, description, imageUrl)
-                    } else {
-                        updateStatus = UpdateStatus.UpToDate
-                    }
-                },
-                onError = {
-                    updateStatus = UpdateStatus.Error
-                }
-            )
-        } else {
-            // When auto-update is disabled, immediately set status to disabled
-            // Clear any previous update info
-            updateStatus = UpdateStatus.Disabled
-            updateInfo = null
-        }
+    // Refresh update status when screen opens
+    LaunchedEffect(Unit) {
+        updateViewModel.refreshUpdateStatus()
     }
 
     // Get app info
@@ -208,7 +189,7 @@ fun ViviUpdatesScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // Large Box - Shows different states based on update status (Loading state is ignored)
+            // Large Box - Shows different states based on update status
             val (boxColor, iconTint, textColor, subtextColor) = when (updateStatus) {
                 is UpdateStatus.UpdateAvailable -> {
                     Quadruple(
@@ -227,7 +208,7 @@ fun ViviUpdatesScreen(
                     )
                 }
                 else -> {
-                    // This handles Loading, UpToDate, and Error - all show the same "up to date" style
+                    // This handles Loading, UpToDate, and Error
                     Quadruple(
                         MaterialTheme.colorScheme.surfaceContainerHigh,
                         MaterialTheme.colorScheme.primary,
@@ -267,7 +248,6 @@ fun ViviUpdatesScreen(
                                 )
                             }
                             else -> {
-                                // Loading, Disabled, UpToDate, Error all show the same icon
                                 Icon(
                                     painter = painterResource(R.drawable.updated),
                                     contentDescription = null,
@@ -289,8 +269,7 @@ fun ViviUpdatesScreen(
                                 Pair("Updates disabled", "Enable automatic checks \nin update settings")
                             }
                             is UpdateStatus.Loading -> {
-                                // Show as up to date even when loading
-                                Pair("App is up to date", "Current version $currentVersion")
+                                Pair("Checking for updates", "Please wait...")
                             }
                             is UpdateStatus.Error -> {
                                 Pair("Check failed", "Unable to check for updates")
@@ -316,7 +295,7 @@ fun ViviUpdatesScreen(
                             modifier = Modifier.padding(top = 4.dp)
                         )
 
-                        // Only show size when update is available
+                        // Show size when update is available
                         if (updateStatus is UpdateStatus.UpdateAvailable) {
                             updateInfo?.let { info ->
                                 if (info.apkSize.isNotEmpty()) {
@@ -335,7 +314,7 @@ fun ViviUpdatesScreen(
 
             Spacer(Modifier.height(32.dp))
 
-            // Small Box - Shows different states (Loading state is ignored)
+            // Small Box - Navigation items
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -383,14 +362,13 @@ fun ViviUpdatesScreen(
                                 title = "System update",
                                 subtitle = "Automatic checks disabled",
                                 onClick = {
-                                    navController.navigate("settings/update")  // Fixed: now navigates to update screen
+                                    navController.navigate("settings/update")
                                 },
                                 showArrow = true,
                                 showSettingsIcon = true
                             )
                         }
                         else -> {
-                            // Loading, UpToDate, Error all show the same "up to date" UI
                             ModernInfoItem(
                                 icon = {
                                     Icon(
@@ -542,9 +520,9 @@ fun ViviUpdatesScreen(
     }
 }
 
-// Required data classes
+// Data classes remain the same
 sealed class UpdateStatus {
-    object Loading : UpdateStatus()  // Keep this for MainActivity compatibility
+    object Loading : UpdateStatus()
     object UpToDate : UpdateStatus()
     object Error : UpdateStatus()
     object Disabled : UpdateStatus()
@@ -560,7 +538,6 @@ data class UpdateInfo(
     val imageUrl: String? = null
 )
 
-// Helper data class for colors
 data class Quadruple<A, B, C, D>(
     val first: A,
     val second: B,

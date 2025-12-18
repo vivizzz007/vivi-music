@@ -215,7 +215,7 @@ import java.net.URLDecoder
 import java.net.URLEncoder
 import java.util.Locale
 import javax.inject.Inject
-
+import com.music.vivi.update.viewmodelupdate.UpdateViewModel
 @Suppress("DEPRECATION", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -344,57 +344,17 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            val checkForUpdates by rememberPreference(CheckForUpdatesKey, defaultValue = true)
 
-            // Add this state variable
-            var updateStatus by remember { mutableStateOf<UpdateStatus>(UpdateStatus.Loading) }
+//new viewmodel for update
+            val updateViewModel: UpdateViewModel = hiltViewModel()
+            val updateStatus by updateViewModel.updateStatus.collectAsState()
 
-            // Add this at the top of setContent, before LaunchedEffect
-            var lastCheckTime by remember { mutableStateOf(0L) }
+            val (checkForUpdatesPreference, _) = rememberPreference(CheckForUpdatesKey, true)
 
-            // Read interval from user preference (in hours, convert to milliseconds)
-            val updateCheckIntervalHours = remember {
-                getUpdateCheckInterval(this@MainActivity) // Get user's setting
+            LaunchedEffect(checkForUpdatesPreference) {
+                updateViewModel.refreshUpdateStatus()
             }
-            val checkInterval = updateCheckIntervalHours * 60 * 60 * 1000L // Convert hours to milliseconds
 
-            LaunchedEffect(checkForUpdates) {
-                if (checkForUpdates) {
-                    val currentTime = System.currentTimeMillis()
-
-                    if (currentTime - lastCheckTime > checkInterval) {
-                        updateStatus = UpdateStatus.Loading
-
-                        withContext(Dispatchers.IO) {
-                            checkForUpdate(
-                                onSuccess = { latestVersion, changelog, apkSize, releaseDate, description, imageUrl ->
-                                    if (isNewerVersion(latestVersion, BuildConfig.VERSION_NAME)) {
-                                        updateStatus = UpdateStatus.UpdateAvailable(latestVersion)
-
-                                        // ✅ Launch coroutine for notification
-                                        lifecycleScope.launch {
-                                            UpdateNotificationManager.checkForUpdates(
-                                                this@MainActivity,
-                                                BuildConfig.VERSION_NAME,
-                                                BuildConfig.VERSION_CODE
-                                            )
-                                        }
-                                    } else {
-                                        updateStatus = UpdateStatus.UpToDate
-                                    }
-                                    lastCheckTime = currentTime
-                                },
-                                onError = {
-                                    updateStatus = UpdateStatus.Error
-                                    lastCheckTime = currentTime
-                                }
-                            )
-                        }
-                    }
-                } else {
-                    updateStatus = UpdateStatus.Disabled
-                }
-            }
             val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)
             val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
             val isSystemInDarkTheme = isSystemInDarkTheme()
