@@ -205,7 +205,9 @@ fun PlayerMenu(
                         Toast.makeText(context, context.getString(R.string.starting_radio), Toast.LENGTH_SHORT).show()
                         playerConnection.startRadioSeamlessly()
                         onDismiss()
-                    }
+                    },
+                    backgroundColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                 ),
                 NewAction(
                     icon = {
@@ -245,7 +247,9 @@ fun PlayerMenu(
                 NewAction(
                     icon = { Icon(painterResource(R.drawable.playlist_add), null) },
                     text = stringResource(R.string.add_to_playlist),
-                    onClick = { showChoosePlaylistDialog = true }
+                    onClick = { showChoosePlaylistDialog = true },
+                    backgroundColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                 ),
                 NewAction(
                     icon = { Icon(painterResource(R.drawable.link), null) },
@@ -256,7 +260,9 @@ fun PlayerMenu(
                         clipboard.setPrimaryClip(clip)
                         Toast.makeText(context, R.string.link_copied, Toast.LENGTH_SHORT).show()
                         onDismiss()
-                    }
+                    },
+                    backgroundColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                 )
             )
         )
