@@ -418,8 +418,8 @@ fun AboutScreen(
                                     )
                                 },
                                 title = "Website",
-                                subtitle = "vivimusicwebcom.vercel.app",
-                                onClick = { uriHandler.openUri("https://vivi-music-web-com.vercel.app/") },
+                                subtitle = "vivimusic.vercel.app",
+                                onClick = { uriHandler.openUri("https://vivimusic.vercel.app/") },
                                 showArrow = true
                             )
                         }
