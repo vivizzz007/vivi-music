@@ -10,7 +10,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
-<!--    bluetooth connect-->
+    <!--    bluetooth connect-->
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <!-- For Android 11 (API 30) and below -->
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
@@ -20,8 +20,8 @@
     <uses-feature android:name="android.software.leanback" android:required="false" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
 
-<!--    for update-->
-    <!-- <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" /> -->
+    <!--    for update-->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -195,6 +195,8 @@
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.music.vivi.widget.PLAY_PAUSE" />
                 <action android:name="com.music.vivi.widget.LIKE" />
+                <action android:name="com.music.vivi.widget.PLAY_SONG" />
+                <action android:name="com.music.vivi.widget.PLAY_QUEUE_ITEM" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
