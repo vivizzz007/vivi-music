@@ -34,6 +34,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+import com.music.vivi.utils.dataStore
+import com.music.vivi.utils.get
 
 class MusicPlayerWidgetReceiver : AppWidgetProvider() {
 
@@ -111,14 +113,62 @@ class MusicPlayerWidgetReceiver : AppWidgetProvider() {
 class WidgetUpdateService : Service() {
 
     private val scope = CoroutineScope(Dispatchers.Main + Job())
-    private var updateJob: Job? = null
+    private var controller: MediaController? = null
     private var animationJob: Job? = null
     private var selectedQueueIndex: Int = -1
 
     @Inject
     lateinit var database: MusicDatabase
 
+    private val controllerListener = object : androidx.media3.common.Player.Listener {
+        override fun onMediaMetadataChanged(mediaMetadata: androidx.media3.common.MediaMetadata) {
+            updateAllWidgets()
+        }
+
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            updateAllWidgets()
+        }
+
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            updateAllWidgets()
+        }
+
+        override fun onPositionDiscontinuity(
+            oldPosition: androidx.media3.common.Player.PositionInfo,
+            newPosition: androidx.media3.common.Player.PositionInfo,
+            reason: Int
+        ) {
+            updateAllWidgets()
+        }
+
+        override fun onTimelineChanged(timeline: androidx.media3.common.Timeline, reason: Int) {
+            updateAllWidgets()
+        }
+    }
+
     override fun onBind(intent: Intent?): IBinder? = null
+
+    override fun onCreate() {
+        super.onCreate()
+        initializeController()
+    }
+
+    private fun initializeController() {
+        val sessionToken = SessionToken(
+            this,
+            ComponentName(this, MusicService::class.java)
+        )
+        val controllerFuture = MediaController.Builder(this, sessionToken).buildAsync()
+        controllerFuture.addListener({
+            try {
+                controller = controllerFuture.get()
+                controller?.addListener(controllerListener)
+                updateAllWidgets()
+            } catch (e: Exception) {
+                android.util.Log.e("MusicWidget", "Error initializing controller", e)
+            }
+        }, MoreExecutors.directExecutor())
+    }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         android.util.Log.d("MusicWidget", "Service started with action: ${intent?.action}")
@@ -141,7 +191,7 @@ class WidgetUpdateService : Service() {
                 playQueueItem(skipCount)
             }
             else -> {
-                startPeriodicUpdates()
+                updateAllWidgets()
             }
         }
 
@@ -160,294 +210,169 @@ class WidgetUpdateService : Service() {
                     return@launch
                 }
 
-                val sessionToken = SessionToken(
-                    this@WidgetUpdateService,
-                    ComponentName(this@WidgetUpdateService, MusicService::class.java)
-                )
-                val controllerFuture = MediaController.Builder(
-                    this@WidgetUpdateService,
-                    sessionToken
-                ).buildAsync()
-
-                controllerFuture.addListener({
-                    try {
-                        val controller = controllerFuture.get(2, TimeUnit.SECONDS)
-                        controller.clearMediaItems()
-                        val mediaItem = song.toMediaItem()
-                        controller.setMediaItem(mediaItem)
-                        controller.prepare()
-                        controller.play()
-
-                        android.util.Log.d("MusicWidget", "Playing song: ${song.song.title}")
-
-                        scope.launch {
-                            delay(500)
-                            updateAllWidgets()
-                        }
-
-                        controller.release()
-                    } catch (e: Exception) {
-                        android.util.Log.e("MusicWidget", "Error playing song", e)
-                    }
-                }, MoreExecutors.directExecutor())
+                controller?.let {
+                    it.clearMediaItems()
+                    it.setMediaItem(song.toMediaItem())
+                    it.prepare()
+                    it.play()
+                    android.util.Log.d("MusicWidget", "Playing song: ${song.song.title}")
+                }
             } catch (e: Exception) {
-                android.util.Log.e("MusicWidget", "Error connecting for song playback", e)
+                android.util.Log.e("MusicWidget", "Error playing song", e)
             }
         }
     }
 
     private fun startPeriodicUpdates() {
-        updateJob?.cancel()
-        updateJob = scope.launch {
-            while (isActive) {
-                updateAllWidgets()
-                delay(2000)
-            }
-        }
+        // Obsolete: Using Listener now
+        updateAllWidgets()
     }
 
     private fun updateAllWidgets() {
-        scope.launch {
-            try {
-                val sessionToken = SessionToken(
-                    this@WidgetUpdateService,
-                    ComponentName(this@WidgetUpdateService, MusicService::class.java)
+        val currentController = controller ?: return
+
+        val title = currentController.mediaMetadata.title?.toString() ?: "Not Playing"
+        val artist = currentController.mediaMetadata.artist?.toString() ?: "Tap to play"
+        val artworkUri = currentController.mediaMetadata.artworkUri
+        val isPlaying = currentController.isPlaying
+        val mediaId = currentController.currentMediaItem?.mediaId
+
+        val nextSongs = mutableListOf<androidx.media3.common.MediaItem>()
+        val currentIndex = currentController.currentMediaItemIndex
+        val timeline = currentController.currentTimeline
+
+        if (!timeline.isEmpty) {
+            var nextIndex = currentIndex
+            var count = 0
+            while (count < 5) {
+                nextIndex = timeline.getNextWindowIndex(
+                    nextIndex,
+                    currentController.repeatMode,
+                    currentController.shuffleModeEnabled
                 )
-                val controllerFuture = MediaController.Builder(
-                    this@WidgetUpdateService,
-                    sessionToken
-                ).buildAsync()
+                if (nextIndex == androidx.media3.common.C.INDEX_UNSET) break
+                try {
+                    val nextItem = currentController.getMediaItemAt(nextIndex)
+                    nextSongs.add(nextItem)
+                    count++
+                } catch (e: Exception) {
+                    break
+                }
+            }
+        }
 
-                controllerFuture.addListener({
-                    try {
-                        val controller = controllerFuture.get(2, TimeUnit.SECONDS)
+        scope.launch(Dispatchers.IO) {
+            val albumBitmap = if (artworkUri != null) {
+                loadAlbumArt(artworkUri.toString())
+            } else null
 
-                        val title = controller.mediaMetadata.title?.toString() ?: "Not Playing"
-                        val artist = controller.mediaMetadata.artist?.toString() ?: "Tap to play"
-                        val artworkUri = controller.mediaMetadata.artworkUri
-                        val isPlaying = controller.isPlaying
-                        val mediaId = controller.currentMediaItem?.mediaId
+            val isLiked = mediaId?.let { id ->
+                try {
+                    database.song(id).first()?.song?.liked ?: false
+                } catch (e: Exception) {
+                    false
+                }
+            } ?: false
 
-                        val nextSongs = mutableListOf<androidx.media3.common.MediaItem>()
-                        val currentIndex = controller.currentMediaItemIndex
-                        val timeline = controller.currentTimeline
+            val queueAlbumArts = nextSongs.mapNotNull { item ->
+                item.mediaMetadata.artworkUri?.toString()?.let { uri ->
+                    loadAlbumArt(uri, 150)
+                }
+            }
 
-                        if (!timeline.isEmpty) {
-                            var nextIndex = currentIndex
-                            var count = 0
-                            while (count < 5) {
-                                nextIndex = timeline.getNextWindowIndex(
-                                    nextIndex,
-                                    controller.repeatMode,
-                                    controller.shuffleModeEnabled
-                                )
-                                if (nextIndex == androidx.media3.common.C.INDEX_UNSET) break
-                                try {
-                                    val nextItem = controller.getMediaItemAt(nextIndex)
-                                    nextSongs.add(nextItem)
-                                    count++
-                                } catch (e: Exception) {
-                                    break
-                                }
-                            }
-                        }
-
-                        scope.launch(Dispatchers.IO) {
-                            val albumBitmap = if (artworkUri != null) {
-                                loadAlbumArt(artworkUri.toString())
-                            } else null
-
-                            val isLiked = mediaId?.let { id ->
-                                try {
-                                    database.song(id).first()?.song?.liked ?: false
-                                } catch (e: Exception) {
-                                    false
-                                }
-                            } ?: false
-
-                            val queueAlbumArts = nextSongs.mapNotNull { item ->
-                                item.mediaMetadata.artworkUri?.toString()?.let { uri ->
-                                    loadAlbumArt(uri, 150)
-                                }
-                            }
-
-                            withContext(Dispatchers.Main) {
-                                updateWidgetViews(title, artist, albumBitmap, isPlaying, isLiked, nextSongs, queueAlbumArts)
-                            }
-                        }
-
-                        controller.release()
-                    } catch (e: Exception) {
-                        android.util.Log.e("MusicWidget", "Error in listener", e)
-                        updateWidgetViews("Not Playing", "Tap to play", null, false, false, emptyList(), emptyList())
-                    }
-                }, MoreExecutors.directExecutor())
-            } catch (e: Exception) {
-                android.util.Log.e("MusicWidget", "Error creating MediaController", e)
-                updateWidgetViews("Connection Error", "Tap to retry", null, false, false, emptyList(), emptyList())
+            withContext(Dispatchers.Main) {
+                updateWidgetViews(title, artist, albumBitmap, isPlaying, isLiked, nextSongs, queueAlbumArts)
             }
         }
     }
 
     private fun togglePlayPause() {
-        scope.launch {
-            try {
-                val sessionToken = SessionToken(
-                    this@WidgetUpdateService,
-                    ComponentName(this@WidgetUpdateService, MusicService::class.java)
-                )
-                val controllerFuture = MediaController.Builder(
-                    this@WidgetUpdateService,
-                    sessionToken
-                ).buildAsync()
-
-                controllerFuture.addListener({
-                    try {
-                        val controller = controllerFuture.get(2, TimeUnit.SECONDS)
-
-                        if (controller.isPlaying) {
-                            controller.pause()
-                        } else {
-                            controller.play()
-                        }
-
-                        scope.launch {
-                            delay(300)
-                            updateAllWidgets()
-                        }
-
-                        controller.release()
-                    } catch (e: Exception) {
-                        android.util.Log.e("MusicWidget", "Error toggling playback", e)
-                    }
-                }, MoreExecutors.directExecutor())
-            } catch (e: Exception) {
-                android.util.Log.e("MusicWidget", "Error connecting for playback", e)
+        controller?.let {
+            if (it.isPlaying) {
+                it.pause()
+            } else {
+                it.play()
             }
         }
     }
 
     private fun toggleLike() {
-        scope.launch {
-            try {
-                val sessionToken = SessionToken(
-                    this@WidgetUpdateService,
-                    ComponentName(this@WidgetUpdateService, MusicService::class.java)
-                )
-                val controllerFuture = MediaController.Builder(
-                    this@WidgetUpdateService,
-                    sessionToken
-                ).buildAsync()
+        val currentController = controller ?: return
+        val mediaId = currentController.currentMediaItem?.mediaId
 
-                controllerFuture.addListener({
-                    try {
-                        val controller = controllerFuture.get(2, TimeUnit.SECONDS)
-                        val mediaId = controller.currentMediaItem?.mediaId
-
-                        if (mediaId != null) {
-                            scope.launch(Dispatchers.IO) {
-                                try {
-                                    val song = database.song(mediaId).first()
-                                    if (song != null) {
-                                        val updatedSong = song.song.copy(liked = !song.song.liked)
-                                        database.query {
-                                            update(updatedSong)
-                                        }
-                                        android.util.Log.d("MusicWidget", "Toggled like for: ${song.song.title}, now liked: ${updatedSong.liked}")
-                                        
-                                        // Update widget immediately
-                                        withContext(Dispatchers.Main) {
-                                            delay(100)
-                                            updateAllWidgets()
-                                        }
-                                    }
-                                } catch (e: Exception) {
-                                    android.util.Log.e("MusicWidget", "Error toggling like in database", e)
-                                }
-                            }
+        if (mediaId != null) {
+            scope.launch(Dispatchers.IO) {
+                try {
+                    val song = database.song(mediaId).first()
+                    if (song != null) {
+                        val updatedSong = song.song.copy(liked = !song.song.liked)
+                        database.query {
+                            update(updatedSong)
                         }
+                        android.util.Log.d("MusicWidget", "Toggled like for: ${song.song.title}, now liked: ${updatedSong.liked}")
 
-                        controller.release()
-                    } catch (e: Exception) {
-                        android.util.Log.e("MusicWidget", "Error getting current media item", e)
+                        withContext(Dispatchers.Main) {
+                            updateAllWidgets()
+                        }
                     }
-                }, MoreExecutors.directExecutor())
-            } catch (e: Exception) {
-                android.util.Log.e("MusicWidget", "Error connecting for like toggle", e)
+                } catch (e: Exception) {
+                    android.util.Log.e("MusicWidget", "Error toggling like in database", e)
+                }
             }
         }
     }
 
     private fun playQueueItem(skipCount: Int) {
-        // No animation - instant playback
+        val currentController = controller ?: return
+
+        // Update selection index for visual feedback
+        selectedQueueIndex = skipCount - 1
+
+        // Trigger animation
+        animationJob?.cancel()
+        animationJob = scope.launch {
+            animateQueueItemSelection(selectedQueueIndex)
+            // Reset after animation
+            delay(500)
+            selectedQueueIndex = -1
+            updateAllWidgets()
+        }
+
         try {
-            val sessionToken = SessionToken(
-                this@WidgetUpdateService,
-                ComponentName(this@WidgetUpdateService, MusicService::class.java)
-            )
-            val controllerFuture = MediaController.Builder(
-                this@WidgetUpdateService,
-                sessionToken
-            ).buildAsync()
+            val currentIndex = currentController.currentMediaItemIndex
+            val timeline = currentController.currentTimeline
 
-            controllerFuture.addListener({
-                try {
-                    val controller = controllerFuture.get(2, TimeUnit.SECONDS)
-
-                    val currentIndex = controller.currentMediaItemIndex
-                    val timeline = controller.currentTimeline
-
-                    if (!timeline.isEmpty) {
-                        var targetIndex = currentIndex
-                        repeat(skipCount) {
-                            val nextIdx = timeline.getNextWindowIndex(
-                                targetIndex,
-                                controller.repeatMode,
-                                controller.shuffleModeEnabled
-                            )
-                            if (nextIdx != androidx.media3.common.C.INDEX_UNSET) {
-                                targetIndex = nextIdx
-                            }
-                        }
-
-                        if (targetIndex != currentIndex) {
-                            controller.seekTo(targetIndex, 0)
-                            controller.play()
-                        }
-                    }
-
-                    // Immediate widget update
-                    scope.launch {
-                        updateAllWidgets()
-                    }
-
-                    controller.release()
-                } catch (e: Exception) {
-                    android.util.Log.e("MusicWidget", "Error playing queue item", e)
-                    // Update widget even on error
-                    scope.launch {
-                        updateAllWidgets()
+            if (!timeline.isEmpty) {
+                var targetIndex = currentIndex
+                repeat(skipCount) {
+                    val nextIdx = timeline.getNextWindowIndex(
+                        targetIndex,
+                        currentController.repeatMode,
+                        currentController.shuffleModeEnabled
+                    )
+                    if (nextIdx != androidx.media3.common.C.INDEX_UNSET) {
+                        targetIndex = nextIdx
                     }
                 }
-            }, MoreExecutors.directExecutor())
-        } catch (e: Exception) {
-            android.util.Log.e("MusicWidget", "Error connecting for queue playback", e)
-            // Update widget even on error
-            scope.launch {
-                updateAllWidgets()
+
+                if (targetIndex != currentIndex) {
+                    currentController.seekTo(targetIndex, 0)
+                    currentController.play()
+                }
             }
+        } catch (e: Exception) {
+            android.util.Log.e("MusicWidget", "Error playing queue item", e)
         }
     }
 
     private suspend fun animateQueueItemSelection(index: Int) {
-        // Multi-step smooth animation using setImageAlpha (supported on RemoteViews)
-        updateQueueItemAlpha(index, 150) // Fade down
-        delay(80)
-        updateQueueItemAlpha(index, 255) // Fade back up
-        delay(80)
-        updateQueueItemAlpha(index, 180) // Pulse effect
-        delay(80)
-        updateQueueItemAlpha(index, 255) // Return to normal
+        updateQueueItemAlpha(index, 150)
+        delay(100)
+        updateQueueItemAlpha(index, 255)
+        delay(100)
+        updateQueueItemAlpha(index, 180)
+        delay(100)
+        updateQueueItemAlpha(index, 255)
     }
 
     private fun updateQueueItemAlpha(index: Int, alpha: Int) {
@@ -468,11 +393,9 @@ class WidgetUpdateService : Service() {
             )
 
             if (index in queueAlbumViewIds.indices) {
-                // Apply smooth fade animation using setImageAlpha (works on ImageView in RemoteViews)
                 views.setInt(queueAlbumViewIds[index], "setImageAlpha", alpha)
+                appWidgetManager.partiallyUpdateAppWidget(widgetId, views)
             }
-
-            appWidgetManager.partiallyUpdateAppWidget(widgetId, views)
         }
     }
 
@@ -486,7 +409,7 @@ class WidgetUpdateService : Service() {
                 .data(artworkUri)
                 .size(size, size)
                 .allowHardware(false)
-                .crossfade(300) // 300ms crossfade duration for smooth transitions
+                .crossfade(300)
                 .memoryCachePolicy(coil3.request.CachePolicy.ENABLED)
                 .diskCachePolicy(coil3.request.CachePolicy.ENABLED)
                 .build()
@@ -545,12 +468,39 @@ class WidgetUpdateService : Service() {
             if (isPlaying) R.drawable.pause else R.drawable.play
         )
 
+        // Read Preference synchronously using helper
+        val darkModePref = dataStore[com.music.vivi.constants.DarkModeKey]
+            ?: com.music.vivi.ui.screens.settings.DarkMode.AUTO.name
+
+        val systemIsDark = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+        val isDark = when (darkModePref) {
+            com.music.vivi.ui.screens.settings.DarkMode.ON.name -> true
+            com.music.vivi.ui.screens.settings.DarkMode.OFF.name -> false
+            else -> systemIsDark
+        }
+
+        // Apply Background Programmatically
+        views.setInt(
+            R.id.widget_root, 
+            "setBackgroundResource", 
+            if (isDark) R.drawable.widget_background_dark else R.drawable.widget_background_light
+        )
+
+        // Apply Text Colors Programmatically
+        val primaryTextColor = if (isDark) android.graphics.Color.WHITE else android.graphics.Color.BLACK
+        val secondaryTextColor = if (isDark) android.graphics.Color.parseColor("#B3FFFFFF") else android.graphics.Color.parseColor("#757575")
+
+        views.setTextColor(R.id.widget_song_title, primaryTextColor)
+        views.setTextColor(R.id.widget_artist_name, secondaryTextColor)
+
         if (isLiked) {
             views.setImageViewResource(R.id.widget_like_button, R.drawable.favorite)
             views.setInt(R.id.widget_like_button, "setColorFilter", android.graphics.Color.RED)
         } else {
             views.setImageViewResource(R.id.widget_like_button, R.drawable.favorite_border)
-            views.setInt(R.id.widget_like_button, "setColorFilter", android.graphics.Color.parseColor("#BB86FC"))
+            // Use White for Dark Mode, Black for Light Mode
+            val color = if (isDark) android.graphics.Color.WHITE else android.graphics.Color.BLACK
+            views.setInt(R.id.widget_like_button, "setColorFilter", color)
         }
 
         val queueAlbumViewIds = listOf(
@@ -563,7 +513,6 @@ class WidgetUpdateService : Service() {
 
         queueAlbumViewIds.forEachIndexed { index, albumViewId ->
             if (index < queueItems.size) {
-                // Set album art
                 if (index < queueAlbumArts.size && queueAlbumArts[index] != null) {
                     val roundedQueueArt = getRoundedCornerBitmap(queueAlbumArts[index]!!, 16f)
                     views.setImageViewBitmap(albumViewId, roundedQueueArt)
@@ -573,14 +522,12 @@ class WidgetUpdateService : Service() {
 
                 views.setViewVisibility(albumViewId, android.view.View.VISIBLE)
 
-                // Apply selection highlight if this is the selected item
                 if (index == selectedQueueIndex) {
-                    views.setInt(albumViewId, "setImageAlpha", 180) // Slightly dimmed
+                    views.setInt(albumViewId, "setImageAlpha", 180)
                 } else {
-                    views.setInt(albumViewId, "setImageAlpha", 255) // Full opacity
+                    views.setInt(albumViewId, "setImageAlpha", 255)
                 }
 
-                // Set click listener
                 val playQueueIntent = Intent(this, MusicPlayerWidgetReceiver::class.java).apply {
                     action = "com.music.vivi.widget.PLAY_QUEUE_ITEM"
                     putExtra("skip_count", index + 1)
@@ -634,7 +581,7 @@ class WidgetUpdateService : Service() {
         val canvas = android.graphics.Canvas(output)
         val paint = android.graphics.Paint().apply {
             isAntiAlias = true
-            isFilterBitmap = true //true
+            isFilterBitmap = true
             isDither = true
             shader = android.graphics.BitmapShader(
                 bitmap,
@@ -685,7 +632,8 @@ class WidgetUpdateService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        updateJob?.cancel()
+        controller?.removeListener(controllerListener)
+        controller?.release()
         animationJob?.cancel()
         (scope.coroutineContext[Job] as? Job)?.cancel()
     }
