@@ -946,7 +946,7 @@ fun UpdateScreen(navController: NavHostController) {
     }
 }
 
-// Utility functions for SharedPreferences
+// Utility functions for SharedPreferences uses now view model
 const val PREFS_NAME = "settings"
 const val KEY_AUTO_UPDATE_CHECK = "auto_update_check"
 const val KEY_LAST_CHECKED_TIME = "last_checked_time"

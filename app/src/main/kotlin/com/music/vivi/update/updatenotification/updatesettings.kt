@@ -59,6 +59,8 @@ import com.music.vivi.update.viewmodelupdate.UpdateViewModel
 import com.music.vivi.utils.rememberPreference
 
 import androidx.hilt.navigation.compose.hiltViewModel
+
+//new view model to check update
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UpdateInfoScreen(

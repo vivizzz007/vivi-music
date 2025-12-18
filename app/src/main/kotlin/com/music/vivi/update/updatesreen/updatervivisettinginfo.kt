@@ -69,7 +69,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.music.vivi.update.viewmodelupdate.UpdateViewModel
 
-
+//now uses view model
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ViviUpdatesScreen(

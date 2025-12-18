@@ -65,7 +65,7 @@ import com.music.vivi.updatesreen.UpdateStatus
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.HomeViewModel
 
-
+//new view model for update
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(

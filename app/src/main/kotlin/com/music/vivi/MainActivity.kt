@@ -345,7 +345,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
 
-//new viewmodel for update
+//new viewmodel for update checking less stress more effect result
             val updateViewModel: UpdateViewModel = hiltViewModel()
             val updateStatus by updateViewModel.updateStatus.collectAsState()
 
