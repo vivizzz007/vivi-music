@@ -1038,13 +1038,13 @@ fun BottomSheetPlayer(
                         colors = IconButtonDefaults.filledTonalIconButtonColors(
                             containerColor =
                                 if (playerButtonsStyle == PlayerButtonsStyle.DEFAULT) {
-                                    if (useDarkTheme) Color.Black else Color.White
+                                    textButtonColor
                                 } else {
                                     MaterialTheme.colorScheme.secondaryContainer
                                 },
                             contentColor =
                                 if (playerButtonsStyle == PlayerButtonsStyle.DEFAULT) {
-                                    Color.Gray
+                                    iconButtonColor
                                 } else {
                                     MaterialTheme.colorScheme.onSecondaryContainer
                                 },
@@ -1111,13 +1111,13 @@ fun BottomSheetPlayer(
                         colors = IconButtonDefaults.filledTonalIconButtonColors(
                             containerColor =
                                 if (playerButtonsStyle == PlayerButtonsStyle.DEFAULT) {
-                                    if (useDarkTheme) Color.Black else Color.White
+                                    textButtonColor
                                 } else {
                                     MaterialTheme.colorScheme.secondaryContainer
                                 },
                             contentColor =
                                 if (playerButtonsStyle == PlayerButtonsStyle.DEFAULT) {
-                                    Color.Gray
+                                    iconButtonColor
                                 } else {
                                     MaterialTheme.colorScheme.onSecondaryContainer
                                 },
