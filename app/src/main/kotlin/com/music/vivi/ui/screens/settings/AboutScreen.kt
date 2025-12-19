@@ -514,7 +514,7 @@ fun AboutScreen(
                             ModernInfoItem(
                                 icon = {
                                     Icon(
-                                        painter = painterResource(R.drawable.github_icon_about),
+                                        painter = painterResource(R.drawable.github),
                                         contentDescription = null,
                                         modifier = Modifier.size(28.dp), // Increased from 22dp to 28dp
                                         tint = Color.Unspecified
@@ -524,6 +524,27 @@ fun AboutScreen(
                                 subtitle = "View source code",
                                 onClick = { uriHandler.openUri("https://github.com/vivizzz007/vivi-music") },
                                 showArrow = true
+                            )
+
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                            )
+
+                            ModernInfoItem(
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.person),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(28.dp),
+                                        tint = Color.Unspecified
+                                    )
+                                },
+                                title = "Contributors",
+                                subtitle = "See our community heroes",
+                                onClick = { navController.navigate("settings/contribution") },
+                                showArrow = true,
+                                showSettingsIcon = true
                             )
 
                             HorizontalDivider(
