@@ -371,7 +371,7 @@ fun LyricsScreen(
 
                             // Overlay and Icon similar to MiniPlayer
                             val overlayAlpha by androidx.compose.animation.core.animateFloatAsState(
-                                targetValue = if (isPlaying) 0.0f else 0.4f,
+                                targetValue = if (isPlaying) 0.4f else 0.4f,
                                 label = "overlay_alpha"
                             )
 
@@ -382,7 +382,7 @@ fun LyricsScreen(
                             )
 
                             androidx.compose.animation.AnimatedVisibility(
-                                visible = playbackState == androidx.media3.common.Player.STATE_ENDED || !isPlaying,
+                                visible = playbackState == androidx.media3.common.Player.STATE_ENDED || !isPlaying || isPlaying,
                                 enter = fadeIn(),
                                 exit = fadeOut()
                             ) {
@@ -390,6 +390,8 @@ fun LyricsScreen(
                                     painter = painterResource(
                                         if (playbackState == androidx.media3.common.Player.STATE_ENDED) {
                                             R.drawable.replay
+                                        } else if (isPlaying) {
+                                            R.drawable.pause
                                         } else {
                                             R.drawable.play
                                         }
@@ -417,6 +419,9 @@ fun LyricsScreen(
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
+
+                            Spacer(modifier = Modifier.height(6.dp))
+
                             Text(
                                 text = if (mediaMetadata.artists.isNotEmpty()) {
                                     mediaMetadata.artists.joinToString(", ") { it.name }
