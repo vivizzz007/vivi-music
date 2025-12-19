@@ -18,7 +18,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -48,6 +47,7 @@ import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.music.vivi.R
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import java.net.HttpURLConnection
@@ -70,11 +70,13 @@ fun ContributionScreen(
 
     var contributors by remember { mutableStateOf<List<Contributor>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
+    var loadingProgress by remember { mutableStateOf(0f) }
     var error by remember { mutableStateOf<String?>(null) }
 
-    // Fetch contributors from JSON
+    // Fetch contributors from JSON (fast, no delays)
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
+        // Launch fast data fetching in parallel
+        val fetchJob = async(Dispatchers.IO) {
             try {
                 val apiUrl = "https://raw.githubusercontent.com/vivizzz007/vivi-music/main/NEW-UI/contribution/contribution.json"
                 val url = URL(apiUrl)
@@ -104,13 +106,28 @@ fun ContributionScreen(
                     error = "Failed to load contributors (${connection.responseCode})"
                 }
                 connection.disconnect()
-                isLoading = false
             } catch (e: Exception) {
                 e.printStackTrace()
                 error = "Error loading contributors: ${e.message}"
-                isLoading = false
             }
         }
+        
+        // Animate progress bar for 10 seconds independently
+        val animationDuration = 10000L // 10 seconds
+        val steps = 200 // Number of animation steps
+        val delayPerStep = animationDuration / steps
+        
+        repeat(steps) { step ->
+            loadingProgress = (step + 1).toFloat() / steps
+            kotlinx.coroutines.delay(delayPerStep)
+        }
+        
+        // Wait for fetch to complete if it hasn't already
+        fetchJob.await()
+        
+        loadingProgress = 1.0f
+        kotlinx.coroutines.delay(300) // Brief pause at 100%
+        isLoading = false
     }
 
     Box(
@@ -149,9 +166,10 @@ fun ContributionScreen(
                     )
                     if (isLoading) {
                         androidx.compose.material3.LinearProgressIndicator(
+                            progress = { loadingProgress },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(3.dp),
+                                .height(5.dp),
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -188,19 +206,6 @@ fun ContributionScreen(
                 }
 
                 when {
-                    isLoading -> {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(300.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
-                            }
-                        }
-                    }
-
                     error != null -> {
                         item {
                             Card(
