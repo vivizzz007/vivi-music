@@ -898,7 +898,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                                 )
                             },
                             title = "Open crash logs folder",
-                            subtitle = "Downloads/vivi/crash_logs",
+                            subtitle = "Internal storage/Android/data/.../crash_logs",
                             onClick = {
                                 openCrashLogsFolder(context)
                             },
@@ -1255,39 +1255,39 @@ private fun openCrashLogsFolder(context: Context) {
     try {
         val crashLogsDir = CrashLogHandler.getCrashLogsDir(context)
 
-        // Try to open with file manager
+        // Try using FileProvider to open the directory
+        val uri = androidx.core.content.FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.FileProvider",
+            crashLogsDir
+        )
+
         val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(
-                Uri.parse(crashLogsDir.absolutePath),
-                "resource/folder"
-            )
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            setDataAndType(uri, "resource/folder")
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
 
         try {
             context.startActivity(intent)
         } catch (e: ActivityNotFoundException) {
-            // If no file manager, try to open Downloads folder
-            val downloadsIntent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(
-                    Uri.parse(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath),
-                    "resource/folder"
-                )
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            // Fallback 1: try without specific type but with Uri
+            val fallback1 = Intent(Intent.ACTION_VIEW).apply {
+                setData(uri)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
-
             try {
-                context.startActivity(downloadsIntent)
+                context.startActivity(fallback1)
+            } catch (e2: ActivityNotFoundException) {
+                // Fallback 2: Show path and copy to clipboard
+                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                val clip = android.content.ClipData.newPlainText("Crash Log Path", crashLogsDir.absolutePath)
+                clipboard.setPrimaryClip(clip)
+
                 Toast.makeText(
                     context,
-                    "Navigate to vivi/crash_logs folder",
-                    Toast.LENGTH_LONG
-                ).show()
-            } catch (e: ActivityNotFoundException) {
-                // Show path if can't open
-                Toast.makeText(
-                    context,
-                    "Crash logs location:\n${crashLogsDir.absolutePath}",
+                    "No file manager found. Path copied to clipboard:\n${crashLogsDir.absolutePath}",
                     Toast.LENGTH_LONG
                 ).show()
             }
