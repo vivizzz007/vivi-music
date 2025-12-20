@@ -5,9 +5,11 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import androidx.core.view.WindowCompat
 import android.net.Uri
 import android.os.Build
 import android.view.View
+import android.widget.Toast
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import androidx.compose.foundation.background
@@ -42,8 +44,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.music.vivi.MainActivity
+import com.music.vivi.R
 import com.music.vivi.ui.theme.DefaultThemeColor
 import com.music.vivi.ui.theme.MusicTheme
 import com.music.vivi.ui.utils.appBarScrollBehavior
@@ -67,7 +71,7 @@ fun CrashPage(
 
     LaunchedEffect(Unit) {
         (context as? Activity)?.window?.let { window ->
-            window.setDecorFitsSystemWindows(false)
+            WindowCompat.setDecorFitsSystemWindows(window, false)
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 window.insetsController?.let { controller ->
@@ -191,7 +195,56 @@ fun CrashPage(
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 },
-                                title = "Report Issue",
+                                title = "Send via Gmail",
+                                subtitle = "Copies the log and opens Gmail.",
+                                titleColor = MaterialTheme.colorScheme.onSurface,
+                                subtitleColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                onClick = {
+                                    // Copy to clipboard
+                                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                    val clip = ClipData.newPlainText("ViVi Crash Log", errorText)
+                                    clipboard.setPrimaryClip(clip)
+                                    Toast.makeText(context, "Log copied to clipboard", Toast.LENGTH_SHORT).show()
+
+                                    // Send Email
+                                    val deviceInfo = """
+                                        App Version: ${com.music.vivi.BuildConfig.VERSION_NAME}
+                                        Android Version: ${Build.VERSION.RELEASE}
+                                        Device: ${Build.MANUFACTURER} ${Build.MODEL}
+                                        SDK: ${Build.VERSION.SDK_INT}
+                                    """.trimIndent()
+
+                                    val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
+                                        data = Uri.parse("mailto:")
+                                        putExtra(Intent.EXTRA_EMAIL, arrayOf("mkmdevilmi@gmail.com"))
+                                        putExtra(Intent.EXTRA_SUBJECT, "ViVi Music Crash Report")
+                                        putExtra(Intent.EXTRA_TEXT, "Crash Log (also copied to clipboard):\n\n${errorText}\n\nDevice Info:\n${deviceInfo}")
+                                    }
+                                    try {
+                                        context.startActivity(Intent.createChooser(emailIntent, "Send email via..."))
+                                    } catch (e: Exception) {
+                                        Toast.makeText(context, "No email app found", Toast.LENGTH_SHORT).show()
+                                    }
+                                },
+                                showArrow = true,
+                                iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
+                            )
+
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                            )
+
+                            ModernInfoItem(
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.github),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(22.dp),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                },
+                                title = "Report via GitHub",
                                 subtitle = "Opens GitHub to report the issue.",
                                 titleColor = MaterialTheme.colorScheme.onSurface,
                                 subtitleColor = MaterialTheme.colorScheme.onSurfaceVariant,

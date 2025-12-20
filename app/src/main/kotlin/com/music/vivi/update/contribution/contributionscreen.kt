@@ -59,6 +59,7 @@ data class Contributor(
     val githubUsername: String
 )
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContributionScreen(
@@ -73,9 +74,21 @@ fun ContributionScreen(
     var loadingProgress by remember { mutableStateOf(0f) }
     var error by remember { mutableStateOf<String?>(null) }
 
-    // Fetch contributors from JSON (fast, no delays)
+    // Fetch contributors from JSON with smooth progress animation
     LaunchedEffect(Unit) {
-        // Launch fast data fetching in parallel
+        // Start progress animation
+        val animationJob = async {
+            val animationDuration = 2000L // 2 seconds smooth animation
+            val steps = 100
+            val delayPerStep = animationDuration / steps
+
+            repeat(steps) { step ->
+                loadingProgress = (step + 1).toFloat() / steps
+                kotlinx.coroutines.delay(delayPerStep)
+            }
+        }
+
+        // Fetch data
         val fetchJob = async(Dispatchers.IO) {
             try {
                 val apiUrl = "https://raw.githubusercontent.com/vivizzz007/vivi-music/main/NEW-UI/contribution/contribution.json"
@@ -111,22 +124,13 @@ fun ContributionScreen(
                 error = "Error loading contributors: ${e.message}"
             }
         }
-        
-        // Animate progress bar for 10 seconds independently
-        val animationDuration = 10000L // 10 seconds
-        val steps = 200 // Number of animation steps
-        val delayPerStep = animationDuration / steps
-        
-        repeat(steps) { step ->
-            loadingProgress = (step + 1).toFloat() / steps
-            kotlinx.coroutines.delay(delayPerStep)
-        }
-        
-        // Wait for fetch to complete if it hasn't already
+
+        // Wait for both animation and fetch to complete
+        animationJob.await()
         fetchJob.await()
-        
-        loadingProgress = 1.0f
-        kotlinx.coroutines.delay(300) // Brief pause at 100%
+
+        // Brief pause at 100%
+        kotlinx.coroutines.delay(300)
         isLoading = false
     }
 
@@ -169,8 +173,9 @@ fun ContributionScreen(
                             progress = { loadingProgress },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(5.dp),
-                            color = MaterialTheme.colorScheme.primary
+                                .height(8.dp),
+                            color = MaterialTheme.colorScheme.primary,
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant,
                         )
                     }
                 }
@@ -347,6 +352,14 @@ fun ContributorCard(
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1
             )
+            Spacer(modifier = Modifier.height(4.dp))
+            // Add GitHub username here
+            Text(
+                text = "@${contributor.githubUsername}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1
+            )
         }
 
         // GitHub Button
@@ -358,7 +371,7 @@ fun ContributorCard(
                 painter = painterResource(R.drawable.github),
                 contentDescription = "GitHub Profile",
                 modifier = Modifier.size(24.dp),
-                tint = Color.Unspecified
+                tint = MaterialTheme.colorScheme.primary
             )
         }
     }

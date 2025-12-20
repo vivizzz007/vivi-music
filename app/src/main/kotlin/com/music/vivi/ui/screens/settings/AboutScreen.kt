@@ -177,10 +177,6 @@ fun AboutScreen(
             topBar = {
                 TopAppBar(
                     title = {
-//                        Text(
-//                            text = stringResource(R.string.about),
-//                            modifier = Modifier.graphicsLayer { alpha = titleAlpha }
-//                        )
                     },
                     navigationIcon = {
                         IconButton(
@@ -211,98 +207,39 @@ fun AboutScreen(
                     bottom = 32.dp
                 )
             ) {
-                // Hero Header with Parallax
-                // Hero Header with Animated Gradient Background
-                // Hero Header with Animated Gradient Background
                 item {
-                    val cs = MaterialTheme.colorScheme
-                    val colorPrimary = cs.primaryContainer
-                    val colorTertiary = cs.tertiaryContainer
-                    val transition = rememberInfiniteTransition(label = "gradient")
-                    val fraction by transition.animateFloat(
-                        initialValue = 0f,
-                        targetValue = 1f,
-                        animationSpec = infiniteRepeatable(
-                            animation = tween(durationMillis = 5000),
-                            repeatMode = RepeatMode.Reverse,
-                        ),
-                        label = "gradient_fraction"
-                    )
-                    val cornerRadius = 28.dp
-
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 32.dp)
-                            .graphicsLayer {
-                                translationY = -headerOffset
-                            },
+                            .padding(horizontal = 16.dp, vertical = 32.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Surface(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(cornerRadius),
-                            color = Color.Transparent,
-                            shadowElevation = 0.dp,
-                            tonalElevation = 0.dp,
+                        Text(
+                            text = "VIVI MUSIC",
+                            style = MaterialTheme.typography.displaySmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 48.sp,
+                                letterSpacing = 2.sp
+                            ),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Box(
+                            modifier = Modifier
+                                .border(
+                                    width = 1.5.dp,
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                                    shape = CircleShape
+                                )
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .drawWithCache {
-                                        val cx = size.width - size.width * fraction
-                                        val cy = size.height * fraction
-
-                                        val gradient = Brush.radialGradient(
-                                            colors = listOf(colorPrimary, colorTertiary),
-                                            center = Offset(cx, cy),
-                                            radius = 800f,
-                                        )
-
-                                        onDrawBehind {
-                                            drawRoundRect(
-                                                brush = gradient,
-                                                cornerRadius = CornerRadius(
-                                                    cornerRadius.toPx(),
-                                                    cornerRadius.toPx(),
-                                                ),
-                                            )
-                                        }
-                                    }
-                                    .padding(32.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Text(
-                                        text = "VIVI MUSIC",
-                                        style = MaterialTheme.typography.displaySmall.copy(
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 48.sp,
-                                            letterSpacing = 2.sp
-                                        ),
-                                        color = cs.onPrimaryContainer
-                                    )
-
-                                    Spacer(modifier = Modifier.height(16.dp))
-
-                                    Box(
-                                        modifier = Modifier
-                                            .border(
-                                                width = 1.5.dp,
-                                                color = cs.onPrimaryContainer.copy(alpha = 0.4f),
-                                                shape = CircleShape
-                                            )
-                                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                                    ) {
-                                        Text(
-                                            text = "v${BuildConfig.VERSION_NAME} • Stable",
-                                            style = MaterialTheme.typography.titleMedium,
-                                            color = cs.onPrimaryContainer.copy(alpha = 0.85f)
-                                        )
-                                    }
-                                }
-                            }
+                            Text(
+                                text = "v${BuildConfig.VERSION_NAME} • Stable",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
                         }
                     }
                 }
@@ -499,6 +436,21 @@ fun AboutScreen(
                     )
                 }
 
+                // Replace the Community Section in your AboutScreen.kt with this:
+
+// Community Section
+                item {
+                    Text(
+                        text = "COMMUNITY",
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
+                    )
+                }
+
                 item {
                     Card(
                         modifier = Modifier
@@ -516,8 +468,8 @@ fun AboutScreen(
                                     Icon(
                                         painter = painterResource(R.drawable.github),
                                         contentDescription = null,
-                                        modifier = Modifier.size(28.dp), // Increased from 22dp to 28dp
-                                        tint = Color.Unspecified
+                                        modifier = Modifier.size(28.dp),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant // Changed from primary
                                     )
                                 },
                                 title = "GitHub Repository",
@@ -537,7 +489,7 @@ fun AboutScreen(
                                         painter = painterResource(R.drawable.person),
                                         contentDescription = null,
                                         modifier = Modifier.size(28.dp),
-                                        tint = Color.Unspecified
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant // Changed from primary
                                     )
                                 },
                                 title = "Contributors",
@@ -557,7 +509,8 @@ fun AboutScreen(
                                     Icon(
                                         Icons.Filled.BugReport,
                                         null,
-                                        modifier = Modifier.size(28.dp) // Increased from 22dp to 28dp
+                                        modifier = Modifier.size(28.dp)
+                                        // No tint specified - uses default onSurface
                                     )
                                 },
                                 title = "Report Issue",
@@ -577,8 +530,8 @@ fun AboutScreen(
                                     Icon(
                                         Icons.Filled.Favorite,
                                         null,
-                                        modifier = Modifier.size(28.dp), // Increased from 22dp to 28dp
-                                        tint = Color(0xFFE91E63)
+                                        modifier = Modifier.size(28.dp),
+                                        tint = MaterialTheme.colorScheme.error // Keeps the red heart
                                     )
                                 },
                                 title = "Donate",
