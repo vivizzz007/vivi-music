@@ -154,6 +154,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.graphicsLayer
 @OptIn(ExperimentalMaterial3Api::class)
@@ -945,8 +946,9 @@ fun BottomSheetPlayer(
                         modifier = Modifier.padding(horizontal = PlayerHorizontalPadding),
                         squigglesSpec =
                             SquigglySlider.SquigglesSpec(
-                                amplitude = if (isPlaying) (2.dp).coerceAtLeast(2.dp) else 0.dp,
+                                amplitude = if (isPlaying) (4.dp).coerceAtLeast(2.dp) else 0.dp,
                                 strokeWidth = 3.dp,
+                                wavelength = 36.dp,
                             ),
                     )
                 }
@@ -1019,35 +1021,43 @@ fun BottomSheetPlayer(
                     val playPauseInteractionSource = remember { MutableInteractionSource() }
                     val isPlayPausePressed by playPauseInteractionSource.collectIsPressedAsState()
 
+                    // Play/Pause Weight: Keeping it narrower (1.2f) and taller (72dp)
                     val playPauseWeight by animateFloatAsState(
-                        targetValue = if (isPlayPausePressed) 2.55f else 1.7f,
+                        targetValue = if (isPlayPausePressed) 1.8f else 1.2f,
                         animationSpec = spring(),
                         label = "playPauseWeight"
                     )
+
+                    // Side Weights: Increased to 0.65f to make them clearly OVAL (stretched)
                     val sideButtonWeight by animateFloatAsState(
-                        targetValue = if (isPlayPausePressed) 0.3f else 0.4f,
+                        targetValue = if (isPlayPausePressed) 0.4f else 0.65f,
                         animationSpec = spring(),
                         label = "sideButtonWeight"
                     )
 
+                    // Previous Button (Stretched Oval)
                     FilledTonalIconButton(
                         onClick = playerConnection::seekToPrevious,
                         enabled = canSkipPrevious,
                         shape = RoundedCornerShape(50),
                         interactionSource = backInteractionSource,
                         colors = IconButtonDefaults.filledTonalIconButtonColors(
-                            containerColor =
-                                if (playerButtonsStyle == PlayerButtonsStyle.DEFAULT) {
-                                    textButtonColor
-                                } else {
-                                    MaterialTheme.colorScheme.secondaryContainer
-                                },
-                            contentColor =
-                                if (playerButtonsStyle == PlayerButtonsStyle.DEFAULT) {
-                                    iconButtonColor
-                                } else {
-                                    MaterialTheme.colorScheme.onSecondaryContainer
-                                },
+                            containerColor = if (playerBackground == PlayerBackgroundStyle.BLUR ||
+                                playerBackground == PlayerBackgroundStyle.GRADIENT) {
+                                Color.White.copy(alpha = 0.2f)
+                            } else if (playerButtonsStyle == PlayerButtonsStyle.DEFAULT) {
+                                textButtonColor
+                            } else {
+                                MaterialTheme.colorScheme.secondaryContainer
+                            },
+                            contentColor = if (playerBackground == PlayerBackgroundStyle.BLUR ||
+                                playerBackground == PlayerBackgroundStyle.GRADIENT) {
+                                Color.White
+                            } else if (playerButtonsStyle == PlayerButtonsStyle.DEFAULT) {
+                                iconButtonColor
+                            } else {
+                                MaterialTheme.colorScheme.onSecondaryContainer
+                            },
                         ),
                         modifier = Modifier
                             .height(64.dp)
@@ -1057,12 +1067,13 @@ fun BottomSheetPlayer(
                         Icon(
                             painter = painterResource(R.drawable.skip_previous),
                             contentDescription = null,
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier.size(28.dp)
                         )
                     }
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(8.dp)) //determining space
 
+                    // Play/Pause Button (Tall Pill)
                     FilledIconButton(
                         onClick = {
                             if (playbackState == STATE_ENDED) {
@@ -1079,48 +1090,56 @@ fun BottomSheetPlayer(
                             contentColor = iconButtonColor,
                         ),
                         modifier = Modifier
-                            .height(64.dp)
-                            .weight(playPauseWeight)
+                            .height(72.dp) // Tall height
+                            .weight(playPauseWeight) // Narrower width
+                            .bouncy(playPauseInteractionSource)
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             Icon(
-                                painter = painterResource(
-                                    if (isPlaying) R.drawable.pause else R.drawable.play
-                                ),
-                                contentDescription = if (isPlaying) "Pause" else stringResource(R.string.play),
-                                modifier = Modifier.size(32.dp)
+                                painter = painterResource(if (isPlaying) R.drawable.pause else R.drawable.play),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .offset(x = if (!isPlaying) 2.dp else 0.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = if (isPlaying) "Pause" else stringResource(R.string.play),
-                                style = MaterialTheme.typography.titleMedium
+                                style = MaterialTheme.typography.titleMedium,
+                                maxLines = 1
                             )
                         }
                     }
 
                     Spacer(modifier = Modifier.width(8.dp))
 
+                    // Next Button
                     FilledTonalIconButton(
                         onClick = playerConnection::seekToNext,
                         enabled = canSkipNext,
                         shape = RoundedCornerShape(50),
                         interactionSource = nextInteractionSource,
                         colors = IconButtonDefaults.filledTonalIconButtonColors(
-                            containerColor =
-                                if (playerButtonsStyle == PlayerButtonsStyle.DEFAULT) {
-                                    textButtonColor
-                                } else {
-                                    MaterialTheme.colorScheme.secondaryContainer
-                                },
-                            contentColor =
-                                if (playerButtonsStyle == PlayerButtonsStyle.DEFAULT) {
-                                    iconButtonColor
-                                } else {
-                                    MaterialTheme.colorScheme.onSecondaryContainer
-                                },
+                            containerColor = if (playerBackground == PlayerBackgroundStyle.BLUR ||
+                                playerBackground == PlayerBackgroundStyle.GRADIENT) {
+                                Color.White.copy(alpha = 0.2f)
+                            } else if (playerButtonsStyle == PlayerButtonsStyle.DEFAULT) {
+                                textButtonColor
+                            } else {
+                                MaterialTheme.colorScheme.secondaryContainer
+                            },
+                            contentColor = if (playerBackground == PlayerBackgroundStyle.BLUR ||
+                                playerBackground == PlayerBackgroundStyle.GRADIENT) {
+                                Color.White
+                            } else if (playerButtonsStyle == PlayerButtonsStyle.DEFAULT) {
+                                iconButtonColor
+                            } else {
+                                MaterialTheme.colorScheme.onSecondaryContainer
+                            },
                         ),
                         modifier = Modifier
                             .height(64.dp)
@@ -1130,11 +1149,11 @@ fun BottomSheetPlayer(
                         Icon(
                             painter = painterResource(R.drawable.skip_next),
                             contentDescription = null,
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier.size(28.dp)
                         )
                     }
                 }
-            } else {
+            }else {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier =
