@@ -52,7 +52,6 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -107,7 +106,7 @@ fun LyricsScreen(
     onBackClick: () -> Unit,
     navController: NavController,
     modifier: Modifier = Modifier,
-    backgroundAlpha: () -> Float = { 1f }
+    backgroundAlpha: Float = 1f
 ) {
     val context = LocalContext.current
     val activity = context as? Activity
@@ -224,7 +223,7 @@ fun LyricsScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .graphicsLayer { alpha = backgroundAlpha() }
+                .alpha(backgroundAlpha)
         ) {
             when (playerBackground) {
                 PlayerBackgroundStyle.BLUR -> {
@@ -237,11 +236,7 @@ fun LyricsScreen(
                     ) { thumbnailUrl ->
                         if (thumbnailUrl != null) {
                             AsyncImage(
-                                model = ImageRequest.Builder(LocalContext.current)
-                                    .data(thumbnailUrl)
-                                    .size(100, 100)
-                                    .allowHardware(false)
-                                    .build(),
+                                model = thumbnailUrl,
                                 contentDescription = null,
                                 contentScale = ContentScale.FillBounds,
                                 modifier = Modifier
@@ -341,8 +336,10 @@ fun LyricsScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Box(
-                            contentAlignment = Alignment.Center,
+                        AsyncImage(
+                            model = mediaMetadata.thumbnailUrl,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .size(56.dp)
                                 .clip(RoundedCornerShape(8.dp))
@@ -350,58 +347,12 @@ fun LyricsScreen(
                                     interactionSource = remember { MutableInteractionSource() },
                                     indication = ripple(bounded = true, radius = 28.dp)
                                 ) {
-                                    if (playbackState == androidx.media3.common.Player.STATE_ENDED) {
-                                        player.seekTo(0, 0)
-                                        player.playWhenReady = true
-                                    } else {
-                                        if (isPlaying) player.pause() else player.play()
+                                    coroutineScope.launch {
+                                        delay(100)
+                                        onBackClick()
                                     }
                                 }
-                        ) {
-                            AsyncImage(
-                                model = ImageRequest.Builder(LocalContext.current)
-                                    .data(mediaMetadata.thumbnailUrl)
-                                    .size(100, 100)
-                                    .allowHardware(false)
-                                    .build(),
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize()
-                            )
-
-                            // Overlay and Icon similar to MiniPlayer
-                            val overlayAlpha by androidx.compose.animation.core.animateFloatAsState(
-                                targetValue = if (isPlaying) 0.4f else 0.4f,
-                                label = "overlay_alpha"
-                            )
-
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(Color.Black.copy(alpha = overlayAlpha))
-                            )
-
-                            androidx.compose.animation.AnimatedVisibility(
-                                visible = playbackState == androidx.media3.common.Player.STATE_ENDED || !isPlaying || isPlaying,
-                                enter = fadeIn(),
-                                exit = fadeOut()
-                            ) {
-                                Icon(
-                                    painter = painterResource(
-                                        if (playbackState == androidx.media3.common.Player.STATE_ENDED) {
-                                            R.drawable.replay
-                                        } else if (isPlaying) {
-                                            R.drawable.pause
-                                        } else {
-                                            R.drawable.play
-                                        }
-                                    ),
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
-                        }
+                        )
 
                         Spacer(modifier = Modifier.width(12.dp))
 
@@ -419,9 +370,6 @@ fun LyricsScreen(
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
-
-                            Spacer(modifier = Modifier.height(6.dp))
-
                             Text(
                                 text = if (mediaMetadata.artists.isNotEmpty()) {
                                     mediaMetadata.artists.joinToString(", ") { it.name }
