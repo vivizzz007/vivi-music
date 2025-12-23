@@ -272,7 +272,7 @@ fun OnlinePlaylistScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(800.dp) // Extra height for parallax movement
+                    .height(400.dp) // Extra height for parallax movement
                     .offset(y = parallaxOffset.dp)
                     .blur(radius = 20.dp, edgeTreatment = BlurredEdgeTreatment.Unbounded)
                     .alpha(0.6f)
