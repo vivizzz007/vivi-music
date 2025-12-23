@@ -167,7 +167,8 @@ import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.playback.queues.filterVideoSongs
 
 import com.music.vivi.extensions.toEnum
-import com.music.vivi.update.widget.WidgetUpdateService
+import com.music.vivi.update.widget.ViviWidgetManager
+import com.music.vivi.update.widget.MusicPlayerWidgetReceiver
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @AndroidEntryPoint
 class MusicService :
@@ -185,6 +186,9 @@ class MusicService :
 
     @Inject
     lateinit var mediaLibrarySessionCallback: MediaLibrarySessionCallback
+
+    @Inject
+    lateinit var widgetManager: ViviWidgetManager
 
     private lateinit var audioManager: AudioManager
     private var audioFocusRequest: AudioFocusRequest? = null
@@ -534,6 +538,56 @@ class MusicService :
                 }
             }
         }
+    }
+
+    
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        when (intent?.action) {
+            MusicPlayerWidgetReceiver.ACTION_PLAY_PAUSE -> player.playPause()
+            MusicPlayerWidgetReceiver.ACTION_LIKE -> toggleLike()
+            MusicPlayerWidgetReceiver.ACTION_PLAY_SONG -> {
+                intent.getStringExtra("song_id")?.let { id ->
+                    scope.launch {
+                        database.song(id).first()?.let { song ->
+                            player.setMediaItem(song.toMediaItem())
+                            player.prepare()
+                            player.play()
+                        }
+                    }
+                }
+            }
+            MusicPlayerWidgetReceiver.ACTION_PLAY_QUEUE_ITEM -> {
+                val skipCount = intent.getIntExtra("skip_count", 0)
+                if (skipCount > 0) {
+                    val currentIndex = player.currentMediaItemIndex
+                    val timeline = player.currentTimeline
+                    if (!timeline.isEmpty) {
+                        var targetIndex = currentIndex
+                        repeat(skipCount) {
+                            val nextIdx = timeline.getNextWindowIndex(
+                                targetIndex,
+                                player.repeatMode,
+                                player.shuffleModeEnabled
+                            )
+                            if (nextIdx != androidx.media3.common.C.INDEX_UNSET) {
+                                targetIndex = nextIdx
+                            }
+                        }
+                        if (targetIndex != currentIndex) {
+                            player.seekTo(targetIndex, 0)
+                            player.play()
+                        }
+                    }
+                }
+            }
+            MusicPlayerWidgetReceiver.ACTION_UPDATE_WIDGET -> updateWidget()
+        }
+        return super.onStartCommand(intent, flags, startId)
+    }
+
+    private fun Player.playPause() {
+        if (isPlaying) pause() else play()
     }
 
     private fun setupAudioFocusRequest() {
@@ -1573,11 +1627,15 @@ class MusicService :
 //added widget updating
 
     private fun updateWidget() {
-        try {
-            val intent = Intent(this, WidgetUpdateService::class.java)
-            startService(intent)
-        } catch (e: Exception) {
-            reportException(e)
+        scope.launch {
+            widgetManager.updateWidgets(
+                title = player.currentMetadata?.title ?: "Not Playing",
+                artist = player.currentMetadata?.artists?.joinToString { it.name } ?: "Tap to play",
+                artworkUri = player.currentMetadata?.thumbnailUrl,
+                isPlaying = player.isPlaying,
+                isLiked = currentSong.value?.song?.liked ?: false,
+                queueItems = player.mediaItems.drop(player.currentMediaItemIndex + 1).take(5)
+            )
         }
     }
 
