@@ -60,7 +60,7 @@
             android:layout_height="36dp"
             android:layout_marginEnd="4dp"
             android:background="?android:selectableItemBackgroundBorderless"
-            android:src="@drawable/favorite_border"
+            android:src="@drawable/star_fav"
             android:contentDescription="Like" />
 
         <!-- Play/Pause Button -->
