@@ -311,9 +311,14 @@ fun AudioDeviceBottomSheet(
                 else -> {
                     val activeDevice = audioDevices.firstOrNull { it.isActive }
 
-                    // "Audio will play on" header
+                    // "Audio will play on" header with Android 16 style
                     Surface(
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(
+                            topStart = 16.dp,
+                            topEnd = 16.dp,
+                            bottomStart = 0.dp,
+                            bottomEnd = 0.dp
+                        ),
                         color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -321,7 +326,12 @@ fun AudioDeviceBottomSheet(
                             .border(
                                 width = 1.dp,
                                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                                shape = RoundedCornerShape(16.dp)
+                                shape = RoundedCornerShape(
+                                    topStart = 16.dp,
+                                    topEnd = 16.dp,
+                                    bottomStart = 0.dp,
+                                    bottomEnd = 0.dp
+                                )
                             )
                     ) {
                         Row(
@@ -558,6 +568,8 @@ fun VolumeControlRow(
         )
     }
 }
+
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AudioQualitySelector(context: Context) {
@@ -585,19 +597,17 @@ fun AudioQualitySelector(context: Context) {
             AudioQuality.LOW -> 2
         }
 
-        SingleChoiceSegmentedButtonRow(
+        androidx.compose.foundation.layout.FlowRow(
             modifier = Modifier
-                .fillMaxWidth()
                 .padding(horizontal = 16.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             options.forEachIndexed { index, label ->
-                SegmentedButton(
-                    modifier = Modifier.weight(1f),
-                    shape = SegmentedButtonDefaults.itemShape(
-                        index = index,
-                        count = options.size
-                    ),
-                    onClick = {
+                ToggleButton(
+                    checked = selectedIndex == index,
+                    onCheckedChange = {
                         val newQuality = when (index) {
                             0 -> AudioQuality.AUTO
                             1 -> AudioQuality.HIGH
@@ -606,7 +616,14 @@ fun AudioQualitySelector(context: Context) {
                         onAudioQualityChange(newQuality)
                         applyAudioQuality(context, newQuality)
                     },
-                    selected = index == selectedIndex,
+                    shapes = when (index) {
+                        0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                        options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .semantics { role = Role.RadioButton },
                 ) {
                     Text(
                         text = label,
@@ -617,6 +634,7 @@ fun AudioQualitySelector(context: Context) {
         }
     }
 }
+
 
 private fun loadDevices(
     context: Context,
