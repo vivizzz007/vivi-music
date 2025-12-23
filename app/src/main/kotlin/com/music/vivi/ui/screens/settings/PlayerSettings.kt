@@ -134,7 +134,6 @@ fun PlayerSettings(
     )
 
     var showAudioQualityDialog by rememberSaveable { mutableStateOf(false) }
-    var showHistoryDurationDialog by rememberSaveable { mutableStateOf(false) }
 
     // Audio Quality Dialog
     if (showAudioQualityDialog) {
@@ -172,49 +171,6 @@ fun PlayerSettings(
             buttons = {
                 TextButton(onClick = { showAudioQualityDialog = false }) {
                     Text(text = stringResource(android.R.string.cancel))
-                }
-            }
-        )
-    }
-
-    // History Duration Dialog
-    if (showHistoryDurationDialog) {
-        var tempDuration by remember { mutableStateOf(historyDuration) }
-
-        AlertDialog(
-            onDismissRequest = { showHistoryDurationDialog = false },
-            title = { Text(stringResource(R.string.history_duration)) },
-            text = {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Text(
-                        text = "${tempDuration.toInt()} seconds",
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Slider(
-                        value = tempDuration,
-                        onValueChange = { tempDuration = it },
-                        valueRange = 0f..60f,
-                        steps = 11
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onHistoryDurationChange(tempDuration)
-                        showHistoryDurationDialog = false
-                    }
-                ) {
-                    Text(stringResource(android.R.string.ok))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showHistoryDurationDialog = false }) {
-                    Text(stringResource(android.R.string.cancel))
                 }
             }
         )
@@ -332,14 +288,47 @@ fun PlayerSettings(
                                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                             )
 
-                            ModernInfoItem(
-                                icon = { Icon(painterResource(R.drawable.history), null, modifier = Modifier.size(22.dp)) },
-                                title = stringResource(R.string.history_duration),
-                                subtitle = "${historyDuration.toInt()} seconds",
-                                onClick = { showHistoryDurationDialog = true },
-                                showArrow = true,
-                                showSettingsIcon = true
-                            )
+                            // History Duration with permanent slider
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 20.dp, vertical = 12.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        painterResource(R.drawable.history),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(22.dp),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Spacer(modifier = Modifier.width(16.dp))
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = stringResource(R.string.history_duration),
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = "${historyDuration.toInt()} seconds",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                Slider(
+                                    value = historyDuration,
+                                    onValueChange = onHistoryDurationChange,
+                                    valueRange = 0f..60f,
+                                    steps = 11,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
 
                             HorizontalDivider(
                                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),

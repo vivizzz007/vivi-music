@@ -148,7 +148,7 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
         ) {
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Settings Title
             Text(
@@ -159,7 +159,7 @@ fun SettingsScreen(
                 modifier = Modifier.padding(start = 8.dp, bottom = 16.dp)
             )
 
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Unified settings card
             Card(
