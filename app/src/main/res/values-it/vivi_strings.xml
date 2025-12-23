@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="explore">Esplora</string>
+
+    <string name="local_history">Locale</string>
+    <string name="remote_history">Remoto</string>
+
+    <string name="charts">Classifiche</string>
+    <string name="back_button_desc">Indietro</string>
+    <string name="no_title">Nessun titolo</string>
+    <string name="unknown_artist">Artista sconosciuto</string>
+    <string name="unknown_item_type">Tipo elemento sconosciuto</string>
+    <string name="loading_charts">Caricamento classifiche…</string>
+    <string name="retry_button">Riprova</string>
+    <string name="album_cover_desc">Copertina album</string>
+    <string name="top_music_videos">Video musicali più popolari</string>
+    <string name="trending">Tendenze</string>
+
+    <string name="weeks">Settimane</string>
+    <string name="months">Mesi</string>
+    <string name="years">Anni</string>
+    <string name="continuous">Continuo</string>
+
+    <string name="liked">Piaciuti</string>
+    <string name="offline">Scaricati</string>
+    <string name="my_top">I miei migliori</string>
+    <string name="cached_playlist">In cache</string>
+    <string name="uploaded_playlist">Caricati</string>
+    <string name="filter_uploaded">Caricati</string>
+    <string name="sync_playlist">Sincronizza playlist</string>
+    <string name="sync_disabled">Sincronizzazione disabilitata</string>
+    <string name="elements_selected">%1$d elementi selezionati</string>
+    <string name="allows_for_sync_witch_youtube">Nota: Questo consente la sincronizzazione con YouTube Music. NON è modificabile in seguito.</string>
+    <string name="generating_image">Generazione immagine</string>
+    <string name="please_wait">Attendere prego</string>
+    <string name="cancel">Annulla</string>
+    <string name="share_lyrics">Condividi testo</string>
+    <string name="share_as_text">Condividi come testo</string>
+    <string name="share_as_image">Condividi come immagine</string>
+    <string name="max_selection_limit">Limite massimo di selezione</string>
+    <string name="share_selected">Condividi selezionati</string>
+    <string name="customize_colors">Personalizza colori</string>
+    <string name="more_options">Altre opzioni</string>
+    <string name="text_color">Colore testo</string>
+    <string name="secondary_text_color">Colore testo secondario</string>
+    <string name="background_color">Colore sfondo</string>
+
+    <string name="added_to_play_next">Aggiunto a riproduci successivo</string>
+    <string name="added_to_queue">Aggiunto alla coda</string>
+    <string name="remove_from_cache">Rimuovi dalla cache</string>
+    <string name="copy_link">Copia link</string>
+    <string name="select">Seleziona tutto</string>
+    <string name="like_all">Mi piace a tutti</string>
+    <string name="dislike_all">Non mi piace a tutti</string>
+    <string name="sort_by_last_updated">Data aggiornamento</string>
+    <string name="link_copied">Link copiato negli appunti</string>
+    <string name="starting_radio">Avvio radio</string>
+    <string name="now_playing">In riproduzione</string>
+
+    <string name="lyrics">Testo</string>
+    <string name="close">Chiudi</string>
+    <string name="minimum_volume">Volume minimo</string>
+    <string name="maximum_volume">Volume massimo</string>
+    <string name="hide_player_thumbnail">Nascondi miniatura lettore</string>
+    <string name="hide_player_thumbnail_desc">Sostituisce la copertina dell\'album con il logo dell\'app nel lettore</string>
+
+    <string name="already_in_playlist">Già nella playlist:</string>
+
+    <plurals name="n_element">
+        <item quantity="one">%d elemento</item>
+        <item quantity="other">%d elementi</item>
+    </plurals>
+    <plurals name="n_time">
+        <item quantity="one">%d volta</item>
+        <item quantity="other">%d volte</item>
+    </plurals>
+
+    <string name="seek_backward">5 secondi indietro</string>
+    <string name="seek_forward">5 secondi avanti</string>
+    <string name="seek_forward_dynamic">+%1$d secondi avanti</string>
+    <string name="seek_backward_dynamic">-%1$d secondi indietro</string>
+    <string name="seek_seconds_addup">Ricerca progressiva</string>
+    <string name="seek_seconds_addup_description">Se abilitato, aggiunge 5 secondi extra in modo incrementale ad ogni salto di ricerca</string>
+
+    <string name="similar_content">Contenuti simili</string>
+
+    <string name="login_settings">Impostazioni accesso</string>
+    <string name="general_settings">Impostazioni generali</string>
+
+    <string name="player_background_style">Stile sfondo lettore</string>
+    <string name="follow_theme">Segui tema</string>
+    <string name="gradient">Gradiente</string>
+    <string name="new_player_design">Nuovo design lettore</string>
+    <string name="new_mini_player_design">Nuovo design mini lettore</string>
+    <string name="player_background_blur">Sfocatura</string>
+    <string name="player_buttons_style">Colori pulsanti lettore</string>
+    <string name="default_style">Predefinito</string>
+    <string name="secondary_color_style">Secondario</string>
+    <string name="enable_squiggly_slider">Abilita cursore ondulato</string>
+    <string name="enable_swipe_thumbnail">Abilita scorrimento per cambiare brano</string>
+    <string name="swipe_song_to_add">Scorri il brano a sinistra per aggiungerlo alla coda o a destra per riprodurlo successivamente</string>
+    <string name="lyrics_click_change">Cambia testo al clic</string>
+    <string name="lyrics_auto_scroll">Scorrimento automatico testo</string>
+    <string name="slim">Sottile</string>
+    <string name="slim_navbar">Barra di navigazione inferiore sottile</string>
+    <string name="auto_playlists">Playlist automatiche</string>
+    <string name="show_liked_playlist">Mostra playlist \"Piaciuti\"</string>
+    <string name="show_downloaded_playlist">Mostra playlist \"Scaricati\"</string>
+    <string name="show_top_playlist">Mostra playlist \"Top\"</string>
+    <string name="show_cached_playlist">Mostra playlist \"In cache\"</string>
+    <string name="show_uploaded_playlist">Mostra playlist \"Caricati\"</string>
+
+    <string name="google">Google</string>
+    <string name="discord">Discord</string>
+    <string name="advanced_login">Accedi con token</string>
+    <string name="token_hidden">Tocca per mostrare il token</string>
+    <string name="token_shown">Tocca di nuovo per copiare o modificare</string>
+    <string name="token_adv_login_description">Questo è un metodo di accesso AVANZATO. Come alternativa al portale web, puoi inserire o aggiornare direttamente il tuo token di accesso qui. Ad esempio, questo può velocizzare l\'accesso su più dispositivi. Nota che qualsiasi formato di token non valido che l\'app non riesce ad analizzare non sarà accettato</string>
+    <string name="ytm_sync">Sincronizza automaticamente con il tuo account YouTube Music</string>
+    <string name="yt_sync">Sincronizzazione automatica con account</string>
+    <string name="more_content">Altri contenuti</string>
+
+    <!-- Playlist cover edit -->
+    <string name="edit_playlist_cover">Modifica copertina playlist</string>
+    <string name="edit_playlist_cover_note">Nota: Il tuo account deve essere collegato a un numero di telefono e verificato su YouTube Music per cambiare la copertina della playlist.</string>
+    <string name="edit_playlist_cover_note_wait">Dopo aver selezionato un\'immagine, attendi un momento affinché la nuova copertina appaia nella tua playlist.</string>
+    <string name="choose_from_library">Scegli dalla libreria</string>
+    <string name="remove_custom_image">Rimuovi immagine personalizzata</string>
+
+    <!-- General -->
+    <string name="general">Generale</string>
+    <string name="proxy">Proxy</string>
+    <string name="default_lib_chips">Cambia chip libreria predefinito</string>
+    <string name="set_quick_picks">Imposta selezioni rapide</string>
+    <string name="last_song_listened">Basato sull\'ultimo brano ascoltato</string>
+    <string name="app_language">Lingua app</string>
+    <string name="configure_app_language">Configura lingue app</string>
+    <string name="intent_app_language_not_found">Impossibile trovare le impostazioni della lingua dell\'app, configurale manualmente</string>
+    <string name="open_supported_links">Apri link supportati per impostazione predefinita</string>
+    <string name="configure_supported_links">Configura link supportati</string>
+    <string name="intent_supported_links_not_found">Impossibile trovare le impostazioni dei link supportati, configurale manualmente</string>
+    <string name="set_first_lyrics_provider">Provider testi preferito</string>
+    <string name="config_proxy">Configura proxy</string>
+    <string name="proxy_username">Nome utente proxy</string>
+    <string name="proxy_password">Password proxy</string>
+    <string name="enable_authentication">Abilita autenticazione</string>
+    <string name="discord_use_details">Usa dettagli invece dello stato</string>
+    <string name="discord_use_details_description">Mostra il titolo del brano in modo prominente invece dei nomi degli artisti</string>
+
+    <string name="audio_quality_max">Max (beta)</string>
+    <string name="enable_similar_content">Abilita contenuti simili</string>
+    <string name="similar_content_desc">Aggiungi automaticamente brani simili quando si raggiunge la fine della coda</string>
+    <string name="min_playback_duration_title">Durata minima di riproduzione</string>
+    <string name="min_playback_duration_description">La quantità minima di un brano che deve essere riprodotta prima che sia considerato \"riprodotto\"</string>
+    <string name="percentage_format">%d%%</string>
+    <string name="minimum_playback_duration">Durata minima di riproduzione</string>
+
+    <string name="import_online">Importa una playlist \"m3u\"</string>
+    <string name="import_csv">Importa una playlist \"csv\"</string>
+    <string name="playlist_add_local_to_synced_note">Nota: L\'aggiunta di brani locali a playlist sincronizzate/remote non è supportata. Qualsiasi altra combinazione è valida</string>
+
+    <string name="auto_download_on_like">Download automatico quando mi piace</string>
+    <string name="auto_download_on_like_desc">Scarica automaticamente i brani quando metti mi piace</string>
+
+    <string name="swipe_sensitivity">Sensibilità scorrimento mini lettore</string>
+    <string name="swipe_sensitivity_desc">Regola quanto sono sensibili i gesti di scorrimento per cambiare brano</string>
+    <string name="sensitivity_percentage">%1$d%%</string>
+
+    <string name="clear_song_cache_dialog">  Sei sicuro di voler cancellare tutti i brani in cache?</string>
+    <string name="clear_image_cache_dialog">  Sei sicuro di voler cancellare tutte le immagini in cache?</string>
+    <string name="clear_downloads_dialog">  Sei sicuro di voler cancellare tutti i download?</string>
+
+    <string name="disable">Disabilita</string>
+
+    <string name="pause_remote_listen_history">Metti in pausa condivisione cronologia ascolti con YouTube Music</string>
+    <string name="not_logged_in_youtube">Non connesso a YouTube</string>
+
+    <string name="default_links">Apri link supportati</string>
+    <string name="open_app_settings_error">Impossibile aprire le impostazioni dell\'app</string>
+
+    <string name="release_notes">Note di rilascio</string>
+
+    <string name="all_time">Tutto il tempo</string>
+    <string name="past_24_hours">Ultime 24 ore</string>
+    <string name="past_week">Ultima settimana</string>
+    <string name="past_month">Ultimo mese</string>
+    <string name="past_year">Ultimo anno</string>
+    <string name="top_length">Lunghezza lista Top</string>
+    <string name="history_duration">Durata cronologia</string>
+    <string name="information">Informazioni</string>
+    <string name="description">Descrizione</string>
+    <string name="numbers">Numeri</string>
+    <string name="subscribers">Iscritti</string>
+    <string name="views">Visualizzazioni</string>
+    <string name="likes">Mi piace</string>
+    <string name="dislikes">Non mi piace</string>
+    <string name="subscribe">Iscriviti</string>
+    <string name="subscribed">Iscritto</string>
+
+    <string name="sub">Iscr</string>
+    <string name="subed">Iscritto</string>
+
+    <string name="playlist_not_found">Playlist non trovata</string>
+    <string name="playlist_not_found_desc">La playlist richiesta non può essere caricata</string>
+    <string name="empty_playlist">Playlist vuota</string>
+    <string name="empty_playlist_desc">Questa playlist non contiene alcun brano</string>
+    <plurals name="seconds">
+        <item quantity="one">1 secondo</item>
+        <item quantity="other">%d secondi</item>
+    </plurals>
+
+    <!-- Player Settings -->
+    <string name="disable_load_more_when_repeat_all">Disabilita caricamento ulteriori con ripeti tutti</string>
+    <string name="disable_load_more_when_repeat_all_desc">Non caricare automaticamente altri brani e contenuti simili quando la modalità ripeti tutti è abilitata</string>
+
+    <!-- Romanization Settings -->
+    <string name="lyrics_romanization_cyrillic">Cirillico</string>
+    <string name="lyrics_romanize_title">Romanizzazione</string>
+    <string name="lyrics_romanization">Romanizzazione testi</string>
+    <string name="romanization">Romanizzazione</string>
+    <string name="lyrics_romanize_japanese">Romanizza testi giapponesi</string>
+    <string name="lyrics_romanize_korean">Romanizza testi coreani</string>
+    <string name="lyrics_romanize_russian">Romanizza testi russi</string>
+    <string name="lyrics_romanize_ukrainian">Romanizza testi ucraini</string>
+    <string name="lyrics_romanize_belarusian">Romanizza testi bielorussi</string>
+    <string name="lyrics_romanize_kyrgyz">Romanizza testi kirghisi</string>
+    <string name="lyrics_romanize_serbian">Romanizza testi serbi</string>
+    <string name="lyrics_romanize_bulgarian">Romanizza testi bulgari</string>
+    <string name="line_by_line_option_title">SPERIMENTALE: Rileva lingua riga per riga</string>
+    <string name="line_by_line_option_desc">La lingua cirillica verrà rilevata riga per riga invece dell\'intero brano.</string>
+    <string name="line_by_line_dialog_title">Sei sicuro?</string>
+    <string name="line_by_line_dialog_desc">Questa è una funzionalità sperimentale che può funzionare o meno. \n\nPer impostazione predefinita, la lingua è determinata dall\'intero brano, ma con questa opzione attiva, verrà determinata riga per riga. Questo permetterà ai brani multilingue di funzionare MA la lingua potrebbe non essere sempre corretta (ad esempio se c\'è un testo ucraino che non contiene lettere specifiche ucraine, potrebbe essere romanizzato come russo). \n\nSe non hai problemi, si consiglia di mantenere questa opzione disattivata.</string>
+    <string name="line_by_line_dialog_enable">Abilita</string>
+    <string name="romanize_current_track">Romanizza traccia corrente</string>
+
+    <!-- Material 3 Settings Sections -->
+    <string name="settings_section_ui">Interfaccia</string>
+    <string name="settings_section_privacy">Privacy e Sicurezza</string>
+    <string name="settings_section_player">Lettore e Media</string>
+    <string name="settings_section_player_content">Lettore e Contenuti</string>
+    <string name="settings_section_storage">Archiviazione e Dati</string>
+    <string name="settings_section_system">Sistema e Informazioni</string>
+
+    <!-- Updater -->
+    <string name="updater">Aggiornamenti</string>
+    <string name="appupdate">Controlla aggiornamenti</string>
+    <string name="experimental">Sperimentale</string>
+    <string name="check_for_updates">Controlla automaticamente aggiornamenti</string>
+    <string name="update_notifications">Abilita notifiche aggiornamenti</string>
+    <string name="update_available_title">Aggiornamento disponibile</string>
+    <string name="update_channel_name">Aggiornamenti app</string>
+    <string name="update_channel_desc">Notifiche sulle nuove versioni</string>
+
+
+    <!-- Offload -->
+    <string name="audio_offload">Abilita offload</string>
+    <string name="audio_offload_description">Utilizza il percorso audio offload per la riproduzione audio. Disabilitare questa opzione potrebbe aumentare il consumo energetico ma può essere utile se si verificano problemi con la riproduzione audio o il post-processing</string>
+    <string name="lyrics_romanize_macedonian">Romanizza testi macedoni</string>
+
+    <string name="integrations">Integrazioni</string>
+    <string name="username">Nome utente</string>
+    <string name="password">Password</string>
+    <!-- Last.fm -->
+    <string name="lastfm_integration">Integrazione Last.fm</string>
+    <string name="enable_scrobbling">Abilita scrobbling</string>
+    <string name="lastfm_now_playing">Invia In riproduzione</string>
+    <string name="scrobbling_configuration">Configurazione scrobbling</string>
+    <string name="scrobble_min_track_duration">Scrobble brani più lunghi di</string>
+    <string name="scrobble_delay_percent">Percentuale ritardo scrobble</string>
+    <string name="scrobble_delay_minutes">Minuti ritardo scrobble</string>
+    <string name="profile_image">Immagine profilo</string>
+    <string name="back">Indietro</string>
+
+
+    <string name="download_playlist">Scarica playlist</string>
+    <string name="remove_download_playlist">Rimuovi download</string>
+    <string name="delete_playlist">Elimina playlist</string>
+    <string name="cancel_download">Annulla download</string>
+
+
+    <!-- Account View Strings -->
+    <string name="restore_success">Ripristino riuscito</string>
+    <string name="library">Libreria</string>
+    <string name="logout">Disconnetti</string>
+    <string name="logged_out">Disconnesso con successo</string>
+    <string name="swipe_song_to_remove">Scorri il brano per rimuoverlo dalla playlist</string>
+    <string name="rotating_thumbnail">Miniatura rotante</string>
+
+</resources>
