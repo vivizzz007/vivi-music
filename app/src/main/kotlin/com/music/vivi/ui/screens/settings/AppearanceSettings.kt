@@ -125,8 +125,14 @@ fun AppearanceSettings(
 
     // Trigger widget update when Dark Mode changes
     androidx.compose.runtime.LaunchedEffect(darkMode) {
-        val intent = android.content.Intent(context, com.music.vivi.update.widget.WidgetUpdateService::class.java)
-        context.startService(intent)
+        val intent = android.content.Intent(context, com.music.vivi.playback.MusicService::class.java).apply {
+            action = com.music.vivi.update.widget.MusicPlayerWidgetReceiver.ACTION_UPDATE_WIDGET
+        }
+        try {
+            context.startService(intent)
+        } catch (e: Exception) {
+            // Service might be restricted in background
+        }
     }
     val (useNewPlayerDesign, onUseNewPlayerDesignChange) = rememberPreference(
         UseNewPlayerDesignKey,
