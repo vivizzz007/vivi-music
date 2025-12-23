@@ -203,9 +203,6 @@
                 android:resource="@xml/music_widget_info" />
         </receiver>
 
-        <service
-            android:name=".update.widget.WidgetUpdateService"
-            android:exported="false" />
 
         <meta-data
             android:name="com.google.android.gms.car.application"
