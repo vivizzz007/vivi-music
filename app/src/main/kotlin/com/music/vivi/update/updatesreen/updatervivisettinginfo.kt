@@ -89,21 +89,6 @@ fun ViviUpdatesScreen(
     var lastUpdatedDate by remember { mutableStateOf("") }
     var firstInstallDate by remember { mutableStateOf("") }
     var buildVersion by remember { mutableStateOf("") }
-    var cachedImageUrl by remember { mutableStateOf<String?>(null) }
-    var isLoadingImage by remember { mutableStateOf(true) }
-
-    // Load cached image for current or latest version
-    LaunchedEffect(updateStatus) {
-        val versionToLoad = when (val status = updateStatus) {
-            is UpdateStatus.UpdateAvailable -> "v${status.latestVersion}"
-            else -> "v$currentVersion"
-        }
-
-        val imageUrl = loadImageFromCache(context, versionToLoad)
-        cachedImageUrl = imageUrl
-        isLoadingImage = false
-        Log.d("ViviUpdatesScreen", "Loaded image for $versionToLoad: $imageUrl")
-    }
 
     // Refresh update status when screen opens
     LaunchedEffect(Unit) {
@@ -204,209 +189,76 @@ fun ViviUpdatesScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // Image Box with overlay - Shows cached changelog image
-            Box(
+            // Simple Status Card instead of Large Image Box
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-                    .height(200.dp)
-                    .clip(RoundedCornerShape(24.dp))
+                    .padding(horizontal = 16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = when (updateStatus) {
+                        is UpdateStatus.UpdateAvailable -> MaterialTheme.colorScheme.errorContainer
+                        else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    }
+                ),
+                shape = RoundedCornerShape(16.dp)
             ) {
-                when {
-                    isLoadingImage -> {
-                        // Loading state
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(MaterialTheme.colorScheme.surfaceContainerHigh),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(modifier = Modifier.size(32.dp))
+                Row(
+                    modifier = Modifier.padding(20.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val (icon, titleText, subtitleText) = when (val status = updateStatus) {
+                        is UpdateStatus.UpdateAvailable -> {
+                            Triple(Icons.Filled.NewReleases, "Update available", "Version ${status.latestVersion}")
+                        }
+                        is UpdateStatus.Loading -> {
+                            Triple(Icons.Filled.NewReleases, "Checking for updates", "Please wait...")
+                        }
+                        is UpdateStatus.Error -> {
+                            Triple(Icons.Filled.NewReleases, "Check failed", "Unable to check")
+                        }
+                        else -> {
+                            Triple(painterResource(R.drawable.updated), "App is up to date", "Version $currentVersion")
                         }
                     }
-                    cachedImageUrl != null -> {
-                        // Display cached image
-                        AsyncImage(
-                            model = cachedImageUrl,
-                            contentDescription = "Update preview",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp),
-                            contentScale = ContentScale.Crop
-                        )
 
-                        // Overlay with gradient and text
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(
-                                    androidx.compose.ui.graphics.Brush.verticalGradient(
-                                        colors = listOf(
-                                            androidx.compose.ui.graphics.Color.Transparent,
-                                            androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.7f)
-                                        )
-                                    )
-                                )
-                        )
-
-                        // Status info overlay
-                        Column(
-                            modifier = Modifier
-                                .align(Alignment.BottomStart)
-                                .padding(20.dp)
-                        ) {
-                            val (titleText, subtitleText) = when (val status = updateStatus) {
-                                is UpdateStatus.UpdateAvailable -> {
-                                    Pair("Update available", "Version ${status.latestVersion}")
-                                }
-                                is UpdateStatus.Disabled -> {
-                                    Pair("Updates disabled", "Enable in settings")
-                                }
-                                is UpdateStatus.Error -> {
-                                    Pair("Check failed", "Unable to check")
-                                }
-                                else -> {
-                                    Pair("Up to date", "Version $currentVersion")
-                                }
-                            }
-
-                            Text(
-                                text = titleText,
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = androidx.compose.ui.graphics.Color.White,
-                                fontSize = 22.sp
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surface),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (icon is androidx.compose.ui.graphics.vector.ImageVector) {
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = if (updateStatus is UpdateStatus.UpdateAvailable) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                             )
-
-                            Text(
-                                text = subtitleText,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.9f),
-                                fontWeight = FontWeight.Medium,
-                                modifier = Modifier.padding(top = 4.dp)
+                        } else {
+                            Icon(
+                                painter = icon as androidx.compose.ui.graphics.painter.Painter,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.primary
                             )
-
-                            // Show size when update is available
-                            if (updateStatus is UpdateStatus.UpdateAvailable) {
-                                updateInfo?.let { info ->
-                                    if (info.apkSize.isNotEmpty()) {
-                                        Text(
-                                            text = "${info.apkSize} MB",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.8f),
-                                            modifier = Modifier.padding(top = 2.dp)
-                                        )
-                                    }
-                                }
-                            }
                         }
                     }
-                    else -> {
-                        // Fallback when no image available
-                        val (boxColor, iconTint, textColor, subtextColor) = when (updateStatus) {
-                            is UpdateStatus.UpdateAvailable -> {
-                                Quadruple(
-                                    MaterialTheme.colorScheme.errorContainer,
-                                    MaterialTheme.colorScheme.error,
-                                    MaterialTheme.colorScheme.onErrorContainer,
-                                    MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f)
-                                )
-                            }
-                            is UpdateStatus.Disabled -> {
-                                Quadruple(
-                                    MaterialTheme.colorScheme.surfaceContainerHigh,
-                                    MaterialTheme.colorScheme.onSurfaceVariant,
-                                    MaterialTheme.colorScheme.onSurface,
-                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                                )
-                            }
-                            else -> {
-                                Quadruple(
-                                    MaterialTheme.colorScheme.surfaceContainerHigh,
-                                    MaterialTheme.colorScheme.primary,
-                                    MaterialTheme.colorScheme.onSurface,
-                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                                )
-                            }
-                        }
 
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(boxColor)
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .padding(24.dp)
-                                    .align(Alignment.CenterStart),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(64.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.surface),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    when (updateStatus) {
-                                        is UpdateStatus.UpdateAvailable -> {
-                                            Icon(
-                                                imageVector = Icons.Filled.NewReleases,
-                                                contentDescription = null,
-                                                modifier = Modifier.size(32.dp),
-                                                tint = iconTint
-                                            )
-                                        }
-                                        else -> {
-                                            Icon(
-                                                painter = painterResource(R.drawable.updated),
-                                                contentDescription = null,
-                                                modifier = Modifier.size(32.dp),
-                                                tint = iconTint
-                                            )
-                                        }
-                                    }
-                                }
+                    Spacer(Modifier.width(16.dp))
 
-                                Spacer(Modifier.width(20.dp))
-
-                                Column {
-                                    val (titleText, subtitleText) = when (val status = updateStatus) {
-                                        is UpdateStatus.UpdateAvailable -> {
-                                            Pair("Update available", "Version ${status.latestVersion}")
-                                        }
-                                        is UpdateStatus.Disabled -> {
-                                            Pair("Updates disabled", "Enable automatic checks")
-                                        }
-                                        is UpdateStatus.Loading -> {
-                                            Pair("Checking for updates", "Please wait...")
-                                        }
-                                        is UpdateStatus.Error -> {
-                                            Pair("Check failed", "Unable to check")
-                                        }
-                                        else -> {
-                                            Pair("App is up to date", "Version $currentVersion")
-                                        }
-                                    }
-
-                                    Text(
-                                        text = titleText,
-                                        style = MaterialTheme.typography.headlineSmall,
-                                        fontWeight = FontWeight.Medium,
-                                        color = textColor,
-                                        fontSize = 22.sp
-                                    )
-
-                                    Text(
-                                        text = subtitleText,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        color = subtextColor,
-                                        fontWeight = FontWeight.Medium,
-                                        modifier = Modifier.padding(top = 4.dp)
-                                    )
-                                }
-                            }
-                        }
+                    Column {
+                        Text(
+                            text = titleText,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = subtitleText,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }
@@ -619,28 +471,6 @@ fun ViviUpdatesScreen(
     }
 }
 
-// Load image URL from cached changelog data
-private fun loadImageFromCache(context: Context, versionTag: String): String? {
-    return try {
-        val cacheFile = File(context.filesDir, "changelog_cache_$versionTag.json")
-        if (!cacheFile.exists()) {
-            Log.d("UpdatesScreen", "No cache found for $versionTag")
-            return null
-        }
-
-        val cacheContent = context.openFileInput("changelog_cache_$versionTag.json").use {
-            it.bufferedReader().readText()
-        }
-
-        val cacheData = JSONObject(cacheContent)
-        val imageUrl = cacheData.optString("image", null)
-
-        if (imageUrl.isNullOrBlank()) null else imageUrl
-    } catch (e: Exception) {
-        Log.e("UpdatesScreen", "Error loading image from cache", e)
-        null
-    }
-}
 
 // Data classes remain the same
 sealed class UpdateStatus {
