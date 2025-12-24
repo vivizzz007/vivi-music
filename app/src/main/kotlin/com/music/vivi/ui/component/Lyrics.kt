@@ -354,7 +354,7 @@ fun Lyrics(
     var currentLineIndex by remember {
         mutableIntStateOf(-1)
     }
-    // Because LaunchedEffect has delay, which leads to inconsistent with current line color and scroll animation,
+
     // we use deferredCurrentLineIndex when user is scrolling
     var deferredCurrentLineIndex by rememberSaveable {
         mutableIntStateOf(0)
@@ -381,6 +381,10 @@ fun Lyrics(
 
     var isAppMinimized by rememberSaveable {
         mutableStateOf(false)
+    }
+
+    var currentTime by remember {
+        mutableLongStateOf(0L)
     }
 
     var showProgressDialog by remember { mutableStateOf(false) }
@@ -456,13 +460,14 @@ fun Lyrics(
             return@LaunchedEffect
         }
         while (isActive) {
-            delay(50)
             val sliderPosition = sliderPositionProvider()
             isSeeking = sliderPosition != null
+            currentTime = sliderPosition ?: playerConnection.player.currentPosition
             currentLineIndex = findCurrentLineIndex(
                 lines,
-                sliderPosition ?: playerConnection.player.currentPosition
+                currentTime
             )
+            delay(50)
         }
     }
 
@@ -606,154 +611,78 @@ fun Lyrics(
                 } else {
                     itemsIndexed(
                         items = lines,
-                        key = { index, item -> "$index-${item.time}" } // Add stable key
+                        key = { index, item -> "$index-${item.time}" }
                     ) { index, item ->
                         val isSelected = selectedIndices.contains(index)
-                        val itemModifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp)) // Clip for background
-                            .combinedClickable(
-                                enabled = true,
-                                onClick = {
-                                    if (isSelectionModeActive) {
-                                        // Toggle selection
-                                        if (isSelected) {
-                                            selectedIndices.remove(index)
-                                            if (selectedIndices.isEmpty()) {
-                                                isSelectionModeActive =
-                                                    false // Exit mode if last item deselected
-                                            }
+                        val nextEntryTime = lines.getOrNull(index + 1)?.time
+
+                        LyricsLine(
+                            entry = item,
+                            nextEntryTime = nextEntryTime,
+                            currentTime = currentTime,
+                            isSynced = isSynced,
+                            isActive = index == displayedCurrentLineIndex,
+                            distanceFromCurrent = kotlin.math.abs(index - displayedCurrentLineIndex),
+                            lyricsTextPosition = lyricsTextPosition,
+                            textColor = textColor,
+                            showRomanized = currentSong?.romanizeLyrics == true && (
+                                    romanizeJapaneseLyrics ||
+                                            romanizeKoreanLyrics ||
+                                            romanizeRussianLyrics ||
+                                            romanizeUkrainianLyrics ||
+                                            romanizeSerbianLyrics ||
+                                            romanizeBulgarianLyrics ||
+                                            romanizeBelarusianLyrics ||
+                                            romanizeKyrgyzLyrics ||
+                                            romanizeMacedonianLyrics),
+                            onClick = {
+                                if (isSelectionModeActive) {
+                                    if (isSelected) {
+                                        selectedIndices.remove(index)
+                                        if (selectedIndices.isEmpty()) {
+                                            isSelectionModeActive = false
+                                        }
+                                    } else {
+                                        if (selectedIndices.size < maxSelectionLimit) {
+                                            selectedIndices.add(index)
                                         } else {
-                                            if (selectedIndices.size < maxSelectionLimit) {
-                                                selectedIndices.add(index)
-                                            } else {
-                                                showMaxSelectionToast = true
+                                            showMaxSelectionToast = true
+                                        }
+                                    }
+                                } else if (isSynced && changeLyrics) {
+                                    playerConnection.player.seekTo(item.time)
+                                    scope.launch {
+                                        lazyListState.scrollToItem(index = index)
+                                        val itemInfo = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == index }
+                                        if (itemInfo != null) {
+                                            val viewportHeight = lazyListState.layoutInfo.viewportEndOffset - lazyListState.layoutInfo.viewportStartOffset
+                                            val center = lazyListState.layoutInfo.viewportStartOffset + (viewportHeight / 2)
+                                            val itemCenter = itemInfo.offset + itemInfo.size / 2
+                                            val offset = itemCenter - center
+                                            if (kotlin.math.abs(offset) > 10) {
+                                                lazyListState.animateScrollBy(
+                                                    value = offset.toFloat(),
+                                                    animationSpec = tween(durationMillis = 1500)
+                                                )
                                             }
                                         }
-                                    } else if (isSynced && changeLyrics) {
-                                        // Professional seek action with smooth animation
-                                        playerConnection.player.seekTo(item.time)
-                                        // Smooth slow scroll when clicking on lyrics (3 seconds)
-                                        scope.launch {
-                                            // First scroll to the clicked item without animation
-                                            lazyListState.scrollToItem(index = index)
-
-                                            // Then animate it to center position slowly
-                                            val itemInfo =
-                                                lazyListState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == index }
-                                            if (itemInfo != null) {
-                                                val viewportHeight =
-                                                    lazyListState.layoutInfo.viewportEndOffset - lazyListState.layoutInfo.viewportStartOffset
-                                                val center =
-                                                    lazyListState.layoutInfo.viewportStartOffset + (viewportHeight / 2)
-                                                val itemCenter = itemInfo.offset + itemInfo.size / 2
-                                                val offset = itemCenter - center
-
-                                                if (kotlin.math.abs(offset) > 10) { // Only animate if not already centered
-                                                    lazyListState.animateScrollBy(
-                                                        value = offset.toFloat(),
-                                                        animationSpec = tween(durationMillis = 1500) // Reduced to half speed
-                                                    )
-                                                }
-                                            }
-                                        }
-                                        lastPreviewTime = 0L
                                     }
-                                },
-                                onLongClick = {
-                                    if (!isSelectionModeActive) {
-                                        isSelectionModeActive = true
-                                        selectedIndices.add(index)
-                                    } else if (!isSelected && selectedIndices.size < maxSelectionLimit) {
-                                        // If already in selection mode and item not selected, add it if below limit
-                                        selectedIndices.add(index)
-                                    } else if (!isSelected) {
-                                        // If already at limit, show toast
-                                        showMaxSelectionToast = true
-                                    }
+                                    lastPreviewTime = 0L
                                 }
-                            )
-                            .background(
-                                if (isSelected && isSelectionModeActive) MaterialTheme.colorScheme.primary.copy(
-                                    alpha = 0.3f
-                                )
-                                else Color.Transparent
-                            )
-                            .padding(horizontal = 24.dp, vertical = 8.dp)
-                            .graphicsLayer {
-                                // Consolidation of alpha and scale logic into draw phase
-                                val distance = kotlin.math.abs(index - displayedCurrentLineIndex)
-
-                                alpha = when {
-                                    !isSynced || (isSelectionModeActive && isSelected) -> 1f
-                                    index == displayedCurrentLineIndex -> 1f
-                                    distance == 1 -> 0.7f
-                                    distance == 2 -> 0.4f
-                                    else -> 0.2f
+                            },
+                            onLongClick = {
+                                if (!isSelectionModeActive) {
+                                    isSelectionModeActive = true
+                                    selectedIndices.add(index)
+                                } else if (!isSelected && selectedIndices.size < maxSelectionLimit) {
+                                    selectedIndices.add(index)
+                                } else if (!isSelected) {
+                                    showMaxSelectionToast = true
                                 }
-
-                                val scale = when {
-                                    !isSynced || index == displayedCurrentLineIndex -> 1f
-                                    distance == 1 -> 0.95f
-                                    distance >= 2 -> 0.9f
-                                    else -> 1f
-                                }
-
-                                scaleX = scale
-                                scaleY = scale
-                            }
-
-                        Column(
-                            modifier = itemModifier,
-                            horizontalAlignment = when (lyricsTextPosition) {
-                                LyricsPosition.LEFT -> Alignment.Start
-                                LyricsPosition.CENTER -> Alignment.CenterHorizontally
-                                LyricsPosition.RIGHT -> Alignment.End
-                            }
-                        ) {
-                            Text(
-                                text = item.text,
-                                fontSize = 24.sp, // Uniform size for all lines matching latest enh version
-                                color = if (index == displayedCurrentLineIndex && isSynced) {
-                                    textColor // Full color for active line
-                                } else {
-                                    textColor.copy(alpha = 0.8f) // Slightly muted for inactive lines
-                                },
-                                textAlign = when (lyricsTextPosition) {
-                                    LyricsPosition.LEFT -> TextAlign.Left
-                                    LyricsPosition.CENTER -> TextAlign.Center
-                                    LyricsPosition.RIGHT -> TextAlign.Right
-                                },
-                                fontWeight = if (index == displayedCurrentLineIndex && isSynced) FontWeight.ExtraBold else FontWeight.Bold
-                            )
-                            if (currentSong?.romanizeLyrics == true
-                                && (romanizeJapaneseLyrics ||
-                                        romanizeKoreanLyrics ||
-                                        romanizeRussianLyrics ||
-                                        romanizeUkrainianLyrics ||
-                                        romanizeSerbianLyrics ||
-                                        romanizeBulgarianLyrics ||
-                                        romanizeBelarusianLyrics ||
-                                        romanizeKyrgyzLyrics ||
-                                        romanizeMacedonianLyrics)) {
-                                // Show romanized text if available
-                                val romanizedText by item.romanizedTextFlow.collectAsState()
-                                romanizedText?.let { romanized ->
-                                    Text(
-                                        text = romanized,
-                                        fontSize = 18.sp,
-                                        color = textColor.copy(alpha = 0.8f),
-                                        textAlign = when (lyricsTextPosition) {
-                                            LyricsPosition.LEFT -> TextAlign.Left
-                                            LyricsPosition.CENTER -> TextAlign.Center
-                                            LyricsPosition.RIGHT -> TextAlign.Right
-                                        },
-                                        fontWeight = FontWeight.Normal,
-                                        modifier = Modifier.padding(top = 2.dp)
-                                    )
-                                }
-                            }
-                        }
+                            },
+                            isSelected = isSelected,
+                            isSelectionModeActive = isSelectionModeActive
+                        )
                     }
                 }
             }

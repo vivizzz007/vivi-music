@@ -279,8 +279,33 @@ object LyricsUtils {
         }
         val matchResult = LINE_REGEX.matchEntire(line.trim()) ?: return null
         val times = matchResult.groupValues[1]
-        val text = matchResult.groupValues[3]
+        val rawText = matchResult.groupValues[3]
         val timeMatchResults = TIME_REGEX.findAll(times)
+
+        // Parse word timestamps if present (e.g., <00:16.28> Word)
+        val wordRegex = "<(\\d\\d:\\d\\d\\.\\d{2,3})>([^<]+)".toRegex()
+        val wordMatches = wordRegex.findAll(rawText).toList()
+
+        val parsedText = if (wordMatches.isNotEmpty()) {
+            wordMatches.joinToString("") { it.groupValues[2] }.trim()
+        } else {
+            rawText
+        }
+
+        val words = if (wordMatches.isNotEmpty()) {
+            wordMatches.map { match ->
+                val timeStr = match.groupValues[1]
+                val text = match.groupValues[2]
+                val tMatch = TIME_REGEX.find("[$timeStr]")!!
+                val min = tMatch.groupValues[1].toLong()
+                val sec = tMatch.groupValues[2].toLong()
+                val milString = tMatch.groupValues[3]
+                var mil = milString.toLong()
+                if (milString.length == 2) mil *= 10
+                val time = min * DateUtils.MINUTE_IN_MILLIS + sec * DateUtils.SECOND_IN_MILLIS + mil
+                LyricsEntry.WordEntry(time, text)
+            }
+        } else null
 
         return timeMatchResults
             .map { timeMatchResult ->
@@ -292,7 +317,7 @@ object LyricsUtils {
                     mil *= 10
                 }
                 val time = min * DateUtils.MINUTE_IN_MILLIS + sec * DateUtils.SECOND_IN_MILLIS + mil
-                LyricsEntry(time, text)
+                LyricsEntry(time, parsedText, words)
             }.toList()
     }
 
@@ -301,7 +326,8 @@ object LyricsUtils {
         position: Long,
     ): Int {
         for (index in lines.indices) {
-            if (lines[index].time >= position + 300L) {
+            // Remove lookahead for accurate word-sync
+            if (lines[index].time > position) {
                 return index - 1
             }
         }

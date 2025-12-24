@@ -2,6 +2,7 @@ package com.music.vivi.ui.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -11,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -29,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.music.vivi.lyrics.LyricsEntry
 import com.music.vivi.ui.screens.settings.LyricsPosition
-import androidx.compose.runtime.collectAsState
 
 @OptIn(ExperimentalTextApi::class, ExperimentalLayoutApi::class)
 @Composable
@@ -50,33 +51,46 @@ fun LyricsLine(
     modifier: Modifier = Modifier
 ) {
     val duration = remember(entry.time, nextEntryTime) {
-        if (nextEntryTime != null) nextEntryTime - entry.time else 3000L
+        if (nextEntryTime != null) nextEntryTime - entry.time else 4000L
     }
 
-    // Use 85% of the duration for animation to finish before next line
-    // This accounts for the 300ms lookahead in findCurrentLineIndex
+    // Heuristic: Active highlighting should span about 90% of the duration
     val activeDuration = remember(duration) {
-        (duration * 0.85).toLong().coerceAtLeast(500L)
+        (duration * 0.9).toLong().coerceAtLeast(500L)
     }
 
-    // Calculate word timings based on proportional length
-    val wordData = remember(entry.text, activeDuration) {
-        val words = entry.text.split(" ")
-        val totalChars = entry.text.length
+    // Segment the line into words with their own time windows
+    val wordData = remember(entry.text, entry.words, activeDuration) {
+        if (entry.words != null && entry.words.isNotEmpty()) {
+            // Use precise ELRC word timestamps
+            entry.words.mapIndexed { index, wordEntry ->
+                val wordStart = (wordEntry.time - entry.time).coerceAtLeast(0L)
+                val wordEnd = if (index < entry.words.lastIndex) {
+                    (entry.words[index + 1].time - entry.time).coerceAtLeast(wordStart + 50L)
+                } else {
+                    activeDuration
+                }
+                Triple(wordEntry.text, wordStart, wordEnd)
+            }
+        } else {
+            // Estimation for standard LRC based on word character counts
+            val words = entry.text.split(" ")
+            val totalChars = entry.text.length
 
-        var accumulatedTime = 0L
-        words.mapIndexed { index, word ->
-            val wordLength = word.length
-            val includeSpace = index < words.lastIndex
-            val charCount = if (includeSpace) wordLength + 1 else wordLength
+            var accumulatedTime = 0L
+            words.mapIndexed { index, word ->
+                val wordLength = word.length
+                val includeSpace = index < words.lastIndex
+                val charCount = if (includeSpace) wordLength + 1 else wordLength
 
-            val wordStart = accumulatedTime
-            val wordDuration = (activeDuration * charCount.toFloat() / totalChars).toLong()
-            val wordEnd = wordStart + wordDuration
+                val wordStart = accumulatedTime
+                val wordDuration = if (totalChars > 0) (activeDuration * charCount.toFloat() / totalChars).toLong() else activeDuration
+                val wordEnd = wordStart + wordDuration
 
-            accumulatedTime += wordDuration
+                accumulatedTime += wordDuration
 
-            Triple(word, wordStart, wordEnd)
+                Triple(word, wordStart, wordEnd)
+            }
         }
     }
 
@@ -122,75 +136,57 @@ fun LyricsLine(
             LyricsPosition.RIGHT -> Alignment.End
         }
     ) {
-        // Main Lyrics Text
         if (isActive && isSynced) {
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = when (lyricsTextPosition) {
-                    LyricsPosition.LEFT -> androidx.compose.foundation.layout.Arrangement.Start
-                    LyricsPosition.CENTER -> androidx.compose.foundation.layout.Arrangement.Center
-                    LyricsPosition.RIGHT -> androidx.compose.foundation.layout.Arrangement.End
+                    LyricsPosition.LEFT -> Arrangement.Start
+                    LyricsPosition.CENTER -> Arrangement.Center
+                    LyricsPosition.RIGHT -> Arrangement.End
                 }
             ) {
                 wordData.forEachIndexed { index, (word, startRelative, endRelative) ->
-                    // Time elapsed since this line became active (no offset)
                     val lineRelTime = (currentTime - entry.time).coerceAtLeast(0L)
 
-                    // Calculate word fill progress (0f to 1f)
+                    // Calculate progress for THIS specific word (0 to 1)
                     val wordProgress by remember(lineRelTime, startRelative, endRelative) {
                         derivedStateOf {
                             when {
                                 lineRelTime >= endRelative -> 1f
                                 lineRelTime < startRelative -> 0f
                                 else -> {
-                                    val dur = endRelative - startRelative
-                                    if (dur <= 0) 1f
-                                    else (lineRelTime - startRelative).toFloat() / dur
+                                    val wordDur = endRelative - startRelative
+                                    if (wordDur <= 0L) 1f 
+                                    else (lineRelTime - startRelative).toFloat() / wordDur
                                 }
                             }
                         }
                     }
 
-                    // Create gradient brush for fill animation
+                    // Brush that fills ONLY this word's bounds
                     val brush = remember(wordProgress, textColor) {
                         val filled = textColor
                         val empty = textColor.copy(alpha = 0.3f)
-
-                        // Smooth gradient edge width (20% of word)
-                        val edgeWidth = 0.15f
+                        val edge = 0.1f // small gradient edge for the filling effect
 
                         when {
-                            wordProgress <= 0f -> {
-                                // Not started - fully empty
-                                Brush.linearGradient(colors = listOf(empty, empty))
-                            }
-                            wordProgress >= 1f -> {
-                                // Complete - fully filled
-                                Brush.linearGradient(colors = listOf(filled, filled))
-                            }
+                            wordProgress <= 0f -> Brush.linearGradient(colors = listOf(empty, empty))
+                            wordProgress >= 1f -> Brush.linearGradient(colors = listOf(filled, filled))
                             else -> {
-                                // In progress - create gradient
                                 val stops = mutableListOf<Pair<Float, Color>>()
+                                val fEnd = (wordProgress - edge / 2).coerceAtLeast(0f)
+                                val gEnd = (wordProgress + edge / 2).coerceAtMost(1f)
 
-                                // Filled region starts at 0
-                                val filledEnd = (wordProgress - edgeWidth / 2).coerceAtLeast(0f)
-                                val gradientEnd = (wordProgress + edgeWidth / 2).coerceAtMost(1f)
-
-                                if (filledEnd > 0f) {
+                                if (fEnd > 0f) {
                                     stops.add(0f to filled)
-                                    stops.add(filledEnd to filled)
+                                    stops.add(fEnd to filled)
                                 }
-
-                                // Gradient transition
-                                if (filledEnd < gradientEnd) {
-                                    if (filledEnd == 0f) {
-                                        stops.add(0f to filled)
-                                    }
-                                    stops.add(gradientEnd to empty)
+                                if (fEnd < gEnd) {
+                                    if (fEnd == 0f) stops.add(0f to filled)
+                                    stops.add(gEnd to empty)
                                 }
-
-                                // Empty region to the end
-                                if (gradientEnd < 1f) {
+                                if (gEnd < 1f) {
+                                    stops.add(1f to empty)
                                     stops.add(1f to empty)
                                 }
 
@@ -203,6 +199,7 @@ fun LyricsLine(
                     }
 
                     Text(
+                        // Add trailing space back for all but last word
                         text = if (index != wordData.lastIndex) "$word " else word,
                         fontSize = 24.sp,
                         style = TextStyle(brush = brush),
@@ -211,7 +208,7 @@ fun LyricsLine(
                 }
             }
         } else {
-            // Inactive line - single text for performance
+            // Inactive line
             Text(
                 text = entry.text,
                 fontSize = 24.sp,
@@ -221,11 +218,12 @@ fun LyricsLine(
                     LyricsPosition.CENTER -> TextAlign.Center
                     LyricsPosition.RIGHT -> TextAlign.Right
                 },
-                fontWeight = if (isActive && isSynced) FontWeight.ExtraBold else FontWeight.Bold
+                fontWeight = if (isActive && isSynced) FontWeight.ExtraBold else FontWeight.Bold,
+                modifier = Modifier.fillMaxWidth()
             )
         }
 
-        // Romanized text (if enabled)
+        // Romanized text
         if (showRomanized) {
             val romanizedText by entry.romanizedTextFlow.collectAsState()
             romanizedText?.let { romanized ->
@@ -239,7 +237,7 @@ fun LyricsLine(
                         LyricsPosition.RIGHT -> TextAlign.Right
                     },
                     fontWeight = FontWeight.Normal,
-                    modifier = Modifier.padding(top = 2.dp)
+                    modifier = Modifier.padding(top = 2.dp).fillMaxWidth()
                 )
             }
         }
