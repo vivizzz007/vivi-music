@@ -127,6 +127,61 @@ object LyricsUtils {
         "ќ" to "ḱ", "ө" to "ö"
     )
 
+   // Follows ISO 15919: https://en.wikipedia.org/wiki/ISO_15919
+    private val DEVANAGARI_ROMAJI_MAP : Map<Char, String> =  mapOf(
+       // Vowels
+       'अ' to "a", 'आ' to "aa", 'इ' to "i", 'ई' to "ī", 'उ' to "u", 'ऊ' to "ū",
+       'ऎ' to "e", 'ए' to "ē", 'ऍ' to "ê", 'ऐ' to "ai",
+       'ऒ' to "o", 'ओ' to "ō", 'ऑ' to "ô",  'औ' to "au",
+       'ऋ' to "ṛ", 'ॠ' to "ṝ", 'ऌ' to "ḷ", 'ॡ' to "ḹ",
+
+       // Avagraha
+       'ऽ' to "'",
+
+       // Matras (Vowels attached to consonants)
+       'ा' to "aa", 'ि' to "i", 'ी' to "ī", 'ु' to "u", 'ू' to "ū",
+       'ॆ' to "e", 'े' to "ē", 'ॅ' to "ê", 'ै' to "ai",
+       'ॊ' to "o", 'ो' to "ō", 'ॉ' to "ô", 'ौ' to "au",
+       'ृ' to "ṛ", 'ॄ' to "ṝ", 'ॢ' to "ḷ", 'ॣ' to "ḹ",
+       'ं' to "ṁ", 'ः' to "ḥ", 'ँ' to "m̐",
+
+       // Halant, suppresses the default vowel 'a' after a consonant
+       '्' to "",
+
+       // Nukta, modifies the previous consonant
+       '़' to "",
+
+       // Consonants
+       'क' to "ka", 'ख' to "kha", 'ग' to "ga", 'घ' to "gha", 'ङ' to "ṅa", 'क़' to "q", 'ख़' to "k͟h", 'ग़' to "ġ",
+       'च' to "ca", 'छ' to "cha", 'ज' to "ja", 'झ' to "jha", 'ञ' to "ña", 'ज़' to "z",
+       'ट' to "ṭa", 'ठ' to "ṭha", 'ड' to "ḍa", 'ढ' to "ḍha", 'ण' to "ṇa", 'ड़' to "ṛ", 'ढ़' to "ṛh",
+       'त' to "ta", 'थ' to "tha", 'द' to "da", 'ध' to "dha", 'न' to "na", 'ऩ' to "ṉ",
+       'प' to "pa", 'फ' to "pha", 'ब' to "ba", 'भ' to "bha", 'म' to "ma", 'फ़' to "f",
+       'य' to "ya", 'य़' to "ẏ", 'र' to "ra", 'ऱ' to "ṟ", 'ल' to "la", 'व' to "va",
+       'श' to "śa", 'ष' to "ṣa", 'स' to "sa", 'ह' to "ha",
+
+       // Marathi support
+       'ळ' to "ḷa", 'ऴ' to "ḻa",
+
+       // Numbers
+       '०' to "0", '१' to "1", '२' to "2", '३' to "3", '४' to "4",
+       '५' to "5", '६' to "6", '७' to "7", '८' to "8", '९' to "9"
+    )
+
+    // These characters remove the default 'a' vowel from the consonants
+    private val DEVANAGARI_REMOVE_A: Set<Char> = setOf(
+        'ा' , 'ि', 'ी' , 'ु', 'ू',
+        'ॆ', 'े' , 'ॅ', 'ै',
+        'ॊ', 'ो' , 'ौ',
+        'ृ' , 'ॄ', 'ॢ', 'ॣ',
+        '्'
+    )
+
+    private val DEVANAGARI_NUKTA_MAP: Map<Char, Char> = mapOf(
+        'क' to 'क़', 'ख' to 'ख़', 'ग' to 'ग़', 'ज' to 'ज़', 'ड' to 'ड़',
+        'ढ' to 'ढ़', 'फ' to 'फ़', 'य' to 'य़', 'न' to 'ऩ', 'र' to 'ऱ'
+    )
+
     private val RUSSIAN_ROMAJI_MAP: Map<String, String> = mapOf(
         "ого" to "ovo", "Ого" to "Ovo", "его" to "evo", "Его" to "Evo"
     )
@@ -542,7 +597,21 @@ object LyricsUtils {
         romajaBuilder.toString()
     }
 
+    suspend fun romanizeDevanagari(text: String): String = withContext(Dispatchers.Default) {
+        val romajaBuilder = StringBuilder()
 
+        text.forEachIndexed { i, char ->
+            if (DEVANAGARI_REMOVE_A.contains(char) && romajaBuilder.isNotEmpty()) {
+                romajaBuilder.deleteAt(romajaBuilder.length - 1)
+            }
+            val resolvedChar =  if (i + 1 < text.length && text[i+1] == '़')
+                                    DEVANAGARI_NUKTA_MAP[char] ?: char
+                                else
+                                    char
+            romajaBuilder.append(DEVANAGARI_ROMAJI_MAP[resolvedChar] ?: resolvedChar.toString())
+        }
+        romajaBuilder.toString()
+    }
 
     suspend fun romanizeCyrillic(text: String): String? = withContext(Dispatchers.Default) {
         if (text.isEmpty()) return@withContext null
@@ -917,6 +986,12 @@ object LyricsUtils {
         val cjkCharCount = text.count { char -> char in '\u4E00'..'\u9FFF' }
         val hiraganaKatakanaCount = text.count { char -> (char in '\u3040'..'\u309F') || (char in '\u30A0'..'\u30FF') }
         return cjkCharCount > 0 && (hiraganaKatakanaCount.toDouble() / text.length.toDouble()) < 0.1
+    }
+
+    fun isDevanagari(text: String): Boolean {
+        return text.any { char ->
+            char in '\u0900' .. '\u097F' // Devanagari Block in Unicode
+        }
     }
 
     private fun isCyrillicVowel(char: Char): Boolean {

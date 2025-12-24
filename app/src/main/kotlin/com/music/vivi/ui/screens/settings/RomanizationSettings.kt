@@ -79,6 +79,7 @@ fun RomanizationSettings(
 
     val (lyricsRomanizeJapanese, onLyricsRomanizeJapaneseChange) = rememberPreference(LyricsRomanizeJapaneseKey, defaultValue = true)
     val (lyricsRomanizeKorean, onLyricsRomanizeKoreanChange) = rememberPreference(LyricsRomanizeKoreanKey, defaultValue = true)
+    val (lyricsRomanizeDevanagari, onLyricsRomanizeDevangariChange) = rememberPreference(LyricsRomanizeDevanagariKey, defaultValue = true)
     val (lyricsRomanizeRussian, onLyricsRomanizeRussianChange) = rememberPreference(LyricsRomanizeRussianKey, defaultValue = true)
     val (lyricsRomanizeUkrainian, onLyricsRomanizeUkrainianChange) = rememberPreference(LyricsRomanizeUkrainianKey, defaultValue = true)
     val (lyricsRomanizeSerbian, onLyricsRomanizeSerbianChange) = rememberPreference(LyricsRomanizeSerbianKey, defaultValue = true)
@@ -148,6 +149,27 @@ fun RomanizationSettings(
                     ModernSwitch(
                         checked = lyricsRomanizeKorean,
                         onCheckedChange = onLyricsRomanizeKoreanChange,
+                        modifier = Modifier.padding(end = 16.dp)
+                    )
+                }
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                )
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    ModernInfoItem(
+                        icon = { Icon(painterResource(R.drawable.language_korean_latin), null, modifier = Modifier.size(22.dp)) },
+                        title = stringResource(R.string.lyrics_romanize_devanagari),
+                        subtitle = "Romanize devanagari lyrics",
+                        iconBackgroundColor = iconBgColor,
+                        iconContentColor = iconStyleColor,
+                        modifier = Modifier.weight(1f)
+                    )
+                    ModernSwitch(
+                        checked = lyricsRomanizeDevanagari,
+                        onCheckedChange = onLyricsRomanizeDevangariChange,
                         modifier = Modifier.padding(end = 16.dp)
                     )
                 }

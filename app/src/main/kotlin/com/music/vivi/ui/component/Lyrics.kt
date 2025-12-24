@@ -102,6 +102,7 @@ import com.music.vivi.constants.LyricsClickKey
 import com.music.vivi.constants.LyricsRomanizeBelarusianKey
 import com.music.vivi.constants.LyricsRomanizeBulgarianKey
 import com.music.vivi.constants.LyricsRomanizeCyrillicByLineKey
+import com.music.vivi.constants.LyricsRomanizeDevanagariKey
 import com.music.vivi.constants.LyricsRomanizeJapaneseKey
 import com.music.vivi.constants.LyricsRomanizeKoreanKey
 import com.music.vivi.constants.LyricsRomanizeKyrgyzKey
@@ -127,10 +128,12 @@ import com.music.vivi.lyrics.LyricsUtils.isKyrgyz
 import com.music.vivi.lyrics.LyricsUtils.isRussian
 import com.music.vivi.lyrics.LyricsUtils.isSerbian
 import com.music.vivi.lyrics.LyricsUtils.isBulgarian
+import com.music.vivi.lyrics.LyricsUtils.isDevanagari
 import com.music.vivi.lyrics.LyricsUtils.isUkrainian
 import com.music.vivi.lyrics.LyricsUtils.isMacedonian
 import com.music.vivi.lyrics.LyricsUtils.parseLyrics
 import com.music.vivi.lyrics.LyricsUtils.romanizeCyrillic
+import com.music.vivi.lyrics.LyricsUtils.romanizeDevanagari
 import com.music.vivi.lyrics.LyricsUtils.romanizeJapanese
 import com.music.vivi.lyrics.LyricsUtils.romanizeKorean
 
@@ -190,6 +193,7 @@ fun Lyrics(
     val romanizeKyrgyzLyrics by rememberPreference(LyricsRomanizeKyrgyzKey, true)
     val romanizeMacedonianLyrics by rememberPreference(LyricsRomanizeMacedonianKey, true)
     val romanizeCyrillicByLine by rememberPreference(LyricsRomanizeCyrillicByLineKey, false)
+    val romanizeDevanagariLyrics by rememberPreference(LyricsRomanizeDevanagariKey, true)
     val scope = rememberCoroutineScope()
 
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
@@ -234,6 +238,12 @@ fun Lyrics(
                 if (romanizeKoreanLyrics && isKorean(entry.text)) {
                     scope.launch {
                         newEntry.romanizedTextFlow.value = romanizeKorean(entry.text)
+                    }
+                }
+
+                if (romanizeDevanagariLyrics && isDevanagari(entry.text)) {
+                    scope.launch {
+                        newEntry.romanizedTextFlow.value = romanizeDevanagari(entry.text)
                     }
                 }
 
