@@ -12,7 +12,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.music.vivi.changelog.ChangelogScreen
 import com.music.vivi.support.SupportScreen
 import com.music.vivi.support.ViviIssueScreen
 import com.music.vivi.ui.screens.artist.ArtistAlbumsScreen
@@ -41,6 +40,7 @@ import com.music.vivi.ui.screens.settings.SettingsScreen
 import com.music.vivi.ui.screens.settings.StorageSettings
 import com.music.vivi.update.account.AccountView
 import com.music.vivi.update.betaupdate.ViviDpiSettings
+import com.music.vivi.update.changelog.ChangelogScreen
 import com.music.vivi.update.contribution.ContributionScreen
 import com.music.vivi.update.experiment.ExperimentalSettingsScreen
 import com.music.vivi.update.updatenotification.UpdateInfoScreen
