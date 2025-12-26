@@ -34,6 +34,7 @@ fun RomanizationSettings(
 
     val (lyricsRomanizeJapanese, onLyricsRomanizeJapaneseChange) = rememberPreference(LyricsRomanizeJapaneseKey, defaultValue = true)
     val (lyricsRomanizeKorean, onLyricsRomanizeKoreanChange) = rememberPreference(LyricsRomanizeKoreanKey, defaultValue = true)
+    val (lyricsRomanizeDevanagari, onLyricsRomanizeDevangariChange) = rememberPreference(LyricsRomanizeDevanagariKey, defaultValue = true)
     val (lyricsRomanizeRussian, onLyricsRomanizeRussianChange) = rememberPreference(LyricsRomanizeRussianKey, defaultValue = true)
     val (lyricsRomanizeUkrainian, onLyricsRomanizeUkrainianChange) = rememberPreference(LyricsRomanizeUkrainianKey, defaultValue = true)
     val (lyricsRomanizeSerbian, onLyricsRomanizeSerbianChange) = rememberPreference(LyricsRomanizeSerbianKey, defaultValue = true)
@@ -63,6 +64,14 @@ fun RomanizationSettings(
             icon = { Icon(painterResource(R.drawable.language_korean_latin), null) },
             checked = lyricsRomanizeKorean,
             onCheckedChange = onLyricsRomanizeKoreanChange,
+        )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.lyrics_romanize_devanagari))},
+            // TOOD: Make an icon
+            icon = { Icon(painterResource(R.drawable.language_korean_latin), null) },
+            checked = lyricsRomanizeDevanagari,
+            onCheckedChange = onLyricsRomanizeDevangariChange,
         )
 
         PreferenceGroupTitle(title = stringResource(R.string.lyrics_romanization_cyrillic))
