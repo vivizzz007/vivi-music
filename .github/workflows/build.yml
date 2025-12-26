@@ -1,6 +1,6 @@
-name: Build APKs
+name: CI & Debug Build
+
 on:
-  workflow_dispatch:
   push:
     branches: [ '**' ]
     paths-ignore:
@@ -8,118 +8,16 @@ on:
       - 'fastlane/**'
       - 'assets/**'
       - '.github/**/*.md'
-      - '.github/FUNDING.yml'
-      - '.github/ISSUE_TEMPLATE/**'
   pull_request:
     branches: [ '**' ]
 
-permissions:
-  contents: write
-  discussions: write
-
 jobs:
-  # ========================================
-  # RELEASE BUILDS (All ABIs + Both Flavors)
-  # ========================================
-  build_release:
-    if: github.actor != 'dependabot[bot]' && github.actor != 'renovate[bot]'
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        abi: [ 'arm64', 'armeabi', 'x86', 'x86_64', 'universal' ]
-        flavor: [ 'foss', 'standard' ]
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v5
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-
-      - name: Set Up Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          cache-disabled: true
-          cache-cleanup: on-success
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      # Capitalize ABI and Flavor for Gradle tasks
-      - name: Capitalize ABI and Flavor
-        id: caps
-        run: |
-          ABI="${{ matrix.abi }}"
-          case "$ABI" in
-            arm64)     echo "CAPS_ABI=Arm64" >> $GITHUB_OUTPUT ;;
-            armeabi)   echo "CAPS_ABI=Armeabi" >> $GITHUB_OUTPUT ;;
-            x86)       echo "CAPS_ABI=X86" >> $GITHUB_OUTPUT ;;
-            x86_64)    echo "CAPS_ABI=X86_64" >> $GITHUB_OUTPUT ;;
-            universal) echo "CAPS_ABI=Universal" >> $GITHUB_OUTPUT ;;
-          esac
-          
-          FLAVOR="${{ matrix.flavor }}"
-          case "$FLAVOR" in
-            foss)     echo "CAPS_FLAVOR=Foss" >> $GITHUB_OUTPUT ;;
-            standard) echo "CAPS_FLAVOR=Standard" >> $GITHUB_OUTPUT ;;
-          esac
-
-      # Build + Lint
-      - name: Build Release APK & Lint
-        env:
-          PULL_REQUEST: 'false'
-          GITHUB_EVENT_NAME: ${{ github.event_name }}
-          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
-          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
-        run: |
-          TASK="assemble${{ steps.caps.outputs.CAPS_ABI }}${{ steps.caps.outputs.CAPS_FLAVOR }}Release"
-          LINT=":app:lint${{ steps.caps.outputs.CAPS_ABI }}${{ steps.caps.outputs.CAPS_FLAVOR }}Release"
-          ./gradlew --no-configuration-cache --console=plain clean $TASK $LINT --warning-mode summary
-
-      # Sign
-      - name: Sign APK
-        uses: ilharp/sign-android-release@v2.0.0
-        with:
-          releaseDir: app/build/outputs/apk/${{ matrix.abi }}/${{ matrix.flavor }}/release/
-          signingKey: ${{ secrets.KEYSTORE }}
-          keyAlias: ${{ secrets.KEY_ALIAS }}
-          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
-          buildToolsVersion: 35.0.0
-
-      # Move signed APK
-      - name: Move signed APK
-        run: |
-          mkdir -p out
-          find "app/build/outputs/apk/${{ matrix.abi }}/${{ matrix.flavor }}/release/" \
-            -name "*-signed.apk" -o -name "*-unsigned-signed.apk" \
-            -exec mv {} "out/app-${{ matrix.abi }}-${{ matrix.flavor }}-release.apk" \;
-
-      # Upload
-      - name: Upload Signed APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-${{ matrix.abi }}-${{ matrix.flavor }}-release
-          path: out/*
-
-  # ========================================
-  # DEBUG BUILD (Universal + FOSS only)
-  # ========================================
   build_debug:
-    name: Build Debug (Universal FOSS)
-    if: github.actor != 'dependabot[bot]' && github.actor != 'renovate[bot]'
+    name: Build Universal Foss Debug
     runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
     steps:
       - uses: actions/checkout@v5
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install SDK components
-        run: |
-          sdkmanager --install "platform-tools" "platforms;android-36" "build-tools;36.0.0"
-          yes | sdkmanager --licenses
 
       - name: Set up JDK 21
         uses: actions/setup-java@v5
@@ -131,93 +29,19 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-disabled: true
-          cache-cleanup: on-success
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Restore Persistent Debug Keystore
-        run: |
-          echo "${{ secrets.DEBUG_KEYSTORE }}" | base64 -d > ./app/persistent-debug.keystore
-
-      - name: Build Debug APK (Universal FOSS) & Lint
+      - name: Build Debug APK
         env:
-          PULL_REQUEST: 'false'
-          GITHUB_EVENT_NAME: ${{ github.event_name }}
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
           LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
         run: |
-          ./gradlew --no-configuration-cache --console=plain clean \
-            assembleUniversalFossDebug :app:lintUniversalFossDebug \
-            --warning-mode summary
+          ./gradlew assembleUniversalFossDebug --no-configuration-cache --console=plain --warning-mode summary
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
           name: app-universal-foss-debug
-          path: app/build/outputs/apk/universal/foss/debug/*.apk
-
-  # ========================================
-  # PR DEBUG BUILD (Universal FOSS)
-  # ========================================
-  build_pr_debug:
-    name: Build PR Debug (Universal FOSS)
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install SDK components
-        run: |
-          sdkmanager --install "platform-tools" "platforms;android-36" "build-tools;36.0.0"
-          yes | sdkmanager --licenses
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v5
-        with:
-          java-version: 21
-          distribution: "temurin"
-
-      - name: Set Up Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          cache-disabled: true
-          cache-cleanup: on-success
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      - name: Generate debug.keystore if not exists
-        run: |
-          mkdir -p ~/.android
-          if [ ! -f ~/.android/debug.keystore ]; then
-            keytool -genkey -v \
-              -keystore ~/.android/debug.keystore \
-              -storepass android \
-              -alias androiddebugkey \
-              -keypass android \
-              -keyalg RSA \
-              -keysize 2048 \
-              -validity 10000 \
-              -dname "CN=Android Debug,O=Android,C=US"
-          fi
-
-      - name: Build and Lint Universal FOSS Debug APK
-        env:
-          GITHUB_EVENT_NAME: ${{ github.event_name }}
-          PULL_REQUEST: 'true'
-          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
-          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
-        run: |
-          ./gradlew --no-configuration-cache --console=plain clean \
-            assembleUniversalFossDebug :app:lintUniversalFossDebug \
-            --warning-mode summary
-
-      - name: Upload PR Debug APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-universal-foss-debug-pr-${{ github.event.number }}
           path: app/build/outputs/apk/universal/foss/debug/*.apk

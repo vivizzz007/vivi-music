@@ -1,4 +1,5 @@
-name: Bump to new version
+name: Production Release
+
 on:
   push:
     branches:
@@ -7,76 +8,40 @@ on:
       - 'app/build.gradle.kts'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   check-version:
-    if: "!contains(github.ref, 'refs/tags')"
     runs-on: ubuntu-latest
+    if: "!contains(github.ref, 'refs/tags')"
     outputs:
-      version_changed: ${{ steps.check_version.outputs.version_changed }}
-      new_version: ${{ steps.check_version.outputs.new_version }}
-      version_code: ${{ steps.check_version.outputs.version_code }}
+      version_changed: ${{ steps.check.outputs.changed }}
+      new_version: ${{ steps.check.outputs.version }}
     steps:
       - uses: actions/checkout@v5
         with:
-          fetch-depth: 0
-
-      - name: Check if version changed
-        id: check_version
+          fetch-depth: 2
+      - name: Check version change
+        id: check
         run: |
-          if [ ! -f app/build.gradle.kts ]; then
-            echo "File app/build.gradle.kts does not exist"
-            echo "version_changed=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          NEW_VERSION=$(grep -oP 'versionName\s*=\s*"\K[^"]+' app/build.gradle.kts || echo "")
-          VERSION_CODE=$(grep -oP 'versionCode\s*=\s*\K\d+' app/build.gradle.kts || echo "")
-          
-          if [ -z "$NEW_VERSION" ]; then
-            echo "Could not find versionName in app/build.gradle.kts"
-            echo "version_changed=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          echo "Current version: $NEW_VERSION (code: $VERSION_CODE)"
-
-          if git show HEAD^:app/build.gradle.kts > /dev/null 2>&1; then
-            OLD_VERSION=$(git show HEAD^:app/build.gradle.kts | grep -oP 'versionName\s*=\s*"\K[^"]+' || echo "")
-            echo "Previous version: $OLD_VERSION"
-            
-            if [ "$OLD_VERSION" != "$NEW_VERSION" ]; then
-              echo "Version changed from $OLD_VERSION to $NEW_VERSION"
-              echo "version_changed=true" >> $GITHUB_OUTPUT
-              echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-              echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
-            else
-              echo "Version unchanged: $NEW_VERSION"
-              echo "version_changed=false" >> $GITHUB_OUTPUT
-            fi
+          NEW_VERSION=$(grep -oP 'versionName\s*=\s*"\K[^"]+' app/build.gradle.kts)
+          OLD_VERSION=$(git show HEAD~1:app/build.gradle.kts | grep -oP 'versionName\s*=\s*"\K[^"]+' || echo "0.0.0")
+          if [ "$NEW_VERSION" != "$OLD_VERSION" ] || [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
           else
-            echo "First version detected: $NEW_VERSION"
-            echo "version_changed=true" >> $GITHUB_OUTPUT
-            echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-            echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
+            echo "changed=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Debug output
-        run: |
-          echo "Debug Information:"
-          echo "  - version_changed: ${{ steps.check_version.outputs.version_changed }}"
-          echo "  - new_version: ${{ steps.check_version.outputs.new_version }}"
-          echo "  - version_code: ${{ steps.check_version.outputs.version_code }}"
-          echo "  - event_name: ${{ github.event_name }}"
-
-  build:
+  build-release:
     needs: check-version
-    if: needs.check-version.outputs.version_changed == 'true' || github.event_name == 'workflow_dispatch'
+    if: needs.check-version.outputs.version_changed == 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        abi: [ 'arm64', 'armeabi', 'x86', 'x86_64', 'universal' ]
-        flavor: [ 'foss' ]
-
+        abi: [arm64, armeabi, x86, x86_64, universal]
+        flavor: [foss, standard]
     steps:
       - uses: actions/checkout@v5
 
@@ -88,44 +53,16 @@ jobs:
 
       - name: Set Up Gradle
         uses: gradle/actions/setup-gradle@v4
-        with:
-          cache-disabled: true
-          cache-cleanup: on-success
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Capitalize ABI and Flavor for Gradle tasks
-        id: caps
-        run: |
-          ABI="${{ matrix.abi }}"
-          case "$ABI" in
-            arm64)     echo "CAPS_ABI=Arm64" >> $GITHUB_OUTPUT ;;
-            armeabi)   echo "CAPS_ABI=Armeabi" >> $GITHUB_OUTPUT ;;
-            x86)       echo "CAPS_ABI=X86" >> $GITHUB_OUTPUT ;;
-            x86_64)    echo "CAPS_ABI=X86_64" >> $GITHUB_OUTPUT ;;
-            universal) echo "CAPS_ABI=Universal" >> $GITHUB_OUTPUT ;;
-          esac
-          
-          FLAVOR="${{ matrix.flavor }}"
-          case "$FLAVOR" in
-            foss)     echo "CAPS_FLAVOR=Foss" >> $GITHUB_OUTPUT ;;
-            standard) echo "CAPS_FLAVOR=Standard" >> $GITHUB_OUTPUT ;;
-          esac
-
-      - name: Build and Lint Release APK
-        run: |
-          TASK="assemble${{ steps.caps.outputs.CAPS_ABI }}${{ steps.caps.outputs.CAPS_FLAVOR }}Release"
-          LINT=":app:lint${{ steps.caps.outputs.CAPS_ABI }}${{ steps.caps.outputs.CAPS_FLAVOR }}Release"
-          ./gradlew --no-configuration-cache --console=plain clean $TASK $LINT --warning-mode summary
+      - name: Build and Sign APK
+        id: sign_apk
+        uses: ilharp/sign-android-release@v2.0.0
         env:
-          PULL_REQUEST: 'false'
-          GITHUB_EVENT_NAME: ${{ github.event_name }}
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
           LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
-
-      - name: Sign APK
-        uses: ilharp/sign-android-release@v2.0.0
         with:
           releaseDir: app/build/outputs/apk/${{ matrix.abi }}/${{ matrix.flavor }}/release/
           signingKey: ${{ secrets.KEYSTORE }}
@@ -133,91 +70,43 @@ jobs:
           keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
           buildToolsVersion: 35.0.0
+          # We need to build the APK before signing
+          preBuildCommands: |
+            ABI_CAP=$(echo "${{ matrix.abi }}" | sed 's/./\U&/')
+            FLAVOR_CAP=$(echo "${{ matrix.flavor }}" | sed 's/./\U&/')
+            ./gradlew assemble${ABI_CAP}${FLAVOR_CAP}Release --no-configuration-cache
 
-      - name: Move and rename signed APKs
+      - name: Rename and Move APK
         run: |
-          mkdir -p app/build/outputs/apk/${{ matrix.abi }}/${{ matrix.flavor }}/release/out
-          
-          SIGNED_APK=$(find app/build/outputs/apk/${{ matrix.abi }}/${{ matrix.flavor }}/release/ -name "*-signed.apk" -o -name "*-unsigned-signed.apk" | head -1)
-          
-          if [ -z "$SIGNED_APK" ]; then
-            echo "No signed APK found for ${{ matrix.abi }} ${{ matrix.flavor }}"
-            ls -la app/build/outputs/apk/${{ matrix.abi }}/${{ matrix.flavor }}/release/
-            exit 1
-          fi
-          
-          if [ "${{ matrix.abi }}" = "universal" ]; then
-            TARGET_NAME="vivi.apk"
-          else
-            TARGET_NAME="app-${{ matrix.abi }}-${{ matrix.flavor }}-release.apk"
-          fi
-          
-          mv "$SIGNED_APK" "app/build/outputs/apk/${{ matrix.abi }}/${{ matrix.flavor }}/release/out/$TARGET_NAME"
-          
-          echo "APK renamed to: $TARGET_NAME"
-          ls -la app/build/outputs/apk/${{ matrix.abi }}/${{ matrix.flavor }}/release/out/
+          mkdir -p out
+          SIGNED_APK=$(find app/build/outputs/apk/${{ matrix.abi }}/${{ matrix.flavor }}/release/ -name "*-signed.apk" | head -1)
+          cp "$SIGNED_APK" "out/vivi-${{ needs.check-version.outputs.new_version }}-${{ matrix.abi }}-${{ matrix.flavor }}.apk"
 
-      - name: Upload Signed APKs
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.abi == 'universal' && 'VIVI' || format('app-{0}-{1}-release', matrix.abi, matrix.flavor) }}
-          path: app/build/outputs/apk/${{ matrix.abi }}/${{ matrix.flavor }}/release/out/${{ matrix.abi == 'universal' && 'vivi.apk' || format('app-{0}-{1}-release.apk', matrix.abi, matrix.flavor) }}
+          name: vivi-${{ matrix.abi }}-${{ matrix.flavor }}
+          path: out/*.apk
 
   create-release:
-    needs: [check-version, build]
-    if: needs.check-version.outputs.version_changed == 'true' || github.event_name == 'workflow_dispatch'
+    needs: [check-version, build-release]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
       - name: Download all APKs
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v4
         with:
-          path: downloaded_artifacts/
-
-      - name: Organize APKs for release
-        run: |
-          echo "Organizing APK files..."
-          mkdir -p release_files
-          
-          find downloaded_artifacts -name "*.apk" -exec cp {} release_files/ \;
-          
-          echo "APKs ready for release:"
-          ls -la release_files/
-
-      - name: Generate release notes
-        run: |
-          echo "Generating release notes..."
-          
-          cat > release_notes.md << EOF
-          Release of version ${{ needs.check-version.outputs.new_version }}
-          
-          $(git log $(git describe --tags --abbrev=0 2>/dev/null || echo "HEAD~10")..HEAD --pretty=format:"- %s" --no-merges | head -10 || echo "- Initial release")
-          EOF
-          
-          echo "Release notes preview:"
-          cat release_notes.md
-
-      - name: Create Release
+          path: apks
+          pattern: vivi-*
+          merge-multiple: true
+      
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.check-version.outputs.new_version }}
+          name: Release ${{ needs.check-version.outputs.new_version }}
+          files: apks/*.apk
+          draft: false
+          prerelease: false
         env:
-          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        run: |
-          echo "Creating release v${{ needs.check-version.outputs.new_version }}"
-          
-          gh release create "v${{ needs.check-version.outputs.new_version }}" \
-            --title "${{ needs.check-version.outputs.new_version }}" \
-            --notes-file release_notes.md \
-            --latest \
-            release_files/*.apk
-            
-          echo "Release created successfully!"
-
-      - name: Update release summary
-        run: |
-          echo "## Release Summary" >> $GITHUB_STEP_SUMMARY
-          echo "- **Version**: v${{ needs.check-version.outputs.new_version }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Version Code**: ${{ needs.check-version.outputs.version_code }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **APKs Built**: $(ls release_files/*.apk | wc -l)" >> $GITHUB_STEP_SUMMARY
-          echo "- **Release URL**: https://github.com/${{ github.repository }}/releases/tag/v${{ needs.check-version.outputs.new_version }}" >> $GITHUB_STEP_SUMMARY
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
