@@ -440,18 +440,6 @@ fun AboutScreen(
 
 // Community Section
                 item {
-                    Text(
-                        text = "COMMUNITY",
-                        style = MaterialTheme.typography.labelLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.sp
-                        ),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
-                    )
-                }
-
-                item {
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
