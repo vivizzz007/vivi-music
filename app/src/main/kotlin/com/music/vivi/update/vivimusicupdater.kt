@@ -80,11 +80,15 @@ import androidx.core.content.FileProvider
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.music.vivi.BuildConfig
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
+import androidx.work.workDataOf
 import com.music.vivi.update.downloadmanager.CustomDownloadManager
 import com.music.vivi.update.downloadmanager.DownloadNotificationManager
-import kotlinx.coroutines.CoroutineScope
+import com.music.vivi.update.downloadmanager.UpdateDownloadWorker
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -139,6 +143,41 @@ fun UpdateScreen(navController: NavHostController) {
 
     LaunchedEffect(Unit) {
         DownloadNotificationManager.initialize(context)
+    }
+
+    // Observe WorkManager for download progress
+    LaunchedEffect(updateAvailable) {
+        if (updateAvailable) {
+            WorkManager.getInstance(context)
+                .getWorkInfosForUniqueWorkLiveData("update_download")
+                .observeForever { workInfos ->
+                    val workInfo = workInfos?.firstOrNull() ?: return@observeForever
+                    
+                    when (workInfo.state) {
+                        WorkInfo.State.RUNNING -> {
+                            isDownloading = true
+                            downloadProgress = workInfo.progress.getFloat("progress", 0f)
+                        }
+                        WorkInfo.State.SUCCEEDED -> {
+                            isDownloading = false
+                            isDownloadComplete = true
+                            val filePath = workInfo.outputData.getString("file_path")
+                            if (filePath != null) {
+                                downloadedFile = File(filePath)
+                            }
+                        }
+                        WorkInfo.State.FAILED -> {
+                            isDownloading = false
+                            downloadError = "Download failed"
+                        }
+                        WorkInfo.State.CANCELLED -> {
+                            isDownloading = false
+                            downloadProgress = 0f
+                        }
+                        else -> {}
+                    }
+                }
+        }
     }
 
 
@@ -824,49 +863,30 @@ fun UpdateScreen(navController: NavHostController) {
                             onClick = {
                                 when {
                                     updateAvailable && !isDownloading && !isDownloadComplete -> {
-                                        // Start download with notifications
+                                        // Start download with WorkManager
+                                        val apkUrl = "https://github.com/vivizzz007/vivi-music/releases/download/v$updateMessageVersion/vivi.apk"
+                                        
+                                        val downloadRequest = OneTimeWorkRequestBuilder<UpdateDownloadWorker>()
+                                            .setInputData(workDataOf(
+                                                "apk_url" to apkUrl,
+                                                "version" to updateMessageVersion,
+                                                "file_size" to appSize
+                                            ))
+                                            .addTag("update_download")
+                                            .build()
+
+                                        WorkManager.getInstance(context).enqueueUniqueWork(
+                                            "update_download",
+                                            ExistingWorkPolicy.REPLACE,
+                                            downloadRequest
+                                        )
+                                        
                                         isDownloading = true
                                         downloadProgress = 0f
                                         downloadError = null
-                                        val apkUrl = "https://github.com/vivizzz007/vivi-music/releases/download/v$updateMessageVersion/vivi.apk"
-
-                                        DownloadNotificationManager.showDownloadStarting(
-                                            version = updateMessageVersion,
-                                            fileSize = appSize
-                                        )
-
-                                        downloadManager.downloadApk(
-                                            context = context,
-                                            apkUrl = apkUrl,
-                                            onProgress = { progress ->
-                                                downloadProgress = progress
-                                                DownloadNotificationManager.updateDownloadProgress(
-                                                    progress = (progress * 100).toInt(),
-                                                    version = updateMessageVersion
-                                                )
-                                            },
-                                            onDownloadComplete = { file ->
-                                                isDownloading = false
-                                                isDownloadComplete = true
-                                                downloadedFile = file
-                                                DownloadNotificationManager.showDownloadComplete(
-                                                    version = updateMessageVersion,
-                                                    filePath = file.absolutePath
-                                                )
-                                            },
-                                            onError = { error ->
-                                                isDownloading = false
-                                                isDownloadComplete = false
-                                                downloadError = error
-                                                DownloadNotificationManager.showDownloadFailed(
-                                                    version = updateMessageVersion,
-                                                    errorMessage = error
-                                                )
-                                            }
-                                        )
                                     }
                                     isDownloading -> {
-                                        downloadManager.pauseDownload()
+                                        WorkManager.getInstance(context).cancelUniqueWork("update_download")
                                         isDownloading = false
                                         downloadProgress = 0f
                                         DownloadNotificationManager.cancelNotification()

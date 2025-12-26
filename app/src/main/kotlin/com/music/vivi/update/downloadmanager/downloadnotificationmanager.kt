@@ -120,7 +120,7 @@ object DownloadNotificationManager {
             }
             .setProgress(0)
 
-        val notification = Notification.Builder(appContext, CHANNEL_ID)
+        val builder = Notification.Builder(appContext, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground) // Your app icon
             .setContentTitle("Downloading Update")
             .setContentText("Version $version • $fileSize")
@@ -129,9 +129,12 @@ object DownloadNotificationManager {
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .setCategory(Notification.CATEGORY_PROGRESS)
             .setWhen(System.currentTimeMillis())
-            .build()
 
-        notificationManager.notify(NOTIFICATION_ID, notification)
+        // Use safe helpers for Android 16 features
+        setRequestPromotedOngoingSafely(builder, true)
+        setShortCriticalTextSafely(builder, "Starting")
+
+        notificationManager.notify(NOTIFICATION_ID, builder.build())
     }
 
     @RequiresApi(Build.VERSION_CODES.BAKLAVA)
@@ -151,7 +154,7 @@ object DownloadNotificationManager {
             }
             .setProgress(progress)
 
-        val notification = Notification.Builder(appContext, CHANNEL_ID)
+        val builder = Notification.Builder(appContext, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground) // Your app icon
             .setContentTitle("Downloading Update")
             .setContentText("Version $version • $progress%")
@@ -160,9 +163,12 @@ object DownloadNotificationManager {
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .setCategory(Notification.CATEGORY_PROGRESS)
             .setWhen(System.currentTimeMillis())
-            .build()
 
-        notificationManager.notify(NOTIFICATION_ID, notification)
+        // Use safe helpers for Android 16 features
+        setRequestPromotedOngoingSafely(builder, progress < 100)
+        setShortCriticalTextSafely(builder, "$progress%")
+
+        notificationManager.notify(NOTIFICATION_ID, builder.build())
     }
 
     @RequiresApi(Build.VERSION_CODES.BAKLAVA)
@@ -202,7 +208,7 @@ object DownloadNotificationManager {
             }
             .setProgress(100)
 
-        val notification = Notification.Builder(appContext, CHANNEL_ID)
+        val builder = Notification.Builder(appContext, CHANNEL_ID)
             .setSmallIcon(R.drawable.updated) // Checkmark icon when complete
             .setContentTitle("Update Ready")
             .setContentText("Tap to install version $version")
@@ -212,9 +218,38 @@ object DownloadNotificationManager {
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .setCategory(Notification.CATEGORY_STATUS)
             .setWhen(System.currentTimeMillis())
-            .build()
 
-        notificationManager.notify(NOTIFICATION_ID, notification)
+        // Use safe helpers for Android 16 features
+        setRequestPromotedOngoingSafely(builder, false)
+        setShortCriticalTextSafely(builder, "Done")
+
+        notificationManager.notify(NOTIFICATION_ID, builder.build())
+    }
+
+    private fun setShortCriticalTextSafely(builder: Notification.Builder, text: String) {
+        try {
+            val method = Notification.Builder::class.java.getMethod("setShortCriticalText", CharSequence::class.java)
+            method.invoke(builder, text)
+        } catch (e: Exception) {
+            builder.getExtras().putCharSequence("android.shortCriticalText", text)
+        }
+    }
+
+    private fun setRequestPromotedOngoingSafely(builder: Notification.Builder, promoted: Boolean) {
+        // Fallback: set via extras first
+        builder.getExtras().putBoolean("android.requestPromotedOngoing", promoted)
+        
+        try {
+            // Try different possible method names from various previews
+            val methodNames = arrayOf("setRequestPromotedOngoing", "setPromotedOngoing", "setOngoingActivity")
+            for (name in methodNames) {
+                try {
+                    val method = Notification.Builder::class.java.getMethod(name, Boolean::class.javaPrimitiveType)
+                    method.invoke(builder, promoted)
+                    break
+                } catch (e: Exception) {}
+            }
+        } catch (e: Exception) {}
     }
 
     // ============ Legacy Implementation (Pre-Android 16) ============
