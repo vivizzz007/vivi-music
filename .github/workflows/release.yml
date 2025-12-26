@@ -75,6 +75,7 @@ jobs:
     strategy:
       matrix:
         abi: [ 'arm64', 'armeabi', 'x86', 'x86_64', 'universal' ]
+        flavor: [ 'foss' ]
 
     steps:
       - uses: actions/checkout@v5
@@ -94,8 +95,29 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Capitalize ABI and Flavor for Gradle tasks
+        id: caps
+        run: |
+          ABI="${{ matrix.abi }}"
+          case "$ABI" in
+            arm64)     echo "CAPS_ABI=Arm64" >> $GITHUB_OUTPUT ;;
+            armeabi)   echo "CAPS_ABI=Armeabi" >> $GITHUB_OUTPUT ;;
+            x86)       echo "CAPS_ABI=X86" >> $GITHUB_OUTPUT ;;
+            x86_64)    echo "CAPS_ABI=X86_64" >> $GITHUB_OUTPUT ;;
+            universal) echo "CAPS_ABI=Universal" >> $GITHUB_OUTPUT ;;
+          esac
+          
+          FLAVOR="${{ matrix.flavor }}"
+          case "$FLAVOR" in
+            foss)     echo "CAPS_FLAVOR=Foss" >> $GITHUB_OUTPUT ;;
+            standard) echo "CAPS_FLAVOR=Standard" >> $GITHUB_OUTPUT ;;
+          esac
+
       - name: Build and Lint Release APK
-        run: ./gradlew --no-configuration-cache --console=plain clean assemble${{ matrix.abi }}Release :app:lint${{ matrix.abi }}Release --warning-mode summary
+        run: |
+          TASK="assemble${{ steps.caps.outputs.CAPS_ABI }}${{ steps.caps.outputs.CAPS_FLAVOR }}Release"
+          LINT=":app:lint${{ steps.caps.outputs.CAPS_ABI }}${{ steps.caps.outputs.CAPS_FLAVOR }}Release"
+          ./gradlew --no-configuration-cache --console=plain clean $TASK $LINT --warning-mode summary
         env:
           PULL_REQUEST: 'false'
           GITHUB_EVENT_NAME: ${{ github.event_name }}
@@ -105,7 +127,7 @@ jobs:
       - name: Sign APK
         uses: ilharp/sign-android-release@v2.0.0
         with:
-          releaseDir: app/build/outputs/apk/${{ matrix.abi }}/release/
+          releaseDir: app/build/outputs/apk/${{ matrix.abi }}/${{ matrix.flavor }}/release/
           signingKey: ${{ secrets.KEYSTORE }}
           keyAlias: ${{ secrets.KEY_ALIAS }}
           keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -114,32 +136,32 @@ jobs:
 
       - name: Move and rename signed APKs
         run: |
-          mkdir -p app/build/outputs/apk/${{ matrix.abi }}/release/out
+          mkdir -p app/build/outputs/apk/${{ matrix.abi }}/${{ matrix.flavor }}/release/out
           
-          SIGNED_APK=$(find app/build/outputs/apk/${{ matrix.abi }}/release/ -name "*-signed.apk" -o -name "*-unsigned-signed.apk" | head -1)
+          SIGNED_APK=$(find app/build/outputs/apk/${{ matrix.abi }}/${{ matrix.flavor }}/release/ -name "*-signed.apk" -o -name "*-unsigned-signed.apk" | head -1)
           
           if [ -z "$SIGNED_APK" ]; then
-            echo "No signed APK found for ${{ matrix.abi }}"
-            ls -la app/build/outputs/apk/${{ matrix.abi }}/release/
+            echo "No signed APK found for ${{ matrix.abi }} ${{ matrix.flavor }}"
+            ls -la app/build/outputs/apk/${{ matrix.abi }}/${{ matrix.flavor }}/release/
             exit 1
           fi
           
           if [ "${{ matrix.abi }}" = "universal" ]; then
             TARGET_NAME="vivi.apk"
           else
-            TARGET_NAME="app-${{ matrix.abi }}-release.apk"
+            TARGET_NAME="app-${{ matrix.abi }}-${{ matrix.flavor }}-release.apk"
           fi
           
-          mv "$SIGNED_APK" "app/build/outputs/apk/${{ matrix.abi }}/release/out/$TARGET_NAME"
+          mv "$SIGNED_APK" "app/build/outputs/apk/${{ matrix.abi }}/${{ matrix.flavor }}/release/out/$TARGET_NAME"
           
           echo "APK renamed to: $TARGET_NAME"
-          ls -la app/build/outputs/apk/${{ matrix.abi }}/release/out/
+          ls -la app/build/outputs/apk/${{ matrix.abi }}/${{ matrix.flavor }}/release/out/
 
       - name: Upload Signed APKs
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.abi == 'universal' && 'VIVI' || format('app-{0}-release', matrix.abi) }}
-          path: app/build/outputs/apk/${{ matrix.abi }}/release/out/${{ matrix.abi == 'universal' && 'vivi.apk' || format('app-{0}-release.apk', matrix.abi) }}
+          name: ${{ matrix.abi == 'universal' && 'VIVI' || format('app-{0}-{1}-release', matrix.abi, matrix.flavor) }}
+          path: app/build/outputs/apk/${{ matrix.abi }}/${{ matrix.flavor }}/release/out/${{ matrix.abi == 'universal' && 'vivi.apk' || format('app-{0}-{1}-release.apk', matrix.abi, matrix.flavor) }}
 
   create-release:
     needs: [check-version, build]

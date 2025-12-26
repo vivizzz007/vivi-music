@@ -46,18 +46,24 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      # Capitalize ABI (Arm64, Armeabi, etc.)
-      - name: Capitalize ABI
+      # Capitalize ABI and Flavor for Gradle tasks
+      - name: Capitalize ABI and Flavor
         id: caps
         run: |
           ABI="${{ matrix.abi }}"
           case "$ABI" in
-            arm64)     echo "CAPS_ABI=Arm64" ;;
-            armeabi)   echo "CAPS_ABI=Armeabi" ;;
-            x86)       echo "CAPS_ABI=X86" ;;
-            x86_64)    echo "CAPS_ABI=X86_64" ;;
-            universal) echo "CAPS_ABI=Universal" ;;
-          esac >> $GITHUB_OUTPUT
+            arm64)     echo "CAPS_ABI=Arm64" >> $GITHUB_OUTPUT ;;
+            armeabi)   echo "CAPS_ABI=Armeabi" >> $GITHUB_OUTPUT ;;
+            x86)       echo "CAPS_ABI=X86" >> $GITHUB_OUTPUT ;;
+            x86_64)    echo "CAPS_ABI=X86_64" >> $GITHUB_OUTPUT ;;
+            universal) echo "CAPS_ABI=Universal" >> $GITHUB_OUTPUT ;;
+          esac
+          
+          FLAVOR="${{ matrix.flavor }}"
+          case "$FLAVOR" in
+            foss)     echo "CAPS_FLAVOR=Foss" >> $GITHUB_OUTPUT ;;
+            standard) echo "CAPS_FLAVOR=Standard" >> $GITHUB_OUTPUT ;;
+          esac
 
       # Build + Lint
       - name: Build Release APK & Lint
@@ -67,8 +73,8 @@ jobs:
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
           LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
         run: |
-          TASK="assemble${{ steps.caps.outputs.CAPS_ABI }}${{ matrix.flavor }}Release"
-          LINT=":app:lint${{ steps.caps.outputs.CAPS_ABI }}${{ matrix.flavor }}Release"
+          TASK="assemble${{ steps.caps.outputs.CAPS_ABI }}${{ steps.caps.outputs.CAPS_FLAVOR }}Release"
+          LINT=":app:lint${{ steps.caps.outputs.CAPS_ABI }}${{ steps.caps.outputs.CAPS_FLAVOR }}Release"
           ./gradlew --no-configuration-cache --console=plain clean $TASK $LINT --warning-mode summary
 
       # Sign
