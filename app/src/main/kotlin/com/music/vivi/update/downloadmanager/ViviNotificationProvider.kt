@@ -1,10 +1,11 @@
-package com.music.vivi.playback
+package com.music.vivi.update.downloadmanager
 
 import android.app.Notification
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import androidx.annotation.OptIn
+import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.CommandButton
@@ -58,20 +59,20 @@ class ViviNotificationProvider(
 
         // Android 16 Status Chips implementation (API 36 or "Baklava")
         val isAndroid16 = Build.VERSION.SDK_INT >= 36 || Build.VERSION.CODENAME == "Baklava"
-        
+
         if (isAndroid16) {
             val player = mediaSession.player
             val isPlaying = player.playWhenReady && player.playbackState == Player.STATE_READY
-            
+
             val durationMs = player.duration
             val currentPosMs = player.currentPosition
-            
+
             // Format duration for the chip (e.g., "5:20")
-            val formattedTime = if (durationMs != androidx.media3.common.C.TIME_UNSET && durationMs > 0) {
+            val formattedTime = if (durationMs != C.TIME_UNSET && durationMs > 0) {
                 val totalSeconds = durationMs / 1000
                 val minutes = totalSeconds / 60
                 val seconds = totalSeconds % 60
-                String.format(Locale.getDefault(), "%d:%02d", minutes, seconds)
+                String.Companion.format(Locale.getDefault(), "%d:%02d", minutes, seconds)
             } else {
                 null
             }
@@ -83,25 +84,25 @@ class ViviNotificationProvider(
             // Essential for Android 16 Status Chips (Live Updates)
             builder.setOngoing(true)
             builder.setCategory(Notification.CATEGORY_TRANSPORT)
-            
+
             // Research suggests colorized should be false for promoted notifications in some cases
             // but for music it might be okay. Let's try false first for better promotion.
             builder.setColorized(false)
-            
+
             // Ensure we have a small icon (required for chip)
-            builder.setSmallIcon(R.drawable.library_music)
-            
+            builder.setSmallIcon(R.drawable.vivi)
+
             // Promote to Live Update
             setRequestPromotedOngoingSafely(builder, true)
-            
+
             // Fallback: also set via extras just in case reflection fails
             builder.getExtras().putBoolean("android.requestPromotedOngoing", true)
 
             if (isPlaying) {
                 // Set the chip text (e.g., the track duration)
                 setShortCriticalTextSafely(builder, formattedTime ?: "Playing")
-                
-                if (durationMs != androidx.media3.common.C.TIME_UNSET && durationMs > 0) {
+
+                if (durationMs != C.TIME_UNSET && durationMs > 0) {
                     // Set 'when' to the completion time of the track for a live countdown
                     val remainingMs = durationMs - currentPosMs
                     val endTime = System.currentTimeMillis() + remainingMs
@@ -121,15 +122,16 @@ class ViviNotificationProvider(
 
             // Re-build the notification
             val updatedNotification = builder.build()
-            
+
             // Re-attach the media session token if it was lost during build()
-            mediaNotification.notification.extras.getParcelable<android.media.session.MediaSession.Token>(Notification.EXTRA_MEDIA_SESSION)?.let {
+            mediaNotification.notification.extras.getParcelable<android.media.session.MediaSession.Token>(
+                Notification.EXTRA_MEDIA_SESSION)?.let {
                 updatedNotification.extras.putParcelable(Notification.EXTRA_MEDIA_SESSION, it)
             }
 
             return MediaNotification(mediaNotification.notificationId, updatedNotification)
         }
-        
+
         return mediaNotification
     }
 

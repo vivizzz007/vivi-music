@@ -50,6 +50,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -58,6 +59,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
+import com.music.vivi.extensions.metadata
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -389,12 +391,28 @@ fun Thumbnail(
                                                 )
                                             }
                                         } else {
-                                            // Blurred background
-                                            Box(
-                                                modifier = Modifier
-                                                    .fillMaxSize()
-                                                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                                            )
+                                            // Blurred background for video songs
+                                            if (item.metadata?.isVideoSong == true) {
+                                                AsyncImage(
+                                                    model = coil3.request.ImageRequest.Builder(LocalContext.current)
+                                                        .data(item.mediaMetadata.artworkUri?.toString())
+                                                        .memoryCachePolicy(coil3.request.CachePolicy.ENABLED)
+                                                        .diskCachePolicy(coil3.request.CachePolicy.ENABLED)
+                                                        .networkCachePolicy(coil3.request.CachePolicy.ENABLED)
+                                                        .build(),
+                                                    contentDescription = null,
+                                                    contentScale = ContentScale.Crop,
+                                                    modifier = Modifier
+                                                        .fillMaxSize()
+                                                        .blur(radius = 40.dp)
+                                                )
+                                            } else {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxSize()
+                                                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                                                )
+                                            }
 
                                             // Main image
                                             AsyncImage(
@@ -432,12 +450,28 @@ fun Thumbnail(
                                                 )
                                             }
                                         } else {
-                                            // Solid color background
-                                            Box(
-                                                modifier = Modifier
-                                                    .fillMaxSize()
-                                                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                                            )
+                                            // Blurred background for video songs
+                                            if (item.metadata?.isVideoSong == true) {
+                                                AsyncImage(
+                                                    model = coil3.request.ImageRequest.Builder(LocalContext.current)
+                                                        .data(item.mediaMetadata.artworkUri?.toString())
+                                                        .memoryCachePolicy(coil3.request.CachePolicy.ENABLED)
+                                                        .diskCachePolicy(coil3.request.CachePolicy.ENABLED)
+                                                        .networkCachePolicy(coil3.request.CachePolicy.ENABLED)
+                                                        .build(),
+                                                    contentDescription = null,
+                                                    contentScale = ContentScale.Crop,
+                                                    modifier = Modifier
+                                                        .fillMaxSize()
+                                                        .blur(radius = 40.dp)
+                                                )
+                                            } else {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxSize()
+                                                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                                                )
+                                            }
                                             // Main image
                                             AsyncImage(
                                                 model = coil3.request.ImageRequest.Builder(LocalContext.current)
