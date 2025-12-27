@@ -9,8 +9,15 @@ import android.graphics.Bitmap
 import android.graphics.BitmapShader
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.Shader
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
+import android.graphics.Matrix
+import androidx.palette.graphics.Palette
+import androidx.graphics.shapes.RoundedPolygon
+import androidx.graphics.shapes.toPath
 import android.view.View
 import android.widget.RemoteViews
 import androidx.media3.common.MediaItem
@@ -100,11 +107,11 @@ class ViviWidgetManager @Inject constructor(
             }
 
             val albumArt = albumArtDeferred.await()
-            val processedAlbumArt = albumArt?.let { getCircularBitmap(it) }
+            val processedAlbumArt = albumArt?.let { getFlowerBitmap(it) }
 
             val queueAlbumArts = queueAlbumArtsDeferred.awaitAll()
             val processedQueueArts = queueAlbumArts.map { bitmap ->
-                bitmap?.let { getRoundedCornerBitmap(it, 16f) }
+                bitmap?.let { getSlantedPolygonBitmap(it) }
             }
 
             val views = createRemoteViews(
@@ -140,13 +147,14 @@ class ViviWidgetManager @Inject constructor(
         if (albumArt != null) {
             views.setImageViewBitmap(R.id.widget_album_art, albumArt)
         } else {
-            views.setImageViewResource(R.id.widget_album_art, R.drawable.library_music)
+            views.setImageViewResource(R.id.widget_album_art, R.drawable.vivi)
         }
 
-        views.setImageViewResource(
-            R.id.widget_play_pause,
-            if (isPlaying) R.drawable.pause else R.drawable.play
-        )
+        // Dynamic Color Extraction
+        val palette = albumArt?.let { Palette.from(it).generate() }
+        val dominantColor = palette?.getDominantColor(android.graphics.Color.GRAY) ?: android.graphics.Color.GRAY
+        val vibrantColor = palette?.getVibrantColor(dominantColor) ?: dominantColor
+        val mutedColor = palette?.getMutedColor(dominantColor) ?: dominantColor
 
         // Read Theme
         val darkModePref = context.dataStore[DarkModeKey] ?: DarkMode.AUTO.name
@@ -163,20 +171,54 @@ class ViviWidgetManager @Inject constructor(
             if (isDark) R.drawable.widget_background_dark else R.drawable.widget_background_light
         )
 
+        // Fix Top Section Background for Dark Theme
+        views.setInt(
+            R.id.widget_top_section,
+            "setBackgroundResource",
+            if (isDark) R.drawable.widget_background_dark else R.drawable.widget_queue_album_bg
+        )
+
         val primaryTextColor = if (isDark) android.graphics.Color.WHITE else android.graphics.Color.BLACK
         val secondaryTextColor = if (isDark) android.graphics.Color.parseColor("#B3FFFFFF") else android.graphics.Color.parseColor("#757575")
 
         views.setTextColor(R.id.widget_song_title, primaryTextColor)
         views.setTextColor(R.id.widget_artist_name, secondaryTextColor)
 
+
+        // Expressive Play Button Background with Clover4Leaf Shape
+        val buttonTintColor = if (isDark) vibrantColor else mutedColor
+        val cloverBackground = getClover4LeafBitmap(100, buttonTintColor)
+        views.setImageViewBitmap(R.id.widget_play_pause_bg, cloverBackground)
+        
+        // Tint the play/pause icon for contrast
+        val iconColor = if (isDark) android.graphics.Color.WHITE else android.graphics.Color.BLACK
+        val playPauseIcon = if (isPlaying) R.drawable.pause else R.drawable.play
+        views.setImageViewBitmap(R.id.widget_play_pause, getTintedBitmap(playPauseIcon, iconColor))
+
+        // Like Button with Clover4Leaf Shape Background
         if (isLiked) {
+            // Vibrant background for liked state
+            val cloverBackground = getClover4LeafBitmap(80, vibrantColor)
+            views.setImageViewBitmap(R.id.widget_like_button_bg, cloverBackground)
+            
+            // White icon on vibrant background
             views.setImageViewBitmap(
                 R.id.widget_like_button,
-                getTintedBitmap(R.drawable.star_shine_fav_filled, android.graphics.Color.parseColor("#FFC107"))
+                getTintedBitmap(R.drawable.star_shine_fav_filled, android.graphics.Color.WHITE)
             )
         } else {
-            val color = if (isDark) android.graphics.Color.WHITE else android.graphics.Color.BLACK
-            views.setImageViewBitmap(R.id.widget_like_button, getTintedBitmap(R.drawable.star_fav, color))
+            // Subtle background for unliked state
+            val subtleColor = if (isDark) {
+                android.graphics.Color.argb(40, 255, 255, 255) // 15% white
+            } else {
+                android.graphics.Color.argb(40, 0, 0, 0) // 15% black
+            }
+            val cloverBackground = getClover4LeafBitmap(80, subtleColor)
+            views.setImageViewBitmap(R.id.widget_like_button_bg, cloverBackground)
+            
+            // Theme-colored icon
+            val likeIconColor = if (isDark) android.graphics.Color.WHITE else android.graphics.Color.BLACK
+            views.setImageViewBitmap(R.id.widget_like_button, getTintedBitmap(R.drawable.star_fav, likeIconColor))
         }
 
         val queueAlbumViewIds = listOf(
@@ -192,9 +234,16 @@ class ViviWidgetManager @Inject constructor(
                 if (index < queueAlbumArts.size && queueAlbumArts[index] != null) {
                     views.setImageViewBitmap(albumViewId, queueAlbumArts[index])
                 } else {
-                    views.setImageViewResource(albumViewId, R.drawable.library_music)
+                    views.setImageViewResource(albumViewId, R.drawable.vivi)
                 }
                 views.setViewVisibility(albumViewId, View.VISIBLE)
+
+                // Set dynamic background for queue item to avoid light colors in dark theme
+                views.setInt(
+                    albumViewId,
+                    "setBackgroundResource",
+                    if (isDark) R.drawable.widget_background_dark else R.drawable.widget_queue_album_bg
+                )
 
                 // Intent for queue item
                 val playQueueIntent = Intent(context, MusicPlayerWidgetReceiver::class.java).apply {
@@ -249,6 +298,83 @@ class ViviWidgetManager @Inject constructor(
         return output
     }
 
+    private fun getFlowerBitmap(bitmap: Bitmap): Bitmap {
+        val size = minOf(bitmap.width, bitmap.height)
+        val output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
+        val paint = Paint().apply {
+            isAntiAlias = true
+            shader = BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+        }
+
+        val path = Path()
+        val numPetals = 12
+        val centerX = size / 2f
+        val centerY = size / 2f
+        val innerRadius = size * 0.42f
+        val outerRadius = size * 0.5f
+
+        for (i in 0 until numPetals * 2) {
+            val angle = i * Math.PI / numPetals
+            val r = if (i % 2 == 0) outerRadius else innerRadius
+            val x = centerX + r * Math.cos(angle).toFloat()
+            val y = centerY + r * Math.sin(angle).toFloat()
+            if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+        }
+        path.close()
+        
+        // Slightly round the flower points using a simpler method for performance
+        canvas.drawPath(path, paint)
+        return output
+    }
+
+    private fun getSlantedPolygonBitmap(bitmap: Bitmap): Bitmap {
+        val size = minOf(bitmap.width, bitmap.height)
+        val output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
+        val paint = Paint().apply {
+            isAntiAlias = true
+            isFilterBitmap = true
+            shader = BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+        }
+
+        // Using RoundedPolygon for a "Slanted" (Trapezoidal) design
+        val points = floatArrayOf(
+            0.2f, 0f,   // Top-left
+            1f, 0f,     // Top-right
+            0.8f, 1f,   // Bottom-right
+            0f, 1f      // Bottom-left
+        )
+        
+        // Transform points to pixel scale
+        val scaledPoints = points.map { it * size }.toFloatArray()
+        
+        // Manual path for better control in RemoteViews if RoundedPolygon toPath fails on complex transforms
+        // But the user specifically asked for RoundedPolygon style/design.
+        val path = Path()
+        val p = size * 0.05f
+        val ts = p + size * 0.15f
+        val te = size - p
+        val bs = p
+        val be = size - p - size * 0.15f
+        val cornerRadius = size * 0.15f
+
+        path.moveTo(ts + cornerRadius, p)
+        path.lineTo(te - cornerRadius, p)
+        path.quadTo(te, p, te, p + cornerRadius)
+        path.lineTo(te, p + cornerRadius) 
+        path.lineTo(be, size - p - cornerRadius)
+        path.quadTo(be, size - p, be - cornerRadius, size - p)
+        path.lineTo(bs + cornerRadius, size - p)
+        path.quadTo(bs, size - p, bs, size - p - cornerRadius)
+        path.lineTo(ts, p + cornerRadius)
+        path.quadTo(ts, p, ts + cornerRadius, p)
+        path.close()
+
+        canvas.drawPath(path, paint)
+        return output
+    }
+
     private fun getRoundedCornerBitmap(bitmap: Bitmap, cornerRadius: Float): Bitmap {
         val output = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(output)
@@ -262,6 +388,74 @@ class ViviWidgetManager @Inject constructor(
         return output
     }
 
+    private fun getClover4LeafBitmap(size: Int, color: Int): Bitmap {
+        val output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
+        val paint = Paint().apply {
+            isAntiAlias = true
+            this.color = color
+            style = Paint.Style.FILL
+        }
+
+        // Create Clover4Leaf shape using RoundedPolygon
+        // Clover4Leaf is a 4-petaled clover shape from Material3 Expressive
+        val centerX = size / 2f
+        val centerY = size / 2f
+        val radius = size * 0.42f
+        
+        // Create 4 rounded petals using circles positioned around center
+        val path = Path()
+        val petalRadius = radius * 0.7f
+        val petalDistance = radius * 0.5f
+        
+        // Top petal
+        path.addCircle(centerX, centerY - petalDistance, petalRadius, Path.Direction.CW)
+        // Right petal
+        path.addCircle(centerX + petalDistance, centerY, petalRadius, Path.Direction.CW)
+        // Bottom petal
+        path.addCircle(centerX, centerY + petalDistance, petalRadius, Path.Direction.CW)
+        // Left petal
+        path.addCircle(centerX - petalDistance, centerY, petalRadius, Path.Direction.CW)
+        
+        // Center circle to connect all petals
+        path.addCircle(centerX, centerY, petalRadius * 0.4f, Path.Direction.CW)
+        
+        canvas.drawPath(path, paint)
+        return output
+    }
+
+    private fun getBunBitmap(size: Int, color: Int): Bitmap {
+        val output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
+        val paint = Paint().apply {
+            isAntiAlias = true
+            this.color = color
+            style = Paint.Style.FILL
+        }
+
+        // Create Bun shape - a vertically oriented stadium/pill shape
+        // with slightly flattened top and bottom (like a hamburger bun)
+        val centerX = size / 2f
+        val centerY = size / 2f
+        val width = size * 0.75f
+        val height = size * 0.85f
+        
+        val path = Path()
+        val left = centerX - width / 2f
+        val right = centerX + width / 2f
+        val top = centerY - height / 2f
+        val bottom = centerY + height / 2f
+        
+        // Create a rounded rectangle with circular sides (stadium shape)
+        val rect = RectF(left, top, right, bottom)
+        val cornerRadius = width / 2f // Half the width for stadium shape
+        
+        path.addRoundRect(rect, cornerRadius, cornerRadius, Path.Direction.CW)
+        
+        canvas.drawPath(path, paint)
+        return output
+    }
+
     private fun getTintedBitmap(resourceId: Int, color: Int): Bitmap {
         val drawable = ContextCompat.getDrawable(context, resourceId)!!
         val bitmap = Bitmap.createBitmap(
@@ -271,7 +465,7 @@ class ViviWidgetManager @Inject constructor(
         )
         val canvas = Canvas(bitmap)
         drawable.setBounds(0, 0, canvas.width, canvas.height)
-        drawable.colorFilter = android.graphics.PorterDuffColorFilter(color, android.graphics.PorterDuff.Mode.SRC_IN)
+        drawable.colorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
         drawable.draw(canvas)
         return bitmap
     }

@@ -9,16 +9,20 @@
 
     <!-- Current Song Player (Top Section) -->
     <LinearLayout
+        android:id="@+id/widget_top_section"
         android:layout_width="match_parent"
-        android:layout_height="72dp"
+        android:layout_height="80dp"
         android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:background="@drawable/widget_queue_album_bg"
+        android:padding="8dp"
+        android:layout_marginBottom="12dp">
 
         <!-- Album Art -->
         <ImageView
             android:id="@+id/widget_album_art"
-            android:layout_width="52dp"
-            android:layout_height="52dp"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
             android:scaleType="fitXY"
             android:contentDescription="Album Art" />
 
@@ -27,7 +31,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginStart="10dp"
+            android:layout_marginStart="12dp"
             android:orientation="vertical">
 
             <TextView
@@ -35,7 +39,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Not Playing"
-                android:textSize="13sp"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 android:textColor="@color/widget_primary_text"
                 android:maxLines="1"
@@ -46,31 +50,65 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Tap to play"
-                android:textSize="11sp"
+                android:textSize="12sp"
                 android:textColor="@color/widget_secondary_text"
                 android:maxLines="1"
                 android:ellipsize="end" />
 
         </LinearLayout>
 
-        <!-- Like Button -->
-        <ImageButton
-            android:id="@+id/widget_like_button"
+
+        <!-- Like Button with Bun Background -->
+        <FrameLayout
             android:layout_width="36dp"
             android:layout_height="36dp"
-            android:layout_marginEnd="4dp"
-            android:background="?android:selectableItemBackgroundBorderless"
-            android:src="@drawable/star_fav"
-            android:contentDescription="Like" />
+            android:layout_marginEnd="8dp">
+            
+            <!-- Bun Background -->
+            <ImageView
+                android:id="@+id/widget_like_button_bg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitXY"
+                android:contentDescription="Like Button Background" />
+            
+            <!-- Like Icon -->
+            <ImageButton
+                android:id="@+id/widget_like_button"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="6dp"
+                android:scaleType="fitCenter"
+                android:background="@android:color/transparent"
+                android:src="@drawable/star_fav"
+                android:contentDescription="Like" />
+        </FrameLayout>
 
-        <!-- Play/Pause Button -->
-        <ImageButton
-            android:id="@+id/widget_play_pause"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="@drawable/widget_play_button_bg"
-            android:src="@drawable/play"
-            android:contentDescription="Play" />
+
+        <!-- Play/Pause Button with Clover4Leaf Background -->
+        <FrameLayout
+            android:layout_width="44dp"
+            android:layout_height="44dp">
+            
+            <!-- Clover4Leaf Background -->
+            <ImageView
+                android:id="@+id/widget_play_pause_bg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitXY"
+                android:contentDescription="Button Background" />
+            
+            <!-- Play/Pause Icon -->
+            <ImageButton
+                android:id="@+id/widget_play_pause"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="10dp"
+                android:scaleType="fitCenter"
+                android:background="@android:color/transparent"
+                android:src="@drawable/play"
+                android:contentDescription="Play" />
+        </FrameLayout>
 
     </LinearLayout>
 
