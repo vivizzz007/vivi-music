@@ -1012,6 +1012,8 @@ fun BottomSheetPlayer(
 
             Spacer(Modifier.height(12.dp))
 
+            // NEW PLAYER DESIGN SECTION - Replace the play controls section in your code
+
             if (useNewPlayerDesign) {
                 Row(
                     horizontalArrangement = Arrangement.Center,
@@ -1025,59 +1027,58 @@ fun BottomSheetPlayer(
                     val playPauseInteractionSource = remember { MutableInteractionSource() }
                     val isPlayPausePressed by playPauseInteractionSource.collectIsPressedAsState()
 
-                    // Play/Pause Weight: Keeping it narrower (1.2f) and taller (72dp)
+                    // Animated weights with spring animation
                     val playPauseWeight by animateFloatAsState(
-                        targetValue = if (isPlayPausePressed) 1.8f else 1.2f,
+                        targetValue = if (isPlayPausePressed) 1.9f else 1.3f,
                         animationSpec = spring(),
                         label = "playPauseWeight"
                     )
-
-                    // Side Weights: Increased to 0.65f to make them clearly OVAL (stretched)
                     val sideButtonWeight by animateFloatAsState(
-                        targetValue = if (isPlayPausePressed) 0.4f else 0.65f,
+                        targetValue = if (isPlayPausePressed) 0.35f else 0.45f,
                         animationSpec = spring(),
                         label = "sideButtonWeight"
                     )
 
-                    // Previous Button (Stretched Oval)
-                    FilledTonalIconButton(
+                    // Side button colors based on player background
+                    val sideButtonColor = if (playerBackground == PlayerBackgroundStyle.BLUR ||
+                        playerBackground == PlayerBackgroundStyle.GRADIENT) {
+                        Color.White.copy(alpha = 0.2f)
+                    } else {
+                        MaterialTheme.colorScheme.surfaceContainerHighest
+                    }
+
+                    val sideButtonContentColor = if (playerBackground == PlayerBackgroundStyle.BLUR ||
+                        playerBackground == PlayerBackgroundStyle.GRADIENT) {
+                        Color.White
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    }
+
+                    // Previous Button
+                    FilledIconButton(
                         onClick = playerConnection::seekToPrevious,
                         enabled = canSkipPrevious,
                         shape = RoundedCornerShape(50),
                         interactionSource = backInteractionSource,
-                        colors = IconButtonDefaults.filledTonalIconButtonColors(
-                            containerColor = if (playerBackground == PlayerBackgroundStyle.BLUR ||
-                                playerBackground == PlayerBackgroundStyle.GRADIENT) {
-                                Color.White.copy(alpha = 0.2f)
-                            } else if (playerButtonsStyle == PlayerButtonsStyle.DEFAULT) {
-                                textButtonColor
-                            } else {
-                                MaterialTheme.colorScheme.secondaryContainer
-                            },
-                            contentColor = if (playerBackground == PlayerBackgroundStyle.BLUR ||
-                                playerBackground == PlayerBackgroundStyle.GRADIENT) {
-                                Color.White
-                            } else if (playerButtonsStyle == PlayerButtonsStyle.DEFAULT) {
-                                iconButtonColor
-                            } else {
-                                MaterialTheme.colorScheme.onSecondaryContainer
-                            },
+                        colors = IconButtonDefaults.filledIconButtonColors(
+                            containerColor = sideButtonColor,
+                            contentColor = sideButtonContentColor,
                         ),
                         modifier = Modifier
-                            .height(64.dp)
+                            .height(68.dp)
                             .weight(sideButtonWeight)
                             .bouncy(backInteractionSource)
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.skip_previous),
                             contentDescription = null,
-                            modifier = Modifier.size(28.dp)
+                            modifier = Modifier.size(32.dp)
                         )
                     }
 
-                    Spacer(modifier = Modifier.width(8.dp)) //determining space
+                    Spacer(modifier = Modifier.width(8.dp))
 
-                    // Play/Pause Button (Tall Pill)
+                    // Play/Pause Button with Text
                     FilledIconButton(
                         onClick = {
                             if (playbackState == STATE_ENDED) {
@@ -1094,27 +1095,24 @@ fun BottomSheetPlayer(
                             contentColor = iconButtonColor,
                         ),
                         modifier = Modifier
-                            .height(72.dp) // Tall height
-                            .weight(playPauseWeight) // Narrower width
-                            .bouncy(playPauseInteractionSource)
+                            .height(68.dp)
+                            .weight(playPauseWeight)
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier.fillMaxWidth()
+                            horizontalArrangement = Arrangement.Center
                         ) {
                             Icon(
-                                painter = painterResource(if (isPlaying) R.drawable.pause else R.drawable.play),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .offset(x = if (!isPlaying) 2.dp else 0.dp)
+                                painter = painterResource(
+                                    if (isPlaying) R.drawable.pause else R.drawable.play
+                                ),
+                                contentDescription = if (isPlaying) "Pause" else stringResource(R.string.play),
+                                modifier = Modifier.size(32.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = if (isPlaying) "Pause" else stringResource(R.string.play),
-                                style = MaterialTheme.typography.titleMedium,
-                                maxLines = 1
+                                style = MaterialTheme.typography.titleMedium
                             )
                         }
                     }
@@ -1122,42 +1120,28 @@ fun BottomSheetPlayer(
                     Spacer(modifier = Modifier.width(8.dp))
 
                     // Next Button
-                    FilledTonalIconButton(
+                    FilledIconButton(
                         onClick = playerConnection::seekToNext,
                         enabled = canSkipNext,
                         shape = RoundedCornerShape(50),
                         interactionSource = nextInteractionSource,
-                        colors = IconButtonDefaults.filledTonalIconButtonColors(
-                            containerColor = if (playerBackground == PlayerBackgroundStyle.BLUR ||
-                                playerBackground == PlayerBackgroundStyle.GRADIENT) {
-                                Color.White.copy(alpha = 0.2f)
-                            } else if (playerButtonsStyle == PlayerButtonsStyle.DEFAULT) {
-                                textButtonColor
-                            } else {
-                                MaterialTheme.colorScheme.secondaryContainer
-                            },
-                            contentColor = if (playerBackground == PlayerBackgroundStyle.BLUR ||
-                                playerBackground == PlayerBackgroundStyle.GRADIENT) {
-                                Color.White
-                            } else if (playerButtonsStyle == PlayerButtonsStyle.DEFAULT) {
-                                iconButtonColor
-                            } else {
-                                MaterialTheme.colorScheme.onSecondaryContainer
-                            },
+                        colors = IconButtonDefaults.filledIconButtonColors(
+                            containerColor = sideButtonColor,
+                            contentColor = sideButtonContentColor,
                         ),
                         modifier = Modifier
-                            .height(64.dp)
+                            .height(68.dp)
                             .weight(sideButtonWeight)
                             .bouncy(nextInteractionSource)
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.skip_next),
                             contentDescription = null,
-                            modifier = Modifier.size(28.dp)
+                            modifier = Modifier.size(32.dp)
                         )
                     }
                 }
-            }else {
+            } else {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier =
@@ -1380,6 +1364,7 @@ fun BottomSheetPlayer(
 }
 
 
+// The bouncy modifier function (add at the bottom of your file)
 private fun Modifier.bouncy(interactionSource: InteractionSource) = composed {
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
