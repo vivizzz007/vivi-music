@@ -346,4 +346,8 @@
     <string name="swipe_to_change_track_description">Swipe left/right on header to skip songs</string>
     <string name="use_old_theme">Use Old Theme</string>
     <string name="hide_video_songs">Hide video songs</string>
+    <string name="lyrics_appearance_settings">Lyrics Appearance Settings</string>
+    <string name="lyrics_text_size">Lyrics text size</string>
+    <string name="lyrics_line_spacing">Lyrics line spacing</string>
+    <string name="lyrics_style">Lyrics Style</string>
 </resources>

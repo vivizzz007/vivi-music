@@ -1042,11 +1042,20 @@ object YouTube {
     suspend fun transcript(videoId: String): Result<String> = runCatching {
         val response = innerTube.getTranscript(WEB, videoId).body<GetTranscriptResponse>()
         response.actions?.firstOrNull()?.updateEngagementPanelAction?.content?.transcriptRenderer?.body?.transcriptBodyRenderer?.cueGroups?.joinToString(separator = "\n") { group ->
-            val time = group.transcriptCueGroupRenderer.cues[0].transcriptCueRenderer.startOffsetMs
-            val text = group.transcriptCueGroupRenderer.cues[0].transcriptCueRenderer.cue.simpleText
-                .trim('♪')
-                .trim(' ')
-            "[%02d:%02d.%03d]$text".format(time / 60000, (time / 1000) % 60, time % 1000)
+            val firstCue = group.transcriptCueGroupRenderer.cues[0].transcriptCueRenderer
+            val startTime = firstCue.startOffsetMs
+            val lineTimestamp = "[%02d:%02d.%03d]".format(startTime / 60000, (startTime / 1000) % 60, startTime % 1000)
+            
+            val words = group.transcriptCueGroupRenderer.cues.joinToString(separator = " ") { cue ->
+                val cueRenderer = cue.transcriptCueRenderer
+                val wordTime = cueRenderer.startOffsetMs
+                val duration = cueRenderer.durationMs
+                val wordTimestamp = "<%02d:%02d.%03d,%d>".format(wordTime / 60000, (wordTime / 1000) % 60, wordTime % 1000, duration)
+                val text = cueRenderer.cue.simpleText.trim('♪').trim()
+                "$wordTimestamp$text"
+            }
+            
+            "$lineTimestamp$words"
         }!!
     }
 
