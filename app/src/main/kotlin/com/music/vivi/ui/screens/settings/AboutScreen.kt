@@ -8,6 +8,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -30,6 +31,9 @@ import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material3.toShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -69,7 +73,11 @@ import com.music.vivi.R
 import com.music.vivi.constants.CheckForUpdatesKey
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
+import com.music.vivi.constants.SettingsShapeColorTertiaryKey
+import com.music.vivi.constants.DarkModeKey
+import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.update.isNewerVersion
 import com.music.vivi.update.settingstyle.ModernInfoItem
 import kotlinx.coroutines.Dispatchers
@@ -81,12 +89,42 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AboutScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
+    val (settingsShapeTertiary, _) = rememberPreference(SettingsShapeColorTertiaryKey, false)
+    val (darkMode, _) = rememberEnumPreference(
+        DarkModeKey,
+        defaultValue = DarkMode.AUTO
+    )
+
+    val isSystemInDarkTheme = isSystemInDarkTheme()
+    val useDarkTheme = remember(darkMode, isSystemInDarkTheme) {
+        if (darkMode == DarkMode.AUTO) isSystemInDarkTheme else darkMode == DarkMode.ON
+    }
+
+    val (iconBgColor, iconStyleColor) = if (settingsShapeTertiary) {
+        if (useDarkTheme) {
+            Pair(
+                MaterialTheme.colorScheme.tertiary,
+                MaterialTheme.colorScheme.onTertiary
+            )
+        } else {
+            Pair(
+                MaterialTheme.colorScheme.tertiaryContainer,
+                MaterialTheme.colorScheme.onTertiaryContainer
+            )
+        }
+    } else {
+        Pair(
+            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
+            MaterialTheme.colorScheme.primary
+        )
+    }
+
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
     val scrollState = rememberLazyListState()
@@ -317,28 +355,22 @@ fun AboutScreen(
                         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                     ) {
                         Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            ModernInfoItem(
+                             ModernInfoItem(
                                 icon = {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(48.dp) // Increased from 30dp to 48dp
-                                            .clip(CircleShape)
-                                            .background(MaterialTheme.colorScheme.primaryContainer)
-                                    ) {
-                                        Image(
-                                            painter = painterResource(R.drawable.dev),
-                                            contentDescription = "Developer",
-                                            modifier = Modifier
-                                                .size(48.dp) // Increased from 30dp to 48dp
-                                                .clip(CircleShape),
-                                            contentScale = ContentScale.Crop
-                                        )
-                                    }
+                                    Image(
+                                        painter = painterResource(R.drawable.dev),
+                                        contentDescription = "Developer",
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
                                 },
                                 title = "VIVIDH P ASHOKAN",
                                 subtitle = "App Developer",
                                 onClick = { uriHandler.openUri("https://github.com/vivizzz007") },
-                                showArrow = true
+                                showArrow = true,
+                                iconBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                                iconShape = MaterialShapes.Circle.toShape(),
+                                iconSize = 48.dp
                             )
 
                             HorizontalDivider(
@@ -357,7 +389,9 @@ fun AboutScreen(
                                 title = "Website",
                                 subtitle = "vivimusic.vercel.app",
                                 onClick = { uriHandler.openUri("https://vivimusic.vercel.app/") },
-                                showArrow = true
+                                showArrow = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
                         }
                     }
@@ -397,7 +431,9 @@ fun AboutScreen(
                                     )
                                 },
                                 title = "Installed Date",
-                                subtitle = installedDate
+                                subtitle = installedDate,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
 
                             HorizontalDivider(
@@ -418,6 +454,8 @@ fun AboutScreen(
                                 onClick = { navController.navigate("settings/changelog") },
                                 showArrow = true,
                                 showSettingsIcon = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
                         }
                     }
@@ -456,14 +494,15 @@ fun AboutScreen(
                                     Icon(
                                         painter = painterResource(R.drawable.github),
                                         contentDescription = null,
-                                        modifier = Modifier.size(28.dp),
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant // Changed from primary
+                                        modifier = Modifier.size(28.dp)
                                     )
                                 },
                                 title = "GitHub Repository",
                                 subtitle = "View source code",
                                 onClick = { uriHandler.openUri("https://github.com/vivizzz007/vivi-music") },
-                                showArrow = true
+                                showArrow = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
 
                             HorizontalDivider(
@@ -476,15 +515,16 @@ fun AboutScreen(
                                     Icon(
                                         painter = painterResource(R.drawable.person),
                                         contentDescription = null,
-                                        modifier = Modifier.size(28.dp),
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant // Changed from primary
+                                        modifier = Modifier.size(28.dp)
                                     )
                                 },
                                 title = "Contributors",
                                 subtitle = "See our community heroes",
                                 onClick = { navController.navigate("settings/contribution") },
                                 showArrow = true,
-                                showSettingsIcon = true
+                                showSettingsIcon = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
 
                             HorizontalDivider(
@@ -505,7 +545,9 @@ fun AboutScreen(
                                 subtitle = "Bugs & feedback",
                                 onClick = { navController.navigate("settings/report_issue") },
                                 showArrow = true,
-                                showSettingsIcon = true
+                                showSettingsIcon = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
 
                             HorizontalDivider(
@@ -513,17 +555,18 @@ fun AboutScreen(
                                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                             )
 
-                            ModernInfoItem(
+                             ModernInfoItem(
                                 icon = {
                                     Icon(
                                         Icons.Filled.Favorite,
                                         null,
-                                        modifier = Modifier.size(28.dp),
-                                        tint = MaterialTheme.colorScheme.error // Keeps the red heart
+                                        modifier = Modifier.size(28.dp)
                                     )
                                 },
                                 title = "Donate",
                                 subtitle = "Support development",
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor,
                                 onClick = { navController.navigate("settings/support") },
                                 showArrow = true,
                                 showSettingsIcon = true

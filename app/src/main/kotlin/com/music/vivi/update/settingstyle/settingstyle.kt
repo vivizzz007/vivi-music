@@ -13,6 +13,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material3.toShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material3.Icon
@@ -24,12 +28,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.music.vivi.R
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 //fun ModernInfoItem(
 //    icon: @Composable () -> Unit,
@@ -152,10 +158,14 @@ fun ModernInfoItem(
     subtitleColor: Color? = null,
     arrowColor: Color? = null,
     settingsIconColor: Color? = null,
-    trailingContent: (@Composable () -> Unit)? = null
+    iconContentColor: Color? = null,
+    trailingContent: (@Composable () -> Unit)? = null,
+    iconShape: Shape = MaterialShapes.Ghostish.toShape(),
+    iconSize: androidx.compose.ui.unit.Dp = 44.dp,
+    modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .then(
                 if (onClick != null) {
@@ -167,14 +177,15 @@ fun ModernInfoItem(
     ) {
         Box(
             modifier = Modifier
-                .size(40.dp)
+                .size(iconSize)
                 .background(
                     iconBackgroundColor ?: MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f),
-                    CircleShape
-                ),
+                    iconShape
+                )
+                .then(if (iconShape != CircleShape) Modifier.clip(iconShape) else Modifier.clip(CircleShape)),
             contentAlignment = Alignment.Center
         ) {
-            CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurfaceVariant) {
+            CompositionLocalProvider(LocalContentColor provides (iconContentColor ?: MaterialTheme.colorScheme.primary)) {
                 icon()
             }
         }

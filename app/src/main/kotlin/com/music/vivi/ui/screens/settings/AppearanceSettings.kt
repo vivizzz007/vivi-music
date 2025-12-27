@@ -79,6 +79,7 @@ import com.music.vivi.constants.PlayerButtonsStyle
 import com.music.vivi.constants.PlayerButtonsStyleKey
 import com.music.vivi.constants.PureBlackKey
 import com.music.vivi.constants.RotatingThumbnailKey
+import com.music.vivi.constants.SettingsShapeColorTertiaryKey
 import com.music.vivi.constants.ShowCachedPlaylistKey
 import com.music.vivi.constants.ShowDownloadedPlaylistKey
 import com.music.vivi.constants.ShowLikedPlaylistKey
@@ -118,10 +119,38 @@ fun AppearanceSettings(
         DynamicThemeKey,
         defaultValue = true
     )
+    val (settingsShapeTertiary, onSettingsShapeTertiaryChange) = rememberPreference(
+        key = SettingsShapeColorTertiaryKey,
+        defaultValue = false
+    )
     val (darkMode, onDarkModeChange) = rememberEnumPreference(
         DarkModeKey,
         defaultValue = DarkMode.AUTO
     )
+
+    val isSystemInDarkTheme = isSystemInDarkTheme()
+    val useDarkTheme = remember(darkMode, isSystemInDarkTheme) {
+        if (darkMode == DarkMode.AUTO) isSystemInDarkTheme else darkMode == DarkMode.ON
+    }
+
+    val (iconBgColor, iconStyleColor) = if (settingsShapeTertiary) {
+        if (useDarkTheme) {
+            Pair(
+                MaterialTheme.colorScheme.tertiary,
+                MaterialTheme.colorScheme.onTertiary
+            )
+        } else {
+            Pair(
+                MaterialTheme.colorScheme.tertiaryContainer,
+                MaterialTheme.colorScheme.onTertiaryContainer
+            )
+        }
+    } else {
+        Pair(
+            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
+            MaterialTheme.colorScheme.primary
+        )
+    }
 
     // Trigger widget update when Dark Mode changes
     androidx.compose.runtime.LaunchedEffect(darkMode) {
@@ -233,14 +262,11 @@ fun AppearanceSettings(
         defaultValue = LibraryFilter.LIBRARY
     )
 
+
     val availableBackgroundStyles = PlayerBackgroundStyle.entries.filter {
         it != PlayerBackgroundStyle.BLUR || Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     }
 
-    val isSystemInDarkTheme = isSystemInDarkTheme()
-    val useDarkTheme = remember(darkMode, isSystemInDarkTheme) {
-        if (darkMode == DarkMode.AUTO) isSystemInDarkTheme else darkMode == DarkMode.ON
-    }
 
     var showSliderOptionDialog by rememberSaveable { mutableStateOf(false) }
     var showSensitivityDialog by rememberSaveable { mutableStateOf(false) }
@@ -542,6 +568,7 @@ fun AppearanceSettings(
                                 when (value) {
                                     PlayerButtonsStyle.DEFAULT -> stringResource(R.string.default_style)
                                     PlayerButtonsStyle.SECONDARY -> stringResource(R.string.secondary_color_style)
+                                    PlayerButtonsStyle.TERTIARY -> "Tertiary Color Style"
                                 }
                             )
                         }
@@ -774,7 +801,7 @@ fun AppearanceSettings(
                 )
             ) {
                 item {
-                    Spacer(modifier = Modifier.height(25.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -829,7 +856,9 @@ fun AppearanceSettings(
                                     ModernInfoItem(
                                         icon = { Icon(painterResource(R.drawable.palette), null, modifier = Modifier.size(22.dp)) },
                                         title = stringResource(R.string.enable_dynamic_theme),
-                                        subtitle = "Dynamic color theming"
+                                        subtitle = "Dynamic color theming",
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
                                     )
                                 }
                                 ModernSwitch(
@@ -854,7 +883,9 @@ fun AppearanceSettings(
                                 },
                                 onClick = { showDarkModeDialog = true },
                                 showArrow = true,
-                                showSettingsIcon = true
+                                showSettingsIcon = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
 
                             AnimatedVisibility(useDarkTheme) {
@@ -871,7 +902,9 @@ fun AppearanceSettings(
                                             ModernInfoItem(
                                                 icon = { Icon(painterResource(R.drawable.contrast), null, modifier = Modifier.size(22.dp)) },
                                                 title = stringResource(R.string.pure_black),
-                                                subtitle = "Use pure black for dark theme"
+                                                subtitle = "Use pure black for dark theme",
+                                                iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
                                             )
                                         }
                                         ModernSwitch(
@@ -881,6 +914,31 @@ fun AppearanceSettings(
                                         )
                                     }
                                 }
+                            }
+
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                            )
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(modifier = Modifier.weight(1f)) {
+                                    ModernInfoItem(
+                                        icon = { Icon(painterResource(R.drawable.palette), null, modifier = Modifier.size(22.dp)) },
+                                        title = "Settings Shape Tertiary Color",
+                                        subtitle = "Use tertiary color for icon backgrounds",
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
+                                    )
+                                }
+                                ModernSwitch(
+                                    checked = settingsShapeTertiary,
+                                    onCheckedChange = onSettingsShapeTertiaryChange,
+                                    modifier = Modifier.padding(end = 20.dp)
+                                )
                             }
                         }
                     }
@@ -919,7 +977,9 @@ fun AppearanceSettings(
                                     ModernInfoItem(
                                         icon = { Icon(painterResource(R.drawable.palette), null, modifier = Modifier.size(22.dp)) },
                                         title = stringResource(R.string.new_player_design),
-                                        subtitle = "Modern player interface"
+                                        subtitle = "Modern player interface",
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
                                     )
                                 }
                                 ModernSwitch(
@@ -942,7 +1002,9 @@ fun AppearanceSettings(
                                     ModernInfoItem(
                                         icon = { Icon(painterResource(R.drawable.nav_bar), null, modifier = Modifier.size(22.dp)) },
                                         title = stringResource(R.string.new_mini_player_design),
-                                        subtitle = "Modern mini player"
+                                        subtitle = "Modern mini player",
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
                                     )
                                 }
                                 ModernSwitch(
@@ -952,32 +1014,6 @@ fun AppearanceSettings(
                                 )
                             }
 
-// NEW: Mini Player Gradient Switch
-//                            AnimatedVisibility(useNewMiniPlayerDesign) {
-//                                Column {
-//                                    HorizontalDivider(
-//                                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-//                                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-//                                    )
-//                                    Row(
-//                                        modifier = Modifier.fillMaxWidth(),
-//                                        verticalAlignment = Alignment.CenterVertically
-//                                    ) {
-//                                        Box(modifier = Modifier.weight(1f)) {
-//                                            ModernInfoItem(
-//                                                icon = { Icon(painterResource(R.drawable.gradient), null, modifier = Modifier.size(22.dp)) },
-//                                                title = "Mini Player Gradient",
-//                                                subtitle = "Enable gradient background in mini player"
-//                                            )
-//                                        }
-//                                        ModernSwitch(
-//                                            checked = miniPlayerGradient,
-//                                            onCheckedChange = onMiniPlayerGradientChange,
-//                                            modifier = Modifier.padding(end = 20.dp)
-//                                        )
-//                                    }
-//                                }
-//                            }
 
                             HorizontalDivider(
                                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
@@ -992,7 +1028,9 @@ fun AppearanceSettings(
                                     ModernInfoItem(
                                         icon = { Icon(painterResource(R.drawable.cycle_rotation), null, modifier = Modifier.size(22.dp)) },
                                         title = stringResource(R.string.rotating_thumbnail),
-                                        subtitle = "Enable rotating clover thumbnail"
+                                        subtitle = "Enable rotating clover thumbnail",
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
                                     )
                                 }
                                 ModernSwitch(
@@ -1017,7 +1055,9 @@ fun AppearanceSettings(
                                 },
                                 onClick = { showPlayerBackgroundDialog = true },
                                 showArrow = true,
-                                showSettingsIcon = true
+                                showSettingsIcon = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
 
                             HorizontalDivider(
@@ -1033,7 +1073,9 @@ fun AppearanceSettings(
                                     ModernInfoItem(
                                         icon = { Icon(painterResource(R.drawable.hide_image), null, modifier = Modifier.size(22.dp)) },
                                         title = stringResource(R.string.hide_player_thumbnail),
-                                        subtitle = stringResource(R.string.hide_player_thumbnail_desc)
+                                        subtitle = stringResource(R.string.hide_player_thumbnail_desc),
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
                                     )
                                 }
                                 ModernSwitch(
@@ -1054,10 +1096,13 @@ fun AppearanceSettings(
                                 subtitle = when (playerButtonsStyle) {
                                     PlayerButtonsStyle.DEFAULT -> stringResource(R.string.default_style)
                                     PlayerButtonsStyle.SECONDARY -> stringResource(R.string.secondary_color_style)
+                                    PlayerButtonsStyle.TERTIARY -> "Tertiary Color Style"
                                 },
                                 onClick = { showPlayerButtonsStyleDialog = true },
                                 showArrow = true,
-                                showSettingsIcon = true
+                                showSettingsIcon = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
 
                             HorizontalDivider(
@@ -1075,7 +1120,9 @@ fun AppearanceSettings(
                                 },
                                 onClick = { showSliderOptionDialog = true },
                                 showArrow = true,
-                                showSettingsIcon = true
+                                showSettingsIcon = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
 
                             HorizontalDivider(
@@ -1091,7 +1138,9 @@ fun AppearanceSettings(
                                     ModernInfoItem(
                                         icon = { Icon(painterResource(R.drawable.swipe), null, modifier = Modifier.size(22.dp)) },
                                         title = stringResource(R.string.enable_swipe_thumbnail),
-                                        subtitle = "Swipe on player thumbnail"
+                                        subtitle = "Swipe on player thumbnail",
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
                                     )
                                 }
                                 ModernSwitch(
@@ -1113,7 +1162,9 @@ fun AppearanceSettings(
                                         subtitle = stringResource(R.string.sensitivity_percentage, (swipeSensitivity * 100).roundToInt()),
                                         onClick = { showSensitivityDialog = true },
                                         showArrow = true,
-                                        showSettingsIcon = true
+                                        showSettingsIcon = true,
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
                                     )
                                 }
                             }
@@ -1156,7 +1207,9 @@ fun AppearanceSettings(
                                 },
                                 onClick = { showLyricsPositionDialog = true },
                                 showArrow = true,
-                                showSettingsIcon = true
+                                showSettingsIcon = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
 
                             HorizontalDivider(
@@ -1172,7 +1225,9 @@ fun AppearanceSettings(
                                     ModernInfoItem(
                                         icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
                                         title = stringResource(R.string.lyrics_click_change),
-                                        subtitle = "Click to change lyrics position"
+                                        subtitle = "Click to change lyrics position",
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
                                     )
                                 }
                                 ModernSwitch(
@@ -1195,7 +1250,9 @@ fun AppearanceSettings(
                                     ModernInfoItem(
                                         icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
                                         title = stringResource(R.string.lyrics_auto_scroll),
-                                        subtitle = "Auto scroll lyrics"
+                                        subtitle = "Auto scroll lyrics",
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
                                     )
                                 }
                                 ModernSwitch(
@@ -1243,7 +1300,9 @@ fun AppearanceSettings(
                                 },
                                 onClick = { showDefaultOpenTabDialog = true },
                                 showArrow = true,
-                                showSettingsIcon = true
+                                showSettingsIcon = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
 
                             HorizontalDivider(
@@ -1263,7 +1322,9 @@ fun AppearanceSettings(
                                 },
                                 onClick = { showDefaultChipDialog = true },
                                 showArrow = true,
-                                showSettingsIcon = true
+                                showSettingsIcon = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
 
                             HorizontalDivider(
@@ -1279,7 +1340,9 @@ fun AppearanceSettings(
                                     ModernInfoItem(
                                         icon = { Icon(painterResource(R.drawable.swipe), null, modifier = Modifier.size(22.dp)) },
                                         title = stringResource(R.string.swipe_song_to_add),
-                                        subtitle = "Swipe to add songs to queue"
+                                        subtitle = "Swipe to add songs to queue",
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
                                     )
                                 }
                                 ModernSwitch(
@@ -1302,7 +1365,9 @@ fun AppearanceSettings(
                                     ModernInfoItem(
                                         icon = { Icon(painterResource(R.drawable.nav_bar), null, modifier = Modifier.size(22.dp)) },
                                         title = stringResource(R.string.slim_navbar),
-                                        subtitle = "Compact navigation bar"
+                                        subtitle = "Compact navigation bar",
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
                                     )
                                 }
                                 ModernSwitch(
@@ -1326,7 +1391,9 @@ fun AppearanceSettings(
                                     ModernInfoItem(
                                         icon = { Icon(painterResource(R.drawable.swipe), null, modifier = Modifier.size(22.dp)) },
                                         title = stringResource(R.string.swipe_song_to_remove),
-                                        subtitle = "Swipe to remove songs"
+                                        subtitle = "Swipe to remove songs",
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
                                     )
                                 }
                                 ModernSwitch(
@@ -1350,7 +1417,9 @@ fun AppearanceSettings(
                                 },
                                 onClick = { showGridItemSizeDialog = true },
                                 showArrow = true,
-                                showSettingsIcon = true
+                                showSettingsIcon = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
                         }
                     }
@@ -1389,7 +1458,9 @@ fun AppearanceSettings(
                                     ModernInfoItem(
                                         icon = { Icon(painterResource(R.drawable.favorite), null, modifier = Modifier.size(22.dp)) },
                                         title = stringResource(R.string.show_liked_playlist),
-                                        subtitle = "Display liked songs playlist"
+                                        subtitle = "Display liked songs playlist",
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
                                     )
                                 }
                                 ModernSwitch(
@@ -1412,7 +1483,9 @@ fun AppearanceSettings(
                                     ModernInfoItem(
                                         icon = { Icon(painterResource(R.drawable.offline), null, modifier = Modifier.size(22.dp)) },
                                         title = stringResource(R.string.show_downloaded_playlist),
-                                        subtitle = "Display downloaded playlist"
+                                        subtitle = "Display downloaded playlist",
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
                                     )
                                 }
                                 ModernSwitch(
@@ -1435,7 +1508,9 @@ fun AppearanceSettings(
                                     ModernInfoItem(
                                         icon = { Icon(painterResource(R.drawable.trending_up), null, modifier = Modifier.size(22.dp)) },
                                         title = stringResource(R.string.show_top_playlist),
-                                        subtitle = "Display top songs playlist"
+                                        subtitle = "Display top songs playlist",
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
                                     )
                                 }
                                 ModernSwitch(
@@ -1458,7 +1533,9 @@ fun AppearanceSettings(
                                     ModernInfoItem(
                                         icon = { Icon(painterResource(R.drawable.cached), null, modifier = Modifier.size(22.dp)) },
                                         title = stringResource(R.string.show_cached_playlist),
-                                        subtitle = "Display cached playlist"
+                                        subtitle = "Display cached playlist",
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
                                     )
                                 }
                                 ModernSwitch(
@@ -1481,7 +1558,9 @@ fun AppearanceSettings(
                                     ModernInfoItem(
                                         icon = { Icon(painterResource(R.drawable.backup), null, modifier = Modifier.size(22.dp)) },
                                         title = stringResource(R.string.show_uploaded_playlist),
-                                        subtitle = "Display uploaded playlist"
+                                        subtitle = "Display uploaded playlist",
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
                                     )
                                 }
                                 ModernSwitch(

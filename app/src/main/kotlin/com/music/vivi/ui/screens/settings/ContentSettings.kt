@@ -6,6 +6,7 @@ import android.provider.Settings
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -90,8 +91,11 @@ import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.update.mordernswitch.ModernSwitch
 import com.music.vivi.update.settingstyle.ModernInfoItem
-import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
+import com.music.vivi.utils.rememberEnumPreference
+import com.music.vivi.constants.SettingsShapeColorTertiaryKey
+import com.music.vivi.constants.DarkModeKey
+import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.utils.reportException
 import com.music.vivi.utils.setAppLocale
 import java.net.Proxy
@@ -103,6 +107,36 @@ fun ContentSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
+    val (settingsShapeTertiary, _) = rememberPreference(SettingsShapeColorTertiaryKey, false)
+    val (darkMode, _) = rememberEnumPreference(
+        DarkModeKey,
+        defaultValue = DarkMode.AUTO
+    )
+
+    val isSystemInDarkTheme = isSystemInDarkTheme()
+    val useDarkTheme = remember(darkMode, isSystemInDarkTheme) {
+        if (darkMode == DarkMode.AUTO) isSystemInDarkTheme else darkMode == DarkMode.ON
+    }
+
+    val (iconBgColor, iconStyleColor) = if (settingsShapeTertiary) {
+        if (useDarkTheme) {
+            Pair(
+                MaterialTheme.colorScheme.tertiary,
+                MaterialTheme.colorScheme.onTertiary
+            )
+        } else {
+            Pair(
+                MaterialTheme.colorScheme.tertiaryContainer,
+                MaterialTheme.colorScheme.onTertiaryContainer
+            )
+        }
+    } else {
+        Pair(
+            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
+            MaterialTheme.colorScheme.primary
+        )
+    }
+
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
@@ -610,7 +644,9 @@ fun ContentSettings(
                                 subtitle = LanguageCodeToName.getOrElse(contentLanguage) { stringResource(R.string.system_default) },
                                 onClick = { showContentLanguageDialog = true },
                                 showArrow = true,
-                                showSettingsIcon = true
+                                showSettingsIcon = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
 
                             HorizontalDivider(
@@ -624,7 +660,9 @@ fun ContentSettings(
                                 subtitle = CountryCodeToName.getOrElse(contentCountry) { stringResource(R.string.system_default) },
                                 onClick = { showContentCountryDialog = true },
                                 showArrow = true,
-                                showSettingsIcon = true
+                                showSettingsIcon = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
 
                             HorizontalDivider(
@@ -640,7 +678,9 @@ fun ContentSettings(
                                     ModernInfoItem(
                                         icon = { Icon(painterResource(R.drawable.explicit), null, modifier = Modifier.size(22.dp)) },
                                         title = stringResource(R.string.hide_explicit),
-                                        subtitle = "Filter explicit content"
+                                        subtitle = "Filter explicit content",
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
                                     )
                                 }
                                 ModernSwitch(
@@ -692,7 +732,9 @@ fun ContentSettings(
                                         )
                                     },
                                     showArrow = true,
-                                    showSettingsIcon = true
+                                    showSettingsIcon = true,
+                                    iconBackgroundColor = iconBgColor,
+                                    iconContentColor = iconStyleColor
                                 )
                             } else {
                                 ModernInfoItem(
@@ -701,7 +743,9 @@ fun ContentSettings(
                                     subtitle = LanguageCodeToName.getOrElse(appLanguage) { stringResource(R.string.system_default) },
                                     onClick = { showAppLanguageDialog = true },
                                     showArrow = true,
-                                    showSettingsIcon = true
+                                    showSettingsIcon = true,
+                                    iconBackgroundColor = iconBgColor,
+                                    iconContentColor = iconStyleColor
                                 )
                             }
                         }
@@ -740,7 +784,9 @@ fun ContentSettings(
                                 ModernInfoItem(
                                     icon = { Icon(painterResource(R.drawable.slow_motion_video), null, modifier = Modifier.size(22.dp)) },
                                     title = stringResource(R.string.hide_video_songs),
-                                    subtitle = "Hide video content from songs"
+                                    subtitle = "Hide video content from songs",
+                                    iconBackgroundColor = iconBgColor,
+                                    iconContentColor = iconStyleColor
                                 )
                             }
                             ModernSwitch(
@@ -785,7 +831,9 @@ fun ContentSettings(
                                     ModernInfoItem(
                                         icon = { Icon(painterResource(R.drawable.wifi_proxy), null, modifier = Modifier.size(22.dp)) },
                                         title = stringResource(R.string.enable_proxy),
-                                        subtitle = "Route traffic through proxy"
+                                        subtitle = "Route traffic through proxy",
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
                                     )
                                 }
                                 ModernSwitch(
@@ -846,8 +894,10 @@ fun ContentSettings(
                                 Box(modifier = Modifier.weight(1f)) {
                                     ModernInfoItem(
                                         icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
-                                        title = stringResource(R.string.enable_lrclib),
-                                        subtitle = "LrcLib lyrics provider"
+                                        title = "LrcLib Lyrics",
+                                        subtitle = "Enable LrcLib as a lyrics source",
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
                                     )
                                 }
                                 ModernSwitch(
@@ -869,8 +919,10 @@ fun ContentSettings(
                                 Box(modifier = Modifier.weight(1f)) {
                                     ModernInfoItem(
                                         icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
-                                        title = stringResource(R.string.enable_kugou),
-                                        subtitle = "KuGou lyrics provider"
+                                        title = "Kugou Lyrics",
+                                        subtitle = "Enable Kugou as a lyrics source",
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
                                     )
                                 }
                                 ModernSwitch(
@@ -887,14 +939,16 @@ fun ContentSettings(
 
                             ModernInfoItem(
                                 icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
-                                title = stringResource(R.string.set_first_lyrics_provider),
+                                title = stringResource(R.string.lyrics),
                                 subtitle = when (preferredProvider) {
                                     PreferredLyricsProvider.LRCLIB -> "LrcLib"
                                     PreferredLyricsProvider.KUGOU -> "KuGou"
                                 },
                                 onClick = { showPreferredProviderDialog = true },
                                 showArrow = true,
-                                showSettingsIcon = true
+                                showSettingsIcon = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
 
                             HorizontalDivider(
@@ -908,7 +962,9 @@ fun ContentSettings(
                                 subtitle = "Romanization settings",
                                 onClick = { navController.navigate("settings/content/romanization") },
                                 showArrow = true,
-                                showSettingsIcon = true
+                                showSettingsIcon = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
                         }
                     }
@@ -940,12 +996,14 @@ fun ContentSettings(
                     ) {
                         Column(modifier = Modifier.padding(vertical = 8.dp)) {
                             ModernInfoItem(
-                                icon = { Icon(painterResource(R.drawable.trending_up), null, modifier = Modifier.size(22.dp)) },
+                                icon = { Icon(painterResource(R.drawable.arrow_top_left), null, modifier = Modifier.size(22.dp)) },
                                 title = stringResource(R.string.top_length),
-                                subtitle = "$lengthTop items",
+                                subtitle = lengthTop,
                                 onClick = { showTopLengthDialog = true },
                                 showArrow = true,
-                                showSettingsIcon = true
+                                showSettingsIcon = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
 
                             HorizontalDivider(
@@ -954,15 +1012,17 @@ fun ContentSettings(
                             )
 
                             ModernInfoItem(
-                                icon = { Icon(painterResource(R.drawable.home_outlined), null, modifier = Modifier.size(22.dp)) },
-                                title = stringResource(R.string.set_quick_picks),
+                                icon = { Icon(painterResource(R.drawable.grid_view), null, modifier = Modifier.size(22.dp)) },
+                                title = stringResource(R.string.quick_picks),
                                 subtitle = when (quickPicks) {
                                     QuickPicks.QUICK_PICKS -> stringResource(R.string.quick_picks)
                                     QuickPicks.LAST_LISTEN -> stringResource(R.string.last_song_listened)
                                 },
                                 onClick = { showQuickPicksDialog = true },
                                 showArrow = true,
-                                showSettingsIcon = true
+                                showSettingsIcon = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
                         }
                     }

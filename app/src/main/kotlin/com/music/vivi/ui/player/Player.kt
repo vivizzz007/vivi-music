@@ -304,6 +304,10 @@ fun BottomSheetPlayer(
             MaterialTheme.colorScheme.secondary,
             MaterialTheme.colorScheme.onSecondary
         )
+        PlayerButtonsStyle.TERTIARY -> Pair(
+            MaterialTheme.colorScheme.tertiary,
+            MaterialTheme.colorScheme.onTertiary
+        )
     }
 
     val download by LocalDownloadUtil.current.getDownload(mediaMetadata?.id ?: "")

@@ -1,6 +1,7 @@
 package com.music.vivi.ui.screens.settings.integrations
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,6 +37,12 @@ import com.music.vivi.R
 import com.music.vivi.ui.component.*
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.update.settingstyle.ModernInfoItem
+import com.music.vivi.utils.rememberPreference
+import com.music.vivi.utils.rememberEnumPreference
+import com.music.vivi.constants.SettingsShapeColorTertiaryKey
+import com.music.vivi.constants.DarkModeKey
+import com.music.vivi.ui.screens.settings.DarkMode
+import androidx.compose.runtime.remember
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,6 +51,36 @@ fun IntegrationScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
+    val (settingsShapeTertiary, _) = rememberPreference(SettingsShapeColorTertiaryKey, false)
+    val (darkMode, _) = rememberEnumPreference(
+        DarkModeKey,
+        defaultValue = DarkMode.AUTO
+    )
+
+    val isSystemInDarkTheme = isSystemInDarkTheme()
+    val useDarkTheme = remember(darkMode, isSystemInDarkTheme) {
+        if (darkMode == DarkMode.AUTO) isSystemInDarkTheme else darkMode == DarkMode.ON
+    }
+
+    val (iconBgColor, iconStyleColor) = if (settingsShapeTertiary) {
+        if (useDarkTheme) {
+            Pair(
+                MaterialTheme.colorScheme.tertiary,
+                MaterialTheme.colorScheme.onTertiary
+            )
+        } else {
+            Pair(
+                MaterialTheme.colorScheme.tertiaryContainer,
+                MaterialTheme.colorScheme.onTertiaryContainer
+            )
+        }
+    } else {
+        Pair(
+            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
+            MaterialTheme.colorScheme.primary
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -109,8 +146,7 @@ fun IntegrationScreen(
                             Icon(
                                 painter = painterResource(R.drawable.discord),
                                 contentDescription = null,
-                                modifier = Modifier.size(22.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                modifier = Modifier.size(22.dp)
                             )
                         },
                         title = stringResource(R.string.discord_integration),
@@ -120,7 +156,8 @@ fun IntegrationScreen(
                         },
                         showArrow = true,
                         showSettingsIcon = true,
-                        iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
+                        iconBackgroundColor = iconBgColor,
+                        iconContentColor = iconStyleColor
                     )
 
                     HorizontalDivider(
@@ -134,8 +171,7 @@ fun IntegrationScreen(
                             Icon(
                                 painter = painterResource(R.drawable.music_note),
                                 contentDescription = null,
-                                modifier = Modifier.size(22.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                modifier = Modifier.size(22.dp)
                             )
                         },
                         title = stringResource(R.string.lastfm_integration),
@@ -145,7 +181,8 @@ fun IntegrationScreen(
                         },
                         showArrow = true,
                         showSettingsIcon = true,
-                        iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
+                        iconBackgroundColor = iconBgColor,
+                        iconContentColor = iconStyleColor
                     )
                 }
             }

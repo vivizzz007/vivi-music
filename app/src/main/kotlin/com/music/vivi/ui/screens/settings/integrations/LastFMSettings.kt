@@ -8,9 +8,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -58,6 +64,14 @@ import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.SwitchPreference
 import com.music.vivi.utils.makeTimeString
 import com.music.vivi.utils.reportException
+import com.music.vivi.update.settingstyle.ModernInfoItem
+import com.music.vivi.update.mordernswitch.ModernSwitch
+import com.music.vivi.utils.rememberEnumPreference
+import com.music.vivi.constants.SettingsShapeColorTertiaryKey
+import com.music.vivi.constants.DarkModeKey
+import com.music.vivi.ui.screens.settings.DarkMode
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.runtime.remember
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,6 +80,36 @@ fun LastFMSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
 ) { 
+    val (settingsShapeTertiary, _) = rememberPreference(SettingsShapeColorTertiaryKey, false)
+    val (darkMode, _) = rememberEnumPreference(
+        DarkModeKey,
+        defaultValue = DarkMode.AUTO
+    )
+
+    val isSystemInDarkTheme = isSystemInDarkTheme()
+    val useDarkTheme = remember(darkMode, isSystemInDarkTheme) {
+        if (darkMode == DarkMode.AUTO) isSystemInDarkTheme else darkMode == DarkMode.ON
+    }
+
+    val (iconBgColor, iconStyleColor) = if (settingsShapeTertiary) {
+        if (useDarkTheme) {
+            Pair(
+                MaterialTheme.colorScheme.tertiary,
+                MaterialTheme.colorScheme.onTertiary
+            )
+        } else {
+            Pair(
+                MaterialTheme.colorScheme.tertiaryContainer,
+                MaterialTheme.colorScheme.onTertiaryContainer
+            )
+        }
+    } else {
+        Pair(
+            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
+            MaterialTheme.colorScheme.primary
+        )
+    }
+
     val coroutineScope = rememberCoroutineScope()
 
     var lastfmUsername by rememberPreference(LastFMUsernameKey, "")
@@ -102,6 +146,8 @@ fun LastFMSettings(
     )
 
     var showLoginDialog by rememberSaveable { mutableStateOf(false) }
+    var showScrobbleDelayPercentDialog by rememberSaveable { mutableStateOf(false) }
+    var showScrobbleDelaySecondsDialog by rememberSaveable { mutableStateOf(false) }
 
     if (showLoginDialog) {
         var tempUsername by rememberSaveable { mutableStateOf("") }
@@ -177,50 +223,89 @@ fun LastFMSettings(
             title = stringResource(R.string.account),
         )
 
-        PreferenceEntry(
-            title = {
-                Text(
-                    text = if (isLoggedIn) lastfmUsername else stringResource(R.string.not_logged_in),
-                    modifier = Modifier.alpha(if (isLoggedIn) 1f else 0.5f),
-                )
-            },
-            description = null,
-            icon = { Icon(painterResource(R.drawable.music_note), null) },
-            trailingContent = {
-                if (isLoggedIn) {
-                    OutlinedButton(onClick = {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainer
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        ) {
+            Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                ModernInfoItem(
+                    icon = { Icon(painterResource(R.drawable.music_note), null, modifier = Modifier.size(22.dp)) },
+                    title = if (isLoggedIn) lastfmUsername else stringResource(R.string.not_logged_in),
+                    subtitle = if (isLoggedIn) "Last.fm Account" else "Not logged in",
+                    onClick = { if (isLoggedIn) {
                         lastfmSession = ""
                         lastfmUsername = ""
-                    }) {
-                        Text(stringResource(R.string.action_logout))
-                    }
-                } else {
-                    OutlinedButton(onClick = {
+                    } else {
                         showLoginDialog = true
-                    }) {
-                        Text(stringResource(R.string.action_login))
-                    }
-                }
-            },
-        )
+                    } },
+                    showArrow = true,
+                    iconBackgroundColor = iconBgColor,
+                    iconContentColor = iconStyleColor
+                )
+            }
+        }
 
         PreferenceGroupTitle(
             title = stringResource(R.string.options),
         )
 
-        SwitchPreference(
-            title = { Text(stringResource(R.string.enable_scrobbling)) },
-            checked = lastfmScrobbling,
-            onCheckedChange = onlastfmScrobblingChange,
-            isEnabled = isLoggedIn,
-        )
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainer
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        ) {
+            Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    ModernInfoItem(
+                        icon = { Icon(painterResource(R.drawable.music_note), null, modifier = Modifier.size(22.dp)) },
+                        title = stringResource(R.string.enable_scrobbling),
+                        subtitle = "Submit playback history to Last.fm",
+                        iconBackgroundColor = iconBgColor,
+                        iconContentColor = iconStyleColor,
+                        modifier = Modifier.weight(1f)
+                    )
+                    ModernSwitch(
+                        checked = lastfmScrobbling,
+                        onCheckedChange = onlastfmScrobblingChange,
+                        enabled = isLoggedIn,
+                        modifier = Modifier.padding(end = 16.dp)
+                    )
+                }
 
-        SwitchPreference(
-            title = { Text(stringResource(R.string.lastfm_now_playing)) },
-            checked = useNowPlaying,
-            onCheckedChange = onUseNowPlayingChange,
-            isEnabled = isLoggedIn && lastfmScrobbling,
-        )
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                )
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    ModernInfoItem(
+                        icon = { Icon(painterResource(R.drawable.info), null, modifier = Modifier.size(22.dp)) },
+                        title = stringResource(R.string.lastfm_now_playing),
+                        subtitle = "Show current song on Last.fm profile",
+                        iconBackgroundColor = iconBgColor,
+                        iconContentColor = iconStyleColor,
+                        modifier = Modifier.weight(1f)
+                    )
+                    ModernSwitch(
+                        checked = useNowPlaying,
+                        onCheckedChange = onUseNowPlayingChange,
+                        enabled = isLoggedIn && lastfmScrobbling,
+                        modifier = Modifier.padding(end = 16.dp)
+                    )
+                }
+            }
+        }
 
         PreferenceGroupTitle(
             title = stringResource(R.string.scrobbling_configuration)
@@ -291,14 +376,6 @@ fun LastFMSettings(
             }
         }
 
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.scrobble_min_track_duration)) },
-            description = makeTimeString((minTrackDuration * 1000).toLong()),
-            onClick = { showMinTrackDurationDialog = true }
-        )
-
-        var showScrobbleDelayPercentDialog by rememberSaveable { mutableStateOf(false) }
-
         if (showScrobbleDelayPercentDialog) {
             var tempScrobbleDelayPercent by remember { mutableFloatStateOf(scrobbleDelayPercent) }
 
@@ -355,20 +432,12 @@ fun LastFMSettings(
                     Slider(
                         value = tempScrobbleDelayPercent,
                         onValueChange = { tempScrobbleDelayPercent = it },
-                        valueRange = 0.3f..0.95f,
+                        valueRange = 0.5f..1f,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
         }
-
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.scrobble_delay_percent)) },
-            description = stringResource(R.string.sensitivity_percentage, (scrobbleDelayPercent * 100).roundToInt()),
-            onClick = { showScrobbleDelayPercentDialog = true }
-        )
-
-        var showScrobbleDelaySecondsDialog by rememberSaveable { mutableStateOf(false) }
 
         if (showScrobbleDelaySecondsDialog) {
             var tempScrobbleDelaySeconds by remember { mutableIntStateOf(scrobbleDelaySeconds) }
@@ -426,18 +495,65 @@ fun LastFMSettings(
                     Slider(
                         value = tempScrobbleDelaySeconds.toFloat(),
                         onValueChange = { tempScrobbleDelaySeconds = it.toInt() },
-                        valueRange = 30f..360f,
+                        valueRange = 0f..600f,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
         }
 
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.scrobble_delay_minutes)) },
-            description = makeTimeString((scrobbleDelaySeconds * 1000).toLong()),
-            onClick = { showScrobbleDelaySecondsDialog = true }
-        )
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainer
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        ) {
+            Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                ModernInfoItem(
+                    icon = { Icon(painterResource(R.drawable.timer), null, modifier = Modifier.size(22.dp)) },
+                    title = stringResource(R.string.scrobble_min_track_duration),
+                    subtitle = makeTimeString((minTrackDuration * 1000).toLong()),
+                    onClick = { showMinTrackDurationDialog = true },
+                    showArrow = true,
+                    iconBackgroundColor = iconBgColor,
+                    iconContentColor = iconStyleColor
+                )
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                )
+
+                ModernInfoItem(
+                    icon = { Icon(painterResource(R.drawable.percent), null, modifier = Modifier.size(22.dp)) },
+                    title = stringResource(R.string.scrobble_delay_percent),
+                    subtitle = stringResource(R.string.sensitivity_percentage, (scrobbleDelayPercent * 100).roundToInt()),
+                    onClick = { showScrobbleDelayPercentDialog = true },
+                    showArrow = true,
+                    iconBackgroundColor = iconBgColor,
+                    iconContentColor = iconStyleColor
+                )
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                )
+
+                ModernInfoItem(
+                    icon = { Icon(painterResource(R.drawable.timer_off), null, modifier = Modifier.size(22.dp)) },
+                    title = stringResource(R.string.scrobble_delay_minutes),
+                    subtitle = makeTimeString((scrobbleDelaySeconds * 1000).toLong()),
+                    onClick = { showScrobbleDelaySecondsDialog = true },
+                    showArrow = true,
+                    iconBackgroundColor = iconBgColor,
+                    iconContentColor = iconStyleColor
+                )
+            }
+        }
     }
 
     TopAppBar(

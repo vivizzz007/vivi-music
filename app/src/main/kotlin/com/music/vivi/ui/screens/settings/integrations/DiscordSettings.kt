@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -71,6 +72,13 @@ import com.music.vivi.ui.component.PreferenceEntry
 import com.music.vivi.ui.component.PreferenceGroupTitle
 import com.music.vivi.ui.component.SwitchPreference
 import com.music.vivi.ui.component.TextFieldDialog
+import com.music.vivi.update.settingstyle.ModernInfoItem
+import com.music.vivi.utils.rememberEnumPreference
+import com.music.vivi.constants.SettingsShapeColorTertiaryKey
+import com.music.vivi.constants.DarkModeKey
+import com.music.vivi.ui.screens.settings.DarkMode
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.layout.ContentScale
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.utils.makeTimeString
 import com.music.vivi.utils.rememberPreference
@@ -80,6 +88,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import androidx.core.net.toUri
+import com.music.vivi.update.mordernswitch.ModernSwitch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,6 +96,36 @@ fun DiscordSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
+    val (settingsShapeTertiary, _) = rememberPreference(SettingsShapeColorTertiaryKey, false)
+    val (darkMode, _) = rememberEnumPreference(
+        DarkModeKey,
+        defaultValue = DarkMode.AUTO
+    )
+
+    val isSystemInDarkTheme = isSystemInDarkTheme()
+    val useDarkTheme = remember(darkMode, isSystemInDarkTheme) {
+        if (darkMode == DarkMode.AUTO) isSystemInDarkTheme else darkMode == DarkMode.ON
+    }
+
+    val (iconBgColor, iconStyleColor) = if (settingsShapeTertiary) {
+        if (useDarkTheme) {
+            Pair(
+                MaterialTheme.colorScheme.tertiary,
+                MaterialTheme.colorScheme.onTertiary
+            )
+        } else {
+            Pair(
+                MaterialTheme.colorScheme.tertiaryContainer,
+                MaterialTheme.colorScheme.onTertiaryContainer
+            )
+        }
+    } else {
+        Pair(
+            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
+            MaterialTheme.colorScheme.primary
+        )
+    }
+
     val playerConnection = LocalPlayerConnection.current ?: return
     val song by playerConnection.currentSong.collectAsState(null)
 
@@ -213,68 +252,124 @@ fun DiscordSettings(
             title = stringResource(R.string.account),
         )
 
-        PreferenceEntry(
-            title = {
-                Text(
-                    text = if (isLoggedIn) discordName else stringResource(R.string.not_logged_in),
-                    modifier = Modifier.alpha(if (isLoggedIn) 1f else 0.5f),
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainer
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        ) {
+            Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                ModernInfoItem(
+                    icon = {
+                        if (isLoggedIn && song?.artists?.firstOrNull()?.thumbnailUrl != null) {
+                            AsyncImage(
+                                model = song?.artists?.firstOrNull()?.thumbnailUrl,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(28.dp)
+                                    .clip(CircleShape),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Icon(painterResource(R.drawable.discord), null, modifier = Modifier.size(22.dp))
+                        }
+                    },
+                    title = if (isLoggedIn) discordName else stringResource(R.string.not_logged_in),
+                    subtitle = if (discordUsername.isNotEmpty()) "@$discordUsername" else "Discord Account",
+                    onClick = if (isLoggedIn) {
+                        {
+                            discordName = ""
+                            discordToken = ""
+                            discordUsername = ""
+                        }
+                    } else {
+                        {
+                            navController.navigate("settings/discord/login")
+                        }
+                    },
+                    showArrow = true,
+                    iconBackgroundColor = iconBgColor,
+                    iconContentColor = iconStyleColor
                 )
-            },
-            description =
-            if (discordUsername.isNotEmpty()) {
-                "@$discordUsername"
-            } else {
-                null
-            },
-            icon = { Icon(painterResource(R.drawable.discord), null) },
-            trailingContent = {
-                if (isLoggedIn) {
-                    OutlinedButton(onClick = {
-                        discordName = ""
-                        discordToken = ""
-                        discordUsername = ""
-                    }) {
-                        Text(stringResource(R.string.action_logout))
-                    }
-                } else {
-                    OutlinedButton(onClick = {
-                        navController.navigate("settings/discord/login")
-                    }) {
-                        Text(stringResource(R.string.action_login))
-                    }
+
+                if (!isLoggedIn) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                    )
+
+                    ModernInfoItem(
+                        icon = { Icon(painterResource(R.drawable.token), null, modifier = Modifier.size(22.dp)) },
+                        title = stringResource(R.string.advanced_login),
+                        subtitle = "Login using token",
+                        onClick = { showTokenDialog = true },
+                        showArrow = true,
+                        iconBackgroundColor = iconBgColor,
+                        iconContentColor = iconStyleColor
+                    )
                 }
-            },
-        )
-        if (!isLoggedIn) {
-            PreferenceEntry(
-                title = {
-                    Text(stringResource(R.string.advanced_login))
-                },
-                icon = { Icon(painterResource(R.drawable.token), null) },
-                onClick = {
-                    showTokenDialog = true
-                }
-            )
+            }
         }
 
         PreferenceGroupTitle(
             title = stringResource(R.string.options),
         )
 
-        SwitchPreference(
-            title = { Text(stringResource(R.string.enable_discord_rpc)) },
-            checked = discordRPC,
-            onCheckedChange = onDiscordRPCChange,
-            isEnabled = isLoggedIn,
-        )
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainer
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        ) {
+            Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    ModernInfoItem(
+                        icon = { Icon(painterResource(R.drawable.discord), null, modifier = Modifier.size(22.dp)) },
+                        title = stringResource(R.string.enable_discord_rpc),
+                        subtitle = "Show current song on Discord",
+                        iconBackgroundColor = iconBgColor,
+                        iconContentColor = iconStyleColor,
+                        modifier = Modifier.weight(1f)
+                    )
+                    ModernSwitch(
+                        checked = discordRPC,
+                        onCheckedChange = onDiscordRPCChange,
+                        enabled = isLoggedIn,
+                        modifier = Modifier.padding(end = 16.dp)
+                    )
+                }
 
-        SwitchPreference(
-            title = { Text(stringResource(R.string.discord_use_details)) },
-            description = stringResource(R.string.discord_use_details_description),
-            checked = useDetails,
-            onCheckedChange = onUseDetailsChange,
-            isEnabled = isLoggedIn && discordRPC,
-        )
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                )
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    ModernInfoItem(
+                        icon = { Icon(painterResource(R.drawable.info), null, modifier = Modifier.size(22.dp)) },
+                        title = stringResource(R.string.discord_use_details),
+                        subtitle = stringResource(R.string.discord_use_details_description),
+                        iconBackgroundColor = iconBgColor,
+                        iconContentColor = iconStyleColor,
+                        modifier = Modifier.weight(1f)
+                    )
+                    ModernSwitch(
+                        checked = useDetails,
+                        onCheckedChange = onUseDetailsChange,
+                        enabled = isLoggedIn && discordRPC,
+                        modifier = Modifier.padding(end = 16.dp)
+                    )
+                }
+            }
+        }
 
         PreferenceGroupTitle(
             title = stringResource(R.string.preview),

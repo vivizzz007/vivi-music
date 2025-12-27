@@ -3,6 +3,7 @@ package com.music.vivi.ui.screens.settings
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -65,6 +66,10 @@ import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.ui.utils.formatFileSize
 import com.music.vivi.update.settingstyle.ModernInfoItem
 import com.music.vivi.utils.rememberPreference
+import com.music.vivi.utils.rememberEnumPreference
+import com.music.vivi.constants.SettingsShapeColorTertiaryKey
+import com.music.vivi.constants.DarkModeKey
+import com.music.vivi.ui.screens.settings.DarkMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -76,6 +81,36 @@ fun StorageSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
+    val (settingsShapeTertiary, _) = rememberPreference(SettingsShapeColorTertiaryKey, false)
+    val (darkMode, _) = rememberEnumPreference(
+        DarkModeKey,
+        defaultValue = DarkMode.AUTO
+    )
+
+    val isSystemInDarkTheme = isSystemInDarkTheme()
+    val useDarkTheme = remember(darkMode, isSystemInDarkTheme) {
+        if (darkMode == DarkMode.AUTO) isSystemInDarkTheme else darkMode == DarkMode.ON
+    }
+
+    val (iconBgColor, iconStyleColor) = if (settingsShapeTertiary) {
+        if (useDarkTheme) {
+            Pair(
+                MaterialTheme.colorScheme.tertiary,
+                MaterialTheme.colorScheme.onTertiary
+            )
+        } else {
+            Pair(
+                MaterialTheme.colorScheme.tertiaryContainer,
+                MaterialTheme.colorScheme.onTertiaryContainer
+            )
+        }
+    } else {
+        Pair(
+            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
+            MaterialTheme.colorScheme.primary
+        )
+    }
+
     val context = LocalContext.current
     val imageDiskCache = context.imageLoader.diskCache ?: return
     val playerCache = LocalPlayerConnection.current?.service?.playerCache ?: return
@@ -341,7 +376,9 @@ fun StorageSettings(
                             ModernInfoItem(
                                 icon = { Icon(painterResource(R.drawable.download), null, modifier = Modifier.size(22.dp)) },
                                 title = "Downloaded Songs",
-                                subtitle = "${formatFileSize(downloadCacheSize)} used"
+                                subtitle = "${formatFileSize(downloadCacheSize)} used",
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
 
                             HorizontalDivider(
@@ -356,7 +393,9 @@ fun StorageSettings(
                                 subtitle = "Remove all downloaded songs",
                                 onClick = { clearDownloads = true },
                                 showArrow = true,
-                                showSettingsIcon = true
+                                showSettingsIcon = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
 
                             if (clearDownloads) {
@@ -462,7 +501,9 @@ fun StorageSettings(
                                 },
                                 onClick = { showCacheSizeDialog = true },
                                 showArrow = true,
-                                showSettingsIcon = true
+                                showSettingsIcon = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
 
                             if (showCacheSizeDialog) {
@@ -521,7 +562,9 @@ fun StorageSettings(
                                 subtitle = "Free up cached song data",
                                 onClick = { clearCacheDialog = true },
                                 showArrow = true,
-                                showSettingsIcon = true
+                                showSettingsIcon = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
 
                             if (clearCacheDialog) {
@@ -622,7 +665,9 @@ fun StorageSettings(
                                 },
                                 onClick = { showImageCacheSizeDialog = true },
                                 showArrow = true,
-                                showSettingsIcon = true
+                                showSettingsIcon = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
 
                             if (showImageCacheSizeDialog) {
@@ -680,7 +725,9 @@ fun StorageSettings(
                                 subtitle = "Free up cached images",
                                 onClick = { clearImageCacheDialog = true },
                                 showArrow = true,
-                                showSettingsIcon = true
+                                showSettingsIcon = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
 
                             if (clearImageCacheDialog) {

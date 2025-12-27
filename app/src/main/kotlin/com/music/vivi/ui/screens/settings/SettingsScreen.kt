@@ -2,6 +2,7 @@ package com.music.vivi.ui.screens.settings
 
 import android.os.Build
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +21,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -52,7 +54,9 @@ import com.music.vivi.R
 import com.music.vivi.constants.AccountEmailKey
 import com.music.vivi.constants.AccountNameKey
 import com.music.vivi.constants.CheckForUpdatesKey
+import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.InnerTubeCookieKey
+import com.music.vivi.constants.SettingsShapeColorTertiaryKey
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.screens.checkForUpdate
 import com.music.vivi.ui.screens.getAutoUpdateCheckSetting
@@ -62,6 +66,7 @@ import com.music.vivi.update.settingstyle.ModernInfoItem
 import com.music.vivi.update.viewmodelupdate.UpdateViewModel
 import com.music.vivi.updatesreen.UpdateInfo
 import com.music.vivi.updatesreen.UpdateStatus
+import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.HomeViewModel
 
@@ -100,6 +105,35 @@ fun SettingsScreen(
     // Check if user is logged in
     val isLoggedIn = remember(innerTubeCookie) {
         "SAPISID" in parseCookieString(innerTubeCookie)
+    }
+
+    val (settingsShapeTertiary, _) = rememberPreference(SettingsShapeColorTertiaryKey, false)
+    val (darkMode, _) = rememberEnumPreference(
+        DarkModeKey,
+        defaultValue = DarkMode.AUTO
+    )
+    val isSystemInDarkTheme = isSystemInDarkTheme()
+    val useDarkTheme = remember(darkMode, isSystemInDarkTheme) {
+        if (darkMode == DarkMode.AUTO) isSystemInDarkTheme else darkMode == DarkMode.ON
+    }
+
+    val (iconBgColor, iconStyleColor) = if (settingsShapeTertiary) {
+        if (useDarkTheme) {
+            Pair(
+                MaterialTheme.colorScheme.tertiary,
+                MaterialTheme.colorScheme.onTertiary
+            )
+        } else {
+            Pair(
+                MaterialTheme.colorScheme.tertiaryContainer,
+                MaterialTheme.colorScheme.onTertiaryContainer
+            )
+        }
+    } else {
+        Pair(
+            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
+            MaterialTheme.colorScheme.primary
+        )
     }
 
     // Determine what to display for account section
@@ -181,9 +215,9 @@ fun SettingsScreen(
                                 modifier = Modifier.size(22.dp),
                                 tint = when (updateStatus) {
                                     is UpdateStatus.UpdateAvailable -> MaterialTheme.colorScheme.error
-                                    is UpdateStatus.Loading -> MaterialTheme.colorScheme.onSurfaceVariant
-                                    is UpdateStatus.Disabled -> MaterialTheme.colorScheme.onSurfaceVariant
-                                    else -> MaterialTheme.colorScheme.primary
+                                    is UpdateStatus.Loading -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                    is UpdateStatus.Disabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                    else -> LocalContentColor.current
                                 }
                             )
                         },
@@ -219,20 +253,8 @@ fun SettingsScreen(
                         },
                         onClick = { navController.navigate("settings/software_updates") },
                         showArrow = true,
-                        iconBackgroundColor = when (updateStatus) {
-                            is UpdateStatus.UpdateAvailable -> {
-                                MaterialTheme.colorScheme.error.copy(alpha = 0.2f)
-                            }
-                            is UpdateStatus.Loading -> {
-                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
-                            }
-                            is UpdateStatus.Disabled -> {
-                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.08f)
-                            }
-                            else -> {
-                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
-                            }
-                        },
+                        iconBackgroundColor = iconBgColor,
+                        iconContentColor = iconStyleColor,
                         arrowColor = when (updateStatus) {
                             is UpdateStatus.UpdateAvailable -> MaterialTheme.colorScheme.error
                             else -> MaterialTheme.colorScheme.primary
@@ -262,8 +284,7 @@ fun SettingsScreen(
                                         if (isLoggedIn) R.drawable.person else R.drawable.account
                                     ),
                                     contentDescription = null,
-                                    modifier = Modifier.size(22.dp),
-                                    tint = MaterialTheme.colorScheme.primary
+                                    modifier = Modifier.size(22.dp)
                                 )
                             }
                         },
@@ -271,7 +292,8 @@ fun SettingsScreen(
                         subtitle = accountSubtitle,
                         onClick = { navController.navigate("settings/account_view") },
                         showArrow = true,
-                        iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
+                        iconBackgroundColor = iconBgColor,
+                        iconContentColor = iconStyleColor
                     )
 
                     HorizontalDivider(
@@ -285,15 +307,15 @@ fun SettingsScreen(
                             Icon(
                                 painter = painterResource(R.drawable.palette),
                                 contentDescription = null,
-                                modifier = Modifier.size(22.dp),
-                                tint = MaterialTheme.colorScheme.primary
+                                modifier = Modifier.size(22.dp)
                             )
                         },
                         title = stringResource(R.string.appearance),
                         subtitle = "Customize theme and display settings",
                         onClick = { navController.navigate("settings/appearance") },
                         showArrow = true,
-                        iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
+                        iconBackgroundColor = iconBgColor,
+                        iconContentColor = iconStyleColor
                     )
 
                     HorizontalDivider(
@@ -307,15 +329,15 @@ fun SettingsScreen(
                             Icon(
                                 painter = painterResource(R.drawable.play),
                                 contentDescription = null,
-                                modifier = Modifier.size(22.dp),
-                                tint = MaterialTheme.colorScheme.primary
+                                modifier = Modifier.size(22.dp)
                             )
                         },
                         title = stringResource(R.string.player_and_audio),
                         subtitle = "Audio quality and playback settings",
                         onClick = { navController.navigate("settings/player") },
                         showArrow = true,
-                        iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
+                        iconBackgroundColor = iconBgColor,
+                        iconContentColor = iconStyleColor
                     )
 
                     HorizontalDivider(
@@ -329,15 +351,15 @@ fun SettingsScreen(
                             Icon(
                                 painter = painterResource(R.drawable.language),
                                 contentDescription = null,
-                                modifier = Modifier.size(22.dp),
-                                tint = MaterialTheme.colorScheme.primary
+                                modifier = Modifier.size(22.dp)
                             )
                         },
                         title = stringResource(R.string.content),
                         subtitle = "Language and content preferences",
                         onClick = { navController.navigate("settings/content") },
                         showArrow = true,
-                        iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
+                        iconBackgroundColor = iconBgColor,
+                        iconContentColor = iconStyleColor
                     )
 
                     HorizontalDivider(
@@ -351,15 +373,15 @@ fun SettingsScreen(
                             Icon(
                                 painter = painterResource(R.drawable.security),
                                 contentDescription = null,
-                                modifier = Modifier.size(22.dp),
-                                tint = MaterialTheme.colorScheme.primary
+                                modifier = Modifier.size(22.dp)
                             )
                         },
                         title = stringResource(R.string.privacy),
                         subtitle = "Privacy and security settings",
                         onClick = { navController.navigate("settings/privacy") },
                         showArrow = true,
-                        iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
+                        iconBackgroundColor = iconBgColor,
+                        iconContentColor = iconStyleColor
                     )
 
                     HorizontalDivider(
@@ -373,15 +395,15 @@ fun SettingsScreen(
                             Icon(
                                 painter = painterResource(R.drawable.storage),
                                 contentDescription = null,
-                                modifier = Modifier.size(22.dp),
-                                tint = MaterialTheme.colorScheme.primary
+                                modifier = Modifier.size(22.dp)
                             )
                         },
                         title = stringResource(R.string.storage),
                         subtitle = "Manage storage and downloads",
                         onClick = { navController.navigate("settings/storage") },
                         showArrow = true,
-                        iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
+                        iconBackgroundColor = iconBgColor,
+                        iconContentColor = iconStyleColor
                     )
 
                     HorizontalDivider(
@@ -395,15 +417,15 @@ fun SettingsScreen(
                             Icon(
                                 painter = painterResource(R.drawable.restore),
                                 contentDescription = null,
-                                modifier = Modifier.size(22.dp),
-                                tint = MaterialTheme.colorScheme.primary
+                                modifier = Modifier.size(22.dp)
                             )
                         },
                         title = stringResource(R.string.backup_restore),
                         subtitle = "Backup and restore your data",
                         onClick = { navController.navigate("settings/backup_restore") },
                         showArrow = true,
-                        iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
+                        iconBackgroundColor = iconBgColor,
+                        iconContentColor = iconStyleColor
                     )
 
                     HorizontalDivider(
@@ -417,15 +439,15 @@ fun SettingsScreen(
                             Icon(
                                 painter = painterResource(R.drawable.rocket),
                                 contentDescription = null,
-                                modifier = Modifier.size(22.dp),
-                                tint = MaterialTheme.colorScheme.primary
+                                modifier = Modifier.size(22.dp)
                             )
                         },
                         title = stringResource(R.string.about),
                         subtitle = "App information and legal",
                         onClick = { navController.navigate("settings/about") },
                         showArrow = true,
-                        iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
+                        iconBackgroundColor = iconBgColor,
+                        iconContentColor = iconStyleColor
                     )
                 }
             }

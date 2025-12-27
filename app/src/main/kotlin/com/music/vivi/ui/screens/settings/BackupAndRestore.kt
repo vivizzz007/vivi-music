@@ -3,6 +3,7 @@ package com.music.vivi.ui.screens.settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -60,6 +61,11 @@ import com.music.vivi.ui.menu.AddToPlaylistDialogOnline
 import com.music.vivi.ui.menu.LoadingScreen
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.update.settingstyle.ModernInfoItem
+import com.music.vivi.utils.rememberPreference
+import com.music.vivi.utils.rememberEnumPreference
+import com.music.vivi.constants.SettingsShapeColorTertiaryKey
+import com.music.vivi.constants.DarkModeKey
+import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.viewmodels.BackupRestoreViewModel
 import kotlinx.coroutines.delay
 import java.time.LocalDateTime
@@ -72,6 +78,36 @@ fun BackupAndRestore(
     scrollBehavior: TopAppBarScrollBehavior,
     viewModel: BackupRestoreViewModel = hiltViewModel(),
 ) {
+    val (settingsShapeTertiary, _) = rememberPreference(SettingsShapeColorTertiaryKey, false)
+    val (darkMode, _) = rememberEnumPreference(
+        DarkModeKey,
+        defaultValue = DarkMode.AUTO
+    )
+
+    val isSystemInDarkTheme = isSystemInDarkTheme()
+    val useDarkTheme = remember(darkMode, isSystemInDarkTheme) {
+        if (darkMode == DarkMode.AUTO) isSystemInDarkTheme else darkMode == DarkMode.ON
+    }
+
+    val (iconBgColor, iconStyleColor) = if (settingsShapeTertiary) {
+        if (useDarkTheme) {
+            Pair(
+                MaterialTheme.colorScheme.tertiary,
+                MaterialTheme.colorScheme.onTertiary
+            )
+        } else {
+            Pair(
+                MaterialTheme.colorScheme.tertiaryContainer,
+                MaterialTheme.colorScheme.onTertiaryContainer
+            )
+        }
+    } else {
+        Pair(
+            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
+            MaterialTheme.colorScheme.primary
+        )
+    }
+
     var importedTitle by remember { mutableStateOf("") }
     val importedSongs = remember { mutableStateListOf<Song>() }
     var showChoosePlaylistDialogOnline by rememberSaveable {
@@ -227,7 +263,9 @@ fun BackupAndRestore(
                                         }.backup"
                                     )
                                 },
-                                showArrow = true
+                                showArrow = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
 
                             HorizontalDivider(
@@ -243,7 +281,9 @@ fun BackupAndRestore(
                                 onClick = {
                                     restoreLauncher.launch(arrayOf("application/octet-stream"))
                                 },
-                                showArrow = true
+                                showArrow = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
                         }
                     }
@@ -282,7 +322,9 @@ fun BackupAndRestore(
                                 onClick = {
                                     importM3uLauncherOnline.launch(arrayOf("audio/*"))
                                 },
-                                showArrow = true
+                                showArrow = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
 
                             HorizontalDivider(
@@ -298,7 +340,9 @@ fun BackupAndRestore(
                                 onClick = {
                                     importPlaylistFromCsv.launch(arrayOf("text/csv", "text/comma-separated-values", "application/csv"))
                                 },
-                                showArrow = true
+                                showArrow = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
                         }
                     }

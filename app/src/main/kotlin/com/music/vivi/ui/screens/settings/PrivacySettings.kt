@@ -1,6 +1,7 @@
 package com.music.vivi.ui.screens.settings
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -61,6 +62,10 @@ import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.update.mordernswitch.ModernSwitch
 import com.music.vivi.update.settingstyle.ModernInfoItem
 import com.music.vivi.utils.rememberPreference
+import com.music.vivi.utils.rememberEnumPreference
+import com.music.vivi.constants.SettingsShapeColorTertiaryKey
+import com.music.vivi.constants.DarkModeKey
+import com.music.vivi.ui.screens.settings.DarkMode
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,6 +73,36 @@ fun PrivacySettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
+    val (settingsShapeTertiary, _) = rememberPreference(SettingsShapeColorTertiaryKey, false)
+    val (darkMode, _) = rememberEnumPreference(
+        DarkModeKey,
+        defaultValue = DarkMode.AUTO
+    )
+
+    val isSystemInDarkTheme = isSystemInDarkTheme()
+    val useDarkTheme = remember(darkMode, isSystemInDarkTheme) {
+        if (darkMode == DarkMode.AUTO) isSystemInDarkTheme else darkMode == DarkMode.ON
+    }
+
+    val (iconBgColor, iconStyleColor) = if (settingsShapeTertiary) {
+        if (useDarkTheme) {
+            Pair(
+                MaterialTheme.colorScheme.tertiary,
+                MaterialTheme.colorScheme.onTertiary
+            )
+        } else {
+            Pair(
+                MaterialTheme.colorScheme.tertiaryContainer,
+                MaterialTheme.colorScheme.onTertiaryContainer
+            )
+        }
+    } else {
+        Pair(
+            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
+            MaterialTheme.colorScheme.primary
+        )
+    }
+
     val database = LocalDatabase.current
     val (pauseListenHistory, onPauseListenHistoryChange) = rememberPreference(
         key = PauseListenHistoryKey,
@@ -255,7 +290,9 @@ fun PrivacySettings(
                                     ModernInfoItem(
                                         icon = { Icon(painterResource(R.drawable.history), null, modifier = Modifier.size(22.dp)) },
                                         title = stringResource(R.string.pause_listen_history),
-                                        subtitle = "Stop recording listening activity"
+                                        subtitle = "Stop recording listening activity",
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
                                     )
                                 }
                                 ModernSwitch(
@@ -277,7 +314,9 @@ fun PrivacySettings(
                                 subtitle = "Delete all listening history",
                                 onClick = { showClearListenHistoryDialog = true },
                                 showArrow = true,
-                                showSettingsIcon = true
+                                showSettingsIcon = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
                         }
                     }
@@ -317,7 +356,9 @@ fun PrivacySettings(
                                     ModernInfoItem(
                                         icon = { Icon(painterResource(R.drawable.search_off), null, modifier = Modifier.size(22.dp)) },
                                         title = stringResource(R.string.pause_search_history),
-                                        subtitle = "Stop recording search queries"
+                                        subtitle = "Stop recording search queries",
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
                                     )
                                 }
                                 ModernSwitch(
@@ -339,7 +380,9 @@ fun PrivacySettings(
                                 subtitle = "Delete all search history",
                                 onClick = { showClearSearchHistoryDialog = true },
                                 showArrow = true,
-                                showSettingsIcon = true
+                                showSettingsIcon = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
                             )
                         }
                     }
@@ -379,7 +422,9 @@ fun PrivacySettings(
                                     ModernInfoItem(
                                         icon = { Icon(painterResource(R.drawable.screenshot), null, modifier = Modifier.size(22.dp)) },
                                         title = stringResource(R.string.disable_screenshot),
-                                        subtitle = stringResource(R.string.disable_screenshot_desc)
+                                        subtitle = stringResource(R.string.disable_screenshot_desc),
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
                                     )
                                 }
                                 ModernSwitch(
