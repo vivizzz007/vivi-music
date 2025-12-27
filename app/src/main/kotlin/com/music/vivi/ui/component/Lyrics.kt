@@ -113,6 +113,7 @@ import com.music.vivi.constants.LyricsScrollKey
 import com.music.vivi.constants.LyricsTextPositionKey
 import com.music.vivi.constants.LyricsTextSizeKey
 import com.music.vivi.constants.LyricsLineSpacingKey
+import com.music.vivi.constants.LyricsWordForWordKey
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PlayerBackgroundStyleKey
 import com.music.vivi.db.entities.LyricsEntity.Companion.LYRICS_NOT_FOUND
@@ -176,6 +177,7 @@ fun Lyrics(
         LyricsLineSpacingKey,
         defaultValue = 6f
     )
+    val lyricsWordForWord by rememberPreference(LyricsWordForWordKey, true)
     val changeLyrics by rememberPreference(LyricsClickKey, true)
     val scrollLyrics by rememberPreference(LyricsScrollKey, true)
     val romanizeJapaneseLyrics by rememberPreference(LyricsRomanizeJapaneseKey, true)
@@ -221,7 +223,7 @@ fun Lyrics(
             val isMacedonianLyrics = romanizeMacedonianLyrics && !romanizeCyrillicByLine && isMacedonian(lyrics)
 
             parsedLines.map { entry ->
-                val newEntry = LyricsEntry(entry.time, entry.text)
+                val newEntry = LyricsEntry(entry.time, entry.text, entry.words)
 
                 if (romanizeJapaneseLyrics && isJapanese(entry.text) && !isChinese(entry.text)) {
                     scope.launch {
@@ -291,7 +293,7 @@ fun Lyrics(
             val isMacedonianLyrics = romanizeMacedonianLyrics && !romanizeCyrillicByLine && isMacedonian(lyrics)
 
             lyrics.lines().mapIndexed { index, line ->
-                val newEntry = LyricsEntry(index * 100L, line)
+                val newEntry = LyricsEntry(index * 100L, line, null)
 
                 if (romanizeJapaneseLyrics && isJapanese(line) && !isChinese(line)) {
                     scope.launch {
@@ -651,6 +653,7 @@ fun Lyrics(
                                             romanizeMacedonianLyrics),
                             textSize = lyricsTextSize,
                             lineSpacing = lyricsLineSpacing,
+                            isWordForWord = lyricsWordForWord,
                             onClick = {
                                 if (isSelectionModeActive) {
                                     if (isSelected) {

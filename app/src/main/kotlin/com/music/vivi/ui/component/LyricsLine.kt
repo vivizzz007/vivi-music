@@ -51,6 +51,7 @@ fun LyricsLine(
     onLongClick: () -> Unit,
     isSelected: Boolean,
     isSelectionModeActive: Boolean,
+    isWordForWord: Boolean,
     modifier: Modifier = Modifier
 ) {
     val duration = remember(entry.time, nextEntryTime) {
@@ -153,75 +154,99 @@ fun LyricsLine(
                 wordData.forEachIndexed { index, (word, startRelative, endRelative) ->
                     val lineRelTime = (currentTime - entry.time).coerceAtLeast(0L)
 
-                    // Calculate progress for THIS specific word (0 to 1)
-                    val wordProgress by remember(lineRelTime, startRelative, endRelative) {
-                        derivedStateOf {
-                            when {
-                                lineRelTime >= endRelative -> 1f
-                                lineRelTime < startRelative -> 0f
-                                else -> {
-                                    val wordDur = endRelative - startRelative
-                                    if (wordDur <= 0L) 1f 
-                                    else (lineRelTime - startRelative).toFloat() / wordDur
-                                }
-                            }
-                        }
-                    }
+                    if (isWordForWord) {
+                        // Discrete word-for-word highlighting (no animation)
+                        val isWordActive = lineRelTime >= startRelative
+                        val wordColor = if (isWordActive) textColor else textColor.copy(alpha = 0.25f)
 
-                    // Premium Brush: Soft Leading Edge (Glow Effect)
-                    val brush = remember(wordProgress, textColor) {
-                        val activeColor = textColor
-                        val inactiveColor = textColor.copy(alpha = 0.25f) // More dim for future words
-                        val edgeWidth = 0.25f // Wider edge for a softer, glowy fill
-
-                        when {
-                            wordProgress <= 0f -> Brush.linearGradient(colors = listOf(inactiveColor, inactiveColor))
-                            wordProgress >= 1f -> Brush.linearGradient(colors = listOf(activeColor, activeColor))
-                            else -> {
-                                val stops = mutableListOf<Pair<Float, Color>>()
-                                
-                                // Soft gradient from filled to empty
-                                val fillEnd = (wordProgress - edgeWidth / 2).coerceAtLeast(0f)
-                                val glowEnd = (wordProgress + edgeWidth / 2).coerceAtMost(1f)
-
-                                if (fillEnd > 0f) {
-                                    stops.add(0f to activeColor)
-                                    stops.add(fillEnd to activeColor)
-                                }
-                                
-                                // The "Glow" bridge
-                                stops.add(fillEnd to activeColor)
-                                stops.add(glowEnd to inactiveColor)
-
-                                if (glowEnd < 1f) {
-                                    stops.add(glowEnd to inactiveColor)
-                                    stops.add(1f to inactiveColor)
-                                }
-
-                                Brush.horizontalGradient(
-                                    colorStops = stops.toTypedArray(),
-                                    tileMode = TileMode.Clamp
+                        Text(
+                            // Add trailing space back for all but last word
+                            text = if (index != wordData.lastIndex) "$word " else word,
+                            fontSize = textSize.sp, // Use dynamic size
+                            color = wordColor,
+                            style = TextStyle(
+                                // Subtle shadow for better pop on vibrant backgrounds
+                                shadow = androidx.compose.ui.graphics.Shadow(
+                                    color = Color.Black.copy(alpha = 0.15f),
+                                    offset = Offset(0f, 2f),
+                                    blurRadius = 4f
                                 )
+                            ),
+                            fontWeight = FontWeight.ExtraBold,
+                            letterSpacing = (-0.5).sp // Modern tight tracking
+                        )
+                    } else {
+                        // Smooth "Glow" animation
+                        // Calculate progress for THIS specific word (0 to 1)
+                        val wordProgress by remember(lineRelTime, startRelative, endRelative) {
+                            derivedStateOf {
+                                when {
+                                    lineRelTime >= endRelative -> 1f
+                                    lineRelTime < startRelative -> 0f
+                                    else -> {
+                                        val wordDur = endRelative - startRelative
+                                        if (wordDur <= 0L) 1f
+                                        else (lineRelTime - startRelative).toFloat() / wordDur
+                                    }
+                                }
                             }
                         }
-                    }
 
-                    Text(
-                        // Add trailing space back for all but last word
-                        text = if (index != wordData.lastIndex) "$word " else word,
-                        fontSize = textSize.sp, // Use dynamic size
-                        style = TextStyle(
-                            brush = brush,
-                            // Subtle shadow for better pop on vibrant backgrounds
-                            shadow = androidx.compose.ui.graphics.Shadow(
-                                color = Color.Black.copy(alpha = 0.15f),
-                                offset = Offset(0f, 2f),
-                                blurRadius = 4f
-                            )
-                        ),
-                        fontWeight = FontWeight.ExtraBold,
-                        letterSpacing = (-0.5).sp // Modern tight tracking
-                    )
+                        // Premium Brush: Soft Leading Edge (Glow Effect)
+                        val brush = remember(wordProgress, textColor) {
+                            val activeColor = textColor
+                            val inactiveColor = textColor.copy(alpha = 0.25f) // More dim for future words
+                            val edgeWidth = 0.25f // Wider edge for a softer, glowy fill
+
+                            when {
+                                wordProgress <= 0f -> Brush.linearGradient(colors = listOf(inactiveColor, inactiveColor))
+                                wordProgress >= 1f -> Brush.linearGradient(colors = listOf(activeColor, activeColor))
+                                else -> {
+                                    val stops = mutableListOf<Pair<Float, Color>>()
+
+                                    // Soft gradient from filled to empty
+                                    val fillEnd = (wordProgress - edgeWidth / 2).coerceAtLeast(0f)
+                                    val glowEnd = (wordProgress + edgeWidth / 2).coerceAtMost(1f)
+
+                                    if (fillEnd > 0f) {
+                                        stops.add(0f to activeColor)
+                                        stops.add(fillEnd to activeColor)
+                                    }
+
+                                    // The "Glow" bridge
+                                    stops.add(fillEnd to activeColor)
+                                    stops.add(glowEnd to inactiveColor)
+
+                                    if (glowEnd < 1f) {
+                                        stops.add(glowEnd to inactiveColor)
+                                        stops.add(1f to inactiveColor)
+                                    }
+
+                                    Brush.horizontalGradient(
+                                        colorStops = stops.toTypedArray(),
+                                        tileMode = TileMode.Clamp
+                                    )
+                                }
+                            }
+                        }
+
+                        Text(
+                            // Add trailing space back for all but last word
+                            text = if (index != wordData.lastIndex) "$word " else word,
+                            fontSize = textSize.sp, // Use dynamic size
+                            style = TextStyle(
+                                brush = brush,
+                                // Subtle shadow for better pop on vibrant backgrounds
+                                shadow = androidx.compose.ui.graphics.Shadow(
+                                    color = Color.Black.copy(alpha = 0.15f),
+                                    offset = Offset(0f, 2f),
+                                    blurRadius = 4f
+                                )
+                            ),
+                            fontWeight = FontWeight.ExtraBold,
+                            letterSpacing = (-0.5).sp // Modern tight tracking
+                        )
+                    }
                 }
             }
         } else {

@@ -324,6 +324,7 @@ val LyricsRomanizeBelarusianKey = booleanPreferencesKey("lyricsRomanizeBelarusia
 val LyricsRomanizeKyrgyzKey = booleanPreferencesKey("lyricsRomanizeKyrgyz")
 val LyricsRomanizeMacedonianKey = booleanPreferencesKey("lyricsRomanizeMacedonian")
 val LyricsRomanizeCyrillicByLineKey = booleanPreferencesKey("lyricsRomanizeCyrillicByLine")
+val LyricsWordForWordKey = booleanPreferencesKey("lyricsWordForWord")
 val TranslateLyricsKey = booleanPreferencesKey("translateLyrics")
 val SettingsShapeColorTertiaryKey = booleanPreferencesKey("settings_shape_color_tertiary")
 val LyricsTextSizeKey = floatPreferencesKey("lyricsTextSize")

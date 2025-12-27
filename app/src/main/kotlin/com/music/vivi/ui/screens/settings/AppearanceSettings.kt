@@ -97,6 +97,7 @@ import com.music.vivi.constants.SwipeToRemoveSongKey
 import com.music.vivi.constants.SwipeToSongKey
 import com.music.vivi.constants.UseNewMiniPlayerDesignKey
 import com.music.vivi.constants.UseNewPlayerDesignKey
+import com.music.vivi.constants.LyricsWordForWordKey
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.PlayerSliderTrack
@@ -273,6 +274,10 @@ fun AppearanceSettings(
     val (lyricsLineSpacing, onLyricsLineSpacingChange) = rememberPreference(
         LyricsLineSpacingKey,
         defaultValue = 6f
+    )
+    val (lyricsWordForWord, onLyricsWordForWordChange) = rememberPreference(
+        LyricsWordForWordKey,
+        defaultValue = true
     )
 
     val availableBackgroundStyles = remember(Build.VERSION.SDK_INT) {
@@ -1432,6 +1437,31 @@ fun AppearanceSettings(
                                 iconBackgroundColor = iconBgColor,
                                 iconContentColor = iconStyleColor
                             )
+
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                            )
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(modifier = Modifier.weight(1f)) {
+                                    ModernInfoItem(
+                                        icon = { Icon(painterResource(id = R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
+                                        title = "Word-for-word lyrics",
+                                        subtitle = "Highlight words discretely as they are sung",
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
+                                    )
+                                }
+                                ModernSwitch(
+                                    checked = lyricsWordForWord,
+                                    onCheckedChange = onLyricsWordForWordChange,
+                                    modifier = Modifier.padding(end = 20.dp)
+                                )
+                            }
                         }
                     }
                 }
