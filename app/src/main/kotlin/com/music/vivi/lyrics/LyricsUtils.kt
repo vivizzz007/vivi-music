@@ -282,8 +282,8 @@ object LyricsUtils {
         val rawText = matchResult.groupValues[3]
         val timeMatchResults = TIME_REGEX.findAll(times)
 
-        // Parse word timestamps if present (e.g., <00:16.28> Word)
-        val wordRegex = "<(\\d\\d:\\d\\d\\.\\d{2,3})>([^<]+)".toRegex()
+        // Parse word timestamps if present (e.g., <00:16.28,150> Word)
+        val wordRegex = "<([^>]+)>([^<]+)".toRegex()
         val wordMatches = wordRegex.findAll(rawText).toList()
 
         val parsedText = if (wordMatches.isNotEmpty()) {
@@ -294,8 +294,13 @@ object LyricsUtils {
 
         val words = if (wordMatches.isNotEmpty()) {
             wordMatches.map { match ->
-                val timeStr = match.groupValues[1]
-                val text = match.groupValues[2]
+                val tagContent = match.groupValues[1]
+                val text = match.groupValues[2].trim()
+                
+                val parts = tagContent.split(",")
+                val timeStr = parts[0]
+                val duration = parts.getOrNull(1)?.toLongOrNull()
+                
                 val tMatch = TIME_REGEX.find("[$timeStr]")!!
                 val min = tMatch.groupValues[1].toLong()
                 val sec = tMatch.groupValues[2].toLong()
@@ -303,7 +308,7 @@ object LyricsUtils {
                 var mil = milString.toLong()
                 if (milString.length == 2) mil *= 10
                 val time = min * DateUtils.MINUTE_IN_MILLIS + sec * DateUtils.SECOND_IN_MILLIS + mil
-                LyricsEntry.WordEntry(time, text)
+                LyricsEntry.WordEntry(time, text, duration)
             }
         } else null
 

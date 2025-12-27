@@ -19,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TileMode
@@ -44,6 +45,8 @@ fun LyricsLine(
     lyricsTextPosition: LyricsPosition,
     textColor: Color,
     showRomanized: Boolean,
+    textSize: Float,
+    lineSpacing: Float,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
     isSelected: Boolean,
@@ -65,7 +68,9 @@ fun LyricsLine(
             // Use precise ELRC word timestamps
             entry.words.mapIndexed { index, wordEntry ->
                 val wordStart = (wordEntry.time - entry.time).coerceAtLeast(0L)
-                val wordEnd = if (index < entry.words.lastIndex) {
+                val wordEnd = if (wordEntry.duration != null) {
+                    wordStart + wordEntry.duration
+                } else if (index < entry.words.lastIndex) {
                     (entry.words[index + 1].time - entry.time).coerceAtLeast(wordStart + 50L)
                 } else {
                     activeDuration
@@ -96,7 +101,7 @@ fun LyricsLine(
 
     val itemModifier = modifier
         .fillMaxWidth()
-        .clip(RoundedCornerShape(8.dp))
+        .clip(RoundedCornerShape(12.dp))
         .combinedClickable(
             enabled = true,
             onClick = onClick,
@@ -107,22 +112,22 @@ fun LyricsLine(
                 MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
             else Color.Transparent
         )
-        .padding(horizontal = 24.dp, vertical = 8.dp)
+        .padding(horizontal = 24.dp, vertical = lineSpacing.dp)
         .graphicsLayer {
             val targetAlpha = when {
                 !isSynced || (isSelectionModeActive && isSelected) -> 1f
                 isActive -> 1f
-                distanceFromCurrent == 1 -> 0.7f
-                distanceFromCurrent == 2 -> 0.4f
-                else -> 0.2f
+                distanceFromCurrent == 1 -> 0.6f
+                distanceFromCurrent == 2 -> 0.3f
+                distanceFromCurrent >= 3 -> 0.15f
+                else -> 0.1f
             }
             alpha = targetAlpha
 
             val targetScale = when {
                 !isSynced || isActive -> 1f
-                distanceFromCurrent == 1 -> 0.95f
-                distanceFromCurrent >= 2 -> 0.9f
-                else -> 1f
+                distanceFromCurrent == 1 -> 0.98f
+                else -> 0.95f
             }
             scaleX = targetScale
             scaleY = targetScale
@@ -163,31 +168,34 @@ fun LyricsLine(
                         }
                     }
 
-                    // Brush that fills ONLY this word's bounds
+                    // Premium Brush: Soft Leading Edge (Glow Effect)
                     val brush = remember(wordProgress, textColor) {
-                        val filled = textColor
-                        val empty = textColor.copy(alpha = 0.3f)
-                        val edge = 0.1f // small gradient edge for the filling effect
+                        val activeColor = textColor
+                        val inactiveColor = textColor.copy(alpha = 0.25f) // More dim for future words
+                        val edgeWidth = 0.25f // Wider edge for a softer, glowy fill
 
                         when {
-                            wordProgress <= 0f -> Brush.linearGradient(colors = listOf(empty, empty))
-                            wordProgress >= 1f -> Brush.linearGradient(colors = listOf(filled, filled))
+                            wordProgress <= 0f -> Brush.linearGradient(colors = listOf(inactiveColor, inactiveColor))
+                            wordProgress >= 1f -> Brush.linearGradient(colors = listOf(activeColor, activeColor))
                             else -> {
                                 val stops = mutableListOf<Pair<Float, Color>>()
-                                val fEnd = (wordProgress - edge / 2).coerceAtLeast(0f)
-                                val gEnd = (wordProgress + edge / 2).coerceAtMost(1f)
+                                
+                                // Soft gradient from filled to empty
+                                val fillEnd = (wordProgress - edgeWidth / 2).coerceAtLeast(0f)
+                                val glowEnd = (wordProgress + edgeWidth / 2).coerceAtMost(1f)
 
-                                if (fEnd > 0f) {
-                                    stops.add(0f to filled)
-                                    stops.add(fEnd to filled)
+                                if (fillEnd > 0f) {
+                                    stops.add(0f to activeColor)
+                                    stops.add(fillEnd to activeColor)
                                 }
-                                if (fEnd < gEnd) {
-                                    if (fEnd == 0f) stops.add(0f to filled)
-                                    stops.add(gEnd to empty)
-                                }
-                                if (gEnd < 1f) {
-                                    stops.add(1f to empty)
-                                    stops.add(1f to empty)
+                                
+                                // The "Glow" bridge
+                                stops.add(fillEnd to activeColor)
+                                stops.add(glowEnd to inactiveColor)
+
+                                if (glowEnd < 1f) {
+                                    stops.add(glowEnd to inactiveColor)
+                                    stops.add(1f to inactiveColor)
                                 }
 
                                 Brush.horizontalGradient(
@@ -201,9 +209,18 @@ fun LyricsLine(
                     Text(
                         // Add trailing space back for all but last word
                         text = if (index != wordData.lastIndex) "$word " else word,
-                        fontSize = 24.sp,
-                        style = TextStyle(brush = brush),
-                        fontWeight = FontWeight.ExtraBold
+                        fontSize = textSize.sp, // Use dynamic size
+                        style = TextStyle(
+                            brush = brush,
+                            // Subtle shadow for better pop on vibrant backgrounds
+                            shadow = androidx.compose.ui.graphics.Shadow(
+                                color = Color.Black.copy(alpha = 0.15f),
+                                offset = Offset(0f, 2f),
+                                blurRadius = 4f
+                            )
+                        ),
+                        fontWeight = FontWeight.ExtraBold,
+                        letterSpacing = (-0.5).sp // Modern tight tracking
                     )
                 }
             }
@@ -211,14 +228,15 @@ fun LyricsLine(
             // Inactive line
             Text(
                 text = entry.text,
-                fontSize = 24.sp,
-                color = textColor.copy(alpha = if (isActive && isSynced) 1f else 0.8f),
+                fontSize = textSize.sp,
+                color = textColor,
                 textAlign = when (lyricsTextPosition) {
                     LyricsPosition.LEFT -> TextAlign.Left
                     LyricsPosition.CENTER -> TextAlign.Center
                     LyricsPosition.RIGHT -> TextAlign.Right
                 },
-                fontWeight = if (isActive && isSynced) FontWeight.ExtraBold else FontWeight.Bold,
+                fontWeight = FontWeight.ExtraBold,
+                letterSpacing = (-0.5).sp,
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -229,15 +247,16 @@ fun LyricsLine(
             romanizedText?.let { romanized ->
                 Text(
                     text = romanized,
-                    fontSize = 18.sp,
-                    color = textColor.copy(alpha = 0.8f),
+                    fontSize = (textSize * 0.7f).sp, // Scaled romanized text
+                    color = textColor.copy(alpha = 0.6f),
                     textAlign = when (lyricsTextPosition) {
                         LyricsPosition.LEFT -> TextAlign.Left
                         LyricsPosition.CENTER -> TextAlign.Center
                         LyricsPosition.RIGHT -> TextAlign.Right
                     },
-                    fontWeight = FontWeight.Normal,
-                    modifier = Modifier.padding(top = 2.dp).fillMaxWidth()
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = (-0.2).sp,
+                    modifier = Modifier.padding(top = 4.dp).fillMaxWidth()
                 )
             }
         }

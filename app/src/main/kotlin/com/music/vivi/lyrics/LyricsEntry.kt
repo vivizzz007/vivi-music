@@ -10,7 +10,8 @@ data class LyricsEntry(
 ) : Comparable<LyricsEntry> {
     data class WordEntry(
         val time: Long,
-        val text: String
+        val text: String,
+        val duration: Long? = null
     )
 
     override fun compareTo(other: LyricsEntry): Int = (time - other.time).toInt()

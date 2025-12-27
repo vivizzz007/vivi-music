@@ -39,6 +39,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -70,8 +71,10 @@ import com.music.vivi.constants.GridItemsSizeKey
 import com.music.vivi.constants.HidePlayerThumbnailKey
 import com.music.vivi.constants.LibraryFilter
 import com.music.vivi.constants.LyricsClickKey
+import com.music.vivi.constants.LyricsLineSpacingKey
 import com.music.vivi.constants.LyricsScrollKey
 import com.music.vivi.constants.LyricsTextPositionKey
+import com.music.vivi.constants.LyricsTextSizeKey
 import com.music.vivi.constants.MiniPlayerGradientKey
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PlayerBackgroundStyleKey
@@ -263,10 +266,20 @@ fun AppearanceSettings(
     )
 
 
-    val availableBackgroundStyles = PlayerBackgroundStyle.entries.filter {
-        it != PlayerBackgroundStyle.BLUR || Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-    }
+    val (lyricsTextSize, onLyricsTextSizeChange) = rememberPreference(
+        LyricsTextSizeKey,
+        defaultValue = 28f
+    )
+    val (lyricsLineSpacing, onLyricsLineSpacingChange) = rememberPreference(
+        LyricsLineSpacingKey,
+        defaultValue = 6f
+    )
 
+    val availableBackgroundStyles = remember(Build.VERSION.SDK_INT) {
+        PlayerBackgroundStyle.entries.filter {
+            it != PlayerBackgroundStyle.BLUR || Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+        }
+    }
 
     var showSliderOptionDialog by rememberSaveable { mutableStateOf(false) }
     var showSensitivityDialog by rememberSaveable { mutableStateOf(false) }
@@ -277,6 +290,140 @@ fun AppearanceSettings(
     var showDefaultOpenTabDialog by rememberSaveable { mutableStateOf(false) }
     var showDefaultChipDialog by rememberSaveable { mutableStateOf(false) }
     var showGridItemSizeDialog by rememberSaveable { mutableStateOf(false) }
+    var showLyricsTextSizeDialog by rememberSaveable { mutableStateOf(false) }
+    var showLyricsLineSpacingDialog by rememberSaveable { mutableStateOf(false) }
+
+    // Lyrics Text Size Dialog
+    if (showLyricsTextSizeDialog) {
+        var tempTextSize by remember { mutableFloatStateOf(lyricsTextSize) }
+        val sliderState = rememberSliderState(
+            value = tempTextSize,
+            valueRange = 16f..48f,
+            steps = 31 // Snap to integer values (48 - 16 - 1 = 31 gaps)
+        )
+
+        DefaultDialog(
+            onDismiss = { showLyricsTextSizeDialog = false },
+            content = {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.lyrics_text_size),
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Size",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Text(
+                                text = "${sliderState.value.roundToInt()} sp",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        Slider(state = sliderState)
+                    }
+                }
+            },
+            buttons = {
+                TextButton(
+                    onClick = { sliderState.value = 28f }
+                ) {
+                    Text(stringResource(R.string.reset))
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                TextButton(onClick = { showLyricsTextSizeDialog = false }) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+                TextButton(
+                    onClick = {
+                        onLyricsTextSizeChange(sliderState.value)
+                        showLyricsTextSizeDialog = false
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.ok))
+                }
+            }
+        )
+    }
+
+    // Lyrics Line Spacing Dialog
+    if (showLyricsLineSpacingDialog) {
+        var tempLineSpacing by remember { mutableFloatStateOf(lyricsLineSpacing) }
+        val sliderState = rememberSliderState(
+            value = tempLineSpacing,
+            valueRange = 0f..32f,
+            steps = 31 // Snap to integer values (32 - 0 - 1 = 31 gaps)
+        )
+
+        DefaultDialog(
+            onDismiss = { showLyricsLineSpacingDialog = false },
+            content = {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.lyrics_line_spacing),
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Spacing",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Text(
+                                text = "${sliderState.value.roundToInt()} dp",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        Slider(state = sliderState)
+                    }
+                }
+            },
+            buttons = {
+                TextButton(
+                    onClick = { sliderState.value = 6f }
+                ) {
+                    Text(stringResource(R.string.reset))
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                TextButton(onClick = { showLyricsLineSpacingDialog = false }) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+                TextButton(
+                    onClick = {
+                        onLyricsLineSpacingChange(sliderState.value)
+                        showLyricsLineSpacingDialog = false
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.ok))
+                }
+            }
+        )
+    }
 
     // Slider Style Dialog
     if (showSliderOptionDialog) {
@@ -304,13 +451,8 @@ fun AppearanceSettings(
                             }
                             .padding(16.dp)
                     ) {
-                        var sliderValue by remember { mutableFloatStateOf(0.5f) }
-                        Slider(
-                            value = sliderValue,
-                            valueRange = 0f..1f,
-                            onValueChange = { sliderValue = it },
-                            modifier = Modifier.weight(1f)
-                        )
+                        val state = rememberSliderState(value = 0.5f)
+                        Slider(state = state, modifier = Modifier.weight(1f))
                         Text(
                             text = stringResource(R.string.default_),
                             style = MaterialTheme.typography.labelLarge
@@ -364,11 +506,9 @@ fun AppearanceSettings(
                             }
                             .padding(16.dp)
                     ) {
-                        var sliderValue by remember { mutableFloatStateOf(0.5f) }
+                        val state = rememberSliderState(value = 0.5f)
                         Slider(
-                            value = sliderValue,
-                            valueRange = 0f..1f,
-                            onValueChange = { sliderValue = it },
+                            state = state,
                             thumb = { Spacer(modifier = Modifier.size(0.dp)) },
                             track = { sliderState ->
                                 PlayerSliderTrack(
@@ -400,6 +540,10 @@ fun AppearanceSettings(
     // Swipe Sensitivity Dialog
     if (showSensitivityDialog) {
         var tempSensitivity by remember { mutableFloatStateOf(swipeSensitivity) }
+        val sliderState = rememberSliderState(
+            value = tempSensitivity,
+            valueRange = 0f..1f
+        )
 
         DefaultDialog(
             onDismiss = {
@@ -417,23 +561,18 @@ fun AppearanceSettings(
                     )
 
                     Text(
-                        text = stringResource(R.string.sensitivity_percentage, (tempSensitivity * 100).roundToInt()),
+                        text = stringResource(R.string.sensitivity_percentage, (sliderState.value * 100).roundToInt()),
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
 
-                    Slider(
-                        value = tempSensitivity,
-                        onValueChange = { tempSensitivity = it },
-                        valueRange = 0f..1f,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    Slider(state = sliderState)
                 }
             },
             buttons = {
                 TextButton(
                     onClick = {
-                        tempSensitivity = 0.73f
+                        sliderState.value = 0.73f
                     }
                 ) {
                     Text(stringResource(R.string.reset))
@@ -450,7 +589,7 @@ fun AppearanceSettings(
                 }
                 TextButton(
                     onClick = {
-                        onSwipeSensitivityChange(tempSensitivity)
+                        onSwipeSensitivityChange(sliderState.value)
                         showSensitivityDialog = false
                     }
                 ) {
@@ -1261,6 +1400,38 @@ fun AppearanceSettings(
                                     modifier = Modifier.padding(end = 20.dp)
                                 )
                             }
+
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                            )
+
+                            ModernInfoItem(
+                                icon = { Icon(painterResource(R.drawable.tune), null, modifier = Modifier.size(22.dp)) },
+                                title = stringResource(R.string.lyrics_text_size),
+                                subtitle = "${lyricsTextSize.roundToInt()} sp",
+                                onClick = { showLyricsTextSizeDialog = true },
+                                showArrow = true,
+                                showSettingsIcon = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
+                            )
+
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                            )
+
+                            ModernInfoItem(
+                                icon = { Icon(painterResource(R.drawable.tune), null, modifier = Modifier.size(22.dp)) },
+                                title = stringResource(R.string.lyrics_line_spacing),
+                                subtitle = "${lyricsLineSpacing.roundToInt()} dp",
+                                onClick = { showLyricsLineSpacingDialog = true },
+                                showArrow = true,
+                                showSettingsIcon = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
+                            )
                         }
                     }
                 }

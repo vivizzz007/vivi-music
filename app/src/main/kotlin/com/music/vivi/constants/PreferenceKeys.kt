@@ -326,6 +326,8 @@ val LyricsRomanizeMacedonianKey = booleanPreferencesKey("lyricsRomanizeMacedonia
 val LyricsRomanizeCyrillicByLineKey = booleanPreferencesKey("lyricsRomanizeCyrillicByLine")
 val TranslateLyricsKey = booleanPreferencesKey("translateLyrics")
 val SettingsShapeColorTertiaryKey = booleanPreferencesKey("settings_shape_color_tertiary")
+val LyricsTextSizeKey = floatPreferencesKey("lyricsTextSize")
+val LyricsLineSpacingKey = floatPreferencesKey("lyricsLineSpacing")
 
 val PlayerVolumeKey = floatPreferencesKey("playerVolume")
 val RepeatModeKey = intPreferencesKey("repeatMode")

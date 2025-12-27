@@ -111,6 +111,8 @@ import com.music.vivi.constants.LyricsRomanizeUkrainianKey
 import com.music.vivi.constants.LyricsRomanizeMacedonianKey
 import com.music.vivi.constants.LyricsScrollKey
 import com.music.vivi.constants.LyricsTextPositionKey
+import com.music.vivi.constants.LyricsTextSizeKey
+import com.music.vivi.constants.LyricsLineSpacingKey
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PlayerBackgroundStyleKey
 import com.music.vivi.db.entities.LyricsEntity.Companion.LYRICS_NOT_FOUND
@@ -161,7 +163,19 @@ fun Lyrics(
     val landscapeOffset =
         configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
-    val lyricsTextPosition by rememberEnumPreference(LyricsTextPositionKey, LyricsPosition.LEFT)
+    val (lyricsTextPosition, onLyricsPositionChange) = rememberEnumPreference(
+        LyricsTextPositionKey,
+        defaultValue = LyricsPosition.LEFT
+    )
+
+    val (lyricsTextSize) = rememberPreference(
+        LyricsTextSizeKey,
+        defaultValue = 28f
+    )
+    val (lyricsLineSpacing) = rememberPreference(
+        LyricsLineSpacingKey,
+        defaultValue = 6f
+    )
     val changeLyrics by rememberPreference(LyricsClickKey, true)
     val scrollLyrics by rememberPreference(LyricsScrollKey, true)
     val romanizeJapaneseLyrics by rememberPreference(LyricsRomanizeJapaneseKey, true)
@@ -467,7 +481,7 @@ fun Lyrics(
                 lines,
                 currentTime
             )
-            delay(50)
+            delay(16)
         }
     }
 
@@ -635,6 +649,8 @@ fun Lyrics(
                                             romanizeBelarusianLyrics ||
                                             romanizeKyrgyzLyrics ||
                                             romanizeMacedonianLyrics),
+                            textSize = lyricsTextSize,
+                            lineSpacing = lyricsLineSpacing,
                             onClick = {
                                 if (isSelectionModeActive) {
                                     if (isSelected) {
