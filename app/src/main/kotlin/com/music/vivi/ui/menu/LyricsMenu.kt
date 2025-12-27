@@ -57,6 +57,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.music.vivi.LocalDatabase
 import com.music.vivi.R
+import com.music.vivi.constants.LyricsWordForWordKey
 import com.music.vivi.constants.SwipeGestureEnabledKey
 import com.music.vivi.db.entities.LyricsEntity
 import com.music.vivi.db.entities.SongEntity
@@ -515,6 +516,55 @@ fun LyricsMenu(
                         scope.launch {
                             dataStore.edit { settings ->
                                 settings[SwipeGestureEnabledKey] = enabled
+                            }
+                        }
+                    }
+                )
+            }
+
+            // Word-for-word lyrics
+            val lyricsWordForWord by dataStore.data
+                .map { it[LyricsWordForWordKey] ?: true }
+                .collectAsState(initial = true)
+
+            FilledTonalButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 66.dp),
+                shape = CircleShape,
+                onClick = {
+                    scope.launch {
+                        dataStore.edit { settings ->
+                            settings[LyricsWordForWordKey] = !(lyricsWordForWord)
+                        }
+                    }
+                }
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.lyrics),
+                    contentDescription = "Word-for-word icon"
+                )
+                Spacer(Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "Word-for-word lyrics",
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        "Highlight words discretely",
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                ModernSwitch(
+                    checked = lyricsWordForWord,
+                    onCheckedChange = { enabled ->
+                        scope.launch {
+                            dataStore.edit { settings ->
+                                settings[LyricsWordForWordKey] = enabled
                             }
                         }
                     }
