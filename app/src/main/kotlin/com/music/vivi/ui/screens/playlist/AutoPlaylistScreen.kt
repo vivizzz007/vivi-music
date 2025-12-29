@@ -601,11 +601,7 @@ fun AutoPlaylistScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp)
-                                .padding(horizontal = 16.dp)
                         ) {
-                            if (isFirst) {
-                                Spacer(modifier = Modifier.height(8.dp))
-                            }
 
                             Box(
                                 modifier = Modifier

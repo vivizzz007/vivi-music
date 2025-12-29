@@ -145,8 +145,8 @@ fun CachePlaylistScreen(
             SongSortType.PLAY_TIME -> cachedSongs.sortedBy { it.song.totalPlayTime }
         }.let { if (sortDescending) it.reversed() else it }
 
-        sortedSongs.map { song -> ItemWrapper(song) }
-    }.toMutableStateList()
+        sortedSongs.map { song -> ItemWrapper(song) }.toMutableStateList()
+    }
 
     var selection by remember { mutableStateOf(false) }
     var isSearching by remember { mutableStateOf(false) }
@@ -171,7 +171,7 @@ fun CachePlaylistScreen(
         }
     }
 
-    val filteredSongs = remember(wrappedSongs, query) {
+    val filteredSongs = remember(wrappedSongs, query.text) {
         if (query.text.isEmpty()) wrappedSongs
         else wrappedSongs.filter { wrapper ->
             val song = wrapper.item
@@ -413,100 +413,101 @@ fun CachePlaylistScreen(
 
                 // Songs List with Quick Pick style
                 if (filteredSongs.isNotEmpty()) {
-                    item(key = "songs_container") {
+                    itemsIndexed(
+                        items = filteredSongs,
+                        key = { _, songWrapper -> songWrapper.item.id },
+                        contentType = { _, _ -> "song" }
+                    ) { index, songWrapper ->
+                        val isFirst = index == 0
+                        val isLast = index == filteredSongs.size - 1
+                        val isActive = songWrapper.item.id == mediaMetadata?.id
+                        val isSingleSong = filteredSongs.size == 1
+
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp)
                         ) {
-                            filteredSongs.forEachIndexed { index, songWrapper ->
-                                val isFirst = index == 0
-                                val isLast = index == filteredSongs.size - 1
-                                val isActive = songWrapper.item.id == mediaMetadata?.id
-                                val isSingleSong = filteredSongs.size == 1
-
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(ListItemHeight)
-                                        .clip(
-                                            RoundedCornerShape(
-                                                topStart = if (isFirst) 20.dp else 0.dp,
-                                                topEnd = if (isFirst) 20.dp else 0.dp,
-                                                bottomStart = if (isLast && !isSingleSong) 20.dp else 0.dp,
-                                                bottomEnd = if (isLast && !isSingleSong) 20.dp else 0.dp
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(ListItemHeight)
+                                    .clip(
+                                        RoundedCornerShape(
+                                            topStart = if (isFirst) 20.dp else 0.dp,
+                                            topEnd = if (isFirst) 20.dp else 0.dp,
+                                            bottomStart = if (isLast && !isSingleSong) 20.dp else 0.dp,
+                                            bottomEnd = if (isLast && !isSingleSong) 20.dp else 0.dp
+                                        )
+                                    )
+                                    .background(
+                                        if (isActive) MaterialTheme.colorScheme.secondaryContainer
+                                        else MaterialTheme.colorScheme.surfaceContainer
+                                    )
+                            ) {
+                                SongListItem(
+                                    song = songWrapper.item,
+                                    isActive = isActive,
+                                    isPlaying = isPlaying,
+                                    showInLibraryIcon = true,
+                                    isSwipeable = false,
+                                    trailingContent = {
+                                        IconButton(
+                                            onClick = {
+                                                menuState.show {
+                                                    SongMenu(
+                                                        originalSong = songWrapper.item,
+                                                        navController = navController,
+                                                        onDismiss = menuState::dismiss,
+                                                        isFromCache = true,
+                                                    )
+                                                }
+                                            },
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.more_vert),
+                                                contentDescription = null,
                                             )
-                                        )
-                                        .background(
-                                            if (isActive) MaterialTheme.colorScheme.secondaryContainer
-                                            else MaterialTheme.colorScheme.surfaceContainer
-                                        )
-                                ) {
-                                    SongListItem(
-                                        song = songWrapper.item,
-                                        isActive = isActive,
-                                        isPlaying = isPlaying,
-                                        showInLibraryIcon = true,
-                                        isSwipeable = false,
-                                        trailingContent = {
-                                            IconButton(
-                                                onClick = {
-                                                    menuState.show {
-                                                        SongMenu(
-                                                            originalSong = songWrapper.item,
-                                                            navController = navController,
-                                                            onDismiss = menuState::dismiss,
-                                                            isFromCache = true,
+                                        }
+                                    },
+                                    isSelected = songWrapper.isSelected && selection,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .combinedClickable(
+                                            onClick = {
+                                                if (!selection) {
+                                                    if (songWrapper.item.id == mediaMetadata?.id) {
+                                                        playerConnection.player.togglePlayPause()
+                                                    } else {
+                                                        playerConnection.playQueue(
+                                                            ListQueue(
+                                                                title = "Cache Songs",
+                                                                items = cachedSongs.map { it.toMediaItem() },
+                                                                startIndex = cachedSongs.indexOfFirst { it.id == songWrapper.item.id }
+                                                            )
                                                         )
                                                     }
-                                                },
-                                            ) {
-                                                Icon(
-                                                    painter = painterResource(R.drawable.more_vert),
-                                                    contentDescription = null,
-                                                )
-                                            }
-                                        },
-                                        isSelected = songWrapper.isSelected && selection,
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .combinedClickable(
-                                                onClick = {
-                                                    if (!selection) {
-                                                        if (songWrapper.item.id == mediaMetadata?.id) {
-                                                            playerConnection.player.togglePlayPause()
-                                                        } else {
-                                                            playerConnection.playQueue(
-                                                                ListQueue(
-                                                                    title = "Cache Songs",
-                                                                    items = cachedSongs.map { it.toMediaItem() },
-                                                                    startIndex = cachedSongs.indexOfFirst { it.id == songWrapper.item.id }
-                                                                )
-                                                            )
-                                                        }
-                                                    } else {
-                                                        songWrapper.isSelected = !songWrapper.isSelected
-                                                    }
-                                                },
-                                                onLongClick = {
-                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                    if (!selection) {
-                                                        selection = true
-                                                    }
-                                                    wrappedSongs.forEach { it.isSelected = false }
-                                                    songWrapper.isSelected = true
-                                                },
-                                            ),
-                                    )
-                                }
-
-                                // Add 3dp spacer between items (except after last)
-                                if (!isLast) {
-                                    Spacer(modifier = Modifier.height(3.dp))
-                                }
+                                                } else {
+                                                    songWrapper.isSelected = !songWrapper.isSelected
+                                                }
+                                            },
+                                            onLongClick = {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                if (!selection) {
+                                                    selection = true
+                                                }
+                                                wrappedSongs.forEach { it.isSelected = false }
+                                                songWrapper.isSelected = true
+                                            },
+                                        ),
+                                )
                             }
-
-                            Spacer(modifier = Modifier.height(16.dp))
+                            // Add 3dp spacer between items (except after last)
+                            if (!isLast) {
+                                Spacer(modifier = Modifier.height(3.dp))
+                            } else {
+                                Spacer(modifier = Modifier.height(16.dp))
+                            }
                         }
                     }
                 }
@@ -521,7 +522,7 @@ fun CachePlaylistScreen(
                 )
                 .align(Alignment.CenterEnd),
             scrollState = lazyListState,
-            headerItems = 2
+            headerItems = if (filteredSongs.isNotEmpty() && !isSearching) 1 else 0
         )
 
         // Top App Bar
