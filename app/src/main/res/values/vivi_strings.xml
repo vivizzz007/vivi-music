@@ -286,4 +286,17 @@
     <string name="swipe_song_to_remove">Swipe song to remove it from the playlist</string>
     <string name="rotating_thumbnail">Rotating Thumbnail</string>
 
+    <!-- Contribution Screen Strings -->
+    <string name="contributors">Contributors</string>
+    <string name="contributors_subtitle">Amazing people who made this project better</string>
+    <string name="refresh_contributors">Refresh Contributors</string>
+    <string name="no_contributors_found">No contributors found</string>
+
+    <!-- Error Messages -->
+    <string name="error_failed_to_load_contributors">Failed to load contributors (%d)</string>
+    <string name="error_loading_contributors">Error loading contributors: %s</string>
+
+    <!-- Accessibility -->
+    <string name="contributor_avatar">Avatar of %s</string>
+    <string name="github_profile">GitHub Profile</string>
 </resources>

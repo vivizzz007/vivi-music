@@ -31,6 +31,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -53,14 +54,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.music.vivi.R
+import com.music.vivi.update.settingstyle.Material3Expressive
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -85,6 +89,7 @@ fun ContributionScreen(
     val scrollState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val pullToRefreshState = rememberPullToRefreshState()
+    val context = LocalContext.current
 
     var contributors by remember { mutableStateOf<List<Contributor>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
@@ -125,12 +130,12 @@ fun ContributionScreen(
                     contributors = contributorsList
                     error = null
                 } else {
-                    error = "Failed to load contributors (${connection.responseCode})"
+                    error = context.getString(R.string.error_failed_to_load_contributors, connection.responseCode)
                 }
                 connection.disconnect()
             } catch (e: Exception) {
                 e.printStackTrace()
-                error = "Error loading contributors: ${e.localizedMessage}"
+                error = context.getString(R.string.error_loading_contributors, e.localizedMessage)
             }
         }
     }
@@ -187,7 +192,7 @@ fun ContributionScreen(
                             IconButton(onClick = navController::navigateUp) {
                                 Icon(
                                     painterResource(R.drawable.arrow_back),
-                                    contentDescription = null,
+                                    contentDescription = context.getString(R.string.back),
                                     modifier = Modifier.size(28.dp)
                                 )
                             }
@@ -200,7 +205,7 @@ fun ContributionScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Filled.Refresh,
-                                    contentDescription = "Refresh Contributors",
+                                    contentDescription = context.getString(R.string.refresh_contributors),
                                     modifier = Modifier
                                         .size(24.dp)
                                         .then(
@@ -224,8 +229,7 @@ fun ContributionScreen(
                         )
                     )
                     if (isLoading) {
-                        androidx.compose.material3.LinearProgressIndicator(
-                            progress = { loadingProgress },
+                        LinearWavyProgressIndicator(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(6.dp),
@@ -261,7 +265,7 @@ fun ContributionScreen(
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp)
                         ) {
                             Text(
-                                text = "Contributors",
+                                text = stringResource(R.string.contributors),
                                 style = MaterialTheme.typography.headlineLarge.copy(
                                     fontWeight = FontWeight.Bold
                                 ),
@@ -269,7 +273,7 @@ fun ContributionScreen(
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "Amazing people who made this project better",
+                                text = stringResource(R.string.contributors_subtitle),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -293,7 +297,7 @@ fun ContributionScreen(
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
                                         Text(
-                                            text = error ?: "Unknown error",
+                                            text = error ?: stringResource(R.string.error_unknown),
                                             color = MaterialTheme.colorScheme.onErrorContainer,
                                             textAlign = TextAlign.Center
                                         )
@@ -304,7 +308,7 @@ fun ContributionScreen(
                                                 containerColor = MaterialTheme.colorScheme.error
                                             )
                                         ) {
-                                            Text("Retry")
+                                            Text(stringResource(R.string.retry))
                                         }
                                     }
                                 }
@@ -313,7 +317,7 @@ fun ContributionScreen(
 
                         contributors.isNotEmpty() -> {
                             item {
-                                ContributorGroupSection(
+                                Material3Expressive(
                                     contributors = contributors,
                                     onGitHubClick = { username ->
                                         uriHandler.openUri("https://github.com/$username")
@@ -325,7 +329,7 @@ fun ContributionScreen(
                         !isLoading -> {
                             item {
                                 Text(
-                                    text = "No contributors found",
+                                    text = stringResource(R.string.no_contributors_found),
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(32.dp),
@@ -345,110 +349,4 @@ fun ContributionScreen(
     }
 }
 
-@Composable
-fun ContributorGroupSection(
-    contributors: List<Contributor>,
-    onGitHubClick: (String) -> Unit
-) {
-    val cornerRadius = 16.dp
-    val connectionRadius = 5.dp
 
-    val topShape = RoundedCornerShape(
-        topStart = cornerRadius,
-        topEnd = cornerRadius,
-        bottomStart = connectionRadius,
-        bottomEnd = connectionRadius
-    )
-    val middleShape = RoundedCornerShape(connectionRadius)
-    val bottomShape = RoundedCornerShape(
-        topStart = connectionRadius,
-        topEnd = connectionRadius,
-        bottomStart = cornerRadius,
-        bottomEnd = cornerRadius
-    )
-    val singleShape = RoundedCornerShape(cornerRadius)
-
-    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-        Column(
-            modifier = Modifier.clip(
-                if (contributors.size == 1) singleShape else RoundedCornerShape(cornerRadius)
-            ),
-            verticalArrangement = Arrangement.spacedBy(2.dp)
-        ) {
-            contributors.forEachIndexed { index, contributor ->
-                val shape = when {
-                    contributors.size == 1 -> singleShape
-                    index == 0 -> topShape
-                    index == contributors.size - 1 -> bottomShape
-                    else -> middleShape
-                }
-
-                Column(
-                    modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainer, shape)
-                ) {
-                    ContributorCard(
-                        contributor = contributor,
-                        onGitHubClick = { onGitHubClick(contributor.githubUsername) }
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ContributorCard(
-    contributor: Contributor,
-    onGitHubClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        AsyncImage(
-            model = contributor.avatarUrl,
-            contentDescription = contributor.name,
-            modifier = Modifier
-                .size(56.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primaryContainer),
-            contentScale = ContentScale.Crop
-        )
-
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = contributor.name,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Medium
-                ),
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "@${contributor.githubUsername}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1
-            )
-        }
-
-        IconButton(
-            onClick = onGitHubClick,
-            modifier = Modifier.size(40.dp)
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.github),
-                contentDescription = "GitHub Profile",
-                modifier = Modifier.size(24.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-        }
-    }
-}
