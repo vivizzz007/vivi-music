@@ -1,5 +1,7 @@
 package com.music.vivi.ui.component
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,6 +20,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -58,9 +62,9 @@ fun LyricsLine(
         if (nextEntryTime != null) nextEntryTime - entry.time else 4000L
     }
 
-    // Heuristic: Active highlighting should span about 90% of the duration
+    // Heuristic: Active highlighting should span about 95% of the duration for tighter feel
     val activeDuration = remember(duration) {
-        (duration * 0.9).toLong().coerceAtLeast(500L)
+        (duration * 0.95).toLong().coerceAtLeast(300L)
     }
 
     // Segment the line into words with their own time windows
@@ -100,9 +104,15 @@ fun LyricsLine(
         }
     }
 
+    // Apple Music Style: Blur inactive lines
+    val blurRadius by animateFloatAsState(
+        targetValue = if (isActive || !isSynced || isSelectionModeActive || !isWordForWord) 0f else if (distanceFromCurrent == 1) 1f else 3f,
+        animationSpec = tween(durationMillis = 600), label = "blur"
+    )
+
     val itemModifier = modifier
         .fillMaxWidth()
-        .clip(RoundedCornerShape(12.dp))
+        .clip(RoundedCornerShape(16.dp)) // Rounder corners
         .combinedClickable(
             enabled = true,
             onClick = onClick,
@@ -110,29 +120,30 @@ fun LyricsLine(
         )
         .background(
             if (isSelected && isSelectionModeActive)
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
             else Color.Transparent
         )
-        .padding(horizontal = 24.dp, vertical = lineSpacing.dp)
+        .padding(horizontal = 24.dp, vertical = (lineSpacing + 4).dp) // Slightly more breathing room
         .graphicsLayer {
             val targetAlpha = when {
                 !isSynced || (isSelectionModeActive && isSelected) -> 1f
                 isActive -> 1f
-                distanceFromCurrent == 1 -> 0.6f
-                distanceFromCurrent == 2 -> 0.3f
-                distanceFromCurrent >= 3 -> 0.15f
-                else -> 0.1f
+                distanceFromCurrent == 1 -> 0.5f // High contrast
+                distanceFromCurrent == 2 -> 0.25f
+                else -> 0.15f
             }
             alpha = targetAlpha
 
+            // Smooth scaling for active line
             val targetScale = when {
                 !isSynced || isActive -> 1f
-                distanceFromCurrent == 1 -> 0.98f
-                else -> 0.95f
+                distanceFromCurrent == 1 -> 0.95f
+                else -> 0.9f
             }
             scaleX = targetScale
             scaleY = targetScale
         }
+        .blur(blurRadius.dp)
 
     Column(
         modifier = itemModifier,
@@ -142,42 +153,31 @@ fun LyricsLine(
             LyricsPosition.RIGHT -> Alignment.End
         }
     ) {
-        if (isActive && isSynced) {
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
+        if (entry.isInstrumental) {
+            InstrumentalDots(
+                dotColor = textColor,
+                modifier = Modifier.alpha(if (isActive) 1f else 0.4f),
                 horizontalArrangement = when (lyricsTextPosition) {
                     LyricsPosition.LEFT -> Arrangement.Start
                     LyricsPosition.CENTER -> Arrangement.Center
                     LyricsPosition.RIGHT -> Arrangement.End
                 }
-            ) {
-                wordData.forEachIndexed { index, (word, startRelative, endRelative) ->
-                    val lineRelTime = (currentTime - entry.time).coerceAtLeast(0L)
+            )
+        } else if (isActive && isSynced) {
+            if (isWordForWord) {
+                // Apple Music Style: Smooth Karaoke Fill
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = when (lyricsTextPosition) {
+                        LyricsPosition.LEFT -> Arrangement.Start
+                        LyricsPosition.CENTER -> Arrangement.Center
+                        LyricsPosition.RIGHT -> Arrangement.End
+                    }
+                ) {
+                    wordData.forEachIndexed { index, (word, startRelative, endRelative) ->
+                        val lineRelTime = (currentTime - entry.time).coerceAtLeast(0L)
 
-                    if (isWordForWord) {
-                        // Discrete word-for-word highlighting (no animation)
-                        val isWordActive = lineRelTime >= startRelative
-                        val wordColor = if (isWordActive) textColor else textColor.copy(alpha = 0.25f)
-
-                        Text(
-                            // Add trailing space back for all but last word
-                            text = if (index != wordData.lastIndex) "$word " else word,
-                            fontSize = textSize.sp, // Use dynamic size
-                            color = wordColor,
-                            style = TextStyle(
-                                // Subtle shadow for better pop on vibrant backgrounds
-                                shadow = androidx.compose.ui.graphics.Shadow(
-                                    color = Color.Black.copy(alpha = 0.15f),
-                                    offset = Offset(0f, 2f),
-                                    blurRadius = 4f
-                                )
-                            ),
-                            fontWeight = FontWeight.ExtraBold,
-                            letterSpacing = (-0.5).sp // Modern tight tracking
-                        )
-                    } else {
-                        // Smooth "Glow" animation
-                        // Calculate progress for THIS specific word (0 to 1)
+                        // Smooth "Karaoke" fill animation
                         val wordProgress by remember(lineRelTime, startRelative, endRelative) {
                             derivedStateOf {
                                 when {
@@ -192,75 +192,52 @@ fun LyricsLine(
                             }
                         }
 
-                        // Premium Brush: Soft Leading Edge (Glow Effect)
-                        val brush = remember(wordProgress, textColor) {
-                            val activeColor = textColor
-                            val inactiveColor = textColor.copy(alpha = 0.25f) // More dim for future words
-                            val edgeWidth = 0.25f // Wider edge for a softer, glowy fill
-
-                            when {
-                                wordProgress <= 0f -> Brush.linearGradient(colors = listOf(inactiveColor, inactiveColor))
-                                wordProgress >= 1f -> Brush.linearGradient(colors = listOf(activeColor, activeColor))
-                                else -> {
-                                    val stops = mutableListOf<Pair<Float, Color>>()
-
-                                    // Soft gradient from filled to empty
-                                    val fillEnd = (wordProgress - edgeWidth / 2).coerceAtLeast(0f)
-                                    val glowEnd = (wordProgress + edgeWidth / 2).coerceAtMost(1f)
-
-                                    if (fillEnd > 0f) {
-                                        stops.add(0f to activeColor)
-                                        stops.add(fillEnd to activeColor)
-                                    }
-
-                                    // The "Glow" bridge
-                                    stops.add(fillEnd to activeColor)
-                                    stops.add(glowEnd to inactiveColor)
-
-                                    if (glowEnd < 1f) {
-                                        stops.add(glowEnd to inactiveColor)
-                                        stops.add(1f to inactiveColor)
-                                    }
-
-                                    Brush.horizontalGradient(
-                                        colorStops = stops.toTypedArray(),
-                                        tileMode = TileMode.Clamp
-                                    )
-                                }
-                            }
+                        // Use opacity for filling to guarantee smooth performance
+                        // 0.3f (inactive) -> 1.0f (active) based on progress
+                        val wordAlpha = when {
+                            wordProgress >= 1f -> 1f
+                            wordProgress <= 0f -> 0.3f
+                            else -> 0.3f + (0.7f * wordProgress)
                         }
-
+                        
+                        // Ensure we use the exact same style as the sentence mode for seamlessness
                         Text(
-                            // Add trailing space back for all but last word
                             text = if (index != wordData.lastIndex) "$word " else word,
-                            fontSize = textSize.sp, // Use dynamic size
-                            style = TextStyle(
-                                brush = brush,
-                                // Subtle shadow for better pop on vibrant backgrounds
-                                shadow = androidx.compose.ui.graphics.Shadow(
-                                    color = Color.Black.copy(alpha = 0.15f),
-                                    offset = Offset(0f, 2f),
-                                    blurRadius = 4f
-                                )
-                            ),
-                            fontWeight = FontWeight.ExtraBold,
-                            letterSpacing = (-0.5).sp // Modern tight tracking
+                            fontSize = textSize.sp,
+                            color = textColor.copy(alpha = wordAlpha),
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = (-0.5).sp
                         )
                     }
                 }
+            } else {
+                // Sentence Animation: Simple Line Highlighting (No word-level effects)
+                Text(
+                    text = entry.text,
+                    fontSize = textSize.sp,
+                    color = textColor, // Full active color
+                    textAlign = when (lyricsTextPosition) {
+                        LyricsPosition.LEFT -> TextAlign.Left
+                        LyricsPosition.CENTER -> TextAlign.Center
+                        LyricsPosition.RIGHT -> TextAlign.Right
+                    },
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = (-0.5).sp,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         } else {
             // Inactive line
             Text(
                 text = entry.text,
                 fontSize = textSize.sp,
-                color = textColor,
+                color = textColor.copy(alpha = 1f), // Alpha handled by graphicsLayer
                 textAlign = when (lyricsTextPosition) {
                     LyricsPosition.LEFT -> TextAlign.Left
                     LyricsPosition.CENTER -> TextAlign.Center
                     LyricsPosition.RIGHT -> TextAlign.Right
                 },
-                fontWeight = FontWeight.ExtraBold,
+                fontWeight = FontWeight.Bold,
                 letterSpacing = (-0.5).sp,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -272,16 +249,16 @@ fun LyricsLine(
             romanizedText?.let { romanized ->
                 Text(
                     text = romanized,
-                    fontSize = (textSize * 0.7f).sp, // Scaled romanized text
+                    fontSize = (textSize * 0.65f).sp,
                     color = textColor.copy(alpha = 0.6f),
                     textAlign = when (lyricsTextPosition) {
                         LyricsPosition.LEFT -> TextAlign.Left
                         LyricsPosition.CENTER -> TextAlign.Center
                         LyricsPosition.RIGHT -> TextAlign.Right
                     },
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     letterSpacing = (-0.2).sp,
-                    modifier = Modifier.padding(top = 4.dp).fillMaxWidth()
+                    modifier = Modifier.padding(top = 2.dp).fillMaxWidth()
                 )
             }
         }

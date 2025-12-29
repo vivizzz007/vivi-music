@@ -6,6 +6,7 @@ data class LyricsEntry(
     val time: Long,
     val text: String,
     val words: List<WordEntry>? = null,
+    val isInstrumental: Boolean = false,
     val romanizedTextFlow: MutableStateFlow<String?> = MutableStateFlow(null)
 ) : Comparable<LyricsEntry> {
     data class WordEntry(

@@ -266,12 +266,64 @@ object LyricsUtils {
         Tokenizer()
     }
 
-    fun parseLyrics(lyrics: String): List<LyricsEntry> =
-        lyrics
+    fun parseLyrics(lyrics: String): List<LyricsEntry> {
+        val parsedEntries = lyrics
             .lines()
             .flatMap { line ->
                 parseLine(line).orEmpty()
             }.sorted()
+
+        if (parsedEntries.isEmpty()) return emptyList()
+
+        val entriesWithInstrumentals = mutableListOf<LyricsEntry>()
+        
+        // Gap detection threshold (milliseconds)
+        val introThreshold = 3000L
+        val breakThreshold = 7000L
+
+        // Detect intro instrumental
+        if (parsedEntries.first().time > introThreshold) {
+            entriesWithInstrumentals.add(LyricsEntry(0L, "", isInstrumental = true))
+        }
+
+        for (i in parsedEntries.indices) {
+            entriesWithInstrumentals.add(parsedEntries[i])
+            
+            // Detect instrumental breaks between lines
+            if (i < parsedEntries.lastIndex) {
+                val currentLine = parsedEntries[i]
+                val nextLine = parsedEntries[i + 1]
+                val gap = nextLine.time - currentLine.time
+                
+                if (gap > breakThreshold) {
+                    // Calculate a natural end for the current line
+                    // 1. If we have word timestamps, use the end of the last word
+                    // 2. Otherwise, estimate based on character count (100ms per char)
+                    val estimatedLineDuration = if (currentLine.words != null && currentLine.words.isNotEmpty()) {
+                        val lastWord = currentLine.words.last()
+                        if (lastWord.duration != null) {
+                            (lastWord.time + lastWord.duration) - currentLine.time
+                        } else {
+                            lastWord.time - currentLine.time + 300L // Small buffer for last word
+                        }
+                    } else {
+                        (currentLine.text.length * 100L).coerceIn(2000L, 5000L)
+                    }
+
+                    // Start instrumental dots after the line is finished + 1s buffer
+                    // But ensure we don't start after the NEXT line begins
+                    val instrumentalStart = (currentLine.time + estimatedLineDuration + 1000L)
+                        .coerceAtMost(nextLine.time - 2000L) // Ensure at least 2s for dots
+
+                    if (instrumentalStart > currentLine.time) {
+                        entriesWithInstrumentals.add(LyricsEntry(instrumentalStart, "", isInstrumental = true))
+                    }
+                }
+            }
+        }
+
+        return entriesWithInstrumentals
+    }
 
     private fun parseLine(line: String): List<LyricsEntry>? {
         if (line.isEmpty()) {

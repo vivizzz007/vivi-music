@@ -161,7 +161,7 @@ fun LyricsScreen(
     LaunchedEffect(playbackState) {
         if (playbackState == STATE_READY) {
             while (isActive) {
-                delay(100)
+                delay(16) // Update at ~60fps for perfect sync
                 position = player.currentPosition
                 duration = player.duration
             }
