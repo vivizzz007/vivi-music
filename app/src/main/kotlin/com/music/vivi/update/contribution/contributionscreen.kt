@@ -1,5 +1,10 @@
 package com.music.vivi.update.contribution
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,9 +21,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -27,15 +37,20 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
@@ -48,6 +63,7 @@ import coil3.compose.AsyncImage
 import com.music.vivi.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import java.net.HttpURLConnection
@@ -59,8 +75,7 @@ data class Contributor(
     val githubUsername: String
 )
 
-
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ContributionScreen(
     navController: NavController,
@@ -68,17 +83,62 @@ fun ContributionScreen(
 ) {
     val uriHandler = LocalUriHandler.current
     val scrollState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
+    val pullToRefreshState = rememberPullToRefreshState()
 
     var contributors by remember { mutableStateOf<List<Contributor>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
+    var isRefreshing by remember { mutableStateOf(false) }
     var loadingProgress by remember { mutableStateOf(0f) }
     var error by remember { mutableStateOf<String?>(null) }
 
-    // Fetch contributors from JSON with smooth progress animation
+    // Fetch function
+    suspend fun fetchContributors() {
+        withContext(Dispatchers.IO) {
+            try {
+                val apiUrl = "https://raw.githubusercontent.com/vivizzz007/vivi-music/main/NEW-UI/contribution/contribution.json"
+                val url = URL(apiUrl)
+                val connection = url.openConnection() as HttpURLConnection
+                connection.apply {
+                    requestMethod = "GET"
+                    connectTimeout = 15000
+                    readTimeout = 15000
+                    setRequestProperty("Cache-Control", "no-cache")
+                    useCaches = false
+                }
+
+                if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+                    val response = connection.inputStream.bufferedReader().use { it.readText() }
+                    val jsonArray = JSONArray(response)
+
+                    val contributorsList = mutableListOf<Contributor>()
+                    for (i in 0 until jsonArray.length()) {
+                        val jsonObject = jsonArray.getJSONObject(i)
+                        contributorsList.add(
+                            Contributor(
+                                name = jsonObject.getString("name"),
+                                avatarUrl = jsonObject.getString("avatarUrl"),
+                                githubUsername = jsonObject.getString("githubUsername")
+                            )
+                        )
+                    }
+                    contributors = contributorsList
+                    error = null
+                } else {
+                    error = "Failed to load contributors (${connection.responseCode})"
+                }
+                connection.disconnect()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                error = "Error loading contributors: ${e.localizedMessage}"
+            }
+        }
+    }
+
+    // Initial fetch with smooth progress animation
     LaunchedEffect(Unit) {
-        // Start progress animation
         val animationJob = async {
-            val animationDuration = 2000L // 2 seconds smooth animation
+            val animationDuration = 1500L
             val steps = 100
             val delayPerStep = animationDuration / steps
 
@@ -88,50 +148,22 @@ fun ContributionScreen(
             }
         }
 
-        // Fetch data
-        val fetchJob = async(Dispatchers.IO) {
-            try {
-                val apiUrl = "https://raw.githubusercontent.com/vivizzz007/vivi-music/main/NEW-UI/contribution/contribution.json"
-                val url = URL(apiUrl)
-                val connection = url.openConnection() as HttpURLConnection
-                connection.requestMethod = "GET"
-                connection.connectTimeout = 10000
-                connection.readTimeout = 10000
+        val fetchJob = async { fetchContributors() }
 
-                if (connection.responseCode == HttpURLConnection.HTTP_OK) {
-                    val inputStream = connection.inputStream
-                    val response = inputStream.bufferedReader().use { it.readText() }
-                    val jsonArray = JSONArray(response)
-
-                    val contributorsList = mutableListOf<Contributor>()
-                    for (i in 0 until jsonArray.length()) {
-                        val jsonObject = jsonArray.getJSONObject(i)
-                        val contributor = Contributor(
-                            name = jsonObject.getString("name"),
-                            avatarUrl = jsonObject.getString("avatarUrl"),
-                            githubUsername = jsonObject.getString("githubUsername")
-                        )
-                        contributorsList.add(contributor)
-                    }
-                    contributors = contributorsList
-                    inputStream.close()
-                } else {
-                    error = "Failed to load contributors (${connection.responseCode})"
-                }
-                connection.disconnect()
-            } catch (e: Exception) {
-                e.printStackTrace()
-                error = "Error loading contributors: ${e.message}"
-            }
-        }
-
-        // Wait for both animation and fetch to complete
         animationJob.await()
         fetchJob.await()
-
-        // Brief pause at 100%
-        kotlinx.coroutines.delay(300)
+        kotlinx.coroutines.delay(200)
         isLoading = false
+    }
+
+    // Pull to refresh handler
+    val onRefresh: () -> Unit = {
+        isRefreshing = true
+        coroutineScope.launch {
+            fetchContributors()
+            kotlinx.coroutines.delay(500) // Brief delay for smooth animation
+            isRefreshing = false
+        }
     }
 
     Box(
@@ -152,13 +184,36 @@ fun ContributionScreen(
                     TopAppBar(
                         title = { },
                         navigationIcon = {
-                            IconButton(
-                                onClick = navController::navigateUp
-                            ) {
+                            IconButton(onClick = navController::navigateUp) {
                                 Icon(
                                     painterResource(R.drawable.arrow_back),
                                     contentDescription = null,
                                     modifier = Modifier.size(28.dp)
+                                )
+                            }
+                        },
+                        actions = {
+                            // Accessible refresh button
+                            IconButton(
+                                onClick = onRefresh,
+                                enabled = !isRefreshing && !isLoading
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Refresh,
+                                    contentDescription = "Refresh Contributors",
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .then(
+                                            if (isRefreshing) Modifier.rotate(
+                                                animateFloatAsState(
+                                                    targetValue = 360f,
+                                                    animationSpec = infiniteRepeatable(
+                                                        animation = tween(1000, easing = LinearEasing),
+                                                        repeatMode = RepeatMode.Restart
+                                                    ), label = ""
+                                                ).value
+                                            ) else Modifier
+                                        )
                                 )
                             }
                         },
@@ -173,7 +228,7 @@ fun ContributionScreen(
                             progress = { loadingProgress },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(8.dp),
+                                .height(6.dp),
                             color = MaterialTheme.colorScheme.primary,
                             trackColor = MaterialTheme.colorScheme.surfaceVariant,
                         )
@@ -182,83 +237,108 @@ fun ContributionScreen(
             },
             containerColor = Color.Transparent
         ) { paddingValues ->
-            LazyColumn(
-                state = scrollState,
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(
-                    top = paddingValues.calculateTopPadding(),
-                    bottom = 32.dp
-                )
-            ) {
-                item {
-                    Column(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp)
-                    ) {
-                        Text(
-                            text = "Contributors",
-                            style = MaterialTheme.typography.headlineLarge.copy(
-                                fontWeight = FontWeight.Bold
-                            ),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Amazing people who made this project better",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+            PullToRefreshBox(
+                modifier = Modifier.padding(paddingValues),
+                state = pullToRefreshState,
+                isRefreshing = isRefreshing,
+                onRefresh = onRefresh,
+                indicator = {
+                    PullToRefreshDefaults.LoadingIndicator(
+                        state = pullToRefreshState,
+                        isRefreshing = isRefreshing,
+                        modifier = Modifier.align(Alignment.TopCenter),
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
-
-                when {
-                    error != null -> {
-                        item {
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.errorContainer
+            ) {
+                LazyColumn(
+                    state = scrollState,
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 32.dp)
+                ) {
+                    item {
+                        Column(
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp)
+                        ) {
+                            Text(
+                                text = "Contributors",
+                                style = MaterialTheme.typography.headlineLarge.copy(
+                                    fontWeight = FontWeight.Bold
                                 ),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Amazing people who made this project better",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    when {
+                        error != null -> {
+                            item {
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.errorContainer
+                                    ),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(16.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Text(
+                                            text = error ?: "Unknown error",
+                                            color = MaterialTheme.colorScheme.onErrorContainer,
+                                            textAlign = TextAlign.Center
+                                        )
+                                        Spacer(modifier = Modifier.height(12.dp))
+                                        Button(
+                                            onClick = onRefresh,
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = MaterialTheme.colorScheme.error
+                                            )
+                                        ) {
+                                            Text("Retry")
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        contributors.isNotEmpty() -> {
+                            item {
+                                ContributorGroupSection(
+                                    contributors = contributors,
+                                    onGitHubClick = { username ->
+                                        uriHandler.openUri("https://github.com/$username")
+                                    }
+                                )
+                            }
+                        }
+
+                        !isLoading -> {
+                            item {
                                 Text(
-                                    text = error ?: "Unknown error",
-                                    color = MaterialTheme.colorScheme.onErrorContainer,
-                                    modifier = Modifier.padding(16.dp),
-                                    textAlign = TextAlign.Center
+                                    text = "No contributors found",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(32.dp),
+                                    textAlign = TextAlign.Center,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
                     }
 
-                    contributors.isNotEmpty() -> {
-                        item {
-                            ContributorGroupSection(
-                                contributors = contributors,
-                                onGitHubClick = { username ->
-                                    uriHandler.openUri("https://github.com/$username")
-                                }
-                            )
-                        }
+                    item {
+                        Spacer(modifier = Modifier.height(80.dp))
                     }
-
-                    else -> {
-                        item {
-                            Text(
-                                text = "No contributors found",
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(32.dp),
-                                textAlign = TextAlign.Center,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
-
-                item {
-                    Spacer(modifier = Modifier.height(80.dp))
                 }
             }
         }
@@ -328,7 +408,6 @@ fun ContributorCard(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Avatar
         AsyncImage(
             model = contributor.avatarUrl,
             contentDescription = contributor.name,
@@ -339,7 +418,6 @@ fun ContributorCard(
             contentScale = ContentScale.Crop
         )
 
-        // Name Column
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.Center
@@ -353,7 +431,6 @@ fun ContributorCard(
                 maxLines = 1
             )
             Spacer(modifier = Modifier.height(4.dp))
-            // Add GitHub username here
             Text(
                 text = "@${contributor.githubUsername}",
                 style = MaterialTheme.typography.bodyMedium,
@@ -362,7 +439,6 @@ fun ContributorCard(
             )
         }
 
-        // GitHub Button
         IconButton(
             onClick = onGitHubClick,
             modifier = Modifier.size(40.dp)
