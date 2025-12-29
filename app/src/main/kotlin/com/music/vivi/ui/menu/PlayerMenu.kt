@@ -196,7 +196,7 @@ fun PlayerMenu(
         }
 
         NewActionGrid(
-            columns = 2,
+            columns = 3,
             actions = listOf(
                 NewAction(
                     icon = { Icon(painterResource(R.drawable.radio), null) },
@@ -259,6 +259,20 @@ fun PlayerMenu(
                         val clip = android.content.ClipData.newPlainText("Song Link", "https://music.youtube.com/watch?v=${mediaMetadata.id}")
                         clipboard.setPrimaryClip(clip)
                         Toast.makeText(context, R.string.link_copied, Toast.LENGTH_SHORT).show()
+                        onDismiss()
+                    },
+                    backgroundColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                ),
+                NewAction(
+                    icon = { Icon(painterResource(R.drawable.share), null) },
+                    text = stringResource(R.string.share),
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_TEXT, "${mediaMetadata.title} - https://music.youtube.com/watch?v=${mediaMetadata.id}")
+                        }
+                        context.startActivity(Intent.createChooser(intent, context.getString(R.string.share)))
                         onDismiss()
                     },
                     backgroundColor = MaterialTheme.colorScheme.secondaryContainer,
