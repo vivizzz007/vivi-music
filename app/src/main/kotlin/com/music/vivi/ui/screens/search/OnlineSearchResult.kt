@@ -101,6 +101,9 @@ fun OnlineSearchResult(
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
+    val isLoading = viewModel.isLoading
+    val error = viewModel.error
+
     val coroutineScope = rememberCoroutineScope()
     val lazyListState = rememberLazyListState()
 
@@ -313,13 +316,30 @@ fun OnlineSearchResult(
             }
         }
 
-        if (searchFilter == null && searchSummary == null || searchFilter != null && itemsPage == null) {
+        if (isLoading && searchFilter == null && searchSummary == null || isLoading && searchFilter != null && itemsPage == null) {
             item {
                 ShimmerHost {
                     repeat(8) {
                         ListItemPlaceHolder()
                     }
                 }
+            }
+        }
+
+        if (error != null) {
+            item {
+                EmptyPlaceholder(
+                    icon = R.drawable.search,
+                    text = stringResource(R.string.error_unknown),
+                    trailingContent = {
+                        androidx.compose.material3.Button(
+                            onClick = viewModel::retry,
+                            modifier = Modifier.padding(top = 16.dp)
+                        ) {
+                            Text(stringResource(R.string.retry))
+                        }
+                    }
+                )
             }
         }
     }

@@ -114,6 +114,9 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 import java.util.concurrent.TimeUnit
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import androidx.hilt.navigation.compose.hiltViewModel
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "dpi_settings")
 
@@ -134,7 +137,11 @@ data class GitHubAsset(
     val size: Long = 0L
 )
 
-class DpiSettingsViewModel(application: Application) : ViewModel() {
+@HiltViewModel
+class DpiSettingsViewModel @Inject constructor(
+    application: Application,
+    private val okHttpClient: OkHttpClient
+) : ViewModel() {
     private val dataStore = application.dataStore
     private val DPI_ENABLED_KEY = booleanPreferencesKey("dpi_enabled")
     private val DOWNLOADED_TAG_KEY = stringPreferencesKey("downloaded_tag")
@@ -274,14 +281,6 @@ class DpiSettingsViewModel(application: Application) : ViewModel() {
         viewModelScope.launch {
             _fetchState.value = FetchState.Loading
             try {
-                val client = OkHttpClient.Builder()
-                    .connectTimeout(30, TimeUnit.SECONDS)
-                    .readTimeout(30, TimeUnit.SECONDS)
-                    .writeTimeout(30, TimeUnit.SECONDS)
-                    .callTimeout(60, TimeUnit.SECONDS)
-                    .retryOnConnectionFailure(true)
-                    .build()
-
                 val request = Request.Builder()
                     .url("https://api.github.com/repos/vivizzz007/vivi-music/releases")
                     .addHeader("Accept", "application/vnd.github.v3+json")
@@ -290,7 +289,7 @@ class DpiSettingsViewModel(application: Application) : ViewModel() {
                     .build()
 
                 val response = withContext(Dispatchers.IO) {
-                    client.newCall(request).execute()
+                    okHttpClient.newCall(request).execute()
                 }
 
                 Log.d("DpiSettingsViewModel", "Response code: ${response.code}")
@@ -384,16 +383,7 @@ class DpiSettingsViewModel(application: Application) : ViewModel() {
     }
 }
 
-class DpiSettingsViewModelFactory(private val application: Application) :
-    ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(DpiSettingsViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return DpiSettingsViewModel(application) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
-    }
-}
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -403,9 +393,7 @@ fun ViviDpiSettings(
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
     val context = LocalContext.current
-    val viewModel: DpiSettingsViewModel = viewModel(
-        factory = DpiSettingsViewModelFactory(context.applicationContext as Application)
-    )
+    val viewModel: DpiSettingsViewModel = hiltViewModel()
 
     val isDpiEnabled by viewModel.isDpiEnabled.collectAsState()
     val isApkDownloaded by viewModel.isApkDownloaded.collectAsState()
