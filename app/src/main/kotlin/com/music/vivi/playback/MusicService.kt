@@ -201,9 +201,13 @@ class MusicService :
     private val binder = MusicBinder()
 
     private lateinit var connectivityManager: ConnectivityManager
+    @Inject
     lateinit var connectivityObserver: NetworkConnectivityObserver
     val waitingForNetworkConnection = MutableStateFlow(false)
     private val isNetworkConnected = MutableStateFlow(false)
+
+    @Inject
+    lateinit var okHttpClient: OkHttpClient
 
     private lateinit var audioQuality: com.music.vivi.constants.AudioQuality
     private var currentQueue: Queue = EmptyQueue
@@ -247,6 +251,8 @@ class MusicService :
     val automixItems = MutableStateFlow<List<MediaItem>>(emptyList())
 
     private var consecutivePlaybackErr = 0
+    private val songUrlCache = HashMap<String, Pair<String, Long>>()
+    private val retryCount = HashMap<String, Int>()
 
     override fun onCreate() {
         super.onCreate()
@@ -314,7 +320,7 @@ class MusicService :
         controllerFuture.addListener({ controllerFuture.get() }, MoreExecutors.directExecutor())
 
         connectivityManager = getSystemService()!!
-        connectivityObserver = NetworkConnectivityObserver(this)
+//        connectivityObserver = NetworkConnectivityObserver(this)
 
         audioQuality = dataStore.get(AudioQualityKey).toEnum(com.music.vivi.constants.AudioQuality.AUTO)
         playerVolume = MutableStateFlow(dataStore.get(PlayerVolumeKey, 1f).coerceIn(0f, 1f))
@@ -690,6 +696,8 @@ class MusicService :
 
     private fun waitOnNetworkError() {
         waitingForNetworkConnection.value = true
+        // Reset retry count so when network returns we try fresh
+        player.currentMediaItem?.mediaId?.let { retryCount.remove(it) }
     }
 
     private fun skipOnError() {
@@ -1206,6 +1214,7 @@ class MusicService :
             saveQueueToDisk()
         }
         updateWidget()
+        retryCount.remove(mediaItem?.mediaId)
     }
 
     override fun onPlaybackStateChanged(
@@ -1342,6 +1351,19 @@ class MusicService :
             return
         }
 
+        // Retry logic for "unlimited streaming" feel
+        val mediaId = player.currentMediaItem?.mediaId
+        if (mediaId != null) {
+            val currentRetries = retryCount.getOrDefault(mediaId, 0)
+            if (currentRetries < 3) { // Retry up to 3 times
+                retryCount[mediaId] = currentRetries + 1
+                songUrlCache.remove(mediaId) // Invalidate cache to force re-fetch
+                player.prepare()
+                player.play()
+                return
+            }
+        }
+
         if (dataStore.get(AutoSkipNextOnErrorKey, false)) {
             skipOnError()
         } else {
@@ -1360,9 +1382,8 @@ class MusicService :
                     .setUpstreamDataSourceFactory(
                         DefaultDataSource.Factory(
                             this,
-                            OkHttpDataSource.Factory(
-                                OkHttpClient
-                                    .Builder()
+                        OkHttpDataSource.Factory(
+                                okHttpClient.newBuilder()
                                     .proxy(YouTube.proxy)
                                     .proxyAuthenticator { _, response ->
                                         YouTube.proxyAuth?.let { auth ->
@@ -1379,7 +1400,6 @@ class MusicService :
             .setFlags(FLAG_IGNORE_CACHE_ON_ERROR)
 
     private fun createDataSourceFactory(): DataSource.Factory {
-        val songUrlCache = HashMap<String, Pair<String, Long>>()
         return ResolvingDataSource.Factory(createCacheDataSource()) { dataSpec ->
             val mediaId = dataSpec.key ?: error("No media id")
 
@@ -1404,6 +1424,7 @@ class MusicService :
                     mediaId,
                     audioQuality = audioQuality,
                     connectivityManager = connectivityManager,
+                    httpClient = okHttpClient
                 )
             }.getOrElse { throwable ->
                 when (throwable) {

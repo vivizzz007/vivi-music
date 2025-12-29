@@ -22,6 +22,7 @@ fun EmptyPlaceholder(
     @DrawableRes icon: Int,
     text: String,
     modifier: Modifier = Modifier,
+    trailingContent: @Composable (() -> Unit)? = null,
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -43,5 +44,9 @@ fun EmptyPlaceholder(
             text = text,
             style = MaterialTheme.typography.bodyLarge,
         )
+
+        if (trailingContent != null) {
+            trailingContent()
+        }
     }
 }

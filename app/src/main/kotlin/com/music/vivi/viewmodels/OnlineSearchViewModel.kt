@@ -36,45 +36,68 @@ constructor(
     var summaryPage by mutableStateOf<SearchSummaryPage?>(null)
     val viewStateMap = mutableStateMapOf<String, ItemsPage?>()
 
+    var isLoading by mutableStateOf(false)
+    var error by mutableStateOf<Throwable?>(null)
+
     init {
         viewModelScope.launch {
             filter.collect { filter ->
-                if (filter == null) {
-                    if (summaryPage == null) {
-                        YouTube
-                            .searchSummary(query)
-                            .onSuccess {
-                                val hideExplicit = context.dataStore.get(HideExplicitKey, false)
-                                val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
-                                summaryPage =
-                                    it.filterExplicit(
-                                        hideExplicit,
-                                    ).filterVideoSongs(hideVideoSongs)
-                            }.onFailure {
-                                reportException(it)
-                            }
-                    }
-                } else {
-                    if (viewStateMap[filter.value] == null) {
-                        YouTube
-                            .search(query, filter)
-                            .onSuccess { result ->
-                                val hideExplicit = context.dataStore.get(HideExplicitKey, false)
-                                val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
-                                viewStateMap[filter.value] =
-                                    ItemsPage(
-                                        result.items
-                                            .distinctBy { it.id }
-                                            .filterExplicit(
-                                                hideExplicit,
-                                            )
-                                            .filterVideoSongs(hideVideoSongs),
-                                        result.continuation,
-                                    )
-                            }.onFailure {
-                                reportException(it)
-                            }
-                    }
+                fetchSearchResults(filter)
+            }
+        }
+    }
+
+    fun retry() {
+        fetchSearchResults(filter.value)
+    }
+
+    private fun fetchSearchResults(filter: YouTube.SearchFilter?) {
+        viewModelScope.launch {
+            if (filter == null) {
+                if (summaryPage == null) {
+                    isLoading = true
+                    error = null
+                    YouTube
+                        .searchSummary(query)
+                        .onSuccess {
+                            val hideExplicit = context.dataStore.get(HideExplicitKey, false)
+                            val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
+                            summaryPage =
+                                it.filterExplicit(
+                                    hideExplicit,
+                                ).filterVideoSongs(hideVideoSongs)
+                            isLoading = false
+                        }.onFailure {
+                            error = it
+                            isLoading = false
+                            reportException(it)
+                        }
+                }
+            } else {
+                if (viewStateMap[filter.value] == null) {
+                    isLoading = true
+                    error = null
+                    YouTube
+                        .search(query, filter)
+                        .onSuccess { result ->
+                            val hideExplicit = context.dataStore.get(HideExplicitKey, false)
+                            val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
+                            viewStateMap[filter.value] =
+                                ItemsPage(
+                                    result.items
+                                        .distinctBy { it.id }
+                                        .filterExplicit(
+                                            hideExplicit,
+                                        )
+                                        .filterVideoSongs(hideVideoSongs),
+                                    result.continuation,
+                                )
+                            isLoading = false
+                        }.onFailure {
+                            error = it
+                            isLoading = false
+                            reportException(it)
+                        }
                 }
             }
         }

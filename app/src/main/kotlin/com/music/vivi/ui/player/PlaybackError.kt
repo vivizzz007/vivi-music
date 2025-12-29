@@ -37,8 +37,15 @@ fun PlaybackError(
             tint = MaterialTheme.colorScheme.error,
         )
 
+        var currentError: Throwable? = error
+        var errorMessage: String? = null
+        while (currentError != null) {
+            currentError.message?.takeIf { it.isNotBlank() }?.let { errorMessage = it }
+            currentError = currentError.cause
+        }
+
         Text(
-            text = error.cause?.cause?.message ?: stringResource(R.string.error_unknown),
+            text = errorMessage ?: stringResource(R.string.error_unknown),
             style = MaterialTheme.typography.bodyMedium,
         )
     }

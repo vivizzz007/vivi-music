@@ -47,31 +47,48 @@ constructor(
                             )
                         }
                     } else {
-                        val result = YouTube.searchSuggestions(query).getOrNull()
-                        val hideExplicit = context.dataStore.get(HideExplicitKey, false)
-                        val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
+                        _viewState.value = _viewState.value.copy(isLoading = true, error = null)
+                        val result = YouTube.searchSuggestions(query).onSuccess { result ->
+                            val hideExplicit = context.dataStore.get(HideExplicitKey, false)
+                            val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
 
-                        database
-                            .searchHistory(query)
-                            .map { it.take(3) }
-                            .map { history ->
-                                SearchSuggestionViewState(
-                                    history = history,
-                                    suggestions =
-                                        result
-                                            ?.queries
-                                            ?.filter { suggestionQuery ->
-                                                history.none { it.query == suggestionQuery }
-                                            }.orEmpty(),
-                                    items =
-                                        result
-                                            ?.recommendedItems
-                                            ?.distinctBy { it.id }
-                                            ?.filterExplicit(hideExplicit)
-                                            ?.filterVideoSongs(hideVideoSongs)
-                                            .orEmpty(),
-                                )
+                            viewModelScope.launch {
+                                database
+                                    .searchHistory(query)
+                                    .map { it.take(3) }
+                                    .map { history ->
+                                        SearchSuggestionViewState(
+                                            history = history,
+                                            suggestions =
+                                            result
+                                                .queries
+                                                .filter { suggestionQuery ->
+                                                    history.none { it.query == suggestionQuery }
+                                                },
+                                            items =
+                                            result
+                                                .recommendedItems
+                                                .distinctBy { it.id }
+                                                .filterExplicit(hideExplicit)
+                                                .filterVideoSongs(hideVideoSongs),
+                                            isLoading = false,
+                                            error = null
+                                        )
+                                    }.collect {
+                                        _viewState.value = it
+                                    }
                             }
+                        }.onFailure {
+                            _viewState.value = _viewState.value.copy(isLoading = false, error = it)
+                        }
+                        
+                        // Emit history even if suggestions fail
+                        database.searchHistory(query).map { history ->
+                            _viewState.value.copy(
+                                history = history.take(3),
+                                isLoading = false
+                            )
+                        }
                     }
                 }.collect {
                     _viewState.value = it
@@ -84,4 +101,6 @@ data class SearchSuggestionViewState(
     val history: List<SearchHistory> = emptyList(),
     val suggestions: List<String> = emptyList(),
     val items: List<YTItem> = emptyList(),
+    val isLoading: Boolean = false,
+    val error: Throwable? = null
 )

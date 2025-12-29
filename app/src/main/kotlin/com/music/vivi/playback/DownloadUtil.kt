@@ -40,10 +40,22 @@ constructor(
     val databaseProvider: DatabaseProvider,
     @DownloadCache val downloadCache: SimpleCache,
     @PlayerCache val playerCache: SimpleCache,
+    private val okHttpClient: OkHttpClient,
 ) {
     private val connectivityManager = context.getSystemService<ConnectivityManager>()!!
     private val audioQuality by enumPreference(context, AudioQualityKey, AudioQuality.AUTO)
     private val songUrlCache = HashMap<String, Pair<String, Long>>()
+
+    private val client = okHttpClient.newBuilder()
+        .proxy(YouTube.proxy)
+        .proxyAuthenticator { _, response ->
+             YouTube.proxyAuth?.let { auth ->
+                 response.request.newBuilder()
+                     .header("Proxy-Authorization", auth)
+                     .build()
+             } ?: response.request
+        }
+        .build()
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -56,16 +68,7 @@ constructor(
                 .setCache(playerCache)
                 .setUpstreamDataSourceFactory(
                     OkHttpDataSource.Factory(
-                        OkHttpClient.Builder()
-                            .proxy(YouTube.proxy)
-                            .proxyAuthenticator { _, response ->
-                                YouTube.proxyAuth?.let { auth ->
-                                    response.request.newBuilder()
-                                        .header("Proxy-Authorization", auth)
-                                        .build()
-                                } ?: response.request
-                            }
-                            .build(),
+                        client,
                     ),
                 ),
         ) { dataSpec ->
@@ -85,6 +88,7 @@ constructor(
                     mediaId,
                     audioQuality = audioQuality,
                     connectivityManager = connectivityManager,
+                    httpClient = client,
                 )
             }.getOrThrow()
             val format = playbackData.format
