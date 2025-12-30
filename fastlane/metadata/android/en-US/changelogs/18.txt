@@ -1,0 +1,14 @@
+- Added word-for-word lyrics (Apple Music style)
+- Added letter-by-letter lyrics animation
+- Fallback to classic lyrics when new modes are disabled
+- Improved app stability
+- Improved Widget UI and functionality
+- Improved lyrics loading
+- New Material 3 Expressive (M3E) animations throughout the app
+- Added retry button for failed searches
+- Enhanced network manager
+- Added animations for buttons
+- Redesigned Settings section
+- Added toggle to switch between old and new changelog views
+- Fixed UI in several screens
+- Fixed lag issue in Cache screen
