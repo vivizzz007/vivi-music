@@ -18,15 +18,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.MaterialShapes
-import androidx.compose.material3.toShape
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.ui.draw.clip
+import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
@@ -296,193 +292,136 @@ fun PlayerSettings(
                 }
 
                 item {
-                    Card(
+                    Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer
-                        ),
-                        shape = RoundedCornerShape(20.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            ModernInfoItem(
-                                icon = { Icon(painterResource(R.drawable.graphic_eq), null, modifier = Modifier.size(22.dp)) },
-                                title = stringResource(R.string.audio_quality),
-                                subtitle = when (audioQuality) {
-                                    AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto)
-                                    AudioQuality.HIGH -> stringResource(R.string.audio_quality_high)
-                                    AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
-                                },
-                                onClick = { showAudioQualityDialog = true },
-                                showArrow = true,
-                                showSettingsIcon = true,
-                                iconBackgroundColor = iconBgColor,
-                                iconContentColor = iconStyleColor
-                            )
+                        items = listOf(
+                            {
+                                ModernInfoItem(
+                                    icon = { Icon(painterResource(R.drawable.graphic_eq), null, modifier = Modifier.size(22.dp)) },
+                                    title = stringResource(R.string.audio_quality),
+                                    subtitle = when (audioQuality) {
+                                        AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto)
+                                        AudioQuality.HIGH -> stringResource(R.string.audio_quality_high)
+                                        AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
+                                    },
+                                    onClick = { showAudioQualityDialog = true },
+                                    showArrow = true,
+                                    showSettingsIcon = true,
+                                    iconBackgroundColor = iconBgColor,
+                                    iconContentColor = iconStyleColor
+                                )
+                            },
+                            {
+                                // History Duration with permanent slider
+                                Column(modifier = Modifier.fillMaxWidth()) {
+                                    ModernInfoItem(
+                                        icon = { Icon(painterResource(R.drawable.history), null, modifier = Modifier.size(22.dp)) },
+                                        title = stringResource(R.string.history_duration),
+                                        subtitle = "${historyDuration.toInt()} seconds",
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
+                                    )
 
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-
-                            // History Duration with permanent slider
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 20.dp, vertical = 12.dp)
-                            ) {
+                                    Slider(
+                                        value = historyDuration,
+                                        onValueChange = onHistoryDurationChange,
+                                        valueRange = 0f..60f,
+                                        steps = 11,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 20.dp)
+                                            .padding(bottom = 12.dp)
+                                    )
+                                }
+                            },
+                            {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(44.dp)
-                                            .background(
-                                                iconBgColor,
-                                                MaterialShapes.Ghostish.toShape()
-                                            ),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            painterResource(R.drawable.history),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(22.dp),
-                                            tint = iconStyleColor
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.fast_forward), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.skip_silence),
+                                            subtitle = "Remove silent parts",
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
                                         )
                                     }
-                                    Spacer(modifier = Modifier.width(16.dp))
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = stringResource(R.string.history_duration),
-                                            style = MaterialTheme.typography.bodyLarge.copy(
-                                                fontWeight = FontWeight.Medium
-                                            ),
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                        Text(
-                                            text = "${historyDuration.toInt()} seconds",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    ModernSwitch(
+                                        checked = skipSilence,
+                                        onCheckedChange = onSkipSilenceChange,
+                                        modifier = Modifier.padding(end = 20.dp)
+                                    )
+                                }
+                            },
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.volume_up), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.audio_normalization),
+                                            subtitle = "Normalize audio levels",
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
                                         )
                                     }
-                                }
-
-                                Spacer(modifier = Modifier.height(12.dp))
-
-                                Slider(
-                                    value = historyDuration,
-                                    onValueChange = onHistoryDurationChange,
-                                    valueRange = 0f..60f,
-                                    steps = 11,
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                            }
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(modifier = Modifier.weight(1f)) {
-                                    ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.fast_forward), null, modifier = Modifier.size(22.dp)) },
-                                        title = stringResource(R.string.skip_silence),
-                                        subtitle = "Remove silent parts",
-                                        iconBackgroundColor = iconBgColor,
-                                        iconContentColor = iconStyleColor
+                                    ModernSwitch(
+                                        checked = audioNormalization,
+                                        onCheckedChange = onAudioNormalizationChange,
+                                        modifier = Modifier.padding(end = 20.dp)
                                     )
                                 }
-                                ModernSwitch(
-                                    checked = skipSilence,
-                                    onCheckedChange = onSkipSilenceChange,
-                                    modifier = Modifier.padding(end = 20.dp)
-                                )
-                            }
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(modifier = Modifier.weight(1f)) {
-                                    ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.volume_up), null, modifier = Modifier.size(22.dp)) },
-                                        title = stringResource(R.string.audio_normalization),
-                                        subtitle = "Normalize audio levels",
-                                        iconBackgroundColor = iconBgColor,
-                                        iconContentColor = iconStyleColor
+                            },
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.graphic_eq), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.audio_offload),
+                                            subtitle = stringResource(R.string.audio_offload_description),
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = audioOffload,
+                                        onCheckedChange = onAudioOffloadChange,
+                                        modifier = Modifier.padding(end = 20.dp)
                                     )
                                 }
-                                ModernSwitch(
-                                    checked = audioNormalization,
-                                    onCheckedChange = onAudioNormalizationChange,
-                                    modifier = Modifier.padding(end = 20.dp)
-                                )
-                            }
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(modifier = Modifier.weight(1f)) {
-                                    ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.graphic_eq), null, modifier = Modifier.size(22.dp)) },
-                                        title = stringResource(R.string.audio_offload),
-                                        subtitle = stringResource(R.string.audio_offload_description),
-                                        iconBackgroundColor = iconBgColor,
-                                        iconContentColor = iconStyleColor
+                            },
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.arrow_forward), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.seek_seconds_addup),
+                                            subtitle = stringResource(R.string.seek_seconds_addup_description),
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = seekExtraSeconds,
+                                        onCheckedChange = onSeekExtraSeconds,
+                                        modifier = Modifier.padding(end = 20.dp)
                                     )
                                 }
-                                ModernSwitch(
-                                    checked = audioOffload,
-                                    onCheckedChange = onAudioOffloadChange,
-                                    modifier = Modifier.padding(end = 20.dp)
-                                )
                             }
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(modifier = Modifier.weight(1f)) {
-                                    ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.arrow_forward), null, modifier = Modifier.size(22.dp)) },
-                                        title = stringResource(R.string.seek_seconds_addup),
-                                        subtitle = stringResource(R.string.seek_seconds_addup_description),
-                                        iconBackgroundColor = iconBgColor,
-                                        iconContentColor = iconStyleColor
-                                    )
-                                }
-                                ModernSwitch(
-                                    checked = seekExtraSeconds,
-                                    onCheckedChange = onSeekExtraSeconds,
-                                    modifier = Modifier.padding(end = 20.dp)
-                                )
-                            }
-                        }
-                    }
+                        )
+                    )
                 }
 
                 // Queue Section
@@ -499,163 +438,139 @@ fun PlayerSettings(
                 }
 
                 item {
-                    Card(
+                    Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer
-                        ),
-                        shape = RoundedCornerShape(20.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(modifier = Modifier.weight(1f)) {
-                                    ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.queue_music), null, modifier = Modifier.size(22.dp)) },
-                                        title = stringResource(R.string.persistent_queue),
-                                        subtitle = stringResource(R.string.persistent_queue_desc),
-                                        iconBackgroundColor = iconBgColor,
-                                        iconContentColor = iconStyleColor
+                        items = listOf(
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.queue_music), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.persistent_queue),
+                                            subtitle = stringResource(R.string.persistent_queue_desc),
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = persistentQueue,
+                                        onCheckedChange = onPersistentQueueChange,
+                                        modifier = Modifier.padding(end = 20.dp)
                                     )
                                 }
-                                ModernSwitch(
-                                    checked = persistentQueue,
-                                    onCheckedChange = onPersistentQueueChange,
-                                    modifier = Modifier.padding(end = 20.dp)
-                                )
-                            }
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(modifier = Modifier.weight(1f)) {
-                                    ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.playlist_add), null, modifier = Modifier.size(22.dp)) },
-                                        title = stringResource(R.string.auto_load_more),
-                                        subtitle = stringResource(R.string.auto_load_more_desc),
-                                        iconBackgroundColor = iconBgColor,
-                                        iconContentColor = iconStyleColor
+                            },
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.playlist_add), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.auto_load_more),
+                                            subtitle = stringResource(R.string.auto_load_more_desc),
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = autoLoadMore,
+                                        onCheckedChange = onAutoLoadMoreChange,
+                                        modifier = Modifier.padding(end = 20.dp)
                                     )
                                 }
-                                ModernSwitch(
-                                    checked = autoLoadMore,
-                                    onCheckedChange = onAutoLoadMoreChange,
-                                    modifier = Modifier.padding(end = 20.dp)
-                                )
-                            }
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(modifier = Modifier.weight(1f)) {
-                                    ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.repeat), null, modifier = Modifier.size(22.dp)) },
-                                        title = stringResource(R.string.disable_load_more_when_repeat_all),
-                                        subtitle = stringResource(R.string.disable_load_more_when_repeat_all_desc),
-                                        iconBackgroundColor = iconBgColor,
-                                        iconContentColor = iconStyleColor
+                            },
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.repeat), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.disable_load_more_when_repeat_all),
+                                            subtitle = stringResource(R.string.disable_load_more_when_repeat_all_desc),
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = disableLoadMoreWhenRepeatAll,
+                                        onCheckedChange = onDisableLoadMoreWhenRepeatAllChange,
+                                        modifier = Modifier.padding(end = 20.dp)
                                     )
                                 }
-                                ModernSwitch(
-                                    checked = disableLoadMoreWhenRepeatAll,
-                                    onCheckedChange = onDisableLoadMoreWhenRepeatAllChange,
-                                    modifier = Modifier.padding(end = 20.dp)
-                                )
-                            }
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(modifier = Modifier.weight(1f)) {
-                                    ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.download), null, modifier = Modifier.size(22.dp)) },
-                                        title = stringResource(R.string.auto_download_on_like),
-                                        subtitle = stringResource(R.string.auto_download_on_like_desc),
-                                        iconBackgroundColor = iconBgColor,
-                                        iconContentColor = iconStyleColor
+                            },
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.download), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.auto_download_on_like),
+                                            subtitle = stringResource(R.string.auto_download_on_like_desc),
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = autoDownloadOnLike,
+                                        onCheckedChange = onAutoDownloadOnLikeChange,
+                                        modifier = Modifier.padding(end = 20.dp)
                                     )
                                 }
-                                ModernSwitch(
-                                    checked = autoDownloadOnLike,
-                                    onCheckedChange = onAutoDownloadOnLikeChange,
-                                    modifier = Modifier.padding(end = 20.dp)
-                                )
-                            }
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(modifier = Modifier.weight(1f)) {
-                                    ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.similar), null, modifier = Modifier.size(22.dp)) },
-                                        title = stringResource(R.string.enable_similar_content),
-                                        subtitle = stringResource(R.string.similar_content_desc),
-                                        iconBackgroundColor = iconBgColor,
-                                        iconContentColor = iconStyleColor
+                            },
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.similar), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.enable_similar_content),
+                                            subtitle = stringResource(R.string.similar_content_desc),
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = similarContentEnabled,
+                                        onCheckedChange = similarContentEnabledChange,
+                                        modifier = Modifier.padding(end = 20.dp)
                                     )
                                 }
-                                ModernSwitch(
-                                    checked = similarContentEnabled,
-                                    onCheckedChange = similarContentEnabledChange,
-                                    modifier = Modifier.padding(end = 20.dp)
-                                )
-                            }
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(modifier = Modifier.weight(1f)) {
-                                    ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.skip_next), null, modifier = Modifier.size(22.dp)) },
-                                        title = stringResource(R.string.auto_skip_next_on_error),
-                                        subtitle = stringResource(R.string.auto_skip_next_on_error_desc),
-                                        iconBackgroundColor = iconBgColor,
-                                        iconContentColor = iconStyleColor
+                            },
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.skip_next), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.auto_skip_next_on_error),
+                                            subtitle = stringResource(R.string.auto_skip_next_on_error_desc),
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = autoSkipNextOnError,
+                                        onCheckedChange = onAutoSkipNextOnErrorChange,
+                                        modifier = Modifier.padding(end = 20.dp)
                                     )
                                 }
-                                ModernSwitch(
-                                    checked = autoSkipNextOnError,
-                                    onCheckedChange = onAutoSkipNextOnErrorChange,
-                                    modifier = Modifier.padding(end = 20.dp)
-                                )
                             }
-                        }
-                    }
+                        )
+                    )
                 }
 
                 // Misc Section
@@ -672,38 +587,34 @@ fun PlayerSettings(
                 }
 
                 item {
-                    Card(
+                    Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer
-                        ),
-                        shape = RoundedCornerShape(20.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(modifier = Modifier.weight(1f)) {
-                                    ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.clear_all), null, modifier = Modifier.size(22.dp)) },
-                                        title = stringResource(R.string.stop_music_on_task_clear),
-                                        subtitle = "Stop playback when app is closed",
-                                        iconBackgroundColor = iconBgColor,
-                                        iconContentColor = iconStyleColor
+                        items = listOf(
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.clear_all), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.stop_music_on_task_clear),
+                                            subtitle = "Stop playback when app is closed",
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = stopMusicOnTaskClear,
+                                        onCheckedChange = onStopMusicOnTaskClearChange,
+                                        modifier = Modifier.padding(end = 20.dp)
                                     )
                                 }
-                                ModernSwitch(
-                                    checked = stopMusicOnTaskClear,
-                                    onCheckedChange = onStopMusicOnTaskClearChange,
-                                    modifier = Modifier.padding(end = 20.dp)
-                                )
                             }
-                        }
-                    }
+                        )
+                    )
                 }
 
                 item {

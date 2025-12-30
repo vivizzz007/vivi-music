@@ -195,262 +195,225 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Unified settings card
-            Card(
+            // Unified settings card replaced with Material3 Expressive Group
+            com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-            ) {
-                Column(modifier = Modifier.padding(vertical = 8.dp)) {
-
-                    // App Updates item with dynamic state from ViewModel
-                    ModernInfoItem(
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Filled.NewReleases,
-                                contentDescription = null,
-                                modifier = Modifier.size(22.dp),
-                                tint = when (updateStatus) {
-                                    is UpdateStatus.UpdateAvailable -> MaterialTheme.colorScheme.error
-                                    is UpdateStatus.Loading -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                                    is UpdateStatus.Disabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                                    else -> LocalContentColor.current
-                                }
-                            )
-                        },
-                        title = when (updateStatus) {
-                            is UpdateStatus.UpdateAvailable -> "Update Available"
-                            is UpdateStatus.Loading -> stringResource(R.string.appupdate)
-                            is UpdateStatus.Disabled -> stringResource(R.string.appupdate)
-                            else -> stringResource(R.string.appupdate)
-                        },
-                        subtitle = when (updateStatus) {
-                            is UpdateStatus.Disabled -> {
-                                "Automatic check disabled • V${currentVersion}"
-                            }
-                            is UpdateStatus.UpdateAvailable -> {
-                                "${(updateStatus as UpdateStatus.UpdateAvailable).latestVersion} is now available"
-                            }
-                            is UpdateStatus.Loading -> {
-                                "Checking for updates..."
-                            }
-                            else -> {
-                                "Current version: ${currentVersion}"
-                            }
-                        },
-                        titleColor = when (updateStatus) {
-                            is UpdateStatus.UpdateAvailable -> MaterialTheme.colorScheme.error
-                            else -> MaterialTheme.colorScheme.onSurface
-                        },
-                        subtitleColor = when (updateStatus) {
-                            is UpdateStatus.UpdateAvailable -> MaterialTheme.colorScheme.error.copy(alpha = 0.8f)
-                            is UpdateStatus.Loading -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                            is UpdateStatus.Disabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                            else -> MaterialTheme.colorScheme.onSurfaceVariant
-                        },
-                        onClick = { navController.navigate("settings/software_updates") },
-                        showArrow = true,
-                        iconBackgroundColor = iconBgColor,
-                        iconContentColor = iconStyleColor,
-                        arrowColor = when (updateStatus) {
-                            is UpdateStatus.UpdateAvailable -> MaterialTheme.colorScheme.error
-                            else -> MaterialTheme.colorScheme.primary
-                        }
-                    )
-
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                    )
-
-                    // Account
-                    ModernInfoItem(
-                        icon = {
-                            if (isLoggedIn && accountImageUrl != null) {
-                                AsyncImage(
-                                    model = accountImageUrl,
-                                    contentDescription = stringResource(R.string.profile_image),
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier
-                                        .size(28.dp)
-                                        .clip(CircleShape)
-                                )
-                            } else {
+                items = listOf(
+                    {
+                        // App Updates
+                        ModernInfoItem(
+                            icon = {
                                 Icon(
-                                    painter = painterResource(
-                                        if (isLoggedIn) R.drawable.person else R.drawable.account
-                                    ),
+                                    imageVector = Icons.Filled.NewReleases,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp),
+                                    tint = when (updateStatus) {
+                                        is UpdateStatus.UpdateAvailable -> MaterialTheme.colorScheme.error
+                                        is UpdateStatus.Loading -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                        is UpdateStatus.Disabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                        else -> LocalContentColor.current
+                                    }
+                                )
+                            },
+                            title = when (updateStatus) {
+                                is UpdateStatus.UpdateAvailable -> "Update Available"
+                                is UpdateStatus.Loading -> stringResource(R.string.appupdate)
+                                is UpdateStatus.Disabled -> stringResource(R.string.appupdate)
+                                else -> stringResource(R.string.appupdate)
+                            },
+                            subtitle = when (updateStatus) {
+                                is UpdateStatus.Disabled -> {
+                                    "Automatic check disabled • V${currentVersion}"
+                                }
+                                is UpdateStatus.UpdateAvailable -> {
+                                    "${(updateStatus as UpdateStatus.UpdateAvailable).latestVersion} is now available"
+                                }
+                                is UpdateStatus.Loading -> {
+                                    "Checking for updates..."
+                                }
+                                else -> {
+                                    "Current version: ${currentVersion}"
+                                }
+                            },
+                            titleColor = when (updateStatus) {
+                                is UpdateStatus.UpdateAvailable -> MaterialTheme.colorScheme.error
+                                else -> MaterialTheme.colorScheme.onSurface
+                            },
+                            subtitleColor = when (updateStatus) {
+                                is UpdateStatus.UpdateAvailable -> MaterialTheme.colorScheme.error.copy(alpha = 0.8f)
+                                is UpdateStatus.Loading -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                is UpdateStatus.Disabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                else -> MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                            onClick = { navController.navigate("settings/software_updates") },
+                            showArrow = true,
+                            iconBackgroundColor = iconBgColor,
+                            iconContentColor = iconStyleColor,
+                            arrowColor = when (updateStatus) {
+                                is UpdateStatus.UpdateAvailable -> MaterialTheme.colorScheme.error
+                                else -> MaterialTheme.colorScheme.primary
+                            }
+                        )
+                    },
+                    {
+                        // Account
+                        ModernInfoItem(
+                            icon = {
+                                if (isLoggedIn && accountImageUrl != null) {
+                                    AsyncImage(
+                                        model = accountImageUrl,
+                                        contentDescription = stringResource(R.string.profile_image),
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .size(28.dp)
+                                            .clip(CircleShape)
+                                    )
+                                } else {
+                                    Icon(
+                                        painter = painterResource(
+                                            if (isLoggedIn) R.drawable.person else R.drawable.account
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                }
+                            },
+                            title = accountTitle,
+                            subtitle = accountSubtitle,
+                            onClick = { navController.navigate("settings/account_view") },
+                            showArrow = true,
+                            iconBackgroundColor = iconBgColor,
+                            iconContentColor = iconStyleColor
+                        )
+                    },
+                    {
+                        // Appearance
+                        ModernInfoItem(
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.palette),
                                     contentDescription = null,
                                     modifier = Modifier.size(22.dp)
                                 )
-                            }
-                        },
-                        title = accountTitle,
-                        subtitle = accountSubtitle,
-                        onClick = { navController.navigate("settings/account_view") },
-                        showArrow = true,
-                        iconBackgroundColor = iconBgColor,
-                        iconContentColor = iconStyleColor
-                    )
-
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                    )
-
-                    // Appearance
-                    ModernInfoItem(
-                        icon = {
-                            Icon(
-                                painter = painterResource(R.drawable.palette),
-                                contentDescription = null,
-                                modifier = Modifier.size(22.dp)
-                            )
-                        },
-                        title = stringResource(R.string.appearance),
-                        subtitle = "Customize theme and display settings",
-                        onClick = { navController.navigate("settings/appearance") },
-                        showArrow = true,
-                        iconBackgroundColor = iconBgColor,
-                        iconContentColor = iconStyleColor
-                    )
-
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                    )
-
-                    // Player & Audio
-                    ModernInfoItem(
-                        icon = {
-                            Icon(
-                                painter = painterResource(R.drawable.play),
-                                contentDescription = null,
-                                modifier = Modifier.size(22.dp)
-                            )
-                        },
-                        title = stringResource(R.string.player_and_audio),
-                        subtitle = "Audio quality and playback settings",
-                        onClick = { navController.navigate("settings/player") },
-                        showArrow = true,
-                        iconBackgroundColor = iconBgColor,
-                        iconContentColor = iconStyleColor
-                    )
-
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                    )
-
-                    // Content
-                    ModernInfoItem(
-                        icon = {
-                            Icon(
-                                painter = painterResource(R.drawable.language),
-                                contentDescription = null,
-                                modifier = Modifier.size(22.dp)
-                            )
-                        },
-                        title = stringResource(R.string.content),
-                        subtitle = "Language and content preferences",
-                        onClick = { navController.navigate("settings/content") },
-                        showArrow = true,
-                        iconBackgroundColor = iconBgColor,
-                        iconContentColor = iconStyleColor
-                    )
-
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                    )
-
-                    // Privacy
-                    ModernInfoItem(
-                        icon = {
-                            Icon(
-                                painter = painterResource(R.drawable.security),
-                                contentDescription = null,
-                                modifier = Modifier.size(22.dp)
-                            )
-                        },
-                        title = stringResource(R.string.privacy),
-                        subtitle = "Privacy and security settings",
-                        onClick = { navController.navigate("settings/privacy") },
-                        showArrow = true,
-                        iconBackgroundColor = iconBgColor,
-                        iconContentColor = iconStyleColor
-                    )
-
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                    )
-
-                    // Storage
-                    ModernInfoItem(
-                        icon = {
-                            Icon(
-                                painter = painterResource(R.drawable.storage),
-                                contentDescription = null,
-                                modifier = Modifier.size(22.dp)
-                            )
-                        },
-                        title = stringResource(R.string.storage),
-                        subtitle = "Manage storage and downloads",
-                        onClick = { navController.navigate("settings/storage") },
-                        showArrow = true,
-                        iconBackgroundColor = iconBgColor,
-                        iconContentColor = iconStyleColor
-                    )
-
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                    )
-
-                    // Backup & Restore
-                    ModernInfoItem(
-                        icon = {
-                            Icon(
-                                painter = painterResource(R.drawable.restore),
-                                contentDescription = null,
-                                modifier = Modifier.size(22.dp)
-                            )
-                        },
-                        title = stringResource(R.string.backup_restore),
-                        subtitle = "Backup and restore your data",
-                        onClick = { navController.navigate("settings/backup_restore") },
-                        showArrow = true,
-                        iconBackgroundColor = iconBgColor,
-                        iconContentColor = iconStyleColor
-                    )
-
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                    )
-
-                    // About
-                    ModernInfoItem(
-                        icon = {
-                            Icon(
-                                painter = painterResource(R.drawable.rocket),
-                                contentDescription = null,
-                                modifier = Modifier.size(22.dp)
-                            )
-                        },
-                        title = stringResource(R.string.about),
-                        subtitle = "App information and legal",
-                        onClick = { navController.navigate("settings/about") },
-                        showArrow = true,
-                        iconBackgroundColor = iconBgColor,
-                        iconContentColor = iconStyleColor
-                    )
-                }
-            }
+                            },
+                            title = stringResource(R.string.appearance),
+                            subtitle = "Customize theme and display settings",
+                            onClick = { navController.navigate("settings/appearance") },
+                            showArrow = true,
+                            iconBackgroundColor = iconBgColor,
+                            iconContentColor = iconStyleColor
+                        )
+                    },
+                    {
+                        // Player & Audio
+                        ModernInfoItem(
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.play),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            },
+                            title = stringResource(R.string.player_and_audio),
+                            subtitle = "Audio quality and playback settings",
+                            onClick = { navController.navigate("settings/player") },
+                            showArrow = true,
+                            iconBackgroundColor = iconBgColor,
+                            iconContentColor = iconStyleColor
+                        )
+                    },
+                    {
+                        // Content
+                        ModernInfoItem(
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.language),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            },
+                            title = stringResource(R.string.content),
+                            subtitle = "Language and content preferences",
+                            onClick = { navController.navigate("settings/content") },
+                            showArrow = true,
+                            iconBackgroundColor = iconBgColor,
+                            iconContentColor = iconStyleColor
+                        )
+                    },
+                    {
+                        // Privacy
+                        ModernInfoItem(
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.security),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            },
+                            title = stringResource(R.string.privacy),
+                            subtitle = "Privacy and security settings",
+                            onClick = { navController.navigate("settings/privacy") },
+                            showArrow = true,
+                            iconBackgroundColor = iconBgColor,
+                            iconContentColor = iconStyleColor
+                        )
+                    },
+                    {
+                        // Storage
+                        ModernInfoItem(
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.storage),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            },
+                            title = stringResource(R.string.storage),
+                            subtitle = "Manage storage and downloads",
+                            onClick = { navController.navigate("settings/storage") },
+                            showArrow = true,
+                            iconBackgroundColor = iconBgColor,
+                            iconContentColor = iconStyleColor
+                        )
+                    },
+                    {
+                        // Backup & Restore
+                        ModernInfoItem(
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.restore),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            },
+                            title = stringResource(R.string.backup_restore),
+                            subtitle = "Backup and restore your data",
+                            onClick = { navController.navigate("settings/backup_restore") },
+                            showArrow = true,
+                            iconBackgroundColor = iconBgColor,
+                            iconContentColor = iconStyleColor
+                        )
+                    },
+                    {
+                        // About
+                        ModernInfoItem(
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.rocket),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            },
+                            title = stringResource(R.string.about),
+                            subtitle = "App information and legal",
+                            onClick = { navController.navigate("settings/about") },
+                            showArrow = true,
+                            iconBackgroundColor = iconBgColor,
+                            iconContentColor = iconStyleColor
+                        )
+                    }
+                )
+            )
 
             Spacer(modifier = Modifier.height(100.dp))
         }

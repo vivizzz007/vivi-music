@@ -130,15 +130,7 @@ class App : Application(), SingletonImageLoader.Factory {
             }
             nm.createNotificationChannel(musicChannel)
 
-            // Updates channel
-            val updatesChannel = NotificationChannel(
-                "updates",
-                getString(R.string.update_channel_name),
-                NotificationManager.IMPORTANCE_DEFAULT
-            ).apply {
-                description = getString(R.string.update_channel_desc)
-            }
-            nm.createNotificationChannel(updatesChannel)
+
         }
     }
 

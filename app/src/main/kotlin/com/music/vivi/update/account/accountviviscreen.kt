@@ -4,7 +4,6 @@
 package com.music.vivi.update.account
 
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -22,23 +21,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -50,7 +42,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -58,11 +49,9 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.music.innertube.YouTube
-import com.music.innertube.models.Context
 import com.music.innertube.utils.parseCookieString
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
@@ -79,12 +68,11 @@ import com.music.vivi.ui.component.InfoLabel
 import com.music.vivi.ui.component.TextFieldDialog
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.update.mordernswitch.ModernSwitch
+import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
 import com.music.vivi.update.settingstyle.ModernInfoItem
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.AccountSettingsViewModel
-import com.music.vivi.viewmodels.AccountViewModel
 import com.music.vivi.viewmodels.HomeViewModel
-import kotlin.text.contains
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -179,234 +167,215 @@ fun AccountView(
 
             Spacer(Modifier.height(24.dp))
 
-            // Account Status Card
-            Box(
+            // Account Status Group
+            Material3ExpressiveSettingsGroup(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-                    .background(
-                        color = if (isLoggedIn) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
-                        shape = RoundedCornerShape(24.dp)
-                    )
-                    .clickable {
-                        if (isLoggedIn) {
-                            navController.navigate("account")
-                        } else {
-                            navController.navigate("login")
-                        }
-                    }
-            ) {
-                Row(
-                    modifier = Modifier.padding(24.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
+                    .padding(horizontal = 16.dp),
+                containerColor = if (isLoggedIn) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
+                items = listOf {
+                    Row(
                         modifier = Modifier
-                            .size(64.dp)
-                            .clip(CircleShape)
-                            .background(
-                                if (isLoggedIn) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.surface
-                            ),
-                        contentAlignment = Alignment.Center
+                            .fillMaxWidth()
+                            .clickable {
+                                if (isLoggedIn) {
+                                    navController.navigate("account")
+                                } else {
+                                    navController.navigate("login")
+                                }
+                            }
+                            .padding(24.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        if (isLoggedIn && accountImageUrl != null) {
-                            AsyncImage(
-                                model = accountImageUrl,
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .size(64.dp)
-                                    .clip(CircleShape)
-                            )
-                        } else {
-                            Icon(
-                                painter = painterResource(
-                                    if (isLoggedIn) R.drawable.account
-                                    else R.drawable.login
+                        Box(
+                            modifier = Modifier
+                                .size(64.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    if (isLoggedIn) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.surface
                                 ),
-                                contentDescription = null,
-                                modifier = Modifier.size(32.dp),
-                                tint = if (isLoggedIn) MaterialTheme.colorScheme.onPrimary
-                                else MaterialTheme.colorScheme.onSurface
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (isLoggedIn && accountImageUrl != null) {
+                                AsyncImage(
+                                    model = accountImageUrl,
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .size(64.dp)
+                                        .clip(CircleShape)
+                                )
+                            } else {
+                                Icon(
+                                    painter = painterResource(
+                                        if (isLoggedIn) R.drawable.account
+                                        else R.drawable.login
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(32.dp),
+                                    tint = if (isLoggedIn) MaterialTheme.colorScheme.onPrimary
+                                    else MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+
+                        Spacer(Modifier.width(20.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = if (isLoggedIn) "Signed in" else "Not signed in",
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Medium,
+                                color = if (isLoggedIn) MaterialTheme.colorScheme.onPrimaryContainer
+                                else MaterialTheme.colorScheme.onSurface,
+                                fontSize = 22.sp
+                            )
+
+                            Text(
+                                text = if (isLoggedIn) accountName else "Tap to sign in",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = if (isLoggedIn) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.padding(top = 4.dp)
                             )
                         }
-                    }
 
-                    Spacer(Modifier.width(20.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = if (isLoggedIn) "Signed in" else "Not signed in",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Medium,
-                            color = if (isLoggedIn) MaterialTheme.colorScheme.onPrimaryContainer
-                            else MaterialTheme.colorScheme.onSurface,
-                            fontSize = 22.sp
-                        )
-
-                        Text(
-                            text = if (isLoggedIn) accountName else "Tap to sign in",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = if (isLoggedIn) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
-                    }
-
-                    if (isLoggedIn) {
-                        Icon(
-                            painter = painterResource(R.drawable.arrow_forward),
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.size(24.dp)
-                        )
+                        if (isLoggedIn) {
+                            Icon(
+                                painter = painterResource(R.drawable.arrow_forward),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
                     }
                 }
-            }
+            )
 
             Spacer(Modifier.height(32.dp))
 
-            // Account Settings Card
-            Card(
+            // Account Settings Group
+            Material3ExpressiveSettingsGroup(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                ),
-                shape = RoundedCornerShape(20.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-            ) {
-                Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                    ModernInfoItem(
-                        icon = {
-                            Icon(
-                                painter = painterResource(R.drawable.token),
-                                contentDescription = null,
-                                modifier = Modifier.size(22.dp),
-                                tint = MaterialTheme.colorScheme.surfaceTint
-                            )
-                        },
-                        title = when {
-                            !isLoggedIn -> "Advanced login"
-                            showToken -> "Token shown"
-                            else -> "Token hidden"
-                        },
-                        subtitle = if (isLoggedIn) "Tap to manage token" else "Sign in with cookies",
-                        onClick = {
-                            if (!isLoggedIn) showTokenEditor = true
-                            else if (!showToken) showToken = true
-                            else showTokenEditor = true
-                        },
-                        showArrow = true,
-                        showSettingsIcon = true
-                    )
-
-                    if (isLoggedIn) {
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                        )
-
+                items = buildList {
+                    add {
                         ModernInfoItem(
                             icon = {
                                 Icon(
-                                    painter = painterResource(R.drawable.add_circle),
+                                    painter = painterResource(R.drawable.token),
                                     contentDescription = null,
                                     modifier = Modifier.size(22.dp),
                                     tint = MaterialTheme.colorScheme.surfaceTint
                                 )
                             },
-                            title = "More content",
-                            subtitle = if (useLoginForBrowse) "Enabled" else "Disabled",
+                            title = when {
+                                !isLoggedIn -> "Advanced login"
+                                showToken -> "Token shown"
+                                else -> "Token hidden"
+                            },
+                            subtitle = if (isLoggedIn) "Tap to manage token" else "Sign in with cookies",
                             onClick = {
-                                YouTube.useLoginForBrowse = !useLoginForBrowse
-                                onUseLoginForBrowseChange(!useLoginForBrowse)
-                            },
-                            trailingContent = {
-                                ModernSwitch(
-                                    checked = useLoginForBrowse,
-                                    onCheckedChange = {
-                                        YouTube.useLoginForBrowse = it
-                                        onUseLoginForBrowseChange(it)
-                                    }
-                                )
-                            }
-                        )
-
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                        )
-
-                        ModernInfoItem(
-                            icon = {
-                                Icon(
-                                    painter = painterResource(R.drawable.cached),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(22.dp),
-                                    tint = MaterialTheme.colorScheme.surfaceTint
-                                )
-                            },
-                            title = "YouTube sync",
-                            subtitle = if (ytmSync) "Enabled" else "Disabled",
-                            onClick = {
-                                onYtmSyncChange(!ytmSync)
-                            },
-                            trailingContent = {
-                                ModernSwitch(
-                                    checked = ytmSync,
-                                    onCheckedChange = onYtmSyncChange
-                                )
-                            }
-                        )
-
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                        )
-
-                        ModernInfoItem(
-                            icon = {
-                                Icon(
-                                    painter = painterResource(R.drawable.logout),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(22.dp),
-                                    tint = MaterialTheme.colorScheme.error
-                                )
-                            },
-                            title = "Sign out",
-                            subtitle = "Log out from your account",
-                            onClick = {
-                                accountSettingsViewModel.logoutAndClearSyncedContent(
-                                    context,
-                                    onInnerTubeCookieChange
-                                )
+                                if (!isLoggedIn) showTokenEditor = true
+                                else if (!showToken) showToken = true
+                                else showTokenEditor = true
                             },
                             showArrow = true,
-                            showSettingsIcon = true,
-                            iconBackgroundColor = MaterialTheme.colorScheme.error.copy(alpha = 0.2f)
+                            showSettingsIcon = true
                         )
                     }
+
+                    if (isLoggedIn) {
+                        add {
+                            ModernInfoItem(
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.add_circle),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(22.dp),
+                                        tint = MaterialTheme.colorScheme.surfaceTint
+                                    )
+                                },
+                                title = "More content",
+                                subtitle = if (useLoginForBrowse) "Enabled" else "Disabled",
+                                onClick = {
+                                    YouTube.useLoginForBrowse = !useLoginForBrowse
+                                    onUseLoginForBrowseChange(!useLoginForBrowse)
+                                },
+                                trailingContent = {
+                                    ModernSwitch(
+                                        checked = useLoginForBrowse,
+                                        onCheckedChange = {
+                                            YouTube.useLoginForBrowse = it
+                                            onUseLoginForBrowseChange(it)
+                                        }
+                                    )
+                                }
+                            )
+                        }
+
+                        add {
+                            ModernInfoItem(
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.cached),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(22.dp),
+                                        tint = MaterialTheme.colorScheme.surfaceTint
+                                    )
+                                },
+                                title = "YouTube sync",
+                                subtitle = if (ytmSync) "Enabled" else "Disabled",
+                                onClick = {
+                                    onYtmSyncChange(!ytmSync)
+                                },
+                                trailingContent = {
+                                    ModernSwitch(
+                                        checked = ytmSync,
+                                        onCheckedChange = onYtmSyncChange
+                                    )
+                                }
+                            )
+                        }
+
+                        add {
+                            ModernInfoItem(
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.logout),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(22.dp),
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                },
+                                title = "Sign out",
+                                subtitle = "Log out from your account",
+                                onClick = {
+                                    accountSettingsViewModel.logoutAndClearSyncedContent(
+                                        context,
+                                        onInnerTubeCookieChange
+                                    )
+                                },
+                                showArrow = true,
+                                showSettingsIcon = true,
+                                iconBackgroundColor = MaterialTheme.colorScheme.error.copy(alpha = 0.2f)
+                            )
+                        }
+                    }
                 }
-            }
+            )
 
             Spacer(Modifier.height(16.dp))
 
-            // Integrations Card
-            Card(
+            // Integrations Group
+            Material3ExpressiveSettingsGroup(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                ),
-                shape = RoundedCornerShape(20.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-            ) {
-                Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                items = listOf {
                     ModernInfoItem(
                         icon = {
                             Icon(
@@ -425,7 +394,7 @@ fun AccountView(
                         showSettingsIcon = true
                     )
                 }
-            }
+            )
 
             Spacer(Modifier.height(32.dp))
         }

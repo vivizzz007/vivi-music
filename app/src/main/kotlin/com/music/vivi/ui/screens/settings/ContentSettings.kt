@@ -23,18 +23,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -492,7 +490,7 @@ fun ContentSettings(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(stringResource(R.string.enable_authentication))
-                        Switch(
+                        ModernSwitch(
                             checked = authEnabled,
                             onCheckedChange = {
                                 authEnabled = it
@@ -627,70 +625,58 @@ fun ContentSettings(
                 }
 
                 item {
-                    Card(
+                    Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer
-                        ),
-                        shape = RoundedCornerShape(20.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            ModernInfoItem(
-                                icon = { Icon(painterResource(R.drawable.language), null, modifier = Modifier.size(22.dp)) },
-                                title = stringResource(R.string.content_language),
-                                subtitle = LanguageCodeToName.getOrElse(contentLanguage) { stringResource(R.string.system_default) },
-                                onClick = { showContentLanguageDialog = true },
-                                showArrow = true,
-                                showSettingsIcon = true,
-                                iconBackgroundColor = iconBgColor,
-                                iconContentColor = iconStyleColor
-                            )
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            ModernInfoItem(
-                                icon = { Icon(painterResource(R.drawable.location_on), null, modifier = Modifier.size(22.dp)) },
-                                title = stringResource(R.string.content_country),
-                                subtitle = CountryCodeToName.getOrElse(contentCountry) { stringResource(R.string.system_default) },
-                                onClick = { showContentCountryDialog = true },
-                                showArrow = true,
-                                showSettingsIcon = true,
-                                iconBackgroundColor = iconBgColor,
-                                iconContentColor = iconStyleColor
-                            )
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(modifier = Modifier.weight(1f)) {
-                                    ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.explicit), null, modifier = Modifier.size(22.dp)) },
-                                        title = stringResource(R.string.hide_explicit),
-                                        subtitle = "Filter explicit content",
-                                        iconBackgroundColor = iconBgColor,
-                                        iconContentColor = iconStyleColor
+                        items = listOf(
+                            {
+                                ModernInfoItem(
+                                    icon = { Icon(painterResource(R.drawable.language), null, modifier = Modifier.size(22.dp)) },
+                                    title = stringResource(R.string.content_language),
+                                    subtitle = LanguageCodeToName.getOrElse(contentLanguage) { stringResource(R.string.system_default) },
+                                    onClick = { showContentLanguageDialog = true },
+                                    showArrow = true,
+                                    showSettingsIcon = true,
+                                    iconBackgroundColor = iconBgColor,
+                                    iconContentColor = iconStyleColor
+                                )
+                            },
+                            {
+                                ModernInfoItem(
+                                    icon = { Icon(painterResource(R.drawable.location_on), null, modifier = Modifier.size(22.dp)) },
+                                    title = stringResource(R.string.content_country),
+                                    subtitle = CountryCodeToName.getOrElse(contentCountry) { stringResource(R.string.system_default) },
+                                    onClick = { showContentCountryDialog = true },
+                                    showArrow = true,
+                                    showSettingsIcon = true,
+                                    iconBackgroundColor = iconBgColor,
+                                    iconContentColor = iconStyleColor
+                                )
+                            },
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.explicit), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.hide_explicit),
+                                            subtitle = "Filter explicit content",
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = hideExplicit,
+                                        onCheckedChange = onHideExplicitChange,
+                                        modifier = Modifier.padding(end = 20.dp)
                                     )
                                 }
-                                ModernSwitch(
-                                    checked = hideExplicit,
-                                    onCheckedChange = onHideExplicitChange,
-                                    modifier = Modifier.padding(end = 20.dp)
-                                )
                             }
-                        }
-                    }
+                        )
+                    )
                 }
 
                 // App Language Section
@@ -707,17 +693,11 @@ fun ContentSettings(
                 }
 
                 item {
-                    Card(
+                    Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer
-                        ),
-                        shape = RoundedCornerShape(20.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                        items = listOf {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                                 ModernInfoItem(
                                     icon = { Icon(painterResource(R.drawable.language), null, modifier = Modifier.size(22.dp)) },
@@ -749,7 +729,7 @@ fun ContentSettings(
                                 )
                             }
                         }
-                    }
+                    )
                 }
 
                 // Hide Video Songs Section
@@ -766,36 +746,32 @@ fun ContentSettings(
                 }
 
                 item {
-                    Card(
+                    Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer
-                        ),
-                        shape = RoundedCornerShape(20.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(modifier = Modifier.weight(1f)) {
-                                ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.slow_motion_video), null, modifier = Modifier.size(22.dp)) },
-                                    title = stringResource(R.string.hide_video_songs),
-                                    subtitle = "Hide video content from songs",
-                                    iconBackgroundColor = iconBgColor,
-                                    iconContentColor = iconStyleColor
+                        items = listOf {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(modifier = Modifier.weight(1f)) {
+                                    ModernInfoItem(
+                                        icon = { Icon(painterResource(R.drawable.slow_motion_video), null, modifier = Modifier.size(22.dp)) },
+                                        title = stringResource(R.string.hide_video_songs),
+                                        subtitle = "Hide video content from songs",
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
+                                    )
+                                }
+                                ModernSwitch(
+                                    checked = hideVideoSongs,
+                                    onCheckedChange = onHideVideoSongsChange,
+                                    modifier = Modifier.padding(end = 20.dp)
                                 )
                             }
-                            ModernSwitch(
-                                checked = hideVideoSongs,
-                                onCheckedChange = onHideVideoSongsChange,
-                                modifier = Modifier.padding(end = 20.dp)
-                            )
                         }
-                    }
+                    )
                 }
 
                 // Proxy Section
@@ -812,54 +788,48 @@ fun ContentSettings(
                 }
 
                 item {
-                    Card(
+                    Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer
-                        ),
-                        shape = RoundedCornerShape(20.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(modifier = Modifier.weight(1f)) {
+                        items = buildList {
+                            add {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.wifi_proxy), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.enable_proxy),
+                                            subtitle = "Route traffic through proxy",
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = proxyEnabled,
+                                        onCheckedChange = onProxyEnabledChange,
+                                        modifier = Modifier.padding(end = 20.dp)
+                                    )
+                                }
+                            }
+                            if (proxyEnabled) {
+                                add {
                                     ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.wifi_proxy), null, modifier = Modifier.size(22.dp)) },
-                                        title = stringResource(R.string.enable_proxy),
-                                        subtitle = "Route traffic through proxy",
+                                        icon = { Icon(painterResource(R.drawable.settings), null, modifier = Modifier.size(22.dp)) },
+                                        title = stringResource(R.string.config_proxy),
+                                        subtitle = "Configure proxy settings",
+                                        onClick = { showProxyConfigurationDialog = true },
+                                        showArrow = true,
+                                        showSettingsIcon = true,
                                         iconBackgroundColor = iconBgColor,
                                         iconContentColor = iconStyleColor
                                     )
                                 }
-                                ModernSwitch(
-                                    checked = proxyEnabled,
-                                    onCheckedChange = onProxyEnabledChange,
-                                    modifier = Modifier.padding(end = 20.dp)
-                                )
-                            }
-
-                            if (proxyEnabled) {
-                                HorizontalDivider(
-                                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                                )
-
-                                ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.settings), null, modifier = Modifier.size(22.dp)) },
-                                    title = stringResource(R.string.config_proxy),
-                                    subtitle = "Configure proxy settings",
-                                    onClick = { showProxyConfigurationDialog = true },
-                                    showArrow = true,
-                                    showSettingsIcon = true
-                                )
                             }
                         }
-                    }
+                    )
                 }
 
                 // Lyrics Section
@@ -876,98 +846,82 @@ fun ContentSettings(
                 }
 
                 item {
-                    Card(
+                    Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer
-                        ),
-                        shape = RoundedCornerShape(20.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(modifier = Modifier.weight(1f)) {
-                                    ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
-                                        title = "LrcLib Lyrics",
-                                        subtitle = "Enable LrcLib as a lyrics source",
-                                        iconBackgroundColor = iconBgColor,
-                                        iconContentColor = iconStyleColor
+                        items = listOf(
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
+                                            title = "LrcLib Lyrics",
+                                            subtitle = "Enable LrcLib as a lyrics source",
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = enableLrclib,
+                                        onCheckedChange = onEnableLrclibChange,
+                                        modifier = Modifier.padding(end = 20.dp)
                                     )
                                 }
-                                ModernSwitch(
-                                    checked = enableLrclib,
-                                    onCheckedChange = onEnableLrclibChange,
-                                    modifier = Modifier.padding(end = 20.dp)
-                                )
-                            }
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(modifier = Modifier.weight(1f)) {
-                                    ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
-                                        title = "Kugou Lyrics",
-                                        subtitle = "Enable Kugou as a lyrics source",
-                                        iconBackgroundColor = iconBgColor,
-                                        iconContentColor = iconStyleColor
+                            },
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
+                                            title = "Kugou Lyrics",
+                                            subtitle = "Enable Kugou as a lyrics source",
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = enableKugou,
+                                        onCheckedChange = onEnableKugouChange,
+                                        modifier = Modifier.padding(end = 20.dp)
                                     )
                                 }
-                                ModernSwitch(
-                                    checked = enableKugou,
-                                    onCheckedChange = onEnableKugouChange,
-                                    modifier = Modifier.padding(end = 20.dp)
+                            },
+                            {
+                                ModernInfoItem(
+                                    icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
+                                    title = stringResource(R.string.lyrics),
+                                    subtitle = when (preferredProvider) {
+                                        PreferredLyricsProvider.LRCLIB -> "LrcLib"
+                                        PreferredLyricsProvider.KUGOU -> "KuGou"
+                                    },
+                                    onClick = { showPreferredProviderDialog = true },
+                                    showArrow = true,
+                                    showSettingsIcon = true,
+                                    iconBackgroundColor = iconBgColor,
+                                    iconContentColor = iconStyleColor
+                                )
+                            },
+                            {
+                                ModernInfoItem(
+                                    icon = { Icon(painterResource(R.drawable.language_korean_latin), null, modifier = Modifier.size(22.dp)) },
+                                    title = stringResource(R.string.lyrics_romanization),
+                                    subtitle = "Romanization settings",
+                                    onClick = { navController.navigate("settings/content/romanization") },
+                                    showArrow = true,
+                                    showSettingsIcon = true,
+                                    iconBackgroundColor = iconBgColor,
+                                    iconContentColor = iconStyleColor
                                 )
                             }
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            ModernInfoItem(
-                                icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
-                                title = stringResource(R.string.lyrics),
-                                subtitle = when (preferredProvider) {
-                                    PreferredLyricsProvider.LRCLIB -> "LrcLib"
-                                    PreferredLyricsProvider.KUGOU -> "KuGou"
-                                },
-                                onClick = { showPreferredProviderDialog = true },
-                                showArrow = true,
-                                showSettingsIcon = true,
-                                iconBackgroundColor = iconBgColor,
-                                iconContentColor = iconStyleColor
-                            )
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            ModernInfoItem(
-                                icon = { Icon(painterResource(R.drawable.language_korean_latin), null, modifier = Modifier.size(22.dp)) },
-                                title = stringResource(R.string.lyrics_romanization),
-                                subtitle = "Romanization settings",
-                                onClick = { navController.navigate("settings/content/romanization") },
-                                showArrow = true,
-                                showSettingsIcon = true,
-                                iconBackgroundColor = iconBgColor,
-                                iconContentColor = iconStyleColor
-                            )
-                        }
-                    }
+                        )
+                    )
                 }
 
                 // Misc Section
@@ -984,48 +938,40 @@ fun ContentSettings(
                 }
 
                 item {
-                    Card(
+                    Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer
-                        ),
-                        shape = RoundedCornerShape(20.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            ModernInfoItem(
-                                icon = { Icon(painterResource(R.drawable.arrow_top_left), null, modifier = Modifier.size(22.dp)) },
-                                title = stringResource(R.string.top_length),
-                                subtitle = lengthTop,
-                                onClick = { showTopLengthDialog = true },
-                                showArrow = true,
-                                showSettingsIcon = true,
-                                iconBackgroundColor = iconBgColor,
-                                iconContentColor = iconStyleColor
-                            )
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            ModernInfoItem(
-                                icon = { Icon(painterResource(R.drawable.grid_view), null, modifier = Modifier.size(22.dp)) },
-                                title = stringResource(R.string.quick_picks),
-                                subtitle = when (quickPicks) {
-                                    QuickPicks.QUICK_PICKS -> stringResource(R.string.quick_picks)
-                                    QuickPicks.LAST_LISTEN -> stringResource(R.string.last_song_listened)
-                                },
-                                onClick = { showQuickPicksDialog = true },
-                                showArrow = true,
-                                showSettingsIcon = true,
-                                iconBackgroundColor = iconBgColor,
-                                iconContentColor = iconStyleColor
-                            )
-                        }
-                    }
+                        items = listOf(
+                            {
+                                ModernInfoItem(
+                                    icon = { Icon(painterResource(R.drawable.arrow_top_left), null, modifier = Modifier.size(22.dp)) },
+                                    title = stringResource(R.string.top_length),
+                                    subtitle = lengthTop,
+                                    onClick = { showTopLengthDialog = true },
+                                    showArrow = true,
+                                    showSettingsIcon = true,
+                                    iconBackgroundColor = iconBgColor,
+                                    iconContentColor = iconStyleColor
+                                )
+                            },
+                            {
+                                ModernInfoItem(
+                                    icon = { Icon(painterResource(R.drawable.grid_view), null, modifier = Modifier.size(22.dp)) },
+                                    title = stringResource(R.string.quick_picks),
+                                    subtitle = when (quickPicks) {
+                                        QuickPicks.QUICK_PICKS -> stringResource(R.string.quick_picks)
+                                        QuickPicks.LAST_LISTEN -> stringResource(R.string.last_song_listened)
+                                    },
+                                    onClick = { showQuickPicksDialog = true },
+                                    showArrow = true,
+                                    showSettingsIcon = true,
+                                    iconBackgroundColor = iconBgColor,
+                                    iconContentColor = iconStyleColor
+                                )
+                            }
+                        )
+                    )
                 }
 
                 item {

@@ -45,7 +45,8 @@ val ProxyPasswordKey = stringPreferencesKey("proxyPassword")
 val YtmSyncKey = booleanPreferencesKey("ytmSync")
 
 //val CheckForUpdatesKey = booleanPreferencesKey("checkForUpdates")
-//val UpdateNotificationsEnabledKey = booleanPreferencesKey("updateNotifications")
+const val KEY_SHOW_UPDATE_NOTIFICATION = "show_update_notification"
+val ShowUpdateNotificationKey = booleanPreferencesKey(KEY_SHOW_UPDATE_NOTIFICATION)
 
 val AudioQualityKey = stringPreferencesKey("audioQuality")
 

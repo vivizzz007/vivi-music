@@ -31,7 +31,7 @@ import com.music.vivi.update.contribution.Contributor
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun Material3Expressive(
+fun Materialcard(
     contributors: List<Contributor>,
     onGitHubClick: (String) -> Unit
 ) {

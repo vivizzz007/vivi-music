@@ -11,12 +11,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
+import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -129,63 +126,54 @@ fun IntegrationScreen(
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            // Integrations Card
-            Card(
+            // Integrations Group
+            Material3ExpressiveSettingsGroup(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-            ) {
-                Column(modifier = Modifier.padding(vertical = 8.dp)) {
-
-                    // Discord Integration
-                    ModernInfoItem(
-                        icon = {
-                            Icon(
-                                painter = painterResource(R.drawable.discord),
-                                contentDescription = null,
-                                modifier = Modifier.size(22.dp)
-                            )
-                        },
-                        title = stringResource(R.string.discord_integration),
-                        subtitle = "Connect with Discord",
-                        onClick = {
-                            navController.navigate("settings/integrations/discord")
-                        },
-                        showArrow = true,
-                        showSettingsIcon = true,
-                        iconBackgroundColor = iconBgColor,
-                        iconContentColor = iconStyleColor
-                    )
-
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                    )
-
-                    // Last.fm Integration
-                    ModernInfoItem(
-                        icon = {
-                            Icon(
-                                painter = painterResource(R.drawable.music_note),
-                                contentDescription = null,
-                                modifier = Modifier.size(22.dp)
-                            )
-                        },
-                        title = stringResource(R.string.lastfm_integration),
-                        subtitle = "Connect with Last.fm",
-                        onClick = {
-                            navController.navigate("settings/integrations/lastfm")
-                        },
-                        showArrow = true,
-                        showSettingsIcon = true,
-                        iconBackgroundColor = iconBgColor,
-                        iconContentColor = iconStyleColor
-                    )
-                }
-            }
+                items = listOf(
+                    {
+                        // Discord Integration
+                        ModernInfoItem(
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.discord),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            },
+                            title = stringResource(R.string.discord_integration),
+                            subtitle = "Connect with Discord",
+                            onClick = {
+                                navController.navigate("settings/integrations/discord")
+                            },
+                            showArrow = true,
+                            showSettingsIcon = true,
+                            iconBackgroundColor = iconBgColor,
+                            iconContentColor = iconStyleColor
+                        )
+                    },
+                    {
+                        // Last.fm Integration
+                        ModernInfoItem(
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.music_note),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            },
+                            title = stringResource(R.string.lastfm_integration),
+                            subtitle = "Connect with Last.fm",
+                            onClick = {
+                                navController.navigate("settings/integrations/lastfm")
+                            },
+                            showArrow = true,
+                            showSettingsIcon = true,
+                            iconBackgroundColor = iconBgColor,
+                            iconContentColor = iconStyleColor
+                        )
+                    }
+                )
+            )
 
             Spacer(modifier = Modifier.height(100.dp))
         }

@@ -2,6 +2,7 @@ package com.music.vivi.update.updatenotification
 
 
 import android.Manifest
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -31,6 +32,13 @@ import java.net.URL
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.withTimeout
 import com.music.vivi.R
+import com.music.vivi.BuildConfig
+import com.music.vivi.constants.CheckForUpdatesKey
+import com.music.vivi.update.experiment.getUpdateCheckInterval
+import com.music.vivi.update.isNewerVersion
+import com.music.vivi.utils.dataStore
+import com.music.vivi.utils.get
+import com.music.vivi.constants.KEY_SHOW_UPDATE_NOTIFICATION
 
 
 object UpdateNotificationManager {
@@ -44,10 +52,51 @@ object UpdateNotificationManager {
             val importance = NotificationManager.IMPORTANCE_HIGH
             val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, importance).apply {
                 description = "Notifications for app updates"
+                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             }
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
         }
+        
+        // Schedule periodic check on initialization
+        schedulePeriodicUpdateCheck(context)
+    }
+
+    fun schedulePeriodicUpdateCheck(context: Context) {
+        val workManager = WorkManager.getInstance(context)
+        
+        // Check if update checks are enabled
+        val sharedPrefs = context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+        val checkForUpdatesEnabled = context.dataStore.get(CheckForUpdatesKey, true)
+        
+        if (!checkForUpdatesEnabled) {
+            workManager.cancelUniqueWork("periodic_update_check")
+            return
+        }
+
+        val intervalHours = getUpdateCheckInterval(context).toLong()
+        
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val updateRequest = PeriodicWorkRequestBuilder<UpdateCheckWorker>(
+            intervalHours, TimeUnit.HOURS,
+            15, TimeUnit.MINUTES // Flexible interval
+        )
+            .setConstraints(constraints)
+            .setBackoffCriteria(
+                BackoffPolicy.EXPONENTIAL,
+                WorkRequest.MIN_BACKOFF_MILLIS,
+                TimeUnit.MILLISECONDS
+            )
+            .build()
+
+        workManager.enqueueUniquePeriodicWork(
+            "periodic_update_check",
+            ExistingPeriodicWorkPolicy.UPDATE,
+            updateRequest
+        )
     }
 
     suspend fun checkForUpdates(context: Context, currentVersionName: String, currentVersionCode: Int) {
@@ -178,12 +227,23 @@ object UpdateNotificationManager {
         }
     }
 
-    private fun showUpdateNotification(
+    public fun showUpdateNotification(
         context: Context,
         version: String,
         releaseName: String,
         downloadUrl: String
     ) {
+        // Ensure channel exists (in case it wasn't initialized or app was restored)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val importance = NotificationManager.IMPORTANCE_HIGH
+            val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, importance).apply {
+                description = "Notifications for app updates"
+                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+            }
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
+
         // Check if user has enabled update notifications
         val sharedPrefs = context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
         val showNotifications = sharedPrefs.getBoolean(KEY_SHOW_UPDATE_NOTIFICATION, true)
@@ -204,7 +264,7 @@ object UpdateNotificationManager {
         )
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.library_music)
+            .setSmallIcon(R.drawable.vivi) // Changed from library_music to vivi to be safe/brand consistent
             .setContentTitle("Update Available!")
             .setContentText("Version $version is now available")
             .setStyle(
@@ -212,6 +272,7 @@ object UpdateNotificationManager {
                     .bigText("$releaseName\n\nTap to download the latest version of Vivi Music.")
             )
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .addAction(
@@ -245,4 +306,22 @@ object UpdateNotificationManager {
         val downloadUrl: String,
         val body: String
     )
+}
+
+class UpdateCheckWorker(
+    private val context: Context,
+    workerParams: WorkerParameters
+) : CoroutineWorker(context, workerParams) {
+
+    override suspend fun doWork(): Result {
+        val currentVersionName = BuildConfig.VERSION_NAME
+        val currentVersionCode = BuildConfig.VERSION_CODE
+        
+        try {
+            UpdateNotificationManager.checkForUpdates(context, currentVersionName, currentVersionCode)
+            return Result.success()
+        } catch (e: Exception) {
+            return Result.retry()
+        }
+    }
 }

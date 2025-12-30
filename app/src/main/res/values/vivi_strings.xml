@@ -299,4 +299,48 @@
     <!-- Accessibility -->
     <string name="contributor_avatar">Avatar of %s</string>
     <string name="github_profile">GitHub Profile</string>
+
+    <!-- Vivi Updates Screen -->
+    <string name="app_updates_title">App Updates</string>
+    <string name="changelog">Changelog</string>
+    <string name="quick_actions">Quick actions</string>
+    <string name="app_updates_subtitle">App updates and version information</string>
+    <string name="system_update">System update</string>
+    <string name="update_available_subtitle">Update available - %1$s</string>
+    <string name="update_disabled_subtitle">Automatic checks disabled</string>
+    <string name="up_to_date_subtitle">App is up to date</string>
+    <string name="experimental_title">Experimental</string>
+    <string name="experimental_subtitle">Experimental feature</string>
+    <string name="update_settings_subtitle">Turn on and off updates</string>
+    <string name="changelog_subtitle">Current app version</string>
+    <string name="about_subtitle">app &amp; dev information</string>
+    <string name="app_info_header">APP INFO</string>
+    <string name="build_version_title">Build version</string>
+    <string name="installed_date_title">Installed date</string>
+    <string name="installed_on_format">Installed on %1$s</string>
+
+    <!-- Update Settings Screen (updatesettings.kt) -->
+    <string name="update_settings_title">Update Settings</string>
+    <string name="manage_header">Manage</string>
+    <string name="notification_header">Notifications</string>
+    <string name="check_for_updates_desc">Automatically check for new updates</string>
+    <string name="show_notification">Show notification</string>
+    <string name="show_notification_desc">Get notified when updates are available</string>
+    <string name="update_check_interval">Update check interval</string>
+    <string name="interval_every_hour">Every %1$d hour</string>
+    <string name="interval_every_hours">Every %1$d hours</string>
+    <string name="interval_every_day">Every %1$d day</string>
+    <string name="interval_every_days">Every %1$d days</string>
+    <string name="interval_check_format_hours">Check every %1$d hours</string>
+    <string name="interval_check_format_days">Check every %1$d days</string>
+    <string name="auto_updates_enabled_toast">Automatic update checks enabled</string>
+    <string name="auto_updates_disabled_toast">Automatic update checks disabled</string>
+    <string name="notifications_enabled_toast">Update notifications enabled</string>
+    <string name="notifications_disabled_toast">Update notifications disabled</string>
+    <string name="interval_set_format_hours">Update check interval set to %1$d hours</string>
+    <string name="interval_set_format_days">Update check interval set to %1$d days</string>
+    <string name="one_hour">1 hour</string>
+    <string name="seven_days">7 days</string>
+    <string name="ok_caps">OK</string>
+    <string name="cancel_caps">CANCEL</string>
 </resources>

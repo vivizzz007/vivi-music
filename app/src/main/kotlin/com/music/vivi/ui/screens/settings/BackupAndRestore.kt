@@ -18,14 +18,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -239,54 +235,46 @@ fun BackupAndRestore(
                 }
 
                 item {
-                    Card(
+                    Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer
-                        ),
-                        shape = RoundedCornerShape(20.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            // Backup
-                            ModernInfoItem(
-                                icon = { Icon(painterResource(R.drawable.backup), null, modifier = Modifier.size(22.dp)) },
-                                title = stringResource(R.string.action_backup),
-                                subtitle = "Save your data and settings",
-                                onClick = {
-                                    val formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
-                                    backupLauncher.launch(
-                                        "${context.getString(R.string.app_name)}_${
-                                            LocalDateTime.now().format(formatter)
-                                        }.backup"
-                                    )
-                                },
-                                showArrow = true,
-                                iconBackgroundColor = iconBgColor,
-                                iconContentColor = iconStyleColor
-                            )
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            // Restore
-                            ModernInfoItem(
-                                icon = { Icon(painterResource(R.drawable.restore), null, modifier = Modifier.size(22.dp)) },
-                                title = stringResource(R.string.action_restore),
-                                subtitle = "Restore from a backup file",
-                                onClick = {
-                                    restoreLauncher.launch(arrayOf("application/octet-stream"))
-                                },
-                                showArrow = true,
-                                iconBackgroundColor = iconBgColor,
-                                iconContentColor = iconStyleColor
-                            )
-                        }
-                    }
+                        items = listOf(
+                            {
+                                // Backup
+                                ModernInfoItem(
+                                    icon = { Icon(painterResource(R.drawable.backup), null, modifier = Modifier.size(22.dp)) },
+                                    title = stringResource(R.string.action_backup),
+                                    subtitle = "Save your data and settings",
+                                    onClick = {
+                                        val formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
+                                        backupLauncher.launch(
+                                            "${context.getString(R.string.app_name)}_${
+                                                LocalDateTime.now().format(formatter)
+                                            }.backup"
+                                        )
+                                    },
+                                    showArrow = true,
+                                    iconBackgroundColor = iconBgColor,
+                                    iconContentColor = iconStyleColor
+                                )
+                            },
+                            {
+                                // Restore
+                                ModernInfoItem(
+                                    icon = { Icon(painterResource(R.drawable.restore), null, modifier = Modifier.size(22.dp)) },
+                                    title = stringResource(R.string.action_restore),
+                                    subtitle = "Restore from a backup file",
+                                    onClick = {
+                                        restoreLauncher.launch(arrayOf("application/octet-stream"))
+                                    },
+                                    showArrow = true,
+                                    iconBackgroundColor = iconBgColor,
+                                    iconContentColor = iconStyleColor
+                                )
+                            }
+                        )
+                    )
                 }
 
                 // Import Section
@@ -303,49 +291,41 @@ fun BackupAndRestore(
                 }
 
                 item {
-                    Card(
+                    Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer
-                        ),
-                        shape = RoundedCornerShape(20.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            // Import M3U
-                            ModernInfoItem(
-                                icon = { Icon(painterResource(R.drawable.playlist_add), null, modifier = Modifier.size(22.dp)) },
-                                title = stringResource(R.string.import_online),
-                                subtitle = "Import playlists from M3U files",
-                                onClick = {
-                                    importM3uLauncherOnline.launch(arrayOf("audio/*"))
-                                },
-                                showArrow = true,
-                                iconBackgroundColor = iconBgColor,
-                                iconContentColor = iconStyleColor
-                            )
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            // Import CSV
-                            ModernInfoItem(
-                                icon = { Icon(painterResource(R.drawable.playlist_add), null, modifier = Modifier.size(22.dp)) },
-                                title = stringResource(R.string.import_csv),
-                                subtitle = "Import playlists from CSV files",
-                                onClick = {
-                                    importPlaylistFromCsv.launch(arrayOf("text/csv", "text/comma-separated-values", "application/csv"))
-                                },
-                                showArrow = true,
-                                iconBackgroundColor = iconBgColor,
-                                iconContentColor = iconStyleColor
-                            )
-                        }
-                    }
+                        items = listOf(
+                            {
+                                // Import M3U
+                                ModernInfoItem(
+                                    icon = { Icon(painterResource(R.drawable.playlist_add), null, modifier = Modifier.size(22.dp)) },
+                                    title = stringResource(R.string.import_online),
+                                    subtitle = "Import playlists from M3U files",
+                                    onClick = {
+                                        importM3uLauncherOnline.launch(arrayOf("audio/*"))
+                                    },
+                                    showArrow = true,
+                                    iconBackgroundColor = iconBgColor,
+                                    iconContentColor = iconStyleColor
+                                )
+                            },
+                            {
+                                // Import CSV
+                                ModernInfoItem(
+                                    icon = { Icon(painterResource(R.drawable.playlist_add), null, modifier = Modifier.size(22.dp)) },
+                                    title = stringResource(R.string.import_csv),
+                                    subtitle = "Import playlists from CSV files",
+                                    onClick = {
+                                        importPlaylistFromCsv.launch(arrayOf("text/csv", "text/comma-separated-values", "application/csv"))
+                                    },
+                                    showArrow = true,
+                                    iconBackgroundColor = iconBgColor,
+                                    iconContentColor = iconStyleColor
+                                )
+                            }
+                        )
+                    )
                 }
 
                 item {

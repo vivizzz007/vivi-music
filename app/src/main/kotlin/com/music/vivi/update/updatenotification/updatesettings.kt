@@ -4,7 +4,7 @@ package com.music.vivi.update.updatenotification
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,13 +13,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -35,7 +32,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
@@ -44,21 +40,27 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.music.vivi.R
 import com.music.vivi.constants.CheckForUpdatesKey
+import com.music.vivi.constants.DarkModeKey
+import com.music.vivi.constants.KEY_SHOW_UPDATE_NOTIFICATION
+import com.music.vivi.constants.SettingsShapeColorTertiaryKey
+import com.music.vivi.constants.ShowUpdateNotificationKey
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.screens.KEY_AUTO_UPDATE_CHECK
 import com.music.vivi.ui.screens.PREFS_NAME
+import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.update.experiment.getUpdateCheckInterval
 import com.music.vivi.update.experiment.saveUpdateCheckInterval
 import com.music.vivi.update.mordernswitch.ModernSwitch
+import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
+import com.music.vivi.update.settingstyle.ModernInfoItem
 import com.music.vivi.update.viewmodelupdate.UpdateViewModel
+import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
-
-import androidx.hilt.navigation.compose.hiltViewModel
 
 //new view model to check update
 @OptIn(ExperimentalMaterial3Api::class)
@@ -73,6 +75,36 @@ fun UpdateInfoScreen(
     // State for preferences
     val (checkForUpdates, onCheckForUpdatesChange) = rememberPreference(CheckForUpdatesKey, true)
     val (showUpdateNotification, onShowUpdateNotificationChange) = rememberPreference(ShowUpdateNotificationKey, true)
+
+    val (settingsShapeTertiary, _) = rememberPreference(SettingsShapeColorTertiaryKey, false)
+    val (darkMode, _) = rememberEnumPreference(
+        DarkModeKey,
+        defaultValue = DarkMode.AUTO
+    )
+    val isSystemInDarkTheme = isSystemInDarkTheme()
+    val useDarkTheme = remember(darkMode, isSystemInDarkTheme) {
+        if (darkMode == DarkMode.AUTO) isSystemInDarkTheme else darkMode == DarkMode.ON
+    }
+
+    val (iconBgColor, iconStyleColor) = if (settingsShapeTertiary) {
+        if (useDarkTheme) {
+            Pair(
+                MaterialTheme.colorScheme.tertiary,
+                MaterialTheme.colorScheme.onTertiary
+            )
+        } else {
+            Pair(
+                MaterialTheme.colorScheme.tertiaryContainer,
+                MaterialTheme.colorScheme.onTertiaryContainer
+            )
+        }
+    } else {
+        Pair(
+            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
+            MaterialTheme.colorScheme.primary
+        )
+    }
+
     var updateCheckInterval by remember { mutableStateOf(getUpdateCheckInterval(context)) }
     var showIntervalDialog by remember { mutableStateOf(false) }
 
@@ -85,12 +117,15 @@ fun UpdateInfoScreen(
         sharedPrefs.edit().putBoolean(KEY_AUTO_UPDATE_CHECK, newValue).apply()
 
         updateViewModel.refreshUpdateStatus()
+        
+        // Refresh background check schedule
+        UpdateNotificationManager.schedulePeriodicUpdateCheck(context)
 
         // Show feedback
         val message = if (newValue) {
-            "Automatic update checks enabled"
+            context.getString(R.string.auto_updates_enabled_toast)
         } else {
-            "Automatic update checks disabled"
+            context.getString(R.string.auto_updates_disabled_toast)
         }
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
     }
@@ -105,9 +140,9 @@ fun UpdateInfoScreen(
 
         // Show feedback
         val message = if (newValue) {
-            "Update notifications enabled"
+            context.getString(R.string.notifications_enabled_toast)
         } else {
-            "Update notifications disabled"
+            context.getString(R.string.notifications_disabled_toast)
         }
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
     }
@@ -116,17 +151,17 @@ fun UpdateInfoScreen(
     fun onIntervalChange(newInterval: Int) {
         updateCheckInterval = newInterval
         saveUpdateCheckInterval(context, newInterval)
+        
+        // Refresh background check schedule
+        UpdateNotificationManager.schedulePeriodicUpdateCheck(context)
 
-        Toast.makeText(
-            context,
-            if (newInterval < 24) {
-                "Update check interval set to $newInterval ${if (newInterval == 1) "hour" else "hours"}"
-            } else {
-                val days = newInterval / 24
-                "Update check interval set to $days ${if (days == 1) "day" else "days"}"
-            },
-            Toast.LENGTH_SHORT
-        ).show()
+        val message = if (newInterval < 24) {
+             context.getString(R.string.interval_set_format_hours, newInterval)
+        } else {
+            val days = newInterval / 24
+            context.getString(R.string.interval_set_format_days, days)
+        }
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
     }
 
     Scaffold(
@@ -160,161 +195,132 @@ fun UpdateInfoScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
         ) {
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Main Title
             Text(
-                text = "Update Settings",
-                style = MaterialTheme.typography.headlineMedium.copy(fontSize = 32.sp),
-                fontWeight = FontWeight.Normal,
+                text = stringResource(R.string.update_settings_title),
+                style = MaterialTheme.typography.headlineMedium.copy(fontSize = 40.sp),
+                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
+                modifier = Modifier.padding(start = 8.dp, bottom = 16.dp)
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Manage Section
             Text(
-                text = "Manage",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(start = 24.dp, bottom = 12.dp)
+                text = stringResource(R.string.manage_header).uppercase(),
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp
+                ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp)
             )
 
-            // Auto Update Check Card - Standalone rounded
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(28.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onAutoUpdateCheckChange(!checkForUpdates) }
-                        .padding(horizontal = 24.dp, vertical = 20.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(R.string.check_for_updates),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Automatically check for new updates",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+            val manageItems = remember(checkForUpdates, iconBgColor, iconStyleColor) {
+                buildList<@Composable () -> Unit> {
+                    add {
+                        ModernInfoItem(
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.updated),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            },
+                            title = stringResource(R.string.check_for_updates),
+                            subtitle = stringResource(R.string.check_for_updates_desc),
+                            onClick = { onAutoUpdateCheckChange(!checkForUpdates) },
+                            iconBackgroundColor = iconBgColor,
+                            iconContentColor = iconStyleColor,
+                            trailingContent = {
+                                ModernSwitch(
+                                    checked = checkForUpdates,
+                                    onCheckedChange = { onAutoUpdateCheckChange(it) }
+                                )
+                            }
                         )
                     }
-                    Spacer(modifier = Modifier.width(16.dp))
-                    ModernSwitch(
-                        checked = checkForUpdates,
-                        onCheckedChange = { onAutoUpdateCheckChange(it) }
-                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Material3ExpressiveSettingsGroup(
+                modifier = Modifier.fillMaxWidth(),
+                items = manageItems
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Notifications Section
             Text(
-                text = "Notifications",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(start = 24.dp, bottom = 12.dp)
+                text = stringResource(R.string.notification_header).uppercase(),
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp
+                ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp)
             )
 
-            // Show Update Notification Card - Top rounded
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp, bottomStart = 4.dp, bottomEnd = 4.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(enabled = checkForUpdates) {
-                            onNotificationToggle(!showUpdateNotification)
-                        }
-                        .padding(horizontal = 24.dp, vertical = 20.dp)
-                        .alpha(if (checkForUpdates) 1f else 0.5f),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Show notification",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Get notified when updates are available",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+            val notificationItems = remember(showUpdateNotification, checkForUpdates, updateCheckInterval, iconBgColor, iconStyleColor) {
+                buildList<@Composable () -> Unit> {
+                    add {
+                        ModernInfoItem(
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.notification),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            },
+                            title = stringResource(R.string.show_notification),
+                            subtitle = stringResource(R.string.show_notification_desc),
+                            onClick = { if (checkForUpdates) onNotificationToggle(!showUpdateNotification) },
+                            iconBackgroundColor = iconBgColor,
+                            iconContentColor = iconStyleColor,
+                            modifier = Modifier.alpha(if (checkForUpdates) 1f else 0.5f),
+                            trailingContent = {
+                                ModernSwitch(
+                                    checked = showUpdateNotification,
+                                    onCheckedChange = { onNotificationToggle(it) },
+                                    enabled = checkForUpdates
+                                )
+                            }
                         )
                     }
-                    Spacer(modifier = Modifier.width(16.dp))
-                    ModernSwitch(
-                        checked = showUpdateNotification,
-                        onCheckedChange = { onNotificationToggle(it) },
-                        enabled = checkForUpdates
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(2.dp))
-
-            // Update Check Interval Card - Bottom rounded
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 28.dp, bottomEnd = 28.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(enabled = checkForUpdates) { showIntervalDialog = true }
-                        .padding(horizontal = 24.dp, vertical = 20.dp)
-                        .alpha(if (checkForUpdates) 1f else 0.5f),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Update check interval",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = if (updateCheckInterval < 24) {
-                                "Every $updateCheckInterval ${if (updateCheckInterval == 1) "hour" else "hours"}"
+                    add {
+                        ModernInfoItem(
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.history),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            },
+                            title = stringResource(R.string.update_check_interval),
+                            subtitle = if (updateCheckInterval < 24) {
+                                stringResource(if (updateCheckInterval == 1) R.string.interval_every_hour else R.string.interval_every_hours, updateCheckInterval)
                             } else {
                                 val days = updateCheckInterval / 24
-                                "Every $days ${if (days == 1) "day" else "days"}"
+                                stringResource(if (days == 1) R.string.interval_every_day else R.string.interval_every_days, days)
                             },
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            onClick = { if (checkForUpdates) showIntervalDialog = true },
+                            iconBackgroundColor = iconBgColor,
+                            iconContentColor = iconStyleColor,
+                            modifier = Modifier.alpha(if (checkForUpdates) 1f else 0.5f)
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(100.dp))
+            Material3ExpressiveSettingsGroup(
+                modifier = Modifier.fillMaxWidth(),
+                items = notificationItems
+            )
+
+            Spacer(modifier = Modifier.height(80.dp))
         }
     }
 
@@ -324,7 +330,7 @@ fun UpdateInfoScreen(
             onDismissRequest = { showIntervalDialog = false },
             title = {
                 Text(
-                    text = "Update check interval",
+                    text = stringResource(R.string.update_check_interval),
                     style = MaterialTheme.typography.headlineSmall
                 )
             },
@@ -333,10 +339,10 @@ fun UpdateInfoScreen(
                     // Change the range and display
                     Text(
                         text = if (updateCheckInterval < 24) {
-                            "Check every $updateCheckInterval ${if (updateCheckInterval == 1) "hour" else "hours"}"
+                            stringResource(R.string.interval_check_format_hours, updateCheckInterval)
                         } else {
                             val days = updateCheckInterval / 24
-                            "Check every $days ${if (days == 1) "day" else "days"}"
+                            stringResource(R.string.interval_check_format_days, days)
                         },
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.padding(bottom = 16.dp)
@@ -355,12 +361,12 @@ fun UpdateInfoScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "1 hour",
+                            text = stringResource(R.string.one_hour),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = "7 days",  // Changed
+                            text = stringResource(R.string.seven_days),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -374,19 +380,15 @@ fun UpdateInfoScreen(
                         showIntervalDialog = false
                     }
                 ) {
-                    Text("OK")
+                    Text(stringResource(R.string.ok_caps))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showIntervalDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel_caps))
                 }
             }
         )
     }
 }
 
-// Constants
-const val KEY_SHOW_UPDATE_NOTIFICATION = "show_update_notification"
-val ShowUpdateNotificationKey = booleanPreferencesKey("show_update_notification")
-//

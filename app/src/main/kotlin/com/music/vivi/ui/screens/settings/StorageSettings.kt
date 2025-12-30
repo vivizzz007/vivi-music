@@ -19,13 +19,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -277,74 +275,70 @@ fun StorageSettings(
                 }
 
                 item {
-                    Card(
+                    Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer
-                        ),
-                        shape = RoundedCornerShape(20.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .padding(20.dp)
-                                .fillMaxWidth()
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    text = "Total Storage Used",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    text = "${formatFileSize(totalStorageUsed)} / ${formatFileSize(totalStorageAvailable)}",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(12.dp))
-
-                            // Total Storage Progress Bar
-                            LinearProgressIndicator(
-                                progress = { totalStorageProgress },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(8.dp),
-                                color = MaterialTheme.colorScheme.primary,
-                                trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                            )
-
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            // Storage Breakdown
+                        items = listOf {
                             Column(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                                modifier = Modifier
+                                    .padding(20.dp)
+                                    .fillMaxWidth()
                             ) {
-                                StorageBreakdownItem(
-                                    title = "Downloads",
-                                    size = downloadCacheSize,
-                                    color = MaterialTheme.colorScheme.primary
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = "Total Storage Used",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = "${formatFileSize(totalStorageUsed)} / ${formatFileSize(totalStorageAvailable)}",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(12.dp))
+
+                                // Total Storage Progress Bar
+                                LinearProgressIndicator(
+                                    progress = { totalStorageProgress },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(8.dp),
+                                    color = MaterialTheme.colorScheme.primary,
+                                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
                                 )
-                                StorageBreakdownItem(
-                                    title = "Song Cache",
-                                    size = playerCacheSize,
-                                    color = MaterialTheme.colorScheme.secondary
-                                )
-                                StorageBreakdownItem(
-                                    title = "Image Cache",
-                                    size = imageCacheSize,
-                                    color = MaterialTheme.colorScheme.tertiary
-                                )
+
+                                Spacer(modifier = Modifier.height(16.dp))
+
+                                // Storage Breakdown
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    StorageBreakdownItem(
+                                        title = "Downloads",
+                                        size = downloadCacheSize,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    StorageBreakdownItem(
+                                        title = "Song Cache",
+                                        size = playerCacheSize,
+                                        color = MaterialTheme.colorScheme.secondary
+                                    )
+                                    StorageBreakdownItem(
+                                        title = "Image Cache",
+                                        size = imageCacheSize,
+                                        color = MaterialTheme.colorScheme.tertiary
+                                    )
+                                }
                             }
                         }
-                    }
+                    )
                 }
 
                 // Downloaded Songs Section
@@ -361,63 +355,55 @@ fun StorageSettings(
                 }
 
                 item {
-                    Card(
+                    Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer
-                        ),
-                        shape = RoundedCornerShape(20.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            // Downloads Info
-                            ModernInfoItem(
-                                icon = { Icon(painterResource(R.drawable.download), null, modifier = Modifier.size(22.dp)) },
-                                title = "Downloaded Songs",
-                                subtitle = "${formatFileSize(downloadCacheSize)} used",
-                                iconBackgroundColor = iconBgColor,
-                                iconContentColor = iconStyleColor
-                            )
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            // Clear All Downloads
-                            ModernInfoItem(
-                                icon = { Icon(painterResource(R.drawable.clear_all), null, modifier = Modifier.size(22.dp)) },
-                                title = stringResource(R.string.clear_all_downloads),
-                                subtitle = "Remove all downloaded songs",
-                                onClick = { clearDownloads = true },
-                                showArrow = true,
-                                showSettingsIcon = true,
-                                iconBackgroundColor = iconBgColor,
-                                iconContentColor = iconStyleColor
-                            )
-
-                            if (clearDownloads) {
-                                ActionPromptDialog(
-                                    title = stringResource(R.string.clear_all_downloads),
-                                    onDismiss = { clearDownloads = false },
-                                    onConfirm = {
-                                        coroutineScope.launch(Dispatchers.IO) {
-                                            downloadCache.keys.forEach { key ->
-                                                downloadCache.removeResource(key)
-                                            }
-                                        }
-                                        clearDownloads = false
-                                    },
-                                    onCancel = { clearDownloads = false },
-                                    content = {
-                                        Text(text = stringResource(R.string.clear_downloads_dialog))
-                                    }
+                        items = listOf(
+                            {
+                                // Downloads Info
+                                ModernInfoItem(
+                                    icon = { Icon(painterResource(R.drawable.download), null, modifier = Modifier.size(22.dp)) },
+                                    title = "Downloaded Songs",
+                                    subtitle = "${formatFileSize(downloadCacheSize)} used",
+                                    iconBackgroundColor = iconBgColor,
+                                    iconContentColor = iconStyleColor
                                 )
+                            },
+                            {
+                                // Clear All Downloads
+                                ModernInfoItem(
+                                    icon = { Icon(painterResource(R.drawable.clear_all), null, modifier = Modifier.size(22.dp)) },
+                                    title = stringResource(R.string.clear_all_downloads),
+                                    subtitle = "Remove all downloaded songs",
+                                    onClick = { clearDownloads = true },
+                                    showArrow = true,
+                                    showSettingsIcon = true,
+                                    iconBackgroundColor = iconBgColor,
+                                    iconContentColor = iconStyleColor
+                                )
+
+                                if (clearDownloads) {
+                                    ActionPromptDialog(
+                                        title = stringResource(R.string.clear_all_downloads),
+                                        onDismiss = { clearDownloads = false },
+                                        onConfirm = {
+                                            coroutineScope.launch(Dispatchers.IO) {
+                                                downloadCache.keys.forEach { key ->
+                                                    downloadCache.removeResource(key)
+                                                }
+                                            }
+                                            clearDownloads = false
+                                        },
+                                        onCancel = { clearDownloads = false },
+                                        content = {
+                                            Text(text = stringResource(R.string.clear_downloads_dialog))
+                                        }
+                                    )
+                                }
                             }
-                        }
-                    }
+                        )
+                    )
                 }
 
                 // Song Cache Section
@@ -434,159 +420,147 @@ fun StorageSettings(
                 }
 
                 item {
-                    Card(
+                    var showCacheSizeDialog by remember { mutableStateOf(false) }
+                    Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer
-                        ),
-                        shape = RoundedCornerShape(20.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            // Cache Size Info with Progress Bar
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 24.dp, vertical = 16.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
+                        items = listOf(
+                            {
+                                // Cache Size Info with Progress Bar
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 24.dp, vertical = 16.dp)
                                 ) {
-                                    Text(
-                                        text = "Cache Usage",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                    Text(
-                                        text = if (maxSongCacheSize == -1) {
-                                            formatFileSize(playerCacheSize)
-                                        } else {
-                                            "${formatFileSize(playerCacheSize)} / ${formatFileSize(maxSongCacheSize * 1024 * 1024L)}"
-                                        },
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(
+                                            text = "Cache Usage",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = if (maxSongCacheSize == -1) {
+                                                formatFileSize(playerCacheSize)
+                                            } else {
+                                                "${formatFileSize(playerCacheSize)} / ${formatFileSize(maxSongCacheSize * 1024 * 1024L)}"
+                                            },
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+
+                                    if (maxSongCacheSize != 0 && maxSongCacheSize != -1) {
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        LinearProgressIndicator(
+                                            progress = { playerCacheProgress },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(6.dp),
+                                            color = MaterialTheme.colorScheme.primary,
+                                            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                                        )
+                                    }
                                 }
+                            },
+                            {
+                                // Max Cache Size
+                                ModernInfoItem(
+                                    icon = { Icon(painterResource(R.drawable.storage), null, modifier = Modifier.size(22.dp)) },
+                                    title = stringResource(R.string.max_cache_size),
+                                    subtitle = when (maxSongCacheSize) {
+                                        0 -> stringResource(R.string.disable)
+                                        -1 -> stringResource(R.string.unlimited)
+                                        else -> formatFileSize(maxSongCacheSize * 1024 * 1024L)
+                                    },
+                                    onClick = { showCacheSizeDialog = true },
+                                    showArrow = true,
+                                    showSettingsIcon = true,
+                                    iconBackgroundColor = iconBgColor,
+                                    iconContentColor = iconStyleColor
+                                )
 
-                                if (maxSongCacheSize != 0 && maxSongCacheSize != -1) {
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    LinearProgressIndicator(
-                                        progress = { playerCacheProgress },
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(6.dp),
-                                        color = MaterialTheme.colorScheme.primary,
-                                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                                    )
-                                }
-                            }
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            // Max Cache Size
-                            var showCacheSizeDialog by remember { mutableStateOf(false) }
-                            ModernInfoItem(
-                                icon = { Icon(painterResource(R.drawable.storage), null, modifier = Modifier.size(22.dp)) },
-                                title = stringResource(R.string.max_cache_size),
-                                subtitle = when (maxSongCacheSize) {
-                                    0 -> stringResource(R.string.disable)
-                                    -1 -> stringResource(R.string.unlimited)
-                                    else -> formatFileSize(maxSongCacheSize * 1024 * 1024L)
-                                },
-                                onClick = { showCacheSizeDialog = true },
-                                showArrow = true,
-                                showSettingsIcon = true,
-                                iconBackgroundColor = iconBgColor,
-                                iconContentColor = iconStyleColor
-                            )
-
-                            if (showCacheSizeDialog) {
-                                AlertDialog(
-                                    onDismissRequest = { showCacheSizeDialog = false },
-                                    title = { Text(stringResource(R.string.max_cache_size)) },
-                                    text = {
-                                        Column {
-                                            listOf(0, 128, 256, 512, 1024, 2048, 4096, 8192, -1).forEach { value ->
-                                                Row(
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .clickable {
-                                                            onMaxSongCacheSizeChange(value)
-                                                            showCacheSizeDialog = false
-                                                        }
-                                                        .padding(vertical = 12.dp),
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
-                                                    RadioButton(
-                                                        selected = value == maxSongCacheSize,
-                                                        onClick = {
-                                                            onMaxSongCacheSizeChange(value)
-                                                            showCacheSizeDialog = false
-                                                        }
-                                                    )
-                                                    Spacer(modifier = Modifier.width(8.dp))
-                                                    Text(
-                                                        text = when (value) {
-                                                            0 -> stringResource(R.string.disable)
-                                                            -1 -> stringResource(R.string.unlimited)
-                                                            else -> formatFileSize(value * 1024 * 1024L)
-                                                        }
-                                                    )
+                                if (showCacheSizeDialog) {
+                                    AlertDialog(
+                                        onDismissRequest = { showCacheSizeDialog = false },
+                                        title = { Text(stringResource(R.string.max_cache_size)) },
+                                        text = {
+                                            Column {
+                                                listOf(0, 128, 256, 512, 1024, 2048, 4096, 8192, -1).forEach { value ->
+                                                    Row(
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                            .clickable {
+                                                                onMaxSongCacheSizeChange(value)
+                                                                showCacheSizeDialog = false
+                                                            }
+                                                            .padding(vertical = 12.dp),
+                                                        verticalAlignment = Alignment.CenterVertically
+                                                    ) {
+                                                        RadioButton(
+                                                            selected = value == maxSongCacheSize,
+                                                            onClick = {
+                                                                onMaxSongCacheSizeChange(value)
+                                                                showCacheSizeDialog = false
+                                                            }
+                                                        )
+                                                        Spacer(modifier = Modifier.width(8.dp))
+                                                        Text(
+                                                            text = when (value) {
+                                                                0 -> stringResource(R.string.disable)
+                                                                -1 -> stringResource(R.string.unlimited)
+                                                                else -> formatFileSize(value * 1024 * 1024L)
+                                                            }
+                                                        )
+                                                    }
                                                 }
                                             }
-                                        }
-                                    },
-                                    confirmButton = {
-                                        TextButton(onClick = { showCacheSizeDialog = false }) {
-                                            Text("Cancel")
-                                        }
-                                    }
-                                )
-                            }
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            // Clear Song Cache
-                            ModernInfoItem(
-                                icon = { Icon(painterResource(R.drawable.delete), null, modifier = Modifier.size(22.dp)) },
-                                title = stringResource(R.string.clear_song_cache),
-                                subtitle = "Free up cached song data",
-                                onClick = { clearCacheDialog = true },
-                                showArrow = true,
-                                showSettingsIcon = true,
-                                iconBackgroundColor = iconBgColor,
-                                iconContentColor = iconStyleColor
-                            )
-
-                            if (clearCacheDialog) {
-                                ActionPromptDialog(
-                                    title = stringResource(R.string.clear_song_cache),
-                                    onDismiss = { clearCacheDialog = false },
-                                    onConfirm = {
-                                        coroutineScope.launch(Dispatchers.IO) {
-                                            playerCache.keys.forEach { key ->
-                                                playerCache.removeResource(key)
+                                        },
+                                        confirmButton = {
+                                            TextButton(onClick = { showCacheSizeDialog = false }) {
+                                                Text("Cancel")
                                             }
                                         }
-                                        clearCacheDialog = false
-                                    },
-                                    onCancel = { clearCacheDialog = false },
-                                    content = {
-                                        Text(text = stringResource(R.string.clear_song_cache_dialog))
-                                    }
+                                    )
+                                }
+                            },
+                            {
+                                // Clear Song Cache
+                                ModernInfoItem(
+                                    icon = { Icon(painterResource(R.drawable.delete), null, modifier = Modifier.size(22.dp)) },
+                                    title = stringResource(R.string.clear_song_cache),
+                                    subtitle = "Free up cached song data",
+                                    onClick = { clearCacheDialog = true },
+                                    showArrow = true,
+                                    showSettingsIcon = true,
+                                    iconBackgroundColor = iconBgColor,
+                                    iconContentColor = iconStyleColor
                                 )
+
+                                if (clearCacheDialog) {
+                                    ActionPromptDialog(
+                                        title = stringResource(R.string.clear_song_cache),
+                                        onDismiss = { clearCacheDialog = false },
+                                        onConfirm = {
+                                            coroutineScope.launch(Dispatchers.IO) {
+                                                playerCache.keys.forEach { key ->
+                                                    playerCache.removeResource(key)
+                                                }
+                                            }
+                                            clearCacheDialog = false
+                                        },
+                                        onCancel = { clearCacheDialog = false },
+                                        content = {
+                                            Text(text = stringResource(R.string.clear_song_cache_dialog))
+                                        }
+                                    )
+                                }
                             }
-                        }
-                    }
+                        )
+                    )
                 }
 
                 // Image Cache Section
@@ -603,151 +577,139 @@ fun StorageSettings(
                 }
 
                 item {
-                    Card(
+                    var showImageCacheSizeDialog by remember { mutableStateOf(false) }
+                    Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer
-                        ),
-                        shape = RoundedCornerShape(20.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            // Image Cache Info with Progress Bar
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 24.dp, vertical = 16.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
+                        items = listOf(
+                            {
+                                // Image Cache Info with Progress Bar
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 24.dp, vertical = 16.dp)
                                 ) {
-                                    Text(
-                                        text = "Cache Usage",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                    Text(
-                                        text = "${formatFileSize(imageCacheSize)} / ${formatFileSize(imageDiskCache.maxSize)}",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(
+                                            text = "Cache Usage",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = "${formatFileSize(imageCacheSize)} / ${formatFileSize(imageDiskCache.maxSize)}",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+
+                                    if (maxImageCacheSize > 0) {
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        LinearProgressIndicator(
+                                            progress = { imageCacheProgress },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(6.dp),
+                                            color = MaterialTheme.colorScheme.primary,
+                                            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                                        )
+                                    }
                                 }
+                            },
+                            {
+                                // Max Image Cache Size
+                                ModernInfoItem(
+                                    icon = { Icon(painterResource(R.drawable.music_note), null, modifier = Modifier.size(22.dp)) },
+                                    title = stringResource(R.string.max_cache_size),
+                                    subtitle = when (maxImageCacheSize) {
+                                        0 -> stringResource(R.string.disable)
+                                        else -> formatFileSize(maxImageCacheSize * 1024 * 1024L)
+                                    },
+                                    onClick = { showImageCacheSizeDialog = true },
+                                    showArrow = true,
+                                    showSettingsIcon = true,
+                                    iconBackgroundColor = iconBgColor,
+                                    iconContentColor = iconStyleColor
+                                )
 
-                                if (maxImageCacheSize > 0) {
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    LinearProgressIndicator(
-                                        progress = { imageCacheProgress },
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(6.dp),
-                                        color = MaterialTheme.colorScheme.primary,
-                                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                                    )
-                                }
-                            }
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            // Max Image Cache Size
-                            var showImageCacheSizeDialog by remember { mutableStateOf(false) }
-                            ModernInfoItem(
-                                icon = { Icon(painterResource(R.drawable.music_note), null, modifier = Modifier.size(22.dp)) },
-                                title = stringResource(R.string.max_cache_size),
-                                subtitle = when (maxImageCacheSize) {
-                                    0 -> stringResource(R.string.disable)
-                                    else -> formatFileSize(maxImageCacheSize * 1024 * 1024L)
-                                },
-                                onClick = { showImageCacheSizeDialog = true },
-                                showArrow = true,
-                                showSettingsIcon = true,
-                                iconBackgroundColor = iconBgColor,
-                                iconContentColor = iconStyleColor
-                            )
-
-                            if (showImageCacheSizeDialog) {
-                                AlertDialog(
-                                    onDismissRequest = { showImageCacheSizeDialog = false },
-                                    title = { Text(stringResource(R.string.max_cache_size)) },
-                                    text = {
-                                        Column {
-                                            listOf(0, 128, 256, 512, 1024, 2048, 4096, 8192).forEach { value ->
-                                                Row(
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .clickable {
-                                                            onMaxImageCacheSizeChange(value)
-                                                            showImageCacheSizeDialog = false
-                                                        }
-                                                        .padding(vertical = 12.dp),
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
-                                                    RadioButton(
-                                                        selected = value == maxImageCacheSize,
-                                                        onClick = {
-                                                            onMaxImageCacheSizeChange(value)
-                                                            showImageCacheSizeDialog = false
-                                                        }
-                                                    )
-                                                    Spacer(modifier = Modifier.width(8.dp))
-                                                    Text(
-                                                        text = when (value) {
-                                                            0 -> stringResource(R.string.disable)
-                                                            else -> formatFileSize(value * 1024 * 1024L)
-                                                        }
-                                                    )
+                                if (showImageCacheSizeDialog) {
+                                    AlertDialog(
+                                        onDismissRequest = { showImageCacheSizeDialog = false },
+                                        title = { Text(stringResource(R.string.max_cache_size)) },
+                                        text = {
+                                            Column {
+                                                listOf(0, 128, 256, 512, 1024, 2048, 4096, 8192).forEach { value ->
+                                                    Row(
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                            .clickable {
+                                                                onMaxImageCacheSizeChange(value)
+                                                                showImageCacheSizeDialog = false
+                                                            }
+                                                            .padding(vertical = 12.dp),
+                                                        verticalAlignment = Alignment.CenterVertically
+                                                    ) {
+                                                        RadioButton(
+                                                            selected = value == maxImageCacheSize,
+                                                            onClick = {
+                                                                onMaxImageCacheSizeChange(value)
+                                                                showImageCacheSizeDialog = false
+                                                            }
+                                                        )
+                                                        Spacer(modifier = Modifier.width(8.dp))
+                                                        Text(
+                                                            text = when (value) {
+                                                                0 -> stringResource(R.string.disable)
+                                                                else -> formatFileSize(value * 1024 * 1024L)
+                                                            }
+                                                        )
+                                                    }
                                                 }
                                             }
+                                        },
+                                        confirmButton = {
+                                            TextButton(onClick = { showImageCacheSizeDialog = false }) {
+                                                Text("Cancel")
+                                            }
                                         }
-                                    },
-                                    confirmButton = {
-                                        TextButton(onClick = { showImageCacheSizeDialog = false }) {
-                                            Text("Cancel")
-                                        }
-                                    }
-                                )
-                            }
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            // Clear Image Cache
-                            ModernInfoItem(
-                                icon = { Icon(painterResource(R.drawable.delete), null, modifier = Modifier.size(22.dp)) },
-                                title = stringResource(R.string.clear_image_cache),
-                                subtitle = "Free up cached images",
-                                onClick = { clearImageCacheDialog = true },
-                                showArrow = true,
-                                showSettingsIcon = true,
-                                iconBackgroundColor = iconBgColor,
-                                iconContentColor = iconStyleColor
-                            )
-
-                            if (clearImageCacheDialog) {
-                                ActionPromptDialog(
+                                    )
+                                }
+                            },
+                            {
+                                // Clear Image Cache
+                                ModernInfoItem(
+                                    icon = { Icon(painterResource(R.drawable.delete), null, modifier = Modifier.size(22.dp)) },
                                     title = stringResource(R.string.clear_image_cache),
-                                    onDismiss = { clearImageCacheDialog = false },
-                                    onConfirm = {
-                                        coroutineScope.launch(Dispatchers.IO) {
-                                            imageDiskCache.clear()
-                                        }
-                                        clearImageCacheDialog = false
-                                    },
-                                    onCancel = { clearImageCacheDialog = false },
-                                    content = {
-                                        Text(text = stringResource(R.string.clear_image_cache_dialog))
-                                    }
+                                    subtitle = "Free up cached images",
+                                    onClick = { clearImageCacheDialog = true },
+                                    showArrow = true,
+                                    showSettingsIcon = true,
+                                    iconBackgroundColor = iconBgColor,
+                                    iconContentColor = iconStyleColor
                                 )
+
+                                if (clearImageCacheDialog) {
+                                    ActionPromptDialog(
+                                        title = stringResource(R.string.clear_image_cache),
+                                        onDismiss = { clearImageCacheDialog = false },
+                                        onConfirm = {
+                                            coroutineScope.launch(Dispatchers.IO) {
+                                                imageDiskCache.clear()
+                                            }
+                                            clearImageCacheDialog = false
+                                        },
+                                        onCancel = { clearImageCacheDialog = false },
+                                        content = {
+                                            Text(text = stringResource(R.string.clear_image_cache_dialog))
+                                        }
+                                    )
+                                }
                             }
-                        }
-                    }
+                        )
+                    )
                 }
 
                 item {

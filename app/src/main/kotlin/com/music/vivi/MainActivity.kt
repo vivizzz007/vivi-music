@@ -349,6 +349,12 @@ class MainActivity : ComponentActivity() {
             val updateViewModel: UpdateViewModel = hiltViewModel()
             val updateStatus by updateViewModel.updateStatus.collectAsState()
 
+            LaunchedEffect(updateStatus) {
+                if (updateStatus is UpdateStatus.UpdateAvailable) {
+                    latestVersionName = (updateStatus as UpdateStatus.UpdateAvailable).latestVersion
+                }
+            }
+
             val (checkForUpdatesPreference, _) = rememberPreference(CheckForUpdatesKey, true)
 
             LaunchedEffect(checkForUpdatesPreference) {
@@ -764,13 +770,6 @@ class MainActivity : ComponentActivity() {
                                                 )
                                             },
                                             actions = {
-//                                                IconButton(onClick = { showChangelogBottomSheet = true }) {
-//                                                    Icon(
-//                                                        painter = painterResource(R.drawable.newspaper_vivi),
-//                                                        contentDescription = "Changelog"
-//                                                    )
-//                                                }
-
                                                 IconButton(onClick = {
                                                     if (updateStatus is UpdateStatus.UpdateAvailable) {
                                                         navController.navigate("settings/update")
@@ -778,27 +777,24 @@ class MainActivity : ComponentActivity() {
                                                         navController.navigate("settings/changelog")
                                                     }
                                                 }) {
-                                                    Row(
-                                                        verticalAlignment = Alignment.CenterVertically,
-                                                        horizontalArrangement = Arrangement.Center
-                                                    ) {
-                                                        Crossfade(
-                                                            targetState = updateStatus is UpdateStatus.UpdateAvailable,
-                                                            animationSpec = tween(300),
-                                                            label = "icon_crossfade"
-                                                        ) { isUpdateAvailable ->
-                                                            if (isUpdateAvailable) {
-                                                                Icon(
-                                                                    imageVector = Icons.Filled.NewReleases,
-                                                                    contentDescription = "Update available",
-                                                                    tint = Color.Red
-                                                                )
-                                                            } else {
-                                                                Icon(
-                                                                    painter = painterResource(R.drawable.newspaper_vivi),
-                                                                    contentDescription = "Changelog"
-                                                                )
-                                                            }
+                                                    Crossfade(
+                                                        targetState = updateStatus is UpdateStatus.UpdateAvailable,
+                                                        animationSpec = tween(300),
+                                                        label = "icon_crossfade"
+                                                    ) { isUpdateAvailable ->
+                                                        if (isUpdateAvailable) {
+                                                            Icon(
+                                                                painter = painterResource(id = R.drawable.rocket_new_update),
+                                                                contentDescription = "Update available",
+                                                                tint = Color.Red,
+                                                                modifier = Modifier.size(24.dp)
+                                                            )
+                                                        } else {
+                                                            Icon(
+                                                                painter = painterResource(R.drawable.newspaper_vivi),
+                                                                contentDescription = "Changelog",
+                                                                modifier = Modifier.size(24.dp)
+                                                            )
                                                         }
                                                     }
                                                 }

@@ -18,13 +18,10 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -270,56 +267,48 @@ fun PrivacySettings(
                 }
 
                 item {
-                    Card(
+                    Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer
-                        ),
-                        shape = RoundedCornerShape(20.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            // Pause Listen History
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(modifier = Modifier.weight(1f)) {
-                                    ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.history), null, modifier = Modifier.size(22.dp)) },
-                                        title = stringResource(R.string.pause_listen_history),
-                                        subtitle = "Stop recording listening activity",
-                                        iconBackgroundColor = iconBgColor,
-                                        iconContentColor = iconStyleColor
+                        items = listOf(
+                            {
+                                // Pause Listen History
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.history), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.pause_listen_history),
+                                            subtitle = "Stop recording listening activity",
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = pauseListenHistory,
+                                        onCheckedChange = onPauseListenHistoryChange,
+                                        modifier = Modifier.padding(end = 20.dp)
                                     )
                                 }
-                                ModernSwitch(
-                                    checked = pauseListenHistory,
-                                    onCheckedChange = onPauseListenHistoryChange,
-                                    modifier = Modifier.padding(end = 20.dp)
+                            },
+                            {
+                                // Clear Listen History
+                                ModernInfoItem(
+                                    icon = { Icon(painterResource(R.drawable.delete_history), null, modifier = Modifier.size(22.dp)) },
+                                    title = stringResource(R.string.clear_listen_history),
+                                    subtitle = "Delete all listening history",
+                                    onClick = { showClearListenHistoryDialog = true },
+                                    showArrow = true,
+                                    showSettingsIcon = true,
+                                    iconBackgroundColor = iconBgColor,
+                                    iconContentColor = iconStyleColor
                                 )
                             }
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            // Clear Listen History
-                            ModernInfoItem(
-                                icon = { Icon(painterResource(R.drawable.delete_history), null, modifier = Modifier.size(22.dp)) },
-                                title = stringResource(R.string.clear_listen_history),
-                                subtitle = "Delete all listening history",
-                                onClick = { showClearListenHistoryDialog = true },
-                                showArrow = true,
-                                showSettingsIcon = true,
-                                iconBackgroundColor = iconBgColor,
-                                iconContentColor = iconStyleColor
-                            )
-                        }
-                    }
+                        )
+                    )
                 }
 
                 // Search History Section
@@ -336,56 +325,48 @@ fun PrivacySettings(
                 }
 
                 item {
-                    Card(
+                    Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer
-                        ),
-                        shape = RoundedCornerShape(20.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            // Pause Search History
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(modifier = Modifier.weight(1f)) {
-                                    ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.search_off), null, modifier = Modifier.size(22.dp)) },
-                                        title = stringResource(R.string.pause_search_history),
-                                        subtitle = "Stop recording search queries",
-                                        iconBackgroundColor = iconBgColor,
-                                        iconContentColor = iconStyleColor
+                        items = listOf(
+                            {
+                                // Pause Search History
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.search_off), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.pause_search_history),
+                                            subtitle = "Stop recording search queries",
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = pauseSearchHistory,
+                                        onCheckedChange = onPauseSearchHistoryChange,
+                                        modifier = Modifier.padding(end = 20.dp)
                                     )
                                 }
-                                ModernSwitch(
-                                    checked = pauseSearchHistory,
-                                    onCheckedChange = onPauseSearchHistoryChange,
-                                    modifier = Modifier.padding(end = 20.dp)
+                            },
+                            {
+                                // Clear Search History
+                                ModernInfoItem(
+                                    icon = { Icon(painterResource(R.drawable.clear_all), null, modifier = Modifier.size(22.dp)) },
+                                    title = stringResource(R.string.clear_search_history),
+                                    subtitle = "Delete all search history",
+                                    onClick = { showClearSearchHistoryDialog = true },
+                                    showArrow = true,
+                                    showSettingsIcon = true,
+                                    iconBackgroundColor = iconBgColor,
+                                    iconContentColor = iconStyleColor
                                 )
                             }
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            // Clear Search History
-                            ModernInfoItem(
-                                icon = { Icon(painterResource(R.drawable.clear_all), null, modifier = Modifier.size(22.dp)) },
-                                title = stringResource(R.string.clear_search_history),
-                                subtitle = "Delete all search history",
-                                onClick = { showClearSearchHistoryDialog = true },
-                                showArrow = true,
-                                showSettingsIcon = true,
-                                iconBackgroundColor = iconBgColor,
-                                iconContentColor = iconStyleColor
-                            )
-                        }
-                    }
+                        )
+                    )
                 }
 
                 // Misc Section
@@ -402,17 +383,11 @@ fun PrivacySettings(
                 }
 
                 item {
-                    Card(
+                    Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer
-                        ),
-                        shape = RoundedCornerShape(20.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                        items = listOf {
                             // Disable Screenshot
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -434,7 +409,7 @@ fun PrivacySettings(
                                 )
                             }
                         }
-                    }
+                    )
                 }
 
                 item {

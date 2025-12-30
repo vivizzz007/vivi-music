@@ -64,7 +64,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.music.vivi.R
-import com.music.vivi.update.settingstyle.Material3Expressive
+import com.music.vivi.update.settingstyle.Materialcard
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -317,7 +317,7 @@ fun ContributionScreen(
 
                         contributors.isNotEmpty() -> {
                             item {
-                                Material3Expressive(
+                                Materialcard(
                                     contributors = contributors,
                                     onGitHubClick = { username ->
                                         uriHandler.openUri("https://github.com/$username")

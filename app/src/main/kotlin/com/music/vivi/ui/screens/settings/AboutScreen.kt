@@ -28,13 +28,11 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.NewReleases
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.toShape
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -297,36 +295,33 @@ fun AboutScreen(
                     }
 
                     item {
-                        Card(
+                        Material3ExpressiveSettingsGroup(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer
-                            ),
-                            shape = RoundedCornerShape(20.dp),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                        ) {
-                            ModernInfoItem(
-                                icon = {
-                                    Icon(
-                                        painter = painterResource(R.drawable.network_intelligence_update_vivi),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(28.dp),
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                },
-                                title = "Update Available",
-                                subtitle = "${latestRelease ?: ""} is now available",
-                                onClick = { navController.navigate("settings/update") },
-                                showArrow = true,
-                                showSettingsIcon = true,
-                                iconBackgroundColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                                titleColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                subtitleColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
-                                arrowColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
-                            )
-                        }
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            items = listOf {
+                                ModernInfoItem(
+                                    icon = {
+                                        Icon(
+                                            painter = painterResource(R.drawable.network_intelligence_update_vivi),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(28.dp),
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    },
+                                    title = "Update Available",
+                                    subtitle = "${latestRelease ?: ""} is now available",
+                                    onClick = { navController.navigate("settings/update") },
+                                    showArrow = true,
+                                    showSettingsIcon = true,
+                                    iconBackgroundColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                                    titleColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    subtitleColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+                                    arrowColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
+                                )
+                            }
+                        )
                     }
                 }
 
@@ -344,57 +339,49 @@ fun AboutScreen(
                 }
 
                 item {
-                    Card(
+                    Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer
-                        ),
-                        shape = RoundedCornerShape(20.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                             ModernInfoItem(
-                                icon = {
-                                    Image(
-                                        painter = painterResource(R.drawable.dev),
-                                        contentDescription = "Developer",
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentScale = ContentScale.Crop
-                                    )
-                                },
-                                title = "VIVIDH P ASHOKAN",
-                                subtitle = "App Developer",
-                                onClick = { uriHandler.openUri("https://github.com/vivizzz007") },
-                                showArrow = true,
-                                iconBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
-                                iconShape = MaterialShapes.Circle.toShape(),
-                                iconSize = 48.dp
-                            )
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            ModernInfoItem(
-                                icon = {
-                                    Icon(
-                                        painterResource(R.drawable.web_vivi),
-                                        null,
-                                        modifier = Modifier.size(28.dp) // Increased from 22dp to 28dp
-                                    )
-                                },
-                                title = "Website",
-                                subtitle = "vivimusic.vercel.app",
-                                onClick = { uriHandler.openUri("https://vivimusic.vercel.app/") },
-                                showArrow = true,
-                                iconBackgroundColor = iconBgColor,
-                                iconContentColor = iconStyleColor
-                            )
-                        }
-                    }
+                        items = listOf(
+                            {
+                                ModernInfoItem(
+                                   icon = {
+                                       Image(
+                                           painter = painterResource(R.drawable.dev),
+                                           contentDescription = "Developer",
+                                           modifier = Modifier.fillMaxSize(),
+                                           contentScale = ContentScale.Crop
+                                       )
+                                   },
+                                   title = "VIVIDH P ASHOKAN",
+                                   subtitle = "App Developer",
+                                   onClick = { uriHandler.openUri("https://github.com/vivizzz007") },
+                                   showArrow = true,
+                                   iconBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                                   iconShape = MaterialShapes.Circle.toShape(),
+                                   iconSize = 48.dp
+                               )
+                            },
+                            {
+                                ModernInfoItem(
+                                    icon = {
+                                        Icon(
+                                            painterResource(R.drawable.web_vivi),
+                                            null,
+                                            modifier = Modifier.size(28.dp) // Increased from 22dp to 28dp
+                                        )
+                                    },
+                                    title = "Website",
+                                    subtitle = "vivimusic.vercel.app",
+                                    onClick = { uriHandler.openUri("https://vivimusic.vercel.app/") },
+                                    showArrow = true,
+                                    iconBackgroundColor = iconBgColor,
+                                    iconContentColor = iconStyleColor
+                                )
+                            }
+                        )
+                    )
                 }
 
                 // App Information Section
@@ -411,54 +398,46 @@ fun AboutScreen(
                 }
 
                 item {
-                    Card(
+                    Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer
-                        ),
-                        shape = RoundedCornerShape(20.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            ModernInfoItem(
-                                icon = {
-                                    Icon(
-                                        painterResource(R.drawable.info),
-                                        null,
-                                        modifier = Modifier.size(28.dp) // Increased from 22dp to 28dp
-                                    )
-                                },
-                                title = "Installed Date",
-                                subtitle = installedDate,
-                                iconBackgroundColor = iconBgColor,
-                                iconContentColor = iconStyleColor
-                            )
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            ModernInfoItem(
-                                icon = {
-                                    Icon(
-                                        Icons.Filled.History,
-                                        null,
-                                        modifier = Modifier.size(28.dp) // Increased from 22dp to 28dp
-                                    )
-                                },
-                                title = "Changelog",
-                                subtitle = "View version history",
-                                onClick = { navController.navigate("settings/changelog") },
-                                showArrow = true,
-                                showSettingsIcon = true,
-                                iconBackgroundColor = iconBgColor,
-                                iconContentColor = iconStyleColor
-                            )
-                        }
-                    }
+                        items = listOf(
+                            {
+                                ModernInfoItem(
+                                    icon = {
+                                        Icon(
+                                            painterResource(R.drawable.info),
+                                            null,
+                                            modifier = Modifier.size(28.dp) // Increased from 22dp to 28dp
+                                        )
+                                    },
+                                    title = "Installed Date",
+                                    subtitle = installedDate,
+                                    iconBackgroundColor = iconBgColor,
+                                    iconContentColor = iconStyleColor
+                                )
+                            },
+                            {
+                                ModernInfoItem(
+                                    icon = {
+                                        Icon(
+                                            Icons.Filled.History,
+                                            null,
+                                            modifier = Modifier.size(28.dp) // Increased from 22dp to 28dp
+                                        )
+                                    },
+                                    title = "Changelog",
+                                    subtitle = "View version history",
+                                    onClick = { navController.navigate("settings/changelog") },
+                                    showArrow = true,
+                                    showSettingsIcon = true,
+                                    iconBackgroundColor = iconBgColor,
+                                    iconContentColor = iconStyleColor
+                                )
+                            }
+                        )
+                    )
                 }
 
                 // Community Section
@@ -478,101 +457,85 @@ fun AboutScreen(
 
 // Community Section
                 item {
-                    Card(
+                    Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer
-                        ),
-                        shape = RoundedCornerShape(20.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            ModernInfoItem(
-                                icon = {
-                                    Icon(
-                                        painter = painterResource(R.drawable.github),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(28.dp)
-                                    )
-                                },
-                                title = "GitHub Repository",
-                                subtitle = "View source code",
-                                onClick = { uriHandler.openUri("https://github.com/vivizzz007/vivi-music") },
-                                showArrow = true,
-                                iconBackgroundColor = iconBgColor,
-                                iconContentColor = iconStyleColor
-                            )
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            ModernInfoItem(
-                                icon = {
-                                    Icon(
-                                        painter = painterResource(R.drawable.person),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(28.dp)
-                                    )
-                                },
-                                title = "Contributors",
-                                subtitle = "See our community heroes",
-                                onClick = { navController.navigate("settings/contribution") },
-                                showArrow = true,
-                                showSettingsIcon = true,
-                                iconBackgroundColor = iconBgColor,
-                                iconContentColor = iconStyleColor
-                            )
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                            ModernInfoItem(
-                                icon = {
-                                    Icon(
-                                        Icons.Filled.BugReport,
-                                        null,
-                                        modifier = Modifier.size(28.dp)
-                                        // No tint specified - uses default onSurface
-                                    )
-                                },
-                                title = "Report Issue",
-                                subtitle = "Bugs & feedback",
-                                onClick = { navController.navigate("settings/report_issue") },
-                                showArrow = true,
-                                showSettingsIcon = true,
-                                iconBackgroundColor = iconBgColor,
-                                iconContentColor = iconStyleColor
-                            )
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                            )
-
-                             ModernInfoItem(
-                                icon = {
-                                    Icon(
-                                        Icons.Filled.Favorite,
-                                        null,
-                                        modifier = Modifier.size(28.dp)
-                                    )
-                                },
-                                title = "Donate",
-                                subtitle = "Support development",
-                                iconBackgroundColor = iconBgColor,
-                                iconContentColor = iconStyleColor,
-                                onClick = { navController.navigate("settings/support") },
-                                showArrow = true,
-                                showSettingsIcon = true
-                            )
-                        }
-                    }
+                        items = listOf(
+                            {
+                                ModernInfoItem(
+                                    icon = {
+                                        Icon(
+                                            painter = painterResource(R.drawable.github),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(28.dp)
+                                        )
+                                    },
+                                    title = "GitHub Repository",
+                                    subtitle = "View source code",
+                                    onClick = { uriHandler.openUri("https://github.com/vivizzz007/vivi-music") },
+                                    showArrow = true,
+                                    iconBackgroundColor = iconBgColor,
+                                    iconContentColor = iconStyleColor
+                                )
+                            },
+                            {
+                                ModernInfoItem(
+                                    icon = {
+                                        Icon(
+                                            painter = painterResource(R.drawable.person),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(28.dp)
+                                        )
+                                    },
+                                    title = "Contributors",
+                                    subtitle = "See our community heroes",
+                                    onClick = { navController.navigate("settings/contribution") },
+                                    showArrow = true,
+                                    showSettingsIcon = true,
+                                    iconBackgroundColor = iconBgColor,
+                                    iconContentColor = iconStyleColor
+                                )
+                            },
+                            {
+                                ModernInfoItem(
+                                    icon = {
+                                        Icon(
+                                            Icons.Filled.BugReport,
+                                            null,
+                                            modifier = Modifier.size(28.dp)
+                                            // No tint specified - uses default onSurface
+                                        )
+                                    },
+                                    title = "Report Issue",
+                                    subtitle = "Bugs & feedback",
+                                    onClick = { navController.navigate("settings/report_issue") },
+                                    showArrow = true,
+                                    showSettingsIcon = true,
+                                    iconBackgroundColor = iconBgColor,
+                                    iconContentColor = iconStyleColor
+                                )
+                            },
+                            {
+                                 ModernInfoItem(
+                                    icon = {
+                                        Icon(
+                                            Icons.Filled.Favorite,
+                                            null,
+                                            modifier = Modifier.size(28.dp)
+                                        )
+                                    },
+                                    title = "Donate",
+                                    subtitle = "Support development",
+                                    iconBackgroundColor = iconBgColor,
+                                    iconContentColor = iconStyleColor,
+                                    onClick = { navController.navigate("settings/support") },
+                                    showArrow = true,
+                                    showSettingsIcon = true
+                                )
+                            }
+                        )
+                    )
                 }
 
                 item {
