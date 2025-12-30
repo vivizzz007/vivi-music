@@ -225,7 +225,7 @@ fun UpdateInfoScreen(
                         ModernInfoItem(
                             icon = {
                                 Icon(
-                                    painter = painterResource(R.drawable.updated),
+                                    painter = painterResource(R.drawable.automatic),
                                     contentDescription = null,
                                     modifier = Modifier.size(22.dp)
                                 )
