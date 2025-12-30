@@ -12,10 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
@@ -40,7 +37,7 @@ import com.music.vivi.ui.component.shimmer.ShimmerHost
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.viewmodels.MoodAndGenresViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun MoodAndGenresScreen(
     navController: NavController,
@@ -56,13 +53,14 @@ fun MoodAndGenresScreen(
         contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
     ) {
         if (moodAndGenresList == null) {
-            item(key = "mood_and_genres_shimmer") {
-                ShimmerHost(
-                    modifier = Modifier.animateItem()
+            item(key = "loading_indicator") {
+                Box(
+                    modifier = Modifier
+                        .fillParentMaxSize()
+                        .padding(bottom = 64.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    repeat(8) {
-                        ListItemPlaceHolder()
-                    }
+                    ContainedLoadingIndicator()
                 }
             }
         }

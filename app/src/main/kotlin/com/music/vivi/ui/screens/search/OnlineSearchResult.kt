@@ -28,6 +28,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -85,11 +86,15 @@ import com.music.vivi.viewmodels.OnlineSearchViewModel
 import kotlinx.coroutines.launch
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class
+)
 @Composable
 fun OnlineSearchResult(
     navController: NavController,
@@ -298,10 +303,13 @@ fun OnlineSearchResult(
 
             if (itemsPage?.continuation != null) {
                 item(key = "loading") {
-                    ShimmerHost {
-                        repeat(3) {
-                            ListItemPlaceHolder()
-                        }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        ContainedLoadingIndicator()
                     }
                 }
             }
@@ -318,10 +326,13 @@ fun OnlineSearchResult(
 
         if (isLoading && searchFilter == null && searchSummary == null || isLoading && searchFilter != null && itemsPage == null) {
             item {
-                ShimmerHost {
-                    repeat(8) {
-                        ListItemPlaceHolder()
-                    }
+                Box(
+                    modifier = Modifier
+                        .fillParentMaxSize()
+                        .padding(bottom = 64.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    ContainedLoadingIndicator()
                 }
             }
         }

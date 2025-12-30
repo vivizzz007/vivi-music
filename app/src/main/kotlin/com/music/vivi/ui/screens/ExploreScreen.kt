@@ -15,7 +15,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
+import androidx.compose.material3.ContainedLoadingIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -53,7 +57,9 @@ import com.music.vivi.ui.utils.SnapLayoutInfoProvider
 import com.music.vivi.viewmodels.ChartsViewModel
 import com.music.vivi.viewmodels.ExploreViewModel
 import com.music.vivi.R
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
+    ExperimentalMaterial3ExpressiveApi::class
+)
 @Composable
 fun ExploreScreen(
     navController: NavController,
@@ -103,103 +109,13 @@ fun ExploreScreen(
             )
 
             if (isChartsLoading || chartsPage == null || explorePage == null) {
-                ShimmerHost {
-                    TextPlaceholder(
-                        height = 36.dp,
-                        modifier = Modifier
-                            .padding(12.dp)
-                            .fillMaxWidth(0.5f),
-                    )
-                    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-                        val horizontalLazyGridItemWidthFactor = if (maxWidth * 0.475f >= 320.dp) 0.475f else 0.9f
-                        val horizontalLazyGridItemWidth = maxWidth * horizontalLazyGridItemWidthFactor
-
-                        LazyHorizontalGrid(
-                            rows = GridCells.Fixed(4),
-                            contentPadding = PaddingValues(start = 4.dp),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(ListItemHeight * 4),
-                        ) {
-                            items(4) {
-                                Row(
-                                    modifier = Modifier
-                                        .width(horizontalLazyGridItemWidth)
-                                        .padding(8.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(ListItemHeight - 16.dp)
-                                            .clip(RoundedCornerShape(4.dp))
-                                            .background(MaterialTheme.colorScheme.onSurface),
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Column(
-                                        modifier = Modifier.fillMaxHeight(),
-                                        verticalArrangement = Arrangement.Center,
-                                    ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .height(16.dp)
-                                                .width(120.dp)
-                                                .background(MaterialTheme.colorScheme.onSurface),
-                                        )
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                        Box(
-                                            modifier = Modifier
-                                                .height(12.dp)
-                                                .width(80.dp)
-                                                .background(MaterialTheme.colorScheme.onSurface),
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    TextPlaceholder(
-                        height = 36.dp,
-                        modifier = Modifier
-                            .padding(vertical = 12.dp, horizontal = 12.dp)
-                            .width(250.dp),
-                    )
-                    Row {
-                        repeat(2) {
-                            GridItemPlaceHolder()
-                        }
-                    }
-
-                    TextPlaceholder(
-                        height = 36.dp,
-                        modifier = Modifier
-                            .padding(vertical = 12.dp, horizontal = 12.dp)
-                            .width(250.dp),
-                    )
-                    Row {
-                        repeat(2) {
-                            GridItemPlaceHolder()
-                        }
-                    }
-
-                    TextPlaceholder(
-                        height = 36.dp,
-                        modifier = Modifier
-                            .padding(vertical = 12.dp, horizontal = 12.dp)
-                            .width(250.dp),
-                    )
-                    repeat(4) {
-                        Row {
-                            repeat(2) {
-                                TextPlaceholder(
-                                    height = MoodAndGenresButtonHeight,
-                                    modifier = Modifier
-                                        .padding(horizontal = 6.dp)
-                                        .width(200.dp),
-                                )
-                            }
-                        }
-                    }
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = 64.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    ContainedLoadingIndicator()
                 }
             } else {
                 chartsPage?.sections?.filter { it.title != "Top music videos" }?.forEach { section ->

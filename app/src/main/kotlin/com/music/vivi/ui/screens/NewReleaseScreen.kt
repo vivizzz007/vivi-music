@@ -6,11 +6,12 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.ui.Alignment
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -36,7 +37,9 @@ import com.music.vivi.ui.menu.YouTubeAlbumMenu
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.viewmodels.NewReleaseViewModel
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class
+)
 @Composable
 fun NewReleaseScreen(
     navController: NavController,
@@ -88,9 +91,14 @@ fun NewReleaseScreen(
         }
 
         if (newReleaseAlbums.isEmpty()) {
-            items(8) {
-                ShimmerHost {
-                    GridItemPlaceHolder(fillMaxWidth = true)
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 100.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    ContainedLoadingIndicator()
                 }
             }
         }

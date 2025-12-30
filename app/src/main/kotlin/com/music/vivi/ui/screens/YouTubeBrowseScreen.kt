@@ -25,7 +25,9 @@ import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -35,6 +37,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -70,7 +73,9 @@ import com.music.vivi.ui.utils.SnapLayoutInfoProvider
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.viewmodels.YouTubeBrowseViewModel
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
+    ExperimentalMaterial3ExpressiveApi::class
+)
 @Composable
 fun YouTubeBrowseScreen(
     navController: NavController,
@@ -103,23 +108,14 @@ fun YouTubeBrowseScreen(
             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
         ) {
             if (browseResult == null) {
-                item(key = "shimmer_loading") {
-                    ShimmerHost(
+                item(key = "loading_indicator") {
+                    Box(
                         modifier = Modifier
+                            .fillParentMaxSize()
+                            .padding(bottom = 64.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        TextPlaceholder(
-                            height = 36.dp,
-                            modifier = Modifier
-                                .padding(12.dp)
-                                .width(250.dp),
-                        )
-                        LazyRow(
-                            contentPadding = WindowInsets.systemBars.only(WindowInsetsSides.Horizontal).asPaddingValues(),
-                        ) {
-                            items(4) {
-                                GridItemPlaceHolder()
-                            }
-                        }
+                        ContainedLoadingIndicator()
                     }
                 }
             }

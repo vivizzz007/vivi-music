@@ -19,11 +19,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
@@ -32,6 +28,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -71,7 +68,9 @@ import com.music.vivi.viewmodels.ArtistItemsViewModel
 
 //this is more option in artist screen leading to here
 //artistscreen
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class
+)
 @Composable
 
 fun ArtistItemsScreen(
@@ -111,12 +110,14 @@ fun ArtistItemsScreen(
     }
 
     if (itemsPage == null) {
-        ShimmerHost(
-            modifier = Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current),
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
+                .padding(bottom = 64.dp),
+            contentAlignment = Alignment.Center
         ) {
-            repeat(8) {
-                ListItemPlaceHolder()
-            }
+            ContainedLoadingIndicator()
         }
     }
 
@@ -281,10 +282,13 @@ fun ArtistItemsScreen(
 
             if (hasLoadingItem) {
                 item(key = "loading") {
-                    ShimmerHost {
-                        repeat(3) {
-                            ListItemPlaceHolder()
-                        }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        ContainedLoadingIndicator()
                     }
                 }
             }
@@ -361,8 +365,13 @@ fun ArtistItemsScreen(
 
             if (itemsPage?.continuation != null) {
                 item(key = "loading") {
-                    ShimmerHost(Modifier.animateItem()) {
-                        GridItemPlaceHolder(fillMaxWidth = true)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        ContainedLoadingIndicator()
                     }
                 }
             }

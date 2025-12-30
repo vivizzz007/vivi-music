@@ -48,7 +48,9 @@ import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.ui.utils.SnapLayoutInfoProvider
 import com.music.vivi.viewmodels.ChartsViewModel
 import com.music.vivi.R
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
+    ExperimentalMaterial3ExpressiveApi::class
+)
 @Composable
 fun ChartsScreen(
     navController: NavController,
@@ -96,77 +98,13 @@ fun ChartsScreen(
                 .padding(paddingValues),
         ) {
             if (isLoading || chartsPage == null) {
-                ShimmerHost(
-                    modifier = Modifier.fillMaxSize(),
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = 64.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        TextPlaceholder(
-                            height = 36.dp,
-                            modifier = Modifier
-                                .padding(12.dp)
-                                .fillMaxWidth(0.5f),
-                        )
-                        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-                            val horizontalLazyGridItemWidthFactor = if (maxWidth * 0.475f >= 320.dp) 0.475f else 0.9f
-                            val horizontalLazyGridItemWidth = maxWidth * horizontalLazyGridItemWidthFactor
-
-                            LazyHorizontalGrid(
-                                rows = GridCells.Fixed(4),
-                                contentPadding = PaddingValues(start = 4.dp),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(ListItemHeight * 4),
-                            ) {
-                                items(4) {
-                                    Row(
-                                        modifier = Modifier
-                                            .width(horizontalLazyGridItemWidth)
-                                            .padding(8.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                    ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(ListItemHeight - 16.dp)
-                                                .clip(RoundedCornerShape(4.dp))
-                                                .background(MaterialTheme.colorScheme.onSurface),
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Column(
-                                            modifier = Modifier.fillMaxHeight(),
-                                            verticalArrangement = Arrangement.Center,
-                                        ) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .height(16.dp)
-                                                    .width(120.dp)
-                                                    .background(MaterialTheme.colorScheme.onSurface),
-                                            )
-                                            Spacer(modifier = Modifier.height(8.dp))
-                                            Box(
-                                                modifier = Modifier
-                                                    .height(12.dp)
-                                                    .width(80.dp)
-                                                    .background(MaterialTheme.colorScheme.onSurface),
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        TextPlaceholder(
-                            height = 36.dp,
-                            modifier = Modifier
-                                .padding(vertical = 12.dp, horizontal = 12.dp)
-                                .width(250.dp),
-                        )
-                        Row {
-                            repeat(2) {
-                                GridItemPlaceHolder()
-                            }
-                        }
-                    }
+                    ContainedLoadingIndicator()
                 }
             } else {
                 LazyColumn(

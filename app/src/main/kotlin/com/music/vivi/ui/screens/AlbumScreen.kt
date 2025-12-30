@@ -31,6 +31,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -736,50 +737,15 @@ fun AlbumScreen(
                     }
                 }
             } else {
-                // Loading shimmer (keeping your original)
-                item(key = "loading_shimmer") {
-                    ShimmerHost {
-                        Column(
-                            Modifier
-                                .padding(16.dp)
-                                .fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Spacer(Modifier.height(60.dp))
-
-                            Spacer(
-                                modifier = Modifier
-                                    .fillMaxWidth(0.7f)
-                                    .aspectRatio(1f)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(MaterialTheme.colorScheme.onSurface),
-                            )
-
-                            Spacer(Modifier.height(24.dp))
-                            TextPlaceholder(Modifier.width(200.dp))
-                            Spacer(Modifier.height(16.dp))
-
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                modifier = Modifier.fillMaxWidth(0.8f)
-                            ) {
-                                repeat(2) {
-                                    Spacer(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .height(48.dp)
-                                            .clip(RoundedCornerShape(24.dp))
-                                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                                    )
-                                }
-                            }
-
-                            Spacer(Modifier.height(32.dp))
-
-                            repeat(6) {
-                                ListItemPlaceHolder()
-                            }
-                        }
+                // Loading indicator
+                item(key = "loading_indicator") {
+                    Box(
+                        modifier = Modifier
+                            .fillParentMaxSize()
+                            .padding(bottom = 64.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        ContainedLoadingIndicator()
                     }
                 }
             }

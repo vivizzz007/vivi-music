@@ -33,6 +33,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -312,62 +313,14 @@ fun OnlinePlaylistScreen(
             playlist.let { playlist ->
                 if (isLoading) {
                     // Loading shimmer with new design
-                    item(key = "loading_shimmer") {
-                        ShimmerHost {
-                            Column(
-                                Modifier
-                                    .padding(16.dp)
-                                    .fillMaxWidth(),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Spacer(Modifier.height(60.dp))
-
-                                TextPlaceholder(Modifier.width(120.dp))
-                                Spacer(Modifier.height(12.dp))
-
-                                // Shimmer for playlist artwork
-                                Spacer(
-                                    modifier = Modifier
-                                        .fillMaxWidth(0.7f)
-                                        .aspectRatio(1f)
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(MaterialTheme.colorScheme.onSurface),
-                                )
-
-                                Spacer(Modifier.height(24.dp))
-
-                                TextPlaceholder(Modifier.width(200.dp))
-                                Spacer(Modifier.height(8.dp))
-                                TextPlaceholder(Modifier.width(150.dp))
-
-                                Spacer(Modifier.height(24.dp))
-
-                                // Action buttons shimmer
-                                Row(
-                                    horizontalArrangement = Arrangement.SpaceEvenly,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    repeat(5) {
-                                        Spacer(
-                                            modifier = Modifier
-                                                .size(if (it == 2) 64.dp else 48.dp)
-                                                .clip(CircleShape)
-                                                .background(
-                                                    if (it == 2)
-                                                        MaterialTheme.colorScheme.primary
-                                                    else
-                                                        MaterialTheme.colorScheme.surfaceVariant
-                                                )
-                                        )
-                                    }
-                                }
-                            }
-
-                            Spacer(Modifier.height(32.dp))
-
-                            repeat(6) {
-                                ListItemPlaceHolder()
-                            }
+                    item(key = "loading_indicator") {
+                        Box(
+                            modifier = Modifier
+                                .fillParentMaxSize()
+                                .padding(bottom = 64.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            ContainedLoadingIndicator()
                         }
                     }
                 } else if (playlist != null) {

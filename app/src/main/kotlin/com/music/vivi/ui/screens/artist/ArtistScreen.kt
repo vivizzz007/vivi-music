@@ -32,6 +32,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -183,87 +184,14 @@ fun ArtistScreen(
             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
         ) {
             if (artistPage == null && !showLocal) {
-                item(key = "shimmer") {
-                    ShimmerHost (
+                item(key = "loading_indicator") {
+                    Box(
                         modifier = Modifier
-                            .offset {
-                                IntOffset(x = 0, y = headerOffset)
-                            }
+                            .fillParentMaxSize()
+                            .padding(bottom = 64.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        // Artist Image Placeholder
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .aspectRatio(1.1f),
-                        ) {
-                            Spacer(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .shimmer()
-                                    .background(MaterialTheme.colorScheme.onSurface)
-                                    .fadingEdge(
-                                        top = systemBarsTopPadding + AppBarHeight,
-                                        bottom = 200.dp,
-                                    ),
-                            )
-                        }
-                        // Artist Name and Controls Section
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
-                        ) {
-                            // Artist Name Placeholder
-                            TextPlaceholder(
-                                height = 36.dp,
-                                modifier = Modifier
-                                    .fillMaxWidth(0.7f)
-                                    .padding(bottom = 16.dp)
-                            )
-
-                            // Buttons Row Placeholder
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                // Subscribe Button Placeholder
-                                ButtonPlaceholder(
-                                    modifier = Modifier
-                                        .width(120.dp)
-                                        .height(40.dp)
-                                )
-
-                                Spacer(modifier = Modifier.weight(1f))
-
-                                // Right side buttons
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    // Radio Button Placeholder
-                                    ButtonPlaceholder(
-                                        modifier = Modifier
-                                            .width(100.dp)
-                                            .height(40.dp)
-                                    )
-
-                                    // Shuffle Button Placeholder
-                                    Box(
-                                        modifier = Modifier
-                                            .size(48.dp)
-                                            .shimmer()
-                                            .background(
-                                                MaterialTheme.colorScheme.onSurface,
-                                                RoundedCornerShape(24.dp)
-                                            )
-                                    )
-                                }
-                            }
-                        }
-                        // Songs List Placeholder
-                        repeat(6) {
-                            ListItemPlaceHolder()
-                        }
+                        ContainedLoadingIndicator()
                     }
                 }
             } else {

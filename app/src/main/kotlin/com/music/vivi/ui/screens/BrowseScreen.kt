@@ -6,11 +6,12 @@ package com.music.vivi.ui.screens
  import androidx.compose.foundation.lazy.grid.GridCells
  import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
  import androidx.compose.foundation.lazy.grid.items
- import androidx.compose.material3.ExperimentalMaterial3Api
- import androidx.compose.material3.Icon
- import androidx.compose.material3.Text
- import androidx.compose.material3.TopAppBar
- import androidx.compose.material3.TopAppBarScrollBehavior
+ import androidx.compose.material3.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.ui.Alignment
  import androidx.compose.runtime.Composable
  import androidx.compose.runtime.collectAsState
  import androidx.compose.runtime.getValue
@@ -38,7 +39,9 @@ package com.music.vivi.ui.screens
  import com.music.innertube.models.ArtistItem
  import com.music.innertube.models.PlaylistItem
  
- @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+ @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class,
+     ExperimentalMaterial3ExpressiveApi::class
+ )
  @Composable
  fun BrowseScreen(
     navController: NavController,
@@ -117,13 +120,18 @@ package com.music.vivi.ui.screens
                  )
              }
  
-             if (items.isEmpty()) {
-                 items(8) {
-                     ShimmerHost {
-                         GridItemPlaceHolder(fillMaxWidth = true)
-                     }
-                 }
-             }
+             if (items == null || items.isEmpty()) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = 100.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        ContainedLoadingIndicator()
+                    }
+                }
+            }
          }
      }
  
