@@ -48,6 +48,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -86,7 +87,7 @@ import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.playback.queues.ListQueue
 import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.ui.component.ChipsRow
-import com.music.vivi.ui.component.DraggableScrollbar
+
 import com.music.vivi.ui.component.HideOnScrollFAB
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.LocalMenuState
@@ -116,6 +117,8 @@ fun HistoryScreen(
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
+    val selectedEventIds = remember { mutableStateListOf<Long>() }
+
     var selection by remember {
         mutableStateOf(false)
     }
@@ -138,6 +141,7 @@ fun HistoryScreen(
     } else if (selection) {
         BackHandler {
             selection = false
+            selectedEventIds.clear()
         }
     }
 
@@ -162,9 +166,6 @@ fun HistoryScreen(
         }
     }
 
-    class WrappedHistoryItem(val item: EventWithSong) {
-        var isSelected by mutableStateOf(false)
-    }
 
     val filteredEvents = remember(events, query) {
         if (query.text.isEmpty()) {
@@ -199,15 +200,7 @@ fun HistoryScreen(
         }
     }
 
-    val wrappedItemsMap = remember(filteredEvents) {
-        filteredEvents.mapValues { (_, events) ->
-            events.map { WrappedHistoryItem(it) }.toMutableStateList()
-        }
-    }
 
-    val allWrappedItems = remember(wrappedItemsMap) {
-        wrappedItemsMap.values.flatten()
-    }
 
     val lazyListState = rememberLazyListState()
 
@@ -415,22 +408,20 @@ fun HistoryScreen(
                         )
                     }
 
-                    val currentDateWrappedItems = wrappedItemsMap[dateAgo] ?: emptyList()
-
                     itemsIndexed(
-                        items = currentDateWrappedItems,
-                        key = { index, wrappedItem -> "${dateAgo}_${wrappedItem.item.event.id}_$index" }
-                    ) { index, wrappedItem ->
+                        items = events,
+                        key = { index, event -> "${dateAgo}_${event.event.id}_$index" }
+                    ) { index, event ->
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp)
                         ) {
-                            val event = wrappedItem.item
                             val isFirst = index == 0
-                            val isLast = index == currentDateWrappedItems.size - 1
+                            val isLast = index == events.size - 1
                             val isActive = event.song.id == mediaMetadata?.id
-                            val isSingleSong = currentDateWrappedItems.size == 1
+                            val isSingleSong = events.size == 1
+                            val isSelected = selectedEventIds.contains(event.event.id)
 
                             Box(
                                 modifier = Modifier
@@ -454,7 +445,7 @@ fun HistoryScreen(
                                     isActive = isActive,
                                     isPlaying = isPlaying,
                                     showInLibraryIcon = true,
-                                    isSelected = wrappedItem.isSelected && selection,
+                                    isSelected = isSelected && selection,
                                     trailingContent = {
                                         IconButton(
                                             onClick = {
@@ -487,21 +478,25 @@ fun HistoryScreen(
                                                         playerConnection.playQueue(
                                                             ListQueue(
                                                                 title = dateAgoToString(dateAgo),
-                                                                items = currentDateWrappedItems.map { it.item.song.toMediaItem() },
+                                                                items = events.map { it.song.toMediaItem() },
                                                                 startIndex = index
                                                             )
                                                         )
                                                     }
                                                 } else {
-                                                    wrappedItem.isSelected = !wrappedItem.isSelected
+                                                    if (isSelected) {
+                                                        selectedEventIds.remove(event.event.id)
+                                                    } else {
+                                                        selectedEventIds.add(event.event.id)
+                                                    }
                                                 }
                                             },
                                             onLongClick = {
                                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                 if (!selection) {
                                                     selection = true
-                                                    allWrappedItems.forEach { it.isSelected = false }
-                                                    wrappedItem.isSelected = true
+                                                    selectedEventIds.clear()
+                                                    selectedEventIds.add(event.event.id)
                                                 }
                                             }
                                         )
@@ -524,7 +519,7 @@ fun HistoryScreen(
             visible = if (historySource == HistorySource.REMOTE) {
                 filteredRemoteContent?.any { it.songs.isNotEmpty() } == true
             } else {
-                allWrappedItems.isNotEmpty()
+                filteredEvents.isNotEmpty()
             },
             lazyListState = lazyListState,
             icon = R.drawable.shuffle,
@@ -543,29 +538,20 @@ fun HistoryScreen(
                     playerConnection.playQueue(
                         ListQueue(
                             title = context.getString(R.string.history),
-                            items = allWrappedItems.map { it.item.song.toMediaItem() }.shuffled()
+                            items = filteredEvents.values.flatten().map { it.song.toMediaItem() }.shuffled()
                         )
                     )
                 }
             }
         )
         
-        DraggableScrollbar(
-            modifier = Modifier
-                .padding(
-                    LocalPlayerAwareWindowInsets.current.union(androidx.compose.foundation.layout.WindowInsets.ime)
-                        .asPaddingValues()
-                )
-                .align(Alignment.CenterEnd),
-            scrollState = lazyListState,
-            headerItems = 1
-        )
+
     }
 
     TopAppBar(
         title = {
             if (selection) {
-                val count = allWrappedItems.count { it.isSelected }
+                val count = selectedEventIds.size
                 Text(
                     text = pluralStringResource(R.plurals.n_song, count, count),
                     style = MaterialTheme.typography.titleLarge
@@ -609,6 +595,7 @@ fun HistoryScreen(
 
                         selection -> {
                             selection = false
+                            selectedEventIds.clear()
                         }
 
                         else -> {
@@ -632,19 +619,21 @@ fun HistoryScreen(
         },
         actions = {
             if (selection) {
-                val count = allWrappedItems.count { it.isSelected }
+                val count = selectedEventIds.size
+                val totalCount = filteredEvents.values.sumOf { it.size }
                 IconButton(
                     onClick = {
-                        if (count == allWrappedItems.size) {
-                            allWrappedItems.forEach { it.isSelected = false }
+                        if (count == totalCount) {
+                            selectedEventIds.clear()
                         } else {
-                            allWrappedItems.forEach { it.isSelected = true }
+                            selectedEventIds.clear()
+                            selectedEventIds.addAll(filteredEvents.values.flatten().map { it.event.id })
                         }
                     }
                 ) {
                     Icon(
                         painter = painterResource(
-                            if (count == allWrappedItems.size) R.drawable.deselect else R.drawable.select_all
+                            if (count == totalCount) R.drawable.deselect else R.drawable.select_all
                         ),
                         contentDescription = null
                     )
@@ -653,11 +642,14 @@ fun HistoryScreen(
                     onClick = {
                         menuState.show {
                             SelectionMediaMetadataMenu(
-                                songSelection = allWrappedItems
-                                    .filter { it.isSelected }
-                                    .map { it.item.song.toMediaItem().metadata!! },
+                                songSelection = filteredEvents.values.flatten()
+                                    .filter { selectedEventIds.contains(it.event.id) }
+                                    .map { it.song.toMediaItem().metadata!! },
                                 onDismiss = menuState::dismiss,
-                                clearAction = { selection = false },
+                                clearAction = {
+                                    selection = false
+                                    selectedEventIds.clear()
+                                },
                                 currentItems = emptyList()
                             )
                         }
