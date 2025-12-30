@@ -304,18 +304,19 @@ object LyricsUtils {
                         if (lastWord.duration != null) {
                             (lastWord.time + lastWord.duration) - currentLine.time
                         } else {
-                            lastWord.time - currentLine.time + 300L // Small buffer for last word
+                            // Estimate last word duration if not provided
+                            val lastWordDuration = (lastWord.text.length * 500L).coerceAtLeast(3000L)
+                            lastWord.time - currentLine.time + lastWordDuration
                         }
                     } else {
-                        (currentLine.text.length * 100L).coerceIn(2000L, 5000L)
+                        (currentLine.text.length * 200L).coerceIn(4000L, 10000L)
                     }
 
                     // Start instrumental dots after the line is finished + 1s buffer
-                    // But ensure we don't start after the NEXT line begins
-                    val instrumentalStart = (currentLine.time + estimatedLineDuration + 1000L)
-                        .coerceAtMost(nextLine.time - 2000L) // Ensure at least 2s for dots
+                    val instrumentalStart = currentLine.time + estimatedLineDuration + 1000L
 
-                    if (instrumentalStart > currentLine.time) {
+                    // Only add instrumental if there is enough time before the next line (at least 2s duration for instrumental)
+                    if (instrumentalStart <= nextLine.time - 2000L) {
                         entriesWithInstrumentals.add(LyricsEntry(instrumentalStart, "", isInstrumental = true))
                     }
                 }

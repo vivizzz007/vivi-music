@@ -71,10 +71,12 @@ import com.music.vivi.constants.GridItemsSizeKey
 import com.music.vivi.constants.HidePlayerThumbnailKey
 import com.music.vivi.constants.LibraryFilter
 import com.music.vivi.constants.LyricsClickKey
+import com.music.vivi.constants.LyricsLetterByLetterAnimationKey
 import com.music.vivi.constants.LyricsLineSpacingKey
 import com.music.vivi.constants.LyricsScrollKey
 import com.music.vivi.constants.LyricsTextPositionKey
 import com.music.vivi.constants.LyricsTextSizeKey
+import com.music.vivi.constants.LyricsWordForWordKey
 import com.music.vivi.constants.MiniPlayerGradientKey
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PlayerBackgroundStyleKey
@@ -97,11 +99,9 @@ import com.music.vivi.constants.SwipeToRemoveSongKey
 import com.music.vivi.constants.SwipeToSongKey
 import com.music.vivi.constants.UseNewMiniPlayerDesignKey
 import com.music.vivi.constants.UseNewPlayerDesignKey
-import com.music.vivi.constants.LyricsWordForWordKey
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.PlayerSliderTrack
-import com.music.vivi.ui.component.SwitchPreference
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.update.mordernswitch.ModernSwitch
 import com.music.vivi.update.settingstyle.ModernInfoItem
@@ -155,6 +155,7 @@ fun AppearanceSettings(
             MaterialTheme.colorScheme.primary
         )
     }
+
 
     // Trigger widget update when Dark Mode changes
     androidx.compose.runtime.LaunchedEffect(darkMode) {
@@ -278,6 +279,10 @@ fun AppearanceSettings(
     val (lyricsWordForWord, onLyricsWordForWordChange) = rememberPreference(
         LyricsWordForWordKey,
         defaultValue = true
+    )
+    val (letterByLetterAnimation, onLetterByLetterAnimationChange) = rememberPreference(
+        LyricsLetterByLetterAnimationKey,
+        defaultValue = false
     )
 
     val availableBackgroundStyles = remember(Build.VERSION.SDK_INT) {
@@ -1065,6 +1070,7 @@ fun AppearanceSettings(
                                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                             )
 
+
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically
@@ -1458,7 +1464,41 @@ fun AppearanceSettings(
                                 }
                                 ModernSwitch(
                                     checked = lyricsWordForWord,
-                                    onCheckedChange = onLyricsWordForWordChange,
+                                    onCheckedChange = {
+                                        onLyricsWordForWordChange(it)
+                                        if (it) {
+                                            onLetterByLetterAnimationChange(false)
+                                        }
+                                    },
+                                    modifier = Modifier.padding(end = 20.dp)
+                                )
+                            }
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                            )
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(modifier = Modifier.weight(1f)) {
+                                    ModernInfoItem(
+                                        icon = { Icon(painterResource(id = R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
+                                        title = "Letter by Letter Animation",
+                                        subtitle = "Animate lyrics letter by letter when word sync is unavailable",
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
+                                    )
+                                }
+                                ModernSwitch(
+                                    checked = letterByLetterAnimation,
+                                    onCheckedChange = {
+                                        onLetterByLetterAnimationChange(it)
+                                        if (it) {
+                                            onLyricsWordForWordChange(false)
+                                        }
+                                    },
                                     modifier = Modifier.padding(end = 20.dp)
                                 )
                             }

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -35,7 +36,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.music.vivi.lyrics.LyricsEntry
+import com.music.vivi.constants.LyricsLetterByLetterAnimationKey
 import com.music.vivi.ui.screens.settings.LyricsPosition
+import com.music.vivi.utils.rememberPreference
 
 @OptIn(ExperimentalTextApi::class, ExperimentalLayoutApi::class)
 @Composable
@@ -58,6 +61,8 @@ fun LyricsLine(
     isWordForWord: Boolean,
     modifier: Modifier = Modifier
 ) {
+    val (isLetterByLetter, _) = rememberPreference(LyricsLetterByLetterAnimationKey, false)
+
     val duration = remember(entry.time, nextEntryTime) {
         if (nextEntryTime != null) nextEntryTime - entry.time else 4000L
     }
@@ -199,7 +204,7 @@ fun LyricsLine(
                             wordProgress <= 0f -> 0.3f
                             else -> 0.3f + (0.7f * wordProgress)
                         }
-                        
+
                         // Ensure we use the exact same style as the sentence mode for seamlessness
                         Text(
                             text = if (index != wordData.lastIndex) "$word " else word,
@@ -208,6 +213,53 @@ fun LyricsLine(
                             fontWeight = FontWeight.Bold,
                             letterSpacing = (-0.5).sp
                         )
+                    }
+                }
+            } else if (isLetterByLetter) {
+                // Letter by Letter Animation
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = when (lyricsTextPosition) {
+                        LyricsPosition.LEFT -> Arrangement.Start
+                        LyricsPosition.CENTER -> Arrangement.Center
+                        LyricsPosition.RIGHT -> Arrangement.End
+                    }
+                ) {
+                    wordData.forEachIndexed { index, (word, startRelative, endRelative) ->
+                        val lineRelTime = (currentTime - entry.time).coerceAtLeast(0L)
+                        val wordDuration = endRelative - startRelative
+
+                        Row {
+                            word.forEachIndexed { charIndex, char ->
+                                val charProgress by remember(lineRelTime, startRelative, endRelative, charIndex, word.length) {
+                                    derivedStateOf {
+                                        val charDuration = if (word.isNotEmpty()) wordDuration / word.length else 0L
+                                        val charStart = startRelative + (charIndex * charDuration)
+                                        val charEnd = charStart + charDuration
+
+                                        when {
+                                            lineRelTime >= charEnd -> 1f
+                                            lineRelTime < charStart -> 0f
+                                            else -> {
+                                                if (charDuration <= 0L) 1f
+                                                else (lineRelTime - charStart).toFloat() / charDuration
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Text(
+                                    text = char.toString(),
+                                    fontSize = textSize.sp,
+                                    color = textColor.copy(alpha = if (charProgress >= 1f) 1f else 0.3f + (0.7f * charProgress)),
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = (-0.5).sp
+                                )
+                            }
+                            if (index != wordData.lastIndex) {
+                                Text(text = " ", fontSize = textSize.sp)
+                            }
+                        }
                     }
                 }
             } else {
