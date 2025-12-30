@@ -1026,17 +1026,36 @@ fun BottomSheetPlayer(
                     val nextInteractionSource = remember { MutableInteractionSource() }
                     val playPauseInteractionSource = remember { MutableInteractionSource() }
                     val isPlayPausePressed by playPauseInteractionSource.collectIsPressedAsState()
+                    val isBackPressed by backInteractionSource.collectIsPressedAsState()
+                    val isNextPressed by nextInteractionSource.collectIsPressedAsState()
 
                     // Animated weights with spring animation
                     val playPauseWeight by animateFloatAsState(
-                        targetValue = if (isPlayPausePressed) 1.9f else 1.3f,
-                        animationSpec = spring(),
+                        targetValue = when {
+                            isPlayPausePressed -> 1.9f
+                            isBackPressed || isNextPressed -> 1.1f
+                            else -> 1.3f
+                        },
+                        animationSpec = spring(dampingRatio = 0.5f, stiffness = 400f),
                         label = "playPauseWeight"
                     )
-                    val sideButtonWeight by animateFloatAsState(
-                        targetValue = if (isPlayPausePressed) 0.35f else 0.45f,
-                        animationSpec = spring(),
-                        label = "sideButtonWeight"
+                    val backButtonWeight by animateFloatAsState(
+                        targetValue = when {
+                            isBackPressed -> 0.65f
+                            isPlayPausePressed -> 0.35f
+                            else -> 0.45f
+                        },
+                        animationSpec = spring(dampingRatio = 0.5f, stiffness = 400f),
+                        label = "backButtonWeight"
+                    )
+                    val nextButtonWeight by animateFloatAsState(
+                        targetValue = when {
+                            isNextPressed -> 0.65f
+                            isPlayPausePressed -> 0.35f
+                            else -> 0.45f
+                        },
+                        animationSpec = spring(dampingRatio = 0.5f, stiffness = 400f),
+                        label = "nextButtonWeight"
                     )
 
                     // Side button colors based on player background
@@ -1066,8 +1085,7 @@ fun BottomSheetPlayer(
                         ),
                         modifier = Modifier
                             .height(68.dp)
-                            .weight(sideButtonWeight)
-                            .bouncy(backInteractionSource)
+                            .weight(backButtonWeight)
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.skip_previous),
@@ -1131,8 +1149,7 @@ fun BottomSheetPlayer(
                         ),
                         modifier = Modifier
                             .height(68.dp)
-                            .weight(sideButtonWeight)
-                            .bouncy(nextInteractionSource)
+                            .weight(nextButtonWeight)
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.skip_next),
@@ -1360,21 +1377,5 @@ fun BottomSheetPlayer(
                 }
             }
         }
-    }
-}
-
-
-// The bouncy modifier function (add at the bottom of your file)
-private fun Modifier.bouncy(interactionSource: InteractionSource) = composed {
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.9f else 1f,
-        animationSpec = spring(),
-        label = "scale"
-    )
-
-    graphicsLayer {
-        scaleX = scale
-        scaleY = scale
     }
 }
