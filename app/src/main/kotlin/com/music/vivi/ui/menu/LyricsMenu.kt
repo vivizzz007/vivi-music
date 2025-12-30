@@ -57,6 +57,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.music.vivi.LocalDatabase
 import com.music.vivi.R
+import com.music.vivi.constants.LyricsLetterByLetterAnimationKey
 import com.music.vivi.constants.LyricsWordForWordKey
 import com.music.vivi.constants.SwipeGestureEnabledKey
 import com.music.vivi.db.entities.LyricsEntity
@@ -527,15 +528,23 @@ fun LyricsMenu(
                 .map { it[LyricsWordForWordKey] ?: true }
                 .collectAsState(initial = true)
 
+            val lyricsLetterByLetter by dataStore.data
+                .map { it[LyricsLetterByLetterAnimationKey] ?: false }
+                .collectAsState(initial = false)
+
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
                 shape = CircleShape,
                 onClick = {
+                    val newValue = !lyricsWordForWord
                     scope.launch {
                         dataStore.edit { settings ->
-                            settings[LyricsWordForWordKey] = !(lyricsWordForWord)
+                            settings[LyricsWordForWordKey] = newValue
+                            if (newValue) {
+                                settings[LyricsLetterByLetterAnimationKey] = false
+                            }
                         }
                     }
                 }
@@ -565,6 +574,60 @@ fun LyricsMenu(
                         scope.launch {
                             dataStore.edit { settings ->
                                 settings[LyricsWordForWordKey] = enabled
+                                if (enabled) {
+                                    settings[LyricsLetterByLetterAnimationKey] = false
+                                }
+                            }
+                        }
+                    }
+                )
+            }
+
+            FilledTonalButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 66.dp),
+                shape = CircleShape,
+                onClick = {
+                    val newValue = !lyricsLetterByLetter
+                    scope.launch {
+                        dataStore.edit { settings ->
+                            settings[LyricsLetterByLetterAnimationKey] = newValue
+                            if (newValue) {
+                                settings[LyricsWordForWordKey] = false
+                            }
+                        }
+                    }
+                }
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.lyrics),
+                    contentDescription = "Letter by Letter icon"
+                )
+                Spacer(Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "Letter by Letter Animation",
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        "Animate lyrics letter by letter",
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                ModernSwitch(
+                    checked = lyricsLetterByLetter,
+                    onCheckedChange = { enabled ->
+                        scope.launch {
+                            dataStore.edit { settings ->
+                                settings[LyricsLetterByLetterAnimationKey] = enabled
+                                if (enabled) {
+                                    settings[LyricsWordForWordKey] = false
+                                }
                             }
                         }
                     }
