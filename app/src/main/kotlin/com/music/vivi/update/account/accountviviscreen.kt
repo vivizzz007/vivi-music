@@ -165,8 +165,6 @@ fun AccountView(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            Spacer(Modifier.height(24.dp))
-
             // Account Status Group
             Material3ExpressiveSettingsGroup(
                 modifier = Modifier
@@ -254,7 +252,18 @@ fun AccountView(
                 }
             )
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(16.dp))
+
+            // Account Settings Section
+            Text(
+                text = stringResource(R.string.advanced_login).uppercase(),
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp
+                ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
+            )
 
             // Account Settings Group
             Material3ExpressiveSettingsGroup(
@@ -370,6 +379,17 @@ fun AccountView(
 
             Spacer(Modifier.height(16.dp))
 
+            // Integrations Section
+            Text(
+                text = stringResource(R.string.integrations).uppercase(),
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp
+                ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
+            )
+
             // Integrations Group
             Material3ExpressiveSettingsGroup(
                 modifier = Modifier
@@ -385,8 +405,8 @@ fun AccountView(
                                 tint = MaterialTheme.colorScheme.surfaceTint
                             )
                         },
-                        title = "Integrations",
-                        subtitle = "Connect with other services",
+                        title = stringResource(R.string.integrations),
+                        subtitle = stringResource(R.string.integrations_subtitle),
                         onClick = {
                             navController.navigate("settings/integrations")
                         },
