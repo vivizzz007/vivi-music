@@ -342,5 +342,9 @@
     <string name="one_hour">1 hour</string>
     <string name="seven_days">7 days</string>
     <string name="ok_caps">OK</string>
+    <string name="account_status">Account Status</string>
+    <string name="account_settings">Account Settings</string>
+    <string name="integrations_subtitle">Connect with external services</string>
     <string name="cancel_caps">CANCEL</string>
+    <string name="waiting_for_network">Waiting for network connection…</string>
 </resources>
