@@ -139,6 +139,7 @@ import com.music.vivi.constants.CheckForUpdatesKey
 import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.DefaultOpenTabKey
 import com.music.vivi.constants.DisableScreenshotKey
+import com.music.vivi.constants.AccentColorKey
 import com.music.vivi.constants.DynamicThemeKey
 import com.music.vivi.constants.MiniPlayerHeight
 import com.music.vivi.constants.MiniPlayerBottomSpacing
@@ -381,9 +382,17 @@ class MainActivity : ComponentActivity() {
                 mutableStateOf(DefaultThemeColor)
             }
 
-            LaunchedEffect(playerConnection, enableDynamicTheme) {
+            val accentColorInt by rememberPreference(AccentColorKey, defaultValue = DefaultThemeColor.toArgb())
+            val accentColor = remember(accentColorInt) { Color(accentColorInt) }
+
+            LaunchedEffect(playerConnection, enableDynamicTheme, accentColor) {
                 val playerConnection = playerConnection
-                if (!enableDynamicTheme || playerConnection == null) {
+                if (!enableDynamicTheme) {
+                    themeColor = accentColor
+                    return@LaunchedEffect
+                }
+
+                if (playerConnection == null) {
                     themeColor = DefaultThemeColor
                     return@LaunchedEffect
                 }

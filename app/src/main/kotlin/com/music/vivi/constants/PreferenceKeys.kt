@@ -22,6 +22,7 @@ val HidePlayerThumbnailKey = booleanPreferencesKey("hidePlayerThumbnail")
 val SeekExtraSeconds = booleanPreferencesKey("seekExtraSeconds")
 
 val HideVideoSongsKey = booleanPreferencesKey("hideVideoSongs")
+val AccentColorKey = intPreferencesKey("accentColor")
 val RotatingThumbnailKey = booleanPreferencesKey("rotating_thumbnail")
 
 enum class SliderStyle {

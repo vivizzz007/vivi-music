@@ -2,7 +2,7 @@ package com.music.vivi.ui.screens.settings
 
 
 import android.os.Build
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -22,10 +22,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
@@ -33,11 +42,14 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -48,17 +60,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.music.vivi.R
+import com.music.vivi.constants.AccentColorKey
 import com.music.vivi.constants.ChipSortTypeKey
 import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.DefaultOpenTabKey
@@ -99,15 +117,18 @@ import com.music.vivi.constants.UseNewPlayerDesignKey
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.PlayerSliderTrack
+import com.music.vivi.ui.theme.DefaultThemeColor
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.update.mordernswitch.ModernSwitch
+import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
 import com.music.vivi.update.settingstyle.ModernInfoItem
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import me.saket.squiggles.SquigglySlider
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalMaterial3Api::class)
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AppearanceSettings(
     navController: NavController,
@@ -175,13 +196,6 @@ fun AppearanceSettings(
         RotatingThumbnailKey,
         defaultValue = false
     )
-
-
-    val (miniPlayerGradient, onMiniPlayerGradientChange) = rememberPreference(
-        key = MiniPlayerGradientKey,
-        defaultValue = true
-    )
-
 
     val (swipeToRemoveSong, onSwipeToRemoveSongChange) = rememberPreference(
         SwipeToRemoveSongKey,
@@ -290,15 +304,12 @@ fun AppearanceSettings(
 
     var showSliderOptionDialog by rememberSaveable { mutableStateOf(false) }
     var showSensitivityDialog by rememberSaveable { mutableStateOf(false) }
-    var showDarkModeDialog by rememberSaveable { mutableStateOf(false) }
     var showPlayerBackgroundDialog by rememberSaveable { mutableStateOf(false) }
     var showPlayerButtonsStyleDialog by rememberSaveable { mutableStateOf(false) }
-    var showLyricsPositionDialog by rememberSaveable { mutableStateOf(false) }
-    var showDefaultOpenTabDialog by rememberSaveable { mutableStateOf(false) }
     var showDefaultChipDialog by rememberSaveable { mutableStateOf(false) }
-    var showGridItemSizeDialog by rememberSaveable { mutableStateOf(false) }
     var showLyricsTextSizeDialog by rememberSaveable { mutableStateOf(false) }
     var showLyricsLineSpacingDialog by rememberSaveable { mutableStateOf(false) }
+    val (accentColorInt, onAccentColorChange) = rememberPreference(AccentColorKey, defaultValue = DefaultThemeColor.toArgb())
 
     // Lyrics Text Size Dialog
     if (showLyricsTextSizeDialog) {
@@ -606,46 +617,7 @@ fun AppearanceSettings(
         )
     }
 
-    // Dark Mode Dialog
-    if (showDarkModeDialog) {
-        DefaultDialog(
-            onDismiss = { showDarkModeDialog = false },
-            content = {
-                Column(modifier = Modifier.padding(horizontal = 18.dp)) {
-                    listOf(DarkMode.AUTO, DarkMode.ON, DarkMode.OFF).forEach { value ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    onDarkModeChange(value)
-                                    showDarkModeDialog = false
-                                }
-                                .padding(vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(
-                                selected = value == darkMode,
-                                onClick = null
-                            )
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Text(
-                                when (value) {
-                                    DarkMode.ON -> stringResource(R.string.dark_theme_on)
-                                    DarkMode.OFF -> stringResource(R.string.dark_theme_off)
-                                    DarkMode.AUTO -> stringResource(R.string.dark_theme_follow_system)
-                                }
-                            )
-                        }
-                    }
-                }
-            },
-            buttons = {
-                TextButton(onClick = { showDarkModeDialog = false }) {
-                    Text(text = stringResource(android.R.string.cancel))
-                }
-            }
-        )
-    }
+
 
     // Player Background Dialog
     if (showPlayerBackgroundDialog) {
@@ -729,87 +701,7 @@ fun AppearanceSettings(
         )
     }
 
-    // Lyrics Position Dialog
-    if (showLyricsPositionDialog) {
-        DefaultDialog(
-            onDismiss = { showLyricsPositionDialog = false },
-            content = {
-                Column(modifier = Modifier.padding(horizontal = 18.dp)) {
-                    LyricsPosition.entries.forEach { value ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    onLyricsPositionChange(value)
-                                    showLyricsPositionDialog = false
-                                }
-                                .padding(vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(
-                                selected = value == lyricsPosition,
-                                onClick = null
-                            )
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Text(
-                                when (value) {
-                                    LyricsPosition.LEFT -> stringResource(R.string.left)
-                                    LyricsPosition.CENTER -> stringResource(R.string.center)
-                                    LyricsPosition.RIGHT -> stringResource(R.string.right)
-                                }
-                            )
-                        }
-                    }
-                }
-            },
-            buttons = {
-                TextButton(onClick = { showLyricsPositionDialog = false }) {
-                    Text(text = stringResource(android.R.string.cancel))
-                }
-            }
-        )
-    }
 
-    // Default Open Tab Dialog
-    if (showDefaultOpenTabDialog) {
-        DefaultDialog(
-            onDismiss = { showDefaultOpenTabDialog = false },
-            content = {
-                Column(modifier = Modifier.padding(horizontal = 18.dp)) {
-                    NavigationTab.entries.forEach { value ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    onDefaultOpenTabChange(value)
-                                    showDefaultOpenTabDialog = false
-                                }
-                                .padding(vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(
-                                selected = value == defaultOpenTab,
-                                onClick = null
-                            )
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Text(
-                                when (value) {
-                                    NavigationTab.HOME -> stringResource(R.string.home)
-                                    NavigationTab.SEARCH -> stringResource(R.string.search)
-                                    NavigationTab.LIBRARY -> stringResource(R.string.filter_library)
-                                }
-                            )
-                        }
-                    }
-                }
-            },
-            buttons = {
-                TextButton(onClick = { showDefaultOpenTabDialog = false }) {
-                    Text(text = stringResource(android.R.string.cancel))
-                }
-            }
-        )
-    }
 
     // Default Chip Dialog
     if (showDefaultChipDialog) {
@@ -854,46 +746,6 @@ fun AppearanceSettings(
             },
             buttons = {
                 TextButton(onClick = { showDefaultChipDialog = false }) {
-                    Text(text = stringResource(android.R.string.cancel))
-                }
-            }
-        )
-    }
-
-    // Grid Item Size Dialog
-    if (showGridItemSizeDialog) {
-        DefaultDialog(
-            onDismiss = { showGridItemSizeDialog = false },
-            content = {
-                Column(modifier = Modifier.padding(horizontal = 18.dp)) {
-                    GridItemSize.entries.forEach { value ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    onGridItemSizeChange(value)
-                                    showGridItemSizeDialog = false
-                                }
-                                .padding(vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(
-                                selected = value == gridItemSize,
-                                onClick = null
-                            )
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Text(
-                                when (value) {
-                                    GridItemSize.BIG -> stringResource(R.string.big)
-                                    GridItemSize.SMALL -> stringResource(R.string.small)
-                                }
-                            )
-                        }
-                    }
-                }
-            },
-            buttons = {
-                TextButton(onClick = { showGridItemSizeDialog = false }) {
                     Text(text = stringResource(android.R.string.cancel))
                 }
             }
@@ -1007,20 +859,126 @@ fun AppearanceSettings(
                                 }
                             }
                             add {
-                                ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.dark_mode), null, modifier = Modifier.size(22.dp)) },
-                                    title = stringResource(R.string.dark_theme),
-                                    subtitle = when (darkMode) {
-                                        DarkMode.ON -> stringResource(R.string.dark_theme_on)
-                                        DarkMode.OFF -> stringResource(R.string.dark_theme_off)
-                                        DarkMode.AUTO -> stringResource(R.string.dark_theme_follow_system)
-                                    },
-                                    onClick = { showDarkModeDialog = true },
-                                    showArrow = true,
-                                    showSettingsIcon = true,
-                                    iconBackgroundColor = iconBgColor,
-                                    iconContentColor = iconStyleColor
-                                )
+                                Column(modifier = Modifier.fillMaxWidth()) {
+                                    ModernInfoItem(
+                                        icon = { Icon(painterResource(R.drawable.palette), null, modifier = Modifier.size(22.dp)) },
+                                        title = "Accent Color",
+                                        subtitle = "Select a static theme color",
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
+                                    )
+
+                                    val presetColors = remember {
+                                        listOf(
+                                            Color(0xFF4285F4), // Blue
+                                            Color(0xFFDB4437), // Red
+                                            Color(0xFFF4B400), // Yellow
+                                            Color(0xFF0F9D58), // Green
+                                            Color(0xFF673AB7), // Purple
+                                            Color(0xFFE91E63), // Pink
+                                            Color(0xFFFF9800), // Orange
+                                            Color(0xFF00BCD4), // Cyan
+                                            Color(0xFF009688), // Teal
+                                        )
+                                    }
+
+                                    LazyRow(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(start = 64.dp, bottom = 12.dp, end = 20.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                    ) {
+                                        items(presetColors) { color ->
+                                            val isSelected = accentColorInt == color.toArgb() && !dynamicTheme
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(42.dp)
+                                                    .background(color, CircleShape)
+                                                    .clip(CircleShape)
+                                                    .clickable {
+                                                        onAccentColorChange(color.toArgb())
+                                                        onDynamicThemeChange(false)
+                                                    },
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                val scale by animateFloatAsState(targetValue = if (isSelected) 1f else 0f)
+                                                if (scale > 0f) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Check,
+                                                        contentDescription = null,
+                                                        tint = Color.White,
+                                                        modifier = Modifier.size(24.dp).scale(scale)
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            add {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 20.dp, vertical = 14.dp),
+                                    verticalAlignment = Alignment.Top
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(44.dp)
+                                            .background(iconBgColor, RoundedCornerShape(12.dp))
+                                            .clip(RoundedCornerShape(12.dp)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        CompositionLocalProvider(LocalContentColor provides iconStyleColor) {
+                                            Icon(painterResource(R.drawable.dark_mode), null, modifier = Modifier.size(22.dp))
+                                        }
+                                    }
+
+                                    Spacer(modifier = Modifier.width(16.dp))
+
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = stringResource(R.string.dark_theme),
+                                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = "Select theme preference",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Spacer(modifier = Modifier.height(12.dp))
+                                        val options = listOf(DarkMode.AUTO, DarkMode.ON, DarkMode.OFF)
+                                        val labels = listOf(stringResource(R.string.dark_theme_follow_system), stringResource(R.string.dark_theme_on), stringResource(R.string.dark_theme_off))
+
+                                        FlowRow(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+                                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                                        ) {
+                                            options.forEachIndexed { index, value ->
+                                                ToggleButton(
+                                                    checked = darkMode == value,
+                                                    onCheckedChange = { onDarkModeChange(value) },
+                                                    colors = ToggleButtonDefaults.toggleButtonColors(
+                                                        checkedContainerColor = MaterialTheme.colorScheme.primary,
+                                                        checkedContentColor = MaterialTheme.colorScheme.onPrimary,
+                                                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    ),
+                                                    shapes = when (index) {
+                                                        0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                                        options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                                                    },
+                                                    modifier = Modifier.weight(1f).semantics { role = Role.RadioButton },
+                                                ) {
+                                                    Text(labels[index], style = MaterialTheme.typography.labelSmall)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                             if (useDarkTheme) {
                                 add {
@@ -1283,26 +1241,75 @@ fun AppearanceSettings(
                 }
 
                 item {
-                    com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup(
+                  Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
                         items = listOf(
                             {
-                                ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
-                                    title = stringResource(R.string.lyrics_text_position),
-                                    subtitle = when (lyricsPosition) {
-                                        LyricsPosition.LEFT -> stringResource(R.string.left)
-                                        LyricsPosition.CENTER -> stringResource(R.string.center)
-                                        LyricsPosition.RIGHT -> stringResource(R.string.right)
-                                    },
-                                    onClick = { showLyricsPositionDialog = true },
-                                    showArrow = true,
-                                    showSettingsIcon = true,
-                                    iconBackgroundColor = iconBgColor,
-                                    iconContentColor = iconStyleColor
-                                )
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 20.dp, vertical = 14.dp),
+                                    verticalAlignment = Alignment.Top
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(44.dp)
+                                            .background(iconBgColor, RoundedCornerShape(12.dp))
+                                            .clip(RoundedCornerShape(12.dp)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        CompositionLocalProvider(LocalContentColor provides iconStyleColor) {
+                                            Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp))
+                                        }
+                                    }
+
+                                    Spacer(modifier = Modifier.width(16.dp))
+
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = stringResource(R.string.lyrics_text_position),
+                                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = "Select text alignment",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Spacer(modifier = Modifier.height(12.dp))
+                                        val options = LyricsPosition.entries
+                                        val labels = listOf(stringResource(R.string.left), stringResource(R.string.center), stringResource(R.string.right))
+
+                                        FlowRow(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+                                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                                        ) {
+                                            options.forEachIndexed { index, value ->
+                                                ToggleButton(
+                                                    checked = lyricsPosition == value,
+                                                    onCheckedChange = { onLyricsPositionChange(value) },
+                                                    colors = ToggleButtonDefaults.toggleButtonColors(
+                                                        checkedContainerColor = MaterialTheme.colorScheme.primary,
+                                                        checkedContentColor = MaterialTheme.colorScheme.onPrimary,
+                                                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    ),
+                                                    shapes = when (index) {
+                                                        0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                                        options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                                                    },
+                                                    modifier = Modifier.weight(1f).semantics { role = Role.RadioButton },
+                                                ) {
+                                                    Text(labels[index], style = MaterialTheme.typography.labelSmall)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             },
                             {
                                 Row(
@@ -1446,20 +1453,51 @@ fun AppearanceSettings(
                             .padding(horizontal = 16.dp),
                         items = listOf(
                             {
-                                ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.nav_bar), null, modifier = Modifier.size(22.dp)) },
-                                    title = stringResource(R.string.default_open_tab),
-                                    subtitle = when (defaultOpenTab) {
-                                        NavigationTab.HOME -> stringResource(R.string.home)
-                                        NavigationTab.SEARCH -> stringResource(R.string.search)
-                                        NavigationTab.LIBRARY -> stringResource(R.string.filter_library)
-                                    },
-                                    onClick = { showDefaultOpenTabDialog = true },
-                                    showArrow = true,
-                                    showSettingsIcon = true,
-                                    iconBackgroundColor = iconBgColor,
-                                    iconContentColor = iconStyleColor
-                                )
+                                Column(modifier = Modifier.fillMaxWidth()) {
+                                    ModernInfoItem(
+                                        icon = { Icon(painterResource(R.drawable.nav_bar), null, modifier = Modifier.size(22.dp)) },
+                                        title = stringResource(R.string.default_open_tab),
+                                        subtitle = "Select which tab opens by default",
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
+                                    )
+
+                                    val options = NavigationTab.entries
+                                    val labels = listOf(
+                                        stringResource(R.string.home),
+                                        stringResource(R.string.search),
+                                        stringResource(R.string.filter_library)
+                                    )
+
+                                    FlowRow(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(start = 64.dp, bottom = 12.dp, end = 20.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+                                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                                    ) {
+                                        options.forEachIndexed { index, value ->
+                                            ToggleButton(
+                                                checked = defaultOpenTab == value,
+                                                onCheckedChange = { onDefaultOpenTabChange(value) },
+                                                colors = ToggleButtonDefaults.toggleButtonColors(
+                                                    checkedContainerColor = MaterialTheme.colorScheme.primary,
+                                                    checkedContentColor = MaterialTheme.colorScheme.onPrimary,
+                                                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                                ),
+                                                shapes = when (index) {
+                                                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                                    options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                                                },
+                                                modifier = Modifier.weight(1f).semantics { role = Role.RadioButton },
+                                            ) {
+                                                Text(labels[index], style = MaterialTheme.typography.labelSmall)
+                                            }
+                                        }
+                                    }
+                                }
                             },
                             {
                                 ModernInfoItem(
@@ -1543,19 +1581,47 @@ fun AppearanceSettings(
                                 }
                             },
                             {
-                                ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.grid_view), null, modifier = Modifier.size(22.dp)) },
-                                    title = stringResource(R.string.grid_cell_size),
-                                    subtitle = when (gridItemSize) {
-                                        GridItemSize.BIG -> stringResource(R.string.big)
-                                        GridItemSize.SMALL -> stringResource(R.string.small)
-                                    },
-                                    onClick = { showGridItemSizeDialog = true },
-                                    showArrow = true,
-                                    showSettingsIcon = true,
-                                    iconBackgroundColor = iconBgColor,
-                                    iconContentColor = iconStyleColor
-                                )
+                                Column(modifier = Modifier.fillMaxWidth()) {
+                                    ModernInfoItem(
+                                        icon = { Icon(painterResource(R.drawable.grid_view), null, modifier = Modifier.size(22.dp)) },
+                                        title = stringResource(R.string.grid_cell_size),
+                                        subtitle = "Change the size of items in the library",
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
+                                    )
+
+                                    val options = listOf(GridItemSize.SMALL, GridItemSize.BIG)
+                                    val labels = listOf(stringResource(R.string.small), stringResource(R.string.big))
+
+                                    FlowRow(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(start = 64.dp, bottom = 12.dp, end = 20.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+                                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                                    ) {
+                                        options.forEachIndexed { index, value ->
+                                            ToggleButton(
+                                                checked = gridItemSize == value,
+                                                onCheckedChange = { onGridItemSizeChange(value) },
+                                                colors = ToggleButtonDefaults.toggleButtonColors(
+                                                    checkedContainerColor = MaterialTheme.colorScheme.primary,
+                                                    checkedContentColor = MaterialTheme.colorScheme.onPrimary,
+                                                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                                ),
+                                                shapes = when (index) {
+                                                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                                    options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                                                },
+                                                modifier = Modifier.weight(1f).semantics { role = Role.RadioButton },
+                                            ) {
+                                                Text(labels[index], style = MaterialTheme.typography.labelSmall)
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         )
                     )
