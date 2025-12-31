@@ -69,7 +69,6 @@ import com.music.vivi.ui.component.TextFieldDialog
 import com.music.vivi.update.mordernswitch.ModernSwitch
 import com.music.vivi.utils.dataStore
 import com.music.vivi.viewmodels.LyricsMenuViewModel
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
@@ -472,11 +471,7 @@ fun LyricsMenu(
             }
 
             // Swipe to Change Track
-            val dataStore = context.dataStore
-            val swipeGestureEnabled by dataStore.data
-                .map { it[SwipeGestureEnabledKey] ?: true }
-                .collectAsState(initial = true)
-
+            val swipeGestureEnabled by viewModel.swipeGestureEnabled.collectAsState()
             val scope = rememberCoroutineScope()
 
             FilledTonalButton(
@@ -486,7 +481,7 @@ fun LyricsMenu(
                 shape = CircleShape,
                 onClick = {
                     scope.launch {
-                        dataStore.edit { settings ->
+                        context.dataStore.edit { settings ->
                             settings[SwipeGestureEnabledKey] = !(swipeGestureEnabled)
                         }
                     }
@@ -515,7 +510,7 @@ fun LyricsMenu(
                     checked = swipeGestureEnabled,
                     onCheckedChange = { enabled ->
                         scope.launch {
-                            dataStore.edit { settings ->
+                            context.dataStore.edit { settings ->
                                 settings[SwipeGestureEnabledKey] = enabled
                             }
                         }
@@ -524,13 +519,8 @@ fun LyricsMenu(
             }
 
             // Word-for-word lyrics
-            val lyricsWordForWord by dataStore.data
-                .map { it[LyricsWordForWordKey] ?: true }
-                .collectAsState(initial = true)
-
-            val lyricsLetterByLetter by dataStore.data
-                .map { it[LyricsLetterByLetterAnimationKey] ?: false }
-                .collectAsState(initial = false)
+            val lyricsWordForWord by viewModel.lyricsWordForWord.collectAsState()
+            val lyricsLetterByLetter by viewModel.lyricsLetterByLetter.collectAsState()
 
             FilledTonalButton(
                 modifier = Modifier
@@ -540,7 +530,7 @@ fun LyricsMenu(
                 onClick = {
                     val newValue = !lyricsWordForWord
                     scope.launch {
-                        dataStore.edit { settings ->
+                        context.dataStore.edit { settings ->
                             settings[LyricsWordForWordKey] = newValue
                             if (newValue) {
                                 settings[LyricsLetterByLetterAnimationKey] = false
@@ -572,7 +562,7 @@ fun LyricsMenu(
                     checked = lyricsWordForWord,
                     onCheckedChange = { enabled ->
                         scope.launch {
-                            dataStore.edit { settings ->
+                            context.dataStore.edit { settings ->
                                 settings[LyricsWordForWordKey] = enabled
                                 if (enabled) {
                                     settings[LyricsLetterByLetterAnimationKey] = false
@@ -591,7 +581,7 @@ fun LyricsMenu(
                 onClick = {
                     val newValue = !lyricsLetterByLetter
                     scope.launch {
-                        dataStore.edit { settings ->
+                        context.dataStore.edit { settings ->
                             settings[LyricsLetterByLetterAnimationKey] = newValue
                             if (newValue) {
                                 settings[LyricsWordForWordKey] = false
@@ -623,7 +613,7 @@ fun LyricsMenu(
                     checked = lyricsLetterByLetter,
                     onCheckedChange = { enabled ->
                         scope.launch {
-                            dataStore.edit { settings ->
+                            context.dataStore.edit { settings ->
                                 settings[LyricsLetterByLetterAnimationKey] = enabled
                                 if (enabled) {
                                     settings[LyricsWordForWordKey] = false
