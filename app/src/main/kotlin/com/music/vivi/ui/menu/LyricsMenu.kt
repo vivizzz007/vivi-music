@@ -57,8 +57,6 @@ import androidx.datastore.preferences.core.edit
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.music.vivi.LocalDatabase
 import com.music.vivi.R
-import com.music.vivi.constants.LyricsLetterByLetterAnimationKey
-import com.music.vivi.constants.LyricsWordForWordKey
 import com.music.vivi.constants.SwipeGestureEnabledKey
 import com.music.vivi.db.entities.LyricsEntity
 import com.music.vivi.db.entities.SongEntity
@@ -69,6 +67,7 @@ import com.music.vivi.ui.component.TextFieldDialog
 import com.music.vivi.update.mordernswitch.ModernSwitch
 import com.music.vivi.utils.dataStore
 import com.music.vivi.viewmodels.LyricsMenuViewModel
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
@@ -96,7 +95,14 @@ fun LyricsMenu(
             initialTextFieldValue = TextFieldValue(lyricsProvider()?.lyrics.orEmpty()),
             singleLine = false,
             onDone = {
-                viewModel.updateLyrics(mediaMetadataProvider().id, it)
+                database.query {
+                    upsert(
+                        LyricsEntity(
+                            id = mediaMetadataProvider().id,
+                            lyrics = it,
+                        ),
+                    )
+                }
             },
         )
     }
@@ -229,7 +235,14 @@ fun LyricsMenu(
                             .clickable {
                                 onDismiss()
                                 viewModel.cancelSearch()
-                                viewModel.updateLyrics(searchMediaMetadata.id, result.lyrics)
+                                database.query {
+                                    upsert(
+                                        LyricsEntity(
+                                            id = searchMediaMetadata.id,
+                                            lyrics = result.lyrics,
+                                        ),
+                                    )
+                                }
                             }
                             .padding(12.dp)
                             .animateContentSize(),
@@ -306,14 +319,18 @@ fun LyricsMenu(
         }
     }
 
-    val evenCornerRadiusElems = 26.dp
-    val fabShape = remember {
-        AbsoluteSmoothCornerShape(
-            cornerRadiusTR = evenCornerRadiusElems, smoothnessAsPercentBR = 60, cornerRadiusBR = evenCornerRadiusElems,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = evenCornerRadiusElems, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = evenCornerRadiusElems, smoothnessAsPercentTR = 60
-        )
+    var showRomanizationDialog by rememberSaveable {
+        mutableStateOf(false)
     }
+
+    var showRomanization by rememberSaveable { mutableStateOf(false) }
+    var isChecked by remember { mutableStateOf(songProvider()?.romanizeLyrics ?: true) }
+
+    LaunchedEffect(songProvider()) {
+        isChecked = songProvider()?.romanizeLyrics ?: true
+    }
+
+    val evenCornerRadiusElems = 26.dp
 
     Column(
         modifier = Modifier
@@ -341,7 +358,11 @@ fun LyricsMenu(
                     showEditDialog = true
                 },
                 elevation = FloatingActionButtonDefaults.elevation(0.dp),
-                shape = fabShape,
+                shape = AbsoluteSmoothCornerShape(
+                    cornerRadiusTR = evenCornerRadiusElems, smoothnessAsPercentBR = 60, cornerRadiusBR = evenCornerRadiusElems,
+                    smoothnessAsPercentTL = 60, cornerRadiusTL = evenCornerRadiusElems, smoothnessAsPercentBL = 60,
+                    cornerRadiusBL = evenCornerRadiusElems, smoothnessAsPercentTR = 60
+                ),
                 icon = {
                     Icon(
                         painter = painterResource(R.drawable.edit),
@@ -402,86 +423,103 @@ fun LyricsMenu(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             // Romanize Current Track
-            val song = songProvider()
-            SettingsSwitchItem(
-                icon = R.drawable.language_korean_latin,
-                title = stringResource(R.string.romanize_current_track),
-                description = if (song?.romanizeLyrics != false) "Romanization enabled" else "Romanization disabled",
-                checked = song?.romanizeLyrics != false,
-                onCheckedChange = { viewModel.toggleRomanizeLyrics(song, it) }
-            )
+            FilledTonalButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 66.dp),
+                shape = CircleShape,
+                onClick = {
+                    isChecked = !isChecked
+                    songProvider()?.let { song ->
+                        database.query {
+                            upsert(song.copy(romanizeLyrics = isChecked))
+                        }
+                    }
+                }
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.language_korean_latin),
+                    contentDescription = "Romanize icon"
+                )
+                Spacer(Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        stringResource(R.string.romanize_current_track),
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        if (isChecked) "Romanization enabled" else "Romanization disabled",
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                ModernSwitch(
+                    checked = isChecked,
+                    onCheckedChange = { newCheckedState ->
+                        isChecked = newCheckedState
+                        songProvider()?.let { song ->
+                            database.query {
+                                upsert(song.copy(romanizeLyrics = newCheckedState))
+                            }
+                        }
+                    }
+                )
+            }
 
             // Swipe to Change Track
-            val swipeGestureEnabled by viewModel.swipeGestureEnabled.collectAsState()
-            SettingsSwitchItem(
-                icon = R.drawable.swipe,
-                title = stringResource(R.string.swipe_to_change_track),
-                description = stringResource(R.string.swipe_to_change_track_description),
-                checked = swipeGestureEnabled,
-                onCheckedChange = { viewModel.toggleSwipeGesture(it) }
-            )
+            val dataStore = context.dataStore
+            val swipeGestureEnabled by dataStore.data
+                .map { it[SwipeGestureEnabledKey] ?: true }
+                .collectAsState(initial = true)
 
-            // Word-for-word lyrics
-            val lyricsWordForWord by viewModel.lyricsWordForWord.collectAsState()
-            SettingsSwitchItem(
-                icon = R.drawable.lyrics,
-                title = "Word-for-word lyrics",
-                description = "Highlight words discretely",
-                checked = lyricsWordForWord,
-                onCheckedChange = { viewModel.toggleWordForWord(it) }
-            )
+            val scope = rememberCoroutineScope()
 
-            // Letter by Letter Animation
-            val lyricsLetterByLetter by viewModel.lyricsLetterByLetter.collectAsState()
-            SettingsSwitchItem(
-                icon = R.drawable.lyrics,
-                title = "Letter by Letter Animation",
-                description = "Animate lyrics letter by letter",
-                checked = lyricsLetterByLetter,
-                onCheckedChange = { viewModel.toggleLetterByLetter(it) }
-            )
+            FilledTonalButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 66.dp),
+                shape = CircleShape,
+                onClick = {
+                    scope.launch {
+                        dataStore.edit { settings ->
+                            settings[SwipeGestureEnabledKey] = !(swipeGestureEnabled)
+                        }
+                    }
+                }
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.swipe),
+                    contentDescription = "Swipe icon"
+                )
+                Spacer(Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        stringResource(R.string.swipe_to_change_track),
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        stringResource(R.string.swipe_to_change_track_description),
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                ModernSwitch(
+                    checked = swipeGestureEnabled,
+                    onCheckedChange = { enabled ->
+                        scope.launch {
+                            dataStore.edit { settings ->
+                                settings[SwipeGestureEnabledKey] = enabled
+                            }
+                        }
+                    }
+                )
+            }
         }
-    }
-}
-
-@Composable
-private fun SettingsSwitchItem(
-    icon: Int,
-    title: String,
-    description: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    FilledTonalButton(
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(min = 66.dp),
-        shape = CircleShape,
-        onClick = { onCheckedChange(!checked) }
-    ) {
-        Icon(
-            painter = painterResource(icon),
-            contentDescription = null
-        )
-        Spacer(Modifier.width(8.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                title,
-                style = MaterialTheme.typography.bodyLarge,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                description,
-                style = MaterialTheme.typography.bodySmall,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-        ModernSwitch(
-            checked = checked,
-            onCheckedChange = onCheckedChange
-        )
     }
 }
