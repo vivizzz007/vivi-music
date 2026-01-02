@@ -30,7 +30,9 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -120,6 +122,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalResources
@@ -333,14 +336,38 @@ fun ArtistScreen(
                                 if (showDescriptionDialog) {
                                     AlertDialog(
                                         onDismissRequest = { showDescriptionDialog = false },
-                                        icon = {
-                                            Icon(
-                                                painter = painterResource(R.drawable.person),
-                                                contentDescription = null
-                                            )
-                                        },
                                         title = {
-                                            Text(text = artistPage?.artist?.title ?: "Artist Info")
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                if (thumbnail != null) {
+                                                    AsyncImage(
+                                                        model = thumbnail,
+                                                        contentDescription = null,
+                                                        modifier = Modifier
+                                                            .size(50.dp)
+                                                            .clip(CircleShape),
+                                                        contentScale = ContentScale.Crop
+                                                    )
+                                                } else {
+                                                    Icon(
+                                                        painter = painterResource(R.drawable.person),
+                                                        contentDescription = null,
+                                                        modifier = Modifier
+                                                            .size(50.dp)
+                                                            .clip(CircleShape)
+                                                            .background(MaterialTheme.colorScheme.secondaryContainer)
+                                                            .padding(8.dp),
+                                                        tint = MaterialTheme.colorScheme.onSecondaryContainer
+                                                    )
+                                                }
+                                                Spacer(Modifier.width(16.dp))
+                                                Text(
+                                                    text = artistPage?.artist?.title ?: "Artist Info",
+                                                    style = MaterialTheme.typography.titleLarge
+                                                )
+                                            }
                                         },
                                         text = {
                                             LazyColumn {
@@ -353,7 +380,10 @@ fun ArtistScreen(
                                             }
                                         },
                                         confirmButton = {
-                                            TextButton(onClick = { showDescriptionDialog = false }) {
+                                            Button(
+                                                onClick = { showDescriptionDialog = false },
+                                                shapes = ButtonDefaults.shapes()
+                                            ) {
                                                 Text(stringResource(android.R.string.ok))
                                             }
                                         },
