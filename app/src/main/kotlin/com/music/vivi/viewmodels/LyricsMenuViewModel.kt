@@ -2,6 +2,7 @@ package com.music.vivi.viewmodels
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.music.vivi.constants.LyricsLetterByLetterAnimationKey
@@ -22,10 +23,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -102,6 +105,59 @@ constructor(
     fun cancelSearch() {
         job?.cancel()
         job = null
+    }
+
+    fun toggleRomanizeLyrics(song: com.music.vivi.db.entities.SongEntity?, enabled: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            song?.let {
+                database.query {
+                    upsert(it.copy(romanizeLyrics = enabled))
+                }
+            }
+        }
+    }
+
+    fun toggleSwipeGesture(enabled: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            dataStore.edit { settings ->
+                settings[SwipeGestureEnabledKey] = enabled
+            }
+        }
+    }
+
+    fun toggleWordForWord(enabled: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            dataStore.edit { settings ->
+                settings[LyricsWordForWordKey] = enabled
+                if (enabled) {
+                    settings[LyricsLetterByLetterAnimationKey] = false
+                }
+            }
+        }
+    }
+
+    fun toggleLetterByLetter(enabled: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            dataStore.edit { settings ->
+                settings[LyricsLetterByLetterAnimationKey] = enabled
+                if (enabled) {
+                    settings[LyricsWordForWordKey] = false
+                }
+            }
+        }
+    }
+
+    fun updateLyrics(mediaId: String, lyrics: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            database.query {
+                upsert(
+                    LyricsEntity(
+                        id = mediaId,
+                        lyrics = lyrics,
+                    ),
+                )
+            }
+        }
     }
 
     fun refetchLyrics(
