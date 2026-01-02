@@ -91,6 +91,7 @@ import com.music.vivi.constants.LyricsLineSpacingKey
 import com.music.vivi.constants.LyricsScrollKey
 import com.music.vivi.constants.LyricsTextPositionKey
 import com.music.vivi.constants.LyricsTextSizeKey
+import com.music.vivi.constants.LyricsVerticalPositionKey
 import com.music.vivi.constants.LyricsWordForWordKey
 import com.music.vivi.constants.MiniPlayerGradientKey
 import com.music.vivi.constants.PlayerBackgroundStyle
@@ -226,6 +227,10 @@ fun AppearanceSettings(
     val (lyricsPosition, onLyricsPositionChange) = rememberEnumPreference(
         LyricsTextPositionKey,
         defaultValue = LyricsPosition.LEFT
+    )
+    val (lyricsVerticalPosition, onLyricsVerticalPositionChange) = rememberEnumPreference(
+        LyricsVerticalPositionKey,
+        defaultValue = LyricsVerticalPosition.TOP
     )
     val (lyricsClick, onLyricsClickChange) = rememberPreference(LyricsClickKey, defaultValue = true)
     val (lyricsScroll, onLyricsScrollChange) = rememberPreference(LyricsScrollKey, defaultValue = true)
@@ -1313,6 +1318,71 @@ fun AppearanceSettings(
                             },
                             {
                                 Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 20.dp, vertical = 14.dp),
+                                    verticalAlignment = Alignment.Top
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(44.dp)
+                                            .background(iconBgColor, RoundedCornerShape(12.dp))
+                                            .clip(RoundedCornerShape(12.dp)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        CompositionLocalProvider(LocalContentColor provides iconStyleColor) {
+                                            Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp))
+                                        }
+                                    }
+
+                                    Spacer(modifier = Modifier.width(16.dp))
+
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = "Lyrics position",
+                                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = "Select active line position",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Spacer(modifier = Modifier.height(12.dp))
+                                        val options = LyricsVerticalPosition.entries
+                                        val labels = listOf("Top", "Center")
+
+                                        FlowRow(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+                                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                                        ) {
+                                            options.forEachIndexed { index, value ->
+                                                ToggleButton(
+                                                    checked = lyricsVerticalPosition == value,
+                                                    onCheckedChange = { onLyricsVerticalPositionChange(value) },
+                                                    colors = ToggleButtonDefaults.toggleButtonColors(
+                                                        checkedContainerColor = MaterialTheme.colorScheme.primary,
+                                                        checkedContentColor = MaterialTheme.colorScheme.onPrimary,
+                                                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    ),
+                                                    shapes = when (index) {
+                                                        0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                                        options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                                                    },
+                                                    modifier = Modifier.weight(1f).semantics { role = Role.RadioButton },
+                                                ) {
+                                                    Text(labels[index], style = MaterialTheme.typography.labelSmall)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
@@ -1782,5 +1852,10 @@ enum class LyricsPosition {
 
 enum class PlayerTextAlignment {
     SIDED,
+    CENTER,
+}
+
+enum class LyricsVerticalPosition {
+    TOP,
     CENTER,
 }

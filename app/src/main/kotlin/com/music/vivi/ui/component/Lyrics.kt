@@ -136,6 +136,7 @@ import com.music.vivi.lyrics.LyricsUtils.romanizeKorean
 
 import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.screens.settings.LyricsPosition
+import com.music.vivi.ui.screens.settings.LyricsVerticalPosition
 import com.music.vivi.ui.utils.fadingEdge
 import com.music.vivi.utils.ComposeToImage
 import com.music.vivi.utils.rememberEnumPreference
@@ -154,6 +155,7 @@ import kotlin.time.Duration.Companion.seconds
 fun Lyrics(
     sliderPositionProvider: () -> Long?,
     modifier: Modifier = Modifier,
+    playingPosition: Long? = null
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val menuState = LocalMenuState.current
@@ -167,6 +169,10 @@ fun Lyrics(
     val (lyricsTextPosition, onLyricsPositionChange) = rememberEnumPreference(
         LyricsTextPositionKey,
         defaultValue = LyricsPosition.LEFT
+    )
+    val (lyricsVerticalPosition) = rememberEnumPreference(
+        com.music.vivi.constants.LyricsVerticalPositionKey,
+        defaultValue = LyricsVerticalPosition.TOP
     )
 
     val (lyricsTextSize) = rememberPreference(
@@ -470,6 +476,9 @@ fun Lyrics(
         selectedIndices.clear()
     }
 
+    // Use rememberUpdatedState to ensure the latest playingPosition is used inside the loop
+    val currentPlayingPosition by androidx.compose.runtime.rememberUpdatedState(playingPosition)
+
     LaunchedEffect(lyrics) {
         if (lyrics.isNullOrEmpty() || !lyrics.startsWith("[")) {
             currentLineIndex = -1
@@ -478,7 +487,8 @@ fun Lyrics(
         while (isActive) {
             val sliderPosition = sliderPositionProvider()
             isSeeking = sliderPosition != null
-            currentTime = sliderPosition ?: playerConnection.player.currentPosition
+            // Prioritize slider, then passed playing position, then poll player
+            currentTime = sliderPosition ?: currentPlayingPosition ?: playerConnection.player.currentPosition
             currentLineIndex = findCurrentLineIndex(
                 lines,
                 currentTime
@@ -507,9 +517,15 @@ fun Lyrics(
 
             try {
                 val itemInfo = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
+                val viewportHeight = lazyListState.layoutInfo.viewportEndOffset - lazyListState.layoutInfo.viewportStartOffset
+                
                 if (itemInfo != null) {
-                    // Item is visible, animate smoothly to position it at the top
-                    val targetTopPosition = lazyListState.layoutInfo.viewportStartOffset + 100 // Small offset from very top
+                    val targetTopPosition = if (lyricsVerticalPosition == LyricsVerticalPosition.CENTER) {
+                        lazyListState.layoutInfo.viewportStartOffset + (viewportHeight / 2) - (itemInfo.size / 2)
+                    } else {
+                        lazyListState.layoutInfo.viewportStartOffset + 100
+                    }
+                    
                     val currentItemTop = itemInfo.offset
                     val scrollOffset = currentItemTop - targetTopPosition
 
@@ -518,15 +534,19 @@ fun Lyrics(
                             value = scrollOffset.toFloat(),
                             animationSpec = tween(
                                 durationMillis = duration,
-                                easing = FastOutSlowInEasing // Smooth natural easing
+                                easing = FastOutSlowInEasing
                             )
                         )
                     }
                 } else {
-                    // Item is not visible, scroll to it and position at top
+                     val offset = if (lyricsVerticalPosition == LyricsVerticalPosition.CENTER) {
+                        (viewportHeight / 2)
+                    } else {
+                        100
+                    }
                     lazyListState.animateScrollToItem(
                         index = targetIndex,
-                        scrollOffset = -100 // Small offset from top
+                        scrollOffset = -offset
                     )
                 }
             } finally {
