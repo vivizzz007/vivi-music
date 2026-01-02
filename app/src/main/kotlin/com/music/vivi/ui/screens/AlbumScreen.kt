@@ -29,8 +29,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -41,6 +45,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -52,6 +57,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
@@ -139,6 +145,8 @@ fun AlbumScreen(
     val playlistId by viewModel.playlistId.collectAsState()
     val albumWithSongs by viewModel.albumWithSongs.collectAsState()
     val otherVersions by viewModel.otherVersions.collectAsState()
+    val albumDescription by viewModel.albumDescription.collectAsState()
+    val isDescriptionLoading by viewModel.isDescriptionLoading.collectAsState()
     val hideExplicit by rememberPreference(key = HideExplicitKey, defaultValue = false)
 
     val wrappedSongs = remember(albumWithSongs, hideExplicit) {
@@ -423,18 +431,89 @@ fun AlbumScreen(
 
                         Spacer(Modifier.height(16.dp))
 
-                        // Album Description (placeholder - you can add this to your database)
-                        Text(
-                            text = "${albumWithSongs.album.title} is an album by ${albumWithSongs.artists.joinToString { it.name }}${
-                                if (albumWithSongs.album.year != null) ", released in ${albumWithSongs.album.year}" else ""
-                            }. This collection features ${albumWithSongs.songs.size} tracks showcasing their musical artistry.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Start,
-                            modifier = Modifier.padding(horizontal = 32.dp),
-                            maxLines = 3,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                        // Album Description
+                        var showDescriptionDialog by rememberSaveable { mutableStateOf(false) }
+                        var isDescriptionTruncated by remember { mutableStateOf(false) }
+                        val staticDescription = "${albumWithSongs.album.title} is an album by ${albumWithSongs.artists.joinToString { it.name }}${
+                            if (albumWithSongs.album.year != null) ", released in ${albumWithSongs.album.year}" else ""
+                        }. This collection features ${albumWithSongs.songs.size} tracks showcasing their musical artistry."
+                        val description = albumDescription ?: staticDescription
+
+                        if (isDescriptionLoading) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 32.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularWavyProgressIndicator()
+                            }
+                        } else {
+                            Text(
+                                text = description,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Start,
+                                modifier = Modifier
+                                    .padding(horizontal = 32.dp)
+                                    .combinedClickable(
+                                        onClick = {
+                                            if (isDescriptionTruncated) {
+                                                showDescriptionDialog = true
+                                            }
+                                        }
+                                    ),
+                                maxLines = 3,
+                                overflow = TextOverflow.Ellipsis,
+                                onTextLayout = { textLayoutResult ->
+                                    isDescriptionTruncated = textLayoutResult.hasVisualOverflow
+                                }
+                            )
+                        }
+
+                        if (showDescriptionDialog) {
+                            AlertDialog(
+                                onDismissRequest = { showDescriptionDialog = false },
+                                title = {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        AsyncImage(
+                                            model = albumWithSongs.album.thumbnailUrl,
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .size(50.dp)
+                                                .clip(CircleShape),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                        Spacer(Modifier.width(16.dp))
+                                        Text(
+                                            text = albumWithSongs.album.title,
+                                            style = MaterialTheme.typography.titleLarge
+                                        )
+                                    }
+                                },
+                                text = {
+                                    LazyColumn {
+                                        item {
+                                            Text(
+                                                text = description,
+                                                style = MaterialTheme.typography.bodyMedium
+                                            )
+                                        }
+                                    }
+                                },
+                                confirmButton = {
+                                    Button(
+                                        onClick = { showDescriptionDialog = false },
+                                        shapes = ButtonDefaults.shapes()
+                                    ) {
+                                        Text(stringResource(android.R.string.ok))
+                                    }
+                                },
+                            )
+                        }
 
                         Spacer(Modifier.height(8.dp))
 
