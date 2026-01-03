@@ -119,7 +119,7 @@ fun RomanizationSettings(
                     ModernInfoItem(
                         icon = { Icon(painterResource(R.drawable.language_japanese_latin), null, modifier = Modifier.size(22.dp)) },
                         title = stringResource(R.string.lyrics_romanize_japanese),
-                        subtitle = "Romanize Japanese lyrics",
+                        subtitle = stringResource(R.string.romanize_japanese_lyrics_subtitle),
                         iconBackgroundColor = iconBgColor,
                         iconContentColor = iconStyleColor,
                         modifier = Modifier.weight(1f)
@@ -140,7 +140,7 @@ fun RomanizationSettings(
                     ModernInfoItem(
                         icon = { Icon(painterResource(R.drawable.language_korean_latin), null, modifier = Modifier.size(22.dp)) },
                         title = stringResource(R.string.lyrics_romanize_korean),
-                        subtitle = "Romanize Korean lyrics",
+                        subtitle = stringResource(R.string.romanize_korean_lyrics_subtitle),
                         iconBackgroundColor = iconBgColor,
                         iconContentColor = iconStyleColor,
                         modifier = Modifier.weight(1f)
@@ -182,7 +182,7 @@ fun RomanizationSettings(
                         ModernInfoItem(
                             icon = { Icon(painterResource(R.drawable.alphabet_cyrillic), null, modifier = Modifier.size(22.dp)) },
                             title = stringResource(titleRes),
-                            subtitle = "Romanize Cyrillic lyrics",
+                            subtitle = stringResource(R.string.romanize_cyrillic_lyrics_subtitle),
                             iconBackgroundColor = iconBgColor,
                             iconContentColor = iconStyleColor,
                             modifier = Modifier.weight(1f)

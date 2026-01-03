@@ -148,7 +148,7 @@ fun IntegrationScreen(
                                 )
                             },
                             title = stringResource(R.string.discord_integration),
-                            subtitle = "Connect with Discord",
+                            subtitle = stringResource(R.string.connect_with_discord),
                             onClick = {
                                 navController.navigate("settings/integrations/discord")
                             },
@@ -169,7 +169,7 @@ fun IntegrationScreen(
                                 )
                             },
                             title = stringResource(R.string.lastfm_integration),
-                            subtitle = "Connect with Last.fm",
+                            subtitle = stringResource(R.string.connect_with_lastfm),
                             onClick = {
                                 navController.navigate("settings/integrations/lastfm")
                             },

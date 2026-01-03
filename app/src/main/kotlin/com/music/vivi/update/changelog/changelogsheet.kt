@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
@@ -61,7 +62,7 @@ fun ChangelogBottomSheet(
 
     // Fetch changelog on first composition
     LaunchedEffect(Unit) {
-        changelogState = fetchChangelogFromGitHub(currentVersion)
+        changelogState = fetchChangelogFromGitHub(currentVersion, context)
     }
 
     val fabCornerRadius = 16.dp
@@ -74,7 +75,7 @@ fun ChangelogBottomSheet(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Changelog",
+                text = stringResource(R.string.changelog_title),
                 style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -108,7 +109,7 @@ fun ChangelogBottomSheet(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Loading changelog...",
+                            text = stringResource(R.string.loading_changelog),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -143,7 +144,7 @@ fun ChangelogBottomSheet(
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "Failed to load changelog",
+                            text = stringResource(R.string.failed_to_load_changelog),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -191,7 +192,7 @@ fun ChangelogBottomSheet(
                     contentDescription = null
                 )
             },
-            text = { Text(text = "View on GitHub") },
+            text = { Text(text = stringResource(R.string.view_on_github)) },
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(horizontal = 24.dp, vertical = 24.dp)
@@ -358,7 +359,7 @@ sealed class ChangelogState {
 }
 
 // Function to fetch changelog from GitHub
-suspend fun fetchChangelogFromGitHub(currentVersion: String): ChangelogState {
+suspend fun fetchChangelogFromGitHub(currentVersion: String, context: Context, defaultSectionTitle: String = context.getString(R.string.changes_default)): ChangelogState {
     return withContext(Dispatchers.IO) {
         try {
             val url = URL("https://api.github.com/repos/vivizzz007/vivi-music/releases")
@@ -381,7 +382,7 @@ suspend fun fetchChangelogFromGitHub(currentVersion: String): ChangelogState {
                     val body = release.getString("body")
                     val publishedAt = release.getString("published_at").take(10) // Get date only
 
-                    val sections = parseChangelogBody(body)
+                    val sections = parseChangelogBody(body, defaultSectionTitle)
 
                     changelogList.add(
                         ChangelogVersion(
@@ -395,13 +396,13 @@ suspend fun fetchChangelogFromGitHub(currentVersion: String): ChangelogState {
 
             ChangelogState.Success(changelogList.sortedByDescending { it.version })
         } catch (e: Exception) {
-            ChangelogState.Error(e.message ?: "Failed to fetch changelog")
+            ChangelogState.Error(e.message ?: context.getString(R.string.failed_to_fetch_changelog))
         }
     }
 }
 
 // Parse GitHub release body into sections
-fun parseChangelogBody(body: String): List<ChangelogSection> {
+fun parseChangelogBody(body: String, defaultSectionTitle: String): List<ChangelogSection> {
     val sections = mutableListOf<ChangelogSection>()
     val lines = body.split("\n")
 
@@ -440,7 +441,7 @@ fun parseChangelogBody(body: String): List<ChangelogSection> {
     if (sections.isEmpty() && body.isNotBlank()) {
         sections.add(
             ChangelogSection(
-                "Changes",
+                defaultSectionTitle,
                 body.split("\n").filter { it.trim().isNotEmpty() }
             )
         )

@@ -12,6 +12,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import com.music.vivi.R
 
 class UpdateDownloadWorker(
     private val context: Context,
@@ -34,7 +35,7 @@ class UpdateDownloadWorker(
             connection.connect()
 
             if (connection.responseCode != HttpURLConnection.HTTP_OK) {
-                DownloadNotificationManager.showDownloadFailed(version, "Server Error: ${connection.responseCode}")
+                DownloadNotificationManager.showDownloadFailed(version, context.getString(R.string.server_error, connection.responseCode))
                 return@withContext Result.failure()
             }
 
@@ -85,7 +86,7 @@ class UpdateDownloadWorker(
             
             Result.success(workDataOf("file_path" to outputFile.absolutePath))
         } catch (e: Exception) {
-            DownloadNotificationManager.showDownloadFailed(version, e.message ?: "Download failed")
+            DownloadNotificationManager.showDownloadFailed(version, e.message ?: context.getString(R.string.download_failed))
             Result.failure()
         }
     }

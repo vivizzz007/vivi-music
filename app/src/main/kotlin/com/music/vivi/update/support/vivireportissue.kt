@@ -41,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -87,7 +88,7 @@ fun ViviIssueScreen(
             Spacer(modifier = Modifier.height(150.dp))
 
             Text(
-                text = "REPORT AN ISSUE",
+                text = stringResource(R.string.report_an_issue),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
@@ -110,7 +111,7 @@ fun ViviIssueScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "Found a bug or have a suggestion?",
+                        text = stringResource(R.string.found_bug_suggestion),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -118,7 +119,7 @@ fun ViviIssueScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = "You can report issues through email or directly on GitHub.",
+                        text = stringResource(R.string.report_issues_description),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -127,7 +128,7 @@ fun ViviIssueScreen(
 
                     // Device Info Section
                     Text(
-                        text = "Device Information (will be included in report):",
+                        text = stringResource(R.string.device_information),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = 4.dp)
@@ -166,7 +167,7 @@ fun ViviIssueScreen(
                                 val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
                                     data = Uri.parse("mailto:")
                                     putExtra(Intent.EXTRA_EMAIL, arrayOf("mkmdevilmi@gmail.com"))
-                                    putExtra(Intent.EXTRA_SUBJECT, "Vivi Music Issue Report - v${BuildConfig.VERSION_NAME}")
+                                    putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.vivi_music_issue_report, BuildConfig.VERSION_NAME))
                                     putExtra(Intent.EXTRA_TEXT, """
                                         [Please describe your issue here]
                                         
@@ -177,7 +178,7 @@ fun ViviIssueScreen(
                                 try {
                                     context.startActivity(Intent.createChooser(emailIntent, "Send email via..."))
                                 } catch (e: ActivityNotFoundException) {
-                                    Toast.makeText(context, "No email app found", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, context.getString(R.string.no_email_app_found), Toast.LENGTH_SHORT).show()
                                 }
                             },
                             modifier = Modifier.fillMaxWidth(),
@@ -193,9 +194,9 @@ fun ViviIssueScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Outlined.Email,
-                                    contentDescription = "Email"
+                                    contentDescription = stringResource(R.string.report_via_email)
                                 )
-                                Text("Report via Email")
+                                Text(stringResource(R.string.report_via_email))
                             }
                         }
 
@@ -217,9 +218,9 @@ fun ViviIssueScreen(
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.github),
-                                    contentDescription = "GitHub"
+                                    contentDescription = stringResource(R.string.github_content_desc)
                                 )
-                                Text("Report on GitHub")
+                                Text(stringResource(R.string.report_on_github))
                             }
                         }
                     }
@@ -269,7 +270,7 @@ fun ViviIssueScreen(
 
         // Top App Bar
         TopAppBar(
-            title = { Text("Report Issue") },
+            title = { Text(stringResource(R.string.report_issue_title)) },
             navigationIcon = {
                 IconButton(onClick = navController::navigateUp) {
                     Icon(

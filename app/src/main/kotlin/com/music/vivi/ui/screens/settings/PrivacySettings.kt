@@ -245,7 +245,7 @@ fun PrivacySettings(
                         )
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(
-                            text = "Manage your privacy and data",
+                            text = stringResource(R.string.manage_privacy_data),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -282,7 +282,7 @@ fun PrivacySettings(
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(R.drawable.history), null, modifier = Modifier.size(22.dp)) },
                                             title = stringResource(R.string.pause_listen_history),
-                                            subtitle = "Stop recording listening activity",
+                                            subtitle = stringResource(R.string.stop_recording_listening_activity),
                                             iconBackgroundColor = iconBgColor,
                                             iconContentColor = iconStyleColor
                                         )
@@ -299,7 +299,7 @@ fun PrivacySettings(
                                 ModernInfoItem(
                                     icon = { Icon(painterResource(R.drawable.delete_history), null, modifier = Modifier.size(22.dp)) },
                                     title = stringResource(R.string.clear_listen_history),
-                                    subtitle = "Delete all listening history",
+                                    subtitle = stringResource(R.string.delete_all_listening_history),
                                     onClick = { showClearListenHistoryDialog = true },
                                     showArrow = true,
                                     showSettingsIcon = true,
@@ -340,7 +340,7 @@ fun PrivacySettings(
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(R.drawable.search_off), null, modifier = Modifier.size(22.dp)) },
                                             title = stringResource(R.string.pause_search_history),
-                                            subtitle = "Stop recording search queries",
+                                            subtitle = stringResource(R.string.stop_recording_search_queries),
                                             iconBackgroundColor = iconBgColor,
                                             iconContentColor = iconStyleColor
                                         )
@@ -357,7 +357,7 @@ fun PrivacySettings(
                                 ModernInfoItem(
                                     icon = { Icon(painterResource(R.drawable.clear_all), null, modifier = Modifier.size(22.dp)) },
                                     title = stringResource(R.string.clear_search_history),
-                                    subtitle = "Delete all search history",
+                                    subtitle = stringResource(R.string.delete_all_search_history),
                                     onClick = { showClearSearchHistoryDialog = true },
                                     showArrow = true,
                                     showSettingsIcon = true,

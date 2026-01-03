@@ -213,7 +213,7 @@ fun BackupAndRestore(
                         )
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(
-                            text = "Manage your data and playlists",
+                            text = stringResource(R.string.manage_data_playlists),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -224,7 +224,7 @@ fun BackupAndRestore(
                 // Data Management Section
                 item {
                     Text(
-                        text = "DATA MANAGEMENT",
+                        text = stringResource(R.string.data_management),
                         style = MaterialTheme.typography.labelLarge.copy(
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp
@@ -245,7 +245,7 @@ fun BackupAndRestore(
                                 ModernInfoItem(
                                     icon = { Icon(painterResource(R.drawable.backup), null, modifier = Modifier.size(22.dp)) },
                                     title = stringResource(R.string.action_backup),
-                                    subtitle = "Save your data and settings",
+                                    subtitle = stringResource(R.string.save_data_settings),
                                     onClick = {
                                         val formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
                                         backupLauncher.launch(
@@ -264,7 +264,7 @@ fun BackupAndRestore(
                                 ModernInfoItem(
                                     icon = { Icon(painterResource(R.drawable.restore), null, modifier = Modifier.size(22.dp)) },
                                     title = stringResource(R.string.action_restore),
-                                    subtitle = "Restore from a backup file",
+                                    subtitle = stringResource(R.string.restore_from_backup),
                                     onClick = {
                                         restoreLauncher.launch(arrayOf("application/octet-stream"))
                                     },
@@ -280,7 +280,7 @@ fun BackupAndRestore(
                 // Import Section
                 item {
                     Text(
-                        text = "IMPORT",
+                        text = stringResource(R.string.import_section),
                         style = MaterialTheme.typography.labelLarge.copy(
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp
@@ -301,7 +301,7 @@ fun BackupAndRestore(
                                 ModernInfoItem(
                                     icon = { Icon(painterResource(R.drawable.playlist_add), null, modifier = Modifier.size(22.dp)) },
                                     title = stringResource(R.string.import_online),
-                                    subtitle = "Import playlists from M3U files",
+                                    subtitle = stringResource(R.string.import_playlists_m3u_files),
                                     onClick = {
                                         importM3uLauncherOnline.launch(arrayOf("audio/*"))
                                     },
@@ -315,7 +315,7 @@ fun BackupAndRestore(
                                 ModernInfoItem(
                                     icon = { Icon(painterResource(R.drawable.playlist_add), null, modifier = Modifier.size(22.dp)) },
                                     title = stringResource(R.string.import_csv),
-                                    subtitle = "Import playlists from CSV files",
+                                    subtitle = stringResource(R.string.import_playlists_csv_files),
                                     onClick = {
                                         importPlaylistFromCsv.launch(arrayOf("text/csv", "text/comma-separated-values", "application/csv"))
                                     },

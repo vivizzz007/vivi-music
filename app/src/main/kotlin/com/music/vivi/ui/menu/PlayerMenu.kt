@@ -240,7 +240,7 @@ fun PlayerMenu(
                 icon = {
                     Icon(
                         painter = painterResource(R.drawable.radio),
-                        contentDescription = "Start radio"
+                        contentDescription = stringResource(R.string.start_radio_icon)
                     )
                 },
                 text = {
@@ -271,7 +271,7 @@ fun PlayerMenu(
                 Icon(
                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
                     painter = painterResource(R.drawable.link),
-                    contentDescription = "Copy link"
+                    contentDescription = stringResource(R.string.copy_link)
                 )
             }
         }
@@ -323,7 +323,7 @@ fun PlayerMenu(
                         else -> R.drawable.download
                     }
                 ),
-                contentDescription = "Download"
+                contentDescription = stringResource(R.string.download_song)
             )
             Spacer(Modifier.width(8.dp))
             Text(
@@ -363,7 +363,7 @@ fun PlayerMenu(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.artist),
-                        contentDescription = "Artist icon"
+                        contentDescription = stringResource(R.string.artist_icon)
                     )
                     Spacer(Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -374,7 +374,7 @@ fun PlayerMenu(
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            "View artist page",
+                            stringResource(R.string.view_artist_page),
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -398,7 +398,7 @@ fun PlayerMenu(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.album),
-                        contentDescription = "Album icon"
+                        contentDescription = stringResource(R.string.album_icon)
                     )
                     Spacer(Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -409,7 +409,7 @@ fun PlayerMenu(
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            "View full album",
+                            stringResource(R.string.view_full_album_subtitle),
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -430,7 +430,7 @@ fun PlayerMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.playlist_add),
-                    contentDescription = "Add to playlist icon"
+                    contentDescription = stringResource(R.string.add_to_playlist_icon)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -441,7 +441,7 @@ fun PlayerMenu(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        "Add to existing playlist",
+                        stringResource(R.string.add_to_existing_playlist_subtitle),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -462,7 +462,7 @@ fun PlayerMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.info),
-                    contentDescription = "Info icon"
+                    contentDescription = stringResource(R.string.info_icon)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -473,7 +473,7 @@ fun PlayerMenu(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        "View information",
+                        stringResource(R.string.view_information),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -506,7 +506,7 @@ fun PlayerMenu(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.equalizer),
-                        contentDescription = "Equalizer icon"
+                        contentDescription = stringResource(R.string.equalizer_icon)
                     )
                     Spacer(Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -517,7 +517,7 @@ fun PlayerMenu(
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            "Audio settings",
+                            stringResource(R.string.audio_settings_subtitle),
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -537,7 +537,7 @@ fun PlayerMenu(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.tune),
-                        contentDescription = "Advanced icon"
+                        contentDescription = stringResource(R.string.advanced_icon)
                     )
                     Spacer(Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -548,7 +548,7 @@ fun PlayerMenu(
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            "Pitch and tempo",
+                            stringResource(R.string.pitch_and_tempo),
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis

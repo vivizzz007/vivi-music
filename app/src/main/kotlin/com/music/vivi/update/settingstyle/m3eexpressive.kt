@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -116,7 +117,7 @@ fun Materialcard(
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.github),
-                                contentDescription = "GitHub Profile",
+                                contentDescription = stringResource(R.string.github_profile_content_desc),
                                 modifier = Modifier.size(24.dp),
                                 tint = MaterialTheme.colorScheme.primary
                             )

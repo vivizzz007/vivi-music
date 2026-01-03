@@ -100,7 +100,7 @@ class ViviNotificationProvider(
 
             if (isPlaying) {
                 // Set the chip text (e.g., the track duration)
-                setShortCriticalTextSafely(builder, formattedTime ?: "Playing")
+                setShortCriticalTextSafely(builder, formattedTime ?: context.getString(R.string.playing_status))
 
                 if (durationMs != C.TIME_UNSET && durationMs > 0) {
                     // Set 'when' to the completion time of the track for a live countdown
@@ -115,7 +115,7 @@ class ViviNotificationProvider(
                 }
             } else {
                 // When paused, show "Paused" or static duration in the chip
-                setShortCriticalTextSafely(builder, formattedTime ?: "Paused")
+                setShortCriticalTextSafely(builder, formattedTime ?: context.getString(R.string.paused_status))
                 builder.setShowWhen(false)
                 builder.setUsesChronometer(false)
             }

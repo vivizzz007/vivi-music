@@ -72,6 +72,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.palette.graphics.Palette
@@ -434,7 +435,7 @@ private fun NewMiniPlayer(
                             exit = fadeOut(),
                         ) {
                             Text(
-                                text = "Error playing",
+                                text = stringResource(R.string.error_playing),
                                 color = MaterialTheme.colorScheme.error,
                                 fontSize = 10.sp,
                                 maxLines = 1,
@@ -474,9 +475,9 @@ private fun NewMiniPlayer(
                             Icons.Default.Speaker
                         },
                         contentDescription = if (isBluetoothHeadphoneConnected) {
-                            "Bluetooth headphones"
+                            stringResource(R.string.bluetooth_headphones)
                         } else {
-                            "Audio devices"
+                            stringResource(R.string.audio_devices)
                         },
                         tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         modifier = Modifier.size(20.dp)
@@ -707,9 +708,9 @@ private fun LegacyMiniPlayer(
                         Icons.Default.Speaker
                     },
                     contentDescription = if (isBluetoothHeadphoneConnected) {
-                        "Bluetooth headphones"
-                    } else {
-                        "Audio devices"
+                        stringResource(R.string.bluetooth_headphones)
+                        } else {
+                        stringResource(R.string.audio_devices)
                     },
                 )
             }

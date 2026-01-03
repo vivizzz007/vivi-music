@@ -43,15 +43,15 @@ import com.music.vivi.constants.KEY_SHOW_UPDATE_NOTIFICATION
 
 object UpdateNotificationManager {
     private const val CHANNEL_ID = "app_update_channel"
-    private const val CHANNEL_NAME = "App Updates"
+    private const val CHANNEL_NAME = "App Updates" // Will be replaced with context.getString in initialize()
     private const val NOTIFICATION_ID = 9999
     private const val GITHUB_API_URL = "https://api.github.com/repos/vivizzz007/vivi-music/releases/latest"
 
     fun initialize(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val importance = NotificationManager.IMPORTANCE_HIGH
-            val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, importance).apply {
-                description = "Notifications for app updates"
+            val channel = NotificationChannel(CHANNEL_ID, context.getString(R.string.app_updates_channel), importance).apply {
+                description = context.getString(R.string.app_updates_description)
                 lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             }
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -236,8 +236,8 @@ object UpdateNotificationManager {
         // Ensure channel exists (in case it wasn't initialized or app was restored)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val importance = NotificationManager.IMPORTANCE_HIGH
-            val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, importance).apply {
-                description = "Notifications for app updates"
+            val channel = NotificationChannel(CHANNEL_ID, context.getString(R.string.app_updates_channel), importance).apply {
+                description = context.getString(R.string.app_updates_description)
                 lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             }
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -277,7 +277,7 @@ object UpdateNotificationManager {
             .setContentIntent(pendingIntent)
             .addAction(
                 R.drawable.ic_launcher_foreground,
-                "Download",
+                context.getString(R.string.download_label),
                 pendingIntent
             )
             .build()

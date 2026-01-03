@@ -243,7 +243,13 @@ fun OnlineSearchResult(
         if (searchFilter == null) {
             searchSummary?.summaries?.forEach { summary ->
                 item {
-                    NavigationTitle(summary.title)
+                    NavigationTitle(
+                        when (summary.title) {
+                            "Top result" -> stringResource(R.string.top_result)
+                            "Other" -> stringResource(R.string.other)
+                            else -> summary.title
+                        }
+                    )
                 }
 
                 // Group items in a container

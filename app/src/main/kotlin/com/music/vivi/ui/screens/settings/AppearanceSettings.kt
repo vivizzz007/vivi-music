@@ -346,7 +346,7 @@ fun AppearanceSettings(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Size",
+                                text = stringResource(R.string.size),
                                 style = MaterialTheme.typography.bodyLarge
                             )
                             Text(
@@ -412,7 +412,7 @@ fun AppearanceSettings(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Spacing",
+                                text = stringResource(R.string.spacing),
                                 style = MaterialTheme.typography.bodyLarge
                             )
                             Text(
@@ -692,7 +692,7 @@ fun AppearanceSettings(
                                 when (value) {
                                     PlayerButtonsStyle.DEFAULT -> stringResource(R.string.default_style)
                                     PlayerButtonsStyle.SECONDARY -> stringResource(R.string.secondary_color_style)
-                                    PlayerButtonsStyle.TERTIARY -> "Tertiary Color Style"
+                                    PlayerButtonsStyle.TERTIARY -> stringResource(R.string.tertiary_color_style)
                                 }
                             )
                         }
@@ -819,7 +819,7 @@ fun AppearanceSettings(
                         )
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(
-                            text = "Customize the look and feel",
+                            text = stringResource(R.string.customize_look_feel),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -852,7 +852,7 @@ fun AppearanceSettings(
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(R.drawable.palette), null, modifier = Modifier.size(22.dp)) },
                                             title = stringResource(R.string.enable_dynamic_theme),
-                                            subtitle = "Dynamic color theming",
+                                            subtitle = stringResource(R.string.dynamic_color_theming_subtitle),
                                             iconBackgroundColor = iconBgColor,
                                             iconContentColor = iconStyleColor
                                         )
@@ -868,8 +868,8 @@ fun AppearanceSettings(
                                 Column(modifier = Modifier.fillMaxWidth()) {
                                     ModernInfoItem(
                                         icon = { Icon(painterResource(R.drawable.palette), null, modifier = Modifier.size(22.dp)) },
-                                        title = "Accent Color",
-                                        subtitle = "Select a static theme color",
+                                        title = stringResource(R.string.accent_color),
+                                        subtitle = stringResource(R.string.select_static_theme_color),
                                         iconBackgroundColor = iconBgColor,
                                         iconContentColor = iconStyleColor
                                     )
@@ -949,7 +949,7 @@ fun AppearanceSettings(
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
                                         Text(
-                                            text = "Select theme preference",
+                                            text = stringResource(R.string.select_theme_preference),
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
@@ -996,7 +996,7 @@ fun AppearanceSettings(
                                             ModernInfoItem(
                                                 icon = { Icon(painterResource(R.drawable.contrast), null, modifier = Modifier.size(22.dp)) },
                                                 title = stringResource(R.string.pure_black),
-                                                subtitle = "Use pure black for dark theme",
+                                                subtitle = stringResource(R.string.use_pure_black_dark_theme),
                                                 iconBackgroundColor = iconBgColor,
                                                 iconContentColor = iconStyleColor
                                             )
@@ -1017,8 +1017,8 @@ fun AppearanceSettings(
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(R.drawable.palette), null, modifier = Modifier.size(22.dp)) },
-                                            title = "Settings Shape Tertiary Color",
-                                            subtitle = "Use tertiary color for icon backgrounds",
+                                            title = stringResource(R.string.settings_shape_tertiary_color),
+                                            subtitle = stringResource(R.string.use_tertiary_color_icon_backgrounds),
                                             iconBackgroundColor = iconBgColor,
                                             iconContentColor = iconStyleColor
                                         )
@@ -1065,7 +1065,7 @@ fun AppearanceSettings(
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(R.drawable.palette), null, modifier = Modifier.size(22.dp)) },
                                             title = stringResource(R.string.new_player_design),
-                                            subtitle = "Modern player interface",
+                                            subtitle = stringResource(R.string.modern_player_interface),
                                             iconBackgroundColor = iconBgColor,
                                             iconContentColor = iconStyleColor
                                         )
@@ -1086,7 +1086,7 @@ fun AppearanceSettings(
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(R.drawable.nav_bar), null, modifier = Modifier.size(22.dp)) },
                                             title = stringResource(R.string.new_mini_player_design),
-                                            subtitle = "Modern mini player",
+                                            subtitle = stringResource(R.string.modern_mini_player),
                                             iconBackgroundColor = iconBgColor,
                                             iconContentColor = iconStyleColor
                                         )
@@ -1107,7 +1107,7 @@ fun AppearanceSettings(
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(R.drawable.cycle_rotation), null, modifier = Modifier.size(22.dp)) },
                                             title = stringResource(R.string.rotating_thumbnail),
-                                            subtitle = "Enable rotating clover thumbnail",
+                                            subtitle = stringResource(R.string.enable_rotating_clover_thumbnail),
                                             iconBackgroundColor = iconBgColor,
                                             iconContentColor = iconStyleColor
                                         )
@@ -1163,7 +1163,7 @@ fun AppearanceSettings(
                                     subtitle = when (playerButtonsStyle) {
                                         PlayerButtonsStyle.DEFAULT -> stringResource(R.string.default_style)
                                         PlayerButtonsStyle.SECONDARY -> stringResource(R.string.secondary_color_style)
-                                        PlayerButtonsStyle.TERTIARY -> "Tertiary Color Style"
+                                        PlayerButtonsStyle.TERTIARY -> stringResource(R.string.tertiary_color_style)
                                     },
                                     onClick = { showPlayerButtonsStyleDialog = true },
                                     showArrow = true,
@@ -1197,7 +1197,7 @@ fun AppearanceSettings(
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(R.drawable.swipe), null, modifier = Modifier.size(22.dp)) },
                                             title = stringResource(R.string.enable_swipe_thumbnail),
-                                            subtitle = "Swipe on player thumbnail",
+                                            subtitle = stringResource(R.string.swipe_on_player_thumbnail),
                                             iconBackgroundColor = iconBgColor,
                                             iconContentColor = iconStyleColor
                                         )
@@ -1280,7 +1280,7 @@ fun AppearanceSettings(
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
                                         Text(
-                                            text = "Select text alignment",
+                                            text = stringResource(R.string.select_text_alignment),
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
@@ -1340,18 +1340,18 @@ fun AppearanceSettings(
 
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
-                                            text = "Lyrics position",
+                                            text = stringResource(R.string.lyrics_position),
                                             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
                                         Text(
-                                            text = "Select active line position",
+                                            text = stringResource(R.string.select_active_line_position),
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                         Spacer(modifier = Modifier.height(12.dp))
                                         val options = LyricsVerticalPosition.entries
-                                        val labels = listOf("Top", "Center")
+                                        val labels = listOf(stringResource(R.string.top), stringResource(R.string.center_option))
 
                                         FlowRow(
                                             modifier = Modifier.fillMaxWidth(),
@@ -1391,7 +1391,7 @@ fun AppearanceSettings(
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
                                             title = stringResource(R.string.lyrics_click_change),
-                                            subtitle = "Click to change lyrics position",
+                                            subtitle = stringResource(R.string.click_change_lyrics_position),
                                             iconBackgroundColor = iconBgColor,
                                             iconContentColor = iconStyleColor
                                         )
@@ -1412,7 +1412,7 @@ fun AppearanceSettings(
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
                                             title = stringResource(R.string.lyrics_auto_scroll),
-                                            subtitle = "Auto scroll lyrics",
+                                            subtitle = stringResource(R.string.auto_scroll_lyrics_subtitle),
                                             iconBackgroundColor = iconBgColor,
                                             iconContentColor = iconStyleColor
                                         )
@@ -1456,8 +1456,8 @@ fun AppearanceSettings(
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(id = R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
-                                            title = "Apple Music Style",
-                                            subtitle = "Smooth karaoke-style highlighting",
+                                            title = stringResource(R.string.word_for_word_lyrics),
+                                            subtitle = stringResource(R.string.highlight_words_discretely),
                                             iconBackgroundColor = iconBgColor,
                                             iconContentColor = iconStyleColor
                                         )
@@ -1482,8 +1482,8 @@ fun AppearanceSettings(
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(id = R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
-                                            title = "Letter by Letter Animation",
-                                            subtitle = "Animate lyrics letter by letter when word sync is unavailable",
+                                            title = stringResource(R.string.letter_by_letter_animation),
+                                            subtitle = stringResource(R.string.animate_lyrics_letter_by_letter),
                                             iconBackgroundColor = iconBgColor,
                                             iconContentColor = iconStyleColor
                                         )
@@ -1528,7 +1528,7 @@ fun AppearanceSettings(
                                     ModernInfoItem(
                                         icon = { Icon(painterResource(R.drawable.nav_bar), null, modifier = Modifier.size(22.dp)) },
                                         title = stringResource(R.string.default_open_tab),
-                                        subtitle = "Select which tab opens by default",
+                                        subtitle = stringResource(R.string.select_default_tab),
                                         iconBackgroundColor = iconBgColor,
                                         iconContentColor = iconStyleColor
                                     )
@@ -1597,7 +1597,7 @@ fun AppearanceSettings(
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(R.drawable.swipe), null, modifier = Modifier.size(22.dp)) },
                                             title = stringResource(R.string.swipe_song_to_add),
-                                            subtitle = "Swipe to add songs to queue",
+                                            subtitle = stringResource(R.string.swipe_add_songs_queue),
                                             iconBackgroundColor = iconBgColor,
                                             iconContentColor = iconStyleColor
                                         )
@@ -1618,7 +1618,7 @@ fun AppearanceSettings(
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(R.drawable.nav_bar), null, modifier = Modifier.size(22.dp)) },
                                             title = stringResource(R.string.slim_navbar),
-                                            subtitle = "Compact navigation bar",
+                                            subtitle = stringResource(R.string.compact_navigation_bar),
                                             iconBackgroundColor = iconBgColor,
                                             iconContentColor = iconStyleColor
                                         )
@@ -1639,7 +1639,7 @@ fun AppearanceSettings(
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(R.drawable.swipe), null, modifier = Modifier.size(22.dp)) },
                                             title = stringResource(R.string.swipe_song_to_remove),
-                                            subtitle = "Swipe to remove songs",
+                                            subtitle = stringResource(R.string.swipe_remove_songs),
                                             iconBackgroundColor = iconBgColor,
                                             iconContentColor = iconStyleColor
                                         )
@@ -1656,7 +1656,7 @@ fun AppearanceSettings(
                                     ModernInfoItem(
                                         icon = { Icon(painterResource(R.drawable.grid_view), null, modifier = Modifier.size(22.dp)) },
                                         title = stringResource(R.string.grid_cell_size),
-                                        subtitle = "Change the size of items in the library",
+                                        subtitle = stringResource(R.string.change_size_items_library),
                                         iconBackgroundColor = iconBgColor,
                                         iconContentColor = iconStyleColor
                                     )
@@ -1726,7 +1726,7 @@ fun AppearanceSettings(
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(R.drawable.favorite), null, modifier = Modifier.size(22.dp)) },
                                             title = stringResource(R.string.show_liked_playlist),
-                                            subtitle = "Display liked songs playlist",
+                                            subtitle = stringResource(R.string.display_liked_songs_playlist),
                                             iconBackgroundColor = iconBgColor,
                                             iconContentColor = iconStyleColor
                                         )
@@ -1747,7 +1747,7 @@ fun AppearanceSettings(
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(R.drawable.offline), null, modifier = Modifier.size(22.dp)) },
                                             title = stringResource(R.string.show_downloaded_playlist),
-                                            subtitle = "Display downloaded playlist",
+                                            subtitle = stringResource(R.string.display_downloaded_playlist),
                                             iconBackgroundColor = iconBgColor,
                                             iconContentColor = iconStyleColor
                                         )
@@ -1768,7 +1768,7 @@ fun AppearanceSettings(
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(R.drawable.trending_up), null, modifier = Modifier.size(22.dp)) },
                                             title = stringResource(R.string.show_top_playlist),
-                                            subtitle = "Display top songs playlist",
+                                            subtitle = stringResource(R.string.display_top_songs_playlist),
                                             iconBackgroundColor = iconBgColor,
                                             iconContentColor = iconStyleColor
                                         )
@@ -1789,7 +1789,7 @@ fun AppearanceSettings(
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(R.drawable.cached), null, modifier = Modifier.size(22.dp)) },
                                             title = stringResource(R.string.show_cached_playlist),
-                                            subtitle = "Display cached playlist",
+                                            subtitle = stringResource(R.string.display_cached_playlist),
                                             iconBackgroundColor = iconBgColor,
                                             iconContentColor = iconStyleColor
                                         )
@@ -1810,7 +1810,7 @@ fun AppearanceSettings(
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(R.drawable.backup), null, modifier = Modifier.size(22.dp)) },
                                             title = stringResource(R.string.show_uploaded_playlist),
-                                            subtitle = "Display uploaded playlist",
+                                            subtitle = stringResource(R.string.display_uploaded_playlist),
                                             iconBackgroundColor = iconBgColor,
                                             iconContentColor = iconStyleColor
                                         )

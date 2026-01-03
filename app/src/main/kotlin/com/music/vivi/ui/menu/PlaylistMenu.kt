@@ -244,13 +244,13 @@ fun PlaylistMenu(
                 icon = {
                     Icon(
                         painter = painterResource(R.drawable.play),
-                        contentDescription = "Play"
+                        contentDescription = stringResource(R.string.play_content_desc),
                     )
                 },
                 text = {
                     Text(
                         modifier = Modifier.padding(end = 10.dp),
-                        text = "Play",
+                        text = stringResource(R.string.play_text),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         softWrap = false
@@ -280,7 +280,7 @@ fun PlaylistMenu(
                         painter = painterResource(
                             if (isFavorite) R.drawable.favorite else R.drawable.favorite_border
                         ),
-                        contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
+                        contentDescription = if (isFavorite) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites),
                         tint = if (isFavorite) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -306,7 +306,7 @@ fun PlaylistMenu(
                     Icon(
                         modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
                         painter = painterResource(R.drawable.shuffle),
-                        contentDescription = "Shuffle"
+                        contentDescription = stringResource(R.string.shuffle_content_desc),
                     )
                 }
             }
@@ -332,7 +332,7 @@ fun PlaylistMenu(
                 Icon(
                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
                     painter = painterResource(R.drawable.share),
-                    contentDescription = "Share playlist"
+                    contentDescription = stringResource(R.string.share_playlist_content_desc),
                 )
             }
         }
@@ -392,15 +392,15 @@ fun PlaylistMenu(
                                 else -> R.drawable.download
                             }
                         ),
-                        contentDescription = "Download"
+                        contentDescription = stringResource(R.string.action_download),
                     )
                 }
                 Spacer(Modifier.width(8.dp))
                 Text(
                     text = when (downloadState) {
-                        Download.STATE_COMPLETED -> "Remove Offline"
-                        Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> "Downloading..."
-                        else -> "Download Playlist"
+                        Download.STATE_COMPLETED -> stringResource(R.string.remove_offline)
+                        Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> stringResource(R.string.downloading_ellipsis)
+                        else -> stringResource(R.string.download_playlist_text)
                     },
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -437,18 +437,18 @@ fun PlaylistMenu(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.radio),
-                        contentDescription = "Radio icon"
+                        contentDescription = stringResource(R.string.radio_icon_content_desc),
                     )
                     Spacer(Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            "Start Radio",
+                            stringResource(R.string.start_radio_label),
                             style = MaterialTheme.typography.bodyLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            "Play similar songs",
+                            stringResource(R.string.play_similar_songs_subtitle),
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -472,18 +472,18 @@ fun PlaylistMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.playlist_play),
-                    contentDescription = "Play next icon"
+                    contentDescription = stringResource(R.string.play_next_icon_content_desc),
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "Play Next",
+                        stringResource(R.string.play_next_label),
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        "Play after current",
+                        stringResource(R.string.play_after_current),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -504,18 +504,18 @@ fun PlaylistMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.queue_music),
-                    contentDescription = "Add to queue icon"
+                    contentDescription = stringResource(R.string.add_to_queue_icon_content_desc),
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "Add to Queue",
+                        stringResource(R.string.add_to_queue_label),
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        "Add to queue end",
+                        stringResource(R.string.add_to_queue_end),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -536,18 +536,18 @@ fun PlaylistMenu(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.edit),
-                        contentDescription = "Edit icon"
+                        contentDescription = stringResource(R.string.edit_icon_content_desc),
                     )
                     Spacer(Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            "Edit Playlist",
+                            stringResource(R.string.edit_playlist_label),
                             style = MaterialTheme.typography.bodyLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            "Rename playlist",
+                            stringResource(R.string.rename_playlist),
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -581,18 +581,18 @@ fun PlaylistMenu(
                             painter = painterResource(
                                 if (isFavorite) R.drawable.favorite else R.drawable.favorite_border
                             ),
-                            contentDescription = "Favorite icon",
+                            contentDescription = stringResource(R.string.favorite_icon_content_desc),
                             tint = if (isFavorite) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                if (isFavorite) "Remove from Favorites" else "Add to Favorites",
+                                if (isFavorite) stringResource(R.string.remove_from_favorites_menu) else stringResource(R.string.add_to_favorites_menu),
                                 style = MaterialTheme.typography.bodyLarge,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
                             Text(
-                                if (isFavorite) "Remove bookmark" else "Bookmark playlist",
+                                if (isFavorite) stringResource(R.string.remove_bookmark) else stringResource(R.string.bookmark_playlist),
                                 style = MaterialTheme.typography.bodySmall,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
@@ -619,18 +619,18 @@ fun PlaylistMenu(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.delete),
-                        contentDescription = "Delete icon"
+                        contentDescription = stringResource(R.string.delete_icon_content_desc),
                     )
                     Spacer(Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            "Delete Playlist",
+                            stringResource(R.string.delete_playlist_label),
                             style = MaterialTheme.typography.bodyLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            "Remove permanently",
+                            stringResource(R.string.remove_permanently),
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis

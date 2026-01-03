@@ -187,7 +187,7 @@ fun LibrarySongsScreen(
                                 {
                                     Icon(
                                         imageVector = Icons.Filled.Done,
-                                        contentDescription = "Selected",
+                                        contentDescription = stringResource(R.string.selected_content_desc),
                                         modifier = Modifier.size(FilterChipDefaults.IconSize),
                                     )
                                 }

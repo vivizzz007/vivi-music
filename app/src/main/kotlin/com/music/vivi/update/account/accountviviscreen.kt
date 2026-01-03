@@ -150,14 +150,14 @@ fun AccountView(
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 Text(
-                    text = "Account",
+                    text = stringResource(R.string.account_title),
                     style = MaterialTheme.typography.headlineLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "Manage your account and preferences",
+                    text = stringResource(R.string.manage_account_preferences),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -222,7 +222,7 @@ fun AccountView(
 
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = if (isLoggedIn) "Signed in" else "Not signed in",
+                                text = if (isLoggedIn) stringResource(R.string.signed_in) else stringResource(R.string.not_signed_in),
                                 style = MaterialTheme.typography.headlineSmall,
                                 fontWeight = FontWeight.Medium,
                                 color = if (isLoggedIn) MaterialTheme.colorScheme.onPrimaryContainer
@@ -231,7 +231,7 @@ fun AccountView(
                             )
 
                             Text(
-                                text = if (isLoggedIn) accountName else "Tap to sign in",
+                                text = if (isLoggedIn) accountName else stringResource(R.string.tap_to_sign_in),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = if (isLoggedIn) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                                 else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
@@ -282,11 +282,11 @@ fun AccountView(
                                 )
                             },
                             title = when {
-                                !isLoggedIn -> "Advanced login"
-                                showToken -> "Token shown"
-                                else -> "Token hidden"
+                                !isLoggedIn -> stringResource(R.string.advanced_login)
+                                showToken -> stringResource(R.string.token_shown_title)
+                                else -> stringResource(R.string.token_hidden_title)
                             },
-                            subtitle = if (isLoggedIn) "Tap to manage token" else "Sign in with cookies",
+                            subtitle = if (isLoggedIn) stringResource(R.string.tap_to_manage_token) else stringResource(R.string.sign_in_with_cookies),
                             onClick = {
                                 if (!isLoggedIn) showTokenEditor = true
                                 else if (!showToken) showToken = true
@@ -308,8 +308,8 @@ fun AccountView(
                                         tint = MaterialTheme.colorScheme.surfaceTint
                                     )
                                 },
-                                title = "More content",
-                                subtitle = if (useLoginForBrowse) "Enabled" else "Disabled",
+                                title = stringResource(R.string.more_content),
+                                subtitle = if (useLoginForBrowse) stringResource(R.string.enabled) else stringResource(R.string.disabled),
                                 onClick = {
                                     YouTube.useLoginForBrowse = !useLoginForBrowse
                                     onUseLoginForBrowseChange(!useLoginForBrowse)
@@ -336,8 +336,8 @@ fun AccountView(
                                         tint = MaterialTheme.colorScheme.surfaceTint
                                     )
                                 },
-                                title = "YouTube sync",
-                                subtitle = if (ytmSync) "Enabled" else "Disabled",
+                                title = stringResource(R.string.youtube_sync),
+                                subtitle = if (ytmSync) stringResource(R.string.enabled) else stringResource(R.string.disabled),
                                 onClick = {
                                     onYtmSyncChange(!ytmSync)
                                 },
@@ -360,8 +360,8 @@ fun AccountView(
                                         tint = MaterialTheme.colorScheme.error
                                     )
                                 },
-                                title = "Sign out",
-                                subtitle = "Log out from your account",
+                                title = stringResource(R.string.sign_out),
+                                subtitle = stringResource(R.string.log_out_from_account),
                                 onClick = {
                                     accountSettingsViewModel.logoutAndClearSyncedContent(
                                         context,

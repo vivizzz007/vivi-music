@@ -1573,7 +1573,7 @@ class MusicService :
 
         val persistAutomix =
             PersistQueue(
-                title = "automix",
+                title = getString(R.string.automix),
                 items = automixItems.value.mapNotNull { it.metadata },
                 mediaItemIndex = 0,
                 position = 0,
@@ -1672,8 +1672,8 @@ class MusicService :
     private fun updateWidget() {
         scope.launch {
             widgetManager.updateWidgets(
-                title = player.currentMetadata?.title ?: "Not Playing",
-                artist = player.currentMetadata?.artists?.joinToString { it.name } ?: "Tap to play",
+                title = player.currentMetadata?.title ?: getString(R.string.not_playing),
+                artist = player.currentMetadata?.artists?.joinToString { it.name } ?: getString(R.string.tap_to_play),
                 artworkUri = player.currentMetadata?.thumbnailUrl,
                 isPlaying = player.isPlaying,
                 isLiked = currentSong.value?.song?.liked ?: false,
