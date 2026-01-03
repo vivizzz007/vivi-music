@@ -45,9 +45,8 @@ constructor(
             .map { it[PreferredLyricsProviderKey].toEnum(PreferredLyricsProvider.BETTERLYRICS) }
             .firstOrNull() ?: PreferredLyricsProvider.BETTERLYRICS
 
-        return when (preferredProvider) {
+        val otherProviders = when (preferredProvider) {
             PreferredLyricsProvider.BETTERLYRICS -> listOf(
-                BetterLyricsLyricsProvider,
                 LrcLibLyricsProvider,
                 KuGouLyricsProvider,
                 YouTubeSubtitleLyricsProvider,
@@ -55,19 +54,19 @@ constructor(
             )
             PreferredLyricsProvider.LRCLIB -> listOf(
                 LrcLibLyricsProvider,
-                BetterLyricsLyricsProvider,
                 KuGouLyricsProvider,
                 YouTubeSubtitleLyricsProvider,
                 YouTubeLyricsProvider
             )
             PreferredLyricsProvider.KUGOU -> listOf(
                 KuGouLyricsProvider,
-                BetterLyricsLyricsProvider,
                 LrcLibLyricsProvider,
                 YouTubeSubtitleLyricsProvider,
                 YouTubeLyricsProvider
             )
         }
+
+        return listOf(BetterLyricsLyricsProvider) + otherProviders.filter { it != BetterLyricsLyricsProvider }
     }
 
     suspend fun getLyrics(mediaMetadata: MediaMetadata): String {

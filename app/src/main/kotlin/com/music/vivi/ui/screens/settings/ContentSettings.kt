@@ -71,6 +71,8 @@ import com.music.vivi.constants.CountryCodeToName
 import com.music.vivi.constants.EnableBetterLyricsKey
 import com.music.vivi.constants.EnableKugouKey
 import com.music.vivi.constants.EnableLrcLibKey
+import com.music.vivi.constants.EnableYouTubeLyricsKey
+import com.music.vivi.constants.EnableYouTubeSubtitleKey
 import com.music.vivi.constants.HideExplicitKey
 import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.constants.LanguageCodeToName
@@ -153,6 +155,8 @@ fun ContentSettings(
     val (enableKugou, onEnableKugouChange) = rememberPreference(key = EnableKugouKey, defaultValue = true)
     val (enableLrclib, onEnableLrclibChange) = rememberPreference(key = EnableLrcLibKey, defaultValue = true)
     val (enableBetterLyrics, onEnableBetterLyricsChange) = rememberPreference(key = EnableBetterLyricsKey, defaultValue = true)
+    val (enableYouTubeLyrics, onEnableYouTubeLyricsChange) = rememberPreference(key = EnableYouTubeLyricsKey, defaultValue = true)
+    val (enableYouTubeSubtitle, onEnableYouTubeSubtitleChange) = rememberPreference(key = EnableYouTubeSubtitleKey, defaultValue = true)
     val (hideVideoSongs, onHideVideoSongsChange) = rememberPreference(key = HideVideoSongsKey, defaultValue = false)
     val (preferredProvider, onPreferredProviderChange) =
         rememberEnumPreference(
@@ -913,6 +917,48 @@ fun ContentSettings(
                                     ModernSwitch(
                                         checked = enableKugou,
                                         onCheckedChange = onEnableKugouChange,
+                                        modifier = Modifier.padding(end = 20.dp)
+                                    )
+                                }
+                            },
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
+                                            title = "YouTube Music Lyrics",
+                                            subtitle = "Enable YouTube Music as a lyrics source",
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = enableYouTubeLyrics,
+                                        onCheckedChange = onEnableYouTubeLyricsChange,
+                                        modifier = Modifier.padding(end = 20.dp)
+                                    )
+                                }
+                            },
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
+                                            title = "YouTube Subtitles",
+                                            subtitle = "Enable YouTube Subtitles as a lyrics source",
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = enableYouTubeSubtitle,
+                                        onCheckedChange = onEnableYouTubeSubtitleChange,
                                         modifier = Modifier.padding(end = 20.dp)
                                     )
                                 }

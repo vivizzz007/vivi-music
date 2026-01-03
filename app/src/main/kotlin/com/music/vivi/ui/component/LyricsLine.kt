@@ -169,7 +169,7 @@ fun LyricsLine(
                 }
             )
         } else if (isActive && isSynced) {
-            if (isWordForWord) {
+            if (isWordForWord && entry.words != null) {
                 // Apple Music Style: Smooth Karaoke Fill
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
@@ -231,7 +231,7 @@ fun LyricsLine(
                         )
                     }
                 }
-            } else if (isLetterByLetter) {
+            } else if (isLetterByLetter && entry.words != null) {
                 // Letter by Letter Animation
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
