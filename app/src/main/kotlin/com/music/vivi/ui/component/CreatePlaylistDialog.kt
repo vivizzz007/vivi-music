@@ -58,7 +58,7 @@ fun CreatePlaylistDialog(
                 val browseId = if (syncedPlaylist && isSignedIn) {
                     YouTube.createPlaylist(playlistName)
                 } else if (syncedPlaylist) {
-                    Logger.getLogger("CreatePlaylistDialog").warning("Not signed in")
+                    Logger.getLogger("CreatePlaylistDialog").warning(context.getString(R.string.not_signed_in_warning))
                     return@launch
                 } else null
 

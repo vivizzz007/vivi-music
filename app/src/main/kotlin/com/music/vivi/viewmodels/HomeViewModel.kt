@@ -29,6 +29,7 @@ import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.get
 import com.music.vivi.utils.SyncUtils
 import com.music.vivi.utils.reportException
+import com.music.vivi.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -67,7 +68,7 @@ class HomeViewModel @Inject constructor(
     val allLocalItems = MutableStateFlow<List<LocalItem>>(emptyList())
     val allYtItems = MutableStateFlow<List<YTItem>>(emptyList())
 
-    val accountName = MutableStateFlow("Guest")
+    val accountName = MutableStateFlow(context.getString(R.string.guest))
     val accountImageUrl = MutableStateFlow<String?>(null)
 
     // Track last processed cookie to avoid unnecessary updates
@@ -273,7 +274,7 @@ class HomeViewModel @Inject constructor(
                                 reportException(it)
                             }
                         } else {
-                            accountName.value = "Guest"
+                            accountName.value = context.getString(R.string.guest)
                             accountImageUrl.value = null
                             accountPlaylists.value = null
                         }

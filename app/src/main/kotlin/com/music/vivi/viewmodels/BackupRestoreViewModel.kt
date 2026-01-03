@@ -307,19 +307,19 @@ class BackupRestoreViewModel @Inject constructor(
 
             val errorMessage = when {
                 error.message?.contains("not a valid backup", ignoreCase = true) == true ->
-                    "This app does not support this backup file"
+                    context.getString(R.string.app_does_not_support_backup_file)
                 error.message?.contains("corrupted", ignoreCase = true) == true ->
-                    "Backup file is corrupted and cannot be restored"
+                    context.getString(R.string.backup_file_corrupted)
                 error.message?.contains("missing required data", ignoreCase = true) == true ->
-                    "This app does not support this backup file (missing database)"
+                    context.getString(R.string.app_does_not_support_backup_missing_db)
                 error.message?.contains("empty", ignoreCase = true) == true ->
-                    "Backup file is empty. This app cannot restore from this file"
+                    context.getString(R.string.backup_file_empty)
                 error.message?.contains("format", ignoreCase = true) == true ->
-                    "This app does not support this backup file format"
+                    context.getString(R.string.app_does_not_support_backup_format)
                 error.message?.contains("permission", ignoreCase = true) == true ->
-                    "Cannot restore: Permission denied"
+                    context.getString(R.string.cannot_restore_permission_denied)
                 else ->
-                    "This app does not support this backup file: ${error.message}"
+                    context.getString(R.string.app_does_not_support_backup_with_error, error.message ?: "")
             }
 
             Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
@@ -336,7 +336,7 @@ class BackupRestoreViewModel @Inject constructor(
                 if (lines.isEmpty()) {
                     Toast.makeText(
                         context,
-                        "CSV file is empty or invalid",
+                        context.getString(R.string.csv_file_empty_or_invalid),
                         Toast.LENGTH_SHORT
                     ).show()
                     return songs
@@ -356,7 +356,7 @@ class BackupRestoreViewModel @Inject constructor(
                         }
 
                         val title = parts.getOrNull(0)?.takeIf { it.isNotBlank() } ?: return@forEachIndexed
-                        val artistStr = parts.getOrNull(1)?.takeIf { it.isNotBlank() } ?: "Unknown Artist"
+                        val artistStr = parts.getOrNull(1)?.takeIf { it.isNotBlank() } ?: context.getString(R.string.unknown_artist)
 
                         val artists = artistStr.split(";").map { it.trim() }
                             .filter { it.isNotBlank() }
@@ -369,7 +369,7 @@ class BackupRestoreViewModel @Inject constructor(
 
                         // Ensure we have at least one artist
                         val finalArtists = if (artists.isEmpty()) {
-                            listOf(ArtistEntity(id = "", name = "Unknown Artist"))
+                            listOf(ArtistEntity(id = "", name = context.getString(R.string.unknown_artist)))
                         } else {
                             artists
                         }
@@ -400,7 +400,7 @@ class BackupRestoreViewModel @Inject constructor(
         if (songs.isEmpty()) {
             Toast.makeText(
                 context,
-                "No valid songs found in CSV file",
+                context.getString(R.string.no_valid_songs_in_csv),
                 Toast.LENGTH_SHORT
             ).show()
         }

@@ -197,7 +197,7 @@
     <string name="subscribe">Iscriviti</string>
     <string name="subscribed">Iscritto</string>
 
-    <string name="sub">Iscr</string>
+    <string name="sub">Iscriviti</string>
     <string name="subed">Iscritto</string>
 
     <string name="playlist_not_found">Playlist non trovata</string>
@@ -246,8 +246,30 @@
     <string name="appupdate">Controlla aggiornamenti</string>
     <string name="experimental">Sperimentale</string>
     <string name="check_for_updates">Controlla automaticamente aggiornamenti</string>
+    <string name="update_settings_title">Impostazioni aggiornamenti</string>
+    <string name="manage_header">Gestisci</string>
+    <string name="notification_header">Notifiche</string>
+    <string name="check_for_updates_desc">Controlla automaticamente nuovi aggiornamenti</string>
+    <string name="show_notification">Mostra notifica</string>
+    <string name="show_notification_desc">Ricevi notifiche quando sono disponibili aggiornamenti</string>
+    <string name="update_check_interval">Intervallo controllo aggiornamenti</string>
+    <string name="interval_every_hour">Ogni %1$d ora</string>
+    <string name="interval_every_hours">Ogni %1$d ore</string>
+    <string name="interval_every_day">Ogni %1$d giorno</string>
+    <string name="interval_every_days">Ogni %1$d giorni</string>
+    <string name="interval_check_format_hours">Controlla ogni %1$d ore</string>
+    <string name="interval_check_format_days">Controlla ogni %1$d giorni</string>
+    <string name="auto_updates_enabled_toast">Controlli automatici aggiornamenti abilitati</string>
+    <string name="auto_updates_disabled_toast">Controlli automatici aggiornamenti disabilitati</string>
+    <string name="notifications_enabled_toast">Notifiche aggiornamenti abilitate</string>
+    <string name="notifications_disabled_toast">Notifiche aggiornamenti disabilitate</string>
+    <string name="interval_set_format_hours">Intervallo controllo aggiornamenti impostato a %1$d ore</string>
+    <string name="interval_set_format_days">Intervallo controllo aggiornamenti impostato a %1$d giorni</string>
+    <string name="one_hour">1 ora</string>
+    <string name="seven_days">7 giorni</string>
+    <string name="ok_caps">OK</string>
+    <string name="cancel_caps">ANNULLA</string>
     <string name="update_notifications">Abilita notifiche aggiornamenti</string>
-    <string name="update_available_title">Aggiornamento disponibile</string>
     <string name="update_channel_name">Aggiornamenti app</string>
     <string name="update_channel_desc">Notifiche sulle nuove versioni</string>
 
@@ -272,10 +294,10 @@
     <string name="back">Indietro</string>
 
 
-    <string name="download_playlist">Scarica playlist</string>
     <string name="remove_download_playlist">Rimuovi download</string>
     <string name="delete_playlist">Elimina playlist</string>
     <string name="cancel_download">Annulla download</string>
+    <string name="pitch_and_tempo">Tono e tempo</string>
 
 
     <!-- Account View Strings -->
@@ -286,4 +308,710 @@
     <string name="swipe_song_to_remove">Scorri il brano per rimuoverlo dalla playlist</string>
     <string name="rotating_thumbnail">Miniatura rotante</string>
 
+    <!-- Update Screen Strings -->
+    <string name="installing_system_update">Installazione aggiornamento\nsistema in corso…</string>
+    <string name="making_update_ready">Preparazione aggiornamento, potrebbe richiedere del tempo</string>
+    <string name="your_app_getting_better">La tua app sta migliorando sempre di più…</string>
+    <string name="update_includes_features">Questo aggiornamento include nuove funzionalità e le ultime novità da vivi-music %1$s, rendendo la tua app ancora più utile. Scopri di più su %2$s.</string>
+    <string name="whats_new">Cosa c\'è di nuovo?</string>
+    <string name="pause">Pausa</string>
+    <string name="update_available">Aggiornamento disponibile</string>
+    <string name="checking_for_updates">Controllo\naggiornamenti in corso…</string>
+    <string name="current_version">Versione corrente: %1$s</string>
+    <string name="cant_check_updates">Impossibile controllare\naggiornamenti</string>
+    <string name="app_up_to_date">App\naggiornata</string>
+    <string name="version">Versione %1$s</string>
+    <string name="released">Rilasciata: %1$s</string>
+    <string name="update_preview">Anteprima aggiornamento</string>
+    <string name="downloading_percent">Download in corso… %1$d%%</string>
+    <string name="download_failed">Download fallito</string>
+    <string name="new_features_include">Le nuove funzionalità includono:</string>
+    <string name="mobile_network_warning">Il download di aggiornamenti tramite rete mobile o durante il roaming potrebbe comportare costi aggiuntivi.</string>
+    <string name="update_size">Dimensione aggiornamento: %1$s MB</string>
+    <string name="check_internet_connection">Controlla la tua connessione internet e riprova.</string>
+    <string name="vivi_music_version">VIVI MUSIC versione %1$s</string>
+    <string name="app_updates_title">Aggiornamenti app</string>
+    <string name="app_updates_subtitle">Aggiornamenti app e informazioni versione</string>
+    <string name="quick_actions">Azioni rapide</string>
+    <string name="system_update">Aggiornamento sistema</string>
+    <string name="app_info_header">INFO APP</string>
+    <string name="build_version_title">Versione build</string>
+    <string name="installed_on_format">Installato il %1$s</string>
+    <string name="last_checked">Ultimo controllo: %1$s</string>
+    <string name="install">Installa</string>
+    <string name="check_for_update">Controlla aggiornamenti</string>
+    <string name="no_changelog_available">Nessun changelog disponibile</string>
+
+    <!-- Player Strings -->
+    <string name="error_playing">Errore durante la riproduzione</string>
+    <string name="bluetooth_headphones">Cuffie Bluetooth</string>
+    <string name="audio_devices">Dispositivi audio</string>
+
+    <!-- Crash Page -->
+    <string name="crash_message">Ops! ViVi ha incontrato un problema e si è fermato bruscamente. Vedi il log qui sotto per maggiori informazioni. Altre opzioni sono disponibili in fondo alla pagina.</string>
+    <string name="log_copied_to_clipboard">Log copiato negli appunti</string>
+
+    <!-- Report Issue -->
+    <string name="report_an_issue">SEGNALA UN PROBLEMA</string>
+    <string name="found_bug_suggestion">Hai trovato un bug o hai un suggerimento?</string>
+    <string name="report_issues_description">Puoi segnalare problemi tramite email o direttamente su GitHub.</string>
+    <string name="device_information">Informazioni dispositivo (saranno incluse nel report):</string>
+    <string name="no_email_app_found">Nessuna app email trovata</string>
+    <string name="report_via_email">Segnala via Email</string>
+    <string name="report_on_github">Segnala su GitHub</string>
+    <string name="report_issue_title">Segnala problema</string>
+
+    <!-- Support Developer -->
+    <string name="support_developer">SUPPORTA LO SVILUPPATORE</string>
+    <string name="upi_payment_methods">Metodi di pagamento UPI</string>
+    <string name="google_pay">Google Pay</string>
+    <string name="phonepe">PhonePe</string>
+    <string name="paytm">Paytm</string>
+    <string name="bhim_upi">BHIM UPI</string>
+    <string name="buy_me_a_coffee">Buy Me a Coffee</string>
+    <string name="coming_soon">PROSSIMAMENTE</string>
+    <string name="support_title">Supporto</string>
+
+    <!-- Storage Settings -->
+    <string name="storage_settings">Impostazioni archiviazione</string>
+    <string name="manage_storage_cache">Gestisci archiviazione e cache dell\'app</string>
+    <string name="storage_overview">PANORAMICA ARCHIVIAZIONE</string>
+    <string name="total_storage_used">Archiviazione totale utilizzata</string>
+    <string name="downloads_section">DOWNLOAD</string>
+    <string name="song_cache_section">CACHE BRANI</string>
+    <string name="cache_usage">Utilizzo cache</string>
+    <string name="image_cache_section">CACHE IMMAGINI</string>
+
+    <!-- Playlist Descriptions -->
+    <string name="top_playlist_description">I tuoi brani più ascoltati basati sulla tua cronologia di ascolto. Questa playlist dinamica si aggiorna mentre scopri nuova musica.</string>
+    <string name="cache_playlist_description">I tuoi brani in cache memorizzati localmente sul dispositivo. Questi brani sono disponibili per la riproduzione offline e non richiedono una connessione internet.</string>
+
+    <!-- Artist Screen -->
+    <string name="about_artist">Informazioni artista</string>
+
+    <!-- Album Screen -->
+    <string name="explicit">E  Esplicito</string>
+
+    <!-- Bluetooth -->
+    <string name="streaming_to">Trasmissione a</string>
+    <string name="this_phone">Questo telefono</string>
+
+    <!-- Account Screen -->
+    <string name="account_title">Account</string>
+    <string name="manage_account_preferences">Gestisci account e preferenze</string>
+    <string name="signed_in">Connesso</string>
+    <string name="not_signed_in">Non connesso</string>
+    <string name="tap_to_sign_in">Tocca per accedere</string>
+    <string name="token_shown_title">Token mostrato</string>
+    <string name="token_hidden_title">Token nascosto</string>
+    <string name="tap_to_manage_token">Tocca per gestire il token</string>
+    <string name="sign_in_with_cookies">Accedi con cookie</string>
+    <string name="enabled">Abilitato</string>
+    <string name="disabled">Disabilitato</string>
+    <string name="sign_out">Disconnetti</string>
+
+    <!-- Beta Update -->
+    <string name="vivi_music">VIVI MUSIC</string>
+    <string name="vivi_music_beta_update">Aggiornamento Beta Vivi Music</string>
+    <string name="recheck">Ricontrolla</string>
+    <string name="changelog_for_version">Changelog per %1$s</string>
+    <string name="available">Disponibile</string>
+    <string name="file_error">Errore file</string>
+    <string name="unknown_error">Errore sconosciuto</string>
+
+    <!-- Settings Screens -->
+    <string name="settings_title">Impostazioni</string>
+    <string name="manage_privacy_data">Gestisci privacy e dati</string>
+    <string name="configure_player_audio">Configura impostazioni lettore e audio</string>
+    <string name="configure_content_preferences">Configura preferenze contenuti</string>
+    <string name="romanization_settings">Impostazioni romanizzazione</string>
+    <string name="manage_data_playlists">Gestisci dati e playlist</string>
+    <string name="data_management">GESTIONE DATI</string>
+    <string name="import_section">IMPORTA</string>
+    <string name="customize_look_feel">Personalizza aspetto e stile</string>
+    <string name="select_theme_preference">Seleziona preferenza tema</string>
+    <string name="select_text_alignment">Seleziona allineamento testo</string>
+    <string name="lyrics_position">Posizione testo</string>
+    <string name="select_active_line_position">Seleziona posizione riga attiva</string>
+    <string name="size">Dimensione</string>
+    <string name="spacing">Spaziatura</string>
+    <string name="top">In alto</string>
+    <string name="center_option">Centro</string>
+
+    <!-- About Screen -->
+    <string name="vivi_music_title">VIVI MUSIC</string>
+    <string name="update_section">AGGIORNAMENTO</string>
+    <string name="developer_section">SVILUPPATORE</string>
+    <string name="app_info_section">INFO APP</string>
+    <string name="community_section">COMUNITÀ</string>
+    <string name="support_development">Supporta lo sviluppo</string>
+    <string name="website">Sito web</string>
+    <string name="donate">Dona</string>
+
+    <!-- Media Info -->
+    <string name="song_info">Info brano</string>
+    <string name="done">Fatto</string>
+    <string name="title">Titolo</string>
+    <string name="standard">Standard</string>
+    <string name="format">Formato</string>
+    <string name="duration">Durata</string>
+    <string name="artist">Artista</string>
+    <string name="itag">Itag</string>
+
+    <!-- Discord Settings -->
+    <string name="listening_to_vivimusic">In ascolto su Vivimusic</string>
+
+    <!-- Playlist Actions -->
+    <string name="queue_button">Coda</string>
+    <string name="play_button">Riproduci</string>
+    <string name="delete_button">Elimina</string>
+    <string name="more">Altro</string>
+
+    <!-- Content Descriptions -->
+    <string name="share_playlist">Condividi playlist</string>
+    <string name="share_song">Condividi brano</string>
+    <string name="share_album">Condividi album</string>
+    <string name="share_artist">Condividi artista</string>
+    <string name="download_song">Scarica brano</string>
+    <string name="download_playlist">Scarica playlist</string>
+    <string name="download_album">Scarica album</string>
+    <string name="artist_icon">Icona artista</string>
+    <string name="album_icon">Icona album</string>
+    <string name="library_icon">Icona libreria</string>
+    <string name="delete_icon">Icona elimina</string>
+    <string name="info_icon">Icona informazioni</string>
+    <string name="view_information">Visualizza informazioni</string>
+    <string name="shuffle_icon">Icona casuale</string>
+    <string name="radio_icon">Icona radio</string>
+    <string name="select_icon">Icona seleziona</string>
+    <string name="select_songs">Seleziona brani</string>
+    <string name="edit_icon">Icona modifica</string>
+    <string name="refresh_icon">Icona aggiorna</string>
+    <string name="equalizer_icon">Icona equalizzatore</string>
+    <string name="audio_settings">Impostazioni audio</string>
+    <string name="advanced_icon">Icona avanzate</string>
+    <string name="romanize_icon">Icona romanizza</string>
+    <string name="romanization_enabled">Romanizzazione abilitata</string>
+    <string name="romanization_disabled">Romanizzazione disabilitata</string>
+    <string name="swipe_icon">Icona scorrimento</string>
+    <string name="subscribe_icon">Icona iscriviti</string>
+    <string name="share_icon">Icona condividi</string>
+    <string name="songs_icon">Icona brani</string>
+    <string name="favorite_icon">Icona preferiti</string>
+    <string name="remove_bookmark">Rimuovi segnalibro</string>
+    <string name="bookmark_playlist">Aggiungi segnalibro playlist</string>
+    <string name="remove_permanently">Rimuovi permanentemente</string>
+    <string name="rename_playlist">Rinomina playlist</string>
+    <string name="developer">Sviluppatore</string>
+
+    <!-- Loading Screen -->
+    <string name="progress_percent">Progresso %1$d%%</string>
+
+    <!-- Playlist Screen -->
+    <string name="this_collection">Questa raccolta</string>
+    <string name="playlist_text">Playlist</string>
+
+    <!-- Changelog -->
+    <string name="changelog_title">Changelog</string>
+    <string name="loading_changelog">Caricamento changelog…</string>
+    <string name="failed_to_load_changelog">Impossibile caricare il changelog</string>
+    <string name="view_on_github">Visualizza su GitHub</string>
+    <string name="changes">Modifiche</string>
+    <string name="current">Corrente</string>
+    <string name="old_releases">Versioni precedenti</string>
+    <string name="cached">In cache</string>
+
+    <!-- Experimental -->
+    <string name="select_apk_variant">Seleziona variante APK</string>
+    <string name="unable_to_fetch_apk_variants">Impossibile recuperare le varianti APK</string>
+    <string name="send_feedback">Invia feedback</string>
+    <string name="send_email">Invia email</string>
+    <string name="reset_button">Ripristina</string>
+    <string name="share_button">Condividi</string>
+    <string name="delete_button_menu">Elimina</string>
+    <string name="experimental_title">Sperimentale</string>
+    <string name="experimental_subtitle">Funzionalità sperimentale</string>
+    <string name="integrations_subtitle">Connetti con servizi esterni</string>
+    <string name="update_settings_subtitle">Attiva e disattiva aggiornamenti</string>
+    <string name="changelog_subtitle">Versione app corrente</string>
+    <string name="about_subtitle">Informazioni app e sviluppatore</string>
+    <string name="advanced_settings_experimental">Impostazioni avanzate e funzionalità sperimentali</string>
+    <string name="updates_section">Aggiornamenti</string>
+    <string name="storage_section">Archiviazione</string>
+    <string name="debugging_section">Debug</string>
+    <string name="support_section">Supporto</string>
+    <string name="crash_logs">Log crash</string>
+    <string name="send_feedback_title">Invia feedback</string>
+    <string name="reset_app">Ripristina app</string>
+    <string name="open_with">Apri con</string>
+    <string name="just_now">Proprio ora</string>
+    <string name="selected">Selezionato</string>
+    <string name="delete_content_desc">Elimina</string>
+    <string name="universal_recommended">Universale (Consigliato)</string>
+    <string name="arm_older_phones">ARM - %1$s MB (Telefoni più vecchi)</string>
+    <string name="x86_64_intel_tablets">x86_64 - %1$s MB (Tablet Intel)</string>
+    <string name="x86_emulators">x86 - %1$s MB (Emulatori)</string>
+    <string name="minutes_ago">%1$d minuti fa</string>
+    <string name="hours_ago">%1$d ore fa</string>
+    <string name="days_ago">%1$d giorni fa</string>
+
+    <!-- Toast Messages -->
+    <string name="all_crash_logs_cleared">Tutti i log crash cancellati</string>
+    <string name="crash_log_deleted">Log crash eliminato</string>
+    <string name="please_install_web_browser">Installa un browser web</string>
+    <string name="error_message">Errore: %1$s</string>
+    <string name="unable_to_open_email_app">Impossibile aprire l\'app email: %1$s</string>
+    <string name="error_sharing_log">Errore durante la condivisione del log: %1$s</string>
+    <string name="no_apk_found">Nessun APK trovato nell\'ultima pre-release</string>
+    <string name="enable_install_unknown_apps">Abilita \'Installa app sconosciute\' e riprova.</string>
+    <string name="download_error">Errore download: %1$s</string>
+    <string name="download_started">Download avviato…</string>
+    <string name="download_completed">Download completato!</string>
+    <string name="download_completed_file_not_found">Download completato ma file non trovato</string>
+    <string name="download_completed_uri_not_found">Download completato ma URI non trovato</string>
+    <string name="download_failed_error">Download fallito: %1$s</string>
+    <string name="download_tracking_failed">Tracciamento download fallito</string>
+    <string name="download_tracking_error">Errore tracciamento download: %1$s</string>
+    <string name="downloaded_file_not_found">File scaricato non trovato</string>
+    <string name="failed_to_track_download">Impossibile tracciare il completamento del download</string>
+    <string name="apk_file_not_found">File APK non trovato</string>
+    <string name="no_app_to_install_apks">Nessuna applicazione disponibile per installare APK</string>
+    <string name="installation_error">Errore installazione: %1$s</string>
+    <string name="failed_to_create_image">Impossibile creare l\'immagine: %1$s</string>
+    <string name="failed_to_parse_proxy_url">Impossibile analizzare l\'URL del proxy.</string>
+
+    <!-- Notification -->
+    <string name="starting">Avvio</string>
+    <string name="playing">In riproduzione</string>
+    <string name="paused">In pausa</string>
+
+    <!-- Backup Restore -->
+    <string name="no_valid_songs_csv">Nessun brano valido trovato nel file CSV</string>
+    <string name="csv_file_empty_invalid">File CSV vuoto o non valido</string>
+    <string name="backup_not_supported">Questa app non supporta questo file di backup</string>
+    <string name="backup_corrupted">Il file di backup è corrotto e non può essere ripristinato</string>
+    <string name="backup_format_not_supported">Questa app non supporta questo formato di file di backup</string>
+
+    <!-- ViewModels -->
+    <string name="guest">Ospite</string>
+    <string name="failed_to_load_playlist">Impossibile caricare la playlist</string>
+
+    <!-- Additional Content Descriptions -->
+    <string name="song_art">Copertina brano</string>
+    <string name="playlist_art">Copertina playlist</string>
+    <string name="play_next_icon">Icona riproduci successivo</string>
+    <string name="add_to_queue_icon">Icona aggiungi alla coda</string>
+    <string name="start_radio_icon">Icona avvia radio</string>
+    <string name="add_to_playlist_icon">Icona aggiungi alla playlist</string>
+
+    <!-- Menu Actions -->
+    <string name="play_similar_songs">Riproduci brani simili</string>
+    <string name="add_to_existing_playlist">Aggiungi a playlist esistente</string>
+    <string name="save_to_your_music">Salva nella tua musica</string>
+    <string name="remove_from_your_music">Rimuovi dalla tua musica</string>
+    <string name="suggestions_available">Suggerimenti disponibili</string>
+
+    <!-- Download Notifications -->
+    <string name="update_failed">Aggiornamento fallito</string>
+    <string name="failed_to_download_version">Impossibile scaricare la versione %1$s</string>
+    <string name="failed_to_download_version_error">Impossibile scaricare la versione %1$s\n%2$s</string>
+    <string name="server_error">Errore server: %1$d</string>
+
+    <!-- Media Info -->
+    <string name="no_description_available">Nessuna descrizione disponibile</string>
+    <string name="views_count">%1$s Visualizzazioni</string>
+    <string name="likes_count">%1$s Mi piace</string>
+
+    <!-- Backup Restore -->
+    <string name="save_data_settings">Salva i tuoi dati e impostazioni</string>
+    <string name="restore_from_backup">Ripristina da un file di backup</string>
+
+    <!-- Appearance Settings -->
+    <string name="dynamic_color_theming">Tema colori dinamico</string>
+    <string name="accent_color">Colore accento</string>
+    <string name="select_static_theme_color">Seleziona un colore tema statico</string>
+
+    <!-- Song Edit -->
+    <!-- song_title, artist_name, edit_song are in strings.xml -->
+
+    <!-- Backup Restore Additional -->
+    <!-- backup_create_success, backup_create_failed are in strings.xml -->
+
+    <!-- About Screen Additional -->
+    <string name="developer_name">VIVIDH P ASHOKAN</string>
+    <string name="app_developer">Sviluppatore app</string>
+    <string name="installed_date_title">Data installazione</string>
+    <string name="view_version_history">Visualizza cronologia versioni</string>
+    <string name="github_repository">Repository GitHub</string>
+    <string name="view_source_code">Visualizza codice sorgente</string>
+    <string name="see_community_heroes">Vedi i nostri eroi della comunità</string>
+    <string name="report_issue_title_about">Segnala problema</string>
+    <string name="bugs_feedback">Bug e feedback</string>
+
+    <!-- Crash Page -->
+    <string name="copy_log_content">Copia contenuto log</string>
+    <string name="copies_crash_log_clipboard">Copia il log di crash negli appunti.</string>
+    <string name="send_via_gmail">Invia tramite Gmail</string>
+    <string name="copies_log_opens_gmail">Copia il log e apre Gmail.</string>
+    <string name="report_via_github_crash">Segnala tramite GitHub</string>
+    <string name="opens_github_report_issue">Apre GitHub per segnalare il problema.</string>
+    <string name="restart_vivi">Riavvia ViVi</string>
+    <string name="restarts_vivi">Riavvia ViVi.</string>
+
+    <!-- Settings Screen Subtitles -->
+    <string name="customize_theme_display_settings">Personalizza tema e impostazioni display</string>
+    <string name="audio_quality_playback_settings">Qualità audio e impostazioni riproduzione</string>
+    <string name="language_content_preferences">Preferenze lingua e contenuti</string>
+    <string name="privacy_security_settings">Impostazioni privacy e sicurezza</string>
+    <string name="manage_storage_downloads">Gestisci archiviazione e download</string>
+    <string name="backup_restore_data">Backup e ripristino dei tuoi dati</string>
+    <string name="app_information_legal">Informazioni app e legale</string>
+
+    <!-- Player Settings -->
+    <string name="select_playback_audio_quality">Seleziona qualità audio riproduzione</string>
+    <string name="remove_silent_parts">Rimuovi parti silenziose</string>
+    <string name="normalize_audio_levels">Normalizza livelli audio</string>
+    <string name="stop_playback_when_closed">Interrompi riproduzione quando l\'app è chiusa</string>
+
+    <!-- Appearance Settings -->
+    <string name="dynamic_color_theming_subtitle">Tema colori dinamico</string>
+    <string name="use_pure_black_dark_theme">Usa nero puro per tema scuro</string>
+    <string name="settings_shape_tertiary_color">Colore forma impostazioni terziario</string>
+    <string name="use_tertiary_color_icon_backgrounds">Usa colore terziario per sfondi icone</string>
+    <string name="modern_player_interface">Interfaccia lettore moderna</string>
+    <string name="modern_mini_player">Mini lettore moderno</string>
+    <string name="enable_rotating_clover_thumbnail">Abilita miniatura rotante trifoglio</string>
+    <string name="swipe_on_player_thumbnail">Scorri sulla miniatura del lettore</string>
+    <string name="click_change_lyrics_position">Clicca per cambiare posizione testo</string>
+    <string name="auto_scroll_lyrics_subtitle">Scorrimento automatico testo</string>
+    <string name="word_for_word_lyrics">Testo parola per parola</string>
+    <string name="highlight_words_discretely">Evidenzia parole discretamente mentre vengono cantate</string>
+    <string name="letter_by_letter_animation">Animazione lettera per lettera</string>
+    <string name="animate_lyrics_letter_by_letter">Anima testo lettera per lettera quando la sincronizzazione parola non è disponibile</string>
+    <string name="select_default_tab">Seleziona quale scheda si apre per impostazione predefinita</string>
+    <string name="swipe_add_songs_queue">Scorri per aggiungere brani alla coda</string>
+    <string name="compact_navigation_bar">Barra di navigazione compatta</string>
+    <string name="swipe_remove_songs">Scorri per rimuovere brani</string>
+    <string name="change_size_items_library">Cambia la dimensione degli elementi nella libreria</string>
+    <string name="display_liked_songs_playlist">Mostra playlist brani piaciuti</string>
+    <string name="display_downloaded_playlist">Mostra playlist scaricati</string>
+    <string name="display_top_songs_playlist">Mostra playlist brani top</string>
+    <string name="display_cached_playlist">Mostra playlist in cache</string>
+    <string name="display_uploaded_playlist">Mostra playlist caricati</string>
+
+    <!-- Content Settings -->
+    <string name="filter_explicit_content">Filtra contenuti espliciti</string>
+    <string name="configure_in_system_settings">Configura nelle impostazioni di sistema</string>
+    <string name="hide_video_content_songs">Nascondi contenuti video dai brani</string>
+    <string name="route_traffic_through_proxy">Instrada traffico tramite proxy</string>
+    <string name="configure_proxy_settings">Configura impostazioni proxy</string>
+    <string name="lrclib_lyrics">Testi LrcLib</string>
+    <string name="enable_lrclib_lyrics_source">Abilita LrcLib come fonte testi</string>
+    <string name="kugou_lyrics">Testi Kugou</string>
+    <string name="enable_kugou_lyrics_source">Abilita Kugou come fonte testi</string>
+
+    <!-- Privacy Settings -->
+    <string name="stop_recording_listening_activity">Interrompi registrazione attività di ascolto</string>
+    <string name="delete_all_listening_history">Elimina tutta la cronologia di ascolto</string>
+    <string name="stop_recording_search_queries">Interrompi registrazione query di ricerca</string>
+    <string name="delete_all_search_history">Elimina tutta la cronologia di ricerca</string>
+
+    <!-- Backup and Restore -->
+    <string name="import_playlists_m3u_files">Importa playlist da file M3U</string>
+    <string name="import_playlists_csv_files">Importa playlist da file CSV</string>
+
+    <!-- Storage Settings -->
+    <string name="downloaded_songs_title">Brani scaricati</string>
+    <string name="remove_all_downloaded_songs">Rimuovi tutti i brani scaricati</string>
+    <string name="free_up_cached_song_data">Libera dati brani in cache</string>
+    <string name="free_up_cached_images">Libera immagini in cache</string>
+
+    <!-- Integrations -->
+    <string name="submit_playback_history_lastfm">Invia cronologia riproduzione a Last.fm</string>
+    <string name="show_current_song_lastfm_profile">Mostra brano corrente sul profilo Last.fm</string>
+    <string name="connect_with_discord">Connetti con Discord</string>
+    <string name="connect_with_lastfm">Connetti con Last.fm</string>
+    <string name="login_using_token">Accedi usando token</string>
+    <string name="show_current_song_discord">Mostra brano corrente su Discord</string>
+    <!-- Romanization Settings -->
+    <string name="romanize_japanese_lyrics_subtitle">Romanizza testi giapponesi</string>
+    <string name="romanize_korean_lyrics_subtitle">Romanizza testi coreani</string>
+    <string name="romanize_cyrillic_lyrics_subtitle">Romanizza testi cirillici</string>
+
+    <!-- Playlist Screens -->
+    <string name="cache_songs">Brani in cache</string>
+    <string name="auto_playlist">Playlist automatica</string>
+    <string name="selection">Selezione</string>
+
+    <!-- Content Descriptions -->
+    <string name="shuffle_content_desc">Casuale</string>
+    <string name="add_to_queue_content_desc">Aggiungi alla coda</string>
+    <string name="share_playlist_content_desc">Condividi playlist</string>
+    <string name="more_options_content_desc">Altre opzioni</string>
+    <string name="sync_content_desc">Sincronizza</string>
+    <string name="edit_content_desc">Modifica</string>
+    <string name="selected_content_desc">Selezionato</string>
+    <string name="artist_image_content_desc">Immagine artista</string>
+    <string name="radio_content_desc">Radio</string>
+    <string name="share_artist_content_desc">Condividi artista</string>
+    <string name="radio_icon_content_desc">Icona radio</string>
+    <string name="shuffle_icon_content_desc">Icona casuale</string>
+    <string name="subscribe_icon_content_desc">Icona iscriviti</string>
+    <string name="share_icon_content_desc">Icona condividi</string>
+    <string name="album_art_content_desc">Copertina album</string>
+    <string name="play_content_desc">Riproduci</string>
+    <string name="share_album_content_desc">Condividi album</string>
+    <string name="download_album_content_desc">Scarica album</string>
+    <string name="artist_icon_content_desc">Icona artista</string>
+    <string name="play_next_icon_content_desc">Icona riproduci successivo</string>
+    <string name="add_to_queue_icon_content_desc">Icona aggiungi alla coda</string>
+    <string name="add_to_playlist_icon_content_desc">Icona aggiungi alla playlist</string>
+    <string name="refresh_icon_content_desc">Icona aggiorna</string>
+    <string name="songs_icon_content_desc">Icona brani</string>
+    <string name="start_radio_icon_content_desc">Icona avvia radio</string>
+    <string name="edit_icon_content_desc">Icona modifica</string>
+    <string name="favorite_icon_content_desc">Icona preferiti</string>
+    <string name="delete_icon_content_desc">Icona elimina</string>
+    <string name="edit_content_desc_menu">Modifica</string>
+    <string name="refetch_content_desc">Ricarica</string>
+    <string name="search_content_desc">Cerca</string>
+    <string name="romanize_icon_content_desc">Icona romanizza</string>
+    <string name="swipe_icon_content_desc">Icona scorrimento</string>
+    <string name="artist_art_content_desc">Arte artista</string>
+    <string name="info_icon_content_desc">Icona informazioni</string>
+
+    <!-- Additional Menu Text -->
+    <string name="play_text">Riproduci</string>
+    <string name="artist_text">Artista</string>
+    <string name="radio_text">Radio</string>
+    <string name="shuffle_text">Casuale</string>
+    <string name="audio_quality_title">Qualità audio</string>
+    <string name="progress_percentage">Progresso %1$s%%</string>
+    <string name="songs_count">Brani (%1$d)</string>
+    <string name="check_out_top_share">Scopri la mia Top %1$d su Vivi Music!\n\n</string>
+    <string name="by_text">Di </string>
+    <string name="is_a_playlist">è una playlist</string>
+    <string name="album_text">Album</string>
+    <string name="playlist_separator"> • </string>
+
+    <!-- Share and Email Messages -->
+    <string name="check_out_playlist_share">Scopri %1$s su YouTube Music: %2$s</string>
+    <string name="check_out_album_share">Scopri %1$s di %2$s su YouTube Music: %3$s</string>
+    <string name="vivi_music_crash_report">Rapporto di crash ViVi Music</string>
+    <string name="crash_log_email_body">Log di crash (anche copiato negli appunti):\n\n%1$s\n\nInfo dispositivo:\n%2$s</string>
+    <string name="feedback_for_vivi_music_app">Feedback per l\'app Vivi Music</string>
+    <string name="please_write_feedback">Scrivi qui il tuo feedback...</string>
+    <string name="crash_log_subject">Log di crash: %1$s</string>
+    <string name="crash_log_attached">Log di crash allegato da Vivi Music App</string>
+    <string name="vivi_music_issue_report">Segnalazione problema Vivi Music - v%1$s</string>
+
+    <!-- Experimental Settings -->
+    <string name="updates_title">Aggiornamenti</string>
+    <string name="apk_variant">Variante APK</string>
+    <string name="clear_downloaded_apks">Elimina APK scaricati</string>
+    <string name="open_crash_logs_folder">Apri cartella log di crash</string>
+    <string name="crash_logs_folder_path">Memoria interna/Android/data/.../crash_logs</string>
+    <string name="email_or_github_issue">Email o issue GitHub</string>
+    <string name="clear_all_settings_and_data">Elimina tutte le impostazioni e i dati</string>
+
+    <!-- Bluetooth -->
+    <string name="bluetooth_permission_required">Permesso Bluetooth richiesto</string>
+    <string name="battery_content_desc">Batteria </string>
+    <string name="wired_headphones">Cuffie cablate</string>
+    <string name="hdmi">HDMI</string>
+    <string name="phone_speaker">Altoparlante del telefono</string>
+
+    <!-- Content Descriptions -->
+    <string name="github_content_desc">GitHub</string>
+    <string name="back_content_desc">Indietro</string>
+
+    <!-- Notification Channel -->
+    <string name="controls_for_music_playback">Controlli per la riproduzione musicale</string>
+
+    <!-- Account Settings -->
+    <string name="youtube_sync">Sincronizzazione YouTube</string>
+    <string name="log_out_from_account">Esci dal tuo account</string>
+
+    <!-- Content Descriptions -->
+    <string name="bhim_content_desc">BHIM</string>
+    <string name="github_profile_content_desc">Profilo GitHub</string>
+
+    <!-- Notification Channels -->
+    <string name="download_progress_channel">Progresso download</string>
+    <string name="download_progress_description">Mostra il progresso del download per gli aggiornamenti dell\'app</string>
+    <string name="app_updates_channel">Aggiornamenti app</string>
+    <string name="app_updates_description">Notifiche per gli aggiornamenti dell\'app</string>
+
+    <!-- Error Messages -->
+    <string name="error_loading_version">Errore nel caricamento della versione</string>
+    <string name="error_loading_date">Errore nel caricamento della data</string>
+
+    <!-- Changelog -->
+    <string name="changes_default">Modifiche</string>
+
+    <!-- Download Notifications -->
+    <string name="downloading_update">Download aggiornamento</string>
+    <string name="version_file_size">Versione %1$s • %2$s</string>
+    <string name="version_progress">Versione %1$s • %2$d%%</string>
+    <string name="update_ready">Aggiornamento pronto</string>
+    <string name="tap_to_install_version">Tocca per installare la versione %1$s</string>
+
+    <!-- Beta Update Labels -->
+    <string name="version_label">Versione</string>
+    <string name="apk_size_label">Dimensione APK</string>
+    <string name="upload_date_label">Data caricamento</string>
+    <string name="upload_time_label">Ora caricamento</string>
+
+    <!-- Settings Screen Update Status -->
+    <string name="update_available_title">Aggiornamento disponibile</string>
+    <string name="automatic_check_disabled">Controllo automatico disabilitato • V%1$s</string>
+    <string name="version_now_available">%1$s è ora disponibile</string>
+    <string name="not_signed_in_subtitle">Tocca per accedere</string>
+
+    <!-- Menu Items -->
+    <string name="remove_offline">Rimuovi offline</string>
+    <string name="downloading_ellipsis">Download in corso…</string>
+    <string name="saved">Salvato</string>
+    <string name="saving">Salvataggio</string>
+    <string name="download_song_text">Scarica brano</string>
+    <string name="download_album_text">Scarica album</string>
+    <string name="artist_label">Artista</string>
+    <string name="songs_label">Brani</string>
+    <string name="album_label">Album</string>
+    <string name="view_full_album">Visualizza album completo</string>
+    <string name="play_next_label">Riproduci dopo</string>
+    <string name="play_after_current">Riproduci dopo il corrente</string>
+    <string name="add_to_queue_label">Aggiungi alla coda</string>
+    <string name="add_to_queue_end">Aggiungi alla fine della coda</string>
+    <string name="add_to_playlist_label">Aggiungi a playlist</string>
+    <string name="add_to_existing_playlist_subtitle">Aggiungi a playlist esistente</string>
+    <string name="refresh_metadata">Aggiorna metadati</string>
+    <string name="update_album_information">Aggiorna informazioni album</string>
+    <string name="delete_from_listening_history">Elimina dalla cronologia di ascolto</string>
+
+    <!-- Playlist Actions -->
+    <string name="queue_label">Coda</string>
+    <string name="shuffle_label">Casuale</string>
+    <string name="this_collection_text">Questa raccolta</string>
+    <string name="playlist_description_suffix">presenta una selezione curata di brani per il tuo piacere di ascolto.</string>
+
+    <!-- Favorite Actions -->
+    <string name="remove_from_favorites">Rimuovi dai preferiti</string>
+    <string name="add_to_favorites">Aggiungi ai preferiti</string>
+    <string name="unsubscribe">Annulla iscrizione</string>
+    <string name="following_this_artist">Stai seguendo questo artista</string>
+    <string name="follow_this_artist">Segui questo artista</string>
+
+    <!-- Menu Items Additional -->
+    <string name="view_artist_page">Visualizza pagina artista</string>
+    <string name="view_full_album_subtitle">Visualizza album completo</string>
+    <string name="audio_settings_subtitle">Impostazioni audio</string>
+    <string name="download_playlist_text">Scarica playlist</string>
+    <string name="start_radio_label">Avvia radio</string>
+    <string name="play_similar_songs_subtitle">Riproduci brani simili</string>
+    <string name="play_in_random_order">Riproduci in ordine casuale</string>
+    <string name="edit_playlist_label">Modifica playlist</string>
+    <string name="edit_song_details">Modifica dettagli brano</string>
+    <string name="remove_from_history_label">Rimuovi dalla cronologia</string>
+    <string name="remove_from_playlist_label">Rimuovi dalla playlist</string>
+    <string name="delete_from_this_playlist">Elimina da questa playlist</string>
+    <string name="remove_from_cache_label">Rimuovi dalla cache</string>
+    <string name="clear_cached_data">Cancella dati in cache</string>
+    <string name="copied_title">Titolo copiato</string>
+    <string name="copied_artist">Artista copiato</string>
+    <string name="more_label">Altro</string>
+    <string name="sync_label">Sincronizza</string>
+    <string name="edit_label">Modifica</string>
+
+    <!-- Settings Integration -->
+    <string name="discord_account">Account Discord</string>
+    <string name="song_title_fallback">Titolo brano</string>
+    <string name="artist_fallback">Artista</string>
+    <string name="listen_on_youtube_music">Ascolta su YouTube Music</string>
+    <string name="visit_vivimusic">Visita Vivimusic</string>
+    <string name="lastfm_account">Account Last.fm</string>
+    <string name="not_logged_in_fallback">Non connesso</string>
+    <string name="tertiary_color_style">Stile colore terziario</string>
+    <string name="lrclib_provider">LrcLib</string>
+    <string name="kugou_provider">KuGou</string>
+
+    <!-- Experimental -->
+    <string name="reset_app_data_question">Reimpostare i dati dell\'app?</string>
+    <string name="reset_app_data_description">Questo cancellerà tutte le impostazioni, la cache e i dati locali. L\'app si riavvierà e dovrai riconfigurare tutto. Questa azione non può essere annullata.</string>
+    <string name="crash_logs_title">Log di crash</string>
+    <string name="clear_all">Cancella tutto</string>
+    <string name="no_crash_logs_found">Nessun log di crash trovato</string>
+    <string name="app_hasnt_crashed_recently">La tua app non è crashato di recente</string>
+    <string name="share_label">Condividi</string>
+    <string name="no_downloaded_files">Nessun file scaricato</string>
+    <string name="apk_files_cleared_successfully">File APK cancellati con successo</string>
+    <string name="choose_email_app">Scegli app email</string>
+    <string name="share_crash_log">Condividi log di crash</string>
+    <string name="crash_log_path">Percorso log di crash</string>
+    <string name="failed_to_clear_apk_files">Impossibile cancellare i file APK</string>
+    <string name="no_apk_files_to_clear">Nessun file APK da cancellare</string>
+    <string name="no_crashes_detected">Nessun crash rilevato</string>
+    <string name="short_vivi_crash_info">Info crash ViVi breve</string>
+    <string name="vivi_crash_log">Log crash ViVi</string>
+
+    <!-- Menu Items Additional 2 -->
+    <string name="remove_from_favorites_menu">Rimuovi dai preferiti</string>
+    <string name="add_to_favorites_menu">Aggiungi ai preferiti</string>
+    <string name="delete_playlist_label">Elimina playlist</string>
+    <string name="refresh_metadata_label">Aggiorna metadati</string>
+    <string name="update_song_information">Aggiorna informazioni brano</string>
+    <string name="song_details_label">Dettagli brano</string>
+    <string name="share_this_artist">Condividi questo artista</string>
+    <string name="playlist_fallback">Playlist</string>
+    <string name="select_label">Seleziona</string>
+    <string name="artist_info_fallback">Info artista</string>
+    <string name="artist_link">Link artista</string>
+
+    <!-- Beta Update Additional -->
+    <string name="downloading_vivi_music_apk">Download APK Vivi Music in corso</string>
+    <string name="downloading_vivi_music_prerelease">Download pre-release Vivi Music in corso</string>
+    <string name="cannot_resume_download">Impossibile riprendere il download</string>
+    <string name="external_storage_not_found">Archiviazione esterna non trovata</string>
+    <string name="file_already_exists">Il file esiste già</string>
+    <string name="http_data_error">Errore dati HTTP</string>
+    <string name="insufficient_storage_space">Spazio di archiviazione insufficiente</string>
+    <string name="too_many_redirects">Troppi reindirizzamenti</string>
+    <string name="unhandled_http_code">Codice HTTP non gestito</string>
+    <string name="ready_to_install">Pronto per l\'installazione</string>
+    <string name="checking_for_update">Controllo aggiornamenti in corso</string>
+    <string name="failed_to_load">Caricamento fallito</string>
+    <string name="no_update">Nessun aggiornamento</string>
+    <string name="beta_updater">Aggiornatore Beta</string>
+    <string name="download_label">Scarica</string>
+
+    <!-- Changelog -->
+    <string name="error_loading_changelog">Errore nel caricamento del changelog</string>
+    <string name="no_old_releases_with_changelog">Nessuna versione precedente con changelog trovata</string>
+    <string name="failed_to_fetch_changelog">Impossibile recuperare il changelog</string>
+
+    <!-- Notification -->
+    <string name="playing_status">In riproduzione</string>
+    <string name="paused_status">In pausa</string>
+
+    <!-- Backup and Restore -->
+    <string name="app_does_not_support_backup_file">Questa app non supporta questo file di backup</string>
+    <string name="backup_file_corrupted">Il file di backup è corrotto e non può essere ripristinato</string>
+    <string name="app_does_not_support_backup_missing_db">Questa app non supporta questo file di backup (database mancante)</string>
+    <string name="backup_file_empty">Il file di backup è vuoto. Questa app non può ripristinare da questo file</string>
+    <string name="app_does_not_support_backup_format">Questa app non supporta questo formato di file di backup</string>
+    <string name="cannot_restore_permission_denied">Impossibile ripristinare: permesso negato</string>
+    <string name="app_does_not_support_backup_with_error">Questa app non supporta questo file di backup: %1$s</string>
+    <string name="csv_file_empty_or_invalid">Il file CSV è vuoto o non valido</string>
+    <string name="failed_to_read_csv_file">Impossibile leggere il file CSV: %1$s</string>
+    <string name="no_valid_songs_in_csv">Nessun brano valido trovato nel file CSV</string>
+
+    <!-- Charts -->
+
+    <!-- Create Playlist -->
+    <string name="not_signed_in_warning">Non connesso</string>
+
+    <!-- Android Auto / Widget -->
+    <string name="not_playing">Non in riproduzione</string>
+    <string name="tap_to_play">Tocca per riprodurre</string>
+    <string name="automix">Automix</string>
 </resources>

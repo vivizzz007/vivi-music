@@ -366,7 +366,7 @@ fun LyricsMenu(
                 icon = {
                     Icon(
                         painter = painterResource(R.drawable.edit),
-                        contentDescription = "Edit"
+                        contentDescription = stringResource(R.string.edit_content_desc_menu),
                     )
                 },
                 text = {
@@ -394,7 +394,7 @@ fun LyricsMenu(
                 Icon(
                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
                     painter = painterResource(R.drawable.cached),
-                    contentDescription = "Refetch"
+                    contentDescription = stringResource(R.string.refetch_content_desc),
                 )
             }
 
@@ -411,7 +411,7 @@ fun LyricsMenu(
                 Icon(
                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
                     painter = painterResource(R.drawable.search),
-                    contentDescription = "Search"
+                    contentDescription = stringResource(R.string.search_content_desc),
                 )
             }
         }
@@ -439,7 +439,7 @@ fun LyricsMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.language_korean_latin),
-                    contentDescription = "Romanize icon"
+                    contentDescription = stringResource(R.string.romanize_icon_content_desc),
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -450,7 +450,7 @@ fun LyricsMenu(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        if (isChecked) "Romanization enabled" else "Romanization disabled",
+                        if (isChecked) stringResource(R.string.romanization_enabled) else stringResource(R.string.romanization_disabled),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -492,7 +492,7 @@ fun LyricsMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.swipe),
-                    contentDescription = "Swipe icon"
+                    contentDescription = stringResource(R.string.swipe_icon_content_desc),
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {

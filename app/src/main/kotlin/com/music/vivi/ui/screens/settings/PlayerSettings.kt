@@ -236,7 +236,7 @@ fun PlayerSettings(
                         )
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(
-                            text = "Configure player and audio settings",
+                            text = stringResource(R.string.configure_player_audio),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -267,7 +267,7 @@ fun PlayerSettings(
                                     ModernInfoItem(
                                         icon = { Icon(painterResource(R.drawable.graphic_eq), null, modifier = Modifier.size(22.dp)) },
                                         title = stringResource(R.string.audio_quality),
-                                        subtitle = "Select playback audio quality",
+                                        subtitle = stringResource(R.string.select_playback_audio_quality),
                                         iconBackgroundColor = iconBgColor,
                                         iconContentColor = iconStyleColor
                                     )
@@ -341,7 +341,7 @@ fun PlayerSettings(
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(R.drawable.fast_forward), null, modifier = Modifier.size(22.dp)) },
                                             title = stringResource(R.string.skip_silence),
-                                            subtitle = "Remove silent parts",
+                                            subtitle = stringResource(R.string.remove_silent_parts),
                                             iconBackgroundColor = iconBgColor,
                                             iconContentColor = iconStyleColor
                                         )
@@ -362,7 +362,7 @@ fun PlayerSettings(
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(R.drawable.volume_up), null, modifier = Modifier.size(22.dp)) },
                                             title = stringResource(R.string.audio_normalization),
-                                            subtitle = "Normalize audio levels",
+                                            subtitle = stringResource(R.string.normalize_audio_levels),
                                             iconBackgroundColor = iconBgColor,
                                             iconContentColor = iconStyleColor
                                         )
@@ -597,7 +597,7 @@ fun PlayerSettings(
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(R.drawable.clear_all), null, modifier = Modifier.size(22.dp)) },
                                             title = stringResource(R.string.stop_music_on_task_clear),
-                                            subtitle = "Stop playback when app is closed",
+                                            subtitle = stringResource(R.string.stop_playback_when_closed),
                                             iconBackgroundColor = iconBgColor,
                                             iconContentColor = iconStyleColor
                                         )

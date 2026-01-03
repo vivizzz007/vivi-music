@@ -39,6 +39,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -135,7 +136,7 @@ fun ArtistMenu(
         ) {
             AsyncImage(
                 model = artist.artist.thumbnailUrl,
-                contentDescription = "Artist Art",
+                contentDescription = stringResource(R.string.artist_art_content_desc),
                 modifier = Modifier
                     .size(80.dp)
                     .clip(artistArtShape),
@@ -163,7 +164,7 @@ fun ArtistMenu(
                         text = if (artist.songCount > 0) {
                             "${artist.songCount} ${if (artist.songCount == 1) "song" else "songs"}"
                         } else {
-                            "Artist"
+                            stringResource(R.string.artist_label)
                         },
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -193,7 +194,7 @@ fun ArtistMenu(
                     painter = painterResource(
                         if (isFavorite) R.drawable.subscribed else R.drawable.subscribe
                     ),
-                    contentDescription = if (isFavorite) "Unsubscribe" else "Subscribe",
+                    contentDescription = if (isFavorite) stringResource(R.string.unsubscribe) else stringResource(R.string.subscribe),
                     tint = if (isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -237,13 +238,13 @@ fun ArtistMenu(
                     icon = {
                         Icon(
                             painter = painterResource(R.drawable.play),
-                            contentDescription = "Play"
+                            contentDescription = stringResource(R.string.play_content_desc),
                         )
                     },
                     text = {
                         Text(
                             modifier = Modifier.padding(end = 10.dp),
-                            text = "Play",
+                            text = stringResource(R.string.play_text),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             softWrap = false
@@ -272,7 +273,7 @@ fun ArtistMenu(
                         painter = painterResource(
                             if (isFavorite) R.drawable.subscribed else R.drawable.subscribe
                         ),
-                        contentDescription = if (isFavorite) "Unsubscribe" else "Subscribe",
+                        contentDescription = if (isFavorite) stringResource(R.string.unsubscribe) else stringResource(R.string.subscribe),
                         tint = if (isFavorite) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -300,7 +301,7 @@ fun ArtistMenu(
                         Icon(
                             modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
                             painter = painterResource(R.drawable.share),
-                            contentDescription = "Share artist"
+                            contentDescription = stringResource(R.string.share_artist_content_desc),
                         )
                     }
                 }
@@ -341,7 +342,7 @@ fun ArtistMenu(
                     text = {
                         Text(
                             modifier = Modifier.padding(end = 10.dp),
-                            text = if (isFavorite) "Subscribed" else "Subscribe",
+                            text = if (isFavorite) stringResource(R.string.subscribed) else stringResource(R.string.subscribe),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             softWrap = false
@@ -372,7 +373,7 @@ fun ArtistMenu(
                         Icon(
                             modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
                             painter = painterResource(R.drawable.share),
-                            contentDescription = "Share artist"
+                            contentDescription = stringResource(R.string.share_artist_content_desc),
                         )
                     }
                 }
@@ -413,18 +414,18 @@ fun ArtistMenu(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.shuffle),
-                        contentDescription = "Shuffle icon"
+                        contentDescription = stringResource(R.string.shuffle_icon_content_desc),
                     )
                     Spacer(Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            "Shuffle",
+                            stringResource(R.string.shuffle_label),
                             style = MaterialTheme.typography.bodyLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            "Play in random order",
+                            stringResource(R.string.play_in_random_order),
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -453,18 +454,18 @@ fun ArtistMenu(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.playlist_play),
-                        contentDescription = "Play next icon"
+                        contentDescription = stringResource(R.string.play_next_icon_content_desc),
                     )
                     Spacer(Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            "Play Next",
+                            stringResource(R.string.play_next_label),
                             style = MaterialTheme.typography.bodyLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            "Play after current",
+                            stringResource(R.string.play_after_current),
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -493,18 +494,18 @@ fun ArtistMenu(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.queue_music),
-                        contentDescription = "Add to queue icon"
+                        contentDescription = stringResource(R.string.add_to_queue_icon_content_desc),
                     )
                     Spacer(Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            "Add to Queue",
+                            stringResource(R.string.add_to_queue_label),
                             style = MaterialTheme.typography.bodyLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            "Add to queue end",
+                            stringResource(R.string.add_to_queue_end),
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -534,18 +535,18 @@ fun ArtistMenu(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.radio),
-                        contentDescription = "Start radio icon"
+                        contentDescription = stringResource(R.string.start_radio_icon_content_desc),
                     )
                     Spacer(Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            "Start Radio",
+                            stringResource(R.string.start_radio_label),
                             style = MaterialTheme.typography.bodyLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            "Play similar songs",
+                            stringResource(R.string.play_similar_songs_subtitle),
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -570,18 +571,18 @@ fun ArtistMenu(
                     painter = painterResource(
                         if (isFavorite) R.drawable.subscribed else R.drawable.subscribe
                     ),
-                    contentDescription = "Subscribe icon"
+                    contentDescription = stringResource(R.string.subscribe_icon_content_desc),
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        if (isFavorite) "Subscribed" else "Subscribe",
+                        if (isFavorite) stringResource(R.string.subscribed) else stringResource(R.string.subscribe),
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        if (isFavorite) "Following this artist" else "Follow this artist",
+                        if (isFavorite) stringResource(R.string.following_this_artist) else stringResource(R.string.follow_this_artist),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -611,7 +612,7 @@ fun ArtistMenu(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.share),
-                        contentDescription = "Share icon"
+                        contentDescription = stringResource(R.string.share_icon_content_desc),
                     )
                     Spacer(Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -646,7 +647,7 @@ fun ArtistMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.info),
-                    contentDescription = "Info icon"
+                    contentDescription = stringResource(R.string.info_icon_content_desc),
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {

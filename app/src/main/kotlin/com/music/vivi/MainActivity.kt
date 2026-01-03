@@ -794,14 +794,14 @@ class MainActivity : ComponentActivity() {
                                                         if (isUpdateAvailable) {
                                                             Icon(
                                                                 painter = painterResource(id = R.drawable.rocket_new_update),
-                                                                contentDescription = "Update available",
+                                                                contentDescription = stringResource(R.string.update_available),
                                                                 tint = Color.Red,
                                                                 modifier = Modifier.size(24.dp)
                                                             )
                                                         } else {
                                                             Icon(
                                                                 painter = painterResource(R.drawable.newspaper_vivi),
-                                                                contentDescription = "Changelog",
+                                                                contentDescription = stringResource(R.string.changelog_title),
                                                                 modifier = Modifier.size(24.dp)
                                                             )
                                                         }

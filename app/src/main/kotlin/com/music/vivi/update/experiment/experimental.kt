@@ -67,6 +67,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -176,7 +177,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
                 Text(
-                    "Select APK variant",
+                    stringResource(R.string.select_apk_variant),
                     style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -225,7 +226,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    "Unable to fetch APK variants",
+                                    stringResource(R.string.unable_to_fetch_apk_variants),
                                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
                                     color = MaterialTheme.colorScheme.onErrorContainer
                                 )
@@ -298,7 +299,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                                         if (selectedApkVariant == variant) {
                                             Icon(
                                                 imageVector = Icons.Default.CheckCircle,
-                                                contentDescription = "Selected",
+                                                contentDescription = stringResource(R.string.selected),
                                                 tint = MaterialTheme.colorScheme.primary,
                                                 modifier = Modifier.size(24.dp)
                                             )
@@ -329,7 +330,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
                 Text(
-                    "Send Feedback",
+                    stringResource(R.string.send_feedback),
                     style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold),
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
@@ -357,7 +358,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                             contentDescription = null,
                             modifier = Modifier.padding(end = 12.dp)
                         )
-                        Text("Send Email", style = MaterialTheme.typography.labelLarge)
+                        Text(stringResource(R.string.send_email), style = MaterialTheme.typography.labelLarge)
                     }
                 }
 
@@ -380,7 +381,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                             contentDescription = null,
                             modifier = Modifier.padding(end = 12.dp)
                         )
-                        Text("Report on GitHub", style = MaterialTheme.typography.labelLarge)
+                        Text(stringResource(R.string.report_on_github), style = MaterialTheme.typography.labelLarge)
                     }
                 }
 
@@ -403,13 +404,13 @@ fun ExperimentalSettingsScreen(navController: NavController) {
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
                 Text(
-                    "Reset app data?",
+                    stringResource(R.string.reset_app_data_question),
                     style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold),
                     color = MaterialTheme.colorScheme.error
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    "This will clear all settings, cache, and local data. The app will restart and you'll need to set up everything again. This action cannot be undone.",
+                    stringResource(R.string.reset_app_data_description),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -427,7 +428,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                         modifier = Modifier.weight(1f).height(48.dp),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.cancel))
                     }
 
                     Button(
@@ -442,7 +443,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                         modifier = Modifier.weight(1f).height(48.dp),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Reset", color = MaterialTheme.colorScheme.onError)
+                        Text(stringResource(R.string.reset), color = MaterialTheme.colorScheme.onError)
                     }
                 }
 
@@ -470,7 +471,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        "Crash Logs",
+                        stringResource(R.string.crash_logs_title),
                         style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold)
                     )
                     if (crashLogs.isNotEmpty()) {
@@ -478,11 +479,11 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                             onClick = {
                                 CrashLogHandler.clearAllCrashLogs(context)
                                 crashLogs = emptyList()
-                                Toast.makeText(context, "All crash logs cleared", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.getString(R.string.all_crash_logs_cleared), Toast.LENGTH_SHORT).show()
                             },
                             shape = RoundedCornerShape(8.dp)
                         ) {
-                            Text("Clear All", style = MaterialTheme.typography.labelSmall)
+                            Text(stringResource(R.string.clear_all), style = MaterialTheme.typography.labelSmall)
                         }
                     }
                 }
@@ -503,12 +504,12 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
-                                "No crash logs found",
+                                stringResource(R.string.no_crash_logs_found),
                                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                "Your app hasn't crashed recently",
+                                stringResource(R.string.app_hasnt_crashed_recently),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -564,7 +565,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                                         )
                                         Spacer(modifier = Modifier.height(2.dp))
                                         Text(
-                                            formatFileDate(logFile.lastModified()),
+                                            formatFileDate(context, logFile.lastModified()),
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
@@ -573,12 +574,12 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                                         onClick = {
                                             CrashLogHandler.deleteCrashLog(logFile)
                                             crashLogs = CrashLogHandler.getAllCrashLogs(context)
-                                            Toast.makeText(context, "Crash log deleted", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(context, context.getString(R.string.crash_log_deleted), Toast.LENGTH_SHORT).show()
                                         }
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.Delete,
-                                            contentDescription = "Delete",
+                                            contentDescription = stringResource(R.string.delete_content_desc),
                                             tint = MaterialTheme.colorScheme.error
                                         )
                                     }
@@ -618,7 +619,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
                         )
                         Text(
-                            formatFileDate(selectedCrashLog!!.lastModified()),
+                            formatFileDate(context, selectedCrashLog!!.lastModified()),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -644,14 +645,14 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Share", style = MaterialTheme.typography.labelMedium)
+                        Text(stringResource(R.string.share_label), style = MaterialTheme.typography.labelMedium)
                     }
 
                     Button(
                         onClick = {
                             CrashLogHandler.deleteCrashLog(selectedCrashLog!!)
                             crashLogs = CrashLogHandler.getAllCrashLogs(context)
-                            Toast.makeText(context, "Crash log deleted", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.crash_log_deleted), Toast.LENGTH_SHORT).show()
                             coroutineScope.launch {
                                 crashLogViewerSheetState.hide()
                                 showCrashLogViewerSheet = false
@@ -670,7 +671,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Delete", style = MaterialTheme.typography.labelMedium)
+                        Text(stringResource(R.string.delete_button_menu), style = MaterialTheme.typography.labelMedium)
                     }
                 }
 
@@ -718,7 +719,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back"
+                        contentDescription = stringResource(R.string.back)
                     )
                 }
             },
@@ -748,14 +749,14 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 Text(
-                    text = "Experimental",
+                    text = stringResource(R.string.experimental),
                     style = MaterialTheme.typography.headlineLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "Advanced settings and experimental features",
+                    text = stringResource(R.string.advanced_settings_experimental),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -766,7 +767,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
 
             // Updates Section using SplicedColumnGroup pattern
             SplicedColumnGroup(
-                title = "Updates",
+                title = stringResource(R.string.updates_title),
                 content = listOf {
                     ModernInfoItem(
                         icon = {
@@ -777,7 +778,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                                 tint = MaterialTheme.colorScheme.surfaceTint
                             )
                         },
-                        title = "APK variant",
+                        title = stringResource(R.string.apk_variant),
                         subtitle = selectedApkVariant,
                         onClick = {
                             coroutineScope.launch {
@@ -795,7 +796,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
 
             // Storage Section using SplicedColumnGroup pattern
             SplicedColumnGroup(
-                title = "Storage",
+                title = stringResource(R.string.storage_section),
                 content = listOf {
                     ModernInfoItem(
                         icon = {
@@ -810,12 +811,12 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                                 }
                             )
                         },
-                        title = "Clear downloaded APKs",
+                        title = stringResource(R.string.clear_downloaded_apks),
                         subtitle = if (downloadedApksCount > 0) {
                             val sizeInMB = String.format("%.1f", downloadedApksSize / (1024.0 * 1024.0))
                             "$downloadedApksCount file(s) · $sizeInMB MB"
                         } else {
-                            "No downloaded files"
+                            stringResource(R.string.no_downloaded_files)
                         },
                         onClick = {
                             if (downloadedApksCount > 0) {
@@ -823,7 +824,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                                 if (success) {
                                     Toast.makeText(
                                         context,
-                                        "APK files cleared successfully",
+                                        context.getString(R.string.apk_files_cleared_successfully),
                                         Toast.LENGTH_SHORT
                                     ).show()
                                     val (count, size) = getDownloadedApksInfo(context)
@@ -832,14 +833,14 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                                 } else {
                                     Toast.makeText(
                                         context,
-                                        "Failed to clear APK files",
+                                        context.getString(R.string.failed_to_clear_apk_files),
                                         Toast.LENGTH_SHORT
                                     ).show()
                                 }
                             } else {
                                 Toast.makeText(
                                     context,
-                                    "No APK files to clear",
+                                        context.getString(R.string.no_apk_files_to_clear),
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
@@ -854,7 +855,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
 
             // Debugging Section
             SplicedColumnGroup(
-                title = "Debugging",
+                title = stringResource(R.string.debugging_section),
                 content = listOf(
                     {
                         ModernInfoItem(
@@ -870,11 +871,11 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                                     }
                                 )
                             },
-                            title = "Crash logs",
+                            title = stringResource(R.string.crash_logs),
                             subtitle = if (crashLogs.isNotEmpty()) {
                                 "${crashLogs.size} crash log(s) available"
                             } else {
-                                "No crashes detected"
+                                context.getString(R.string.no_crashes_detected)
                             },
                             onClick = {
                                 coroutineScope.launch {
@@ -897,8 +898,8 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                                     tint = MaterialTheme.colorScheme.surfaceTint
                                 )
                             },
-                            title = "Open crash logs folder",
-                            subtitle = "Internal storage/Android/data/.../crash_logs",
+                            title = stringResource(R.string.open_crash_logs_folder),
+                            subtitle = stringResource(R.string.crash_logs_folder_path),
                             onClick = {
                                 openCrashLogsFolder(context)
                             },
@@ -913,7 +914,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
 
             // Support Section using SplicedColumnGroup pattern with multiple items
             SplicedColumnGroup(
-                title = "Support",
+                title = stringResource(R.string.support_section),
                 content = listOf(
                     {
                         ModernInfoItem(
@@ -925,8 +926,8 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                                     tint = MaterialTheme.colorScheme.surfaceTint
                                 )
                             },
-                            title = "Send feedback",
-                            subtitle = "Email or GitHub issue",
+                            title = stringResource(R.string.send_feedback_title),
+                            subtitle = stringResource(R.string.email_or_github_issue),
                             onClick = {
                                 coroutineScope.launch {
                                     showBottomSheet = true
@@ -947,8 +948,8 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                                     tint = MaterialTheme.colorScheme.error
                                 )
                             },
-                            title = "Reset app",
-                            subtitle = "Clear all settings and data",
+                            title = stringResource(R.string.reset_app),
+                            subtitle = stringResource(R.string.clear_all_settings_and_data),
                             onClick = {
                                 coroutineScope.launch {
                                     showResetSheet = true
@@ -1105,7 +1106,7 @@ private fun openGitHubIssues(context: Context) {
 
         Log.d("ExperimentalSettings", "Attempting to open: $url")
 
-        val chooserIntent = Intent.createChooser(githubIntent, "Open with")
+        val chooserIntent = Intent.createChooser(githubIntent, context.getString(R.string.open_with))
 
         try {
             context.startActivity(chooserIntent)
@@ -1114,19 +1115,19 @@ private fun openGitHubIssues(context: Context) {
                 context.startActivity(githubIntent)
             } catch (e: ActivityNotFoundException) {
                 Log.e("ExperimentalSettings", "No browser installed", e)
-                Toast.makeText(context, "Please install a web browser", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, context.getString(R.string.please_install_web_browser), Toast.LENGTH_LONG).show()
             }
         }
     } catch (e: Exception) {
         Log.e("ExperimentalSettings", "Error opening GitHub: ${e.message}", e)
-        Toast.makeText(context, "Error: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+        Toast.makeText(context, context.getString(R.string.error_message, e.localizedMessage ?: ""), Toast.LENGTH_LONG).show()
     }
 }
 
 private fun sendFeedbackEmail(context: Context) {
     try {
         val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
-            data = Uri.parse("mailto:mkmdevilmi@gmail.com?subject=${Uri.encode("Feedback for Vivi Music App")}&body=${Uri.encode("Please write your feedback here...")}")
+            data = Uri.parse("mailto:mkmdevilmi@gmail.com?subject=${Uri.encode(context.getString(R.string.feedback_for_vivi_music_app))}&body=${Uri.encode("Please write your feedback here...")}")
         }
 
         if (emailIntent.resolveActivity(context.packageManager) != null) {
@@ -1135,18 +1136,18 @@ private fun sendFeedbackEmail(context: Context) {
             val fallbackIntent = Intent(Intent.ACTION_SEND).apply {
                 type = "message/rfc822"
                 putExtra(Intent.EXTRA_EMAIL, arrayOf("mkmdevilmi@gmail.com"))
-                putExtra(Intent.EXTRA_SUBJECT, "Feedback for Vivi Music App")
-                putExtra(Intent.EXTRA_TEXT, "Please write your feedback here...")
+                putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.feedback_for_vivi_music_app))
+                putExtra(Intent.EXTRA_TEXT, context.getString(R.string.please_write_feedback))
             }
 
             if (fallbackIntent.resolveActivity(context.packageManager) != null) {
-                context.startActivity(Intent.createChooser(fallbackIntent, "Choose Email App"))
+                context.startActivity(Intent.createChooser(fallbackIntent, context.getString(R.string.choose_email_app)))
             } else {
-                Toast.makeText(context, "No email app found", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.no_email_app_found), Toast.LENGTH_SHORT).show()
             }
         }
     } catch (e: Exception) {
-        Toast.makeText(context, "Unable to open email app: ${e.message}", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.unable_to_open_email_app, e.message ?: ""), Toast.LENGTH_SHORT).show()
     }
 }
 
@@ -1215,13 +1216,13 @@ suspend fun fetchAvailableApkVariants(): List<Pair<String, String>> {
     }
 }
 
-private fun formatFileDate(timestamp: Long): String {
+private fun formatFileDate(context: Context, timestamp: Long): String {
     val date = Date(timestamp)
     val now = Date()
     val diff = now.time - timestamp
 
     return when {
-        diff < 60000 -> "Just now"
+        diff < 60000 -> context.getString(R.string.just_now)
         diff < 3600000 -> "${diff / 60000} minutes ago"
         diff < 86400000 -> "${diff / 3600000} hours ago"
         diff < 604800000 -> "${diff / 86400000} days ago"
@@ -1240,14 +1241,14 @@ private fun shareLogFile(context: Context, file: File) {
         val shareIntent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_STREAM, uri)
-            putExtra(Intent.EXTRA_SUBJECT, "Crash Log: ${file.name}")
-            putExtra(Intent.EXTRA_TEXT, "Crash log attached from Vivi Music App")
+            putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.crash_log_subject, file.name))
+            putExtra(Intent.EXTRA_TEXT, context.getString(R.string.crash_log_attached))
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
 
-        context.startActivity(Intent.createChooser(shareIntent, "Share crash log"))
+        context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.share_crash_log)))
     } catch (e: Exception) {
-        Toast.makeText(context, "Error sharing log: ${e.message}", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.error_sharing_log, e.message ?: ""), Toast.LENGTH_SHORT).show()
     }
 }
 
@@ -1282,7 +1283,7 @@ private fun openCrashLogsFolder(context: Context) {
             } catch (e2: ActivityNotFoundException) {
                 // Fallback 2: Show path and copy to clipboard
                 val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                val clip = android.content.ClipData.newPlainText("Crash Log Path", crashLogsDir.absolutePath)
+                val clip = android.content.ClipData.newPlainText(context.getString(R.string.crash_log_path), crashLogsDir.absolutePath)
                 clipboard.setPrimaryClip(clip)
 
                 Toast.makeText(

@@ -40,6 +40,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -122,7 +123,7 @@ fun YouTubeArtistMenu(
         ) {
             AsyncImage(
                 model = artist.thumbnail,
-                contentDescription = "Artist Image",
+                contentDescription = stringResource(R.string.artist_image_content_desc),
                 modifier = Modifier
                     .size(80.dp)
                     .clip(CircleShape),
@@ -147,7 +148,7 @@ fun YouTubeArtistMenu(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Artist",
+                        text = stringResource(R.string.artist_text),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
@@ -188,7 +189,7 @@ fun YouTubeArtistMenu(
                         painter = painterResource(
                             if (isSubscribed) R.drawable.subscribed else R.drawable.subscribe
                         ),
-                        contentDescription = if (isSubscribed) "Unsubscribe" else "Subscribe",
+                        contentDescription = if (isSubscribed) stringResource(R.string.unsubscribe) else stringResource(R.string.subscribe),
                         tint = if (isSubscribed) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -224,13 +225,13 @@ fun YouTubeArtistMenu(
                             icon = {
                                 Icon(
                                     painter = painterResource(R.drawable.radio),
-                                    contentDescription = "Radio"
+                                    contentDescription = stringResource(R.string.radio_content_desc),
                                 )
                             },
                             text = {
                                 Text(
                                     modifier = Modifier.padding(end = 10.dp),
-                                    text = "Radio",
+                                    text = stringResource(R.string.radio_text),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                     softWrap = false
@@ -257,7 +258,7 @@ fun YouTubeArtistMenu(
                                 Icon(
                                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
                                     painter = painterResource(R.drawable.shuffle),
-                                    contentDescription = "Shuffle"
+                                    contentDescription = stringResource(R.string.shuffle_content_desc),
                                 )
                             }
                         } else {
@@ -274,13 +275,13 @@ fun YouTubeArtistMenu(
                                 icon = {
                                     Icon(
                                         painter = painterResource(R.drawable.shuffle),
-                                        contentDescription = "Shuffle"
+                                        contentDescription = stringResource(R.string.shuffle_content_desc),
                                     )
                                 },
                                 text = {
                                     Text(
                                         modifier = Modifier.padding(end = 10.dp),
-                                        text = "Shuffle",
+                                        text = stringResource(R.string.shuffle_text),
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
                                         softWrap = false
@@ -324,7 +325,7 @@ fun YouTubeArtistMenu(
 //                        painter = painterResource(
 //                            if (isSubscribed) R.drawable.subscribed else R.drawable.subscribe
 //                        ),
-//                        contentDescription = if (isSubscribed) "Unsubscribe" else "Subscribe",
+//                        contentDescription = if (isSubscribed) stringResource(R.string.unsubscribe) else stringResource(R.string.subscribe),
 //                        tint = if (isSubscribed) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
 //                    )
 //                }
@@ -348,7 +349,7 @@ fun YouTubeArtistMenu(
                     Icon(
                         modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
                         painter = painterResource(R.drawable.share),
-                        contentDescription = "Share artist"
+                        contentDescription = stringResource(R.string.share_artist_content_desc),
                     )
                 }
             }
@@ -374,18 +375,18 @@ fun YouTubeArtistMenu(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.radio),
-                        contentDescription = "Radio icon"
+                        contentDescription = stringResource(R.string.radio_icon_content_desc),
                     )
                     Spacer(Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            "Start Radio",
+                            stringResource(R.string.start_radio_label),
                             style = MaterialTheme.typography.bodyLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            "Play similar songs",
+                            stringResource(R.string.play_similar_songs_subtitle),
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -408,18 +409,18 @@ fun YouTubeArtistMenu(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.shuffle),
-                        contentDescription = "Shuffle icon"
+                        contentDescription = stringResource(R.string.shuffle_icon_content_desc),
                     )
                     Spacer(Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            "Shuffle",
+                            stringResource(R.string.shuffle_label),
                             style = MaterialTheme.typography.bodyLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            "Play in random order",
+                            stringResource(R.string.play_in_random_order),
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -456,18 +457,18 @@ fun YouTubeArtistMenu(
                     painter = painterResource(
                         if (isSubscribed) R.drawable.subscribed else R.drawable.subscribe
                     ),
-                    contentDescription = "Subscribe icon"
+                    contentDescription = stringResource(R.string.subscribe_icon_content_desc),
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        if (isSubscribed) "Subscribed" else "Subscribe",
+                        if (isSubscribed) stringResource(R.string.subscribed) else stringResource(R.string.subscribe),
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        if (isSubscribed) "Following this artist" else "Follow this artist",
+                        if (isSubscribed) stringResource(R.string.following_this_artist) else stringResource(R.string.follow_this_artist),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -493,18 +494,18 @@ fun YouTubeArtistMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.share),
-                    contentDescription = "Share icon"
+                    contentDescription = stringResource(R.string.share_icon_content_desc),
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "Share",
+                        stringResource(R.string.share_label),
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        "Share this artist",
+                        stringResource(R.string.share_this_artist),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis

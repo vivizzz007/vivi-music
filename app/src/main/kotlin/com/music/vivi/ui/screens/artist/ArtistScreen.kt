@@ -290,7 +290,7 @@ fun ArtistScreen(
                                 }
 
                                 Text(
-                                    text = "About Artist",
+                                    text = stringResource(R.string.about_artist),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     textAlign = TextAlign.Start,
@@ -364,7 +364,7 @@ fun ArtistScreen(
                                                 }
                                                 Spacer(Modifier.width(16.dp))
                                                 Text(
-                                                    text = artistPage?.artist?.title ?: "Artist Info",
+                                                    text = artistPage?.artist?.title ?: stringResource(R.string.artist_info_fallback),
                                                     style = MaterialTheme.typography.titleLarge
                                                 )
                                             }
@@ -490,7 +490,7 @@ fun ArtistScreen(
                                             ) {
                                                 Icon(
                                                     painter = painterResource(R.drawable.shuffle),
-                                                    contentDescription = "Shuffle",
+                                                    contentDescription = stringResource(R.string.shuffle_content_desc),
                                                     modifier = Modifier.size(20.dp)
                                                 )
                                                 Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
@@ -508,7 +508,7 @@ fun ArtistScreen(
                                                 if (shuffledSongs.isNotEmpty()) {
                                                     playerConnection.playQueue(
                                                         ListQueue(
-                                                            title = libraryArtist?.artist?.name ?: "Unknown Artist",
+                                                            title = libraryArtist?.artist?.name ?: context.getString(R.string.unknown_artist),
                                                             items = shuffledSongs.map { it.toMediaItem() }
                                                         )
                                                     )
@@ -519,7 +519,7 @@ fun ArtistScreen(
                                         ) {
                                             Icon(
                                                 painter = painterResource(R.drawable.shuffle),
-                                                contentDescription = "Shuffle",
+                                                contentDescription = stringResource(R.string.shuffle_content_desc),
                                                 modifier = Modifier.size(20.dp)
                                             )
                                             Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
@@ -617,7 +617,7 @@ fun ArtistScreen(
                                                         } else {
                                                             playerConnection.playQueue(
                                                                 ListQueue(
-                                                                    title = libraryArtist?.artist?.name ?: "Unknown Artist",
+                                                                    title = libraryArtist?.artist?.name ?: context.getString(R.string.unknown_artist),
                                                                     items = librarySongs.map { it.toMediaItem() },
                                                                     startIndex = index
                                                                 )
@@ -920,7 +920,7 @@ fun ArtistScreen(
                 onClick = {
                     viewModel.artistPage?.artist?.shareLink?.let { link ->
                         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        val clip = ClipData.newPlainText("Artist Link", link)
+                        val clip = ClipData.newPlainText(context.getString(R.string.artist_link), link)
                         clipboard.setPrimaryClip(clip)
                         Toast.makeText(context, R.string.link_copied, Toast.LENGTH_SHORT).show()
                     }

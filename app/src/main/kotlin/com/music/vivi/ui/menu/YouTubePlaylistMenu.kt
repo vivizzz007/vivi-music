@@ -199,7 +199,7 @@ fun YouTubePlaylistMenu(
         ) {
             AsyncImage(
                 model = playlist.thumbnail,
-                contentDescription = "Playlist Art",
+                contentDescription = stringResource(R.string.playlist_art),
                 modifier = Modifier
                     .size(80.dp)
                     .clip(playlistArtShape),
@@ -224,7 +224,7 @@ fun YouTubePlaylistMenu(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = playlist.songCountText ?: "Playlist",
+                        text = playlist.songCountText ?: stringResource(R.string.playlist_fallback),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
@@ -289,7 +289,7 @@ fun YouTubePlaylistMenu(
                         painter = painterResource(
                             if (isFavorite) R.drawable.favorite else R.drawable.favorite_border
                         ),
-                        contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
+                        contentDescription = if (isFavorite) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites),
                         tint = if (isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                     )
                 }
@@ -326,13 +326,13 @@ fun YouTubePlaylistMenu(
                         icon = {
                             Icon(
                                 painter = painterResource(R.drawable.play),
-                                contentDescription = "Play"
+                                contentDescription = stringResource(R.string.play_button)
                             )
                         },
                         text = {
                             Text(
                                 modifier = Modifier.padding(end = 10.dp),
-                                text = "Play",
+                                text = stringResource(R.string.play_button),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 softWrap = false
@@ -399,7 +399,7 @@ fun YouTubePlaylistMenu(
                         painter = painterResource(
                             if (isFavorite) R.drawable.favorite else R.drawable.favorite_border
                         ),
-                        contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
+                        contentDescription = if (isFavorite) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites),
                         tint = if (isFavorite) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -424,7 +424,7 @@ fun YouTubePlaylistMenu(
                 Icon(
                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
                     painter = painterResource(R.drawable.share),
-                    contentDescription = "Share playlist"
+                    contentDescription = stringResource(R.string.share_playlist)
                 )
             }
         }
@@ -475,14 +475,14 @@ fun YouTubePlaylistMenu(
                             else -> R.drawable.download
                         }
                     ),
-                    contentDescription = "Download playlist"
+                    contentDescription = stringResource(R.string.download_playlist)
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
                     text = when (downloadState) {
-                        Download.STATE_COMPLETED -> "Remove Offline"
-                        Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> "Downloading..."
-                        else -> "Download Playlist"
+                        Download.STATE_COMPLETED -> stringResource(R.string.remove_offline)
+                        Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> stringResource(R.string.downloading_ellipsis)
+                        else -> stringResource(R.string.download_playlist_text)
                     },
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -511,18 +511,18 @@ fun YouTubePlaylistMenu(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.shuffle),
-                        contentDescription = "Shuffle icon"
+                        contentDescription = stringResource(R.string.shuffle_icon)
                     )
                     Spacer(Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            "Shuffle",
+                            stringResource(R.string.shuffle_label),
                             style = MaterialTheme.typography.bodyLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            "Play in random order",
+                            stringResource(R.string.play_in_random_order),
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -545,18 +545,18 @@ fun YouTubePlaylistMenu(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.radio),
-                        contentDescription = "Radio icon"
+                        contentDescription = stringResource(R.string.radio_icon)
                     )
                     Spacer(Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            "Start Radio",
+                            stringResource(R.string.start_radio_label),
                             style = MaterialTheme.typography.bodyLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            "Play similar songs",
+                            stringResource(R.string.play_similar_songs_subtitle),
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -592,18 +592,18 @@ fun YouTubePlaylistMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.playlist_play),
-                    contentDescription = "Play next icon"
+                    contentDescription = stringResource(R.string.play_next_icon)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "Play Next",
+                        stringResource(R.string.play_next_label),
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        "Play after current",
+                        stringResource(R.string.play_after_current),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -638,18 +638,18 @@ fun YouTubePlaylistMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.queue_music),
-                    contentDescription = "Add to queue icon"
+                    contentDescription = stringResource(R.string.add_to_queue_icon)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "Add to Queue",
+                        stringResource(R.string.add_to_queue_label),
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        "Add to queue end",
+                        stringResource(R.string.add_to_queue_end),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -669,18 +669,18 @@ fun YouTubePlaylistMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.playlist_add),
-                    contentDescription = "Add to playlist icon"
+                    contentDescription = stringResource(R.string.add_to_playlist_icon)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "Add to Playlist",
+                        stringResource(R.string.add_to_playlist_label),
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        "Add to existing playlist",
+                        stringResource(R.string.add_to_existing_playlist_subtitle),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -702,18 +702,18 @@ fun YouTubePlaylistMenu(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.select_all),
-                        contentDescription = "Select icon"
+                        contentDescription = stringResource(R.string.select_icon)
                     )
                     Spacer(Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            "Select",
+                            stringResource(R.string.select_label),
                             style = MaterialTheme.typography.bodyLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            "Select songs",
+                            stringResource(R.string.select_songs),
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis

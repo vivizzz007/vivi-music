@@ -345,7 +345,7 @@ fun TopPlaylistScreen(
                                             )
                                             Spacer(Modifier.width(8.dp))
                                             Text(
-                                                text = "Queue",
+                                                text = stringResource(R.string.queue_button),
                                                 style = MaterialTheme.typography.labelLarge,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
@@ -357,7 +357,7 @@ fun TopPlaylistScreen(
                                         onClick = {
                                             playerConnection.playQueue(
                                                 ListQueue(
-                                                    title = "Auto Playlist",
+                                                    title = context.getString(R.string.auto_playlist),
                                                     items = songs!!.map { it.toMediaItem() },
                                                 ),
                                             )
@@ -379,7 +379,7 @@ fun TopPlaylistScreen(
                                             )
                                             Spacer(Modifier.width(8.dp))
                                             Text(
-                                                text = "Play",
+                                                text = stringResource(R.string.play_button),
                                                 style = MaterialTheme.typography.labelLarge,
                                                 color = MaterialTheme.colorScheme.onPrimary
                                             )
@@ -390,7 +390,7 @@ fun TopPlaylistScreen(
                                     Surface(
                                         onClick = {
                                             val shareText = buildString {
-                                                append("Check out my Top $maxSize on Vivi Music!\n\n")
+                                                append(context.getString(R.string.check_out_top_share, maxSize))
                                                 songs!!.take(5).forEachIndexed { index, song ->
                                                     append("${index + 1}. ${song.song.title}")
                                                     if (song.artists.isNotEmpty()) {
@@ -421,7 +421,7 @@ fun TopPlaylistScreen(
                                         ) {
                                             Icon(
                                                 painter = painterResource(R.drawable.share),
-                                                contentDescription = "Share playlist",
+                                                contentDescription = stringResource(R.string.share_playlist),
                                                 modifier = Modifier.size(20.dp),
                                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
@@ -434,7 +434,8 @@ fun TopPlaylistScreen(
                                 // Playlist Info
                                 Text(
                                     text = buildString {
-                                        append("Playlist • ")
+                                        append(stringResource(R.string.playlist_text))
+                                        append(stringResource(R.string.playlist_separator))
                                         val trackCount = songs!!.size
                                         append(pluralStringResource(R.plurals.n_song, trackCount, trackCount))
 
@@ -459,7 +460,7 @@ fun TopPlaylistScreen(
 
                                 // Playlist Description
                                 Text(
-                                    text = "Your most played tracks based on your listening history. This dynamic playlist updates as you discover new music.",
+                                    text = stringResource(R.string.top_playlist_description),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     textAlign = TextAlign.Start,
@@ -523,7 +524,7 @@ fun TopPlaylistScreen(
                                             Download.STATE_COMPLETED -> {
                                                 Icon(
                                                     painter = painterResource(R.drawable.offline),
-                                                    contentDescription = "saved",
+                                                    contentDescription = stringResource(R.string.saved),
                                                     modifier = Modifier.size(20.dp)
                                                 )
                                             }
@@ -537,7 +538,7 @@ fun TopPlaylistScreen(
                                             else -> {
                                                 Icon(
                                                     painter = painterResource(R.drawable.download),
-                                                    contentDescription = "save",
+                                                    contentDescription = stringResource(R.string.save),
                                                     modifier = Modifier.size(20.dp)
                                                 )
                                             }
@@ -545,9 +546,9 @@ fun TopPlaylistScreen(
                                         Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
                                         Text(
                                             text = when (downloadState) {
-                                                Download.STATE_COMPLETED -> "saved"
-                                                Download.STATE_DOWNLOADING -> "saving"
-                                                else -> "save"
+                                                Download.STATE_COMPLETED -> stringResource(R.string.saved)
+                                                Download.STATE_DOWNLOADING -> stringResource(R.string.saving)
+                                                else -> stringResource(R.string.save)
                                             },
                                             style = MaterialTheme.typography.labelMedium
                                         )
@@ -569,11 +570,11 @@ fun TopPlaylistScreen(
                                     ) {
                                         Icon(
                                             painter = painterResource(R.drawable.shuffle),
-                                            contentDescription = "Shuffle",
+                                            contentDescription = stringResource(R.string.shuffle_icon),
                                             modifier = Modifier.size(20.dp)
                                         )
                                         Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                                        Text("Shuffle", style = MaterialTheme.typography.labelMedium)
+                                        Text(stringResource(R.string.shuffle), style = MaterialTheme.typography.labelMedium)
                                     }
                                 }
 

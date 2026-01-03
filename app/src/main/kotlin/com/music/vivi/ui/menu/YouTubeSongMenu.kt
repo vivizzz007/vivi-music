@@ -187,7 +187,7 @@ fun YouTubeSongMenu(
         ) {
             AsyncImage(
                 model = song.thumbnail,
-                contentDescription = "Song Art",
+                contentDescription = stringResource(R.string.song_art),
                 modifier = Modifier
                     .size(80.dp)
                     .clip(albumArtShape),
@@ -251,7 +251,7 @@ fun YouTubeSongMenu(
                     painter = painterResource(
                         if (isFavorite) R.drawable.favorite else R.drawable.favorite_border
                     ),
-                    contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
+                    contentDescription = if (isFavorite) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites),
                     tint = if (isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -294,13 +294,13 @@ fun YouTubeSongMenu(
                         painter = painterResource(
                             if (isCurrentSongPlaying && isPlaying) R.drawable.pause else R.drawable.play
                         ),
-                        contentDescription = if (isCurrentSongPlaying && isPlaying) "Pause" else "Play"
+                        contentDescription = if (isCurrentSongPlaying && isPlaying) stringResource(R.string.pause) else stringResource(R.string.play)
                     )
                 },
                 text = {
                     Text(
                         modifier = Modifier.padding(end = 10.dp),
-                        text = if (isCurrentSongPlaying && isPlaying) "Pause" else "Play",
+                        text = if (isCurrentSongPlaying && isPlaying) stringResource(R.string.pause) else stringResource(R.string.play),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         softWrap = false
@@ -339,7 +339,7 @@ fun YouTubeSongMenu(
                     painter = painterResource(
                         if (isFavorite) R.drawable.favorite else R.drawable.favorite_border
                     ),
-                    contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
+                    contentDescription = if (isFavorite) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites),
                     tint = if (isFavorite) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -363,7 +363,7 @@ fun YouTubeSongMenu(
                 Icon(
                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
                     painter = painterResource(R.drawable.share),
-                    contentDescription = "Share song"
+                    contentDescription = stringResource(R.string.share_song)
                 )
             }
         }
@@ -415,7 +415,7 @@ fun YouTubeSongMenu(
                         else -> R.drawable.download
                     }
                 ),
-                contentDescription = "Download song"
+                contentDescription = stringResource(R.string.download_song)
             )
             Spacer(Modifier.width(8.dp))
             Text(
@@ -454,7 +454,7 @@ fun YouTubeSongMenu(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.artist),
-                        contentDescription = "Artist icon"
+                        contentDescription = stringResource(R.string.artist_icon)
                     )
                     Spacer(Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -488,7 +488,7 @@ fun YouTubeSongMenu(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.album),
-                        contentDescription = "Album icon"
+                        contentDescription = stringResource(R.string.album_icon)
                     )
                     Spacer(Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -521,7 +521,7 @@ fun YouTubeSongMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.playlist_play),
-                    contentDescription = "Play next icon"
+                    contentDescription = stringResource(R.string.play_next_icon)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -532,7 +532,7 @@ fun YouTubeSongMenu(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        "Play after current",
+                        stringResource(R.string.play_after_current),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -553,7 +553,7 @@ fun YouTubeSongMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.queue_music),
-                    contentDescription = "Add to queue icon"
+                    contentDescription = stringResource(R.string.add_to_queue_icon)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -564,7 +564,7 @@ fun YouTubeSongMenu(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        "Add to queue end",
+                        stringResource(R.string.add_to_queue_end),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -585,7 +585,7 @@ fun YouTubeSongMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.radio),
-                    contentDescription = "Start radio icon"
+                    contentDescription = stringResource(R.string.start_radio_icon)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -596,7 +596,7 @@ fun YouTubeSongMenu(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        "Play similar songs",
+                        stringResource(R.string.play_similar_songs),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -616,7 +616,7 @@ fun YouTubeSongMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.playlist_add),
-                    contentDescription = "Add to playlist icon"
+                    contentDescription = stringResource(R.string.add_to_playlist_icon)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -627,7 +627,7 @@ fun YouTubeSongMenu(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        "Add to existing playlist",
+                        stringResource(R.string.add_to_existing_playlist),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -669,7 +669,7 @@ fun YouTubeSongMenu(
                         if (librarySong?.song?.inLibrary != null) R.drawable.library_add_check
                         else R.drawable.library_add
                     ),
-                    contentDescription = "Library icon"
+                    contentDescription = stringResource(R.string.library_icon)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -681,8 +681,8 @@ fun YouTubeSongMenu(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        if (librarySong?.song?.inLibrary != null) "Remove from your music"
-                        else "Save to your music",
+                        if (librarySong?.song?.inLibrary != null) stringResource(R.string.remove_from_your_music)
+                        else stringResource(R.string.save_to_your_music),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -708,7 +708,7 @@ fun YouTubeSongMenu(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.delete),
-                        contentDescription = "Delete icon"
+                        contentDescription = stringResource(R.string.delete_icon)
                     )
                     Spacer(Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -719,7 +719,7 @@ fun YouTubeSongMenu(
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            "Delete from listening history",
+                            stringResource(R.string.delete_from_listening_history),
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -743,7 +743,7 @@ fun YouTubeSongMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.info),
-                    contentDescription = "Info icon"
+                    contentDescription = stringResource(R.string.info_icon)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -754,7 +754,7 @@ fun YouTubeSongMenu(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        "View information",
+                        stringResource(R.string.view_information),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis

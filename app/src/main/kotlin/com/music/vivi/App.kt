@@ -20,6 +20,7 @@ import com.music.innertube.models.YouTubeLocale
 import com.music.kugou.KuGou
 import com.music.lastfm.LastFM
 import com.music.vivi.BuildConfig
+import com.music.vivi.R
 import com.music.vivi.constants.*
 import com.music.vivi.di.ApplicationScope
 import com.music.vivi.extensions.toEnum
@@ -108,7 +109,7 @@ class App : Application(), SingletonImageLoader.Factory {
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@App, "Failed to parse proxy url.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@App, getString(R.string.failed_to_parse_proxy_url), Toast.LENGTH_SHORT).show()
                 }
                 reportException(e)
             }
@@ -125,7 +126,7 @@ class App : Application(), SingletonImageLoader.Factory {
                 "Music Player",
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Controls for music playback"
+                description = getString(R.string.controls_for_music_playback)
                 setShowBadge(false)
             }
             nm.createNotificationChannel(musicChannel)

@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -58,6 +59,7 @@ fun ChartsScreen(
 ) {
     val menuState = LocalMenuState.current
     val haptic = LocalHapticFeedback.current
+    val context = LocalContext.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
@@ -67,6 +69,8 @@ fun ChartsScreen(
 
     val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
+    
+    val topMusicVideosText = stringResource(R.string.top_music_videos)
 
     LaunchedEffect(Unit) {
         if (chartsPage == null) {
@@ -113,7 +117,7 @@ fun ChartsScreen(
                         .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
                         .asPaddingValues(),
                 ) {
-                    chartsPage?.sections?.filter { it.title != "Top music videos" }?.forEach { section ->
+                    chartsPage?.sections?.filter { it.title != topMusicVideosText }?.forEach { section ->
                         item(key = "section_title_${section.title}") {
                             NavigationTitle(
                                 title = when (section.title) {
@@ -210,7 +214,7 @@ fun ChartsScreen(
                         }
                     }
 
-                    chartsPage?.sections?.find { it.title == "Top music videos" }?.let { topVideosSection ->
+                    chartsPage?.sections?.find { it.title == topMusicVideosText }?.let { topVideosSection ->
                         item(key = "top_videos_title") {
                             NavigationTitle(
                                 title = stringResource(R.string.top_music_videos),

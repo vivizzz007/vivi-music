@@ -418,7 +418,7 @@ fun LyricsScreen(
                                 text = if (mediaMetadata.artists.isNotEmpty()) {
                                     mediaMetadata.artists.joinToString(", ") { it.name }
                                 } else {
-                                    "Unknown Artist"
+                                    stringResource(R.string.unknown_artist)
                                 },
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     fontSize = 14.sp
@@ -453,7 +453,7 @@ fun LyricsScreen(
                                         R.drawable.favorite
                                     else R.drawable.favorite_border
                                 ),
-                                contentDescription = if (currentSong?.song?.liked == true) "Remove from favorites" else "Add to favorites",
+                                contentDescription = if (currentSong?.song?.liked == true) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites),
                                 tint = if (currentSong?.song?.liked == true)
                                     MaterialTheme.colorScheme.error
                                 else

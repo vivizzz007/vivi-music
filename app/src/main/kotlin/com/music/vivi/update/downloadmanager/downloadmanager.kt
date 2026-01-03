@@ -7,6 +7,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import com.music.vivi.R
 
 class CustomDownloadManager {
     private var downloadJob: Job? = null
@@ -87,7 +88,7 @@ class CustomDownloadManager {
 
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    onError(e.message ?: "Download failed")
+                    onError(e.message ?: context.getString(R.string.download_failed))
                 }
             }
         }

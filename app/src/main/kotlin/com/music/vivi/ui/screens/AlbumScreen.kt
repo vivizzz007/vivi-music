@@ -308,7 +308,7 @@ fun AlbumScreen(
                                     )
                                     Spacer(Modifier.width(8.dp))
                                     Text(
-                                        text = if (albumWithSongs.album.bookmarkedAt != null) "Saved" else "Save",
+                                        text = if (albumWithSongs.album.bookmarkedAt != null) stringResource(R.string.saved) else stringResource(R.string.save),
                                         style = MaterialTheme.typography.labelLarge,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -352,7 +352,7 @@ fun AlbumScreen(
                                     Spacer(Modifier.width(8.dp))
                                     Text(
                                         text = if (isPlaying && mediaMetadata?.album?.id == albumWithSongs.album.id)
-                                            "Pause" else "Play",
+                                            stringResource(R.string.pause) else stringResource(R.string.play),
                                         style = MaterialTheme.typography.labelLarge,
                                         color = MaterialTheme.colorScheme.onPrimary
                                     )
@@ -364,7 +364,7 @@ fun AlbumScreen(
                                     val intent = Intent().apply {
                                         action = Intent.ACTION_SEND
                                         type = "text/plain"
-                                        putExtra(Intent.EXTRA_TEXT, "Check out ${albumWithSongs.album.title} by ${albumWithSongs.artists.joinToString { it.name }} on YouTube Music: https://music.youtube.com/playlist?list=${albumWithSongs.album.playlistId}")
+                                        putExtra(Intent.EXTRA_TEXT, context.getString(R.string.check_out_album_share, albumWithSongs.album.title, albumWithSongs.artists.joinToString { it.name }, "https://music.youtube.com/playlist?list=${albumWithSongs.album.playlistId}"))
                                     }
                                     context.startActivity(Intent.createChooser(intent, null))
                                 },
@@ -378,7 +378,7 @@ fun AlbumScreen(
                                 ) {
                                     Icon(
                                         painter = painterResource(R.drawable.share),
-                                        contentDescription = "Share album",
+                                        contentDescription = stringResource(R.string.share_album),
                                         modifier = Modifier.size(20.dp),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -396,7 +396,7 @@ fun AlbumScreen(
                                 modifier = Modifier.padding(horizontal = 32.dp)
                             ) {
                                 Text(
-                                    text = "E  Explicit",
+                                    text = stringResource(R.string.explicit),
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -409,7 +409,7 @@ fun AlbumScreen(
                         // Album Info
                         Text(
                             text = buildString {
-                                append("Album")
+                                append(stringResource(R.string.album_text))
                                 if (albumWithSongs.album.year != null) {
                                     append(" • ${albumWithSongs.album.year}")
                                 }
@@ -520,7 +520,7 @@ fun AlbumScreen(
                         // Artist Names (clickable)
                         Text(
                             text = buildAnnotatedString {
-                                append("By ")
+                                append(stringResource(R.string.by_text))
                                 albumWithSongs.artists.fastForEachIndexed { index, artist ->
                                     val link = LinkAnnotation.Clickable(artist.id) {
                                         navController.navigate("artist/${artist.id}")
@@ -635,11 +635,11 @@ fun AlbumScreen(
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.shuffle),
-                                    contentDescription = "Shuffle",
+                                    contentDescription = stringResource(R.string.shuffle_content_desc),
                                     modifier = Modifier.size(20.dp)
                                 )
                                 Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                                Text("Shuffle", style = MaterialTheme.typography.labelMedium)
+                                Text(stringResource(R.string.shuffle_label), style = MaterialTheme.typography.labelMedium)
                             }
 
                             // More Options Button
@@ -662,11 +662,11 @@ fun AlbumScreen(
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.more_vert),
-                                    contentDescription = "More options",
+                                    contentDescription = stringResource(R.string.more_options),
                                     modifier = Modifier.size(20.dp)
                                 )
                                 Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                                Text("More", style = MaterialTheme.typography.labelMedium)
+                                Text(stringResource(R.string.more_label), style = MaterialTheme.typography.labelMedium)
                             }
                         }
 

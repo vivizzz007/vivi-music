@@ -549,9 +549,9 @@ fun LocalPlaylistScreen(
                                             )
                                             Spacer(Modifier.width(8.dp))
                                             Text(
-                                                text = if (editable) "Delete"
-                                                else if (playlist.playlist.bookmarkedAt != null) "Saved"
-                                                else "Save",
+                                                text = if (editable) stringResource(R.string.delete)
+                                                else if (playlist.playlist.bookmarkedAt != null) stringResource(R.string.saved)
+                                                else stringResource(R.string.save),
                                                 style = MaterialTheme.typography.labelLarge,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
@@ -584,7 +584,7 @@ fun LocalPlaylistScreen(
                                             )
                                             Spacer(Modifier.width(8.dp))
                                             Text(
-                                                text = "Play",
+                                                text = stringResource(R.string.play_text),
                                                 style = MaterialTheme.typography.labelLarge,
                                                 color = MaterialTheme.colorScheme.onPrimary
                                             )
@@ -607,7 +607,7 @@ fun LocalPlaylistScreen(
                                         ) {
                                             Icon(
                                                 painter = painterResource(R.drawable.queue_music),
-                                                contentDescription = "Add to queue",
+                                                contentDescription = stringResource(R.string.add_to_queue_content_desc),
                                                 modifier = Modifier.size(20.dp),
                                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
@@ -619,8 +619,8 @@ fun LocalPlaylistScreen(
 
                                 Text(
                                     text = buildString {
-                                        append("Playlist")
-                                        append(" • ")
+                                        append(stringResource(R.string.playlist_text))
+                                        append(stringResource(R.string.playlist_separator))
                                         if (playlist.songCount == 0 && playlist.playlist.remoteSongCount != null) {
                                             append("${playlist.playlist.remoteSongCount} Tracks")
                                         } else {
@@ -684,7 +684,7 @@ fun LocalPlaylistScreen(
                                                 Download.STATE_COMPLETED -> {
                                                     Icon(
                                                         painter = painterResource(R.drawable.offline),
-                                                        contentDescription = "saved",
+                                                        contentDescription = stringResource(R.string.saved),
                                                         modifier = Modifier.size(20.dp)
                                                     )
                                                 }
@@ -698,7 +698,7 @@ fun LocalPlaylistScreen(
                                                 else -> {
                                                     Icon(
                                                         painter = painterResource(R.drawable.download),
-                                                        contentDescription = "save",
+                                                        contentDescription = stringResource(R.string.save),
                                                         modifier = Modifier.size(20.dp)
                                                     )
                                                 }
@@ -706,9 +706,9 @@ fun LocalPlaylistScreen(
                                             Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
                                             Text(
                                                 text = when (downloadState) {
-                                                    Download.STATE_COMPLETED -> "saved"
-                                                    Download.STATE_DOWNLOADING -> "saving"
-                                                    else -> "save"
+                                                    Download.STATE_COMPLETED -> stringResource(R.string.saved)
+                                                    Download.STATE_DOWNLOADING -> stringResource(R.string.saving)
+                                                    else -> stringResource(R.string.save)
                                                 },
                                                 style = MaterialTheme.typography.labelMedium
                                             )
@@ -733,11 +733,11 @@ fun LocalPlaylistScreen(
                                         ) {
                                             Icon(
                                                 painter = painterResource(R.drawable.shuffle),
-                                                contentDescription = "Shuffle",
+                                                contentDescription = stringResource(R.string.shuffle_content_desc),
                                                 modifier = Modifier.size(20.dp)
                                             )
                                             Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                                            Text("Shuffle", style = MaterialTheme.typography.labelMedium)
+                                            Text(stringResource(R.string.shuffle_label), style = MaterialTheme.typography.labelMedium)
                                         }
 
 
@@ -775,11 +775,11 @@ fun LocalPlaylistScreen(
                                             ) {
                                                 Icon(
                                                     painter = painterResource(R.drawable.sync),
-                                                    contentDescription = "Sync",
+                                                    contentDescription = stringResource(R.string.sync_content_desc),
                                                     modifier = Modifier.size(20.dp)
                                                 )
                                                 Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                                                Text("Sync", style = MaterialTheme.typography.labelMedium)
+                                                Text(stringResource(R.string.sync_label), style = MaterialTheme.typography.labelMedium)
                                             }
                                         }
 
@@ -795,11 +795,11 @@ fun LocalPlaylistScreen(
                                             ) {
                                                 Icon(
                                                     painter = painterResource(R.drawable.edit),
-                                                    contentDescription = "Edit",
+                                                    contentDescription = stringResource(R.string.edit_content_desc),
                                                     modifier = Modifier.size(20.dp)
                                                 )
                                                 Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                                                Text("Edit", style = MaterialTheme.typography.labelMedium)
+                                                Text(stringResource(R.string.edit_label), style = MaterialTheme.typography.labelMedium)
                                             }
                                         }
                                     }
@@ -837,11 +837,11 @@ fun LocalPlaylistScreen(
                                         ) {
                                             Icon(
                                                 painter = painterResource(R.drawable.sync),
-                                                contentDescription = "Sync",
+                                                contentDescription = stringResource(R.string.sync_content_desc),
                                                 modifier = Modifier.size(20.dp)
                                             )
                                             Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                                            Text("Sync", style = MaterialTheme.typography.labelMedium)
+                                            Text(stringResource(R.string.sync_label), style = MaterialTheme.typography.labelMedium)
                                         }
                                     }
                                 }
