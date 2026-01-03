@@ -15,6 +15,8 @@
     <string name="album_cover_desc">Copertina album</string>
     <string name="top_music_videos">Video musicali più popolari</string>
     <string name="trending">Tendenze</string>
+    <string name="top_result">Miglior risultato</string>
+    <string name="other">Altro</string>
 
     <string name="weeks">Settimane</string>
     <string name="months">Mesi</string>
@@ -279,6 +281,20 @@
     <string name="audio_offload_description">Utilizza il percorso audio offload per la riproduzione audio. Disabilitare questa opzione potrebbe aumentare il consumo energetico ma può essere utile se si verificano problemi con la riproduzione audio o il post-processing</string>
     <string name="lyrics_romanize_macedonian">Romanizza testi macedoni</string>
 
+    <!-- Contribution Screen Strings -->
+    <string name="contributors">Collaboratori</string>
+    <string name="contributors_subtitle">Persone fantastiche che hanno reso questo progetto migliore</string>
+    <string name="refresh_contributors">Aggiorna collaboratori</string>
+    <string name="no_contributors_found">Nessun collaboratore trovato</string>
+
+    <!-- Error Messages -->
+    <string name="error_failed_to_load_contributors">Impossibile caricare i collaboratori (%d)</string>
+    <string name="error_loading_contributors">Errore nel caricamento dei collaboratori: %s</string>
+
+    <!-- Accessibility -->
+    <string name="contributor_avatar">Avatar di %s</string>
+    <string name="github_profile">Profilo GitHub</string>
+
     <string name="integrations">Integrazioni</string>
     <string name="username">Nome utente</string>
     <string name="password">Password</string>
@@ -301,6 +317,8 @@
 
 
     <!-- Account View Strings -->
+    <string name="account_status">Stato account</string>
+    <string name="account_settings">Impostazioni account</string>
     <string name="restore_success">Ripristino riuscito</string>
     <string name="library">Libreria</string>
     <string name="logout">Disconnetti</string>
@@ -331,9 +349,13 @@
     <string name="check_internet_connection">Controlla la tua connessione internet e riprova.</string>
     <string name="vivi_music_version">VIVI MUSIC versione %1$s</string>
     <string name="app_updates_title">Aggiornamenti app</string>
+    <string name="changelog">Changelog</string>
     <string name="app_updates_subtitle">Aggiornamenti app e informazioni versione</string>
     <string name="quick_actions">Azioni rapide</string>
     <string name="system_update">Aggiornamento sistema</string>
+    <string name="update_available_subtitle">Aggiornamento disponibile - %1$s</string>
+    <string name="update_disabled_subtitle">Controlli automatici disabilitati</string>
+    <string name="up_to_date_subtitle">L\'app è aggiornata</string>
     <string name="app_info_header">INFO APP</string>
     <string name="build_version_title">Versione build</string>
     <string name="installed_on_format">Installato il %1$s</string>
@@ -341,6 +363,7 @@
     <string name="install">Installa</string>
     <string name="check_for_update">Controlla aggiornamenti</string>
     <string name="no_changelog_available">Nessun changelog disponibile</string>
+    <string name="waiting_for_network">In attesa della connessione di rete…</string>
 
     <!-- Player Strings -->
     <string name="error_playing">Errore durante la riproduzione</string>
