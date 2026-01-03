@@ -466,13 +466,9 @@ fun BottomSheetPlayer(
                             if (thumbnailUrl != null) {
                                 Box(modifier = Modifier.graphicsLayer { alpha = state.progress.coerceIn(0f, 1f) }) {
                                     AsyncImage(
-                                        model = ImageRequest.Builder(context)
-                                            .data(thumbnailUrl)
-                                            .size(100, 100)
-                                            .allowHardware(false)
-                                            .build(),
+                                        model = thumbnailUrl,
                                         contentDescription = null,
-                                        contentScale = ContentScale.Crop,
+                                        contentScale = ContentScale.FillBounds,
                                         modifier = Modifier
                                             .fillMaxSize()
                                             .blur(if (useDarkTheme) 150.dp else 100.dp)

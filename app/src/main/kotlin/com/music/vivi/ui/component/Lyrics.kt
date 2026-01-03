@@ -977,7 +977,7 @@ fun Lyrics(
                     withContext(Dispatchers.IO) {
                         try {
                             val loader = ImageLoader(context)
-                            val req = ImageRequest.Builder(context).data(coverUrl).allowHardware(false).build()
+                            val req = ImageRequest.Builder(context).data(coverUrl).build()
                             val result = loader.execute(req)
                             val bmp = result.image?.toBitmap()
                             if (bmp != null) {
