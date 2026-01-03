@@ -729,6 +729,8 @@
     <string name="hide_video_content_songs">Hide video content from songs</string>
     <string name="route_traffic_through_proxy">Route traffic through proxy</string>
     <string name="configure_proxy_settings">Configure proxy settings</string>
+    <string name="betterlyrics_lyrics">BetterLyrics Lyrics</string>
+    <string name="enable_betterlyrics_lyrics_source">Enable BetterLyrics as a lyrics source</string>
     <string name="lrclib_lyrics">LrcLib Lyrics</string>
     <string name="enable_lrclib_lyrics_source">Enable LrcLib as a lyrics source</string>
     <string name="kugou_lyrics">Kugou Lyrics</string>

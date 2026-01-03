@@ -862,8 +862,8 @@ fun ContentSettings(
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
-                                            title = "BetterLyrics Lyrics",
-                                            subtitle = "Enable BetterLyrics as a lyrics source",
+                                            title = stringResource(R.string.betterlyrics_lyrics),
+                                            subtitle = stringResource(R.string.enable_betterlyrics_lyrics_source),
                                             iconBackgroundColor = iconBgColor,
                                             iconContentColor = iconStyleColor
                                         )
