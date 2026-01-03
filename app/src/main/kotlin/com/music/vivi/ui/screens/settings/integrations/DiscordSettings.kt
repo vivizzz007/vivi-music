@@ -279,7 +279,7 @@ fun DiscordSettings(
                         }
                     },
                     title = if (isLoggedIn) discordName else stringResource(R.string.not_logged_in),
-                    subtitle = if (discordUsername.isNotEmpty()) "@$discordUsername" else "Discord Account",
+                    subtitle = if (discordUsername.isNotEmpty()) "@$discordUsername" else stringResource(R.string.discord_account),
                     onClick = if (isLoggedIn) {
                         {
                             discordName = ""
@@ -305,7 +305,7 @@ fun DiscordSettings(
                     ModernInfoItem(
                         icon = { Icon(painterResource(R.drawable.token), null, modifier = Modifier.size(22.dp)) },
                         title = stringResource(R.string.advanced_login),
-                        subtitle = "Login using token",
+                        subtitle = stringResource(R.string.login_using_token),
                         onClick = { showTokenDialog = true },
                         showArrow = true,
                         iconBackgroundColor = iconBgColor,
@@ -334,7 +334,7 @@ fun DiscordSettings(
                     ModernInfoItem(
                         icon = { Icon(painterResource(R.drawable.discord), null, modifier = Modifier.size(22.dp)) },
                         title = stringResource(R.string.enable_discord_rpc),
-                        subtitle = "Show current song on Discord",
+                        subtitle = stringResource(R.string.show_current_song_discord),
                         iconBackgroundColor = iconBgColor,
                         iconContentColor = iconStyleColor,
                         modifier = Modifier.weight(1f)
@@ -412,7 +412,7 @@ fun RichPresence(song: Song?, currentPlaybackTimeMillis: Long = 0L) {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                text = "Listening to Vivimusic",
+                text = stringResource(R.string.listening_to_vivimusic),
                 style = MaterialTheme.typography.labelLarge,
                 textAlign = TextAlign.Start,
                 fontWeight = FontWeight.ExtraBold,
@@ -479,7 +479,7 @@ fun RichPresence(song: Song?, currentPlaybackTimeMillis: Long = 0L) {
                         .padding(horizontal = 6.dp),
                 ) {
                     Text(
-                        text = song?.song?.title ?: "Song Title",
+                        text = song?.song?.title ?: stringResource(R.string.song_title_fallback),
                         color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.ExtraBold,
@@ -488,7 +488,7 @@ fun RichPresence(song: Song?, currentPlaybackTimeMillis: Long = 0L) {
                     )
 
                     Text(
-                        text = song?.artists?.joinToString { it.name } ?: "Artist",
+                        text = song?.artists?.joinToString { it.name } ?: stringResource(R.string.artist_fallback),
                         color = MaterialTheme.colorScheme.secondary,
                         fontSize = 16.sp,
                         maxLines = 1,
@@ -527,7 +527,7 @@ fun RichPresence(song: Song?, currentPlaybackTimeMillis: Long = 0L) {
                 },
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("Listen on YouTube Music")
+                Text(stringResource(R.string.listen_on_youtube_music))
             }
 
             OutlinedButton(
@@ -540,7 +540,7 @@ fun RichPresence(song: Song?, currentPlaybackTimeMillis: Long = 0L) {
                 },
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("Visit Vivimusic")
+                Text(stringResource(R.string.visit_vivimusic))
             }
         }
     }

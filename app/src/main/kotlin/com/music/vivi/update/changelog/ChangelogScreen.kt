@@ -48,6 +48,8 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -256,7 +258,8 @@ fun ChangelogScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
-                    val options = listOf("Current", "Old Releases")
+                    val context = LocalContext.current
+                    val options = listOf(context.getString(R.string.current), context.getString(R.string.old_releases))
                     options.forEachIndexed { index, label ->
                         SegmentedButton(
                             shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
@@ -280,7 +283,7 @@ fun ChangelogScreen(
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Icon(Icons.Default.Error, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(48.dp))
                                 Spacer(Modifier.height(16.dp))
-                                Text("Error loading changelog", color = MaterialTheme.colorScheme.error)
+                                Text(stringResource(R.string.error_loading_changelog), color = MaterialTheme.colorScheme.error)
                             }
                         }
                     } else {
@@ -296,12 +299,12 @@ fun ChangelogScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Column {
-                                        Text("Changelog", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                                        Text(stringResource(R.string.changelog_title), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                                         Text(currentVersionTag, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                     if (showingCached) {
                                         Surface(color = MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(8.dp)) {
-                                            Text("Cached", style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+                                            Text(stringResource(R.string.cached), style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
                                         }
                                     }
                                 }
@@ -363,7 +366,7 @@ fun ChangelogScreen(
                     ) {
                         if (oldReleasesMetadata.isEmpty() && !isFetchingOldReleases) {
                             Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                                Text("No old releases with changelog found", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(stringResource(R.string.no_old_releases_with_changelog), color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         } else {
                             oldReleasesMetadata.forEach { release ->

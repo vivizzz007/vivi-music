@@ -8,6 +8,7 @@ import com.music.innertube.YouTube
 import com.music.innertube.models.PlaylistItem
 import com.music.innertube.models.SongItem
 import com.music.innertube.models.filterVideoSongs
+import com.music.vivi.R
 import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.db.MusicDatabase
 import com.music.vivi.utils.dataStore
@@ -74,7 +75,7 @@ class OnlinePlaylistViewModel @Inject constructor(
                         startProactiveBackgroundLoading()
                     }
                 }.onFailure { throwable ->
-                    _error.value = throwable.message ?: "Failed to load playlist"
+                    _error.value = throwable.message ?: context.getString(R.string.failed_to_load_playlist)
                     _isLoading.value = false
                     reportException(throwable)
                 }

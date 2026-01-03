@@ -45,6 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.music.vivi.MainActivity
 import com.music.vivi.R
@@ -127,7 +128,7 @@ fun CrashPage(
                 ) {
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "Uh oh! ViVi hit a wall and came to an abrupt stop. See the log below for more information. More options are provided on the bottom of the page."
+                        text = stringResource(R.string.crash_message)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Card(
@@ -167,14 +168,14 @@ fun CrashPage(
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 },
-                                title = "Copy Log Content",
-                                subtitle = "Copies the crash log to clipboard.",
+                                title = stringResource(R.string.copy_log_content),
+                                subtitle = stringResource(R.string.copies_crash_log_clipboard),
                                 titleColor = MaterialTheme.colorScheme.onSurface,
                                 subtitleColor = MaterialTheme.colorScheme.onSurfaceVariant,
                                 onClick = {
                                     val clipboard =
                                         context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                    val clip = ClipData.newPlainText("Short ViVi Crash Info", errorText)
+                                    val clip = ClipData.newPlainText(context.getString(R.string.short_vivi_crash_info), errorText)
                                     clipboard.setPrimaryClip(clip)
                                 },
                                 showArrow = true,
@@ -195,16 +196,16 @@ fun CrashPage(
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 },
-                                title = "Send via Gmail",
-                                subtitle = "Copies the log and opens Gmail.",
+                                title = stringResource(R.string.send_via_gmail),
+                                subtitle = stringResource(R.string.copies_log_opens_gmail),
                                 titleColor = MaterialTheme.colorScheme.onSurface,
                                 subtitleColor = MaterialTheme.colorScheme.onSurfaceVariant,
                                 onClick = {
                                     // Copy to clipboard
                                     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                    val clip = ClipData.newPlainText("ViVi Crash Log", errorText)
+                                    val clip = ClipData.newPlainText(context.getString(R.string.vivi_crash_log), errorText)
                                     clipboard.setPrimaryClip(clip)
-                                    Toast.makeText(context, "Log copied to clipboard", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, context.getString(R.string.log_copied_to_clipboard), Toast.LENGTH_SHORT).show()
 
                                     // Send Email
                                     val deviceInfo = """
@@ -217,13 +218,13 @@ fun CrashPage(
                                     val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
                                         data = Uri.parse("mailto:")
                                         putExtra(Intent.EXTRA_EMAIL, arrayOf("mkmdevilmi@gmail.com"))
-                                        putExtra(Intent.EXTRA_SUBJECT, "ViVi Music Crash Report")
-                                        putExtra(Intent.EXTRA_TEXT, "Crash Log (also copied to clipboard):\n\n${errorText}\n\nDevice Info:\n${deviceInfo}")
+                                        putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.vivi_music_crash_report))
+                                        putExtra(Intent.EXTRA_TEXT, context.getString(R.string.crash_log_email_body, errorText, deviceInfo))
                                     }
                                     try {
                                         context.startActivity(Intent.createChooser(emailIntent, "Send email via..."))
                                     } catch (e: Exception) {
-                                        Toast.makeText(context, "No email app found", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, context.getString(R.string.no_email_app_found), Toast.LENGTH_SHORT).show()
                                     }
                                 },
                                 showArrow = true,
@@ -244,8 +245,8 @@ fun CrashPage(
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 },
-                                title = "Report via GitHub",
-                                subtitle = "Opens GitHub to report the issue.",
+                                title = stringResource(R.string.report_via_github_crash),
+                                subtitle = stringResource(R.string.opens_github_report_issue),
                                 titleColor = MaterialTheme.colorScheme.onSurface,
                                 subtitleColor = MaterialTheme.colorScheme.onSurfaceVariant,
                                 onClick = {
@@ -272,8 +273,8 @@ fun CrashPage(
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 },
-                                title = "Restart ViVi",
-                                subtitle = "Restarts ViVi.",
+                                title = stringResource(R.string.restart_vivi),
+                                subtitle = stringResource(R.string.restarts_vivi),
                                 titleColor = MaterialTheme.colorScheme.onSurface,
                                 subtitleColor = MaterialTheme.colorScheme.onSurfaceVariant,
                                 onClick = {

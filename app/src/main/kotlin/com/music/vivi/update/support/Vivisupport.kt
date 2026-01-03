@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -72,7 +73,7 @@ fun SupportScreen(
             Spacer(modifier = Modifier.height(100.dp))
 
             Text(
-                text = "SUPPORT DEVELOPER",
+                text = stringResource(R.string.support_developer),
                 style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
@@ -83,7 +84,7 @@ fun SupportScreen(
 
             // UPI Payment Methods
             Text(
-                text = "UPI Payment Methods",
+                text = stringResource(R.string.upi_payment_methods),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.align(Alignment.Start)
@@ -129,13 +130,13 @@ fun SupportScreen(
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.gpay), // Add Google Pay icon to your drawables
-                                contentDescription = "Google Pay",
+                                contentDescription = stringResource(R.string.google_pay),
                                 modifier = Modifier.size(48.dp),
                                 tint = Color.Unspecified
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "Google Pay",
+                                text = stringResource(R.string.google_pay),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
@@ -177,13 +178,13 @@ fun SupportScreen(
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.phonepay), // Add PhonePe icon to your drawables
-                                contentDescription = "PhonePe",
+                                contentDescription = stringResource(R.string.phonepe),
                                 modifier = Modifier.size(48.dp),
                                 tint = Color.Unspecified
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "PhonePe",
+                                text = stringResource(R.string.phonepe),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
@@ -233,13 +234,13 @@ fun SupportScreen(
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.paytm), // Add Paytm icon to your drawables
-                                contentDescription = "Paytm",
+                                contentDescription = stringResource(R.string.paytm),
                                 modifier = Modifier.size(48.dp),
                                 tint = Color.Unspecified
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "Paytm",
+                                text = stringResource(R.string.paytm),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
@@ -277,13 +278,13 @@ fun SupportScreen(
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.bhim), // Add BHIM icon to your drawables
-                                contentDescription = "BHIM",
+                                contentDescription = stringResource(R.string.bhim_content_desc),
                                 modifier = Modifier.size(48.dp),
                                 tint = Color.Unspecified
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "BHIM UPI",
+                                text = stringResource(R.string.bhim_upi),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
@@ -322,12 +323,12 @@ fun SupportScreen(
                     ) {
                         Column {
                             Text(
-                                text = "Buy Me a Coffee",
+                                text = stringResource(R.string.buy_me_a_coffee),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                             )
                             Text(
-                                text = "COMING SOON",
+                                text = stringResource(R.string.coming_soon),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
@@ -335,7 +336,7 @@ fun SupportScreen(
                         }
                         Icon(
                             imageVector = Icons.Filled.Coffee,
-                            contentDescription = "Buy Me a Coffee",
+                            contentDescription = stringResource(R.string.buy_me_a_coffee),
                             modifier = Modifier.size(24.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                         )
@@ -348,7 +349,7 @@ fun SupportScreen(
 
         // Top App Bar
         TopAppBar(
-            title = { Text("Support") },
+            title = { Text(stringResource(R.string.support_title)) },
             navigationIcon = {
                 IconButton(
                     onClick = navController::navigateUp,

@@ -232,7 +232,7 @@ fun AlbumMenu(
         ) {
             AsyncImage(
                 model = album.album.thumbnailUrl,
-                contentDescription = "Album Art",
+                contentDescription = stringResource(R.string.album_art_content_desc),
                 modifier = Modifier
                     .size(80.dp)
                     .clip(albumArtShape),
@@ -286,7 +286,7 @@ fun AlbumMenu(
                     painter = painterResource(
                         if (isFavorite) R.drawable.favorite else R.drawable.favorite_border
                     ),
-                    contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
+                    contentDescription = if (isFavorite) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites),
                     tint = if (isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -331,13 +331,13 @@ fun AlbumMenu(
                         painter = painterResource(
                             if (isCurrentAlbumPlaying && isPlaying) R.drawable.pause else R.drawable.play
                         ),
-                        contentDescription = if (isCurrentAlbumPlaying && isPlaying) "Pause" else "Play"
+                        contentDescription = if (isCurrentAlbumPlaying && isPlaying) stringResource(R.string.pause) else stringResource(R.string.play_content_desc)
                     )
                 },
                 text = {
                     Text(
                         modifier = Modifier.padding(end = 10.dp),
-                        text = if (isCurrentAlbumPlaying && isPlaying) "Pause" else "Play",
+                        text = if (isCurrentAlbumPlaying && isPlaying) stringResource(R.string.pause) else stringResource(R.string.play),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         softWrap = false
@@ -366,7 +366,7 @@ fun AlbumMenu(
                     painter = painterResource(
                         if (isFavorite) R.drawable.favorite else R.drawable.favorite_border
                     ),
-                    contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
+                    contentDescription = if (isFavorite) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites),
                     tint = if (isFavorite) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -390,7 +390,7 @@ fun AlbumMenu(
                 Icon(
                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
                     painter = painterResource(R.drawable.share),
-                    contentDescription = "Share album"
+                    contentDescription = stringResource(R.string.share_album_content_desc),
                 )
             }
         }
@@ -455,14 +455,14 @@ fun AlbumMenu(
                         else -> R.drawable.download
                     }
                 ),
-                contentDescription = "Download album"
+                contentDescription = stringResource(R.string.download_album_content_desc),
             )
             Spacer(Modifier.width(8.dp))
             Text(
                 text = when (downloadState) {
-                    STATE_COMPLETED -> "Remove Offline"
-                    STATE_QUEUED, STATE_DOWNLOADING -> "Downloading..."
-                    else -> "Download Album"
+                    STATE_COMPLETED -> stringResource(R.string.remove_offline)
+                    STATE_QUEUED, STATE_DOWNLOADING -> stringResource(R.string.downloading_ellipsis)
+                    else -> stringResource(R.string.download_album_text)
                 },
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -493,12 +493,12 @@ fun AlbumMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.artist),
-                    contentDescription = "Artist icon"
+                    contentDescription = stringResource(R.string.artist_icon_content_desc),
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "Artist",
+                        stringResource(R.string.artist_label),
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -522,12 +522,12 @@ fun AlbumMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.music_note),
-                    contentDescription = "Songs icon"
+                    contentDescription = stringResource(R.string.songs_icon_content_desc),
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "Songs",
+                        stringResource(R.string.songs_label),
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -554,18 +554,18 @@ fun AlbumMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.playlist_play),
-                    contentDescription = "Play next icon"
+                    contentDescription = stringResource(R.string.play_next_icon_content_desc),
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "Play Next",
+                        stringResource(R.string.play_next_label),
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        "Play after current",
+                        stringResource(R.string.play_after_current),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -586,18 +586,18 @@ fun AlbumMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.queue_music),
-                    contentDescription = "Add to queue icon"
+                    contentDescription = stringResource(R.string.add_to_queue_icon_content_desc),
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "Add to Queue",
+                        stringResource(R.string.add_to_queue_label),
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        "Add to queue end",
+                        stringResource(R.string.add_to_queue_end),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -617,18 +617,18 @@ fun AlbumMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.playlist_add),
-                    contentDescription = "Add to playlist icon"
+                    contentDescription = stringResource(R.string.add_to_playlist_icon_content_desc),
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "Add to Playlist",
+                        stringResource(R.string.add_to_playlist_label),
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        "Add to existing playlist",
+                        stringResource(R.string.add_to_existing_playlist_subtitle),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -655,18 +655,18 @@ fun AlbumMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.sync),
-                    contentDescription = "Refresh icon"
+                    contentDescription = stringResource(R.string.refresh_icon_content_desc),
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "Refresh Metadata",
+                        stringResource(R.string.refresh_metadata),
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        "Update album information",
+                        stringResource(R.string.update_album_information),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis

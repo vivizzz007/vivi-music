@@ -104,14 +104,14 @@ fun ShowMediaInfo(videoId: String) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Song Info",
+                    text = stringResource(R.string.song_info),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
                 )
                 
                 TextButton(onClick = { sheetState.dismiss() }) {
-                    Text("Done")
+                    Text(stringResource(R.string.done))
                 }
             }
         }
@@ -155,22 +155,22 @@ fun ShowMediaInfo(videoId: String) {
                     ) {
                         // Title / Album
                         InfoItem(
-                            label = "Title",
-                            value = song?.title ?: info?.title ?: "Unknown",
+                            label = stringResource(R.string.title),
+                            value = song?.title ?: info?.title ?: stringResource(R.string.unknown),
                             modifier = Modifier.weight(1f)
                         )
                         
                         // Registration (Format info)
                         val formatText = buildString {
                             if (currentFormat != null) {
-                                append(currentFormat?.mimeType?.substringBefore(";") ?: "Unknown")
+                                append(currentFormat?.mimeType?.substringBefore(";") ?: stringResource(R.string.unknown))
                                 currentFormat?.bitrate?.let { append(" • ${it / 1000}kbps") }
                             } else {
-                                append("Standard")
+                                append(stringResource(R.string.standard))
                             }
                         }
                         InfoItem(
-                            label = "Format",
+                            label = stringResource(R.string.format),
                             value = formatText,
                             modifier = Modifier.weight(1f)
                         )
@@ -186,18 +186,18 @@ fun ShowMediaInfo(videoId: String) {
                             val minutes = totalSeconds / 60
                             val seconds = totalSeconds % 60
                             "%d:%02d".format(minutes, seconds)
-                        } ?: "Unknown"
+                        }                             ?: stringResource(R.string.unknown)
                         
                         InfoItem(
-                            label = "Duration",
+                            label = stringResource(R.string.duration),
                             value = duration,
                             modifier = Modifier.weight(1f)
                         )
 
                         // Hosted By (Artist)
                         InfoItem(
-                            label = "Artist",
-                            value = song?.artists?.joinToString { it.name } ?: info?.author ?: "Unknown",
+                            label = stringResource(R.string.artist),
+                            value = song?.artists?.joinToString { it.name } ?: info?.author ?: stringResource(R.string.unknown),
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -210,16 +210,16 @@ fun ShowMediaInfo(videoId: String) {
                        // Guests (Views)
                         val viewCount = info?.viewCount?.toInt()?.let { shortNumberFormatter(it) } ?: "N/A"
                         InfoItem(
-                            label = "Views",
-                            value = "$viewCount Views",
+                            label = stringResource(R.string.views),
+                            value = stringResource(R.string.views_count, viewCount),
                             modifier = Modifier.weight(1f)
                         )
 
                          // Likes
                         val likeCount = info?.like?.toInt()?.let { shortNumberFormatter(it) } ?: "N/A"
                         InfoItem(
-                            label = "Likes",
-                            value = "$likeCount Likes",
+                            label = stringResource(R.string.likes),
+                            value = stringResource(R.string.likes_count, likeCount),
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -230,13 +230,13 @@ fun ShowMediaInfo(videoId: String) {
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                        InfoItem(
-                            label = "Itag",
+                            label = stringResource(R.string.itag),
                             value = currentFormat?.itag?.toString() ?: "N/A",
                             modifier = Modifier.weight(1f)
                         )
                         
                          InfoItem(
-                            label = "Loudness",
+                            label = stringResource(R.string.loudness),
                              value = currentFormat?.loudnessDb?.let { "$it dB" } ?: "N/A",
                             modifier = Modifier.weight(1f)
                         )
@@ -248,7 +248,7 @@ fun ShowMediaInfo(videoId: String) {
              item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        text = "Description",
+                        text = stringResource(R.string.description),
                         style = MaterialTheme.typography.labelMedium.copy(
                             fontFamily = FontFamily.Monospace,
                             fontWeight = FontWeight.Bold
@@ -256,7 +256,7 @@ fun ShowMediaInfo(videoId: String) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                      Text(
-                        text = info?.description ?: "No description available",
+                        text = info?.description ?: stringResource(R.string.no_description_available),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onBackground
                     )

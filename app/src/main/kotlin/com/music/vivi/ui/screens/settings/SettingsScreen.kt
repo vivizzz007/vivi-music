@@ -147,7 +147,7 @@ fun SettingsScreen(
     val accountSubtitle = if (isLoggedIn && accountEmail.isNotBlank()) {
         accountEmail
     } else {
-        "Manage your account and preferences"
+        stringResource(R.string.manage_account_preferences)
     }
 
     val isUpdateAvailable = updateStatus is UpdateStatus.UpdateAvailable
@@ -186,7 +186,7 @@ fun SettingsScreen(
 
             // Settings Title
             Text(
-                text = "Settings",
+                text = stringResource(R.string.settings_title),
                 style = MaterialTheme.typography.headlineMedium.copy(fontSize = 40.sp),
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
@@ -216,23 +216,23 @@ fun SettingsScreen(
                                 )
                             },
                             title = when (updateStatus) {
-                                is UpdateStatus.UpdateAvailable -> "Update Available"
+                                is UpdateStatus.UpdateAvailable -> stringResource(R.string.update_available_title)
                                 is UpdateStatus.Loading -> stringResource(R.string.appupdate)
                                 is UpdateStatus.Disabled -> stringResource(R.string.appupdate)
                                 else -> stringResource(R.string.appupdate)
                             },
                             subtitle = when (updateStatus) {
                                 is UpdateStatus.Disabled -> {
-                                    "Automatic check disabled • V${currentVersion}"
+                                    stringResource(R.string.automatic_check_disabled, currentVersion)
                                 }
                                 is UpdateStatus.UpdateAvailable -> {
-                                    "${(updateStatus as UpdateStatus.UpdateAvailable).latestVersion} is now available"
+                                    stringResource(R.string.version_now_available, (updateStatus as UpdateStatus.UpdateAvailable).latestVersion)
                                 }
                                 is UpdateStatus.Loading -> {
-                                    "Checking for updates..."
+                                    stringResource(R.string.checking_for_updates)
                                 }
                                 else -> {
-                                    "Current version: ${currentVersion}"
+                                    stringResource(R.string.current_version, currentVersion)
                                 }
                             },
                             titleColor = when (updateStatus) {
@@ -297,7 +297,7 @@ fun SettingsScreen(
                                 )
                             },
                             title = stringResource(R.string.appearance),
-                            subtitle = "Customize theme and display settings",
+                            subtitle = stringResource(R.string.customize_theme_display_settings),
                             onClick = { navController.navigate("settings/appearance") },
                             showArrow = true,
                             iconBackgroundColor = iconBgColor,
@@ -315,7 +315,7 @@ fun SettingsScreen(
                                 )
                             },
                             title = stringResource(R.string.player_and_audio),
-                            subtitle = "Audio quality and playback settings",
+                            subtitle = stringResource(R.string.audio_quality_playback_settings),
                             onClick = { navController.navigate("settings/player") },
                             showArrow = true,
                             iconBackgroundColor = iconBgColor,
@@ -333,7 +333,7 @@ fun SettingsScreen(
                                 )
                             },
                             title = stringResource(R.string.content),
-                            subtitle = "Language and content preferences",
+                            subtitle = stringResource(R.string.language_content_preferences),
                             onClick = { navController.navigate("settings/content") },
                             showArrow = true,
                             iconBackgroundColor = iconBgColor,
@@ -351,7 +351,7 @@ fun SettingsScreen(
                                 )
                             },
                             title = stringResource(R.string.privacy),
-                            subtitle = "Privacy and security settings",
+                            subtitle = stringResource(R.string.privacy_security_settings),
                             onClick = { navController.navigate("settings/privacy") },
                             showArrow = true,
                             iconBackgroundColor = iconBgColor,
@@ -369,7 +369,7 @@ fun SettingsScreen(
                                 )
                             },
                             title = stringResource(R.string.storage),
-                            subtitle = "Manage storage and downloads",
+                            subtitle = stringResource(R.string.manage_storage_downloads),
                             onClick = { navController.navigate("settings/storage") },
                             showArrow = true,
                             iconBackgroundColor = iconBgColor,
@@ -387,7 +387,7 @@ fun SettingsScreen(
                                 )
                             },
                             title = stringResource(R.string.backup_restore),
-                            subtitle = "Backup and restore your data",
+                            subtitle = stringResource(R.string.backup_restore_data),
                             onClick = { navController.navigate("settings/backup_restore") },
                             showArrow = true,
                             iconBackgroundColor = iconBgColor,
@@ -405,7 +405,7 @@ fun SettingsScreen(
                                 )
                             },
                             title = stringResource(R.string.about),
-                            subtitle = "App information and legal",
+                            subtitle = stringResource(R.string.app_information_legal),
                             onClick = { navController.navigate("settings/about") },
                             showArrow = true,
                             iconBackgroundColor = iconBgColor,

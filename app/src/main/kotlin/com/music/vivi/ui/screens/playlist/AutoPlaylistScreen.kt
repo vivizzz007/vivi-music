@@ -375,7 +375,7 @@ fun AutoPlaylistScreen(
                                         onClick = {
                                             playerConnection.playQueue(
                                                 ListQueue(
-                                                    title = "Auto Playlist",
+                                                    title = context.getString(R.string.auto_playlist),
                                                     items = songs!!.map { it.toMediaItem() },
                                                 ),
                                             )
@@ -513,7 +513,7 @@ fun AutoPlaylistScreen(
                                             Download.STATE_COMPLETED -> {
                                                 Icon(
                                                     painter = painterResource(R.drawable.offline),
-                                                    contentDescription = "saved",
+                                                    contentDescription = stringResource(R.string.saved),
                                                     modifier = Modifier.size(20.dp)
                                                 )
                                             }
@@ -527,7 +527,7 @@ fun AutoPlaylistScreen(
                                             else -> {
                                                 Icon(
                                                     painter = painterResource(R.drawable.download),
-                                                    contentDescription = "save",
+                                                    contentDescription = stringResource(R.string.save),
                                                     modifier = Modifier.size(20.dp)
                                                 )
                                             }
@@ -535,9 +535,9 @@ fun AutoPlaylistScreen(
                                         Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
                                         Text(
                                             text = when (downloadState) {
-                                                Download.STATE_COMPLETED -> "saved"
-                                                Download.STATE_DOWNLOADING -> "saving"
-                                                else -> "save"
+                                                Download.STATE_COMPLETED -> stringResource(R.string.saved)
+                                                Download.STATE_DOWNLOADING -> stringResource(R.string.saving)
+                                                else -> stringResource(R.string.save)
                                             },
                                             style = MaterialTheme.typography.labelMedium
                                         )
@@ -556,11 +556,11 @@ fun AutoPlaylistScreen(
                                     ) {
                                         Icon(
                                             painter = painterResource(R.drawable.queue_music),
-                                            contentDescription = "Add to queue",
+                                            contentDescription = stringResource(R.string.add_to_queue_content_desc),
                                             modifier = Modifier.size(20.dp)
                                         )
                                         Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                                        Text("Queue", style = MaterialTheme.typography.labelMedium)
+                                        Text(stringResource(R.string.queue_label), style = MaterialTheme.typography.labelMedium)
                                     }
 
                                     // More Options Button (includes sort and other options)
@@ -574,11 +574,11 @@ fun AutoPlaylistScreen(
                                     ) {
                                         Icon(
                                             painter = painterResource(R.drawable.more_vert),
-                                            contentDescription = "More options",
+                                            contentDescription = stringResource(R.string.more_options_content_desc),
                                             modifier = Modifier.size(20.dp)
                                         )
                                         Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                                        Text("More", style = MaterialTheme.typography.labelMedium)
+                                        Text(stringResource(R.string.more_label), style = MaterialTheme.typography.labelMedium)
                                     }
                                 }
 

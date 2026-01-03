@@ -21,7 +21,7 @@ object DownloadNotificationManager {
     private lateinit var appContext: Context
 
     const val CHANNEL_ID = "download_progress_channel"
-    private const val CHANNEL_NAME = "Download Progress"
+    private const val CHANNEL_NAME = "Download Progress" // Will be replaced with context.getString in initialize()
     private const val NOTIFICATION_ID = 5678
 
     fun initialize(context: Context) {
@@ -31,10 +31,10 @@ object DownloadNotificationManager {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                CHANNEL_NAME,
+                context.getString(R.string.download_progress_channel),
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Shows download progress for app updates"
+                description = context.getString(R.string.download_progress_description)
                 setShowBadge(false)
                 lockscreenVisibility = Notification.VISIBILITY_PUBLIC
                 enableVibration(false)
@@ -83,10 +83,10 @@ object DownloadNotificationManager {
     fun showDownloadFailed(version: String, errorMessage: String) {
         val notification = NotificationCompat.Builder(appContext, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.stat_sys_warning)
-            .setContentTitle("Update Failed")
-            .setContentText("Failed to download version $version")
+            .setContentTitle(appContext.getString(R.string.update_failed))
+            .setContentText(appContext.getString(R.string.failed_to_download_version, version))
             .setStyle(NotificationCompat.BigTextStyle()
-                .bigText("Failed to download version $version\n$errorMessage"))
+                .bigText(appContext.getString(R.string.failed_to_download_version_error, version, errorMessage)))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setAutoCancel(true)
@@ -122,8 +122,8 @@ object DownloadNotificationManager {
 
         val builder = Notification.Builder(appContext, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground) // Your app icon
-            .setContentTitle("Downloading Update")
-            .setContentText("Version $version • $fileSize")
+            .setContentTitle(appContext.getString(R.string.downloading_update))
+            .setContentText(appContext.getString(R.string.version_file_size, version, fileSize))
             .setOngoing(true)
             .setStyle(progressStyle)
             .setVisibility(Notification.VISIBILITY_PUBLIC)
@@ -132,7 +132,7 @@ object DownloadNotificationManager {
 
         // Use safe helpers for Android 16 features
         setRequestPromotedOngoingSafely(builder, true)
-        setShortCriticalTextSafely(builder, "Starting")
+        setShortCriticalTextSafely(builder, appContext.getString(R.string.starting))
 
         notificationManager.notify(NOTIFICATION_ID, builder.build())
     }
@@ -156,8 +156,8 @@ object DownloadNotificationManager {
 
         val builder = Notification.Builder(appContext, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground) // Your app icon
-            .setContentTitle("Downloading Update")
-            .setContentText("Version $version • $progress%")
+            .setContentTitle(appContext.getString(R.string.downloading_update))
+            .setContentText(appContext.getString(R.string.version_progress, version, progress))
             .setOngoing(progress < 100)
             .setStyle(progressStyle)
             .setVisibility(Notification.VISIBILITY_PUBLIC)
@@ -210,8 +210,8 @@ object DownloadNotificationManager {
 
         val builder = Notification.Builder(appContext, CHANNEL_ID)
             .setSmallIcon(R.drawable.updated) // Checkmark icon when complete
-            .setContentTitle("Update Ready")
-            .setContentText("Tap to install version $version")
+            .setContentTitle(appContext.getString(R.string.update_ready))
+            .setContentText(appContext.getString(R.string.tap_to_install_version, version))
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .setStyle(progressStyle)
@@ -221,7 +221,7 @@ object DownloadNotificationManager {
 
         // Use safe helpers for Android 16 features
         setRequestPromotedOngoingSafely(builder, false)
-        setShortCriticalTextSafely(builder, "Done")
+        setShortCriticalTextSafely(builder, appContext.getString(R.string.done))
 
         notificationManager.notify(NOTIFICATION_ID, builder.build())
     }
@@ -256,8 +256,8 @@ object DownloadNotificationManager {
     private fun showDownloadStartingLegacy(version: String, fileSize: String) {
         val notification = NotificationCompat.Builder(appContext, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground) // Your app icon
-            .setContentTitle("Downloading Update")
-            .setContentText("Version $version • $fileSize")
+            .setContentTitle(appContext.getString(R.string.downloading_update))
+            .setContentText(appContext.getString(R.string.version_file_size, version, fileSize))
             .setProgress(100, 0, false)
             .setOngoing(true)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -271,8 +271,8 @@ object DownloadNotificationManager {
     private fun updateDownloadProgressLegacy(progress: Int, version: String) {
         val notification = NotificationCompat.Builder(appContext, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher) // Your app icon
-            .setContentTitle("Downloading Update")
-            .setContentText("Version $version • $progress%")
+            .setContentTitle(appContext.getString(R.string.downloading_update))
+            .setContentText(appContext.getString(R.string.version_progress, version, progress))
             .setProgress(100, progress, false)
             .setOngoing(progress < 100)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -306,8 +306,8 @@ object DownloadNotificationManager {
 
         val notification = NotificationCompat.Builder(appContext, CHANNEL_ID)
             .setSmallIcon(R.drawable.updated) // Checkmark icon when complete
-            .setContentTitle("Update Ready")
-            .setContentText("Tap to install version $version")
+            .setContentTitle(appContext.getString(R.string.update_ready))
+            .setContentText(appContext.getString(R.string.tap_to_install_version, version))
             .setProgress(0, 0, false)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)

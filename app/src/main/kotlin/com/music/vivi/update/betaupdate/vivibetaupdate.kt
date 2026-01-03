@@ -82,7 +82,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.core.content.FileProvider
+import com.music.vivi.R
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -411,12 +413,12 @@ fun ViviDpiSettings(
 
     val latestPreReleaseValue = latestPreRelease
     val statusText = when {
-        isDownloading -> "Downloading..."
-        isApkDownloaded && downloadedTag == latestPreReleaseValue?.tag_name -> "Ready to install"
-        latestPreReleaseValue != null -> "Available"
-        fetchState is DpiSettingsViewModel.FetchState.Loading -> "Checking for update"
-        fetchState is DpiSettingsViewModel.FetchState.Error -> "Failed to load"
-        else -> "No Update"
+        isDownloading -> stringResource(R.string.downloading_ellipsis)
+        isApkDownloaded && downloadedTag == latestPreReleaseValue?.tag_name -> stringResource(R.string.ready_to_install)
+        latestPreReleaseValue != null -> stringResource(R.string.available)
+        fetchState is DpiSettingsViewModel.FetchState.Loading -> stringResource(R.string.checking_for_updates)
+        fetchState is DpiSettingsViewModel.FetchState.Error -> stringResource(R.string.failed_to_load)
+        else -> stringResource(R.string.no_update)
     }
 
     Scaffold(
@@ -424,19 +426,19 @@ fun ViviDpiSettings(
             TopAppBar(
                 title = {
                     Text(
-                        "Beta Updater",
+                        stringResource(R.string.beta_updater),
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Medium
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = { onBackPressedDispatcher?.onBackPressed() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 actions = {
                     IconButton(onClick = { /* Menu options */ }) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "More options")
+                        Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.more_options))
                     }
                 },
                 scrollBehavior = scrollBehavior,
@@ -468,7 +470,7 @@ fun ViviDpiSettings(
                             latestPreReleaseValue.tag_name
                         )
                     } ?: run {
-                        Toast.makeText(context, "No APK found in the latest pre-release", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.no_apk_found), Toast.LENGTH_SHORT).show()
                     }
                 },
                 onInstallClick = {
@@ -603,14 +605,14 @@ fun OxygenOSStyleCard(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "VIVI MUSIC",
+                text = stringResource(R.string.vivi_music),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
 
             Text(
-                text = "Vivi Music Beta Update",
+                text = stringResource(R.string.vivi_music_beta_update),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -651,7 +653,7 @@ fun OxygenOSStyleCard(
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
                     ) {
                         Text(
-                            "Changelog",
+                            stringResource(R.string.changelog),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Medium
                         )
@@ -670,7 +672,7 @@ fun OxygenOSStyleCard(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            "Recheck",
+                            stringResource(R.string.recheck),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Medium
                         )
@@ -701,7 +703,7 @@ fun OxygenOSStyleCard(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = if (isApkDownloaded) "Install" else "Download",
+                            text = if (isApkDownloaded) stringResource(R.string.install) else stringResource(R.string.action_download),
                             fontWeight = FontWeight.Medium
                         )
                     }
@@ -731,35 +733,35 @@ fun DetailsSection(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Changelog for $version",
+                text = stringResource(R.string.changelog_for_version, version),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
 
             DetailItem(
-                label = "Version",
+                label = stringResource(R.string.version_label),
                 value = version
             )
 
             DetailItem(
-                label = "APK Size",
+                label = stringResource(R.string.apk_size_label),
                 value = "${"%.2f".format(apkSize / (1024.0 * 1024.0))} MB"
             )
 
             DetailItem(
-                label = "Upload Date",
+                label = stringResource(R.string.upload_date_label),
                 value = formatUploadDate(uploadDateTime)
             )
 
             DetailItem(
-                label = "Upload Time",
+                label = stringResource(R.string.upload_time_label),
                 value = formatUploadTime(uploadDateTime)
             )
 
             Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
 
             Text(
-                text = "Changelog",
+                text = stringResource(R.string.changelog),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold
             )
@@ -819,13 +821,13 @@ fun downloadApk(context: Context, url: String, viewModel: DpiSettingsViewModel, 
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
         context.startActivity(intent)
-        Toast.makeText(context, "Please enable 'Install unknown apps' and try again.", Toast.LENGTH_LONG).show()
+        Toast.makeText(context, context.getString(R.string.enable_install_unknown_apps), Toast.LENGTH_LONG).show()
         return -1
     }
 
     val request = DownloadManager.Request(Uri.parse(url)).apply {
-        setTitle("Downloading Vivi Music APK")
-        setDescription("Downloading Vivi Music pre-release")
+        setTitle(context.getString(R.string.downloading_vivi_music_apk))
+        setDescription(context.getString(R.string.downloading_vivi_music_prerelease))
         setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
         setAllowedOverMetered(true)
         setAllowedOverRoaming(true)
@@ -838,7 +840,7 @@ fun downloadApk(context: Context, url: String, viewModel: DpiSettingsViewModel, 
         downloadManager.enqueue(request)
     } catch (e: Exception) {
         Log.e("DownloadAPK", "Download error: ${e.message}", e)
-        Toast.makeText(context, "Download error: ${e.message}", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.download_error, e.message ?: ""), Toast.LENGTH_SHORT).show()
         viewModel.setDownloading(false)
         return -1
     }
@@ -848,7 +850,7 @@ fun downloadApk(context: Context, url: String, viewModel: DpiSettingsViewModel, 
 
     startProgressTracking(context, downloadManager, downloadId, viewModel, tag)
 
-    Toast.makeText(context, "Download started...", Toast.LENGTH_SHORT).show()
+    Toast.makeText(context, context.getString(R.string.download_started), Toast.LENGTH_SHORT).show()
     return downloadId
 }
 
@@ -911,29 +913,29 @@ private fun startProgressTracking(
                                     if (apkFile != null && apkFile.exists()) {
                                         Log.d("DownloadAPK", "Download completed: $uriString, file exists: ${apkFile.exists()}")
                                         viewModel.setApkDownloaded(true, apkUri, tag)
-                                        Toast.makeText(context, "Download completed!", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, context.getString(R.string.download_completed), Toast.LENGTH_SHORT).show()
                                     } else {
                                         Log.e("DownloadAPK", "APK file not found at: $uriString")
                                         viewModel.setApkDownloaded(false, null)
                                         viewModel.setDownloading(false)
-                                        Toast.makeText(context, "Download completed but file not found", Toast.LENGTH_LONG).show()
+                                        Toast.makeText(context, context.getString(R.string.download_completed_file_not_found), Toast.LENGTH_LONG).show()
                                     }
                                 } else {
                                     Log.e("DownloadAPK", "URI column not found")
                                     viewModel.setApkDownloaded(false, null)
                                     viewModel.setDownloading(false)
-                                    Toast.makeText(context, "Download completed but URI not found", Toast.LENGTH_LONG).show()
+                                    Toast.makeText(context, context.getString(R.string.download_completed_uri_not_found), Toast.LENGTH_LONG).show()
                                 }
                             }
 
                             DownloadManager.STATUS_FAILED -> {
                                 isTracking = false
                                 val reason = if (reasonIndex != -1) cursor.getInt(reasonIndex) else -1
-                                val errorMessage = getDownloadErrorMessage(reason)
+                                val errorMessage = getDownloadErrorMessage(context, reason)
                                 Log.e("DownloadAPK", "Download failed with reason: $reason ($errorMessage)")
                                 viewModel.setApkDownloaded(false, null)
                                 viewModel.setDownloading(false)
-                                Toast.makeText(context, "Download failed: $errorMessage", Toast.LENGTH_LONG).show()
+                                Toast.makeText(context, context.getString(R.string.download_failed_error, errorMessage), Toast.LENGTH_LONG).show()
                             }
 
                             DownloadManager.STATUS_PAUSED -> {
@@ -951,7 +953,7 @@ private fun startProgressTracking(
                         Log.e("DownloadAPK", "Download entry not found")
                         viewModel.setApkDownloaded(false, null)
                         viewModel.setDownloading(false)
-                        Toast.makeText(context, "Download tracking failed", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.download_tracking_failed), Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {
@@ -959,7 +961,7 @@ private fun startProgressTracking(
                 Log.e("DownloadAPK", "Error tracking download progress", e)
                 viewModel.setApkDownloaded(false, null)
                 viewModel.setDownloading(false)
-                Toast.makeText(context, "Download tracking error: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.download_tracking_error, e.message ?: ""), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -987,7 +989,7 @@ private fun startProgressTracking(
                                 viewModel.setApkDownloaded(true, apkUri, tag)
                             } else {
                                 viewModel.setApkDownloaded(false, null)
-                                Toast.makeText(safeContext, "Downloaded file not found", Toast.LENGTH_LONG).show()
+                                Toast.makeText(safeContext, safeContext.getString(R.string.downloaded_file_not_found), Toast.LENGTH_LONG).show()
                             }
                         } else {
                             viewModel.setApkDownloaded(false, null)
@@ -1011,22 +1013,22 @@ private fun startProgressTracking(
         )
     } catch (e: Exception) {
         Log.e("DownloadAPK", "Failed to register broadcast receiver: ${e.message}", e)
-        Toast.makeText(context, "Failed to track download completion", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.failed_to_track_download), Toast.LENGTH_SHORT).show()
     }
 }
 
-private fun getDownloadErrorMessage(reason: Int): String {
+private fun getDownloadErrorMessage(context: Context, reason: Int): String {
     return when (reason) {
-        DownloadManager.ERROR_CANNOT_RESUME -> "Cannot resume download"
-        DownloadManager.ERROR_DEVICE_NOT_FOUND -> "External storage not found"
-        DownloadManager.ERROR_FILE_ALREADY_EXISTS -> "File already exists"
-        DownloadManager.ERROR_FILE_ERROR -> "File error"
-        DownloadManager.ERROR_HTTP_DATA_ERROR -> "HTTP data error"
-        DownloadManager.ERROR_INSUFFICIENT_SPACE -> "Insufficient storage space"
-        DownloadManager.ERROR_TOO_MANY_REDIRECTS -> "Too many redirects"
-        DownloadManager.ERROR_UNHANDLED_HTTP_CODE -> "Unhandled HTTP code"
-        DownloadManager.ERROR_UNKNOWN -> "Unknown error"
-        else -> "Error code: $reason"
+        DownloadManager.ERROR_CANNOT_RESUME -> context.getString(R.string.cannot_resume_download)
+        DownloadManager.ERROR_DEVICE_NOT_FOUND -> context.getString(R.string.external_storage_not_found)
+        DownloadManager.ERROR_FILE_ALREADY_EXISTS -> context.getString(R.string.file_already_exists)
+        DownloadManager.ERROR_FILE_ERROR -> context.getString(R.string.file_error)
+        DownloadManager.ERROR_HTTP_DATA_ERROR -> context.getString(R.string.http_data_error)
+        DownloadManager.ERROR_INSUFFICIENT_SPACE -> context.getString(R.string.insufficient_storage_space)
+        DownloadManager.ERROR_TOO_MANY_REDIRECTS -> context.getString(R.string.too_many_redirects)
+        DownloadManager.ERROR_UNHANDLED_HTTP_CODE -> context.getString(R.string.unhandled_http_code)
+        DownloadManager.ERROR_UNKNOWN -> context.getString(R.string.unknown_error)
+        else -> context.getString(R.string.error_message, "Error code: $reason")
     }
 }
 
@@ -1035,7 +1037,7 @@ fun installApk(context: Context, uri: Uri) {
         val apkFile = getFileFromUri(context, uri)
         if (apkFile == null || !apkFile.exists()) {
             Log.e("InstallAPK", "APK file not found at URI: $uri")
-            Toast.makeText(context, "APK file not found", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.apk_file_not_found), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -1056,11 +1058,11 @@ fun installApk(context: Context, uri: Uri) {
             context.startActivity(installIntent)
         } else {
             Log.e("InstallAPK", "No application available to install APKs")
-            Toast.makeText(context, "No application available to install APKs", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.no_app_to_install_apks), Toast.LENGTH_SHORT).show()
         }
     } catch (e: Exception) {
         Log.e("InstallAPK", "Error installing APK: ${e.message}", e)
-        Toast.makeText(context, "Installation error: ${e.message}", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.installation_error, e.message ?: ""), Toast.LENGTH_SHORT).show()
     }
 }
 

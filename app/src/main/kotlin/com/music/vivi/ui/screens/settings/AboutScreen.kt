@@ -61,6 +61,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -147,7 +148,7 @@ fun AboutScreen(
             val installTime = packageInfo.firstInstallTime
             SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date(installTime))
         } catch (_: Exception) {
-            "Unknown"
+            context.getString(R.string.unknown)
         }
     }
 
@@ -251,7 +252,7 @@ fun AboutScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "VIVI MUSIC",
+                            text = stringResource(R.string.vivi_music_title),
                             style = MaterialTheme.typography.displaySmall.copy(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 48.sp,
@@ -284,7 +285,7 @@ fun AboutScreen(
                 if (checkForUpdates && isUpdateAvailable.value) {
                     item {
                         Text(
-                            text = "UPDATE",
+                            text = stringResource(R.string.update_section),
                             style = MaterialTheme.typography.labelLarge.copy(
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 1.sp
@@ -310,8 +311,8 @@ fun AboutScreen(
                                             tint = MaterialTheme.colorScheme.primary
                                         )
                                     },
-                                    title = "Update Available",
-                                    subtitle = "${latestRelease ?: ""} is now available",
+                                    title = stringResource(R.string.update_available),
+                                    subtitle = stringResource(R.string.version_now_available, latestRelease ?: ""),
                                     onClick = { navController.navigate("settings/update") },
                                     showArrow = true,
                                     showSettingsIcon = true,
@@ -328,7 +329,7 @@ fun AboutScreen(
                 // Developer Section
                 item {
                     Text(
-                        text = "DEVELOPER",
+                        text = stringResource(R.string.developer_section),
                         style = MaterialTheme.typography.labelLarge.copy(
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp
@@ -349,13 +350,13 @@ fun AboutScreen(
                                    icon = {
                                        Image(
                                            painter = painterResource(R.drawable.dev),
-                                           contentDescription = "Developer",
+                                           contentDescription = stringResource(R.string.developer),
                                            modifier = Modifier.fillMaxSize(),
                                            contentScale = ContentScale.Crop
                                        )
                                    },
-                                   title = "VIVIDH P ASHOKAN",
-                                   subtitle = "App Developer",
+                                   title = stringResource(R.string.developer_name),
+                                   subtitle = stringResource(R.string.app_developer),
                                    onClick = { uriHandler.openUri("https://github.com/vivizzz007") },
                                    showArrow = true,
                                    iconBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
@@ -372,7 +373,7 @@ fun AboutScreen(
                                             modifier = Modifier.size(28.dp) // Increased from 22dp to 28dp
                                         )
                                     },
-                                    title = "Website",
+                                    title = stringResource(R.string.website),
                                     subtitle = "vivimusic.vercel.app",
                                     onClick = { uriHandler.openUri("https://vivimusic.vercel.app/") },
                                     showArrow = true,
@@ -387,7 +388,7 @@ fun AboutScreen(
                 // App Information Section
                 item {
                     Text(
-                        text = "APP INFO",
+                        text = stringResource(R.string.app_info_section),
                         style = MaterialTheme.typography.labelLarge.copy(
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp
@@ -412,7 +413,7 @@ fun AboutScreen(
                                             modifier = Modifier.size(28.dp) // Increased from 22dp to 28dp
                                         )
                                     },
-                                    title = "Installed Date",
+                                    title = stringResource(R.string.installed_date_title),
                                     subtitle = installedDate,
                                     iconBackgroundColor = iconBgColor,
                                     iconContentColor = iconStyleColor
@@ -427,8 +428,8 @@ fun AboutScreen(
                                             modifier = Modifier.size(28.dp) // Increased from 22dp to 28dp
                                         )
                                     },
-                                    title = "Changelog",
-                                    subtitle = "View version history",
+                                    title = stringResource(R.string.changelog),
+                                    subtitle = stringResource(R.string.view_version_history),
                                     onClick = { navController.navigate("settings/changelog") },
                                     showArrow = true,
                                     showSettingsIcon = true,
@@ -443,7 +444,7 @@ fun AboutScreen(
                 // Community Section
                 item {
                     Text(
-                        text = "COMMUNITY",
+                        text = stringResource(R.string.community_section),
                         style = MaterialTheme.typography.labelLarge.copy(
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp
@@ -471,8 +472,8 @@ fun AboutScreen(
                                             modifier = Modifier.size(28.dp)
                                         )
                                     },
-                                    title = "GitHub Repository",
-                                    subtitle = "View source code",
+                                    title = stringResource(R.string.github_repository),
+                                    subtitle = stringResource(R.string.view_source_code),
                                     onClick = { uriHandler.openUri("https://github.com/vivizzz007/vivi-music") },
                                     showArrow = true,
                                     iconBackgroundColor = iconBgColor,
@@ -488,8 +489,8 @@ fun AboutScreen(
                                             modifier = Modifier.size(28.dp)
                                         )
                                     },
-                                    title = "Contributors",
-                                    subtitle = "See our community heroes",
+                                    title = stringResource(R.string.contributors),
+                                    subtitle = stringResource(R.string.see_community_heroes),
                                     onClick = { navController.navigate("settings/contribution") },
                                     showArrow = true,
                                     showSettingsIcon = true,
@@ -507,8 +508,8 @@ fun AboutScreen(
                                             // No tint specified - uses default onSurface
                                         )
                                     },
-                                    title = "Report Issue",
-                                    subtitle = "Bugs & feedback",
+                                    title = stringResource(R.string.report_issue_title_about),
+                                    subtitle = stringResource(R.string.bugs_feedback),
                                     onClick = { navController.navigate("settings/report_issue") },
                                     showArrow = true,
                                     showSettingsIcon = true,
@@ -525,8 +526,8 @@ fun AboutScreen(
                                             modifier = Modifier.size(28.dp)
                                         )
                                     },
-                                    title = "Donate",
-                                    subtitle = "Support development",
+                                    title = stringResource(R.string.donate),
+                                    subtitle = stringResource(R.string.support_development),
                                     iconBackgroundColor = iconBgColor,
                                     iconContentColor = iconStyleColor,
                                     onClick = { navController.navigate("settings/support") },

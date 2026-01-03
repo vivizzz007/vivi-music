@@ -75,9 +75,11 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.navigation.NavHostController
+import com.music.vivi.R
 import coil.compose.AsyncImage
 import com.music.vivi.BuildConfig
 import androidx.work.ExistingWorkPolicy
@@ -168,7 +170,7 @@ fun UpdateScreen(navController: NavHostController) {
                         }
                         WorkInfo.State.FAILED -> {
                             isDownloading = false
-                            downloadError = "Download failed"
+                            downloadError = context.getString(R.string.download_failed)
                         }
                         WorkInfo.State.CANCELLED -> {
                             isDownloading = false
@@ -211,6 +213,7 @@ fun UpdateScreen(navController: NavHostController) {
         coroutineScope.launch {
             delay(6500L)
             checkForUpdate(
+                context = context,
                 onSuccess = { latestVersion, latestChangelog, latestSize, latestReleaseDate, latestDescription, latestImage ->
                     isChecking = false
                     lastCheckedTime = getCurrentTimestamp()
@@ -264,7 +267,7 @@ fun UpdateScreen(navController: NavHostController) {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(
                             Icons.Default.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.back_content_desc),
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -273,7 +276,7 @@ fun UpdateScreen(navController: NavHostController) {
                     IconButton(onClick = { showMenu = true }) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
-                            contentDescription = "More options",
+                            contentDescription = stringResource(R.string.more_options),
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -282,14 +285,14 @@ fun UpdateScreen(navController: NavHostController) {
                         onDismissRequest = { showMenu = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Settings") },
+                            text = { Text(stringResource(R.string.settings_title)) },
                             onClick = {
                                 showMenu = false
                                 navController.navigate("settings/experimental")
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Changelog") },
+                            text = { Text(stringResource(R.string.changelog)) },
                             onClick = {
                                 showMenu = false
                                 navController.navigate("settings/changelog")
@@ -324,7 +327,7 @@ fun UpdateScreen(navController: NavHostController) {
                 )
                 Spacer(modifier = Modifier.height(24.dp)) // Reduced from 40dp
                 Text(
-                    text = "Installing system\nupdate...",
+                    text = stringResource(R.string.installing_system_update),
                     style = MaterialTheme.typography.headlineMedium.copy(
                         fontSize = 36.sp,
                         fontWeight = FontWeight.Normal,
@@ -345,13 +348,13 @@ fun UpdateScreen(navController: NavHostController) {
 
                 Spacer(modifier = Modifier.height(32.dp))
                 Text(
-                    text = "Making Update ready , this may take a while",
+                    text = stringResource(R.string.making_update_ready),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
-                    text = "Your App is getting even better...",
+                    text = stringResource(R.string.your_app_getting_better),
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold
                     ),
@@ -359,18 +362,22 @@ fun UpdateScreen(navController: NavHostController) {
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 val annotatedString = buildAnnotatedString {
-                    append("This update includes new features and the latest from vivi-music ${updateMessageVersion.ifEmpty { currentVersion }}, making your app even more helpful. Learn more at ")
-                    pushStringAnnotation(tag = "URL", annotation = "https://github.com/vivizzz007/vivi-music")
+                    val version = updateMessageVersion.ifEmpty { currentVersion }
+                    val url = "https://github.com/vivizzz007/vivi-music"
+                    val text = stringResource(R.string.update_includes_features, version, url)
+                    val urlIndex = text.indexOf(url)
+                    append(text.substring(0, urlIndex))
+                    pushStringAnnotation(tag = "URL", annotation = url)
                     withStyle(
                         style = SpanStyle(
                             color = MaterialTheme.colorScheme.primary,
                             textDecoration = TextDecoration.Underline
                         )
                     ) {
-                        append("https://github.com/vivizzz007/vivi-music")
+                        append(url)
                     }
                     pop()
-                    append(".")
+                    append(text.substring(urlIndex + url.length))
                 }
                 ClickableText(
                     text = annotatedString,
@@ -388,7 +395,7 @@ fun UpdateScreen(navController: NavHostController) {
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
-                    text = "What's new?",
+                    text = stringResource(R.string.whats_new),
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold
                     ),
@@ -472,7 +479,7 @@ fun UpdateScreen(navController: NavHostController) {
                         .height(48.dp)
                 ) {
                     Text(
-                        text = "Pause",
+                        text = stringResource(R.string.pause),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -508,7 +515,7 @@ fun UpdateScreen(navController: NavHostController) {
                             updateAvailable -> {
                                 Text(
 //                                    text = "App update\navailable",
-                                    text = "Update Available",
+                                    text = stringResource(R.string.update_available),
                                     style = MaterialTheme.typography.headlineMedium.copy(
                                         fontSize = 36.sp,
                                         fontWeight = FontWeight.Normal,
@@ -519,7 +526,7 @@ fun UpdateScreen(navController: NavHostController) {
                             }
                             isChecking -> {
                                 Text(
-                                    text = "Checking for\nupdates...",
+                                    text = stringResource(R.string.checking_for_updates),
                                     style = MaterialTheme.typography.headlineMedium.copy(
                                         fontSize = 36.sp,
                                         fontWeight = FontWeight.Normal,
@@ -530,7 +537,7 @@ fun UpdateScreen(navController: NavHostController) {
                             }
                             fetchError -> {
                                 Text(
-                                    text = "Can't check for\nupdates",
+                                    text = stringResource(R.string.cant_check_updates),
                                     style = MaterialTheme.typography.headlineMedium.copy(
                                         fontSize = 36.sp,
                                         fontWeight = FontWeight.Normal,
@@ -541,7 +548,7 @@ fun UpdateScreen(navController: NavHostController) {
                             }
                             else -> {
                                 Text(
-                                    text = "App is\nup to date",
+                                    text = stringResource(R.string.app_up_to_date),
                                     style = MaterialTheme.typography.headlineMedium.copy(
                                         fontSize = 36.sp,
                                         fontWeight = FontWeight.Bold,
@@ -556,7 +563,7 @@ fun UpdateScreen(navController: NavHostController) {
                         when {
                                 updateAvailable -> {
                                     Text(
-                                        text = "Version ${updateMessageVersion}",
+                                        text = stringResource(R.string.version, updateMessageVersion),
                                         style = MaterialTheme.typography.headlineSmall.copy(
                                             fontWeight = FontWeight.Bold
                                         ),
@@ -566,7 +573,7 @@ fun UpdateScreen(navController: NavHostController) {
                                     if (releaseDate.isNotEmpty()) {
                                         Spacer(modifier = Modifier.height(4.dp))
                                         Text(
-                                            text = "Released: $releaseDate",
+                                            text = stringResource(R.string.released, releaseDate),
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
@@ -578,7 +585,7 @@ fun UpdateScreen(navController: NavHostController) {
                                     updateImage?.let { imageUrl ->
                                         AsyncImage(
                                             model = imageUrl,
-                                            contentDescription = "Update preview",
+                                            contentDescription = stringResource(R.string.update_preview),
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .clip(RoundedCornerShape(12.dp)),
@@ -610,7 +617,7 @@ fun UpdateScreen(navController: NavHostController) {
 
                                         Spacer(modifier = Modifier.height(8.dp))
                                         Text(
-                                            text = "Downloading... ${(downloadProgress * 100).toInt()}%",
+                                            text = stringResource(R.string.downloading_percent, (downloadProgress * 100).toInt()),
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
@@ -682,7 +689,7 @@ fun UpdateScreen(navController: NavHostController) {
                                             Spacer(modifier = Modifier.width(12.dp))
                                             Column {
                                                 Text(
-                                                    text = "Download Failed",
+                                                    text = stringResource(R.string.download_failed),
                                                     style = MaterialTheme.typography.titleSmall,
                                                     color = MaterialTheme.colorScheme.onErrorContainer,
                                                     fontWeight = FontWeight.Bold
@@ -703,7 +710,7 @@ fun UpdateScreen(navController: NavHostController) {
 //                                )
                                 Spacer(modifier = Modifier.height(5.dp))
                                 Text(
-                                    text = "New features include:",
+                                    text = stringResource(R.string.new_features_include),
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
@@ -784,14 +791,14 @@ fun UpdateScreen(navController: NavHostController) {
                                 )
                                 Spacer(modifier = Modifier.height(5.dp))
                                 Text(
-                                    text = "Downloading updates over a mobile network or while roaming may cause additional charges.",
+                                    text = stringResource(R.string.mobile_network_warning),
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     lineHeight = 24.sp
                                 )
                                 Spacer(modifier = Modifier.height(40.dp))
                                 Text(
-                                    text = "Update size: $appSize MB",
+                                    text = stringResource(R.string.update_size, appSize),
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -816,21 +823,21 @@ fun UpdateScreen(navController: NavHostController) {
                             }
                             fetchError -> {
                                 Text(
-                                    text = "Check your internet connection and try again.",
+                                    text = stringResource(R.string.check_internet_connection),
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.error
                                 )
                             }
                             else -> {
                                 Text(
-                                    text = "VIVI MUSIC version $currentVersion",
+                                    text = stringResource(R.string.vivi_music_version, currentVersion),
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 if (lastCheckedTime.isNotEmpty()) {
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
-                                        text = "Last checked: $lastCheckedTime",
+                                        text = stringResource(R.string.last_checked, lastCheckedTime),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -949,10 +956,10 @@ fun UpdateScreen(navController: NavHostController) {
                         ) {
                             Text(
                                 text = when {
-                                    updateAvailable && !isDownloading && !isDownloadComplete -> "Download"
-                                    isDownloading -> "Pause"
-                                    isDownloadComplete -> "Install"
-                                    else -> "Check for update"
+                                    updateAvailable && !isDownloading && !isDownloadComplete -> stringResource(R.string.action_download)
+                                    isDownloading -> stringResource(R.string.pause)
+                                    isDownloadComplete -> stringResource(R.string.install)
+                                    else -> stringResource(R.string.check_for_update)
                                 },
                                 style = MaterialTheme.typography.labelLarge.copy(
                                     fontWeight = FontWeight.Medium
@@ -1014,6 +1021,7 @@ fun isNewerVersion(latestVersion: String, currentVersion: String): Boolean {
 
 // Fetches ALL releases, finds the latest version > current, and returns its info
 suspend fun checkForUpdate(
+    context: Context,
     onSuccess: (String, String, String, String, String?, String?) -> Unit,
     onError: () -> Unit
 ) {
@@ -1073,7 +1081,7 @@ suspend fun checkForUpdate(
                     }.trim()
                 } catch (e: Exception) {
                     Log.e("UpdateCheck", "Failed to fetch changelog.json: ${e.message}", e)
-                    changelog = foundRelease.optString("body", "No changelog available")
+                    changelog = foundRelease.optString("body", context.getString(R.string.no_changelog_available))
                 }
 
                 val publishedAt = foundRelease.getString("published_at")
