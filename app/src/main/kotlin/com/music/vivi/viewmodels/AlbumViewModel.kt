@@ -40,23 +40,33 @@ constructor(
     val isDescriptionLoading = _isDescriptionLoading.asStateFlow()
 
     init {
+        // Reactive Wikipedia Fetching
+        // Observes album updates (local or remote) and fetches description if missing
         viewModelScope.launch(Dispatchers.IO) {
-            val album = database.album(albumId).first()
-            
-            // Try fetching with database info first if available
-            album?.let {
-                viewModelScope.launch(Dispatchers.IO) {
-                    if (_albumDescription.value == null) {
+            albumWithSongs.collect { album ->
+                if (album != null) {
+                    if (album.album.description != null) {
+                        _albumDescription.value = album.album.description
+                    } else if (_albumDescription.value == null) {
                         _isDescriptionLoading.value = true
-                        val artistName = it.artists.firstOrNull()?.name
-                        val description = Wikipedia.fetchAlbumInfo(it.album.title, artistName)
+                        val artistName = album.artists.firstOrNull()?.name
+                        val description = Wikipedia.fetchAlbumInfo(album.album.title, artistName)
                         if (description != null) {
                             _albumDescription.value = description
+                            // Save to database
+                            database.query {
+                                update(album.album.copy(description = description))
+                            }
                         }
                         _isDescriptionLoading.value = false
                     }
                 }
             }
+        }
+
+        // Network Refresh
+        viewModelScope.launch(Dispatchers.IO) {
+            val album = database.album(albumId).first()
 
             YouTube
                 .album(albumId)
@@ -70,17 +80,7 @@ constructor(
                             update(album.album, it, album.artists)
                         }
                     }
-
-                    // Fetch Wikipedia description if not already fetched or if we have better info now
-                    if (_albumDescription.value == null) {
-                        viewModelScope.launch(Dispatchers.IO) {
-                            _isDescriptionLoading.value = true
-                            val artistName = it.album.artists?.firstOrNull()?.name
-                            val description = Wikipedia.fetchAlbumInfo(it.album.title, artistName)
-                            _albumDescription.value = description
-                            _isDescriptionLoading.value = false
-                        }
-                    }
+                    // Note: Wikipedia fetching is handled by the collector above
                 }.onFailure {
                     reportException(it)
                     if (it.message?.contains("NOT_FOUND") == true) {

@@ -40,6 +40,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -439,14 +440,14 @@ fun AlbumScreen(
                         }. This collection features ${albumWithSongs.songs.size} tracks showcasing their musical artistry."
                         val description = albumDescription ?: staticDescription
 
-                        if (isDescriptionLoading) {
+                        if (albumDescription == null && isDescriptionLoading) {
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 32.dp),
+                                    .height(60.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                CircularWavyProgressIndicator()
+                                LoadingIndicator()
                             }
                         } else {
                             Text(

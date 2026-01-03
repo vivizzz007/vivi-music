@@ -88,7 +88,7 @@ class MusicDatabase(
         SortedSongAlbumMap::class,
         PlaylistSongMapPreview::class,
     ],
-    version = 25, // Change from 24 to 25
+    version = 26, // Change from 25 to 26
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 2, to = 3),
@@ -113,7 +113,7 @@ class MusicDatabase(
         AutoMigration(from = 21, to = 22, spec = Migration21To22::class),
         AutoMigration(from = 22, to = 23, spec = Migration22To23::class),
         AutoMigration(from = 23, to = 24),
-        AutoMigration(from = 24, to = 25) // added for auto migration
+        AutoMigration(from = 24, to = 25)
     ],
 )
 
@@ -129,9 +129,15 @@ abstract class InternalDatabase : RoomDatabase() {
                 delegate =
                 Room
                     .databaseBuilder(context, InternalDatabase::class.java, DB_NAME)
-                    .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_25_26)
                     .build(),
             )
+    }
+}
+
+val MIGRATION_25_26 = object : Migration(25, 26) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE album ADD COLUMN description TEXT")
     }
 }
 
