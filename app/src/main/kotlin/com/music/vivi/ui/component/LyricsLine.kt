@@ -74,7 +74,7 @@ fun LyricsLine(
 
     // Segment the line into words with their own time windows
     val wordData = remember(entry.text, entry.words, activeDuration) {
-        if (entry.words != null && entry.words.isNotEmpty()) {
+        if (!entry.words.isNullOrEmpty()) {
             // Use precise ELRC word timestamps
             entry.words.mapIndexed { index, wordEntry ->
                 val wordStart = (wordEntry.time - entry.time).coerceAtLeast(0L)
@@ -111,7 +111,7 @@ fun LyricsLine(
 
     // Apple Music Style: Blur inactive lines
     val blurRadius by animateFloatAsState(
-        targetValue = if (isActive || !isSynced || isSelectionModeActive || !isWordForWord) 0f else if (distanceFromCurrent == 1) 1f else 3f,
+        targetValue = if (isActive || !isSynced || isSelectionModeActive || !isWordForWord) 0f else if (distanceFromCurrent == 1) 2f else 6f,
         animationSpec = tween(durationMillis = 600), label = "blur"
     )
 
@@ -142,8 +142,8 @@ fun LyricsLine(
             // Smooth scaling for active line
             val targetScale = when {
                 !isSynced || isActive -> 1f
-                distanceFromCurrent == 1 -> 0.95f
-                else -> 0.9f
+                distanceFromCurrent == 1 -> 0.9f
+                else -> 0.8f
             }
             scaleX = targetScale
             scaleY = targetScale
@@ -196,20 +196,36 @@ fun LyricsLine(
                                 }
                             }
                         }
-
-                        // Use opacity for filling to guarantee smooth performance
-                        // 0.3f (inactive) -> 1.0f (active) based on progress
-                        val wordAlpha = when {
-                            wordProgress >= 1f -> 1f
-                            wordProgress <= 0f -> 0.3f
-                            else -> 0.3f + (0.7f * wordProgress)
+                        // Perfect Apple Music "Filling" Style
+                        val shaderStyle = remember(wordProgress, textColor) {
+                            if (wordProgress >= 1f) {
+                                null // Fully sung: use standard solid color
+                            } else if (wordProgress <= 0f) {
+                                null // Not sung: use standard dim color
+                            } else {
+                                // In progress: scale gradient to the word width
+                                object : androidx.compose.ui.graphics.ShaderBrush() {
+                                    override fun createShader(size: androidx.compose.ui.geometry.Size): androidx.compose.ui.graphics.Shader {
+                                        val width = size.width
+                                        val p = wordProgress.coerceIn(0f, 1f)
+                                        // Create a hard-ish edge gradient for the fill effect
+                                        // Active color -> Active color at p -> Inactive color at p+fade -> Inactive color
+                                        return androidx.compose.ui.graphics.LinearGradientShader(
+                                            from = Offset.Zero,
+                                            to = Offset(width, 0f),
+                                            colors = listOf(textColor, textColor, textColor.copy(alpha = 0.3f), textColor.copy(alpha = 0.3f)),
+                                            colorStops = listOf(0f, p, (p + 0.15f).coerceAtMost(1f), 1f)
+                                        )
+                                    }
+                                }
+                            }
                         }
 
-                        // Ensure we use the exact same style as the sentence mode for seamlessness
                         Text(
                             text = if (index != wordData.lastIndex) "$word " else word,
                             fontSize = textSize.sp,
-                            color = textColor.copy(alpha = wordAlpha),
+                            style = if (shaderStyle != null) TextStyle(brush = shaderStyle) else androidx.compose.material3.LocalTextStyle.current,
+                            color = if (shaderStyle != null) Color.Unspecified else if (wordProgress >= 1f) textColor else textColor.copy(alpha = 0.3f),
                             fontWeight = FontWeight.Bold,
                             letterSpacing = (-0.5).sp
                         )

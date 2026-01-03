@@ -81,6 +81,7 @@ import com.music.vivi.constants.ChipSortTypeKey
 import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.DefaultOpenTabKey
 import com.music.vivi.constants.DynamicThemeKey
+import com.music.vivi.constants.EnableBetterLyricsKey
 import com.music.vivi.constants.GridItemSize
 import com.music.vivi.constants.GridItemsSizeKey
 import com.music.vivi.constants.HidePlayerThumbnailKey
@@ -1455,8 +1456,8 @@ fun AppearanceSettings(
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(id = R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
-                                            title = "Word-for-word lyrics",
-                                            subtitle = "Highlight words discretely as they are sung",
+                                            title = "Apple Music Style",
+                                            subtitle = "Smooth karaoke-style highlighting",
                                             iconBackgroundColor = iconBgColor,
                                             iconContentColor = iconStyleColor
                                         )
@@ -1498,7 +1499,7 @@ fun AppearanceSettings(
                                         modifier = Modifier.padding(end = 20.dp)
                                     )
                                 }
-                            }
+                            },
                         )
                     )
                 }

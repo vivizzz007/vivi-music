@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.firstOrNull
 import javax.inject.Inject
 
 class LyricsHelper
@@ -27,40 +28,47 @@ constructor(
     @ApplicationContext private val context: Context,
     private val networkConnectivity: NetworkConnectivityObserver,
 ) {
-    private var lyricsProviders =
+    private val lyricsProviders =
         listOf(
+            BetterLyricsLyricsProvider,
             LrcLibLyricsProvider,
             KuGouLyricsProvider,
             YouTubeSubtitleLyricsProvider,
             YouTubeLyricsProvider
         )
 
-    val preferred =
-        context.dataStore.data
-            .map {
-                it[PreferredLyricsProviderKey].toEnum(PreferredLyricsProvider.LRCLIB)
-            }.distinctUntilChanged()
-            .map {
-                lyricsProviders =
-                    if (it == PreferredLyricsProvider.LRCLIB) {
-                        listOf(
-                            LrcLibLyricsProvider,
-                            KuGouLyricsProvider,
-                            YouTubeSubtitleLyricsProvider,
-                            YouTubeLyricsProvider
-                        )
-                    } else {
-                        listOf(
-                            KuGouLyricsProvider,
-                            LrcLibLyricsProvider,
-                            YouTubeSubtitleLyricsProvider,
-                            YouTubeLyricsProvider
-                        )
-                    }
-            }
-
     private val cache = LruCache<String, List<LyricsResult>>(MAX_CACHE_SIZE)
     private var currentLyricsJob: Job? = null
+
+    private suspend fun getOrderedProviders(): List<LyricsProvider> {
+        val preferredProvider = context.dataStore.data
+            .map { it[PreferredLyricsProviderKey].toEnum(PreferredLyricsProvider.BETTERLYRICS) }
+            .firstOrNull() ?: PreferredLyricsProvider.BETTERLYRICS
+
+        return when (preferredProvider) {
+            PreferredLyricsProvider.BETTERLYRICS -> listOf(
+                BetterLyricsLyricsProvider,
+                LrcLibLyricsProvider,
+                KuGouLyricsProvider,
+                YouTubeSubtitleLyricsProvider,
+                YouTubeLyricsProvider
+            )
+            PreferredLyricsProvider.LRCLIB -> listOf(
+                LrcLibLyricsProvider,
+                BetterLyricsLyricsProvider,
+                KuGouLyricsProvider,
+                YouTubeSubtitleLyricsProvider,
+                YouTubeLyricsProvider
+            )
+            PreferredLyricsProvider.KUGOU -> listOf(
+                KuGouLyricsProvider,
+                BetterLyricsLyricsProvider,
+                LrcLibLyricsProvider,
+                YouTubeSubtitleLyricsProvider,
+                YouTubeLyricsProvider
+            )
+        }
+    }
 
     suspend fun getLyrics(mediaMetadata: MediaMetadata): String {
         currentLyricsJob?.cancel()
@@ -84,9 +92,10 @@ constructor(
             return LYRICS_NOT_FOUND
         }
 
+        val providers = getOrderedProviders()
         val scope = CoroutineScope(SupervisorJob())
         val deferred = scope.async {
-            for (provider in lyricsProviders) {
+            for (provider in providers) {
                 if (provider.isEnabled(context)) {
                     try {
                         val result = provider.getLyrics(
@@ -95,8 +104,13 @@ constructor(
                             mediaMetadata.artists.joinToString { it.name },
                             mediaMetadata.duration,
                         )
-                        result.onSuccess { lyrics ->
-                            return@async lyrics
+                        result.onSuccess { rawLyrics ->
+                            val processedLyrics = if (provider != BetterLyricsLyricsProvider) {
+                                rawLyrics.stripWordTimestamps()
+                            } else {
+                                rawLyrics
+                            }
+                            return@async processedLyrics
                         }.onFailure {
                             reportException(it)
                         }
@@ -109,9 +123,14 @@ constructor(
             return@async LYRICS_NOT_FOUND
         }
 
+        if (deferred.isCancelled) return LYRICS_NOT_FOUND
         val lyrics = deferred.await()
         scope.cancel()
         return lyrics
+    }
+
+    private fun String.stripWordTimestamps(): String {
+        return this.replace("<[^>]*>".toRegex(), "")
     }
 
     suspend fun getAllLyrics(
@@ -145,13 +164,19 @@ constructor(
             return
         }
 
+        val providers = getOrderedProviders()
         val allResult = mutableListOf<LyricsResult>()
         currentLyricsJob = CoroutineScope(SupervisorJob()).launch {
-            lyricsProviders.forEach { provider ->
+            providers.forEach { provider ->
                 if (provider.isEnabled(context)) {
                     try {
-                        provider.getAllLyrics(mediaId, songTitle, songArtists, duration) { lyrics ->
-                            val result = LyricsResult(provider.name, lyrics)
+                        provider.getAllLyrics(mediaId, songTitle, songArtists, duration) { rawLyrics ->
+                            val processedLyrics = if (provider != BetterLyricsLyricsProvider) {
+                                rawLyrics.stripWordTimestamps()
+                            } else {
+                                rawLyrics
+                            }
+                            val result = LyricsResult(provider.name, processedLyrics)
                             allResult += result
                             callback(result)
                         }

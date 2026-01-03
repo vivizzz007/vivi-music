@@ -216,6 +216,8 @@ dependencies {
     implementation(project(":lrclib"))
     implementation(project(":kizzy"))
     implementation(project(":lastfm"))
+    implementation(project(":betterlyrics"))
+
 
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)

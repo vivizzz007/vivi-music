@@ -37,6 +37,7 @@ val ContentLanguageKey = stringPreferencesKey("contentLanguage")
 val ContentCountryKey = stringPreferencesKey("contentCountry")
 val EnableKugouKey = booleanPreferencesKey("enableKugou")
 val EnableLrcLibKey = booleanPreferencesKey("enableLrclib")
+val EnableBetterLyricsKey = booleanPreferencesKey("enable_better_lyrics")
 val HideExplicitKey = booleanPreferencesKey("hideExplicit")
 val ProxyEnabledKey = booleanPreferencesKey("proxyEnabled")
 val ProxyUrlKey = stringPreferencesKey("proxyUrl")
@@ -276,6 +277,7 @@ enum class QuickPicks {
 }
 
 enum class PreferredLyricsProvider {
+    BETTERLYRICS,
     LRCLIB,
     KUGOU,
 }

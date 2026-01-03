@@ -68,6 +68,7 @@ import com.music.vivi.constants.AppLanguageKey
 import com.music.vivi.constants.ContentCountryKey
 import com.music.vivi.constants.ContentLanguageKey
 import com.music.vivi.constants.CountryCodeToName
+import com.music.vivi.constants.EnableBetterLyricsKey
 import com.music.vivi.constants.EnableKugouKey
 import com.music.vivi.constants.EnableLrcLibKey
 import com.music.vivi.constants.HideExplicitKey
@@ -151,11 +152,12 @@ fun ContentSettings(
     val (proxyPassword, onProxyPasswordChange) = rememberPreference(key = ProxyPasswordKey, defaultValue = "password")
     val (enableKugou, onEnableKugouChange) = rememberPreference(key = EnableKugouKey, defaultValue = true)
     val (enableLrclib, onEnableLrclibChange) = rememberPreference(key = EnableLrcLibKey, defaultValue = true)
+    val (enableBetterLyrics, onEnableBetterLyricsChange) = rememberPreference(key = EnableBetterLyricsKey, defaultValue = true)
     val (hideVideoSongs, onHideVideoSongsChange) = rememberPreference(key = HideVideoSongsKey, defaultValue = false)
     val (preferredProvider, onPreferredProviderChange) =
         rememberEnumPreference(
             key = PreferredLyricsProviderKey,
-            defaultValue = PreferredLyricsProvider.LRCLIB,
+            defaultValue = PreferredLyricsProvider.BETTERLYRICS,
         )
     val (lengthTop, onLengthTopChange) = rememberPreference(key = TopSize, defaultValue = "50")
     val (quickPicks, onQuickPicksChange) = rememberEnumPreference(key = QuickPicksKey, defaultValue = QuickPicks.QUICK_PICKS)
@@ -313,7 +315,7 @@ fun ContentSettings(
             onDismiss = { showPreferredProviderDialog = false },
             content = {
                 Column(modifier = Modifier.padding(horizontal = 18.dp)) {
-                    listOf(PreferredLyricsProvider.LRCLIB, PreferredLyricsProvider.KUGOU).forEach { value ->
+                    listOf(PreferredLyricsProvider.BETTERLYRICS, PreferredLyricsProvider.LRCLIB, PreferredLyricsProvider.KUGOU).forEach { value ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -331,6 +333,7 @@ fun ContentSettings(
                             Spacer(modifier = Modifier.width(16.dp))
                             Text(
                                 when (value) {
+                                    PreferredLyricsProvider.BETTERLYRICS -> "BetterLyrics"
                                     PreferredLyricsProvider.LRCLIB -> "LrcLib"
                                     PreferredLyricsProvider.KUGOU -> "KuGou"
                                 }
@@ -859,6 +862,27 @@ fun ContentSettings(
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
+                                            title = "BetterLyrics Lyrics",
+                                            subtitle = "Enable BetterLyrics as a lyrics source",
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = enableBetterLyrics,
+                                        onCheckedChange = onEnableBetterLyricsChange,
+                                        modifier = Modifier.padding(end = 20.dp)
+                                    )
+                                }
+                            },
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
                                             title = "LrcLib Lyrics",
                                             subtitle = "Enable LrcLib as a lyrics source",
                                             iconBackgroundColor = iconBgColor,
@@ -898,6 +922,7 @@ fun ContentSettings(
                                     icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
                                     title = stringResource(R.string.lyrics),
                                     subtitle = when (preferredProvider) {
+                                        PreferredLyricsProvider.BETTERLYRICS -> "BetterLyrics"
                                         PreferredLyricsProvider.LRCLIB -> "LrcLib"
                                         PreferredLyricsProvider.KUGOU -> "KuGou"
                                     },
