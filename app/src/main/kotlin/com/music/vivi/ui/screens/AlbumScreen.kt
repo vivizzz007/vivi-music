@@ -591,7 +591,7 @@ fun AlbumScreen(
                                     Download.STATE_COMPLETED -> {
                                         Icon(
                                             painter = painterResource(R.drawable.offline),
-                                            contentDescription = "saved",
+                                            contentDescription = stringResource(R.string.saved),
                                             modifier = Modifier.size(20.dp)
                                         )
                                     }
@@ -605,7 +605,7 @@ fun AlbumScreen(
                                     else -> {
                                         Icon(
                                             painter = painterResource(R.drawable.download),
-                                            contentDescription = "save",
+                                            contentDescription = stringResource(R.string.save),
                                             modifier = Modifier.size(20.dp)
                                         )
                                     }
@@ -613,9 +613,9 @@ fun AlbumScreen(
                                 Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
                                 Text(
                                     text = when (downloadState) {
-                                        Download.STATE_COMPLETED -> "saved"
-                                        Download.STATE_DOWNLOADING -> "saving"
-                                        else -> "save"
+                                        Download.STATE_COMPLETED -> stringResource(R.string.saved)
+                                        Download.STATE_DOWNLOADING -> stringResource(R.string.saving)
+                                        else -> stringResource(R.string.save)
                                     },
                                     style = MaterialTheme.typography.labelMedium
                                 )
