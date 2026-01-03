@@ -1426,9 +1426,11 @@ class MusicService :
             }
 
             val playbackData = runBlocking(Dispatchers.IO) {
+                // Read audio quality from settings every time to respect user changes
+                val currentAudioQuality = dataStore.get(AudioQualityKey).toEnum(com.music.vivi.constants.AudioQuality.AUTO)
                 YTPlayerUtils.playerResponseForPlayback(
                     mediaId,
-                    audioQuality = audioQuality,
+                    audioQuality = currentAudioQuality,
                     connectivityManager = connectivityManager,
                     httpClient = okHttpClient
                 )
