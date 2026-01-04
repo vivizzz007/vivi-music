@@ -250,7 +250,7 @@
 
   <p>VIVI Music is built upon the foundation of amazing open-source projects:</p>
 
-  <p><strong><a href="https://github.com/mosaalagamy/BetterLyrics">Better Lyrics</a></strong> – For beautiful time-synced lyrics with word-by-word highlighting, and seamless YouTube Music integration.</p>
+  <p><strong><a href="https://github.com/better-lyrics/better-lyrics">Better Lyrics</a></strong> – For beautiful time-synced lyrics with word-by-word highlighting, and seamless YouTube Music integration.</p>
 
   <p align="center">The open-source community for tools, libraries, and APIs that make this project possible.</p>
 
