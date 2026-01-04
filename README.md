@@ -186,6 +186,18 @@
 
 <hr>
 
+<h2>👥 Contributors</h2>
+
+<p>We appreciate everyone who has contributed to making VIVI Music better!</p>
+
+<p>To see all our amazing contributors and learn how you can join them, visit:</p>
+
+<div align="center">
+  <h3><a href="https://vivimusic.vercel.app/contributor.html">🌟 View All Contributors</a></h3>
+</div>
+
+<hr>
+
 <h2>🤝 Contributing</h2>
 
 <p>Contributions are welcome! Whether it's bug reports, feature requests, or code contributions:</p>
