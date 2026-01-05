@@ -2,8 +2,10 @@ package com.music.vivi.utils
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
@@ -54,19 +56,21 @@ fun <T> rememberPreference(
 ): MutableState<T> {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    val state = remember { mutableStateOf(defaultValue) }
 
-    val state =
-        remember {
-            context.dataStore.data
-                .map { it[key] ?: defaultValue }
-                .distinctUntilChanged()
-        }.collectAsState(context.dataStore[key] ?: defaultValue)
+    LaunchedEffect(key) {
+        context.dataStore.data
+            .map { it[key] ?: defaultValue }
+            .distinctUntilChanged()
+            .collect { state.value = it }
+    }
 
     return remember {
         object : MutableState<T> {
             override var value: T
                 get() = state.value
                 set(value) {
+                    state.value = value
                     coroutineScope.launch {
                         context.dataStore.edit {
                             it[key] = value
@@ -88,20 +92,21 @@ inline fun <reified T : Enum<T>> rememberEnumPreference(
 ): MutableState<T> {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    val state = remember { mutableStateOf(defaultValue) }
 
-    val initialValue = context.dataStore[key].toEnum(defaultValue = defaultValue)
-    val state =
-        remember {
-            context.dataStore.data
-                .map { it[key].toEnum(defaultValue = defaultValue) }
-                .distinctUntilChanged()
-        }.collectAsState(initialValue)
+    LaunchedEffect(key) {
+        context.dataStore.data
+            .map { it[key].toEnum(defaultValue = defaultValue) }
+            .distinctUntilChanged()
+            .collect { state.value = it }
+    }
 
     return remember {
         object : MutableState<T> {
             override var value: T
                 get() = state.value
                 set(value) {
+                    state.value = value
                     coroutineScope.launch {
                         context.dataStore.edit {
                             it[key] = value.name

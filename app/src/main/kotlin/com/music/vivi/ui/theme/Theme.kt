@@ -28,6 +28,7 @@ fun MusicTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     pureBlack: Boolean = false,
     themeColor: Color = DefaultThemeColor,
+    overrideColorScheme: ColorScheme? = null,
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
@@ -35,7 +36,9 @@ fun MusicTheme(
     val useSystemDynamicColor = (themeColor == DefaultThemeColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
 
     // Select the appropriate color scheme generation method
-    val baseColorScheme = if (useSystemDynamicColor) {
+    val baseColorScheme = if (overrideColorScheme != null) {
+        overrideColorScheme
+    } else if (useSystemDynamicColor) {
         // Use standard Material 3 dynamic color functions for system wallpaper colors
         if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
     } else {
