@@ -31,6 +31,7 @@
     <string name="your_youtube_playlists">Your YouTube playlists</string>
     <string name="similar_to">Similar to</string>
     <string name="new_release_albums">New release albums</string>
+    <string name="you_might_also_like">You might also like</string>
 
     <!-- History -->
     <string name="today">Today</string>
@@ -72,6 +73,7 @@
 
     <!-- Album screen -->
     <string name="other_versions">Other versions</string>
+    <string name="releases_for_you">Releases for you</string>
 
     <!-- Playlist -->
     <string name="liked_songs">Liked songs</string>

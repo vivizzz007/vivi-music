@@ -146,7 +146,6 @@ fun AutoPlaylistScreen(
     }
 
     val songs by viewModel.likedSongs.collectAsState(null)
-    val mutableSongs = remember { mutableStateListOf<Song>() }
 
     var isSearching by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf(TextFieldValue()) }
@@ -173,8 +172,14 @@ fun AutoPlaylistScreen(
         else -> PlaylistType.OTHER
     }
 
-    val wrappedSongs = remember(songs) {
-        songs?.map { item -> ItemWrapper(item) }?.toMutableStateList() ?: mutableStateListOf()
+    val wrappedSongs = remember { mutableStateListOf<ItemWrapper<Song>>() }
+    LaunchedEffect(songs) {
+        if (songs == null) return@LaunchedEffect
+        val wrappers = withContext(Dispatchers.Default) {
+             songs!!.map { item -> ItemWrapper(item) }
+        }
+        wrappedSongs.clear()
+        wrappedSongs.addAll(wrappers)
     }
 
     var selection by remember { mutableStateOf(false) }
@@ -210,12 +215,6 @@ fun AutoPlaylistScreen(
         }
     }
 
-    LaunchedEffect(songs) {
-        mutableSongs.apply {
-            clear()
-            songs?.let { addAll(it) }
-        }
-    }
 
     // Defer download state check to avoid blocking UI
     LaunchedEffect(songs) {
@@ -278,13 +277,18 @@ fun AutoPlaylistScreen(
         )
     }
 
-    val filteredSongs = remember(wrappedSongs, query) {
-        if (query.text.isEmpty()) wrappedSongs
-        else wrappedSongs.filter { wrapper ->
-            val song = wrapper.item
-            song.song.title.contains(query.text, true) ||
-                    song.artists.any { it.name.contains(query.text, true) }
+    val filteredSongs = remember { mutableStateListOf<ItemWrapper<Song>>() }
+    LaunchedEffect(wrappedSongs.size, query.text) {
+        val result = withContext(Dispatchers.Default) {
+            if (query.text.isEmpty()) wrappedSongs.toList()
+            else wrappedSongs.filter { wrapper ->
+                val song = wrapper.item
+                song.song.title.contains(query.text, true) ||
+                        song.artists.any { it.name.contains(query.text, true) }
+            }
         }
+        filteredSongs.clear()
+        filteredSongs.addAll(result)
     }
 
     val state = rememberLazyListState()

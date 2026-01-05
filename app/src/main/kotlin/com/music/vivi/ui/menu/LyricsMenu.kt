@@ -8,7 +8,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -53,22 +52,19 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.datastore.preferences.core.edit
+import com.music.vivi.viewmodels.LyricsMenuViewModel
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.music.vivi.LocalDatabase
 import com.music.vivi.R
-import com.music.vivi.constants.SwipeGestureEnabledKey
 import com.music.vivi.db.entities.LyricsEntity
 import com.music.vivi.db.entities.SongEntity
+import com.music.vivi.lyrics.LyricsResult
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.ListDialog
 import com.music.vivi.ui.component.TextFieldDialog
 import com.music.vivi.update.mordernswitch.ModernSwitch
-import com.music.vivi.utils.dataStore
-import com.music.vivi.viewmodels.LyricsMenuViewModel
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.StateFlow
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -92,17 +88,8 @@ fun LyricsMenu(
             onDismiss = { showEditDialog = false },
             icon = { Icon(painter = painterResource(R.drawable.edit), contentDescription = null) },
             title = { Text(text = mediaMetadataProvider().title) },
-            initialTextFieldValue = TextFieldValue(lyricsProvider()?.lyrics.orEmpty()),
-            singleLine = false,
             onDone = {
-                database.query {
-                    upsert(
-                        LyricsEntity(
-                            id = mediaMetadataProvider().id,
-                            lyrics = it,
-                        ),
-                    )
-                }
+                viewModel.updateLyrics(mediaMetadataProvider().id, it)
             },
         )
     }
@@ -135,7 +122,7 @@ fun LyricsMenu(
             )
         }
 
-    val isNetworkAvailable by viewModel.isNetworkAvailable.collectAsState()
+    val isNetworkAvailable by viewModel.isNetworkAvailable.collectAsState(initial = false)
 
     if (showSearchDialog) {
         DefaultDialog(
@@ -217,8 +204,8 @@ fun LyricsMenu(
     }
 
     if (showSearchResultDialog) {
-        val results by viewModel.results.collectAsState()
-        val isLoading by viewModel.isLoading.collectAsState()
+        val results by viewModel.results.collectAsState(initial = emptyList<LyricsResult>())
+        val isLoading by viewModel.isLoading.collectAsState(initial = false)
 
         var expandedItemIndex by rememberSaveable {
             mutableStateOf(-1)
@@ -235,14 +222,7 @@ fun LyricsMenu(
                             .clickable {
                                 onDismiss()
                                 viewModel.cancelSearch()
-                                database.query {
-                                    upsert(
-                                        LyricsEntity(
-                                            id = searchMediaMetadata.id,
-                                            lyrics = result.lyrics,
-                                        ),
-                                    )
-                                }
+                                viewModel.updateLyrics(searchMediaMetadata.id, result.lyrics)
                             }
                             .padding(12.dp)
                             .animateContentSize(),
@@ -344,8 +324,7 @@ fun LyricsMenu(
         // Action Buttons Row
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(IntrinsicSize.Min),
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
@@ -423,18 +402,14 @@ fun LyricsMenu(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             // Romanize Current Track
+            val isRomanized = songProvider()?.romanizeLyrics ?: true
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
                 shape = CircleShape,
                 onClick = {
-                    isChecked = !isChecked
-                    songProvider()?.let { song ->
-                        database.query {
-                            upsert(song.copy(romanizeLyrics = isChecked))
-                        }
-                    }
+                    songProvider()?.let { viewModel.toggleRomanization(it) }
                 }
             ) {
                 Icon(
@@ -450,45 +425,29 @@ fun LyricsMenu(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        if (isChecked) stringResource(R.string.romanization_enabled) else stringResource(R.string.romanization_disabled),
+                        if (isRomanized) stringResource(R.string.romanization_enabled) else stringResource(R.string.romanization_disabled),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
                 ModernSwitch(
-                    checked = isChecked,
-                    onCheckedChange = { newCheckedState ->
-                        isChecked = newCheckedState
-                        songProvider()?.let { song ->
-                            database.query {
-                                upsert(song.copy(romanizeLyrics = newCheckedState))
-                            }
-                        }
+                    checked = isRomanized,
+                    onCheckedChange = { enabled ->
+                        songProvider()?.let { viewModel.setRomanization(it, enabled) }
                     }
                 )
             }
 
             // Swipe to Change Track
-            val dataStore = context.dataStore
-            val swipeGestureEnabled by dataStore.data
-                .map { it[SwipeGestureEnabledKey] ?: true }
-                .collectAsState(initial = true)
-
-            val scope = rememberCoroutineScope()
+            val swipeGestureEnabled by viewModel.swipeGestureEnabled.collectAsState(initial = true)
 
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
                 shape = CircleShape,
-                onClick = {
-                    scope.launch {
-                        dataStore.edit { settings ->
-                            settings[SwipeGestureEnabledKey] = !(swipeGestureEnabled)
-                        }
-                    }
-                }
+                onClick = viewModel::toggleSwipeGesture
             ) {
                 Icon(
                     painter = painterResource(R.drawable.swipe),
@@ -511,13 +470,7 @@ fun LyricsMenu(
                 }
                 ModernSwitch(
                     checked = swipeGestureEnabled,
-                    onCheckedChange = { enabled ->
-                        scope.launch {
-                            dataStore.edit { settings ->
-                                settings[SwipeGestureEnabledKey] = enabled
-                            }
-                        }
-                    }
+                    onCheckedChange = viewModel::setSwipeGesture
                 )
             }
         }

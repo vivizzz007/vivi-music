@@ -23,10 +23,10 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
+import com.music.vivi.ui.component.RoundedCheckbox
 import androidx.compose.ui.draw.clip
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -500,9 +500,9 @@ fun StorageSettings(
                                                             .padding(vertical = 12.dp),
                                                         verticalAlignment = Alignment.CenterVertically
                                                     ) {
-                                                        RadioButton(
-                                                            selected = value == maxSongCacheSize,
-                                                            onClick = {
+                                                        RoundedCheckbox(
+                                                            checked = value == maxSongCacheSize,
+                                                            onCheckedChange = {
                                                                 onMaxSongCacheSizeChange(value)
                                                                 showCacheSizeDialog = false
                                                             }
@@ -652,9 +652,9 @@ fun StorageSettings(
                                                             .padding(vertical = 12.dp),
                                                         verticalAlignment = Alignment.CenterVertically
                                                     ) {
-                                                        RadioButton(
-                                                            selected = value == maxImageCacheSize,
-                                                            onClick = {
+                                                        RoundedCheckbox(
+                                                            checked = value == maxImageCacheSize,
+                                                            onCheckedChange = {
                                                                 onMaxImageCacheSizeChange(value)
                                                                 showImageCacheSizeDialog = false
                                                             }

@@ -186,6 +186,18 @@
 
 <hr>
 
+<h2>👥 Contributors</h2>
+
+<p>We appreciate everyone who has contributed to making VIVI Music better!</p>
+
+<p>To see all our amazing contributors and learn how you can join them, visit:</p>
+
+<div align="center">
+  <h3><a href="https://vivimusic.vercel.app/contributor.html">🌟 View All Contributors</a></h3>
+</div>
+
+<hr>
+
 <h2>🤝 Contributing</h2>
 
 <p>Contributions are welcome! Whether it's bug reports, feature requests, or code contributions:</p>
@@ -232,6 +244,20 @@
 
   <p>A heartfelt thank you to <strong><a href="https://github.com/mostafaalagamy">Mostafa Alagamy</a></strong> for their inspiration and contributions to the open source community.</p>
 
-  <p><strong>Made with ❤️ for music lovers everywhere</strong></p>
-  <p>⭐ Star this repo if you enjoy VIVI Music!</p>
+  <hr width="60%">
+
+## 🎖️ Credits
+
+  <p>VIVI Music is built upon the foundation of amazing open-source projects:</p>
+
+  <p><strong><a href="https://github.com/better-lyrics/better-lyrics">Better Lyrics</a></strong> – For beautiful time-synced lyrics with word-by-word highlighting, and seamless YouTube Music integration.</p>
+
+  <p align="center">The open-source community for tools, libraries, and APIs that make this project possible.</p>
+
+  <p align="center"><strong>Thank you to all the amazing developers who made this project possible!</strong></p>
+
+  <hr width="60%">
+
+  <p align="center"><strong>Made with ❤️ for music lovers everywhere</strong></p>
+  <p align="center">⭐ Star this repo if you enjoy VIVI Music!</p>
 </div>

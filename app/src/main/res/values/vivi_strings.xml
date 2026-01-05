@@ -708,7 +708,7 @@
     <string name="swipe_on_player_thumbnail">Swipe on player thumbnail</string>
     <string name="click_change_lyrics_position">Click to change lyrics position</string>
     <string name="auto_scroll_lyrics_subtitle">Auto scroll lyrics</string>
-    <string name="word_for_word_lyrics">Word-for-word lyrics</string>
+    <string name="apple_lyrics">Applemusic lyrics</string>
     <string name="highlight_words_discretely">Highlight words discretely as they are sung</string>
     <string name="letter_by_letter_animation">Letter by Letter Animation</string>
     <string name="animate_lyrics_letter_by_letter">Animate lyrics letter by letter when word sync is unavailable</string>

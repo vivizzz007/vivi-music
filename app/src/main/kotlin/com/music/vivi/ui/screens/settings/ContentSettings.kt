@@ -32,10 +32,10 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
+import com.music.vivi.ui.component.RoundedCheckbox
 import androidx.compose.ui.draw.clip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -204,9 +204,9 @@ fun ContentSettings(
                                 .padding(vertical = 12.dp, horizontal = 24.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            RadioButton(
-                                selected = value == contentLanguage,
-                                onClick = null
+                            RoundedCheckbox(
+                                checked = value == contentLanguage,
+                                onCheckedChange = null
                             )
                             Spacer(modifier = Modifier.width(16.dp))
                             Text(LanguageCodeToName.getOrElse(value) { stringResource(R.string.system_default) })
@@ -247,9 +247,9 @@ fun ContentSettings(
                                 .padding(vertical = 12.dp, horizontal = 24.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            RadioButton(
-                                selected = value == contentCountry,
-                                onClick = null
+                            RoundedCheckbox(
+                                checked = value == contentCountry,
+                                onCheckedChange = null
                             )
                             Spacer(modifier = Modifier.width(16.dp))
                             Text(CountryCodeToName.getOrElse(value) { stringResource(R.string.system_default) })
@@ -295,9 +295,9 @@ fun ContentSettings(
                                 .padding(vertical = 12.dp, horizontal = 24.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            RadioButton(
-                                selected = value == appLanguage,
-                                onClick = null
+                            RoundedCheckbox(
+                                checked = value == appLanguage,
+                                onCheckedChange = null
                             )
                             Spacer(modifier = Modifier.width(16.dp))
                             Text(LanguageCodeToName.getOrElse(value) { stringResource(R.string.system_default) })
@@ -330,9 +330,9 @@ fun ContentSettings(
                                 .padding(vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            RadioButton(
-                                selected = value == preferredProvider,
-                                onClick = null
+                            RoundedCheckbox(
+                                checked = value == preferredProvider,
+                                onCheckedChange = null
                             )
                             Spacer(modifier = Modifier.width(16.dp))
                             Text(
@@ -371,9 +371,9 @@ fun ContentSettings(
                                 .padding(vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            RadioButton(
-                                selected = value == quickPicks,
-                                onClick = null
+                            RoundedCheckbox(
+                                checked = value == quickPicks,
+                                onCheckedChange = null
                             )
                             Spacer(modifier = Modifier.width(16.dp))
                             Text(

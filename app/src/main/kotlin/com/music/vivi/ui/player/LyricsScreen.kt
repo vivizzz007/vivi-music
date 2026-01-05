@@ -528,10 +528,12 @@ fun LyricsScreen(
                                 sliderPosition = null
                             },
                             colors = PlayerSliderColors.squigglySliderColors(textBackgroundColor, playerBackground, useDarkTheme),
-                            squigglesSpec = SquigglySlider.SquigglesSpec(
-                                amplitude = if (isPlaying) (2.dp).coerceAtLeast(2.dp) else 0.dp,
-                                strokeWidth = 3.dp,
-                            ),
+                            squigglesSpec =
+                                SquigglySlider.SquigglesSpec(
+                                    amplitude = if (isPlaying) (4.dp).coerceAtLeast(2.dp) else 0.dp,
+                                    strokeWidth = 3.dp,
+                                    wavelength = 36.dp,
+                                ),
                         )
                     }
 

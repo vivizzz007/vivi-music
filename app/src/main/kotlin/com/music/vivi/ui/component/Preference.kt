@@ -16,7 +16,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -128,9 +127,9 @@ fun <T> ListPreference(
                             onValueSelected(value)
                         }.padding(horizontal = 16.dp, vertical = 12.dp),
                 ) {
-                    RadioButton(
-                        selected = value == selectedValue,
-                        onClick = null,
+                    RoundedCheckbox(
+                        checked = value == selectedValue,
+                        onCheckedChange = null,
                     )
 
                     Text(

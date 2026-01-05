@@ -217,6 +217,13 @@ import java.net.URLEncoder
 import java.util.Locale
 import javax.inject.Inject
 import com.music.vivi.update.viewmodelupdate.UpdateViewModel
+import com.materialkolor.dynamicColorScheme
+import com.materialkolor.PaletteStyle
+import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.ui.platform.LocalContext
+
 @Suppress("DEPRECATION", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -385,6 +392,30 @@ class MainActivity : ComponentActivity() {
             val accentColorInt by rememberPreference(AccentColorKey, defaultValue = DefaultThemeColor.toArgb())
             val accentColor = remember(accentColorInt) { Color(accentColorInt) }
 
+            // Async ColorScheme generation to prevent main thread blocking
+            var generatedColorScheme by remember { mutableStateOf<ColorScheme?>(null) }
+            val context = LocalContext.current
+
+            LaunchedEffect(themeColor, useDarkTheme, enableDynamicTheme) {
+                if (enableDynamicTheme && themeColor == DefaultThemeColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                     // System colors are fast, can be done on main (context required)
+                     generatedColorScheme = if (useDarkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+                } else {
+                    // MaterialKolor generation is expensive, offload to background
+                    withContext(Dispatchers.Default) {
+                        try {
+                            generatedColorScheme = dynamicColorScheme(
+                                seedColor = themeColor,
+                                isDark = useDarkTheme,
+                                style = PaletteStyle.TonalSpot
+                            )
+                        } catch (e: Exception) {
+                            reportException(e)
+                        }
+                    }
+                }
+            }
+
             LaunchedEffect(playerConnection, enableDynamicTheme, accentColor) {
                 val playerConnection = playerConnection
                 if (!enableDynamicTheme) {
@@ -428,6 +459,7 @@ class MainActivity : ComponentActivity() {
                 darkTheme = useDarkTheme,
                 pureBlack = pureBlack,
                 themeColor = themeColor,
+                overrideColorScheme = generatedColorScheme,
             ) {
                 BoxWithConstraints(
                     modifier =
