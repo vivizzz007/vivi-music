@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.music.innertube.YouTube
 import com.music.innertube.models.PlaylistItem
 import com.music.innertube.models.SongItem
+import com.music.innertube.models.YTItem
 import com.music.innertube.models.filterVideoSongs
 import com.music.vivi.R
 import com.music.vivi.constants.HideVideoSongsKey
@@ -36,6 +37,7 @@ class OnlinePlaylistViewModel @Inject constructor(
 
     val playlist = MutableStateFlow<PlaylistItem?>(null)
     val playlistSongs = MutableStateFlow<List<SongItem>>(emptyList())
+    val relatedItems = MutableStateFlow<List<YTItem>>(emptyList())
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading = _isLoading.asStateFlow()
@@ -69,6 +71,7 @@ class OnlinePlaylistViewModel @Inject constructor(
                 .onSuccess { playlistPage ->
                     playlist.value = playlistPage.playlist
                     playlistSongs.value = applySongFilters(playlistPage.songs)
+                    relatedItems.value = playlistPage.related.orEmpty()
                     continuation = playlistPage.songsContinuation
                     _isLoading.value = false
                     if (continuation != null) {

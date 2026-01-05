@@ -18,7 +18,11 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -39,6 +43,8 @@ constructor(
     init {
         viewModelScope.launch {
             query
+                .debounce(300)
+                .distinctUntilChanged()
                 .flatMapLatest { query ->
                     if (query.isEmpty()) {
                         database.searchHistory().map { history ->
@@ -47,47 +53,34 @@ constructor(
                             )
                         }
                     } else {
-                        _viewState.value = _viewState.value.copy(isLoading = true, error = null)
-                        val result = YouTube.searchSuggestions(query).onSuccess { result ->
+                        flow {
+                            emit(_viewState.value.copy(isLoading = true, error = null))
+                            
+                            val history = database.searchHistory(query).first().take(3)
                             val hideExplicit = context.dataStore.get(HideExplicitKey, false)
                             val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
 
-                            viewModelScope.launch {
-                                database
-                                    .searchHistory(query)
-                                    .map { it.take(3) }
-                                    .map { history ->
-                                        SearchSuggestionViewState(
-                                            history = history,
-                                            suggestions =
-                                            result
-                                                .queries
-                                                .filter { suggestionQuery ->
-                                                    history.none { it.query == suggestionQuery }
-                                                },
-                                            items =
-                                            result
-                                                .recommendedItems
-                                                .distinctBy { it.id }
-                                                .filterExplicit(hideExplicit)
-                                                .filterVideoSongs(hideVideoSongs),
-                                            isLoading = false,
-                                            error = null
-                                        )
-                                    }.collect {
-                                        _viewState.value = it
-                                    }
-                            }
-                        }.onFailure {
-                            _viewState.value = _viewState.value.copy(isLoading = false, error = it)
-                        }
-                        
-                        // Emit history even if suggestions fail
-                        database.searchHistory(query).map { history ->
-                            _viewState.value.copy(
-                                history = history.take(3),
-                                isLoading = false
-                            )
+                            YouTube.searchSuggestions(query)
+                                .onSuccess { result ->
+                                    emit(SearchSuggestionViewState(
+                                        history = history,
+                                        suggestions = result.queries.filter { sug ->
+                                            history.none { it.query == sug }
+                                        },
+                                        items = result.recommendedItems
+                                            .distinctBy { it.id }
+                                            .filterExplicit(hideExplicit)
+                                            .filterVideoSongs(hideVideoSongs),
+                                        isLoading = false,
+                                        error = null
+                                    ))
+                                }.onFailure { error ->
+                                    emit(SearchSuggestionViewState(
+                                        history = history,
+                                        isLoading = false,
+                                        error = error
+                                    ))
+                                }
                         }
                     }
                 }.collect {

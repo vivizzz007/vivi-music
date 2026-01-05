@@ -32,6 +32,7 @@ constructor(
             .albumWithSongs(albumId)
             .stateIn(viewModelScope, SharingStarted.Eagerly, null)
     var otherVersions = MutableStateFlow<List<AlbumItem>>(emptyList())
+    var releasesForYou = MutableStateFlow<List<AlbumItem>>(emptyList())
 
     private val _albumDescription = MutableStateFlow<String?>(null)
     val albumDescription = _albumDescription.asStateFlow()
@@ -73,6 +74,7 @@ constructor(
                 .onSuccess { it ->
                     playlistId.value = it.album.playlistId
                     otherVersions.value = it.otherVersions
+                    releasesForYou.value = it.releasesForYou
                     database.transaction {
                         if (album == null) {
                             insert(it)

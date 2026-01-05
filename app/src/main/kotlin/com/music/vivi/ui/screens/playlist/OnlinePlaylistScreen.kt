@@ -94,12 +94,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastAny
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import com.music.innertube.models.AlbumItem
+import com.music.innertube.models.ArtistItem
+import com.music.innertube.models.PlaylistItem
 import com.music.innertube.models.SongItem
+import com.music.innertube.models.YTItem
 import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalDownloadUtil
 import com.music.vivi.LocalPlayerAwareWindowInsets
@@ -115,6 +120,7 @@ import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.playback.ExoDownloadService
 import com.music.vivi.playback.queues.ListQueue
+import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.ui.component.DraggableScrollbar
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.LocalMenuState
@@ -129,6 +135,7 @@ import com.music.vivi.ui.utils.ItemWrapper
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.OnlinePlaylistViewModel
+import kotlin.collections.isNotEmpty
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
     ExperimentalMaterial3ExpressiveApi::class
@@ -147,6 +154,7 @@ fun OnlinePlaylistScreen(
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
+    val relatedItems by viewModel.relatedItems.collectAsStateWithLifecycle()
     val playlist by viewModel.playlist.collectAsState()
     val songs by viewModel.playlistSongs.collectAsState()
     val dbPlaylist by viewModel.dbPlaylist.collectAsState()
@@ -865,6 +873,53 @@ fun OnlinePlaylistScreen(
                         }
 
                     }
+
+
+
+                    if (relatedItems.isNotEmpty()) {
+                        item(key = "related_header") {
+                            Text(
+                                text = stringResource(R.string.you_might_also_like),
+                                style = MaterialTheme.typography.titleLarge,
+                                modifier = Modifier
+                                    .padding(horizontal = 16.dp)
+                                    .padding(top = 24.dp, bottom = 8.dp)
+                            )
+                        }
+
+                        itemsIndexed(
+                            items = relatedItems,
+                            key = { _, item -> "related_${item.id}" }
+                        ) { index, item ->
+                            YouTubeListItem(
+                                item = item,
+                                isActive = false,
+                                isPlaying = false,
+                                isSelected = false,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .combinedClickable(
+                                        onClick = {
+                                            when (item) {
+                                                is SongItem -> playerConnection.playQueue(
+                                                    YouTubeQueue.radio(item.toMediaMetadata()))
+                                                is AlbumItem -> navController.navigate("album/${item.browseId}")
+                                                is ArtistItem -> navController.navigate("artist/${item.id}")
+                                                is PlaylistItem -> navController.navigate("online_playlist/${item.id}")
+                                            }
+                                        }
+                                    )
+                            )
+                            if (index < relatedItems.size - 1) {
+                                Spacer(modifier = Modifier.height(3.dp))
+                            }
+                        }
+
+                        item(key = "related_end") {
+                            Spacer(modifier = Modifier.height(24.dp))
+                        }
+                    }
+
                     if (viewModel.continuation != null && songs.isNotEmpty() && isLoadingMore) {
                         item(key = "loading_more") {
                             ShimmerHost {
