@@ -707,7 +707,7 @@
     <string name="swipe_on_player_thumbnail">Scorri sulla miniatura del lettore</string>
     <string name="click_change_lyrics_position">Clicca per cambiare posizione testo</string>
     <string name="auto_scroll_lyrics_subtitle">Scorrimento automatico testo</string>
-    <string name="word_for_word_lyrics">Testo parola per parola</string>
+    <string name="apple_lyrics">Testo animato</string>
     <string name="highlight_words_discretely">Evidenzia parole discretamente mentre vengono cantate</string>
     <string name="letter_by_letter_animation">Animazione lettera per lettera</string>
     <string name="animate_lyrics_letter_by_letter">Anima testo lettera per lettera quando la sincronizzazione parola non è disponibile</string>

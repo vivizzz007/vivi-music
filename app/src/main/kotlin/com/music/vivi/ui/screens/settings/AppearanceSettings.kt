@@ -1456,7 +1456,7 @@ fun AppearanceSettings(
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(id = R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
-                                            title = stringResource(R.string.word_for_word_lyrics),
+                                            title = stringResource(R.string.apple_lyrics),
                                             subtitle = stringResource(R.string.highlight_words_discretely),
                                             iconBackgroundColor = iconBgColor,
                                             iconContentColor = iconStyleColor

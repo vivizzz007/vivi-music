@@ -708,7 +708,7 @@
     <string name="swipe_on_player_thumbnail">Deslizar en miniatura del reproductor</string>
     <string name="click_change_lyrics_position">Clic para cambiar posición de letras</string>
     <string name="auto_scroll_lyrics_subtitle">Desplazamiento automático de letras</string>
-    <string name="word_for_word_lyrics">Letras palabra por palabra</string>
+    <string name="apple_lyrics">Animación de Apple Music</string>
     <string name="highlight_words_discretely">Resaltar palabras discretamente mientras se cantan</string>
     <string name="letter_by_letter_animation">Animación letra por letra</string>
     <string name="animate_lyrics_letter_by_letter">Animar letras letra por letra cuando la sincronización de palabras no está disponible</string>
