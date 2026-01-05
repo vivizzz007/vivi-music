@@ -146,6 +146,7 @@ fun AlbumScreen(
     val playlistId by viewModel.playlistId.collectAsState()
     val albumWithSongs by viewModel.albumWithSongs.collectAsState()
     val otherVersions by viewModel.otherVersions.collectAsState()
+    val releasesForYou by viewModel.releasesForYou.collectAsState()
     val albumDescription by viewModel.albumDescription.collectAsState()
     val isDescriptionLoading by viewModel.isDescriptionLoading.collectAsState()
     val hideExplicit by rememberPreference(key = HideExplicitKey, defaultValue = false)
@@ -789,6 +790,48 @@ fun AlbumScreen(
                         ) {
                             items(
                                 items = otherVersions.distinctBy { it.id },
+                                key = { it.id },
+                            ) { item ->
+                                YouTubeGridItem(
+                                    item = item,
+                                    isActive = mediaMetadata?.album?.id == item.id,
+                                    isPlaying = isPlaying,
+                                    coroutineScope = scope,
+                                    modifier = Modifier
+                                        .combinedClickable(
+                                            onClick = { navController.navigate("album/${item.id}") },
+                                            onLongClick = {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                menuState.show {
+                                                    YouTubeAlbumMenu(
+                                                        albumItem = item,
+                                                        navController = navController,
+                                                        onDismiss = menuState::dismiss,
+                                                    )
+                                                }
+                                            },
+                                        )
+                                        .animateItem(),
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Releases For You Section
+                if (releasesForYou.isNotEmpty()) {
+                    item(key = "releases_for_you_title") {
+                        NavigationTitle(
+                            title = stringResource(R.string.releases_for_you),
+                            modifier = Modifier.animateItem()
+                        )
+                    }
+                    item(key = "releases_for_you_list") {
+                        LazyRow(
+                            contentPadding = WindowInsets.systemBars.only(WindowInsetsSides.Horizontal).asPaddingValues(),
+                        ) {
+                            items(
+                                items = releasesForYou.distinctBy { it.id },
                                 key = { it.id },
                             ) { item ->
                                 YouTubeGridItem(
