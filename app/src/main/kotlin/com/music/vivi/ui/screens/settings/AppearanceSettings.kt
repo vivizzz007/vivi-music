@@ -36,7 +36,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -48,6 +47,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberSliderState
+import com.music.vivi.ui.component.RoundedCheckbox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -642,9 +642,9 @@ fun AppearanceSettings(
                                 .padding(vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            RadioButton(
-                                selected = value == playerBackground,
-                                onClick = null
+                            RoundedCheckbox(
+                                checked = value == playerBackground,
+                                onCheckedChange = null
                             )
                             Spacer(modifier = Modifier.width(16.dp))
                             Text(
@@ -683,9 +683,9 @@ fun AppearanceSettings(
                                 .padding(vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            RadioButton(
-                                selected = value == playerButtonsStyle,
-                                onClick = null
+                            RoundedCheckbox(
+                                checked = value == playerButtonsStyle,
+                                onCheckedChange = null
                             )
                             Spacer(modifier = Modifier.width(16.dp))
                             Text(
@@ -732,9 +732,9 @@ fun AppearanceSettings(
                                 .padding(vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            RadioButton(
-                                selected = value == defaultChip,
-                                onClick = null
+                            RoundedCheckbox(
+                                checked = value == defaultChip,
+                                onCheckedChange = null
                             )
                             Spacer(modifier = Modifier.width(16.dp))
                             Text(
