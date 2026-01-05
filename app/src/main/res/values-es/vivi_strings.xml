@@ -68,15 +68,6 @@
 
     <string name="already_in_playlist">Ya en la playlist:</string>
 
-    <plurals name="n_element">
-        <item quantity="one">%d elemento</item>
-        <item quantity="other">%d elementos</item>
-    </plurals>
-    <plurals name="n_time">
-        <item quantity="one">%d vez</item>
-        <item quantity="other">%d veces</item>
-    </plurals>
-
     <string name="seek_backward">5 segundos atrás</string>
     <string name="seek_forward">5 segundos adelante</string>
     <string name="seek_forward_dynamic">+%1$d segundos adelante</string>
@@ -206,10 +197,6 @@
     <string name="playlist_not_found_desc">La playlist solicitada no se pudo cargar</string>
     <string name="empty_playlist">Playlist vacía</string>
     <string name="empty_playlist_desc">Esta playlist no contiene canciones</string>
-    <plurals name="seconds">
-        <item quantity="one">1 segundo</item>
-        <item quantity="other">%d segundos</item>
-    </plurals>
 
     <!-- Player Settings -->
     <string name="disable_load_more_when_repeat_all">Desactivar cargar más cuando repetir todo</string>
