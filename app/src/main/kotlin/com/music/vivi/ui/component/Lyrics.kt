@@ -9,6 +9,10 @@ import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -427,6 +431,7 @@ fun Lyrics(
 
     // Professional animation states for smooth -vivi-style transitions
     var isAnimating by remember { mutableStateOf(false) }
+    var isAutoScrollActive by rememberSaveable { mutableStateOf(true) }
 
     // Handle back button press - close selection mode instead of exiting screen
     BackHandler(enabled = isSelectionModeActive) {
@@ -506,20 +511,43 @@ fun Lyrics(
         }
     }
 
-    LaunchedEffect(currentLineIndex, lastPreviewTime, initialScrollDone) {
-        if (!isSynced) return@LaunchedEffect
+    // Apple Music style scrolling - keep active line at top of screen with smooth movement
+    suspend fun performSmoothTopScroll(targetIndex: Int, duration: Int = 1000) {
+        if (isAnimating || targetIndex < 0) return
 
-        // Apple Music style scrolling - keep active line at top of screen with smooth movement
-        suspend fun performSmoothTopScroll(targetIndex: Int, duration: Int = 1000) {
-            if (isAnimating || targetIndex < 0) return
+        isAnimating = true
 
-            isAnimating = true
+        try {
+            val itemInfo = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
+            val viewportHeight = lazyListState.layoutInfo.viewportEndOffset - lazyListState.layoutInfo.viewportStartOffset
 
-            try {
-                val itemInfo = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
-                val viewportHeight = lazyListState.layoutInfo.viewportEndOffset - lazyListState.layoutInfo.viewportStartOffset
+            if (itemInfo != null) {
+                val targetTopPosition = if (lyricsVerticalPosition == LyricsVerticalPosition.CENTER) {
+                    lazyListState.layoutInfo.viewportStartOffset + (viewportHeight / 2) - (itemInfo.size / 2)
+                } else {
+                    lazyListState.layoutInfo.viewportStartOffset + 100
+                }
+
+                val currentItemTop = itemInfo.offset
+                val scrollOffset = currentItemTop - targetTopPosition
+
+                if (kotlin.math.abs(scrollOffset) > 10) {
+                    lazyListState.animateScrollBy(
+                        value = scrollOffset.toFloat(),
+                        animationSpec = tween(
+                            durationMillis = duration,
+                            easing = FastOutSlowInEasing
+                        )
+                    )
+                }
+            } else {
+                // Item not visible, scroll to it first then adjust position
+                lazyListState.scrollToItem(index = targetIndex)
                 
+                // Now get the item info after scrolling
+                val itemInfo = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
                 if (itemInfo != null) {
+                    val viewportHeight = lazyListState.layoutInfo.viewportEndOffset - lazyListState.layoutInfo.viewportStartOffset
                     val targetTopPosition = if (lyricsVerticalPosition == LyricsVerticalPosition.CENTER) {
                         lazyListState.layoutInfo.viewportStartOffset + (viewportHeight / 2) - (itemInfo.size / 2)
                     } else {
@@ -528,7 +556,7 @@ fun Lyrics(
                     
                     val currentItemTop = itemInfo.offset
                     val scrollOffset = currentItemTop - targetTopPosition
-
+                    
                     if (kotlin.math.abs(scrollOffset) > 10) {
                         lazyListState.animateScrollBy(
                             value = scrollOffset.toFloat(),
@@ -538,21 +566,15 @@ fun Lyrics(
                             )
                         )
                     }
-                } else {
-                     val offset = if (lyricsVerticalPosition == LyricsVerticalPosition.CENTER) {
-                        (viewportHeight / 2)
-                    } else {
-                        100
-                    }
-                    lazyListState.animateScrollToItem(
-                        index = targetIndex,
-                        scrollOffset = -offset
-                    )
                 }
-            } finally {
-                isAnimating = false
             }
+        } finally {
+            isAnimating = false
         }
+    }
+
+    LaunchedEffect(currentLineIndex, lastPreviewTime, initialScrollDone) {
+        if (!isSynced) return@LaunchedEffect
 
         if((currentLineIndex == 0 && shouldScrollToFirstLine) || !initialScrollDone) {
             shouldScrollToFirstLine = false
@@ -564,7 +586,7 @@ fun Lyrics(
             deferredCurrentLineIndex = currentLineIndex
             if (isSeeking) {
                 performSmoothTopScroll(currentLineIndex, 400) // Fast for seeking
-            } else if ((lastPreviewTime == 0L || currentLineIndex != previousLineIndex) && scrollLyrics) {
+            } else if (isAutoScrollActive && scrollLyrics) {
                 if (currentLineIndex != previousLineIndex) {
                     performSmoothTopScroll(currentLineIndex, 1200) // Smooth auto-scroll
                 }
@@ -613,8 +635,8 @@ fun Lyrics(
                                 available: Offset,
                                 source: NestedScrollSource
                             ): Offset {
-                                if (!isSelectionModeActive) { // Only update preview time if not selecting
-                                    lastPreviewTime = System.currentTimeMillis()
+                                if (!isSelectionModeActive && (consumed.y != 0f || available.y != 0f)) {
+                                    isAutoScrollActive = false
                                 }
                                 return super.onPostScroll(consumed, available, source)
                             }
@@ -624,7 +646,7 @@ fun Lyrics(
                                 available: Velocity
                             ): Velocity {
                                 if (!isSelectionModeActive) { // Only update preview time if not selecting
-                                    lastPreviewTime = System.currentTimeMillis()
+                                    isAutoScrollActive = false
                                 }
                                 return super.onPostFling(consumed, available)
                             }
@@ -815,6 +837,49 @@ fun Lyrics(
                 }
             }
             // Removed the more button from bottom - it's now in the top header
+        }
+        
+        androidx.compose.animation.AnimatedVisibility(
+            visible = !isAutoScrollActive && isSynced,
+            enter = fadeIn(animationSpec = tween(300)) + androidx.compose.animation.scaleIn(animationSpec = tween(300)),
+            exit = fadeOut(animationSpec = tween(300)) + androidx.compose.animation.scaleOut(animationSpec = tween(300)),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 50.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .clickable {
+                        isAutoScrollActive = true
+                        if (currentLineIndex != -1) {
+                            scope.launch {
+                                // smooth scroll to current line
+                                performSmoothTopScroll(currentLineIndex, 800)
+                            }
+                        }
+                    }
+                    .padding(horizontal = 16.dp, vertical = 10.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.sync),
+                        contentDescription = stringResource(R.string.action_resync),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.action_resync),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
         }
 
         if (showProgressDialog) {
