@@ -443,8 +443,6 @@ fun BottomSheetPlayer(
             else MaterialTheme.colorScheme.surfaceContainer
     }
 
-
-
     BottomSheet(
         state = state,
         modifier = modifier,

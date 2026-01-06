@@ -1,6 +1,8 @@
 package com.music.vivi.ui.menu
 
+import android.content.Context
 import android.content.Intent
+import android.media.AudioManager
 import android.media.audiofx.AudioEffect
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -21,8 +23,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.progressSemantics
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
@@ -40,6 +42,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -57,6 +60,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.rememberSliderState
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import androidx.media3.common.PlaybackParameters
@@ -176,7 +184,23 @@ fun PlayerMenu(
         )
     }
 
-    val evenCornerRadiusElems = 26.dp
+    val cornerRadius = 24.dp
+    val topShape = AbsoluteSmoothCornerShape(
+        cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
+        smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
+        cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+    )
+    val middleShape = RectangleShape
+    val bottomShape = AbsoluteSmoothCornerShape(
+        cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+        smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
+        cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
+    )
+    val singleShape = AbsoluteSmoothCornerShape(
+        cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+        smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
+        cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+    )
 
     Column(
         modifier = Modifier
@@ -188,6 +212,23 @@ fun PlayerMenu(
         Spacer(modifier = Modifier.height(1.dp))
 
         if (isQueueTrigger != true) {
+            val audioManager = remember { context.getSystemService(Context.AUDIO_SERVICE) as AudioManager }
+            var currentVolume by remember { mutableFloatStateOf(playerVolume.value) }
+            val sliderState = rememberSliderState(
+                value = currentVolume,
+                valueRange = 0f..audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC).toFloat(),
+            )
+            sliderState.onValueChange = {
+                currentVolume = it
+                sliderState.value = it
+                playerConnection.service.playerVolume.value = it
+            }
+
+            LaunchedEffect(playerVolume.value) {
+                currentVolume = playerVolume.value
+                sliderState.value = playerVolume.value
+            }
+
             Row(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -201,12 +242,23 @@ fun PlayerMenu(
                     modifier = Modifier.size(28.dp),
                 )
 
-                BigSeekBar(
-                    progressProvider = playerVolume::value,
-                    onProgressChange = { playerConnection.service.playerVolume.value = it },
+                Slider(
+                    state = sliderState,
                     modifier = Modifier
                         .weight(1f)
-                        .height(36.dp),
+                        .height(36.dp)
+                        .progressSemantics(
+                            currentVolume,
+                            sliderState.valueRange.start..sliderState.valueRange.endInclusive,
+                            0,
+                        ),
+                    track = {
+                        SliderDefaults.Track(
+                            sliderState = sliderState,
+                            modifier = Modifier.height(36.dp),
+                            trackCornerSize = 12.dp,
+                        )
+                    }
                 )
             }
 
@@ -217,47 +269,40 @@ fun PlayerMenu(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(IntrinsicSize.Min),
+                .height(64.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             // Start Radio Button
-            MediumExtendedFloatingActionButton(
+            FilledTonalButton(
                 modifier = Modifier
-                    .weight(1f)
+                    .weight(0.5f)
                     .fillMaxHeight(),
                 onClick = {
                     Toast.makeText(context, context.getString(R.string.starting_radio), Toast.LENGTH_SHORT).show()
                     playerConnection.startRadioSeamlessly()
                     onDismiss()
                 },
-                elevation = FloatingActionButtonDefaults.elevation(0.dp),
-                shape = AbsoluteSmoothCornerShape(
-                    cornerRadiusTR = evenCornerRadiusElems, smoothnessAsPercentBR = 60, cornerRadiusBR = evenCornerRadiusElems,
-                    smoothnessAsPercentTL = 60, cornerRadiusTL = evenCornerRadiusElems, smoothnessAsPercentBL = 60,
-                    cornerRadiusBL = evenCornerRadiusElems, smoothnessAsPercentTR = 60
-                ),
-                icon = {
-                    Icon(
-                        painter = painterResource(R.drawable.radio),
-                        contentDescription = stringResource(R.string.start_radio_icon)
-                    )
-                },
-                text = {
-                    Text(
-                        modifier = Modifier.padding(end = 10.dp),
-                        text = stringResource(R.string.start_radio),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        softWrap = false
-                    )
-                }
-            )
+                shape = singleShape,
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.radio),
+                    contentDescription = stringResource(R.string.start_radio_icon)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.start_radio).split(" ").last().replaceFirstChar { it.uppercase() },
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    softWrap = false
+                )
+            }
 
             // Copy Link Button
             FilledTonalIconButton(
                 modifier = Modifier
-                    .weight(0.4f)
+                    .weight(0.25f)
                     .fillMaxHeight(),
                 onClick = {
                     val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
@@ -266,12 +311,35 @@ fun PlayerMenu(
                     android.widget.Toast.makeText(context, R.string.link_copied, android.widget.Toast.LENGTH_SHORT).show()
                     onDismiss()
                 },
-                shape = CircleShape
+                shape = singleShape
             ) {
                 Icon(
                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
                     painter = painterResource(R.drawable.link),
                     contentDescription = stringResource(R.string.copy_link)
+                )
+            }
+
+            // Share Button
+            FilledTonalIconButton(
+                modifier = Modifier
+                    .weight(0.25f)
+                    .fillMaxHeight(),
+                onClick = {
+                    val intent = Intent().apply {
+                        action = Intent.ACTION_SEND
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, "https://music.youtube.com/watch?v=${mediaMetadata.id}")
+                    }
+                    context.startActivity(Intent.createChooser(intent, null))
+                    onDismiss()
+                },
+                shape = singleShape
+            ) {
+                Icon(
+                    modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
+                    painter = painterResource(R.drawable.share),
+                    contentDescription = stringResource(R.string.share_song)
                 )
             }
         }
@@ -287,7 +355,7 @@ fun PlayerMenu(
                 containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                 contentColor = MaterialTheme.colorScheme.onTertiaryContainer
             ),
-            shape = CircleShape,
+            shape = singleShape,
             onClick = {
                 when (download?.state) {
                     Download.STATE_COMPLETED -> {
@@ -342,7 +410,7 @@ fun PlayerMenu(
 
         // Details Section
         Column(
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             // Artist
             if (artists.isNotEmpty()) {
@@ -350,7 +418,7 @@ fun PlayerMenu(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 66.dp),
-                    shape = CircleShape,
+                    shape = if (mediaMetadata.album != null) topShape else singleShape,
                     onClick = {
                         if (mediaMetadata.artists.size == 1) {
                             navController.navigate("artist/${mediaMetadata.artists[0].id}")
@@ -383,13 +451,14 @@ fun PlayerMenu(
                 }
             }
 
-            // Album
             if (mediaMetadata.album != null) {
+                Spacer(modifier = Modifier.height(1.dp))
+                // Album
                 FilledTonalButton(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 66.dp),
-                    shape = CircleShape,
+                    shape = bottomShape,
                     onClick = {
                         navController.navigate("album/${mediaMetadata.album.id}")
                         playerBottomSheetState.collapseSoft()
@@ -417,13 +486,20 @@ fun PlayerMenu(
                     }
                 }
             }
+        }
 
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Actions Group
+        Column(
+            verticalArrangement = Arrangement.spacedBy(0.dp)
+        ) {
             // Add to Playlist
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = topShape,
                 onClick = {
                     showChoosePlaylistDialog = true
                 }
@@ -449,12 +525,14 @@ fun PlayerMenu(
                 }
             }
 
+            Spacer(modifier = Modifier.height(1.dp))
+
             // Song Details
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = if (isQueueTrigger == true) bottomShape else middleShape,
                 onClick = {
                     onShowDetailsDialog()
                     onDismiss()
@@ -483,11 +561,12 @@ fun PlayerMenu(
 
             // Equalizer
             if (isQueueTrigger != true) {
+                Spacer(modifier = Modifier.height(1.dp))
                 FilledTonalButton(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 66.dp),
-                    shape = CircleShape,
+                    shape = middleShape,
                     onClick = {
                         val intent =
                             Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
@@ -525,12 +604,14 @@ fun PlayerMenu(
                     }
                 }
 
+                Spacer(modifier = Modifier.height(1.dp))
+
                 // Advanced (Pitch/Tempo)
                 FilledTonalButton(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 66.dp),
-                    shape = CircleShape,
+                    shape = bottomShape,
                     onClick = {
                         showPitchTempoDialog = true
                     }

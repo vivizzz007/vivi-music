@@ -66,6 +66,7 @@ import com.music.vivi.ui.component.TextFieldDialog
 import com.music.vivi.update.mordernswitch.ModernSwitch
 import kotlinx.coroutines.flow.StateFlow
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
+import androidx.compose.ui.graphics.RectangleShape
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -310,7 +311,23 @@ fun LyricsMenu(
         isChecked = songProvider()?.romanizeLyrics ?: true
     }
 
-    val evenCornerRadiusElems = 26.dp
+    val cornerRadius = 24.dp
+    val topShape = AbsoluteSmoothCornerShape(
+        cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
+        smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
+        cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+    )
+    val middleShape = RectangleShape
+    val bottomShape = AbsoluteSmoothCornerShape(
+        cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+        smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
+        cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
+    )
+    val singleShape = AbsoluteSmoothCornerShape(
+        cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+        smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
+        cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+    )
 
     Column(
         modifier = Modifier
@@ -324,51 +341,45 @@ fun LyricsMenu(
         // Action Buttons Row
         Row(
             modifier = Modifier
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .height(64.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             // Edit Button
-            MediumExtendedFloatingActionButton(
+            FilledTonalButton(
                 modifier = Modifier
-                    .weight(1f)
+                    .weight(0.5f)
                     .fillMaxHeight(),
                 onClick = {
                     showEditDialog = true
                 },
-                elevation = FloatingActionButtonDefaults.elevation(0.dp),
-                shape = AbsoluteSmoothCornerShape(
-                    cornerRadiusTR = evenCornerRadiusElems, smoothnessAsPercentBR = 60, cornerRadiusBR = evenCornerRadiusElems,
-                    smoothnessAsPercentTL = 60, cornerRadiusTL = evenCornerRadiusElems, smoothnessAsPercentBL = 60,
-                    cornerRadiusBL = evenCornerRadiusElems, smoothnessAsPercentTR = 60
-                ),
-                icon = {
-                    Icon(
-                        painter = painterResource(R.drawable.edit),
-                        contentDescription = stringResource(R.string.edit_content_desc_menu),
-                    )
-                },
-                text = {
-                    Text(
-                        modifier = Modifier.padding(end = 10.dp),
-                        text = stringResource(R.string.edit),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        softWrap = false
-                    )
-                }
-            )
+                shape = singleShape,
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.edit),
+                    contentDescription = stringResource(R.string.edit_content_desc_menu),
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.edit),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    softWrap = false
+                )
+            }
 
             // Refetch Button
             FilledTonalIconButton(
                 modifier = Modifier
-                    .weight(0.4f)
+                    .weight(0.25f)
                     .fillMaxHeight(),
                 onClick = {
                     onDismiss()
                     viewModel.refetchLyrics(mediaMetadataProvider(), lyricsProvider())
                 },
-                shape = CircleShape
+                shape = singleShape
             ) {
                 Icon(
                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
@@ -380,12 +391,12 @@ fun LyricsMenu(
             // Search Button
             FilledTonalIconButton(
                 modifier = Modifier
-                    .weight(0.4f)
+                    .weight(0.25f)
                     .fillMaxHeight(),
                 onClick = {
                     showSearchDialog = true
                 },
-                shape = CircleShape
+                shape = singleShape
             ) {
                 Icon(
                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
@@ -399,7 +410,7 @@ fun LyricsMenu(
 
         // Settings Section
         Column(
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             // Romanize Current Track
             val isRomanized = songProvider()?.romanizeLyrics ?: true
@@ -407,10 +418,11 @@ fun LyricsMenu(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = topShape,
                 onClick = {
                     songProvider()?.let { viewModel.toggleRomanization(it) }
-                }
+                },
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp)
             ) {
                 Icon(
                     painter = painterResource(R.drawable.language_korean_latin),
@@ -439,6 +451,8 @@ fun LyricsMenu(
                 )
             }
 
+            Spacer(modifier = Modifier.height(1.dp))
+
             // Swipe to Change Track
             val swipeGestureEnabled by viewModel.swipeGestureEnabled.collectAsState(initial = true)
 
@@ -446,8 +460,9 @@ fun LyricsMenu(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
-                onClick = viewModel::toggleSwipeGesture
+                shape = bottomShape,
+                onClick = viewModel::toggleSwipeGesture,
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp)
             ) {
                 Icon(
                     painter = painterResource(R.drawable.swipe),
