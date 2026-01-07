@@ -550,98 +550,102 @@ fun ArtistScreen(
                             )
                         }
 
-                        item(key = "local_songs_container") {
+                        if (librarySongs.isNotEmpty()) {
                             val filteredLibrarySongs = if (hideExplicit) {
                                 librarySongs.filter { !it.song.explicit }
                             } else {
                                 librarySongs
                             }
 
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp)
-                            ) {
-                                filteredLibrarySongs.forEachIndexed { index, song ->
-                                    val isFirst = index == 0
-                                    val isLast = index == filteredLibrarySongs.size - 1
-                                    val isActive = song.id == mediaMetadata?.id
+                            itemsIndexed(
+                                items = filteredLibrarySongs,
+                                key = { _, song -> "local_song_${song.id}" },
+                                contentType = { _, _ -> "song_list_item" }
+                            ) { index, song ->
+                                val isFirst = index == 0
+                                val isLast = index == filteredLibrarySongs.size - 1
+                                val isActive = song.id == mediaMetadata?.id
 
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(ListItemHeight)
-                                            .clip(
-                                                RoundedCornerShape(
-                                                    topStart = if (isFirst) 20.dp else 0.dp,
-                                                    topEnd = if (isFirst) 20.dp else 0.dp,
-                                                    bottomStart = if (isLast) 20.dp else 0.dp,
-                                                    bottomEnd = if (isLast) 20.dp else 0.dp
-                                                )
+                                if (index == 0) {
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                }
+
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp)
+                                        .height(ListItemHeight)
+                                        .clip(
+                                            RoundedCornerShape(
+                                                topStart = if (isFirst) 20.dp else 0.dp,
+                                                topEnd = if (isFirst) 20.dp else 0.dp,
+                                                bottomStart = if (isLast) 20.dp else 0.dp,
+                                                bottomEnd = if (isLast) 20.dp else 0.dp
                                             )
-                                            .background(
-                                                if (isActive) MaterialTheme.colorScheme.secondaryContainer
-                                                else MaterialTheme.colorScheme.surfaceContainer
-                                            )
-                                    ) {
-                                        SongListItem(
-                                            song = song,
-                                            showInLibraryIcon = true,
-                                            isActive = isActive,
-                                            isPlaying = isPlaying,
-                                            isSwipeable = false,
-                                            trailingContent = {
-                                                IconButton(
-                                                    onClick = {
-                                                        menuState.show {
-                                                            SongMenu(
-                                                                originalSong = song,
-                                                                navController = navController,
-                                                                onDismiss = menuState::dismiss,
-                                                            )
-                                                        }
-                                                    },
-                                                ) {
-                                                    Icon(
-                                                        painter = painterResource(R.drawable.more_vert),
-                                                        contentDescription = null,
-                                                    )
-                                                }
-                                            },
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .combinedClickable(
-                                                    onClick = {
-                                                        if (song.id == mediaMetadata?.id) {
-                                                            playerConnection.player.togglePlayPause()
-                                                        } else {
-                                                            playerConnection.playQueue(
-                                                                ListQueue(
-                                                                    title = libraryArtist?.artist?.name ?: context.getString(R.string.unknown_artist),
-                                                                    items = librarySongs.map { it.toMediaItem() },
-                                                                    startIndex = index
-                                                                )
-                                                            )
-                                                        }
-                                                    },
-                                                    onLongClick = {
-                                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                        menuState.show {
-                                                            SongMenu(
-                                                                originalSong = song,
-                                                                navController = navController,
-                                                                onDismiss = menuState::dismiss,
-                                                            )
-                                                        }
-                                                    },
-                                                ),
                                         )
-                                    }
+                                        .background(
+                                            if (isActive) MaterialTheme.colorScheme.secondaryContainer
+                                            else MaterialTheme.colorScheme.surfaceContainer
+                                        )
+                                        .animateItem()
+                                ) {
+                                    SongListItem(
+                                        song = song,
+                                        showInLibraryIcon = true,
+                                        isActive = isActive,
+                                        isPlaying = isPlaying,
+                                        isSwipeable = false,
+                                        trailingContent = {
+                                            IconButton(
+                                                onClick = {
+                                                    menuState.show {
+                                                        SongMenu(
+                                                            originalSong = song,
+                                                            navController = navController,
+                                                            onDismiss = menuState::dismiss,
+                                                        )
+                                                    }
+                                                },
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.more_vert),
+                                                    contentDescription = null,
+                                                )
+                                            }
+                                        },
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .combinedClickable(
+                                                onClick = {
+                                                    if (song.id == mediaMetadata?.id) {
+                                                        playerConnection.player.togglePlayPause()
+                                                    } else {
+                                                        playerConnection.playQueue(
+                                                            ListQueue(
+                                                                title = libraryArtist?.artist?.name ?: context.getString(R.string.unknown_artist),
+                                                                items = librarySongs.map { it.toMediaItem() },
+                                                                startIndex = index
+                                                            )
+                                                        )
+                                                    }
+                                                },
+                                                onLongClick = {
+                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                    menuState.show {
+                                                        SongMenu(
+                                                            originalSong = song,
+                                                            navController = navController,
+                                                            onDismiss = menuState::dismiss,
+                                                        )
+                                                    }
+                                                },
+                                            ),
+                                    )
+                                }
 
-                                    // Add 3dp spacer between items (except after last)
-                                    if (!isLast) {
-                                        Spacer(modifier = Modifier.height(3.dp))
-                                    }
+                                // Add 3dp spacer between items (except after last)
+                                if (!isLast) {
+                                    Spacer(modifier = Modifier.height(3.dp))
                                 }
                             }
                         }

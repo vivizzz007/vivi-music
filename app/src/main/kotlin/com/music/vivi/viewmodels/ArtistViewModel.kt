@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import android.content.Context
 import com.music.innertube.models.filterVideoSongs
+import com.music.vivi.constants.ArtistSongSortType
 import com.music.vivi.constants.HideExplicitKey
 import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.extensions.filterExplicit
@@ -45,7 +46,7 @@ class ArtistViewModel @Inject constructor(
         .map { it[HideExplicitKey] ?: false }
         .distinctUntilChanged()
         .flatMapLatest { hideExplicit ->
-            database.artistSongsPreview(artistId).map { it.filterExplicit(hideExplicit) }
+            database.artistSongs(artistId, ArtistSongSortType.CREATE_DATE, true).map { it.filterExplicit(hideExplicit) }
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
     val libraryAlbums = context.dataStore.data
