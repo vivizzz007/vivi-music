@@ -155,6 +155,7 @@ fun SelectionSongMenu(
 
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
+        songsToCheck = songSelection.map { it.id },
         onGetSong = { playlist ->
             coroutineScope.launch(Dispatchers.IO) {
                 songSelection.forEach { song ->
@@ -774,6 +775,7 @@ fun SelectionMediaMetadataMenu(
 
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
+        songsToCheck = songSelection.map { it.id },
         onGetSong = {
             songSelection.map {
                 runBlocking {

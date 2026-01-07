@@ -823,6 +823,7 @@ fun YouTubeSongMenu(
     // Dialogs
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
+        songsToCheck = listOf(song.id),
         onGetSong = { playlist ->
             database.transaction {
                 insert(song.toMediaMetadata())

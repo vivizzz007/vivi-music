@@ -755,6 +755,7 @@ fun YouTubeAlbumMenu(
     // Dialogs
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
+        songsToCheck = album?.songs?.map { it.id }.orEmpty(),
         onGetSong = { playlist ->
             coroutineScope.launch(Dispatchers.IO) {
                 playlist.playlist.browseId?.let { playlistId ->

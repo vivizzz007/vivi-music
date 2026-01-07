@@ -725,6 +725,7 @@ fun AlbumMenu(
     // Dialogs
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
+        songsToCheck = songs.map { it.id },
         onGetSong = { playlist ->
             coroutineScope.launch(Dispatchers.IO) {
                 playlist.playlist.browseId?.let { playlistId ->

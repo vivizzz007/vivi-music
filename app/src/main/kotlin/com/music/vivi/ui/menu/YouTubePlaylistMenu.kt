@@ -763,6 +763,7 @@ fun YouTubePlaylistMenu(
     // Dialogs
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
+        songsToCheck = songs.map { it.id },
         onGetSong = { targetPlaylist ->
             val allSongs = songs
                 .ifEmpty {

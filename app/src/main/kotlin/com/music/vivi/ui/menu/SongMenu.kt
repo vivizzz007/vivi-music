@@ -1048,6 +1048,7 @@ fun SongMenu(
 
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
+        songsToCheck = listOf(song.id),
         onGetSong = { playlist ->
             coroutineScope.launch(Dispatchers.IO) {
                 playlist.playlist.browseId?.let { browseId ->
