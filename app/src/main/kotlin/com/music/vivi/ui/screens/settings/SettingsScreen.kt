@@ -62,6 +62,7 @@ import com.music.vivi.ui.screens.checkForUpdate
 import com.music.vivi.ui.screens.getAutoUpdateCheckSetting
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.update.isNewerVersion
+import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
 import com.music.vivi.update.settingstyle.ModernInfoItem
 import com.music.vivi.update.viewmodelupdate.UpdateViewModel
 import com.music.vivi.updatesreen.UpdateInfo
@@ -196,7 +197,7 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             // Unified settings card replaced with Material3 Expressive Group
-            com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup(
+            Material3ExpressiveSettingsGroup(
                 modifier = Modifier.fillMaxWidth(),
                 items = listOf(
                     {
