@@ -24,6 +24,8 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -57,6 +59,7 @@ import com.music.vivi.ui.component.LocalBottomSheetPageState
 import com.music.vivi.ui.component.shimmer.TextPlaceholder
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ShowMediaInfo(videoId: String) {
     if (videoId.isBlank() || videoId.isEmpty()) return
@@ -255,23 +258,31 @@ fun ShowMediaInfo(videoId: String) {
                         ),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                     Text(
-                        text = info?.description ?: stringResource(R.string.no_description_available),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
+                     if (info == null) {
+                         Box(
+                             modifier = Modifier.fillMaxWidth().height(100.dp),
+                             contentAlignment = Alignment.Center
+                         ) {
+                             LoadingIndicator()
+                         }
+                     } else {
+                         Text(
+                             text = info?.description ?: stringResource(R.string.no_description_available),
+                             style = MaterialTheme.typography.bodyMedium,
+                             color = MaterialTheme.colorScheme.onBackground
+                         )
+                     }
                 }
             }
             
         } else {
              item {
-                 ShimmerHost {
-                    Column {
-                        TextPlaceholder()
-                        Spacer(Modifier.height(8.dp))
-                        TextPlaceholder()
-                    }
-                }
+                 Box(
+                     modifier = Modifier.fillMaxWidth().height(150.dp),
+                     contentAlignment = Alignment.Center
+                 ) {
+                     LoadingIndicator()
+                 }
              }
         }
         
