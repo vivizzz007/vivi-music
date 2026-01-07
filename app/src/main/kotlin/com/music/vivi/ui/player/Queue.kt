@@ -753,6 +753,16 @@ fun Queue(
                                     isSelected = selection && window.mediaItem.metadata!! in selectedSongs,
                                     isActive = index == currentWindowIndex,
                                     isPlaying = isPlaying,
+                                    inSelectionMode = selection,
+                                    onSelectionChange = { isChecked ->
+                                        if (isChecked) {
+                                            selectedSongs.add(window.mediaItem.metadata!!)
+                                            selectedItems.add(currentItem)
+                                        } else {
+                                            selectedSongs.remove(window.mediaItem.metadata!!)
+                                            selectedItems.remove(currentItem)
+                                        }
+                                    },
                                     trailingContent = {
                                         IconButton(
                                             onClick = {
