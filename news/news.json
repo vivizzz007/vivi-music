@@ -1,9 +1,25 @@
 {
     "title": "Welcome to Dynamic News!",
+    "subtitle": "Now with Multi-Content Support",
     "date": "2026-01-08",
     "type": "news",
-    "description": "This is a sample news item to demonstrate the new dynamic news feature. You can add more files like news2.json in this folder.",
-    "image": "",
+    "description": "We have moved to a dynamic news system. Now updates can be pushed without an app update!",
+    "image": "https://github.com/vivizzz007/vivi-music/blob/main/news/newsimage/1.png?raw=true",
     "version": "v1.0.0",
-    "content": "We have moved to a dynamic news system. Now you can post Bug Notes, Fixes, Features, and News. Just set the 'type' field in the JSON!"
+    "content": "This is the main content area. But now look below for structured blocks!",
+    "blocks": [
+        {
+            "subtitle": "Section 1: The Beginning",
+            "image": "https://github.com/vivizzz007/vivi-music/blob/main/news/newsimage/1.png?raw=true",
+            "content": "Here is an image with some text explaining it. This block has all three: subtitle, image, and text."
+        },
+        {
+            "subtitle": "Section 2: Text Only",
+            "content": "This block just has a subtitle and text. Useful for long paragraphs."
+        },
+        {
+            "image": "https://github.com/vivizzz007/vivi-music/blob/main/news/newsimage/1.png?raw=true",
+            "content": "This block has an image and text, but no subtitle."
+        }
+    ]
 }
