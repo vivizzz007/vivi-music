@@ -4,13 +4,13 @@
     "date": "2026-01-08",
     "type": "news",
     "description": "We have moved to a dynamic news system. Now updates can be pushed without an app update!",
-    "image": "https://github.com/vivizzz007/vivi-music/blob/main/news/newsimage/1.png?raw=true",
+    "image": "",
     "version": "v1.0.0",
     "content": "This is the main content area. But now look below for structured blocks!",
     "blocks": [
         {
             "subtitle": "Section 1: The Beginning",
-            "image": "https://github.com/vivizzz007/vivi-music/blob/main/news/newsimage/1.png?raw=true",
+            "image": "",
             "content": "Here is an image with some text explaining it. This block has all three: subtitle, image, and text."
         },
         {
@@ -19,7 +19,7 @@
         },
         {
             "subtitle": "Section 3: Text Only",
-            "image": "https://github.com/vivizzz007/vivi-music/blob/main/news/newsimage/1.png?raw=true",
+            "image": "",
             "content": "This block has an image and text, but no subtitle."
         }
     ]
