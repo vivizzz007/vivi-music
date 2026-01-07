@@ -1043,4 +1043,25 @@
     <string name="not_playing">Not Playing</string>
     <string name="tap_to_play">Tap to play</string>
     <string name="automix">Automix</string>
+
+    <string name="play_next_icon_desc">Play next icon</string>
+    <string name="add_to_queue_icon_desc">Add to queue icon</string>
+    <string name="artist_icon_desc">Artist icon</string>
+
+    <!-- Menu Labels and Subtitles -->
+    <string name="play_after_current_subtitle">Play after current song</string>
+    <string name="add_to_queue_end_subtitle">Add to end of queue</string>
+    <string name="share_this_song">Share this song</string>
+    <string name="share_this_song_subtitle">Share this song</string>
+    <string name="share_this_artist_subtitle">Share this artist</string>
+    <string name="share_this_album">Share this album</string>
+    <string name="share_this_album_subtitle">Share this album</string>
+    <string name="share_artist_link">Share artist link</string>
+    <string name="artist_details">Artist details</string>
+    <string name="view_album_label">Go to album</string>
+    <string name="view_album_details">View album details</string>
+    <string name="view_artist_label">Go to artist</string>
+    <string name="view_artist_details">View artist details</string>
+    <string name="show_album_label">Go to album</string>
+    <string name="show_artist_label">Go to artist</string>
 </resources>

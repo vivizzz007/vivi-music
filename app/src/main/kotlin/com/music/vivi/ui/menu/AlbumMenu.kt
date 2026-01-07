@@ -26,6 +26,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -86,6 +87,9 @@ import com.music.vivi.ui.component.ListDialog
 import com.music.vivi.ui.component.LocalBottomSheetPageState
 import com.music.vivi.update.mordernlistmenu.ModernListItem
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
@@ -117,14 +121,11 @@ fun AlbumMenu(
         }
     }
 
-    var downloadState by remember {
-        mutableStateOf(STATE_STOPPED)
-    }
-
-    LaunchedEffect(songs) {
-        if (songs.isEmpty()) return@LaunchedEffect
-        downloadUtil.downloads.collect { downloads ->
-            downloadState =
+    val downloadState by remember(songs) {
+        if (songs.isEmpty()) {
+            flowOf(STATE_STOPPED)
+        } else {
+            downloadUtil.downloads.map { downloads ->
                 if (songs.all { downloads[it.id]?.state == STATE_COMPLETED }) {
                     STATE_COMPLETED
                 } else if (songs.all {
@@ -137,8 +138,9 @@ fun AlbumMenu(
                 } else {
                     STATE_STOPPED
                 }
+            }.flowOn(Dispatchers.Default)
         }
-    }
+    }.collectAsState(initial = STATE_STOPPED)
 
     // Play/Pause state tracking
     val isPlaying by playerConnection.isPlaying.collectAsState()
@@ -173,23 +175,41 @@ fun AlbumMenu(
     }
 
     // Design variables
-    val evenCornerRadiusElems = 26.dp
-    val albumArtShape = AbsoluteSmoothCornerShape(
-        cornerRadiusTR = evenCornerRadiusElems, smoothnessAsPercentBR = 60, cornerRadiusBR = evenCornerRadiusElems,
-        smoothnessAsPercentTL = 60, cornerRadiusTL = evenCornerRadiusElems, smoothnessAsPercentBL = 60,
-        cornerRadiusBL = evenCornerRadiusElems, smoothnessAsPercentTR = 60
-    )
-    val playButtonShape = AbsoluteSmoothCornerShape(
-        cornerRadiusTR = evenCornerRadiusElems, smoothnessAsPercentBR = 60, cornerRadiusBR = evenCornerRadiusElems,
-        smoothnessAsPercentTL = 60, cornerRadiusTL = evenCornerRadiusElems, smoothnessAsPercentBL = 60,
-        cornerRadiusBL = evenCornerRadiusElems, smoothnessAsPercentTR = 60
-    )
+    val cornerRadius = remember { 24.dp }
+    val topShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTL = cornerRadius, smoothnessAsPercentTL = 60,
+            cornerRadiusTR = cornerRadius, smoothnessAsPercentTR = 60,
+            cornerRadiusBL = 0.dp, smoothnessAsPercentBL = 0,
+            cornerRadiusBR = 0.dp, smoothnessAsPercentBR = 0
+        )
+    }
+    val middleShape = remember { RectangleShape }
+    val bottomShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTL = 0.dp, smoothnessAsPercentTL = 0,
+            cornerRadiusTR = 0.dp, smoothnessAsPercentTR = 0,
+            cornerRadiusBL = cornerRadius, smoothnessAsPercentBL = 60,
+            cornerRadiusBR = cornerRadius, smoothnessAsPercentBR = 60
+        )
+    }
+    val singleShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTL = cornerRadius, smoothnessAsPercentTL = 60,
+            cornerRadiusTR = cornerRadius, smoothnessAsPercentTR = 60,
+            cornerRadiusBL = cornerRadius, smoothnessAsPercentBL = 60,
+            cornerRadiusBR = cornerRadius, smoothnessAsPercentBR = 60
+        )
+    }
+
+    val albumArtShape = singleShape
+    val playButtonShape = singleShape
 
     // Favorite state tracking
     val isFavorite = album.album.bookmarkedAt != null
 
     val favoriteButtonCornerRadius by animateDpAsState(
-        targetValue = if (isFavorite) evenCornerRadiusElems else 60.dp,
+        targetValue = if (isFavorite) cornerRadius else 60.dp,
         animationSpec = tween(durationMillis = 300), label = "FavoriteCornerAnimation"
     )
     val favoriteButtonContainerColor by animateColorAsState(
@@ -201,16 +221,14 @@ fun AlbumMenu(
         animationSpec = tween(durationMillis = 300), label = "FavoriteContentColorAnimation"
     )
 
-    val favoriteButtonShape = AbsoluteSmoothCornerShape(
-        cornerRadiusTR = favoriteButtonCornerRadius,
-        smoothnessAsPercentBR = 60,
-        cornerRadiusBR = favoriteButtonCornerRadius,
-        smoothnessAsPercentTL = 60,
-        cornerRadiusTL = favoriteButtonCornerRadius,
-        smoothnessAsPercentBL = 60,
-        cornerRadiusBL = favoriteButtonCornerRadius,
-        smoothnessAsPercentTR = 60
-    )
+    val favoriteButtonShape = remember(favoriteButtonCornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTL = favoriteButtonCornerRadius, smoothnessAsPercentTL = 60,
+            cornerRadiusTR = favoriteButtonCornerRadius, smoothnessAsPercentTR = 60,
+            cornerRadiusBL = favoriteButtonCornerRadius, smoothnessAsPercentBL = 60,
+            cornerRadiusBR = favoriteButtonCornerRadius, smoothnessAsPercentBR = 60
+        )
+    }
 
     // Main Content
     Column(
@@ -385,7 +403,7 @@ fun AlbumMenu(
                     }
                     context.startActivity(Intent.createChooser(intent, null))
                 },
-                shape = CircleShape
+                shape = singleShape
             ) {
                 Icon(
                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
@@ -406,7 +424,7 @@ fun AlbumMenu(
                 containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                 contentColor = MaterialTheme.colorScheme.onTertiaryContainer
             ),
-            shape = CircleShape,
+            shape = singleShape,
             onClick = {
                 when (downloadState) {
                     STATE_COMPLETED -> {
@@ -474,14 +492,14 @@ fun AlbumMenu(
 
         // Details Section
         Column(
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             // Artist
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = topShape,
                 onClick = {
                     if (album.artists.size == 1) {
                         navController.navigate("artist/${album.artists[0].id}")
@@ -512,12 +530,14 @@ fun AlbumMenu(
                 }
             }
 
+            Spacer(modifier = Modifier.height(1.dp))
+
             // Songs Count
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = bottomShape,
                 onClick = { }
             ) {
                 Icon(
@@ -540,13 +560,20 @@ fun AlbumMenu(
                     )
                 }
             }
+        }
 
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Playback Group
+        Column(
+            verticalArrangement = Arrangement.spacedBy(0.dp)
+        ) {
             // Play Next
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = topShape,
                 onClick = {
                     onDismiss()
                     playerConnection.playNext(songs.map { it.toMediaItem() })
@@ -573,12 +600,14 @@ fun AlbumMenu(
                 }
             }
 
+            Spacer(modifier = Modifier.height(1.dp))
+
             // Add to Queue
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = bottomShape,
                 onClick = {
                     onDismiss()
                     playerConnection.addToQueue(songs.map { it.toMediaItem() })
@@ -604,13 +633,20 @@ fun AlbumMenu(
                     )
                 }
             }
+        }
 
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Library Group
+        Column(
+            verticalArrangement = Arrangement.spacedBy(0.dp)
+        ) {
             // Add to Playlist
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = topShape,
                 onClick = {
                     showChoosePlaylistDialog = true
                 }
@@ -636,12 +672,14 @@ fun AlbumMenu(
                 }
             }
 
+            Spacer(modifier = Modifier.height(1.dp))
+
             // Refresh Metadata
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = bottomShape,
                 onClick = {
                     refetchIconDegree -= 360
                     scope.launch(Dispatchers.IO) {

@@ -51,6 +51,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -67,20 +68,26 @@ import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.music.innertube.YouTube
 import com.music.innertube.models.AlbumItem
+import com.music.innertube.models.WatchEndpoint
 import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalDownloadUtil
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.ListItemHeight
 import com.music.vivi.constants.ListThumbnailSize
+import com.music.vivi.db.entities.AlbumEntity
 import com.music.vivi.db.entities.Song
 import com.music.vivi.extensions.toMediaItem
 import com.music.vivi.playback.ExoDownloadService
 import com.music.vivi.playback.queues.YouTubeAlbumRadio
+import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.ui.component.ListDialog
 import com.music.vivi.ui.component.SongListItem
 import com.music.vivi.utils.reportException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
@@ -97,6 +104,7 @@ fun YouTubeAlbumMenu(
     val downloadUtil = LocalDownloadUtil.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val album by database.albumWithSongs(albumItem.id).collectAsState(initial = null)
+    val artists = albumItem.artists
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
@@ -115,14 +123,12 @@ fun YouTubeAlbumMenu(
         }
     }
 
-    var downloadState by remember {
-        mutableIntStateOf(Download.STATE_STOPPED)
-    }
-
-    LaunchedEffect(album) {
-        val songs = album?.songs?.map { it.id } ?: return@LaunchedEffect
-        downloadUtil.downloads.collect { downloads ->
-            downloadState =
+    val downloadState by remember(album) {
+        val songs = album?.songs?.map { it.id }
+        if (songs == null) {
+            flowOf(Download.STATE_STOPPED)
+        } else {
+            downloadUtil.downloads.map { downloads ->
                 if (songs.all { downloads[it]?.state == Download.STATE_COMPLETED }) {
                     Download.STATE_COMPLETED
                 } else if (songs.all {
@@ -135,8 +141,9 @@ fun YouTubeAlbumMenu(
                 } else {
                     Download.STATE_STOPPED
                 }
+            }.flowOn(Dispatchers.Default)
         }
-    }
+    }.collectAsState(initial = Download.STATE_STOPPED)
 
     var showChoosePlaylistDialog by rememberSaveable {
         mutableStateOf(false)
@@ -155,23 +162,51 @@ fun YouTubeAlbumMenu(
     }
 
     // Design variables
-    val evenCornerRadiusElems = 26.dp
-    val albumArtShape = AbsoluteSmoothCornerShape(
-        cornerRadiusTR = evenCornerRadiusElems, smoothnessAsPercentBR = 60, cornerRadiusBR = evenCornerRadiusElems,
-        smoothnessAsPercentTL = 60, cornerRadiusTL = evenCornerRadiusElems, smoothnessAsPercentBL = 60,
-        cornerRadiusBL = evenCornerRadiusElems, smoothnessAsPercentTR = 60
-    )
-    val playButtonShape = AbsoluteSmoothCornerShape(
-        cornerRadiusTR = evenCornerRadiusElems, smoothnessAsPercentBR = 60, cornerRadiusBR = evenCornerRadiusElems,
-        smoothnessAsPercentTL = 60, cornerRadiusTL = evenCornerRadiusElems, smoothnessAsPercentBL = 60,
-        cornerRadiusBL = evenCornerRadiusElems, smoothnessAsPercentTR = 60
-    )
+    val cornerRadius = remember { 24.dp }
+    val albumArtShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+        )
+    }
+    val playButtonShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+        )
+    }
+
+    // Android 16 grouped shapes
+    val topShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
+            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
+            cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+        )
+    }
+    val middleShape = remember { RectangleShape }
+    val bottomShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
+        )
+    }
+    val singleShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+        )
+    }
 
     // Favorite state tracking
     val isFavorite = album?.album?.bookmarkedAt != null
 
     val favoriteButtonCornerRadius by animateDpAsState(
-        targetValue = if (isFavorite) evenCornerRadiusElems else 60.dp,
+        targetValue = if (isFavorite) cornerRadius else 60.dp,
         animationSpec = tween(durationMillis = 300), label = "FavoriteCornerAnimation"
     )
     val favoriteButtonContainerColor by animateColorAsState(
@@ -183,16 +218,18 @@ fun YouTubeAlbumMenu(
         animationSpec = tween(durationMillis = 300), label = "FavoriteContentColorAnimation"
     )
 
-    val favoriteButtonShape = AbsoluteSmoothCornerShape(
-        cornerRadiusTR = favoriteButtonCornerRadius,
-        smoothnessAsPercentBR = 60,
-        cornerRadiusBR = favoriteButtonCornerRadius,
-        smoothnessAsPercentTL = 60,
-        cornerRadiusTL = favoriteButtonCornerRadius,
-        smoothnessAsPercentBL = 60,
-        cornerRadiusBL = favoriteButtonCornerRadius,
-        smoothnessAsPercentTR = 60
-    )
+    val favoriteButtonShape = remember(favoriteButtonCornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTR = favoriteButtonCornerRadius,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = favoriteButtonCornerRadius,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = favoriteButtonCornerRadius,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = favoriteButtonCornerRadius,
+            smoothnessAsPercentTR = 60
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -238,7 +275,7 @@ fun YouTubeAlbumMenu(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = albumItem.artists?.joinToString { it.name }.orEmpty(),
+                        text = artists?.joinToString { it.name }.orEmpty(),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
@@ -258,7 +295,22 @@ fun YouTubeAlbumMenu(
                 ),
                 onClick = {
                     database.query {
-                        album?.album?.toggleLike()?.let(::update)
+                        val album = album
+                        if (album != null) {
+                            update(album.album.toggleLike())
+                        } else {
+                            insert(
+                                AlbumEntity(
+                                    id = albumItem.id,
+                                    playlistId = albumItem.playlistId,
+                                    title = albumItem.title,
+                                    thumbnailUrl = albumItem.thumbnail,
+                                    year = albumItem.year,
+                                    songCount = 0,
+                                    duration = 0
+                                ).toggleLike()
+                            )
+                        }
                     }
                 }
             ) {
@@ -322,7 +374,22 @@ fun YouTubeAlbumMenu(
                     .fillMaxHeight(),
                 onClick = {
                     database.query {
-                        album?.album?.toggleLike()?.let(::update)
+                        val album = album
+                        if (album != null) {
+                            update(album.album.toggleLike())
+                        } else {
+                            insert(
+                                AlbumEntity(
+                                    id = albumItem.id,
+                                    playlistId = albumItem.playlistId,
+                                    title = albumItem.title,
+                                    thumbnailUrl = albumItem.thumbnail,
+                                    year = albumItem.year,
+                                    songCount = 0,
+                                    duration = 0
+                                ).toggleLike()
+                            )
+                        }
                     }
                 },
                 shape = favoriteButtonShape,
@@ -341,26 +408,28 @@ fun YouTubeAlbumMenu(
                 )
             }
 
-            // Share Button
+            // Shuffle Button
             FilledTonalIconButton(
                 modifier = Modifier
                     .weight(0.25f)
                     .fillMaxHeight(),
                 onClick = {
+                    playerConnection.playQueue(
+                        YouTubeQueue(
+                            WatchEndpoint(
+                                playlistId = albumItem.playlistId,
+                                params = "OBAO8AG8AQ%3D%3D"
+                            )
+                        )
+                    )
                     onDismiss()
-                    val intent = Intent().apply {
-                        action = Intent.ACTION_SEND
-                        type = "text/plain"
-                        putExtra(Intent.EXTRA_TEXT, albumItem.shareLink)
-                    }
-                    context.startActivity(Intent.createChooser(intent, null))
                 },
-                shape = CircleShape
+                shape = singleShape
             ) {
                 Icon(
                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
-                    painter = painterResource(R.drawable.share),
-                    contentDescription = stringResource(R.string.share_album_content_desc),
+                    painter = painterResource(R.drawable.shuffle),
+                    contentDescription = stringResource(R.string.shuffle)
                 )
             }
         }
@@ -376,7 +445,7 @@ fun YouTubeAlbumMenu(
                 containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                 contentColor = MaterialTheme.colorScheme.onTertiaryContainer
             ),
-            shape = CircleShape,
+            shape = singleShape,
             onClick = {
                 when (downloadState) {
                     Download.STATE_COMPLETED -> {
@@ -443,39 +512,42 @@ fun YouTubeAlbumMenu(
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // Details Section
+        // Playback Group
         Column(
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
-            // Shuffle Button
+            // Radio
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = topShape,
                 onClick = {
+                    playerConnection.playQueue(
+                        YouTubeQueue(
+                            WatchEndpoint(
+                                playlistId = albumItem.playlistId,
+                                params = "wAEB"
+                            )
+                        )
+                    )
                     onDismiss()
-                    album?.songs?.let { songs ->
-                        if (songs.isNotEmpty()) {
-                            playerConnection.playQueue(YouTubeAlbumRadio(albumItem.playlistId))
-                        }
-                    }
                 }
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.shuffle),
-                    contentDescription = stringResource(R.string.shuffle_icon_content_desc),
+                    painter = painterResource(R.drawable.radio),
+                    contentDescription = stringResource(R.string.start_radio)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        stringResource(R.string.shuffle_label),
+                        stringResource(R.string.start_radio_label),
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        stringResource(R.string.play_in_random_order),
+                        stringResource(R.string.play_similar_songs_subtitle),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -483,61 +555,26 @@ fun YouTubeAlbumMenu(
                 }
             }
 
-            // Artist
-            albumItem.artists?.let { artists ->
-                FilledTonalButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 66.dp),
-                    shape = CircleShape,
-                    onClick = {
-                        if (artists.size == 1) {
-                            navController.navigate("artist/${artists[0].id}")
-                            onDismiss()
-                        } else {
-                            showSelectArtistDialog = true
-                        }
-                    }
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.artist),
-                        contentDescription = stringResource(R.string.artist_icon_content_desc),
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            stringResource(R.string.artist_label),
-                            style = MaterialTheme.typography.bodyLarge,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Text(
-                            artists.joinToString { it.name },
-                            style = MaterialTheme.typography.bodySmall,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-            }
+            Spacer(modifier = Modifier.height(1.dp))
 
             // Play Next
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = middleShape,
                 onClick = {
-                    album
-                        ?.songs
-                        ?.map { it.toMediaItem() }
-                        ?.let(playerConnection::playNext)
+                    coroutineScope.launch {
+                        YouTube.album(albumItem.id).onSuccess { albumResponse ->
+                            playerConnection.playNext(albumResponse.songs.map { it.toMediaItem() })
+                        }
+                    }
                     onDismiss()
                 }
             ) {
                 Icon(
                     painter = painterResource(R.drawable.playlist_play),
-                    contentDescription = stringResource(R.string.play_next_icon_content_desc),
+                    contentDescription = stringResource(R.string.play_next_icon_desc)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -548,7 +585,7 @@ fun YouTubeAlbumMenu(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        stringResource(R.string.play_after_current),
+                        stringResource(R.string.play_after_current_subtitle),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -556,23 +593,26 @@ fun YouTubeAlbumMenu(
                 }
             }
 
+            Spacer(modifier = Modifier.height(1.dp))
+
             // Add to Queue
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = bottomShape,
                 onClick = {
-                    album
-                        ?.songs
-                        ?.map { it.toMediaItem() }
-                        ?.let(playerConnection::addToQueue)
+                    coroutineScope.launch {
+                        YouTube.album(albumItem.id).onSuccess { albumResponse ->
+                            playerConnection.addToQueue(albumResponse.songs.map { it.toMediaItem() })
+                        }
+                    }
                     onDismiss()
                 }
             ) {
                 Icon(
                     painter = painterResource(R.drawable.queue_music),
-                    contentDescription = stringResource(R.string.add_to_queue_icon_content_desc),
+                    contentDescription = stringResource(R.string.add_to_queue_icon_desc)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -583,20 +623,69 @@ fun YouTubeAlbumMenu(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        stringResource(R.string.add_to_queue_end),
+                        stringResource(R.string.add_to_queue_end_subtitle),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
             }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Library and Social Group
+        Column(
+            verticalArrangement = Arrangement.spacedBy(0.dp)
+        ) {
+            // View Artist
+            artists?.let { artists ->
+                if (artists.isNotEmpty()) {
+                    FilledTonalButton(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 66.dp),
+                        shape = topShape,
+                        onClick = {
+                            if (artists.size == 1) {
+                                navController.navigate("artist/${artists[0].id}")
+                                onDismiss()
+                            } else {
+                                showSelectArtistDialog = true
+                            }
+                        }
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.artist),
+                            contentDescription = stringResource(R.string.artist_icon_desc)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                stringResource(R.string.view_artist_label),
+                                style = MaterialTheme.typography.bodyLarge,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                artists.joinToString { it.name },
+                                style = MaterialTheme.typography.bodySmall,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(1.dp))
 
             // Add to Playlist
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = middleShape,
                 onClick = {
                     showChoosePlaylistDialog = true
                 }
@@ -615,6 +704,45 @@ fun YouTubeAlbumMenu(
                     )
                     Text(
                         stringResource(R.string.add_to_existing_playlist_subtitle),
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(1.dp))
+
+            // Share
+            FilledTonalButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 66.dp),
+                shape = bottomShape,
+                onClick = {
+                    val intent = Intent().apply {
+                        action = Intent.ACTION_SEND
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, albumItem.shareLink)
+                    }
+                    context.startActivity(Intent.createChooser(intent, null))
+                    onDismiss()
+                }
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.share),
+                    contentDescription = stringResource(R.string.share)
+                )
+                Spacer(Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        stringResource(R.string.share_label),
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        stringResource(R.string.share_this_album_subtitle),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -662,7 +790,7 @@ fun YouTubeAlbumMenu(
                 )
             }
 
-            items(notAddedList) { song ->
+            items(notAddedList) { song: Song ->
                 SongListItem(song = song)
             }
         }

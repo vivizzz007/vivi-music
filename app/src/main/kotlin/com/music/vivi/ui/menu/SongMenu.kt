@@ -158,35 +158,45 @@ fun SongMenu(
     val bottomSheetPageState = LocalBottomSheetPageState.current
 
     // Design variables - Android 16 style
-    val cornerRadius = 24.dp
-    val albumArtShape = AbsoluteSmoothCornerShape(
-        cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-        smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-        cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
-    )
-    val playButtonShape = AbsoluteSmoothCornerShape(
-        cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-        smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-        cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
-    )
+    val cornerRadius = remember { 24.dp }
+    val albumArtShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+        )
+    }
+    val playButtonShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+        )
+    }
 
     // Android 16 grouped shapes
-    val topShape = AbsoluteSmoothCornerShape(
-        cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
-        smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
-        cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
-    )
-    val middleShape = RectangleShape
-    val bottomShape = AbsoluteSmoothCornerShape(
-        cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-        smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
-        cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
-    )
-    val singleShape = AbsoluteSmoothCornerShape(
-        cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-        smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-        cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
-    )
+    val topShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
+            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
+            cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+        )
+    }
+    val middleShape = remember { RectangleShape }
+    val bottomShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
+        )
+    }
+    val singleShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+        )
+    }
 
     // Favorite state tracking
     val isFavorite = song.song.liked
@@ -204,16 +214,18 @@ fun SongMenu(
         animationSpec = tween(durationMillis = 300), label = "FavoriteContentColorAnimation"
     )
 
-    val favoriteButtonShape = AbsoluteSmoothCornerShape(
-        cornerRadiusTR = favoriteButtonCornerRadius,
-        smoothnessAsPercentBR = 60,
-        cornerRadiusBR = favoriteButtonCornerRadius,
-        smoothnessAsPercentTL = 60,
-        cornerRadiusTL = favoriteButtonCornerRadius,
-        smoothnessAsPercentBL = 60,
-        cornerRadiusBL = favoriteButtonCornerRadius,
-        smoothnessAsPercentTR = 60
-    )
+    val favoriteButtonShape = remember(favoriteButtonCornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTR = favoriteButtonCornerRadius,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = favoriteButtonCornerRadius,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = favoriteButtonCornerRadius,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = favoriteButtonCornerRadius,
+            smoothnessAsPercentTR = 60
+        )
+    }
 
     // Play/Pause state tracking
     val isPlaying by playerConnection.isPlaying.collectAsState()

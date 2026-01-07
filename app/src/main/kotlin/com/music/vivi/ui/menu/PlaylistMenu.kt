@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -74,6 +76,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 import java.time.LocalDateTime
 
@@ -110,16 +115,11 @@ fun PlaylistMenu(
         }
     }
 
-    var downloadState by remember {
-        mutableIntStateOf(Download.STATE_STOPPED)
-    }
-
-    val editable: Boolean = playlist.playlist.isEditable == true
-
-    LaunchedEffect(songs) {
-        if (songs.isEmpty()) return@LaunchedEffect
-        downloadUtil.downloads.collect { downloads ->
-            downloadState =
+    val downloadState by remember(songs) {
+        if (songs.isEmpty()) {
+            flowOf(Download.STATE_STOPPED)
+        } else {
+            downloadUtil.downloads.map { downloads ->
                 if (songs.all { downloads[it.id]?.state == Download.STATE_COMPLETED }) {
                     Download.STATE_COMPLETED
                 } else if (songs.all {
@@ -132,8 +132,11 @@ fun PlaylistMenu(
                 } else {
                     Download.STATE_STOPPED
                 }
+            }.flowOn(Dispatchers.Default)
         }
-    }
+    }.collectAsState(initial = Download.STATE_STOPPED)
+
+    val editable: Boolean = playlist.playlist.isEditable == true
 
     // State management
     var showEditDialog by remember { mutableStateOf(false) }
@@ -141,23 +144,51 @@ fun PlaylistMenu(
     var showDeletePlaylistDialog by remember { mutableStateOf(false) }
 
     // Design variables
-    val evenCornerRadiusElems = 26.dp
-    val playlistArtShape = AbsoluteSmoothCornerShape(
-        cornerRadiusTR = evenCornerRadiusElems, smoothnessAsPercentBR = 60, cornerRadiusBR = evenCornerRadiusElems,
-        smoothnessAsPercentTL = 60, cornerRadiusTL = evenCornerRadiusElems, smoothnessAsPercentBL = 60,
-        cornerRadiusBL = evenCornerRadiusElems, smoothnessAsPercentTR = 60
-    )
-    val playButtonShape = AbsoluteSmoothCornerShape(
-        cornerRadiusTR = evenCornerRadiusElems, smoothnessAsPercentBR = 60, cornerRadiusBR = evenCornerRadiusElems,
-        smoothnessAsPercentTL = 60, cornerRadiusTL = evenCornerRadiusElems, smoothnessAsPercentBL = 60,
-        cornerRadiusBL = evenCornerRadiusElems, smoothnessAsPercentTR = 60
-    )
+    val cornerRadius = remember { 24.dp }
+    val playlistArtShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+        )
+    }
+    val playButtonShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+        )
+    }
+
+    // Android 16 grouped shapes
+    val topShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
+            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
+            cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+        )
+    }
+    val middleShape = remember { RectangleShape }
+    val bottomShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
+        )
+    }
+    val singleShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+        )
+    }
 
     // Favorite state tracking
     val isFavorite = dbPlaylist?.playlist?.bookmarkedAt != null
 
     val favoriteButtonCornerRadius by animateDpAsState(
-        targetValue = if (isFavorite) evenCornerRadiusElems else 60.dp,
+        targetValue = if (isFavorite) cornerRadius else 60.dp,
         animationSpec = tween(durationMillis = 300), label = "FavoriteCornerAnimation"
     )
     val favoriteButtonContainerColor by animateColorAsState(
@@ -169,16 +200,18 @@ fun PlaylistMenu(
         animationSpec = tween(durationMillis = 300), label = "FavoriteContentColorAnimation"
     )
 
-    val favoriteButtonShape = AbsoluteSmoothCornerShape(
-        cornerRadiusTR = favoriteButtonCornerRadius,
-        smoothnessAsPercentBR = 60,
-        cornerRadiusBR = favoriteButtonCornerRadius,
-        smoothnessAsPercentTL = 60,
-        cornerRadiusTL = favoriteButtonCornerRadius,
-        smoothnessAsPercentBL = 60,
-        cornerRadiusBL = favoriteButtonCornerRadius,
-        smoothnessAsPercentTR = 60
-    )
+    val favoriteButtonShape = remember(favoriteButtonCornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTR = favoriteButtonCornerRadius,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = favoriteButtonCornerRadius,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = favoriteButtonCornerRadius,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = favoriteButtonCornerRadius,
+            smoothnessAsPercentTR = 60
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -301,7 +334,7 @@ fun PlaylistMenu(
                             )
                         }
                     },
-                    shape = CircleShape
+                    shape = singleShape
                 ) {
                     Icon(
                         modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
@@ -327,7 +360,7 @@ fun PlaylistMenu(
                     }
                     context.startActivity(Intent.createChooser(intent, null))
                 },
-                shape = CircleShape
+                shape = singleShape
             ) {
                 Icon(
                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
@@ -421,7 +454,7 @@ fun PlaylistMenu(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 66.dp),
-                    shape = CircleShape,
+                    shape = topShape,
                     onClick = {
                         coroutineScope.launch(Dispatchers.IO) {
                             YouTube.playlist(browseId).getOrNull()?.playlist?.let { playlistItem ->
@@ -462,7 +495,7 @@ fun PlaylistMenu(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = middleShape,
                 onClick = {
                     coroutineScope.launch {
                         playerConnection.playNext(songs.map { it.toMediaItem() })
@@ -496,7 +529,7 @@ fun PlaylistMenu(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = bottomShape,
                 onClick = {
                     onDismiss()
                     playerConnection.addToQueue(songs.map { it.toMediaItem() })
@@ -529,7 +562,7 @@ fun PlaylistMenu(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 66.dp),
-                    shape = CircleShape,
+                    shape = singleShape,
                     onClick = {
                         showEditDialog = true
                     }
@@ -608,7 +641,7 @@ fun PlaylistMenu(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 66.dp),
-                    shape = CircleShape,
+                    shape = singleShape,
                     colors = ButtonDefaults.filledTonalButtonColors(
                         containerColor = MaterialTheme.colorScheme.errorContainer,
                         contentColor = MaterialTheme.colorScheme.onErrorContainer
