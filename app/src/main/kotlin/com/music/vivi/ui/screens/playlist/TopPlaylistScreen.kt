@@ -668,7 +668,9 @@ fun TopPlaylistScreen(
                                                 )
                                             }
                                         },
-                                        isSelected = songWrapper.isSelected && selection,
+                                        isSelected = songWrapper.isSelected,
+                                        inSelectionMode = selection,
+                                        onSelectionChange = { songWrapper.isSelected = it },
                                         modifier = Modifier
                                             .fillMaxSize()
                                             .combinedClickable(
@@ -737,7 +739,9 @@ fun TopPlaylistScreen(
                                         )
                                     }
                                 },
-                                isSelected = songWrapper.isSelected && selection,
+                                isSelected = songWrapper.isSelected,
+                                inSelectionMode = selection,
+                                onSelectionChange = { songWrapper.isSelected = it },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .combinedClickable(

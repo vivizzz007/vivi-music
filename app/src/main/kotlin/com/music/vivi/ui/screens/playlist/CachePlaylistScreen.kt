@@ -470,7 +470,9 @@ fun CachePlaylistScreen(
                                             )
                                         }
                                     },
-                                    isSelected = songWrapper.isSelected && selection,
+                                    isSelected = songWrapper.isSelected,
+                                inSelectionMode = selection,
+                                onSelectionChange = { songWrapper.isSelected = it },
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .combinedClickable(

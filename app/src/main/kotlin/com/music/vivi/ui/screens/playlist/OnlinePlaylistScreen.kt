@@ -810,7 +810,9 @@ fun OnlinePlaylistScreen(
                                         item = songWrapper.item.second,
                                         isActive = isActive,
                                         isPlaying = isPlaying,
-                                        isSelected = songWrapper.isSelected && selection,
+                                        isSelected = songWrapper.isSelected,
+                                        inSelectionMode = selection,
+                                        onSelectionChange = { songWrapper.isSelected = it },
                                         trailingContent = {
                                             IconButton(
                                                 onClick = {

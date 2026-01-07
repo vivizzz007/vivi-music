@@ -445,7 +445,15 @@ fun HistoryScreen(
                                     isActive = isActive,
                                     isPlaying = isPlaying,
                                     showInLibraryIcon = true,
-                                    isSelected = isSelected && selection,
+                                    isSelected = isSelected,
+                                    inSelectionMode = selection,
+                                    onSelectionChange = {
+                                        if (isSelected) {
+                                            selectedEventIds.remove(event.event.id)
+                                        } else {
+                                            selectedEventIds.add(event.event.id)
+                                        }
+                                    },
                                     trailingContent = {
                                         IconButton(
                                             onClick = {
