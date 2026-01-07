@@ -1,8 +1,9 @@
 {
     "title": "Welcome to Dynamic News!",
     "date": "2026-01-08",
+    "type": "news",
     "description": "This is a sample news item to demonstrate the new dynamic news feature. You can add more files like news2.json in this folder.",
     "image": "",
     "version": "v1.0.0",
-    "content": "We have moved to a dynamic news system. Now updates can be pushed without an app update!"
+    "content": "We have moved to a dynamic news system. Now you can post Bug Notes, Fixes, Features, and News. Just set the 'type' field in the JSON!"
 }
