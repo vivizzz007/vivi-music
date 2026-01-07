@@ -241,6 +241,7 @@ class MainActivity : ComponentActivity() {
     private var latestVersionName by mutableStateOf(BuildConfig.VERSION_NAME)
 
     private var playerConnection by mutableStateOf<PlayerConnection?>(null)
+    private var isServiceBound = false
 
     private val serviceConnection =
         object : ServiceConnection {
@@ -251,12 +252,14 @@ class MainActivity : ComponentActivity() {
                 if (service is MusicBinder) {
                     playerConnection =
                         PlayerConnection(this@MainActivity, service, database, lifecycleScope)
+                    isServiceBound = true
                 }
             }
 
             override fun onServiceDisconnected(name: ComponentName?) {
                 playerConnection?.dispose()
                 playerConnection = null
+                isServiceBound = false
             }
         }
 
@@ -281,7 +284,10 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onStop() {
-        unbindService(serviceConnection)
+        if (isServiceBound) {
+            unbindService(serviceConnection)
+            isServiceBound = false
+        }
         super.onStop()
     }
 
@@ -293,7 +299,10 @@ class MainActivity : ComponentActivity() {
             ) && playerConnection?.isPlaying?.value == true && isFinishing
         ) {
             stopService(Intent(this, MusicService::class.java))
-            unbindService(serviceConnection)
+            if (isServiceBound) {
+                unbindService(serviceConnection)
+                isServiceBound = false
+            }
             playerConnection = null
         }
     }
