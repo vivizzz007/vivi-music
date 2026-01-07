@@ -76,7 +76,7 @@ import com.music.vivi.viewmodels.HomeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AccountView(
+fun FunAccountViviSetting(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
@@ -105,6 +105,7 @@ fun AccountView(
 
     var showToken by remember { mutableStateOf(false) }
     var showTokenEditor by remember { mutableStateOf(false) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -363,10 +364,7 @@ fun AccountView(
                                 title = stringResource(R.string.sign_out),
                                 subtitle = stringResource(R.string.log_out_from_account),
                                 onClick = {
-                                    accountSettingsViewModel.logoutAndClearSyncedContent(
-                                        context,
-                                        onInnerTubeCookieChange
-                                    )
+                                    showLogoutDialog = true
                                 },
                                 showArrow = true,
                                 showSettingsIcon = true,
@@ -418,6 +416,98 @@ fun AccountView(
 
             Spacer(Modifier.height(32.dp))
         }
+    }
+
+    if (showLogoutDialog) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Do you want to sign out?",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    androidx.compose.material3.HorizontalDivider()
+                }
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (accountImageUrl != null) {
+                            AsyncImage(
+                                model = accountImageUrl,
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(CircleShape)
+                            )
+                        } else {
+                            Icon(
+                                painter = painterResource(R.drawable.account),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.secondaryContainer)
+                                    .padding(8.dp),
+                                tint = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        }
+                        
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Column {
+                            Text(
+                                text = accountNamePref,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = accountEmail,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    androidx.compose.material3.HorizontalDivider()
+                }
+            },
+            confirmButton = {
+                androidx.compose.material3.TextButton(
+                    onClick = {
+                        showLogoutDialog = false
+                        accountSettingsViewModel.logoutAndClearSyncedContent(
+                            context,
+                            onInnerTubeCookieChange
+                        )
+                    }
+                ) {
+                    Text("Confirm")
+                }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(
+                    onClick = { showLogoutDialog = false }
+                ) {
+                    Text("Cancel")
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        )
     }
 
     // Token Editor Dialog
