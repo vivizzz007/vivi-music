@@ -18,6 +18,7 @@
             "content": "This block just has a subtitle and text. Useful for long paragraphs."
         },
         {
+            "subtitle": "Section 3: Text Only",
             "image": "https://github.com/vivizzz007/vivi-music/blob/main/news/newsimage/1.png?raw=true",
             "content": "This block has an image and text, but no subtitle."
         }
