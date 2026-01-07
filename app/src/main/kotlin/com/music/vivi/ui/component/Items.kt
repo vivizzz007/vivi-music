@@ -126,7 +126,8 @@ inline fun ListItem(
     modifier: Modifier = Modifier,
     title: String,
     noinline subtitle: (@Composable RowScope.() -> Unit)? = null,
-    thumbnailContent: @Composable () -> Unit,
+    noinline leadingContent: @Composable (() -> Unit)? = null,
+    thumbnailContent: @Composable () -> Unit = {},
     trailingContent: @Composable RowScope.() -> Unit = {},
     isActive: Boolean = false
 ) {
@@ -137,6 +138,9 @@ inline fun ListItem(
             .padding(horizontal = 8.dp)
             .then(if (isActive) Modifier.clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.secondaryContainer) else Modifier)
     ) {
+        if (leadingContent != null) {
+            Box(Modifier.padding(start = 6.dp), contentAlignment = Alignment.Center) { leadingContent() }
+        }
         Box(Modifier.padding(6.dp), contentAlignment = Alignment.Center) { thumbnailContent() }
         Column(Modifier.weight(1f).padding(horizontal = 6.dp)) {
             Text(
@@ -155,6 +159,7 @@ fun ListItem(
     title: String,
     subtitle: String?,
     badges: @Composable RowScope.() -> Unit = {},
+    leadingContent: @Composable (() -> Unit)? = null,
     thumbnailContent: @Composable () -> Unit,
     trailingContent: @Composable RowScope.() -> Unit = {},
     isActive: Boolean = false
@@ -162,6 +167,7 @@ fun ListItem(
     title = title,
     modifier = modifier,
     isActive = isActive,
+    leadingContent = leadingContent,
     subtitle = {
         badges()
         if (!subtitle.isNullOrEmpty()) {
@@ -281,6 +287,8 @@ fun SongListItem(
     isActive: Boolean = false,
     isPlaying: Boolean = false,
     isSwipeable: Boolean = true,
+    inSelectionMode: Boolean = false,
+    onSelectionChange: (Boolean) -> Unit = {},
     trailingContent: @Composable RowScope.() -> Unit = {},
 ) {
     val swipeEnabled by rememberPreference(SwipeToSongKey, defaultValue = false)
@@ -293,18 +301,27 @@ fun SongListItem(
                 makeTimeString(song.song.duration * 1000L)
             ),
             badges = badges,
+            leadingContent = null,
             thumbnailContent = {
                 ItemThumbnail(
                     thumbnailUrl = song.song.thumbnailUrl,
                     albumIndex = albumIndex,
-                    isSelected = isSelected,
+                    isSelected = isSelected && !inSelectionMode,
                     isActive = isActive,
                     isPlaying = isPlaying,
                     shape = RoundedCornerShape(ThumbnailCornerRadius),
                     modifier = Modifier.size(ListThumbnailSize)
                 )
             },
-            trailingContent = trailingContent,
+            trailingContent = if (inSelectionMode) {
+                {
+                    RoundedCheckbox(
+                        checked = isSelected,
+                        onCheckedChange = onSelectionChange,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
+                }
+            } else trailingContent,
             modifier = modifier,
             isActive = isActive
         )
@@ -753,6 +770,8 @@ fun MediaMetadataListItem(
     isSelected: Boolean = false,
     isActive: Boolean = false,
     isPlaying: Boolean = false,
+    inSelectionMode: Boolean = false,
+    onSelectionChange: (Boolean) -> Unit = {},
     trailingContent: @Composable RowScope.() -> Unit = {},
 ) {
     ListItem(
@@ -761,18 +780,27 @@ fun MediaMetadataListItem(
             mediaMetadata.artists.joinToString { it.name },
             makeTimeString(mediaMetadata.duration * 1000L)
         ),
+        leadingContent = null,
         thumbnailContent = {
             ItemThumbnail(
                 thumbnailUrl = mediaMetadata.thumbnailUrl,
                 albumIndex = null,
-                isSelected = isSelected,
+                isSelected = isSelected && !inSelectionMode,
                 isActive = isActive,
                 isPlaying = isPlaying,
                 shape = RoundedCornerShape(ThumbnailCornerRadius),
                 modifier = Modifier.size(ListThumbnailSize)
             )
         },
-        trailingContent = trailingContent,
+        trailingContent = if (inSelectionMode) {
+            {
+                RoundedCheckbox(
+                    checked = isSelected,
+                    onCheckedChange = onSelectionChange,
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
+            }
+        } else trailingContent,
         modifier = modifier,
         isActive = isActive
     )
@@ -788,6 +816,8 @@ fun YouTubeListItem(
     isActive: Boolean = false,
     isPlaying: Boolean = false,
     isSwipeable: Boolean = true,
+    inSelectionMode: Boolean = false,
+    onSelectionChange: (Boolean) -> Unit = {},
     trailingContent: @Composable RowScope.() -> Unit = {},
     badges: @Composable RowScope.() -> Unit = {
         val database = LocalDatabase.current
@@ -825,18 +855,27 @@ fun YouTubeListItem(
                 is PlaylistItem -> joinByBullet(item.author?.name, item.songCountText)
             },
             badges = badges,
+            leadingContent = null,
             thumbnailContent = {
                 ItemThumbnail(
                     thumbnailUrl = item.thumbnail,
                     albumIndex = albumIndex,
-                    isSelected = isSelected,
+                    isSelected = isSelected && !inSelectionMode,
                     isActive = isActive,
                     isPlaying = isPlaying,
                     shape = if (item is ArtistItem) CircleShape else RoundedCornerShape(ThumbnailCornerRadius),
                     modifier = Modifier.size(ListThumbnailSize)
                 )
             },
-            trailingContent = trailingContent,
+            trailingContent = if (inSelectionMode) {
+                {
+                    RoundedCheckbox(
+                        checked = isSelected,
+                        onCheckedChange = onSelectionChange,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
+                }
+            } else trailingContent,
             modifier = modifier,
             isActive = isActive
         )
@@ -1090,21 +1129,7 @@ fun ItemThumbnail(
             }
         }
 
-        if (isSelected) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .zIndex(1f)
-                    .clip(shape)
-                    .background(Color.Black.copy(alpha = 0.5f))
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.done),
-                    contentDescription = null
-                )
-            }
-        }
+
 
         PlayingIndicatorBox(
             isActive = isActive,
