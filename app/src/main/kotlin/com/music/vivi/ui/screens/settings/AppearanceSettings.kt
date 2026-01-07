@@ -1032,7 +1032,7 @@ fun AppearanceSettings(
                             }
                         }
                     }
-                    com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup(
+                    Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
@@ -1225,7 +1225,7 @@ fun AppearanceSettings(
                             }
                         }
                     }
-                    com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup(
+                    Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
@@ -1518,7 +1518,7 @@ fun AppearanceSettings(
                 }
 
                 item {
-                    com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup(
+                 Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
@@ -1712,7 +1712,7 @@ fun AppearanceSettings(
                 }
 
                 item {
-                    com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup(
+          Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
