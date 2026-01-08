@@ -1,0 +1,1052 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="explore">探索</string>
+
+    <string name="local_history">本地</string>
+    <string name="remote_history">远程</string>
+
+    <string name="charts">排行榜</string>
+    <string name="back_button_desc">返回</string>
+    <string name="no_title">无标题</string>
+    <string name="unknown_artist">未知艺人</string>
+    <string name="unknown_item_type">未知项目类型</string>
+    <string name="loading_charts">正在加载排行榜…</string>
+    <string name="retry_button">重试</string>
+    <string name="album_cover_desc">专辑封面</string>
+    <string name="top_music_videos">热门音乐视频</string>
+    <string name="trending">时下流行</string>
+    <string name="top_result">最佳结果</string>
+    <string name="other">其他</string>
+
+    <string name="weeks">周</string>
+    <string name="months">月</string>
+    <string name="years">年</string>
+    <string name="continuous">连续</string>
+
+    <string name="liked">已喜欢</string>
+    <string name="offline">已下载</string>
+    <string name="my_top">我的最爱</string>
+    <string name="cached_playlist">已缓存</string>
+    <string name="uploaded_playlist">已上传</string>
+    <string name="filter_uploaded">已上传</string>
+    <string name="sync_playlist">同步歌单</string>
+    <string name="sync_disabled">同步已禁用</string>
+    <string name="elements_selected">已选择 %1$d 项</string>
+    <string name="allows_for_sync_witch_youtube">注意：这允许与 YouTube Music 同步。此项稍后无法更改。</string>
+    <string name="generating_image">正在生成图片</string>
+    <string name="please_wait">请稍候</string>
+    <string name="cancel">取消</string>
+    <string name="share_lyrics">分享歌词</string>
+    <string name="share_as_text">作为文本分享</string>
+    <string name="share_as_image">作为图片分享</string>
+    <string name="max_selection_limit">最大选择限制</string>
+    <string name="share_selected">分享已选</string>
+    <string name="customize_colors">自定义颜色</string>
+    <string name="more_options">更多选项</string>
+    <string name="text_color">文本颜色</string>
+    <string name="secondary_text_color">次要文本颜色</string>
+    <string name="background_color">背景颜色</string>
+
+    <string name="added_to_play_next">已添加到“下一首播放”</string>
+    <string name="added_to_queue">已添加到队列</string>
+    <string name="remove_from_cache">从缓存移除</string>
+    <string name="copy_link">复制链接</string>
+    <string name="select">全选</string>
+    <string name="like_all">全部喜欢</string>
+    <string name="dislike_all">全部不喜欢</string>
+    <string name="sort_by_last_updated">更新日期</string>
+    <string name="link_copied">链接已复制到剪贴板</string>
+    <string name="starting_radio">正在启动电台</string>
+    <string name="now_playing">正在播放</string>
+
+    <string name="lyrics">歌词</string>
+    <string name="close">关闭</string>
+    <string name="minimum_volume">最小音量</string>
+    <string name="maximum_volume">最大音量</string>
+    <string name="hide_player_thumbnail">隐藏播放器缩略图</string>
+    <string name="hide_player_thumbnail_desc">在播放器中用应用 Logo 替换专辑封面</string>
+
+    <string name="already_in_playlist">已在歌单中：</string>
+
+    <plurals name="n_element">
+        <item quantity="other">%d 项元素</item>
+    </plurals>
+    <plurals name="n_time">
+        <item quantity="other">%d 次</item>
+    </plurals>
+
+    <string name="seek_backward">后退 5 秒</string>
+    <string name="seek_forward">前进 5 秒</string>
+    <string name="seek_forward_dynamic">前进 +%1$d 秒</string>
+    <string name="seek_backward_dynamic">后退 -%1$d 秒</string>
+    <string name="seek_seconds_addup">渐进式快进/快退</string>
+    <string name="seek_seconds_addup_description">若启用，每次点击快进/快退都会额外增加 5 秒</string>
+
+    <string name="similar_content">相似内容</string>
+
+    <string name="login_settings">登录设置</string>
+    <string name="general_settings">通用设置</string>
+
+    <string name="player_background_style">播放器背景样式</string>
+    <string name="follow_theme">跟随主题</string>
+    <string name="gradient">渐变</string>
+    <string name="new_player_design">新版播放器设计</string>
+    <string name="new_mini_player_design">新版迷你播放器设计</string>
+    <string name="player_background_blur">模糊</string>
+    <string name="player_buttons_style">播放器按钮颜色</string>
+    <string name="default_style">默认</string>
+    <string name="secondary_color_style">次要颜色</string>
+    <string name="enable_squiggly_slider">启用波浪线滑块</string>
+    <string name="enable_swipe_thumbnail">启用滑动切换歌曲</string>
+    <string name="swipe_song_to_add">左滑歌曲添加到队列，右滑下一首播放</string>
+    <string name="lyrics_click_change">点击更改歌词</string>
+    <string name="lyrics_auto_scroll">歌词自动滚动</string>
+    <string name="slim">轻量</string>
+    <string name="slim_navbar">轻量级底部导航栏</string>
+    <string name="auto_playlists">自动歌单</string>
+    <string name="show_liked_playlist">显示“喜欢的歌曲”歌单</string>
+    <string name="show_downloaded_playlist">显示“已下载”歌单</string>
+    <string name="show_top_playlist">显示“热门”歌单</string>
+    <string name="show_cached_playlist">显示“已缓存”歌单</string>
+    <string name="show_uploaded_playlist">显示“已上传”歌单</string>
+
+    <string name="google">Google</string>
+    <string name="discord">Discord</string>
+    <string name="advanced_login">使用令牌登录</string>
+    <string name="token_hidden">点击显示令牌</string>
+    <string name="token_shown">再次点击以复制或编辑</string>
+    <string name="token_adv_login_description">这是一种高级登录方法。作为网页登录的替代方案，您可以在此直接输入或更新您的登录令牌。例如，这可以加快在多台设备上的登录速度。请注意，应用无法解析的任何无效令牌格式将不被接受。</string>
+    <string name="ytm_sync">自动与您的 YouTube Music 账户同步</string>
+    <string name="yt_sync">自动与账户同步</string>
+    <string name="more_content">更多内容</string>
+    
+    <!-- Playlist cover edit -->
+    <string name="edit_playlist_cover">编辑歌单封面</string>
+    <string name="edit_playlist_cover_note">注意：您的账户必须绑定手机号并在 YouTube Music 上通过验证才能更改歌单封面。</string>
+    <string name="edit_playlist_cover_note_wait">选择图片后，请稍候片刻，新封面将会出现在您的歌单中。</string>
+    <string name="choose_from_library">从媒体库选择</string>
+    <string name="remove_custom_image">移除自定义图片</string>
+
+    <!-- General -->
+    <string name="general">常规</string>
+    <string name="proxy">代理</string>
+    <string name="default_lib_chips">更改默认媒体库标签</string>
+    <string name="set_quick_picks">设置快速精选</string>
+    <string name="last_song_listened">基于上次收听的歌曲</string>
+    <string name="app_language">应用语言</string>
+    <string name="configure_app_language">配置应用语言</string>
+    <string name="intent_app_language_not_found">找不到应用语言设置，请手动配置</string>
+    <string name="open_supported_links">默认打开支持的链接</string>
+    <string name="configure_supported_links">配置支持的链接</string>
+    <string name="intent_supported_links_not_found">找不到支持的链接设置，请手动配置</string>
+    <string name="set_first_lyrics_provider">首选歌词提供商</string>
+    <string name="config_proxy">配置代理</string>
+    <string name="proxy_username">代理用户名</string>
+    <string name="proxy_password">代理密码</string>
+    <string name="enable_authentication">启用验证</string>
+    <string name="discord_use_details">使用详细信息代替状态</string>
+    <string name="discord_use_details_description">突出显示歌曲标题而不是艺人名称</string>
+
+    <string name="audio_quality_max">最高 (Beta)</string>
+    <string name="enable_similar_content">启用相似内容</string>
+    <string name="similar_content_desc">当队列播放完毕时，自动添加更多相似歌曲</string>
+    <string name="min_playback_duration_title">最小播放时长</string>
+    <string name="min_playback_duration_description">歌曲被计为“已播放”所需的最短播放时长</string>
+    <string name="percentage_format">%d%%</string>
+    <string name="minimum_playback_duration">最小播放时长</string>
+
+    <string name="import_online">导入 “m3u” 歌单</string>
+    <string name="import_csv">导入 “csv” 歌单</string>
+    <string name="playlist_add_local_to_synced_note">注意：不支持将本地歌曲添加到同步/远程歌单。其他组合均有效</string>
+
+    <string name="auto_download_on_like">点赞时自动下载</string>
+    <string name="auto_download_on_like_desc">当您点赞歌曲时自动下载它们</string>
+
+    <string name="swipe_sensitivity">迷你播放器滑动灵敏度</string>
+    <string name="swipe_sensitivity_desc">调整滑动切歌手势的灵敏度</string>
+    <string name="sensitivity_percentage">%1$d%%</string>
+
+    <string name="clear_song_cache_dialog">  您确定要清除所有缓存歌曲吗？</string>
+    <string name="clear_image_cache_dialog">  您确定要清除所有缓存图片吗？</string>
+    <string name="clear_downloads_dialog">  您确定要清除所有下载内容吗？</string>
+
+    <string name="disable">禁用</string>
+
+    <string name="pause_remote_listen_history">暂停与 YouTube Music 分享收听历史</string>
+    <string name="not_logged_in_youtube">未登录 YouTube</string>
+
+    <string name="default_links">打开支持的链接</string>
+    <string name="open_app_settings_error">无法打开应用设置</string>
+
+    <string name="release_notes">发行说明</string>
+
+    <string name="all_time">所有时间</string>
+    <string name="past_24_hours">过去 24 小时</string>
+    <string name="past_week">过去一周</string>
+    <string name="past_month">过去一个月</string>
+    <string name="past_year">过去一年</string>
+    <string name="top_length">我的最爱列表长度</string>
+    <string name="history_duration">历史记录时长</string>
+    <string name="information">信息</string>
+    <string name="description">描述</string>
+    <string name="numbers">数字</string>
+    <string name="subscribers">订阅者</string>
+    <string name="views">次观看</string>
+    <string name="likes">赞</string>
+    <string name="dislikes">踩</string>
+    <string name="subscribe">订阅</string>
+    <string name="subscribed">已订阅</string>
+
+    <string name="sub">订阅</string>
+    <string name="subed">已订</string>
+
+    <string name="playlist_not_found">未找到歌单</string>
+    <string name="playlist_not_found_desc">无法加载请求的歌单</string>
+    <string name="empty_playlist">空歌单</string>
+    <string name="empty_playlist_desc">此歌单不包含任何歌曲</string>
+    <plurals name="seconds">
+        <item quantity="other">%d 秒</item>
+    </plurals>
+
+    <!-- Player Settings -->
+    <string name="disable_load_more_when_repeat_all">全曲循环时禁用加载更多</string>
+    <string name="disable_load_more_when_repeat_all_desc">启用全曲循环模式时，不自动加载更多歌曲和相似内容</string>
+
+    <!-- Romanization Settings -->
+    <string name="lyrics_romanization_cyrillic">西里尔文</string>
+    <string name="lyrics_romanize_title">罗马音注音</string>
+    <string name="lyrics_romanization">歌词罗马音注音</string>
+    <string name="romanization">罗马音注音</string>
+    <string name="lyrics_romanize_japanese">日语歌词罗马音注音</string>
+    <string name="lyrics_romanize_korean">韩语歌词罗马音注音</string>
+    <string name="lyrics_romanize_devanagari">天城文（印地语、马拉地语、梵语等）歌词罗马音注音</string>
+    <string name="lyrics_romanize_russian">俄语歌词罗马音注音</string>
+    <string name="lyrics_romanize_ukrainian">乌克兰语歌词罗马音注音</string>
+    <string name="lyrics_romanize_belarusian">白俄罗斯语歌词罗马音注音</string>
+    <string name="lyrics_romanize_kyrgyz">吉尔吉斯语歌词罗马音注音</string>
+    <string name="lyrics_romanize_serbian">塞尔维亚语歌词罗马音注音</string>
+    <string name="lyrics_romanize_bulgarian">保加利亚语歌词罗马音注音</string>
+    <string name="line_by_line_option_title">实验性：逐行检测语言</string>
+    <string name="line_by_line_option_desc">将逐行检测西里尔文语言，而不是整首歌曲。</string>
+    <string name="line_by_line_dialog_title">您确定吗？</string>
+    <string name="line_by_line_dialog_desc">这是一项不稳定的实验性功能。\n\n默认情况下，语言由整首歌曲确定，但开启此选项后，将逐行确定。这将允许使用多语言歌曲，但语言可能并不总是正确的（例如，如果有一句乌克兰语歌词不包含任何乌克兰语特定字母，它可能会被注音为俄语）。\n\n如果您没有遇到问题，建议保持此选项关闭。</string>
+    <string name="line_by_line_dialog_enable">启用</string>
+    <string name="romanize_current_track">对当前曲目注音</string>
+
+    <!-- Material 3 Settings Sections -->
+    <string name="settings_section_ui">界面</string>
+    <string name="settings_section_privacy">隐私与安全</string>
+    <string name="settings_section_player">播放器与媒体</string>
+    <string name="settings_section_player_content">播放器与内容</string>
+    <string name="settings_section_storage">存储与数据</string>
+    <string name="settings_section_system">系统与关于</string>
+
+    <!-- Updater -->
+    <string name="updater">更新程序</string>
+    <string name="appupdate">检查更新</string>
+    <string name="experimental">实验性</string>
+    <string name="check_for_updates">自动检查更新</string>
+    <string name="update_notifications">启用更新通知</string>
+    <string name="update_channel_name">应用更新</string>
+    <string name="update_channel_desc">关于新版本的通知</string>
+
+
+    <!-- Offload -->
+    <string name="audio_offload">启用卸载 (Offload)</string>
+    <string name="audio_offload_description">使用卸载音频路径进行音频播放。禁用此功能可能会增加耗电量，但如果您遇到音频播放或后处理问题，这可能会有所帮助</string>
+    <string name="lyrics_romanize_macedonian">马其顿语歌词罗马音注音</string>
+
+    <string name="integrations">集成</string>
+    <string name="username">用户名</string>
+    <string name="password">密码</string>
+    <!-- Last.fm -->
+    <string name="lastfm_integration">Last.fm 集成</string>
+    <string name="enable_scrobbling">启用 scrobbling</string>
+    <string name="lastfm_now_playing">发送“正在播放”</string>
+    <string name="scrobbling_configuration">Scrobbling 配置</string>
+    <string name="scrobble_min_track_duration">Scrobble 长于此时间的歌曲</string>
+    <string name="scrobble_delay_percent">Scrobble 延迟百分比</string>
+    <string name="scrobble_delay_minutes">Scrobble 延迟分钟数</string>
+    <string name="profile_image">个人资料图片</string>
+    <string name="back">返回</string>
+
+
+    <string name="download_playlist">下载歌单</string>
+    <string name="remove_download_playlist">移除下载</string>
+    <string name="delete_playlist">删除歌单</string>
+    <string name="cancel_download">取消下载</string>
+    <string name="pitch_and_tempo">音调与速度</string>
+
+
+    <!-- Account View Strings -->
+    <string name="restore_success">恢复成功</string>
+    <string name="library">媒体库</string>
+    <string name="logout">登出</string>
+    <string name="logged_out">已成功登出</string>
+    <string name="swipe_song_to_remove">滑动歌曲以从歌单中移除</string>
+    <string name="rotating_thumbnail">旋转缩略图</string>
+
+    <!-- Contribution Screen Strings -->
+    <string name="contributors">贡献者</string>
+    <string name="contributors_subtitle">让这个项目变得更好的了不起的人们</string>
+    <string name="refresh_contributors">刷新贡献者</string>
+    <string name="no_contributors_found">未找到贡献者</string>
+
+    <!-- Error Messages -->
+    <string name="error_failed_to_load_contributors">无法加载贡献者 (%d)</string>
+    <string name="error_loading_contributors">加载贡献者时出错：%s</string>
+
+    <!-- Accessibility -->
+    <string name="contributor_avatar">%s 的头像</string>
+    <string name="github_profile">GitHub 个人资料</string>
+
+    <!-- Vivi Updates Screen -->
+    <string name="app_updates_title">应用更新</string>
+    <string name="changelog">更新日志</string>
+    <string name="quick_actions">快速操作</string>
+    <string name="app_updates_subtitle">应用更新和版本信息</string>
+    <string name="system_update">系统更新</string>
+    <string name="update_available_subtitle">有可用更新 - %1$s</string>
+    <string name="update_disabled_subtitle">自动检查已禁用</string>
+    <string name="up_to_date_subtitle">应用为最新版本</string>
+    <string name="experimental_title">实验性</string>
+    <string name="experimental_subtitle">实验性功能</string>
+    <string name="update_settings_subtitle">开启和关闭更新</string>
+    <string name="changelog_subtitle">当前应用版本</string>
+    <string name="about_subtitle">应用及开发信息</string>
+    <string name="app_info_header">应用信息</string>
+    <string name="build_version_title">构建版本</string>
+    <string name="installed_on_format">安装于 %1$s</string>
+
+    <!-- Update Settings Screen (updatesettings.kt) -->
+    <string name="update_settings_title">更新设置</string>
+    <string name="manage_header">管理</string>
+    <string name="notification_header">通知</string>
+    <string name="check_for_updates_desc">自动检查新更新</string>
+    <string name="show_notification">显示通知</string>
+    <string name="show_notification_desc">有可用更新时获取通知</string>
+    <string name="update_check_interval">更新检查间隔</string>
+    <string name="interval_every_hour">每 %1$d 小时</string>
+    <string name="interval_every_hours">每 %1$d 小时</string>
+    <string name="interval_every_day">每 %1$d 天</string>
+    <string name="interval_every_days">每 %1$d 天</string>
+    <string name="interval_check_format_hours">每 %1$d 小时检查一次</string>
+    <string name="interval_check_format_days">每 %1$d 天检查一次</string>
+    <string name="auto_updates_enabled_toast">自动更新检查已启用</string>
+    <string name="auto_updates_disabled_toast">自动更新检查已禁用</string>
+    <string name="notifications_enabled_toast">更新通知已启用</string>
+    <string name="notifications_disabled_toast">更新通知已禁用</string>
+    <string name="interval_set_format_hours">更新检查间隔已设置为 %1$d 小时</string>
+    <string name="interval_set_format_days">更新检查间隔已设置为 %1$d 天</string>
+    <string name="one_hour">1 小时</string>
+    <string name="seven_days">7 天</string>
+    <string name="ok_caps">确定</string>
+    <string name="account_status">账户状态</string>
+    <string name="account_settings">账户设置</string>
+    <string name="integrations_subtitle">连接外部服务</string>
+    <string name="cancel_caps">取消</string>
+    <string name="waiting_for_network">等待网络连接…</string>
+
+    <!-- Update Screen Strings -->
+    <string name="installing_system_update">正在安装系统更新…</string>
+    <string name="making_update_ready">正在准备更新，这可能需要一段时间</string>
+    <string name="your_app_getting_better">您的应用正在变得更好…</string>
+    <string name="update_includes_features">此更新包含新功能和来自 vivi-music %1$s 的最新内容，让您的应用更加好用。如需了解详情，请访问 %2$s。</string>
+    <string name="whats_new">新功能</string>
+    <string name="pause">暂停</string>
+    <string name="update_available">有可用更新</string>
+    <string name="checking_for_updates">正在检查更新…</string>
+    <string name="current_version">当前版本：%1$s</string>
+    <string name="cant_check_updates">无法检查更新</string>
+    <string name="app_up_to_date">应用已是最新</string>
+    <string name="version">版本 %1$s</string>
+    <string name="released">发布于：%1$s</string>
+    <string name="update_preview">更新预览</string>
+    <string name="downloading_percent">正在下载… %1$d%%</string>
+    <string name="download_failed">下载失败</string>
+    <string name="new_features_include">新功能包括：</string>
+    <string name="mobile_network_warning">通过移动网络或漫游下载更新可能会产生额外费用。</string>
+    <string name="update_size">更新大小：%1$s MB</string>
+    <string name="check_internet_connection">请检查您的网络连接并重试。</string>
+    <string name="vivi_music_version">VIVI MUSIC 版本 %1$s</string>
+    <string name="last_checked">上次检查：%1$s</string>
+    <string name="install">安装</string>
+    <string name="check_for_update">检查更新</string>
+    <string name="no_changelog_available">无可用更新日志</string>
+
+    <!-- Player Strings -->
+    <string name="error_playing">播放出错</string>
+    <string name="bluetooth_headphones">蓝牙耳机</string>
+    <string name="audio_devices">音频设备</string>
+
+    <!-- Crash Page -->
+    <string name="crash_message">噢！ViVi 撞墙并紧急刹车了。请查看下方日志以获取更多信息。页面底部提供了更多选项。</string>
+    <string name="log_copied_to_clipboard">日志已复制到剪贴板</string>
+
+    <!-- Report Issue -->
+    <string name="report_an_issue">报告问题</string>
+    <string name="found_bug_suggestion">发现了 Bug 或有建议？</string>
+    <string name="report_issues_description">您可以通过电子邮件或直接在 GitHub 上报告问题。</string>
+    <string name="device_information">设备信息（将包含在报告中）：</string>
+    <string name="no_email_app_found">未找到电子邮件应用</string>
+    <string name="report_via_email">通过电子邮件报告</string>
+    <string name="report_on_github">在 GitHub 上报告</string>
+    <string name="report_issue_title">报告问题</string>
+
+    <!-- Support Developer -->
+    <string name="support_developer">支持开发者</string>
+    <string name="upi_payment_methods">UPI 支付方式</string>
+    <string name="google_pay">Google Pay</string>
+    <string name="phonepe">PhonePe</string>
+    <string name="paytm">Paytm</string>
+    <string name="bhim_upi">BHIM UPI</string>
+    <string name="buy_me_a_coffee">给我买杯咖啡</string>
+    <string name="coming_soon">即将推出</string>
+    <string name="support_title">支持</string>
+
+    <!-- Storage Settings -->
+    <string name="storage_settings">存储设置</string>
+    <string name="manage_storage_cache">管理应用存储和缓存</string>
+    <string name="storage_overview">存储概览</string>
+    <string name="total_storage_used">已用总存储</string>
+    <string name="downloads_section">下载</string>
+    <string name="song_cache_section">歌曲缓存</string>
+    <string name="cache_usage">缓存使用情况</string>
+    <string name="image_cache_section">图片缓存</string>
+
+    <!-- Playlist Descriptions -->
+    <string name="top_playlist_description">基于您收听历史的播放受数最多的曲目。此动态歌单会随着您发现新音乐而更新。</string>
+    <string name="cache_playlist_description">本地存储在设备上的已缓存歌曲。这些曲目可进行离线播放，无需网络连接。</string>
+
+    <!-- Artist Screen -->
+    <string name="about_artist">关于艺人</string>
+
+    <!-- Album Screen -->
+    <string name="explicit">E  露骨内容</string>
+
+    <!-- Bluetooth -->
+    <string name="streaming_to">流式传输至</string>
+    <string name="this_phone">本机</string>
+
+    <!-- Account Screen -->
+    <string name="account_title">账户</string>
+    <string name="manage_account_preferences">管理您的账户和首选项</string>
+    <string name="signed_in">已登录</string>
+    <string name="not_signed_in">未登录</string>
+    <string name="tap_to_sign_in">点击登录</string>
+    <string name="token_shown_title">令牌显示</string>
+    <string name="token_hidden_title">令牌隐藏</string>
+    <string name="tap_to_manage_token">点击管理令牌</string>
+    <string name="sign_in_with_cookies">使用 Cookie 登录</string>
+    <string name="enabled">已启用</string>
+    <string name="disabled">已禁用</string>
+    <string name="sign_out">登出</string>
+
+    <!-- Beta Update -->
+    <string name="vivi_music">VIVI MUSIC</string>
+    <string name="vivi_music_beta_update">Vivi Music Beta 更新</string>
+    <string name="recheck">重新检查</string>
+    <string name="changelog_for_version">%1 的更新日志</string>
+    <string name="available">可用</string>
+    <string name="file_error">文件错误</string>
+    <string name="unknown_error">未知错误</string>
+
+    <!-- Settings Screens -->
+    <string name="settings_title">设置</string>
+    <string name="manage_privacy_data">管理隐私和数据</string>
+    <string name="configure_player_audio">配置播放器和音频设置</string>
+    <string name="configure_content_preferences">配置内容首选项</string>
+    <string name="romanization_settings">注音设置</string>
+    <string name="manage_data_playlists">管理数据和歌单</string>
+    <string name="data_management">数据管理</string>
+    <string name="import_section">导入</string>
+    <string name="customize_look_feel">自定义外观</string>
+    <string name="select_theme_preference">选择主题首选项</string>
+    <string name="select_text_alignment">选择文本对齐方式</string>
+    <string name="lyrics_position">歌词位置</string>
+    <string name="select_active_line_position">选择活动行位置</string>
+    <string name="size">大小</string>
+    <string name="spacing">间距</string>
+    <string name="top">顶部</string>
+    <string name="center_option">居中</string>
+
+    <!-- About Screen -->
+    <string name="vivi_music_title">VIVI MUSIC</string>
+    <string name="update_section">更新</string>
+    <string name="developer_section">开发者</string>
+    <string name="app_info_section">应用信息</string>
+    <string name="community_section">社区</string>
+    <string name="support_development">支持开发</string>
+    <string name="website">网站</string>
+    <string name="donate">捐赠</string>
+
+    <!-- Media Info -->
+    <string name="song_info">歌曲信息</string>
+    <string name="done">完成</string>
+    <string name="title">标题</string>
+    <string name="standard">标准</string>
+    <string name="format">格式</string>
+    <string name="duration">时长</string>
+    <string name="artist">艺人</string>
+    <string name="itag">Itag</string>
+
+    <!-- Playlist Actions -->
+    <string name="queue_button">队列</string>
+    <string name="play_button">播放</string>
+    <string name="delete_button">删除</string>
+    <string name="more">更多</string>
+
+    <!-- Content Descriptions -->
+    <string name="share_playlist">分享歌单</string>
+    <string name="share_song">分享歌曲</string>
+    <string name="share_album">分享专辑</string>
+    <string name="share_artist">分享艺人</string>
+    <string name="download_song">下载歌曲</string>
+    <string name="download_album">下载专辑</string>
+    <string name="artist_icon">艺人图标</string>
+    <string name="album_icon">专辑图标</string>
+    <string name="library_icon">媒体库图标</string>
+    <string name="delete_icon">删除图标</string>
+    <string name="info_icon">信息图标</string>
+    <string name="view_information">查看信息</string>
+    <string name="shuffle_icon">随机播放图标</string>
+    <string name="radio_icon">电台图标</string>
+    <string name="select_icon">选择图标</string>
+    <string name="select_songs">选择歌曲</string>
+    <string name="edit_icon">编辑图标</string>
+    <string name="refresh_icon">刷新图标</string>
+    <string name="equalizer_icon">均衡器图标</string>
+    <string name="audio_settings">音频设置</string>
+    <string name="advanced_icon">高级图标</string>
+    <string name="romanize_icon">注音图标</string>
+    <string name="romanization_enabled">注音已启用</string>
+    <string name="romanization_disabled">注音已禁用</string>
+    <string name="swipe_icon">滑动图标</string>
+    <string name="subscribe_icon">订阅图标</string>
+    <string name="share_icon">分享图标</string>
+    <string name="songs_icon">歌曲图标</string>
+    <string name="favorite_icon">喜爱图标</string>
+    <string name="remove_bookmark">移除书签</string>
+    <string name="bookmark_playlist">歌单加书签</string>
+    <string name="remove_permanently">永久移除</string>
+    <string name="rename_playlist">重命名歌单</string>
+    <string name="developer">开发者</string>
+
+    <!-- Loading Screen -->
+    <string name="progress_percent">进度 %1%%</string>
+
+    <!-- Playlist Screen -->
+    <string name="this_collection">此收藏</string>
+    <string name="playlist_text">歌单</string>
+
+    <!-- Changelog -->
+    <string name="changelog_title">更新日志</string>
+    <string name="loading_changelog">正在加载更新日志…</string>
+    <string name="failed_to_load_changelog">加载更新日志失败</string>
+    <string name="view_on_github">在 GitHub 上查看</string>
+    <string name="changes">更改</string>
+    <string name="current">当前</string>
+    <string name="old_releases">旧版本</string>
+    <string name="cached">已缓存</string>
+
+    <!-- Experimental -->
+    <string name="select_apk_variant">选择 APK 变体</string>
+    <string name="unable_to_fetch_apk_variants">无法获取 APK 变体</string>
+    <string name="send_feedback">发送反馈</string>
+    <string name="send_email">发送邮件</string>
+    <string name="reset_button">重置</string>
+    <string name="share_button">分享</string>
+    <string name="delete_button_menu">删除</string>
+    <string name="advanced_settings_experimental">高级设置和实验性功能</string>
+    <string name="updates_section">更新</string>
+    <string name="storage_section">存储</string>
+    <string name="debugging_section">调试</string>
+    <string name="support_section">支持</string>
+    <string name="crash_logs">崩溃日志</string>
+    <string name="send_feedback_title">发送反馈</string>
+    <string name="reset_app">重置应用</string>
+    <string name="open_with">打开方式</string>
+    <string name="just_now">刚刚</string>
+    <string name="selected">已选</string>
+    <string name="delete_content_desc">删除</string>
+    <string name="universal_recommended">通用（推荐）</string>
+    <string name="arm_older_phones">ARM - %1 MB（旧手机）</string>
+    <string name="x86_64_intel_tablets">x86_64 - %1 MB（Intel 平板）</string>
+    <string name="x86_emulators">x86 - %1 MB（模拟器）</string>
+    <string name="minutes_ago">%1 分钟前</string>
+    <string name="hours_ago">%1 小时前</string>
+    <string name="days_ago">%1 天前</string>
+
+    <!-- Toast Messages -->
+    <string name="all_crash_logs_cleared">所有崩溃日志已清除</string>
+    <string name="crash_log_deleted">崩溃日志已删除</string>
+    <string name="please_install_web_browser">请安装网页浏览器</string>
+    <string name="error_message">错误：%1</string>
+    <string name="unable_to_open_email_app">无法打开电子邮件应用：%1</string>
+    <string name="error_sharing_log">分享日志出错：%1</string>
+    <string name="no_apk_found">在最新的预发布版本中未找到 APK</string>
+    <string name="enable_install_unknown_apps">请启用“安装未知应用”并重试。</string>
+    <string name="download_error">下载错误：%1</string>
+    <string name="download_started">下载已开始…</string>
+    <string name="download_completed">下载完成！</string>
+    <string name="download_completed_file_not_found">下载完成但未找到文件</string>
+    <string name="download_completed_uri_not_found">下载完成但未找到 URI</string>
+    <string name="download_failed_error">下载失败：%1</string>
+    <string name="download_tracking_failed">下载追踪失败</string>
+    <string name="download_tracking_error">下载追踪错误：%1</string>
+    <string name="downloaded_file_not_found">未找到已下载文件</string>
+    <string name="failed_to_track_download">追踪下载完成失败</string>
+    <string name="apk_file_not_found">未找到 APK 文件</string>
+    <string name="no_app_to_install_apks">没有可用于安装 APK 的应用</string>
+    <string name="installation_error">安装错误：%1</string>
+    <string name="failed_to_create_image">创建图片失败：%1</string>
+    <string name="failed_to_parse_proxy_url">解析代理 URL 失败</string>
+
+    <!-- Notification -->
+    <string name="starting">正在启动</string>
+    <string name="playing">正在播放</string>
+    <string name="paused">已暂停</string>
+
+    <!-- Backup Restore -->
+    <string name="no_valid_songs_csv">在 CSV 文件中未找到有效歌曲</string>
+    <string name="csv_file_empty_invalid">CSV 文件为空或无效</string>
+    <string name="backup_not_supported">此应用不支持该备份文件</string>
+    <string name="backup_corrupted">备份文件已损坏，无法恢复</string>
+    <string name="backup_format_not_supported">此应用不支持该备份文件格式</string>
+
+    <!-- ViewModels -->
+    <string name="guest">访客</string>
+    <string name="failed_to_load_playlist">加载歌单失败</string>
+
+    <!-- Additional Content Descriptions -->
+    <string name="song_art">歌曲封面</string>
+    <string name="playlist_art">歌单封面</string>
+    <string name="play_next_icon">下一首播放图标</string>
+    <string name="add_to_queue_icon">添加到队列图标</string>
+    <string name="start_radio_icon">启动电台图标</string>
+    <string name="add_to_playlist_icon">添加到歌单图标</string>
+
+    <!-- Menu Actions -->
+    <string name="play_similar_songs">播放相似歌曲</string>
+    <string name="add_to_existing_playlist">添加到现有歌单</string>
+    <string name="save_to_your_music">保存到您的音乐</string>
+    <string name="remove_from_your_music">从您的音乐移除</string>
+    <string name="suggestions_available">有建议可用</string>
+
+    <!-- Download Notifications -->
+    <string name="update_failed">更新失败</string>
+    <string name="failed_to_download_version">下载版本 %1 失败</string>
+    <string name="failed_to_download_version_error">下载版本 %1 失败\n%2</string>
+    <string name="server_error">服务器错误：%1</string>
+
+    <!-- Media Info -->
+    <string name="no_description_available">无可用描述</string>
+    <string name="views_count">%1 次观看</string>
+    <string name="likes_count">%1 赞</string>
+
+    <!-- Backup Restore -->
+    <string name="save_data_settings">保存您的数据和设置</string>
+    <string name="restore_from_backup">从备份文件恢复</string>
+
+    <!-- Appearance Settings -->
+    <string name="dynamic_color_theming">动态颜色主题</string>
+    <string name="accent_color">强调色</string>
+    <string name="select_static_theme_color">选择静态主题颜色</string>
+
+    <!-- Song Edit -->
+    <!-- song_title, artist_name, edit_song are in strings.xml -->
+
+    <!-- Backup Restore Additional -->
+    <!-- backup_create_success, backup_create_failed are in strings.xml -->
+
+    <!-- About Screen Additional -->
+    <string name="developer_name">VIVIDH P ASHOKAN</string>
+    <string name="app_developer">应用开发者</string>
+    <string name="installed_date_title">安装日期</string>
+    <string name="view_version_history">查看版本历史</string>
+    <string name="github_repository">GitHub 仓库</string>
+    <string name="view_source_code">查看源代码</string>
+    <string name="see_community_heroes">查看我们的社区英雄</string>
+    <string name="report_issue_title_about">报告问题</string>
+    <string name="bugs_feedback">Bug 与反馈</string>
+
+    <!-- Crash Page -->
+    <string name="copy_log_content">复制日志内容</string>
+    <string name="copies_crash_log_clipboard">将崩溃日志复制到剪贴板。</string>
+    <string name="send_via_gmail">通过 Gmail 发送</string>
+    <string name="copies_log_opens_gmail">复制日志并打开 Gmail。</string>
+    <string name="report_via_github_crash">通过 GitHub 报告</string>
+    <string name="opens_github_report_issue">打开 GitHub 报告问题。</string>
+    <string name="restart_vivi">重启 ViVi</string>
+    <string name="restarts_vivi">重启 ViVi。</string>
+
+    <!-- Settings Screen Subtitles -->
+    <string name="customize_theme_display_settings">自定义主题和显示设置</string>
+    <string name="audio_quality_playback_settings">音质和播放设置</string>
+    <string name="language_content_preferences">语言和内容首选项</string>
+    <string name="privacy_security_settings">隐私和安全设置</string>
+    <string name="manage_storage_downloads">管理存储和下载</string>
+    <string name="backup_restore_data">备份和恢复数据</string>
+    <string name="app_information_legal">应用信息和法律信息</string>
+
+    <!-- Player Settings -->
+    <string name="select_playback_audio_quality">选择播放音质</string>
+    <string name="remove_silent_parts">移除静音部分</string>
+    <string name="normalize_audio_levels">标准化音频音量</string>
+    <string name="stop_playback_when_closed">应用关闭时停止播放</string>
+
+    <!-- Appearance Settings -->
+    <string name="dynamic_color_theming_subtitle">动态颜色主题</string>
+    <string name="use_pure_black_dark_theme">深色主题使用纯黑</string>
+    <string name="settings_shape_tertiary_color">设置形状三次色</string>
+    <string name="use_tertiary_color_icon_backgrounds">图标背景使用三次色</string>
+    <string name="modern_player_interface">现代播放器界面</string>
+    <string name="modern_mini_player">现代迷你播放器</string>
+    <string name="enable_rotating_clover_thumbnail">启用旋转三叶草缩略图</string>
+    <string name="swipe_on_player_thumbnail">在播放器缩略图上滑动</string>
+    <string name="click_change_lyrics_position">点击更改歌词位置</string>
+    <string name="auto_scroll_lyrics_subtitle">歌词自动滚动</string>
+    <string name="apple_lyrics">Apple Music 歌词</string>
+    <string name="highlight_words_discretely">逐字高亮显示</string>
+    <string name="letter_by_letter_animation">逐字动画</string>
+    <string name="animate_lyrics_letter_by_letter">当逐字同步不可用时启用逐字动画</string>
+    <string name="select_default_tab">选择默认打开的标签页</string>
+    <string name="swipe_add_songs_queue">滑动以将歌曲添加到队列</string>
+    <string name="compact_navigation_bar">紧凑型导航栏</string>
+    <string name="swipe_remove_songs">滑动以移除歌曲</string>
+    <string name="change_size_items_library">更改媒体库中项目的大小</string>
+    <string name="display_liked_songs_playlist">显示喜欢的歌曲歌单</string>
+    <string name="display_downloaded_playlist">显示已下载歌单</string>
+    <string name="display_top_songs_playlist">显示热门歌曲歌单</string>
+    <string name="display_cached_playlist">显示已缓存歌单</string>
+    <string name="display_uploaded_playlist">显示已上传歌单</string>
+
+    <!-- Content Settings -->
+    <string name="filter_explicit_content">过滤露骨内容</string>
+    <string name="configure_in_system_settings">在系统设置中配置</string>
+    <string name="hide_video_content_songs">隐藏歌曲中的视频内容</string>
+    <string name="route_traffic_through_proxy">通过代理路由流量</string>
+    <string name="configure_proxy_settings">配置代理设置</string>
+    <string name="betterlyrics_lyrics">BetterLyrics 歌词</string>
+    <string name="enable_betterlyrics_lyrics_source">启用 BetterLyrics 作为歌词来源</string>
+    <string name="lrclib_lyrics">LrcLib 歌词</string>
+    <string name="enable_lrclib_lyrics_source">启用 LrcLib 作为歌词来源</string>
+    <string name="kugou_lyrics">Kugou 歌词</string>
+    <string name="enable_kugou_lyrics_source">启用 Kugou 作为歌词来源</string>
+
+    <!-- Privacy Settings -->
+    <string name="stop_recording_listening_activity">停止记录收听活动</string>
+    <string name="delete_all_listening_history">删除所有收听历史</string>
+    <string name="stop_recording_search_queries">停止记录搜索查询</string>
+    <string name="delete_all_search_history">删除所有搜索历史</string>
+
+    <!-- Backup and Restore -->
+    <string name="import_playlists_m3u_files">从 M3U 文件导入歌单</string>
+    <string name="import_playlists_csv_files">从 CSV 文件导入歌单</string>
+
+    <!-- Storage Settings -->
+    <string name="downloaded_songs_title">已下载歌曲</string>
+    <string name="remove_all_downloaded_songs">移除所有已下载歌曲</string>
+    <string name="free_up_cached_song_data">释放缓存歌曲数据</string>
+    <string name="free_up_cached_images">释放缓存图片</string>
+
+    <!-- Integrations -->
+    <string name="submit_playback_history_lastfm">向 Last.fm 提交播放历史</string>
+    <string name="show_current_song_lastfm_profile">在 Last.fm 个人资料上显示当前歌曲</string>
+    <string name="connect_with_discord">连接 Discord</string>
+    <string name="connect_with_lastfm">连接 Last.fm</string>
+    <string name="login_using_token">使用令牌登录</string>
+    <string name="show_current_song_discord">在 Discord 上显示当前歌曲</string>
+    <string name="listening_to_vivimusic">正在收听 Vivimusic</string>
+
+    <!-- Romanization Settings -->
+    <string name="romanize_japanese_lyrics_subtitle">注音日语歌词</string>
+    <string name="romanize_korean_lyrics_subtitle">注音韩语歌词</string>
+    <string name="romanize_cyrillic_lyrics_subtitle">注音西里尔文歌词</string>
+
+    <!-- Playlist Screens -->
+    <string name="cache_songs">缓存歌曲</string>
+    <string name="auto_playlist">自动歌单</string>
+    <string name="selection">选择</string>
+
+    <!-- News Screen -->
+    <string name="whats_new_title">新功能</string>
+    <string name="no_news_available">暂无新闻。</string>
+    <string name="reported_bugs">已报告的 Bug</string>
+    <string name="fixed_bugs">已修复的 Bug</string>
+    <string name="type_bug_report">Bug 报告</string>
+    <string name="type_fix">修复</string>
+    <string name="type_feature">功能</string>
+    <string name="type_news">新闻</string>
+    <string name="home_screen">主屏幕</string>
+
+    <!-- Update Settings -->
+    <string name="show_news_icon">显示新闻图标</string>
+    <string name="show_news_icon_desc">在顶部栏显示“新功能”图标</string>
+    <string name="edit_icon_content_desc">编辑图标</string>
+    <string name="favorite_icon_content_desc">喜爱图标</string>
+    <string name="delete_icon_content_desc">删除图标</string>
+    <string name="edit_content_desc_menu">编辑</string>
+    <string name="refetch_content_desc">重新获取</string>
+    <string name="search_content_desc">搜索</string>
+    <string name="romanize_icon_content_desc">注音图标</string>
+    <string name="swipe_icon_content_desc">滑动图标</string>
+    <string name="artist_art_content_desc">艺人图片</string>
+    <string name="info_icon_content_desc">信息图标</string>
+
+    <!-- Additional Menu Text -->
+    <string name="play_text">播放</string>
+    <string name="artist_text">艺人</string>
+    <string name="radio_text">电台</string>
+    <string name="shuffle_text">随机播放</string>
+    <string name="audio_quality_title">音质</string>
+    <string name="progress_percentage">进度 %1%%</string>
+    <string name="songs_count">歌曲 (%1)</string>
+    <string name="check_out_top_share">在 Vivi Music 上查看我的最爱 %1！\n\n</string>
+    <string name="by_text">艺人：</string>
+    <string name="is_a_playlist">是歌单</string>
+    <string name="album_text">专辑</string>
+    <string name="playlist_separator"> • </string>
+
+    <!-- Share and Email Messages -->
+    <string name="check_out_playlist_share">在 YouTube Music 上查看 %1：%2</string>
+    <string name="check_out_album_share">在 YouTube Music 上查看 %2 的 %1：%3</string>
+    <string name="vivi_music_crash_report">ViVi Music 崩溃报告</string>
+    <string name="crash_log_email_body">崩溃日志（也已复制到剪贴板）：\n\n%1\n\n设备信息：\n%2</string>
+    <string name="feedback_for_vivi_music_app">Vivi Music 应用反馈</string>
+    <string name="please_write_feedback">请在此处填写您的反馈…</string>
+    <string name="crash_log_subject">崩溃日志：%1</string>
+    <string name="crash_log_attached">来自 Vivi Music 应用的崩溃日志已附上</string>
+    <string name="vivi_music_issue_report">Vivi Music 问题报告 - v%1</string>
+
+    <!-- Experimental Settings -->
+    <string name="updates_title">更新</string>
+    <string name="apk_variant">APK 变体</string>
+    <string name="clear_downloaded_apks">清除已下载 APK</string>
+    <string name="open_crash_logs_folder">打开崩溃日志文件夹</string>
+    <string name="crash_logs_folder_path">Internal storage/Android/data/.../crash_logs</string>
+    <string name="email_or_github_issue">电子邮件或 GitHub Issue</string>
+    <string name="clear_all_settings_and_data">清除所有设置和数据</string>
+
+    <!-- Bluetooth -->
+    <string name="bluetooth_permission_required">需要蓝牙权限</string>
+    <string name="battery_content_desc">电池 </string>
+    <string name="wired_headphones">有线耳机</string>
+    <string name="hdmi">HDMI</string>
+    <string name="phone_speaker">手机扬声器</string>
+
+    <!-- Content Descriptions -->
+    <string name="github_content_desc">GitHub</string>
+    <string name="back_content_desc">返回</string>
+
+    <!-- Notification Channel -->
+    <string name="controls_for_music_playback">音乐播放控制</string>
+
+    <!-- Account Settings -->
+    <string name="youtube_sync">YouTube 同步</string>
+    <string name="log_out_from_account">登出您的账户</string>
+
+    <!-- Content Descriptions -->
+    <string name="bhim_content_desc">BHIM</string>
+    <string name="github_profile_content_desc">GitHub 个人资料</string>
+
+    <!-- Notification Channels -->
+    <string name="download_progress_channel">下载进度</string>
+    <string name="download_progress_description">显示应用更新的下载进度</string>
+    <string name="app_updates_channel">应用更新</string>
+    <string name="app_updates_description">应用更新通知</string>
+
+    <!-- Error Messages -->
+    <string name="error_loading_version">加载版本出错</string>
+    <string name="error_loading_date">加载日期出错</string>
+
+    <!-- Changelog -->
+    <string name="changes_default">变更</string>
+
+    <!-- Download Notifications -->
+    <string name="downloading_update">正在下载更新</string>
+    <string name="version_file_size">版本 %1 • %2</string>
+    <string name="version_progress">版本 %1 • %2%%</string>
+    <string name="update_ready">更新就绪</string>
+    <string name="tap_to_install_version">点击安装版本 %1</string>
+
+    <!-- Beta Update Labels -->
+    <string name="version_label">版本</string>
+    <string name="apk_size_label">APK 大小</string>
+    <string name="upload_date_label">上传日期</string>
+    <string name="upload_time_label">上传时间</string>
+
+    <!-- Settings Screen Update Status -->
+    <string name="update_available_title">有可用更新</string>
+    <string name="automatic_check_disabled">自动检查已禁用 • V%1</string>
+    <string name="version_now_available">%1 现已可用</string>
+    <string name="not_signed_in_subtitle">点击登录</string>
+
+    <!-- Menu Items -->
+    <string name="remove_offline">移除离线内容</string>
+    <string name="downloading_ellipsis">正在下载…</string>
+    <string name="saved">已保存</string>
+    <string name="saving">正在保存</string>
+    <string name="download_song_text">下载歌曲</string>
+    <string name="download_album_text">下载专辑</string>
+    <string name="artist_label">艺人</string>
+    <string name="songs_label">歌曲</string>
+    <string name="album_label">专辑</string>
+    <string name="view_full_album">查看完整专辑</string>
+    <string name="play_next_label">下一首播放</string>
+    <string name="play_after_current">在当前歌曲后播放</string>
+    <string name="add_to_queue_label">添加到队列</string>
+    <string name="add_to_queue_end">添加到队列末尾</string>
+    <string name="add_to_playlist_label">添加到歌单</string>
+    <string name="add_to_existing_playlist_subtitle">添加到现有歌单</string>
+    <string name="refresh_metadata">刷新元数据</string>
+    <string name="update_album_information">更新专辑信息</string>
+    <string name="delete_from_listening_history">从收听历史删除</string>
+
+    <!-- Playlist Actions -->
+    <string name="queue_label">队列</string>
+    <string name="shuffle_label">随机播放</string>
+    <string name="this_collection_text">此收藏</string>
+    <string name="playlist_description_suffix">包含精选曲目，为您带来听觉享受。</string>
+
+    <!-- Favorite Actions -->
+    <string name="remove_from_favorites">从喜爱中移除</string>
+    <string name="add_to_favorites">添加到喜爱</string>
+    <string name="unsubscribe">退订</string>
+    <string name="following_this_artist">正在关注该艺人</string>
+    <string name="follow_this_artist">关注该艺人</string>
+
+    <!-- Menu Items Additional -->
+    <string name="view_artist_page">查看艺人页面</string>
+    <string name="view_full_album_subtitle">查看完整专辑</string>
+    <string name="audio_settings_subtitle">音频设置</string>
+    <string name="download_playlist_text">下载歌单</string>
+    <string name="start_radio_label">启动电台</string>
+    <string name="play_similar_songs_subtitle">播放相似歌曲</string>
+    <string name="play_in_random_order">随即顺序播放</string>
+    <string name="edit_playlist_label">编辑歌单</string>
+    <string name="edit_song_details">编辑歌曲详情</string>
+    <string name="remove_from_history_label">从历史记录移除</string>
+    <string name="remove_from_playlist_label">从歌单移除</string>
+    <string name="delete_from_this_playlist">从此歌单删除</string>
+    <string name="remove_from_cache_label">从缓存移除</string>
+    <string name="clear_cached_data">清除缓存数据</string>
+    <string name="copied_title">已复制标题</string>
+    <string name="copied_artist">已复制艺人</string>
+    <string name="more_label">更多</string>
+    <string name="sync_label">同步</string>
+    <string name="edit_label">编辑</string>
+
+    <!-- Settings Integration -->
+    <string name="discord_account">Discord 账户</string>
+    <string name="song_title_fallback">歌曲标题</string>
+    <string name="artist_fallback">艺人</string>
+    <string name="listen_on_youtube_music">在 YouTube Music 上收听</string>
+    <string name="visit_vivimusic">访问 Vivimusic</string>
+    <string name="lastfm_account">Last.fm 账户</string>
+    <string name="not_logged_in_fallback">未登录</string>
+    <string name="tertiary_color_style">三次色样式</string>
+    <string name="lrclib_provider">LrcLib</string>
+    <string name="kugou_provider">KuGou</string>
+
+    <!-- Experimental -->
+    <string name="reset_app_data_question">重置应用数据？</string>
+    <string name="reset_app_data_description">这将清除所有设置、缓存和本地数据。应用将重启，您需要重新设置所有内容。此操作无法撤销。</string>
+    <string name="crash_logs_title">崩溃日志</string>
+    <string name="clear_all">全部清除</string>
+    <string name="no_crash_logs_found">未找到崩溃日志</string>
+    <string name="app_hasnt_crashed_recently">您的应用最近没有崩溃</string>
+    <string name="share_label">分享</string>
+    <string name="no_downloaded_files">没有已下载文件</string>
+    <string name="apk_files_cleared_successfully">APK 文件清除成功</string>
+    <string name="choose_email_app">选择电子邮件应用</string>
+    <string name="share_crash_log">分享崩溃日志</string>
+    <string name="crash_log_path">崩溃日志路径</string>
+    <string name="failed_to_clear_apk_files">清除 APK 文件失败</string>
+    <string name="no_apk_files_to_clear">没有可清除的 APK 文件</string>
+    <string name="no_crashes_detected">未检测到崩溃</string>
+    <string name="short_vivi_crash_info">ViVi 崩溃简报</string>
+    <string name="vivi_crash_log">ViVi 崩溃日志</string>
+
+    <!-- Menu Items Additional 2 -->
+    <string name="remove_from_favorites_menu">从喜爱中移除</string>
+    <string name="add_to_favorites_menu">添加到喜爱</string>
+    <string name="delete_playlist_label">删除歌单</string>
+    <string name="refresh_metadata_label">刷新元数据</string>
+    <string name="update_song_information">更新歌曲信息</string>
+    <string name="song_details_label">歌曲详情</string>
+    <string name="share_this_artist">分享该艺人</string>
+    <string name="playlist_fallback">歌单</string>
+    <string name="select_label">选择</string>
+    <string name="artist_info_fallback">艺人信息</string>
+    <string name="artist_link">艺人链接</string>
+
+    <!-- Beta Update Additional -->
+    <string name="downloading_vivi_music_apk">正在下载 Vivi Music APK</string>
+    <string name="downloading_vivi_music_prerelease">正在下载 Vivi Music 预发布版</string>
+    <string name="cannot_resume_download">无法恢复下载</string>
+    <string name="external_storage_not_found">未找到外部存储</string>
+    <string name="file_already_exists">文件已存在</string>
+    <string name="http_data_error">HTTP 数据错误</string>
+    <string name="insufficient_storage_space">存储空间不足</string>
+    <string name="too_many_redirects">重定向过多</string>
+    <string name="unhandled_http_code">未处理的 HTTP 代码</string>
+    <string name="ready_to_install">准备安装</string>
+    <string name="checking_for_update">正在检查更新</string>
+    <string name="failed_to_load">加载失败</string>
+    <string name="no_update">无更新</string>
+    <string name="beta_updater">Beta 更新程序</string>
+    <string name="download_label">下载</string>
+
+    <!-- Changelog -->
+    <string name="error_loading_changelog">加载更新日志出错</string>
+    <string name="no_old_releases_with_changelog">未找到带更新日志的旧版本</string>
+    <string name="failed_to_fetch_changelog">获取更新日志失败</string>
+
+    <!-- Notification -->
+    <string name="playing_status">正在播放</string>
+    <string name="paused_status">已暂停</string>
+
+    <!-- Backup and Restore -->
+    <string name="app_does_not_support_backup_file">此应用不支持该备份文件</string>
+    <string name="backup_file_corrupted">备份文件已损坏且无法恢复</string>
+    <string name="app_does_not_support_backup_missing_db">此应用不支持该备份文件（缺少数据库）</string>
+    <string name="backup_file_empty">备份文件为空，此应用无法从该文件恢复</string>
+    <string name="app_does_not_support_backup_format">此应用不支持该备份文件格式</string>
+    <string name="cannot_restore_permission_denied">无法恢复：权限被拒绝</string>
+    <string name="app_does_not_support_backup_with_error">此应用不支持该备份文件：%1</string>
+    <string name="csv_file_empty_or_invalid">CSV 文件为空或无效</string>
+    <string name="failed_to_read_csv_file">读取 CSV 文件失败：%1</string>
+    <string name="no_valid_songs_in_csv">在 CSV 文件中未找到有效歌曲</string>
+
+    <!-- Charts -->
+
+    <!-- Create Playlist -->
+    <string name="not_signed_in_warning">未登录</string>
+
+    <!-- Android Auto / Widget -->
+    <string name="not_playing">未播放</string>
+    <string name="tap_to_play">点击播放</string>
+    <string name="automix">自动混音</string>
+
+    <string name="play_next_icon_desc">下一首播放图标</string>
+    <string name="add_to_queue_icon_desc">添加到队列图标</string>
+    <string name="artist_icon_desc">艺人图标</string>
+
+    <!-- Menu Labels and Subtitles -->
+    <string name="play_after_current_subtitle">在当前歌曲后播放</string>
+    <string name="add_to_queue_end_subtitle">添加到队列末尾</string>
+    <string name="share_this_song">分享该歌曲</string>
+    <string name="share_this_song_subtitle">分享该歌曲</string>
+    <string name="share_this_artist_subtitle">分享该艺人</string>
+    <string name="share_this_album">分享该专辑</string>
+    <string name="share_this_album_subtitle">分享该专辑</string>
+    <string name="share_artist_link">分享艺人链接</string>
+    <string name="artist_details">艺人详情</string>
+    <string name="view_album_label">前往专辑</string>
+    <string name="view_album_details">查看专辑详情</string>
+    <string name="view_artist_label">前往艺人</string>
+    <string name="view_artist_details">查看艺人详情</string>
+    <string name="show_album_label">前往专辑</string>
+    <string name="show_artist_label">前往艺人</string>
+</resources>
