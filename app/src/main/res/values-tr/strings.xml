@@ -8,7 +8,7 @@
 
 <resources>
     <!-- Bottom navigation -->
-    <string name="home">Ev</string>
+    <string name="home">Ana Sayfa</string>
     <string name="songs">Şarkılar</string>
     <string name="artists">Sanatçılar</string>
     <string name="albums">Albümler</string>
@@ -111,7 +111,7 @@
     <string name="delete">Sil</string>
     <string name="remove_from_history">Geçmişten kaldır</string>
     <string name="remove_from_playlist">Oynatma listesinden kaldır</string>
-    <string name="remove_from_queue">Sırayı kaldır</string>
+    <string name="remove_from_queue">Sıradan kaldır</string>
     <string name="search_online">Ara</string>
     <string name="action_sync">Senkronize et</string>
     <string name="action_resync">Yeniden senkronize et</string>
@@ -134,7 +134,7 @@
     <string name="codecs">Kodekler</string>
     <string name="bitrate">Bit hızı</string>
     <string name="sample_rate">Örnek hızı</string>
-    <string name="loudness">Gürültü seviyesi</string>
+    <string name="loudness">Ses gürlüğü</string>
     <string name="volume">Ses</string>
     <string name="file_size">Dosya boyutu</string>
     <string name="unknown">Bilinmeyen</string>
@@ -242,7 +242,7 @@
     <string name="dark_theme_on">Açık</string>
     <string name="dark_theme_off">Kapalı</string>
     <string name="dark_theme_follow_system">Sistem</string>
-    <string name="pure_black">Pürüzsüz siyah</string>
+    <string name="pure_black">Tam siyah</string>
     <string name="customize_navigation_tabs">Gezinti sekmelerini özelleştir</string>
     <string name="player">Oynatıcı</string>
     <string name="player_text_alignment">Oynatıcı metin hizalama</string>
@@ -253,7 +253,7 @@
     <string name="right">Sağ</string>
     <string name="player_slider_style">Oynatıcı slider stili</string>
     <string name="default_">Varsayılan</string>
-    <string name="squiggly">Oynak</string>
+    <string name="squiggly">Dalgalı</string>
     <string name="misc">Misc</string>
     <string name="default_open_tab">Varsayılan açılan sekme</string>
     <string name="grid_cell_size">Izgara hücre boyutu</string>
@@ -281,7 +281,7 @@
     <string name="audio_quality_high">Yüksek</string>
     <string name="audio_quality_low">Düşük</string>
     <string name="queue">Sıra</string>
-    <string name="persistent_queue">Sırayı koru</string>
+    <string name="persistent_queue">Kalıcı sıra</string>
     <string name="persistent_queue_desc">Uygulama başladığında son sırayı geri yükle</string>
     <string name="auto_load_more">Daha fazla şarkı yükle</string>
     <string name="auto_load_more_desc">Sırayı sonuna ulaştığında daha fazla şarkı yükle</string>
@@ -289,7 +289,7 @@
     <string name="audio_normalization">Ses normalleştirmesi</string>
     <string name="auto_skip_next_on_error">Hata oluştuğunda otomatik olarak sonraki şarkıya geç</string>
     <string name="auto_skip_next_on_error_desc">Devam eden oynatma deneyimini sağlayın</string>
-    <string name="stop_music_on_task_clear">Uygulama sonlandırıldığında müzik durdur</string>
+    <string name="stop_music_on_task_clear">Uygulama sonlandırıldığında müziği durdur</string>
     <string name="equalizer">Ekolayzer</string>
 
     <string name="storage">Depolama</string>
@@ -309,11 +309,11 @@
     <string name="listen_history">Dinleme geçmişi</string>
     <string name="pause_listen_history">Dinleme geçmişi duraklat</string>
     <string name="clear_listen_history">Dinleme geçmişini temizle</string>
-    <string name="clear_listen_history_confirm">Tüm dinleme geçmişi temizlemeyi emin misiniz?</string>
+    <string name="clear_listen_history_confirm">Tüm dinleme geçmişini temizlemek istediğinizden emin misiniz?</string>
     <string name="search_history">Arama geçmişi</string>
     <string name="pause_search_history">Arama geçmişi duraklat</string>
     <string name="clear_search_history">Arama geçmişini temizle</string>
-    <string name="clear_search_history_confirm">Tüm arama geçmişi temizlemeyi emin misiniz?</string>
+    <string name="clear_search_history_confirm">Tüm arama geçmişini temizlemek istediğinizden emin misiniz?</string>
     <string name="use_login_for_browse">Giriş yaparak içerikleri tarayın</string>
     <string name="use_login_for_browse_desc">Bu seçenek, ne tür içerik gördüğünüzü etkileyebilir ve örneğin Premium hesapla giriş yapmışsanız Premium sadece albümü gösterir</string>
     <string name="disable_screenshot">Ekran görüntüsü devre dışı bırak</string>
@@ -331,7 +331,7 @@
     <string name="restore_failed">Geri yükleme başarısız</string>
 
     <string name="discord_integration">Discord entegrasyonu</string>
-    <string name="discord_information">VIVI music, KizzyRPC kütüphanesini kullanarak Discord hesabınızın durumunu ayarlar. Bu, Discord Gateway bağlantısını kullanır, bu Discord'ın TOS'una uymayabilir. Ancak, bu nedenle kullanıcı hesaplarının askıya alınması bilinçli bir durum değildir. Kullanıcı riskini alarak kullanın.</string>
+    <string name="discord_information">VIVI music, KizzyRPC kütüphanesini kullanarak Discord hesabınızın durumunu ayarlar. Bu, Discord Gateway bağlantısını kullanır, bu Discord\'ın TOS\'una uymayabilir. Ancak, bu nedenle kullanıcı hesaplarının askıya alınması bilinen bir durum değildir. Kullanıcı kendi riskini alarak kullanmalıdır.</string>
     <string name="dismiss">Boşver</string>
     <string name="options">Seçenekler</string>
     <string name="preview">Önizleme</string>
