@@ -306,6 +306,7 @@ val SwipeGestureEnabledKey = booleanPreferencesKey("swipe_gesture_enabled")
 //new update notification
 val CheckForUpdatesKey = booleanPreferencesKey("check_for_updates")
 val UpdateNotificationsEnabledKey = booleanPreferencesKey("update_notifications_enabled")
+val ShowNewsIconKey = booleanPreferencesKey("show_news_icon")
 
 val UpdateCheckIntervalKey = intPreferencesKey("update_check_interval")
 

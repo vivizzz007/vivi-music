@@ -798,6 +798,21 @@
     <string name="refresh_icon_content_desc">Refresh icon</string>
     <string name="songs_icon_content_desc">Songs icon</string>
     <string name="start_radio_icon_content_desc">Start radio icon</string>
+
+    <!-- News Screen -->
+    <string name="whats_new_title">What\'s New</string>
+    <string name="no_news_available">No news available.</string>
+    <string name="reported_bugs">Reported Bugs</string>
+    <string name="fixed_bugs">Fixed Bugs</string>
+    <string name="type_bug_report">Bug Report</string>
+    <string name="type_fix">Fix</string>
+    <string name="type_feature">Feature</string>
+    <string name="type_news">News</string>
+    <string name="home_screen">Home screen</string>
+
+    <!-- Update Settings -->
+    <string name="show_news_icon">Show News Icon</string>
+    <string name="show_news_icon_desc">Show the \'What\'s New\' icon in the top bar</string>
     <string name="edit_icon_content_desc">Edit icon</string>
     <string name="favorite_icon_content_desc">Favorite icon</string>
     <string name="delete_icon_content_desc">Delete icon</string>
