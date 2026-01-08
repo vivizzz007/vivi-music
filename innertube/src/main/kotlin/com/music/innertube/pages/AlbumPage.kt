@@ -16,6 +16,7 @@ data class AlbumPage(
     val album: AlbumItem,
     val songs: List<SongItem>,
     val otherVersions: List<AlbumItem>,
+    val releasesForYou: List<AlbumItem> = emptyList(),
 ) {
     companion object {
         fun getPlaylistId(response: BrowseResponse): String? {

@@ -8,7 +8,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -53,25 +52,21 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.datastore.preferences.core.edit
+import com.music.vivi.viewmodels.LyricsMenuViewModel
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.music.vivi.LocalDatabase
 import com.music.vivi.R
-import com.music.vivi.constants.LyricsLetterByLetterAnimationKey
-import com.music.vivi.constants.LyricsWordForWordKey
-import com.music.vivi.constants.SwipeGestureEnabledKey
 import com.music.vivi.db.entities.LyricsEntity
 import com.music.vivi.db.entities.SongEntity
+import com.music.vivi.lyrics.LyricsResult
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.ListDialog
 import com.music.vivi.ui.component.TextFieldDialog
 import com.music.vivi.update.mordernswitch.ModernSwitch
-import com.music.vivi.utils.dataStore
-import com.music.vivi.viewmodels.LyricsMenuViewModel
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.StateFlow
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
+import androidx.compose.ui.graphics.RectangleShape
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -94,17 +89,8 @@ fun LyricsMenu(
             onDismiss = { showEditDialog = false },
             icon = { Icon(painter = painterResource(R.drawable.edit), contentDescription = null) },
             title = { Text(text = mediaMetadataProvider().title) },
-            initialTextFieldValue = TextFieldValue(lyricsProvider()?.lyrics.orEmpty()),
-            singleLine = false,
             onDone = {
-                database.query {
-                    upsert(
-                        LyricsEntity(
-                            id = mediaMetadataProvider().id,
-                            lyrics = it,
-                        ),
-                    )
-                }
+                viewModel.updateLyrics(mediaMetadataProvider().id, it)
             },
         )
     }
@@ -137,7 +123,7 @@ fun LyricsMenu(
             )
         }
 
-    val isNetworkAvailable by viewModel.isNetworkAvailable.collectAsState()
+    val isNetworkAvailable by viewModel.isNetworkAvailable.collectAsState(initial = false)
 
     if (showSearchDialog) {
         DefaultDialog(
@@ -219,8 +205,8 @@ fun LyricsMenu(
     }
 
     if (showSearchResultDialog) {
-        val results by viewModel.results.collectAsState()
-        val isLoading by viewModel.isLoading.collectAsState()
+        val results by viewModel.results.collectAsState(initial = emptyList<LyricsResult>())
+        val isLoading by viewModel.isLoading.collectAsState(initial = false)
 
         var expandedItemIndex by rememberSaveable {
             mutableStateOf(-1)
@@ -237,14 +223,7 @@ fun LyricsMenu(
                             .clickable {
                                 onDismiss()
                                 viewModel.cancelSearch()
-                                database.query {
-                                    upsert(
-                                        LyricsEntity(
-                                            id = searchMediaMetadata.id,
-                                            lyrics = result.lyrics,
-                                        ),
-                                    )
-                                }
+                                viewModel.updateLyrics(searchMediaMetadata.id, result.lyrics)
                             }
                             .padding(12.dp)
                             .animateContentSize(),
@@ -332,7 +311,23 @@ fun LyricsMenu(
         isChecked = songProvider()?.romanizeLyrics ?: true
     }
 
-    val evenCornerRadiusElems = 26.dp
+    val cornerRadius = 24.dp
+    val topShape = AbsoluteSmoothCornerShape(
+        cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
+        smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
+        cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+    )
+    val middleShape = RectangleShape
+    val bottomShape = AbsoluteSmoothCornerShape(
+        cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+        smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
+        cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
+    )
+    val singleShape = AbsoluteSmoothCornerShape(
+        cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+        smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
+        cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+    )
 
     Column(
         modifier = Modifier
@@ -347,73 +342,66 @@ fun LyricsMenu(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(IntrinsicSize.Min),
+                .height(64.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             // Edit Button
-            MediumExtendedFloatingActionButton(
+            FilledTonalButton(
                 modifier = Modifier
-                    .weight(1f)
+                    .weight(0.5f)
                     .fillMaxHeight(),
                 onClick = {
                     showEditDialog = true
                 },
-                elevation = FloatingActionButtonDefaults.elevation(0.dp),
-                shape = AbsoluteSmoothCornerShape(
-                    cornerRadiusTR = evenCornerRadiusElems, smoothnessAsPercentBR = 60, cornerRadiusBR = evenCornerRadiusElems,
-                    smoothnessAsPercentTL = 60, cornerRadiusTL = evenCornerRadiusElems, smoothnessAsPercentBL = 60,
-                    cornerRadiusBL = evenCornerRadiusElems, smoothnessAsPercentTR = 60
-                ),
-                icon = {
-                    Icon(
-                        painter = painterResource(R.drawable.edit),
-                        contentDescription = "Edit"
-                    )
-                },
-                text = {
-                    Text(
-                        modifier = Modifier.padding(end = 10.dp),
-                        text = stringResource(R.string.edit),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        softWrap = false
-                    )
-                }
-            )
+                shape = singleShape,
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.edit),
+                    contentDescription = stringResource(R.string.edit_content_desc_menu),
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.edit),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    softWrap = false
+                )
+            }
 
             // Refetch Button
             FilledTonalIconButton(
                 modifier = Modifier
-                    .weight(0.4f)
+                    .weight(0.25f)
                     .fillMaxHeight(),
                 onClick = {
                     onDismiss()
                     viewModel.refetchLyrics(mediaMetadataProvider(), lyricsProvider())
                 },
-                shape = CircleShape
+                shape = singleShape
             ) {
                 Icon(
                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
                     painter = painterResource(R.drawable.cached),
-                    contentDescription = "Refetch"
+                    contentDescription = stringResource(R.string.refetch_content_desc),
                 )
             }
 
             // Search Button
             FilledTonalIconButton(
                 modifier = Modifier
-                    .weight(0.4f)
+                    .weight(0.25f)
                     .fillMaxHeight(),
                 onClick = {
                     showSearchDialog = true
                 },
-                shape = CircleShape
+                shape = singleShape
             ) {
                 Icon(
                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
                     painter = painterResource(R.drawable.search),
-                    contentDescription = "Search"
+                    contentDescription = stringResource(R.string.search_content_desc),
                 )
             }
         }
@@ -422,26 +410,23 @@ fun LyricsMenu(
 
         // Settings Section
         Column(
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             // Romanize Current Track
+            val isRomanized = songProvider()?.romanizeLyrics ?: true
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = topShape,
                 onClick = {
-                    isChecked = !isChecked
-                    songProvider()?.let { song ->
-                        database.query {
-                            upsert(song.copy(romanizeLyrics = isChecked))
-                        }
-                    }
-                }
+                    songProvider()?.let { viewModel.toggleRomanization(it) }
+                },
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp)
             ) {
                 Icon(
                     painter = painterResource(R.drawable.language_korean_latin),
-                    contentDescription = "Romanize icon"
+                    contentDescription = stringResource(R.string.romanize_icon_content_desc),
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -452,49 +437,36 @@ fun LyricsMenu(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        if (isChecked) "Romanization enabled" else "Romanization disabled",
+                        if (isRomanized) stringResource(R.string.romanization_enabled) else stringResource(R.string.romanization_disabled),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
                 ModernSwitch(
-                    checked = isChecked,
-                    onCheckedChange = { newCheckedState ->
-                        isChecked = newCheckedState
-                        songProvider()?.let { song ->
-                            database.query {
-                                upsert(song.copy(romanizeLyrics = newCheckedState))
-                            }
-                        }
+                    checked = isRomanized,
+                    onCheckedChange = { enabled ->
+                        songProvider()?.let { viewModel.setRomanization(it, enabled) }
                     }
                 )
             }
 
-            // Swipe to Change Track
-            val dataStore = context.dataStore
-            val swipeGestureEnabled by dataStore.data
-                .map { it[SwipeGestureEnabledKey] ?: true }
-                .collectAsState(initial = true)
+            Spacer(modifier = Modifier.height(1.dp))
 
-            val scope = rememberCoroutineScope()
+            // Swipe to Change Track
+            val swipeGestureEnabled by viewModel.swipeGestureEnabled.collectAsState(initial = true)
 
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
-                onClick = {
-                    scope.launch {
-                        dataStore.edit { settings ->
-                            settings[SwipeGestureEnabledKey] = !(swipeGestureEnabled)
-                        }
-                    }
-                }
+                shape = bottomShape,
+                onClick = viewModel::toggleSwipeGesture,
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp)
             ) {
                 Icon(
                     painter = painterResource(R.drawable.swipe),
-                    contentDescription = "Swipe icon"
+                    contentDescription = stringResource(R.string.swipe_icon_content_desc),
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -513,124 +485,7 @@ fun LyricsMenu(
                 }
                 ModernSwitch(
                     checked = swipeGestureEnabled,
-                    onCheckedChange = { enabled ->
-                        scope.launch {
-                            dataStore.edit { settings ->
-                                settings[SwipeGestureEnabledKey] = enabled
-                            }
-                        }
-                    }
-                )
-            }
-
-            // Word-for-word lyrics
-            val lyricsWordForWord by dataStore.data
-                .map { it[LyricsWordForWordKey] ?: true }
-                .collectAsState(initial = true)
-
-            val lyricsLetterByLetter by dataStore.data
-                .map { it[LyricsLetterByLetterAnimationKey] ?: false }
-                .collectAsState(initial = false)
-
-            FilledTonalButton(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 66.dp),
-                shape = CircleShape,
-                onClick = {
-                    val newValue = !lyricsWordForWord
-                    scope.launch {
-                        dataStore.edit { settings ->
-                            settings[LyricsWordForWordKey] = newValue
-                            if (newValue) {
-                                settings[LyricsLetterByLetterAnimationKey] = false
-                            }
-                        }
-                    }
-                }
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.lyrics),
-                    contentDescription = "Word-for-word icon"
-                )
-                Spacer(Modifier.width(8.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        "Word-for-word lyrics",
-                        style = MaterialTheme.typography.bodyLarge,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        "Highlight words discretely",
-                        style = MaterialTheme.typography.bodySmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-                ModernSwitch(
-                    checked = lyricsWordForWord,
-                    onCheckedChange = { enabled ->
-                        scope.launch {
-                            dataStore.edit { settings ->
-                                settings[LyricsWordForWordKey] = enabled
-                                if (enabled) {
-                                    settings[LyricsLetterByLetterAnimationKey] = false
-                                }
-                            }
-                        }
-                    }
-                )
-            }
-
-            FilledTonalButton(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 66.dp),
-                shape = CircleShape,
-                onClick = {
-                    val newValue = !lyricsLetterByLetter
-                    scope.launch {
-                        dataStore.edit { settings ->
-                            settings[LyricsLetterByLetterAnimationKey] = newValue
-                            if (newValue) {
-                                settings[LyricsWordForWordKey] = false
-                            }
-                        }
-                    }
-                }
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.lyrics),
-                    contentDescription = "Letter by Letter icon"
-                )
-                Spacer(Modifier.width(8.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        "Letter by Letter Animation",
-                        style = MaterialTheme.typography.bodyLarge,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        "Animate lyrics letter by letter",
-                        style = MaterialTheme.typography.bodySmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-                ModernSwitch(
-                    checked = lyricsLetterByLetter,
-                    onCheckedChange = { enabled ->
-                        scope.launch {
-                            dataStore.edit { settings ->
-                                settings[LyricsLetterByLetterAnimationKey] = enabled
-                                if (enabled) {
-                                    settings[LyricsWordForWordKey] = false
-                                }
-                            }
-                        }
-                    }
+                    onCheckedChange = viewModel::setSwipeGesture
                 )
             }
         }

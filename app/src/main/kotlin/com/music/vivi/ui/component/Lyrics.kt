@@ -9,6 +9,10 @@ import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -102,6 +106,7 @@ import com.music.vivi.constants.LyricsClickKey
 import com.music.vivi.constants.LyricsRomanizeBelarusianKey
 import com.music.vivi.constants.LyricsRomanizeBulgarianKey
 import com.music.vivi.constants.LyricsRomanizeCyrillicByLineKey
+import com.music.vivi.constants.LyricsRomanizeDevanagariKey
 import com.music.vivi.constants.LyricsRomanizeJapaneseKey
 import com.music.vivi.constants.LyricsRomanizeKoreanKey
 import com.music.vivi.constants.LyricsRomanizeKyrgyzKey
@@ -127,15 +132,18 @@ import com.music.vivi.lyrics.LyricsUtils.isKyrgyz
 import com.music.vivi.lyrics.LyricsUtils.isRussian
 import com.music.vivi.lyrics.LyricsUtils.isSerbian
 import com.music.vivi.lyrics.LyricsUtils.isBulgarian
+import com.music.vivi.lyrics.LyricsUtils.isDevanagari
 import com.music.vivi.lyrics.LyricsUtils.isUkrainian
 import com.music.vivi.lyrics.LyricsUtils.isMacedonian
 import com.music.vivi.lyrics.LyricsUtils.parseLyrics
 import com.music.vivi.lyrics.LyricsUtils.romanizeCyrillic
+import com.music.vivi.lyrics.LyricsUtils.romanizeDevanagari
 import com.music.vivi.lyrics.LyricsUtils.romanizeJapanese
 import com.music.vivi.lyrics.LyricsUtils.romanizeKorean
 
 import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.screens.settings.LyricsPosition
+import com.music.vivi.ui.screens.settings.LyricsVerticalPosition
 import com.music.vivi.ui.utils.fadingEdge
 import com.music.vivi.utils.ComposeToImage
 import com.music.vivi.utils.rememberEnumPreference
@@ -154,6 +162,7 @@ import kotlin.time.Duration.Companion.seconds
 fun Lyrics(
     sliderPositionProvider: () -> Long?,
     modifier: Modifier = Modifier,
+    playingPosition: Long? = null
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val menuState = LocalMenuState.current
@@ -167,6 +176,10 @@ fun Lyrics(
     val (lyricsTextPosition, onLyricsPositionChange) = rememberEnumPreference(
         LyricsTextPositionKey,
         defaultValue = LyricsPosition.LEFT
+    )
+    val (lyricsVerticalPosition) = rememberEnumPreference(
+        com.music.vivi.constants.LyricsVerticalPositionKey,
+        defaultValue = LyricsVerticalPosition.TOP
     )
 
     val (lyricsTextSize) = rememberPreference(
@@ -190,6 +203,7 @@ fun Lyrics(
     val romanizeKyrgyzLyrics by rememberPreference(LyricsRomanizeKyrgyzKey, true)
     val romanizeMacedonianLyrics by rememberPreference(LyricsRomanizeMacedonianKey, true)
     val romanizeCyrillicByLine by rememberPreference(LyricsRomanizeCyrillicByLineKey, false)
+    val romanizeDevanagariLyrics by rememberPreference(LyricsRomanizeDevanagariKey, true)
     val scope = rememberCoroutineScope()
 
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
@@ -234,6 +248,12 @@ fun Lyrics(
                 if (romanizeKoreanLyrics && isKorean(entry.text)) {
                     scope.launch {
                         newEntry.romanizedTextFlow.value = romanizeKorean(entry.text)
+                    }
+                }
+
+                if (romanizeDevanagariLyrics && isDevanagari(entry.text)) {
+                    scope.launch {
+                        newEntry.romanizedTextFlow.value = romanizeDevanagari(entry.text)
                     }
                 }
 
@@ -421,6 +441,7 @@ fun Lyrics(
 
     // Professional animation states for smooth -vivi-style transitions
     var isAnimating by remember { mutableStateOf(false) }
+    var isAutoScrollActive by rememberSaveable { mutableStateOf(true) }
 
     // Handle back button press - close selection mode instead of exiting screen
     BackHandler(enabled = isSelectionModeActive) {
@@ -470,6 +491,9 @@ fun Lyrics(
         selectedIndices.clear()
     }
 
+    // Use rememberUpdatedState to ensure the latest playingPosition is used inside the loop
+    val currentPlayingPosition by androidx.compose.runtime.rememberUpdatedState(playingPosition)
+
     LaunchedEffect(lyrics) {
         if (lyrics.isNullOrEmpty() || !lyrics.startsWith("[")) {
             currentLineIndex = -1
@@ -478,7 +502,8 @@ fun Lyrics(
         while (isActive) {
             val sliderPosition = sliderPositionProvider()
             isSeeking = sliderPosition != null
-            currentTime = sliderPosition ?: playerConnection.player.currentPosition
+            // Prioritize slider, then passed playing position, then poll player
+            currentTime = sliderPosition ?: currentPlayingPosition ?: playerConnection.player.currentPosition
             currentLineIndex = findCurrentLineIndex(
                 lines,
                 currentTime
@@ -496,43 +521,70 @@ fun Lyrics(
         }
     }
 
-    LaunchedEffect(currentLineIndex, lastPreviewTime, initialScrollDone) {
-        if (!isSynced) return@LaunchedEffect
+    // Apple Music style scrolling - keep active line at top of screen with smooth movement
+    suspend fun performSmoothTopScroll(targetIndex: Int, duration: Int = 1000) {
+        if (isAnimating || targetIndex < 0) return
 
-        // Apple Music style scrolling - keep active line at top of screen with smooth movement
-        suspend fun performSmoothTopScroll(targetIndex: Int, duration: Int = 1000) {
-            if (isAnimating || targetIndex < 0) return
+        isAnimating = true
 
-            isAnimating = true
+        try {
+            val itemInfo = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
+            val viewportHeight = lazyListState.layoutInfo.viewportEndOffset - lazyListState.layoutInfo.viewportStartOffset
 
-            try {
+            if (itemInfo != null) {
+                val targetTopPosition = if (lyricsVerticalPosition == LyricsVerticalPosition.CENTER) {
+                    lazyListState.layoutInfo.viewportStartOffset + (viewportHeight / 2) - (itemInfo.size / 2)
+                } else {
+                    lazyListState.layoutInfo.viewportStartOffset + 100
+                }
+
+                val currentItemTop = itemInfo.offset
+                val scrollOffset = currentItemTop - targetTopPosition
+
+                if (kotlin.math.abs(scrollOffset) > 10) {
+                    lazyListState.animateScrollBy(
+                        value = scrollOffset.toFloat(),
+                        animationSpec = tween(
+                            durationMillis = duration,
+                            easing = FastOutSlowInEasing
+                        )
+                    )
+                }
+            } else {
+                // Item not visible, scroll to it first then adjust position
+                lazyListState.scrollToItem(index = targetIndex)
+                
+                // Now get the item info after scrolling
                 val itemInfo = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
                 if (itemInfo != null) {
-                    // Item is visible, animate smoothly to position it at the top
-                    val targetTopPosition = lazyListState.layoutInfo.viewportStartOffset + 100 // Small offset from very top
+                    val viewportHeight = lazyListState.layoutInfo.viewportEndOffset - lazyListState.layoutInfo.viewportStartOffset
+                    val targetTopPosition = if (lyricsVerticalPosition == LyricsVerticalPosition.CENTER) {
+                        lazyListState.layoutInfo.viewportStartOffset + (viewportHeight / 2) - (itemInfo.size / 2)
+                    } else {
+                        lazyListState.layoutInfo.viewportStartOffset + 100
+                    }
+                    
                     val currentItemTop = itemInfo.offset
                     val scrollOffset = currentItemTop - targetTopPosition
-
+                    
                     if (kotlin.math.abs(scrollOffset) > 10) {
                         lazyListState.animateScrollBy(
                             value = scrollOffset.toFloat(),
                             animationSpec = tween(
                                 durationMillis = duration,
-                                easing = FastOutSlowInEasing // Smooth natural easing
+                                easing = FastOutSlowInEasing
                             )
                         )
                     }
-                } else {
-                    // Item is not visible, scroll to it and position at top
-                    lazyListState.animateScrollToItem(
-                        index = targetIndex,
-                        scrollOffset = -100 // Small offset from top
-                    )
                 }
-            } finally {
-                isAnimating = false
             }
+        } finally {
+            isAnimating = false
         }
+    }
+
+    LaunchedEffect(currentLineIndex, lastPreviewTime, initialScrollDone) {
+        if (!isSynced) return@LaunchedEffect
 
         if((currentLineIndex == 0 && shouldScrollToFirstLine) || !initialScrollDone) {
             shouldScrollToFirstLine = false
@@ -544,7 +596,7 @@ fun Lyrics(
             deferredCurrentLineIndex = currentLineIndex
             if (isSeeking) {
                 performSmoothTopScroll(currentLineIndex, 400) // Fast for seeking
-            } else if ((lastPreviewTime == 0L || currentLineIndex != previousLineIndex) && scrollLyrics) {
+            } else if (isAutoScrollActive && scrollLyrics) {
                 if (currentLineIndex != previousLineIndex) {
                     performSmoothTopScroll(currentLineIndex, 1200) // Smooth auto-scroll
                 }
@@ -593,8 +645,8 @@ fun Lyrics(
                                 available: Offset,
                                 source: NestedScrollSource
                             ): Offset {
-                                if (!isSelectionModeActive) { // Only update preview time if not selecting
-                                    lastPreviewTime = System.currentTimeMillis()
+                                if (!isSelectionModeActive && (consumed.y != 0f || available.y != 0f)) {
+                                    isAutoScrollActive = false
                                 }
                                 return super.onPostScroll(consumed, available, source)
                             }
@@ -604,7 +656,7 @@ fun Lyrics(
                                 available: Velocity
                             ): Velocity {
                                 if (!isSelectionModeActive) { // Only update preview time if not selecting
-                                    lastPreviewTime = System.currentTimeMillis()
+                                    isAutoScrollActive = false
                                 }
                                 return super.onPostFling(consumed, available)
                             }
@@ -796,6 +848,49 @@ fun Lyrics(
             }
             // Removed the more button from bottom - it's now in the top header
         }
+        
+        androidx.compose.animation.AnimatedVisibility(
+            visible = !isAutoScrollActive && isSynced,
+            enter = fadeIn(animationSpec = tween(300)) + androidx.compose.animation.scaleIn(animationSpec = tween(300)),
+            exit = fadeOut(animationSpec = tween(300)) + androidx.compose.animation.scaleOut(animationSpec = tween(300)),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 50.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .clickable {
+                        isAutoScrollActive = true
+                        if (currentLineIndex != -1) {
+                            scope.launch {
+                                // smooth scroll to current line
+                                performSmoothTopScroll(currentLineIndex, 800)
+                            }
+                        }
+                    }
+                    .padding(horizontal = 16.dp, vertical = 10.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.sync),
+                        contentDescription = stringResource(R.string.action_resync),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.action_resync),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
+        }
 
         if (showProgressDialog) {
             BasicAlertDialog(onDismissRequest = { /* Don't dismiss */ }) {
@@ -957,7 +1052,7 @@ fun Lyrics(
                     withContext(Dispatchers.IO) {
                         try {
                             val loader = ImageLoader(context)
-                            val req = ImageRequest.Builder(context).data(coverUrl).allowHardware(false).build()
+                            val req = ImageRequest.Builder(context).data(coverUrl).build()
                             val result = loader.execute(req)
                             val bmp = result.image?.toBitmap()
                             if (bmp != null) {
@@ -1098,9 +1193,9 @@ fun Lyrics(
                                             putExtra(Intent.EXTRA_STREAM, uri)
                                             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                                         }
-                                        context.startActivity(Intent.createChooser(shareIntent, "Share Lyrics"))
+                                        context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.share_lyrics)))
                                     } catch (e: Exception) {
-                                        Toast.makeText(context, "Failed to create image: ${e.message}", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, context.getString(R.string.failed_to_create_image, e.message ?: ""), Toast.LENGTH_SHORT).show()
                                     } finally {
                                         showProgressDialog = false
                                     }

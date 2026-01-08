@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -315,9 +316,56 @@ fun UpdateInfoScreen(
                 }
             }
 
+
             Material3ExpressiveSettingsGroup(
                 modifier = Modifier.fillMaxWidth(),
                 items = notificationItems
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+             Text(
+                text = stringResource(R.string.home_screen).uppercase(),
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp
+                ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp)
+            )
+
+            val (showNewsIcon, onShowNewsIconChange) = rememberPreference(com.music.vivi.constants.ShowNewsIconKey, true)
+
+            val appearanceItems = remember(showNewsIcon, iconBgColor, iconStyleColor) {
+               buildList<@Composable () -> Unit> {
+                    add {
+                        ModernInfoItem(
+                            icon = {
+                                Icon(
+                                    imageVector = androidx.compose.material.icons.Icons.Filled.NewReleases, // Use the icon itself for clarity
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            },
+                            title = stringResource(R.string.show_news_icon),
+                            subtitle = stringResource(R.string.show_news_icon_desc),
+                            onClick = { onShowNewsIconChange(!showNewsIcon) },
+                            iconBackgroundColor = iconBgColor,
+                            iconContentColor = iconStyleColor,
+                            trailingContent = {
+                                ModernSwitch(
+                                    checked = showNewsIcon,
+                                    onCheckedChange = { onShowNewsIconChange(it) }
+                                )
+                            }
+                        )
+                    }
+               }
+            }
+
+            Material3ExpressiveSettingsGroup(
+                modifier = Modifier.fillMaxWidth(),
+                items = appearanceItems
             )
 
             Spacer(modifier = Modifier.height(80.dp))

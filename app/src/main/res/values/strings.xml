@@ -31,6 +31,7 @@
     <string name="your_youtube_playlists">Your YouTube playlists</string>
     <string name="similar_to">Similar to</string>
     <string name="new_release_albums">New release albums</string>
+    <string name="you_might_also_like">You might also like</string>
 
     <!-- History -->
     <string name="today">Today</string>
@@ -72,6 +73,7 @@
 
     <!-- Album screen -->
     <string name="other_versions">Other versions</string>
+    <string name="releases_for_you">Releases for you</string>
 
     <!-- Playlist -->
     <string name="liked_songs">Liked songs</string>
@@ -112,6 +114,7 @@
     <string name="remove_from_queue">Remove from queue</string>
     <string name="search_online">Search online</string>
     <string name="action_sync">Sync</string>
+    <string name="action_resync">Re-Sync</string>
     <string name="advanced">Advanced</string>
     <string name="tempo_and_pitch">Tempo and Pitch</string>
 
@@ -238,7 +241,7 @@
     <string name="dark_theme">Dark theme</string>
     <string name="dark_theme_on">On</string>
     <string name="dark_theme_off">Off</string>
-    <string name="dark_theme_follow_system">Follow system</string>
+    <string name="dark_theme_follow_system">system</string>
     <string name="pure_black">Pure black</string>
     <string name="customize_navigation_tabs">Customize navigation tabs</string>
     <string name="player">Player</string>

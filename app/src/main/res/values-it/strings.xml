@@ -346,4 +346,8 @@
     <string name="swipe_to_change_track_description">Scorri a sinistra/destra sull\'intestazione per saltare i brani</string>
     <string name="use_old_theme">Usa tema vecchio</string>
     <string name="hide_video_songs">Nascondi brani video</string>
+    <string name="lyrics_appearance_settings">Impostazioni aspetto testo</string>
+    <string name="lyrics_text_size">Dimensione testo testo</string>
+    <string name="lyrics_line_spacing">Spaziatura righe testo</string>
+    <string name="lyrics_style">Stile testo</string>
 </resources>

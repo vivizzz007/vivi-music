@@ -90,8 +90,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.music.vivi.R
 import com.music.vivi.constants.AudioQuality
 import com.music.vivi.constants.AudioQualityKey
 import com.music.vivi.utils.rememberEnumPreference
@@ -147,7 +149,7 @@ fun AudioDeviceBottomSheet(
                 isLoading = false
             })
         } else {
-            errorMessage = "Bluetooth permission required"
+            errorMessage = context.getString(R.string.bluetooth_permission_required)
             isLoading = false
         }
     }
@@ -303,7 +305,7 @@ fun AudioDeviceBottomSheet(
                                 refreshDevices()
                             }
                         ) {
-                            Text(text = "Retry")
+                            Text(text = stringResource(R.string.retry))
                         }
                     }
                 }
@@ -343,7 +345,7 @@ fun AudioDeviceBottomSheet(
                         ) {
                             Column {
                                 Text(
-                                    text = "Streaming to",
+                                    text = stringResource(R.string.streaming_to),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.primary,
                                     fontSize = 12.sp,
@@ -351,7 +353,7 @@ fun AudioDeviceBottomSheet(
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    text = activeDevice?.name ?: "This phone",
+                                    text = activeDevice?.name ?: stringResource(R.string.this_phone),
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.onSurface,
                                     fontWeight = FontWeight.SemiBold
@@ -384,7 +386,7 @@ fun AudioDeviceBottomSheet(
 
                     // Media Volume Control
                     VolumeControlRow(
-                        label = "Volume",
+                        label = stringResource(R.string.volume),
                         icon = Icons.Filled.MusicNote,
                         volume = currentVolume,
                         maxVolume = maxVolume,
@@ -433,7 +435,7 @@ fun AudioDeviceBottomSheet(
                                             activeDevice.batteryLevel >= 10 -> Icons.Filled.Battery2Bar
                                             else -> Icons.Filled.Battery1Bar
                                         },
-                                        contentDescription = "Battery ",
+                                        contentDescription = stringResource(R.string.battery_content_desc),
                                         tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                         modifier = Modifier.size(20.dp)
                                     )
@@ -453,7 +455,7 @@ fun AudioDeviceBottomSheet(
                             onClick = onDismiss,
                             shape = RoundedCornerShape(24.dp)
                         ) {
-                            Text("Done")
+                            Text(stringResource(R.string.done))
                         }
                     }
                 }
@@ -582,7 +584,7 @@ fun AudioQualitySelector(context: Context) {
         modifier = Modifier.fillMaxWidth()
     ) {
         Text(
-            text = "Audio Quality",
+            text = stringResource(R.string.audio_quality_title),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier
@@ -590,7 +592,11 @@ fun AudioQualitySelector(context: Context) {
                 .fillMaxWidth()
         )
 
-        val options = listOf("Auto", "High", "Low")
+        val options = listOf(
+            stringResource(R.string.audio_quality_auto),
+            stringResource(R.string.audio_quality_high),
+            stringResource(R.string.audio_quality_low)
+        )
         val selectedIndex = when (audioQuality) {
             AudioQuality.AUTO -> 0
             AudioQuality.HIGH -> 1
@@ -713,7 +719,7 @@ private fun loadDevices(
 
                     AudioDeviceInfo.TYPE_WIRED_HEADPHONES, AudioDeviceInfo.TYPE_WIRED_HEADSET -> {
                         AudioDevice(
-                            name = "Wired Headphones",
+                            name = context.getString(R.string.wired_headphones),
                             type = AudioDeviceType.WIRED_HEADPHONES,
                             isConnected = true,
                             isActive = false,
@@ -731,7 +737,7 @@ private fun loadDevices(
                     }
                     AudioDeviceInfo.TYPE_HDMI -> {
                         AudioDevice(
-                            name = "HDMI",
+                            name = context.getString(R.string.hdmi),
                             type = AudioDeviceType.HDMI,
                             isConnected = true,
                             isActive = false,
@@ -740,7 +746,7 @@ private fun loadDevices(
                     }
                     AudioDeviceInfo.TYPE_BUILTIN_SPEAKER -> {
                         AudioDevice(
-                            name = "Phone Speaker",
+                            name = context.getString(R.string.phone_speaker),
                             type = AudioDeviceType.PHONE_SPEAKER,
                             isConnected = true,
                             isActive = false,

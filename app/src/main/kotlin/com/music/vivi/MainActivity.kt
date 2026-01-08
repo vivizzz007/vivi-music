@@ -139,6 +139,7 @@ import com.music.vivi.constants.CheckForUpdatesKey
 import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.DefaultOpenTabKey
 import com.music.vivi.constants.DisableScreenshotKey
+import com.music.vivi.constants.AccentColorKey
 import com.music.vivi.constants.DynamicThemeKey
 import com.music.vivi.constants.MiniPlayerHeight
 import com.music.vivi.constants.MiniPlayerBottomSpacing
@@ -216,6 +217,13 @@ import java.net.URLEncoder
 import java.util.Locale
 import javax.inject.Inject
 import com.music.vivi.update.viewmodelupdate.UpdateViewModel
+import com.materialkolor.dynamicColorScheme
+import com.materialkolor.PaletteStyle
+import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.ui.platform.LocalContext
+
 @Suppress("DEPRECATION", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -233,6 +241,7 @@ class MainActivity : ComponentActivity() {
     private var latestVersionName by mutableStateOf(BuildConfig.VERSION_NAME)
 
     private var playerConnection by mutableStateOf<PlayerConnection?>(null)
+    private var isServiceBound = false
 
     private val serviceConnection =
         object : ServiceConnection {
@@ -243,12 +252,14 @@ class MainActivity : ComponentActivity() {
                 if (service is MusicBinder) {
                     playerConnection =
                         PlayerConnection(this@MainActivity, service, database, lifecycleScope)
+                    isServiceBound = true
                 }
             }
 
             override fun onServiceDisconnected(name: ComponentName?) {
                 playerConnection?.dispose()
                 playerConnection = null
+                isServiceBound = false
             }
         }
 
@@ -273,7 +284,10 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onStop() {
-        unbindService(serviceConnection)
+        if (isServiceBound) {
+            unbindService(serviceConnection)
+            isServiceBound = false
+        }
         super.onStop()
     }
 
@@ -285,7 +299,10 @@ class MainActivity : ComponentActivity() {
             ) && playerConnection?.isPlaying?.value == true && isFinishing
         ) {
             stopService(Intent(this, MusicService::class.java))
-            unbindService(serviceConnection)
+            if (isServiceBound) {
+                unbindService(serviceConnection)
+                isServiceBound = false
+            }
             playerConnection = null
         }
     }
@@ -381,9 +398,41 @@ class MainActivity : ComponentActivity() {
                 mutableStateOf(DefaultThemeColor)
             }
 
-            LaunchedEffect(playerConnection, enableDynamicTheme) {
+            val accentColorInt by rememberPreference(AccentColorKey, defaultValue = DefaultThemeColor.toArgb())
+            val accentColor = remember(accentColorInt) { Color(accentColorInt) }
+
+            // Async ColorScheme generation to prevent main thread blocking
+            var generatedColorScheme by remember { mutableStateOf<ColorScheme?>(null) }
+            val context = LocalContext.current
+
+            LaunchedEffect(themeColor, useDarkTheme, enableDynamicTheme) {
+                if (enableDynamicTheme && themeColor == DefaultThemeColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                     // System colors are fast, can be done on main (context required)
+                     generatedColorScheme = if (useDarkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+                } else {
+                    // MaterialKolor generation is expensive, offload to background
+                    withContext(Dispatchers.Default) {
+                        try {
+                            generatedColorScheme = dynamicColorScheme(
+                                seedColor = themeColor,
+                                isDark = useDarkTheme,
+                                style = PaletteStyle.TonalSpot
+                            )
+                        } catch (e: Exception) {
+                            reportException(e)
+                        }
+                    }
+                }
+            }
+
+            LaunchedEffect(playerConnection, enableDynamicTheme, accentColor) {
                 val playerConnection = playerConnection
-                if (!enableDynamicTheme || playerConnection == null) {
+                if (!enableDynamicTheme) {
+                    themeColor = accentColor
+                    return@LaunchedEffect
+                }
+
+                if (playerConnection == null) {
                     themeColor = DefaultThemeColor
                     return@LaunchedEffect
                 }
@@ -419,6 +468,7 @@ class MainActivity : ComponentActivity() {
                 darkTheme = useDarkTheme,
                 pureBlack = pureBlack,
                 themeColor = themeColor,
+                overrideColorScheme = generatedColorScheme,
             ) {
                 BoxWithConstraints(
                     modifier =
@@ -770,34 +820,39 @@ class MainActivity : ComponentActivity() {
                                                 )
                                             },
                                             actions = {
+                                            val (showNewsIcon) = rememberPreference(com.music.vivi.constants.ShowNewsIconKey, true)
+                                            val isUpdateAvailable = updateStatus is UpdateStatus.UpdateAvailable
+
+                                            if (isUpdateAvailable || showNewsIcon) {
                                                 IconButton(onClick = {
-                                                    if (updateStatus is UpdateStatus.UpdateAvailable) {
+                                                    if (isUpdateAvailable) {
                                                         navController.navigate("settings/update")
                                                     } else {
-                                                        navController.navigate("settings/changelog")
+                                                        navController.navigate("news")
                                                     }
                                                 }) {
                                                     Crossfade(
-                                                        targetState = updateStatus is UpdateStatus.UpdateAvailable,
+                                                        targetState = isUpdateAvailable,
                                                         animationSpec = tween(300),
                                                         label = "icon_crossfade"
-                                                    ) { isUpdateAvailable ->
-                                                        if (isUpdateAvailable) {
+                                                    ) { updateAvailable ->
+                                                        if (updateAvailable) {
                                                             Icon(
                                                                 painter = painterResource(id = R.drawable.rocket_new_update),
-                                                                contentDescription = "Update available",
+                                                                contentDescription = stringResource(R.string.update_available),
                                                                 tint = Color.Red,
                                                                 modifier = Modifier.size(24.dp)
                                                             )
                                                         } else {
                                                             Icon(
                                                                 painter = painterResource(R.drawable.newspaper_vivi),
-                                                                contentDescription = "Changelog",
+                                                                contentDescription = stringResource(R.string.changelog_title),
                                                                 modifier = Modifier.size(24.dp)
                                                             )
                                                         }
                                                     }
                                                 }
+                                            }
 
                                                 IconButton(onClick = { navController.navigate("history") }) {
                                                     Icon(

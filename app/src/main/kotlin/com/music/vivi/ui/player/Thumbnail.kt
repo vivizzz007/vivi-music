@@ -92,11 +92,11 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
 import com.music.vivi.constants.RotatingThumbnailKey
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material3.CircularWavyProgressIndicator
 import com.music.vivi.ui.utils.SnapLayoutInfoProvider
 
 //import com.music.vivi.ui.utils.SnapLayoutInfoProvider
-
-// Add this import at the top if not already present
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -113,6 +113,7 @@ fun Thumbnail(
     // States
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val error by playerConnection.error.collectAsState()
+    val waitingForNetworkConnection by playerConnection.waitingForNetworkConnection.collectAsState()
     val queueTitle by playerConnection.queueTitle.collectAsState()
 
     val swipeThumbnail by rememberPreference(SwipeThumbnailKey, true)
@@ -225,20 +226,39 @@ fun Thumbnail(
     val layoutDirection = LocalLayoutDirection.current
 
     Box(modifier = modifier) {
-        // Error view
+        // Error or Waiting view
         AnimatedVisibility(
-            visible = error != null,
+            visible = error != null || waitingForNetworkConnection,
             enter = fadeIn(),
             exit = fadeOut(),
             modifier = Modifier
                 .padding(32.dp)
                 .align(Alignment.Center),
         ) {
-            error?.let { playbackError ->
-                PlaybackError(
-                    error = playbackError,
-                    retry = playerConnection.player::prepare,
-                )
+            if (waitingForNetworkConnection) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    CircularWavyProgressIndicator(
+                        modifier = Modifier.size(48.dp),
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = Color.Transparent
+                    )
+                    Text(
+                        text = stringResource(R.string.waiting_for_network),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = textBackgroundColor,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            } else {
+                error?.let { playbackError ->
+                    PlaybackError(
+                        error = playbackError,
+                        retry = playerConnection.player::prepare,
+                    )
+                }
             }
         }
 
@@ -391,28 +411,12 @@ fun Thumbnail(
                                                 )
                                             }
                                         } else {
-                                            // Blurred background for video songs
-                                            if (item.metadata?.isVideoSong == true) {
-                                                AsyncImage(
-                                                    model = coil3.request.ImageRequest.Builder(LocalContext.current)
-                                                        .data(item.mediaMetadata.artworkUri?.toString())
-                                                        .memoryCachePolicy(coil3.request.CachePolicy.ENABLED)
-                                                        .diskCachePolicy(coil3.request.CachePolicy.ENABLED)
-                                                        .networkCachePolicy(coil3.request.CachePolicy.ENABLED)
-                                                        .build(),
-                                                    contentDescription = null,
-                                                    contentScale = ContentScale.Crop,
-                                                    modifier = Modifier
-                                                        .fillMaxSize()
-                                                        .blur(radius = 40.dp)
-                                                )
-                                            } else {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .fillMaxSize()
-                                                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                                                )
-                                            }
+                                            // Background
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                            )
 
                                             // Main image
                                             AsyncImage(
@@ -450,28 +454,12 @@ fun Thumbnail(
                                                 )
                                             }
                                         } else {
-                                            // Blurred background for video songs
-                                            if (item.metadata?.isVideoSong == true) {
-                                                AsyncImage(
-                                                    model = coil3.request.ImageRequest.Builder(LocalContext.current)
-                                                        .data(item.mediaMetadata.artworkUri?.toString())
-                                                        .memoryCachePolicy(coil3.request.CachePolicy.ENABLED)
-                                                        .diskCachePolicy(coil3.request.CachePolicy.ENABLED)
-                                                        .networkCachePolicy(coil3.request.CachePolicy.ENABLED)
-                                                        .build(),
-                                                    contentDescription = null,
-                                                    contentScale = ContentScale.Crop,
-                                                    modifier = Modifier
-                                                        .fillMaxSize()
-                                                        .blur(radius = 40.dp)
-                                                )
-                                            } else {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .fillMaxSize()
-                                                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                                                )
-                                            }
+                                            // Background
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                            )
                                             // Main image
                                             AsyncImage(
                                                 model = coil3.request.ImageRequest.Builder(LocalContext.current)

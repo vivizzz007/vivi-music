@@ -6,6 +6,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -32,6 +33,12 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -166,48 +173,7 @@ fun PlayerSettings(
         defaultValue = 30f
     )
 
-    var showAudioQualityDialog by rememberSaveable { mutableStateOf(false) }
 
-    // Audio Quality Dialog
-    if (showAudioQualityDialog) {
-        DefaultDialog(
-            onDismiss = { showAudioQualityDialog = false },
-            content = {
-                Column(modifier = Modifier.padding(horizontal = 18.dp)) {
-                    listOf(AudioQuality.AUTO, AudioQuality.HIGH, AudioQuality.LOW).forEach { value ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    onAudioQualityChange(value)
-                                    showAudioQualityDialog = false
-                                }
-                                .padding(vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(
-                                selected = value == audioQuality,
-                                onClick = null
-                            )
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Text(
-                                when (value) {
-                                    AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto)
-                                    AudioQuality.HIGH -> stringResource(R.string.audio_quality_high)
-                                    AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
-                                }
-                            )
-                        }
-                    }
-                }
-            },
-            buttons = {
-                TextButton(onClick = { showAudioQualityDialog = false }) {
-                    Text(text = stringResource(android.R.string.cancel))
-                }
-            }
-        )
-    }
 
     val scrollState = rememberLazyListState()
 
@@ -270,14 +236,13 @@ fun PlayerSettings(
                         )
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(
-                            text = "Configure player and audio settings",
+                            text = stringResource(R.string.configure_player_audio),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     Spacer(modifier = Modifier.height(10.dp))
                 }
-
                 // Player Section
                 item {
                     Text(
@@ -298,20 +263,51 @@ fun PlayerSettings(
                             .padding(horizontal = 16.dp),
                         items = listOf(
                             {
-                                ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.graphic_eq), null, modifier = Modifier.size(22.dp)) },
-                                    title = stringResource(R.string.audio_quality),
-                                    subtitle = when (audioQuality) {
-                                        AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto)
-                                        AudioQuality.HIGH -> stringResource(R.string.audio_quality_high)
-                                        AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
-                                    },
-                                    onClick = { showAudioQualityDialog = true },
-                                    showArrow = true,
-                                    showSettingsIcon = true,
-                                    iconBackgroundColor = iconBgColor,
-                                    iconContentColor = iconStyleColor
-                                )
+                                Column(modifier = Modifier.fillMaxWidth()) {
+                                    ModernInfoItem(
+                                        icon = { Icon(painterResource(R.drawable.graphic_eq), null, modifier = Modifier.size(22.dp)) },
+                                        title = stringResource(R.string.audio_quality),
+                                        subtitle = stringResource(R.string.select_playback_audio_quality),
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
+                                    )
+
+                                    val options = listOf(AudioQuality.AUTO, AudioQuality.HIGH, AudioQuality.LOW)
+                                    val labels = listOf(
+                                        stringResource(R.string.audio_quality_auto),
+                                        stringResource(R.string.audio_quality_high),
+                                        stringResource(R.string.audio_quality_low)
+                                    )
+
+                                    FlowRow(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(start = 64.dp, bottom = 12.dp, end = 20.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+                                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                                    ) {
+                                        options.forEachIndexed { index, value ->
+                                            ToggleButton(
+                                                checked = audioQuality == value,
+                                                onCheckedChange = { onAudioQualityChange(value) },
+                                                colors = ToggleButtonDefaults.toggleButtonColors(
+                                                    checkedContainerColor = MaterialTheme.colorScheme.primary,
+                                                    checkedContentColor = MaterialTheme.colorScheme.onPrimary,
+                                                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                                ),
+                                                shapes = when (index) {
+                                                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                                    options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                                                },
+                                                modifier = Modifier.weight(1f).semantics { role = Role.RadioButton },
+                                            ) {
+                                                Text(labels[index], style = MaterialTheme.typography.labelSmall)
+                                            }
+                                        }
+                                    }
+                                }
                             },
                             {
                                 // History Duration with permanent slider
@@ -345,7 +341,7 @@ fun PlayerSettings(
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(R.drawable.fast_forward), null, modifier = Modifier.size(22.dp)) },
                                             title = stringResource(R.string.skip_silence),
-                                            subtitle = "Remove silent parts",
+                                            subtitle = stringResource(R.string.remove_silent_parts),
                                             iconBackgroundColor = iconBgColor,
                                             iconContentColor = iconStyleColor
                                         )
@@ -366,7 +362,7 @@ fun PlayerSettings(
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(R.drawable.volume_up), null, modifier = Modifier.size(22.dp)) },
                                             title = stringResource(R.string.audio_normalization),
-                                            subtitle = "Normalize audio levels",
+                                            subtitle = stringResource(R.string.normalize_audio_levels),
                                             iconBackgroundColor = iconBgColor,
                                             iconContentColor = iconStyleColor
                                         )
@@ -601,7 +597,7 @@ fun PlayerSettings(
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(R.drawable.clear_all), null, modifier = Modifier.size(22.dp)) },
                                             title = stringResource(R.string.stop_music_on_task_clear),
-                                            subtitle = "Stop playback when app is closed",
+                                            subtitle = stringResource(R.string.stop_playback_when_closed),
                                             iconBackgroundColor = iconBgColor,
                                             iconContentColor = iconStyleColor
                                         )

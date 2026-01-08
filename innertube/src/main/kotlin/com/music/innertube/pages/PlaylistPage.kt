@@ -8,11 +8,14 @@ import com.music.innertube.models.SongItem
 import com.music.innertube.models.oddElements
 import com.music.innertube.utils.parseTime
 
+import com.music.innertube.models.YTItem
+
 data class PlaylistPage(
     val playlist: PlaylistItem,
     val songs: List<SongItem>,
     val songsContinuation: String?,
     val continuation: String?,
+    val related: List<YTItem>? = null,
 ) {
     companion object {
         fun fromMusicResponsiveListItemRenderer(renderer: MusicResponsiveListItemRenderer): SongItem? {

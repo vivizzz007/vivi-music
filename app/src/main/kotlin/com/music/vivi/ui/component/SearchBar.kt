@@ -59,8 +59,11 @@ import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.res.stringResource
+import com.music.vivi.R
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.contentDescription
@@ -247,6 +250,7 @@ private fun SearchBarInputField(
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     focusRequester: FocusRequester = remember { FocusRequester() },
 ) {
+    val context = LocalContext.current
     val focused = interactionSource.collectIsFocusedAsState().value
     val textColor = LocalTextStyle.current.color.takeOrElse {
         if (focused) colors.focusedTextColor else colors.unfocusedTextColor
@@ -279,9 +283,9 @@ private fun SearchBarInputField(
                     }
                 }
                 .semantics {
-                    contentDescription = "Search"
+                    contentDescription = context.getString(R.string.search)
                     if (active) {
-                        stateDescription = "Suggestions available"
+                        stateDescription = context.getString(R.string.suggestions_available)
                     }
                 }
                 .onKeyEvent {

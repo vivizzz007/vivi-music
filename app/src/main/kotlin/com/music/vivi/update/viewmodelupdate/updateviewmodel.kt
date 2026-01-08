@@ -73,6 +73,7 @@ class UpdateViewModel @Inject constructor(
 
             withContext(Dispatchers.IO) {
                 checkForUpdate(
+                    context = context,
                     onSuccess = { latestVersion, changelog, apkSize, releaseDate, description, imageUrl ->
                         if (isNewerVersion(latestVersion, currentVersion)) {
                             _updateStatus.value = UpdateStatus.UpdateAvailable(latestVersion)

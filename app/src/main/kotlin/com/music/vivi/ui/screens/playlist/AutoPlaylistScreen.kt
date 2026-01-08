@@ -146,7 +146,6 @@ fun AutoPlaylistScreen(
     }
 
     val songs by viewModel.likedSongs.collectAsState(null)
-    val mutableSongs = remember { mutableStateListOf<Song>() }
 
     var isSearching by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf(TextFieldValue()) }
@@ -173,8 +172,14 @@ fun AutoPlaylistScreen(
         else -> PlaylistType.OTHER
     }
 
-    val wrappedSongs = remember(songs) {
-        songs?.map { item -> ItemWrapper(item) }?.toMutableStateList() ?: mutableStateListOf()
+    val wrappedSongs = remember { mutableStateListOf<ItemWrapper<Song>>() }
+    LaunchedEffect(songs) {
+        if (songs == null) return@LaunchedEffect
+        val wrappers = withContext(Dispatchers.Default) {
+             songs!!.map { item -> ItemWrapper(item) }
+        }
+        wrappedSongs.clear()
+        wrappedSongs.addAll(wrappers)
     }
 
     var selection by remember { mutableStateOf(false) }
@@ -210,12 +215,6 @@ fun AutoPlaylistScreen(
         }
     }
 
-    LaunchedEffect(songs) {
-        mutableSongs.apply {
-            clear()
-            songs?.let { addAll(it) }
-        }
-    }
 
     // Defer download state check to avoid blocking UI
     LaunchedEffect(songs) {
@@ -278,13 +277,18 @@ fun AutoPlaylistScreen(
         )
     }
 
-    val filteredSongs = remember(wrappedSongs, query) {
-        if (query.text.isEmpty()) wrappedSongs
-        else wrappedSongs.filter { wrapper ->
-            val song = wrapper.item
-            song.song.title.contains(query.text, true) ||
-                    song.artists.any { it.name.contains(query.text, true) }
+    val filteredSongs = remember { mutableStateListOf<ItemWrapper<Song>>() }
+    LaunchedEffect(wrappedSongs.size, query.text) {
+        val result = withContext(Dispatchers.Default) {
+            if (query.text.isEmpty()) wrappedSongs.toList()
+            else wrappedSongs.filter { wrapper ->
+                val song = wrapper.item
+                song.song.title.contains(query.text, true) ||
+                        song.artists.any { it.name.contains(query.text, true) }
+            }
         }
+        filteredSongs.clear()
+        filteredSongs.addAll(result)
     }
 
     val state = rememberLazyListState()
@@ -375,7 +379,7 @@ fun AutoPlaylistScreen(
                                         onClick = {
                                             playerConnection.playQueue(
                                                 ListQueue(
-                                                    title = "Auto Playlist",
+                                                    title = context.getString(R.string.auto_playlist),
                                                     items = songs!!.map { it.toMediaItem() },
                                                 ),
                                             )
@@ -513,7 +517,7 @@ fun AutoPlaylistScreen(
                                             Download.STATE_COMPLETED -> {
                                                 Icon(
                                                     painter = painterResource(R.drawable.offline),
-                                                    contentDescription = "saved",
+                                                    contentDescription = stringResource(R.string.saved),
                                                     modifier = Modifier.size(20.dp)
                                                 )
                                             }
@@ -527,7 +531,7 @@ fun AutoPlaylistScreen(
                                             else -> {
                                                 Icon(
                                                     painter = painterResource(R.drawable.download),
-                                                    contentDescription = "save",
+                                                    contentDescription = stringResource(R.string.save),
                                                     modifier = Modifier.size(20.dp)
                                                 )
                                             }
@@ -535,9 +539,9 @@ fun AutoPlaylistScreen(
                                         Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
                                         Text(
                                             text = when (downloadState) {
-                                                Download.STATE_COMPLETED -> "saved"
-                                                Download.STATE_DOWNLOADING -> "saving"
-                                                else -> "save"
+                                                Download.STATE_COMPLETED -> stringResource(R.string.saved)
+                                                Download.STATE_DOWNLOADING -> stringResource(R.string.saving)
+                                                else -> stringResource(R.string.save)
                                             },
                                             style = MaterialTheme.typography.labelMedium
                                         )
@@ -556,11 +560,11 @@ fun AutoPlaylistScreen(
                                     ) {
                                         Icon(
                                             painter = painterResource(R.drawable.queue_music),
-                                            contentDescription = "Add to queue",
+                                            contentDescription = stringResource(R.string.add_to_queue_content_desc),
                                             modifier = Modifier.size(20.dp)
                                         )
                                         Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                                        Text("Queue", style = MaterialTheme.typography.labelMedium)
+                                        Text(stringResource(R.string.queue_label), style = MaterialTheme.typography.labelMedium)
                                     }
 
                                     // More Options Button (includes sort and other options)
@@ -574,11 +578,11 @@ fun AutoPlaylistScreen(
                                     ) {
                                         Icon(
                                             painter = painterResource(R.drawable.more_vert),
-                                            contentDescription = "More options",
+                                            contentDescription = stringResource(R.string.more_options_content_desc),
                                             modifier = Modifier.size(20.dp)
                                         )
                                         Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                                        Text("More", style = MaterialTheme.typography.labelMedium)
+                                        Text(stringResource(R.string.more_label), style = MaterialTheme.typography.labelMedium)
                                     }
                                 }
 
@@ -644,7 +648,9 @@ fun AutoPlaylistScreen(
                                             )
                                         }
                                     },
-                                    isSelected = songWrapper.isSelected && selection,
+                                    isSelected = songWrapper.isSelected,
+                                inSelectionMode = selection,
+                                onSelectionChange = { songWrapper.isSelected = it },
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .combinedClickable(

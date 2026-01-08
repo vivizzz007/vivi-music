@@ -237,7 +237,7 @@ fun LastFMSettings(
                 ModernInfoItem(
                     icon = { Icon(painterResource(R.drawable.music_note), null, modifier = Modifier.size(22.dp)) },
                     title = if (isLoggedIn) lastfmUsername else stringResource(R.string.not_logged_in),
-                    subtitle = if (isLoggedIn) "Last.fm Account" else "Not logged in",
+                    subtitle = if (isLoggedIn) stringResource(R.string.lastfm_account) else stringResource(R.string.not_logged_in_fallback),
                     onClick = { if (isLoggedIn) {
                         lastfmSession = ""
                         lastfmUsername = ""
@@ -270,7 +270,7 @@ fun LastFMSettings(
                     ModernInfoItem(
                         icon = { Icon(painterResource(R.drawable.music_note), null, modifier = Modifier.size(22.dp)) },
                         title = stringResource(R.string.enable_scrobbling),
-                        subtitle = "Submit playback history to Last.fm",
+                        subtitle = stringResource(R.string.submit_playback_history_lastfm),
                         iconBackgroundColor = iconBgColor,
                         iconContentColor = iconStyleColor,
                         modifier = Modifier.weight(1f)
@@ -292,7 +292,7 @@ fun LastFMSettings(
                     ModernInfoItem(
                         icon = { Icon(painterResource(R.drawable.info), null, modifier = Modifier.size(22.dp)) },
                         title = stringResource(R.string.lastfm_now_playing),
-                        subtitle = "Show current song on Last.fm profile",
+                        subtitle = stringResource(R.string.show_current_song_lastfm_profile),
                         iconBackgroundColor = iconBgColor,
                         iconContentColor = iconStyleColor,
                         modifier = Modifier.weight(1f)

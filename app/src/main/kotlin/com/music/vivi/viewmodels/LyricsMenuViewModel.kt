@@ -19,7 +19,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import androidx.datastore.preferences.core.edit
+import com.music.vivi.constants.SwipeGestureEnabledKey
+import com.music.vivi.utils.dataStore
+import dagger.hilt.android.qualifiers.ApplicationContext
+import android.content.Context
+import com.music.vivi.db.entities.SongEntity
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -29,6 +38,7 @@ constructor(
     private val lyricsHelper: LyricsHelper,
     val database: MusicDatabase,
     private val networkConnectivity: NetworkConnectivityObserver,
+    @ApplicationContext private val context: Context,
 ) : ViewModel() {
     private var job: Job? = null
     val results = MutableStateFlow(emptyList<LyricsResult>())
@@ -39,6 +49,31 @@ constructor(
 
     private val _currentSong = mutableStateOf<Song?>(null)
     val currentSong: State<Song?> = _currentSong
+
+    val swipeGestureEnabled: StateFlow<Boolean> = context.dataStore.data
+        .map { it[SwipeGestureEnabledKey] ?: true }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = true
+        )
+
+    fun toggleSwipeGesture() {
+        viewModelScope.launch {
+            context.dataStore.edit { settings ->
+                val current = settings[SwipeGestureEnabledKey] ?: true
+                settings[SwipeGestureEnabledKey] = !current
+            }
+        }
+    }
+
+    fun setSwipeGesture(enabled: Boolean) {
+        viewModelScope.launch {
+            context.dataStore.edit { settings ->
+                settings[SwipeGestureEnabledKey] = enabled
+            }
+        }
+    }
 
     init {
         viewModelScope.launch {
@@ -83,17 +118,42 @@ constructor(
         job = null
     }
 
+    fun toggleRomanization(song: SongEntity) {
+        viewModelScope.launch {
+            database.query {
+                upsert(song.copy(romanizeLyrics = !song.romanizeLyrics))
+            }
+        }
+    }
+
+    fun setRomanization(song: SongEntity, enabled: Boolean) {
+        viewModelScope.launch {
+            database.query {
+                upsert(song.copy(romanizeLyrics = enabled))
+            }
+        }
+    }
+
+    fun updateLyrics(mediaId: String, lyrics: String) {
+        viewModelScope.launch {
+            database.query {
+                upsert(LyricsEntity(id = mediaId, lyrics = lyrics))
+            }
+        }
+    }
+
     fun refetchLyrics(
         mediaMetadata: MediaMetadata,
         lyricsEntity: LyricsEntity?,
     ) {
-        database.query {
-            lyricsEntity?.let(::delete)
-            val lyrics =
-                runBlocking {
-                    lyricsHelper.getLyrics(mediaMetadata)
-                }
-            upsert(LyricsEntity(mediaMetadata.id, lyrics))
+        viewModelScope.launch {
+            val lyrics = withContext(Dispatchers.IO) {
+                lyricsHelper.getLyrics(mediaMetadata)
+            }
+            database.query {
+                lyricsEntity?.let(::delete)
+                upsert(LyricsEntity(mediaMetadata.id, lyrics))
+            }
         }
     }
 }

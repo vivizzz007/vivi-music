@@ -29,18 +29,24 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -52,6 +58,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
@@ -139,6 +146,9 @@ fun AlbumScreen(
     val playlistId by viewModel.playlistId.collectAsState()
     val albumWithSongs by viewModel.albumWithSongs.collectAsState()
     val otherVersions by viewModel.otherVersions.collectAsState()
+    val releasesForYou by viewModel.releasesForYou.collectAsState()
+    val albumDescription by viewModel.albumDescription.collectAsState()
+    val isDescriptionLoading by viewModel.isDescriptionLoading.collectAsState()
     val hideExplicit by rememberPreference(key = HideExplicitKey, defaultValue = false)
 
     val wrappedSongs = remember(albumWithSongs, hideExplicit) {
@@ -300,7 +310,7 @@ fun AlbumScreen(
                                     )
                                     Spacer(Modifier.width(8.dp))
                                     Text(
-                                        text = if (albumWithSongs.album.bookmarkedAt != null) "Saved" else "Save",
+                                        text = if (albumWithSongs.album.bookmarkedAt != null) stringResource(R.string.saved) else stringResource(R.string.save),
                                         style = MaterialTheme.typography.labelLarge,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -344,7 +354,7 @@ fun AlbumScreen(
                                     Spacer(Modifier.width(8.dp))
                                     Text(
                                         text = if (isPlaying && mediaMetadata?.album?.id == albumWithSongs.album.id)
-                                            "Pause" else "Play",
+                                            stringResource(R.string.pause) else stringResource(R.string.play),
                                         style = MaterialTheme.typography.labelLarge,
                                         color = MaterialTheme.colorScheme.onPrimary
                                     )
@@ -356,7 +366,7 @@ fun AlbumScreen(
                                     val intent = Intent().apply {
                                         action = Intent.ACTION_SEND
                                         type = "text/plain"
-                                        putExtra(Intent.EXTRA_TEXT, "Check out ${albumWithSongs.album.title} by ${albumWithSongs.artists.joinToString { it.name }} on YouTube Music: https://music.youtube.com/playlist?list=${albumWithSongs.album.playlistId}")
+                                        putExtra(Intent.EXTRA_TEXT, context.getString(R.string.check_out_album_share, albumWithSongs.album.title, albumWithSongs.artists.joinToString { it.name }, "https://music.youtube.com/playlist?list=${albumWithSongs.album.playlistId}"))
                                     }
                                     context.startActivity(Intent.createChooser(intent, null))
                                 },
@@ -370,7 +380,7 @@ fun AlbumScreen(
                                 ) {
                                     Icon(
                                         painter = painterResource(R.drawable.share),
-                                        contentDescription = "Share album",
+                                        contentDescription = stringResource(R.string.share_album),
                                         modifier = Modifier.size(20.dp),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -388,7 +398,7 @@ fun AlbumScreen(
                                 modifier = Modifier.padding(horizontal = 32.dp)
                             ) {
                                 Text(
-                                    text = "E  Explicit",
+                                    text = stringResource(R.string.explicit),
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -401,7 +411,7 @@ fun AlbumScreen(
                         // Album Info
                         Text(
                             text = buildString {
-                                append("Album")
+                                append(stringResource(R.string.album_text))
                                 if (albumWithSongs.album.year != null) {
                                     append(" • ${albumWithSongs.album.year}")
                                 }
@@ -423,25 +433,96 @@ fun AlbumScreen(
 
                         Spacer(Modifier.height(16.dp))
 
-                        // Album Description (placeholder - you can add this to your database)
-                        Text(
-                            text = "${albumWithSongs.album.title} is an album by ${albumWithSongs.artists.joinToString { it.name }}${
-                                if (albumWithSongs.album.year != null) ", released in ${albumWithSongs.album.year}" else ""
-                            }. This collection features ${albumWithSongs.songs.size} tracks showcasing their musical artistry.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Start,
-                            modifier = Modifier.padding(horizontal = 32.dp),
-                            maxLines = 3,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                        // Album Description
+                        var showDescriptionDialog by rememberSaveable { mutableStateOf(false) }
+                        var isDescriptionTruncated by remember { mutableStateOf(false) }
+                        val staticDescription = "${albumWithSongs.album.title} is an album by ${albumWithSongs.artists.joinToString { it.name }}${
+                            if (albumWithSongs.album.year != null) ", released in ${albumWithSongs.album.year}" else ""
+                        }. This collection features ${albumWithSongs.songs.size} tracks showcasing their musical artistry."
+                        val description = albumDescription ?: staticDescription
+
+                        if (albumDescription == null && isDescriptionLoading) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(60.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                LoadingIndicator()
+                            }
+                        } else {
+                            Text(
+                                text = description,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Start,
+                                modifier = Modifier
+                                    .padding(horizontal = 32.dp)
+                                    .combinedClickable(
+                                        onClick = {
+                                            if (isDescriptionTruncated) {
+                                                showDescriptionDialog = true
+                                            }
+                                        }
+                                    ),
+                                maxLines = 3,
+                                overflow = TextOverflow.Ellipsis,
+                                onTextLayout = { textLayoutResult ->
+                                    isDescriptionTruncated = textLayoutResult.hasVisualOverflow
+                                }
+                            )
+                        }
+
+                        if (showDescriptionDialog) {
+                            AlertDialog(
+                                onDismissRequest = { showDescriptionDialog = false },
+                                title = {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        AsyncImage(
+                                            model = albumWithSongs.album.thumbnailUrl,
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .size(50.dp)
+                                                .clip(CircleShape),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                        Spacer(Modifier.width(16.dp))
+                                        Text(
+                                            text = albumWithSongs.album.title,
+                                            style = MaterialTheme.typography.titleLarge
+                                        )
+                                    }
+                                },
+                                text = {
+                                    LazyColumn {
+                                        item {
+                                            Text(
+                                                text = description,
+                                                style = MaterialTheme.typography.bodyMedium
+                                            )
+                                        }
+                                    }
+                                },
+                                confirmButton = {
+                                    Button(
+                                        onClick = { showDescriptionDialog = false },
+                                        shapes = ButtonDefaults.shapes()
+                                    ) {
+                                        Text(stringResource(android.R.string.ok))
+                                    }
+                                },
+                            )
+                        }
 
                         Spacer(Modifier.height(8.dp))
 
                         // Artist Names (clickable)
                         Text(
                             text = buildAnnotatedString {
-                                append("By ")
+                                append(stringResource(R.string.by_text))
                                 albumWithSongs.artists.fastForEachIndexed { index, artist ->
                                     val link = LinkAnnotation.Clickable(artist.id) {
                                         navController.navigate("artist/${artist.id}")
@@ -512,7 +593,7 @@ fun AlbumScreen(
                                     Download.STATE_COMPLETED -> {
                                         Icon(
                                             painter = painterResource(R.drawable.offline),
-                                            contentDescription = "saved",
+                                            contentDescription = stringResource(R.string.saved),
                                             modifier = Modifier.size(20.dp)
                                         )
                                     }
@@ -526,7 +607,7 @@ fun AlbumScreen(
                                     else -> {
                                         Icon(
                                             painter = painterResource(R.drawable.download),
-                                            contentDescription = "save",
+                                            contentDescription = stringResource(R.string.save),
                                             modifier = Modifier.size(20.dp)
                                         )
                                     }
@@ -534,9 +615,9 @@ fun AlbumScreen(
                                 Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
                                 Text(
                                     text = when (downloadState) {
-                                        Download.STATE_COMPLETED -> "saved"
-                                        Download.STATE_DOWNLOADING -> "saving"
-                                        else -> "save"
+                                        Download.STATE_COMPLETED -> stringResource(R.string.saved)
+                                        Download.STATE_DOWNLOADING -> stringResource(R.string.saving)
+                                        else -> stringResource(R.string.save)
                                     },
                                     style = MaterialTheme.typography.labelMedium
                                 )
@@ -556,11 +637,11 @@ fun AlbumScreen(
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.shuffle),
-                                    contentDescription = "Shuffle",
+                                    contentDescription = stringResource(R.string.shuffle_content_desc),
                                     modifier = Modifier.size(20.dp)
                                 )
                                 Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                                Text("Shuffle", style = MaterialTheme.typography.labelMedium)
+                                Text(stringResource(R.string.shuffle_label), style = MaterialTheme.typography.labelMedium)
                             }
 
                             // More Options Button
@@ -583,11 +664,11 @@ fun AlbumScreen(
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.more_vert),
-                                    contentDescription = "More options",
+                                    contentDescription = stringResource(R.string.more_options),
                                     modifier = Modifier.size(20.dp)
                                 )
                                 Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                                Text("More", style = MaterialTheme.typography.labelMedium)
+                                Text(stringResource(R.string.more_label), style = MaterialTheme.typography.labelMedium)
                             }
                         }
 
@@ -652,7 +733,9 @@ fun AlbumScreen(
                                                 )
                                             }
                                         },
-                                        isSelected = songWrapper.isSelected && selection,
+                                        isSelected = songWrapper.isSelected,
+                                        inSelectionMode = selection,
+                                        onSelectionChange = { songWrapper.isSelected = it },
                                         modifier = Modifier
                                             .fillMaxSize()
                                             .combinedClickable(
@@ -709,6 +792,48 @@ fun AlbumScreen(
                         ) {
                             items(
                                 items = otherVersions.distinctBy { it.id },
+                                key = { it.id },
+                            ) { item ->
+                                YouTubeGridItem(
+                                    item = item,
+                                    isActive = mediaMetadata?.album?.id == item.id,
+                                    isPlaying = isPlaying,
+                                    coroutineScope = scope,
+                                    modifier = Modifier
+                                        .combinedClickable(
+                                            onClick = { navController.navigate("album/${item.id}") },
+                                            onLongClick = {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                menuState.show {
+                                                    YouTubeAlbumMenu(
+                                                        albumItem = item,
+                                                        navController = navController,
+                                                        onDismiss = menuState::dismiss,
+                                                    )
+                                                }
+                                            },
+                                        )
+                                        .animateItem(),
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Releases For You Section
+                if (releasesForYou.isNotEmpty()) {
+                    item(key = "releases_for_you_title") {
+                        NavigationTitle(
+                            title = stringResource(R.string.releases_for_you),
+                            modifier = Modifier.animateItem()
+                        )
+                    }
+                    item(key = "releases_for_you_list") {
+                        LazyRow(
+                            contentPadding = WindowInsets.systemBars.only(WindowInsetsSides.Horizontal).asPaddingValues(),
+                        ) {
+                            items(
+                                items = releasesForYou.distinctBy { it.id },
                                 key = { it.id },
                             ) { item ->
                                 YouTubeGridItem(

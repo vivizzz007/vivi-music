@@ -23,10 +23,10 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
+import com.music.vivi.ui.component.RoundedCheckbox
 import androidx.compose.ui.draw.clip
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -246,14 +246,14 @@ fun StorageSettings(
                             .padding(horizontal = 16.dp, vertical = 8.dp)
                     ) {
                         Text(
-                            text = "Storage Settings",
+                            text = stringResource(R.string.storage_settings),
                             style = MaterialTheme.typography.headlineLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(
-                            text = "Manage your app storage and cache",
+                            text = stringResource(R.string.manage_storage_cache),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -264,7 +264,7 @@ fun StorageSettings(
                 // Total Storage Overview Section
                 item {
                     Text(
-                        text = "STORAGE OVERVIEW",
+                        text = stringResource(R.string.storage_overview),
                         style = MaterialTheme.typography.labelLarge.copy(
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp
@@ -290,7 +290,7 @@ fun StorageSettings(
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Text(
-                                        text = "Total Storage Used",
+                                        text = stringResource(R.string.total_storage_used),
                                         style = MaterialTheme.typography.bodyLarge,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
@@ -321,17 +321,17 @@ fun StorageSettings(
                                     verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     StorageBreakdownItem(
-                                        title = "Downloads",
+                                        title = stringResource(R.string.downloads_section),
                                         size = downloadCacheSize,
                                         color = MaterialTheme.colorScheme.primary
                                     )
                                     StorageBreakdownItem(
-                                        title = "Song Cache",
+                                        title = stringResource(R.string.song_cache_section),
                                         size = playerCacheSize,
                                         color = MaterialTheme.colorScheme.secondary
                                     )
                                     StorageBreakdownItem(
-                                        title = "Image Cache",
+                                        title = stringResource(R.string.image_cache_section),
                                         size = imageCacheSize,
                                         color = MaterialTheme.colorScheme.tertiary
                                     )
@@ -344,7 +344,7 @@ fun StorageSettings(
                 // Downloaded Songs Section
                 item {
                     Text(
-                        text = "DOWNLOADS",
+                        text = stringResource(R.string.downloads_section),
                         style = MaterialTheme.typography.labelLarge.copy(
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp
@@ -364,7 +364,7 @@ fun StorageSettings(
                                 // Downloads Info
                                 ModernInfoItem(
                                     icon = { Icon(painterResource(R.drawable.download), null, modifier = Modifier.size(22.dp)) },
-                                    title = "Downloaded Songs",
+                                    title = stringResource(R.string.downloaded_songs_title),
                                     subtitle = "${formatFileSize(downloadCacheSize)} used",
                                     iconBackgroundColor = iconBgColor,
                                     iconContentColor = iconStyleColor
@@ -375,7 +375,7 @@ fun StorageSettings(
                                 ModernInfoItem(
                                     icon = { Icon(painterResource(R.drawable.clear_all), null, modifier = Modifier.size(22.dp)) },
                                     title = stringResource(R.string.clear_all_downloads),
-                                    subtitle = "Remove all downloaded songs",
+                                    subtitle = stringResource(R.string.remove_all_downloaded_songs),
                                     onClick = { clearDownloads = true },
                                     showArrow = true,
                                     showSettingsIcon = true,
@@ -409,7 +409,7 @@ fun StorageSettings(
                 // Song Cache Section
                 item {
                     Text(
-                        text = "SONG CACHE",
+                        text = stringResource(R.string.song_cache_section),
                         style = MaterialTheme.typography.labelLarge.copy(
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp
@@ -438,7 +438,7 @@ fun StorageSettings(
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
                                         Text(
-                                            text = "Cache Usage",
+                                            text = stringResource(R.string.cache_usage),
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
@@ -500,9 +500,9 @@ fun StorageSettings(
                                                             .padding(vertical = 12.dp),
                                                         verticalAlignment = Alignment.CenterVertically
                                                     ) {
-                                                        RadioButton(
-                                                            selected = value == maxSongCacheSize,
-                                                            onClick = {
+                                                        RoundedCheckbox(
+                                                            checked = value == maxSongCacheSize,
+                                                            onCheckedChange = {
                                                                 onMaxSongCacheSizeChange(value)
                                                                 showCacheSizeDialog = false
                                                             }
@@ -521,7 +521,7 @@ fun StorageSettings(
                                         },
                                         confirmButton = {
                                             TextButton(onClick = { showCacheSizeDialog = false }) {
-                                                Text("Cancel")
+                                                Text(stringResource(R.string.cancel))
                                             }
                                         }
                                     )
@@ -532,7 +532,7 @@ fun StorageSettings(
                                 ModernInfoItem(
                                     icon = { Icon(painterResource(R.drawable.delete), null, modifier = Modifier.size(22.dp)) },
                                     title = stringResource(R.string.clear_song_cache),
-                                    subtitle = "Free up cached song data",
+                                    subtitle = stringResource(R.string.free_up_cached_song_data),
                                     onClick = { clearCacheDialog = true },
                                     showArrow = true,
                                     showSettingsIcon = true,
@@ -566,7 +566,7 @@ fun StorageSettings(
                 // Image Cache Section
                 item {
                     Text(
-                        text = "IMAGE CACHE",
+                        text = stringResource(R.string.image_cache_section),
                         style = MaterialTheme.typography.labelLarge.copy(
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp
@@ -595,7 +595,7 @@ fun StorageSettings(
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
                                         Text(
-                                            text = "Cache Usage",
+                                            text = stringResource(R.string.cache_usage),
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
@@ -652,9 +652,9 @@ fun StorageSettings(
                                                             .padding(vertical = 12.dp),
                                                         verticalAlignment = Alignment.CenterVertically
                                                     ) {
-                                                        RadioButton(
-                                                            selected = value == maxImageCacheSize,
-                                                            onClick = {
+                                                        RoundedCheckbox(
+                                                            checked = value == maxImageCacheSize,
+                                                            onCheckedChange = {
                                                                 onMaxImageCacheSizeChange(value)
                                                                 showImageCacheSizeDialog = false
                                                             }
@@ -672,7 +672,7 @@ fun StorageSettings(
                                         },
                                         confirmButton = {
                                             TextButton(onClick = { showImageCacheSizeDialog = false }) {
-                                                Text("Cancel")
+                                                Text(stringResource(R.string.cancel))
                                             }
                                         }
                                     )
@@ -683,7 +683,7 @@ fun StorageSettings(
                                 ModernInfoItem(
                                     icon = { Icon(painterResource(R.drawable.delete), null, modifier = Modifier.size(22.dp)) },
                                     title = stringResource(R.string.clear_image_cache),
-                                    subtitle = "Free up cached images",
+                                    subtitle = stringResource(R.string.free_up_cached_images),
                                     onClick = { clearImageCacheDialog = true },
                                     showArrow = true,
                                     showSettingsIcon = true,

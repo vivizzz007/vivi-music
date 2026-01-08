@@ -328,12 +328,18 @@ class MusicService :
         scope.launch {
             connectivityObserver.networkStatus.collect { isConnected ->
                 isNetworkConnected.value = isConnected
-                if (isConnected && waitingForNetworkConnection.value) {
-                    // Simple auto-play logic like OuterTune
-                    waitingForNetworkConnection.value = false
-                    if (player.currentMediaItem != null && player.playWhenReady) {
-                        player.prepare()
-                        player.play()
+                if (isConnected && (waitingForNetworkConnection.value || player.playbackState == Player.STATE_IDLE)) {
+                    // Check if we were actually stalled or errored due to network
+                    if (waitingForNetworkConnection.value || (player.playerError != null && isNetworkError(player.playerError!!))) {
+                        Log.d(TAG, "Network restored, retrying playback")
+                        waitingForNetworkConnection.value = false
+                        if (player.currentMediaItem != null) {
+                            delay(500)
+                            player.prepare()
+                            if (player.playWhenReady) {
+                                player.play()
+                            }
+                        }
                     }
                 }
             }
@@ -1343,10 +1349,10 @@ class MusicService :
 
     override fun onPlayerError(error: PlaybackException) {
         super.onPlayerError(error)
-        val isConnectionError = (error.cause?.cause is PlaybackException) &&
-                (error.cause?.cause as PlaybackException).errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED
+        Log.e(TAG, "onPlayerError: ${error.errorCodeName} (${error.errorCode})", error)
 
-        if (!isNetworkConnected.value || isConnectionError) {
+        if (!isNetworkConnected.value || isNetworkError(error)) {
+            Log.d(TAG, "Network error detected, waiting for connection...")
             waitOnNetworkError()
             return
         }
@@ -1420,9 +1426,11 @@ class MusicService :
             }
 
             val playbackData = runBlocking(Dispatchers.IO) {
+                // Read audio quality from settings every time to respect user changes
+                val currentAudioQuality = dataStore.get(AudioQualityKey).toEnum(com.music.vivi.constants.AudioQuality.AUTO)
                 YTPlayerUtils.playerResponseForPlayback(
                     mediaId,
-                    audioQuality = audioQuality,
+                    audioQuality = currentAudioQuality,
                     connectivityManager = connectivityManager,
                     httpClient = okHttpClient
                 )
@@ -1567,7 +1575,7 @@ class MusicService :
 
         val persistAutomix =
             PersistQueue(
-                title = "automix",
+                title = getString(R.string.automix),
                 items = automixItems.value.mapNotNull { it.metadata },
                 mediaItemIndex = 0,
                 position = 0,
@@ -1631,6 +1639,22 @@ class MusicService :
         discordUpdateJob?.cancel()
         super.onDestroy()
     }
+    //better network handling
+
+    private fun isNetworkError(error: PlaybackException): Boolean {
+        return when (error.errorCode) {
+            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
+            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT,
+            PlaybackException.ERROR_CODE_IO_UNSPECIFIED -> true
+            else -> {
+                val cause = error.cause
+                cause is java.net.ConnectException ||
+                        cause is java.net.UnknownHostException ||
+                        cause is java.net.SocketTimeoutException ||
+                        (cause is PlaybackException && isNetworkError(cause))
+            }
+        }
+    }
 
     override fun onBind(intent: Intent?) = super.onBind(intent) ?: binder
 
@@ -1650,8 +1674,8 @@ class MusicService :
     private fun updateWidget() {
         scope.launch {
             widgetManager.updateWidgets(
-                title = player.currentMetadata?.title ?: "Not Playing",
-                artist = player.currentMetadata?.artists?.joinToString { it.name } ?: "Tap to play",
+                title = player.currentMetadata?.title ?: getString(R.string.not_playing),
+                artist = player.currentMetadata?.artists?.joinToString { it.name } ?: getString(R.string.tap_to_play),
                 artworkUri = player.currentMetadata?.thumbnailUrl,
                 isPlaying = player.isPlaying,
                 isLiked = currentSong.value?.song?.liked ?: false,

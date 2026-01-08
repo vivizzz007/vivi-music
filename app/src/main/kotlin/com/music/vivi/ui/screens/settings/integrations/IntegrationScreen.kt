@@ -121,7 +121,14 @@ fun IntegrationScreen(
                 style = MaterialTheme.typography.headlineMedium.copy(fontSize = 40.sp),
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(start = 8.dp, bottom = 16.dp)
+                modifier = Modifier.padding(start = 8.dp)
+            )
+
+            Text(
+                text = stringResource(R.string.integrations_subtitle),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 12.dp, bottom = 16.dp)
             )
 
             Spacer(modifier = Modifier.height(30.dp))
@@ -141,7 +148,7 @@ fun IntegrationScreen(
                                 )
                             },
                             title = stringResource(R.string.discord_integration),
-                            subtitle = "Connect with Discord",
+                            subtitle = stringResource(R.string.connect_with_discord),
                             onClick = {
                                 navController.navigate("settings/integrations/discord")
                             },
@@ -162,7 +169,7 @@ fun IntegrationScreen(
                                 )
                             },
                             title = stringResource(R.string.lastfm_integration),
-                            subtitle = "Connect with Last.fm",
+                            subtitle = stringResource(R.string.connect_with_lastfm),
                             onClick = {
                                 navController.navigate("settings/integrations/lastfm")
                             },

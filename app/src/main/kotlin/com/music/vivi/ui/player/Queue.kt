@@ -111,6 +111,7 @@ import com.music.vivi.ui.component.BottomSheetState
 import com.music.vivi.ui.component.LocalBottomSheetPageState
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.MediaMetadataListItem
+import com.music.vivi.ui.component.RoundedCheckbox
 import com.music.vivi.ui.menu.PlayerMenu
 import com.music.vivi.ui.menu.SelectionMediaMetadataMenu
 import com.music.vivi.ui.utils.ShowMediaInfo
@@ -753,6 +754,16 @@ fun Queue(
                                     isSelected = selection && window.mediaItem.metadata!! in selectedSongs,
                                     isActive = index == currentWindowIndex,
                                     isPlaying = isPlaying,
+                                    inSelectionMode = selection,
+                                    onSelectionChange = { isChecked ->
+                                        if (isChecked) {
+                                            selectedSongs.add(window.mediaItem.metadata!!)
+                                            selectedItems.add(currentItem)
+                                        } else {
+                                            selectedSongs.remove(window.mediaItem.metadata!!)
+                                            selectedItems.remove(currentItem)
+                                        }
+                                    },
                                     trailingContent = {
                                         IconButton(
                                             onClick = {
@@ -1019,8 +1030,9 @@ fun Queue(
                         text = stringResource(R.string.elements_selected, count),
                         modifier = Modifier.weight(1f)
                     )
-                    IconButton(
-                        onClick = {
+                    RoundedCheckbox(
+                        checked = count == mutableQueueWindows.size,
+                        onCheckedChange = {
                             if (count == mutableQueueWindows.size) {
                                 selectedSongs.clear()
                                 selectedItems.clear()
@@ -1032,20 +1044,8 @@ fun Queue(
                                         selectedItems.add(it)
                                     }
                             }
-                        },
-                    ) {
-                        Icon(
-                            painter =
-                            painterResource(
-                                if (count == mutableQueueWindows.size) {
-                                    R.drawable.deselect
-                                } else {
-                                    R.drawable.select_all
-                                },
-                            ),
-                            contentDescription = null,
-                        )
-                    }
+                        }
+                    )
 
                     IconButton(
                         onClick = {

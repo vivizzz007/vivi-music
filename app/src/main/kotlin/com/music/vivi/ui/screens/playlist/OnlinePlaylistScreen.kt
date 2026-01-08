@@ -94,12 +94,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastAny
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import com.music.innertube.models.AlbumItem
+import com.music.innertube.models.ArtistItem
+import com.music.innertube.models.PlaylistItem
 import com.music.innertube.models.SongItem
+import com.music.innertube.models.YTItem
 import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalDownloadUtil
 import com.music.vivi.LocalPlayerAwareWindowInsets
@@ -115,6 +120,7 @@ import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.playback.ExoDownloadService
 import com.music.vivi.playback.queues.ListQueue
+import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.ui.component.DraggableScrollbar
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.LocalMenuState
@@ -129,6 +135,7 @@ import com.music.vivi.ui.utils.ItemWrapper
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.OnlinePlaylistViewModel
+import kotlin.collections.isNotEmpty
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
     ExperimentalMaterial3ExpressiveApi::class
@@ -147,6 +154,7 @@ fun OnlinePlaylistScreen(
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
+    val relatedItems by viewModel.relatedItems.collectAsStateWithLifecycle()
     val playlist by viewModel.playlist.collectAsState()
     val songs by viewModel.playlistSongs.collectAsState()
     val dbPlaylist by viewModel.dbPlaylist.collectAsState()
@@ -447,7 +455,7 @@ fun OnlinePlaylistScreen(
                                                 )
                                                 Spacer(Modifier.width(8.dp))
                                                 Text(
-                                                    text = if (dbPlaylist?.playlist?.bookmarkedAt != null) "Saved" else "Save",
+                                                    text = if (dbPlaylist?.playlist?.bookmarkedAt != null) stringResource(R.string.saved) else stringResource(R.string.save),
                                                     style = MaterialTheme.typography.labelLarge,
                                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                                 )
@@ -496,7 +504,7 @@ fun OnlinePlaylistScreen(
                                             Spacer(Modifier.width(8.dp))
                                             Text(
                                                 text = if (isPlaying && mediaMetadata?.album?.id == playlist.id)
-                                                    "Pause" else "Play",
+                                                    stringResource(R.string.pause) else stringResource(R.string.play),
                                                 style = MaterialTheme.typography.labelLarge,
                                                 color = MaterialTheme.colorScheme.onPrimary
                                             )
@@ -509,7 +517,7 @@ fun OnlinePlaylistScreen(
                                             val intent = Intent().apply {
                                                 action = Intent.ACTION_SEND
                                                 type = "text/plain"
-                                                putExtra(Intent.EXTRA_TEXT, "Check out ${playlist.title} on YouTube Music: https://music.youtube.com/playlist?list=${playlist.id}")
+                                                putExtra(Intent.EXTRA_TEXT, context.getString(R.string.check_out_playlist_share, playlist.title, "https://music.youtube.com/playlist?list=${playlist.id}"))
                                             }
                                             context.startActivity(Intent.createChooser(intent, null))
                                         },
@@ -523,7 +531,7 @@ fun OnlinePlaylistScreen(
                                         ) {
                                             Icon(
                                                 painter = painterResource(R.drawable.share),
-                                                contentDescription = "Share playlist",
+                                                contentDescription = stringResource(R.string.share_playlist_content_desc),
                                                 modifier = Modifier.size(20.dp),
                                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
@@ -540,7 +548,7 @@ fun OnlinePlaylistScreen(
                                     playlist.author?.let { artist ->
                                         Text(
                                             buildAnnotatedString {
-                                                append("By ")
+                                                append(stringResource(R.string.by_text))
                                                 if (artist.id != null) {
                                                     val link = LinkAnnotation.Clickable(artist.id!!) {
                                                         navController.navigate("artist/${artist.id!!}")
@@ -564,11 +572,20 @@ fun OnlinePlaylistScreen(
 
                                     // Playlist Description
                                     Text(
-                                        text = "${playlist.title} is a playlist${
-                                            playlist.author?.name?.let { " by $it" } ?: ""
-                                        }. ${
-                                            playlist.songCountText ?: "This collection"
-                                        } features a curated selection of tracks for your listening pleasure.",
+                                        text = buildString {
+                                            append(playlist.title)
+                                            append(" ")
+                                            append(context.getString(R.string.is_a_playlist))
+                                            playlist.author?.name?.let {
+                                                append(" ")
+                                                append(context.getString(R.string.by_text))
+                                                append(it)
+                                            }
+                                            append(". ")
+                                            append(playlist.songCountText ?: context.getString(R.string.this_collection_text))
+                                            append(" ")
+                                            append(context.getString(R.string.playlist_description_suffix))
+                                        },
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         textAlign = TextAlign.Start,
@@ -627,7 +644,7 @@ fun OnlinePlaylistScreen(
                                             Download.STATE_COMPLETED -> {
                                                 Icon(
                                                     painter = painterResource(R.drawable.offline),
-                                                    contentDescription = "saved",
+                                                    contentDescription = stringResource(R.string.saved),
                                                     modifier = Modifier.size(20.dp)
                                                 )
                                             }
@@ -641,7 +658,7 @@ fun OnlinePlaylistScreen(
                                             else -> {
                                                 Icon(
                                                     painter = painterResource(R.drawable.download),
-                                                    contentDescription = "save",
+                                                    contentDescription = stringResource(R.string.save),
                                                     modifier = Modifier.size(20.dp)
                                                 )
                                             }
@@ -649,9 +666,9 @@ fun OnlinePlaylistScreen(
                                         Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
                                         Text(
                                             text = when (downloadState) {
-                                                Download.STATE_COMPLETED -> "saved"
-                                                Download.STATE_DOWNLOADING -> "saving"
-                                                else -> "save"
+                                                Download.STATE_COMPLETED -> stringResource(R.string.saved)
+                                                Download.STATE_DOWNLOADING -> stringResource(R.string.saving)
+                                                else -> stringResource(R.string.save)
                                             },
                                             style = MaterialTheme.typography.labelMedium
                                         )
@@ -675,11 +692,11 @@ fun OnlinePlaylistScreen(
                                         ) {
                                             Icon(
                                                 painter = painterResource(R.drawable.shuffle),
-                                                contentDescription = "Shuffle",
+                                                contentDescription = stringResource(R.string.shuffle_content_desc),
                                                 modifier = Modifier.size(20.dp)
                                             )
                                             Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                                            Text("Shuffle", style = MaterialTheme.typography.labelMedium)
+                                            Text(stringResource(R.string.shuffle_label), style = MaterialTheme.typography.labelMedium)
                                         }
                                     }
 
@@ -703,11 +720,11 @@ fun OnlinePlaylistScreen(
                                     ) {
                                         Icon(
                                             painter = painterResource(R.drawable.more_vert),
-                                            contentDescription = "More options",
+                                            contentDescription = stringResource(R.string.more_options_content_desc),
                                             modifier = Modifier.size(20.dp)
                                         )
                                         Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                                        Text("More", style = MaterialTheme.typography.labelMedium)
+                                        Text(stringResource(R.string.more_label), style = MaterialTheme.typography.labelMedium)
                                     }
                                 }
 
@@ -793,7 +810,9 @@ fun OnlinePlaylistScreen(
                                         item = songWrapper.item.second,
                                         isActive = isActive,
                                         isPlaying = isPlaying,
-                                        isSelected = songWrapper.isSelected && selection,
+                                        isSelected = songWrapper.isSelected,
+                                        inSelectionMode = selection,
+                                        onSelectionChange = { songWrapper.isSelected = it },
                                         trailingContent = {
                                             IconButton(
                                                 onClick = {
@@ -856,6 +875,53 @@ fun OnlinePlaylistScreen(
                         }
 
                     }
+
+
+
+                    if (relatedItems.isNotEmpty()) {
+                        item(key = "related_header") {
+                            Text(
+                                text = stringResource(R.string.you_might_also_like),
+                                style = MaterialTheme.typography.titleLarge,
+                                modifier = Modifier
+                                    .padding(horizontal = 16.dp)
+                                    .padding(top = 24.dp, bottom = 8.dp)
+                            )
+                        }
+
+                        itemsIndexed(
+                            items = relatedItems,
+                            key = { _, item -> "related_${item.id}" }
+                        ) { index, item ->
+                            YouTubeListItem(
+                                item = item,
+                                isActive = false,
+                                isPlaying = false,
+                                isSelected = false,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .combinedClickable(
+                                        onClick = {
+                                            when (item) {
+                                                is SongItem -> playerConnection.playQueue(
+                                                    YouTubeQueue.radio(item.toMediaMetadata()))
+                                                is AlbumItem -> navController.navigate("album/${item.browseId}")
+                                                is ArtistItem -> navController.navigate("artist/${item.id}")
+                                                is PlaylistItem -> navController.navigate("online_playlist/${item.id}")
+                                            }
+                                        }
+                                    )
+                            )
+                            if (index < relatedItems.size - 1) {
+                                Spacer(modifier = Modifier.height(3.dp))
+                            }
+                        }
+
+                        item(key = "related_end") {
+                            Spacer(modifier = Modifier.height(24.dp))
+                        }
+                    }
+
                     if (viewModel.continuation != null && songs.isNotEmpty() && isLoadingMore) {
                         item(key = "loading_more") {
                             ShimmerHost {

@@ -280,7 +280,7 @@ fun CachePlaylistScreen(
                                     onClick = {
                                         playerConnection.playQueue(
                                             ListQueue(
-                                                title = "Cache Songs",
+                                                title = context.getString(R.string.cache_songs),
                                                 items = filteredSongs.map { it.item.toMediaItem() },
                                             )
                                         )
@@ -314,7 +314,7 @@ fun CachePlaylistScreen(
                                     onClick = {
                                         playerConnection.playQueue(
                                             ListQueue(
-                                                title = "Cache Songs",
+                                                title = context.getString(R.string.cache_songs),
                                                 items = filteredSongs.shuffled().map { it.item.toMediaItem() },
                                             )
                                         )
@@ -368,7 +368,7 @@ fun CachePlaylistScreen(
 
                             // Playlist Description
                             Text(
-                                text = "Your cached songs stored locally on your device. These tracks are available for offline playback and don't require an internet connection.",
+                                text = stringResource(R.string.cache_playlist_description),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Start,
@@ -398,11 +398,11 @@ fun CachePlaylistScreen(
                                 ) {
                                     Icon(
                                         painter = painterResource(R.drawable.queue_music),
-                                        contentDescription = "Add to queue",
+                                        contentDescription = stringResource(R.string.add_to_queue_content_desc),
                                         modifier = Modifier.size(20.dp)
                                     )
                                     Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                                    Text("Queue", style = MaterialTheme.typography.labelMedium)
+                                    Text(stringResource(R.string.queue_label), style = MaterialTheme.typography.labelMedium)
                                 }
                             }
 
@@ -470,7 +470,9 @@ fun CachePlaylistScreen(
                                             )
                                         }
                                     },
-                                    isSelected = songWrapper.isSelected && selection,
+                                    isSelected = songWrapper.isSelected,
+                                inSelectionMode = selection,
+                                onSelectionChange = { songWrapper.isSelected = it },
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .combinedClickable(
@@ -481,7 +483,7 @@ fun CachePlaylistScreen(
                                                     } else {
                                                         playerConnection.playQueue(
                                                             ListQueue(
-                                                                title = "Cache Songs",
+                                                                title = context.getString(R.string.cache_songs),
                                                                 items = cachedSongs.map { it.toMediaItem() },
                                                                 startIndex = cachedSongs.indexOfFirst { it.id == songWrapper.item.id }
                                                             )

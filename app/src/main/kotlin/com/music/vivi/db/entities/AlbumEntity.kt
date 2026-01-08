@@ -31,7 +31,8 @@ data class AlbumEntity(
     @ColumnInfo(name = "isLocal", defaultValue = false.toString())
     val isLocal: Boolean = false,
     @ColumnInfo(name = "isUploaded", defaultValue = false.toString())
-    val isUploaded: Boolean = false
+    val isUploaded: Boolean = false,
+    val description: String? = null
 ) {
     fun localToggleLike() = copy(
         bookmarkedAt = if (bookmarkedAt != null) null else LocalDateTime.now()

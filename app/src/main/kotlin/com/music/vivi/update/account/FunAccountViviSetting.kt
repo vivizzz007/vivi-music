@@ -76,7 +76,7 @@ import com.music.vivi.viewmodels.HomeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AccountView(
+fun FunAccountViviSetting(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
@@ -105,6 +105,7 @@ fun AccountView(
 
     var showToken by remember { mutableStateOf(false) }
     var showTokenEditor by remember { mutableStateOf(false) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -150,22 +151,20 @@ fun AccountView(
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 Text(
-                    text = "Account",
+                    text = stringResource(R.string.account_title),
                     style = MaterialTheme.typography.headlineLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "Manage your account and preferences",
+                    text = stringResource(R.string.manage_account_preferences),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
             Spacer(modifier = Modifier.height(10.dp))
-
-            Spacer(Modifier.height(24.dp))
 
             // Account Status Group
             Material3ExpressiveSettingsGroup(
@@ -224,7 +223,7 @@ fun AccountView(
 
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = if (isLoggedIn) "Signed in" else "Not signed in",
+                                text = if (isLoggedIn) stringResource(R.string.signed_in) else stringResource(R.string.not_signed_in),
                                 style = MaterialTheme.typography.headlineSmall,
                                 fontWeight = FontWeight.Medium,
                                 color = if (isLoggedIn) MaterialTheme.colorScheme.onPrimaryContainer
@@ -233,7 +232,7 @@ fun AccountView(
                             )
 
                             Text(
-                                text = if (isLoggedIn) accountName else "Tap to sign in",
+                                text = if (isLoggedIn) accountName else stringResource(R.string.tap_to_sign_in),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = if (isLoggedIn) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                                 else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
@@ -254,7 +253,18 @@ fun AccountView(
                 }
             )
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(16.dp))
+
+            // Account Settings Section
+            Text(
+                text = stringResource(R.string.advanced_login).uppercase(),
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp
+                ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
+            )
 
             // Account Settings Group
             Material3ExpressiveSettingsGroup(
@@ -273,11 +283,11 @@ fun AccountView(
                                 )
                             },
                             title = when {
-                                !isLoggedIn -> "Advanced login"
-                                showToken -> "Token shown"
-                                else -> "Token hidden"
+                                !isLoggedIn -> stringResource(R.string.advanced_login)
+                                showToken -> stringResource(R.string.token_shown_title)
+                                else -> stringResource(R.string.token_hidden_title)
                             },
-                            subtitle = if (isLoggedIn) "Tap to manage token" else "Sign in with cookies",
+                            subtitle = if (isLoggedIn) stringResource(R.string.tap_to_manage_token) else stringResource(R.string.sign_in_with_cookies),
                             onClick = {
                                 if (!isLoggedIn) showTokenEditor = true
                                 else if (!showToken) showToken = true
@@ -299,8 +309,8 @@ fun AccountView(
                                         tint = MaterialTheme.colorScheme.surfaceTint
                                     )
                                 },
-                                title = "More content",
-                                subtitle = if (useLoginForBrowse) "Enabled" else "Disabled",
+                                title = stringResource(R.string.more_content),
+                                subtitle = if (useLoginForBrowse) stringResource(R.string.enabled) else stringResource(R.string.disabled),
                                 onClick = {
                                     YouTube.useLoginForBrowse = !useLoginForBrowse
                                     onUseLoginForBrowseChange(!useLoginForBrowse)
@@ -327,8 +337,8 @@ fun AccountView(
                                         tint = MaterialTheme.colorScheme.surfaceTint
                                     )
                                 },
-                                title = "YouTube sync",
-                                subtitle = if (ytmSync) "Enabled" else "Disabled",
+                                title = stringResource(R.string.youtube_sync),
+                                subtitle = if (ytmSync) stringResource(R.string.enabled) else stringResource(R.string.disabled),
                                 onClick = {
                                     onYtmSyncChange(!ytmSync)
                                 },
@@ -351,13 +361,10 @@ fun AccountView(
                                         tint = MaterialTheme.colorScheme.error
                                     )
                                 },
-                                title = "Sign out",
-                                subtitle = "Log out from your account",
+                                title = stringResource(R.string.sign_out),
+                                subtitle = stringResource(R.string.log_out_from_account),
                                 onClick = {
-                                    accountSettingsViewModel.logoutAndClearSyncedContent(
-                                        context,
-                                        onInnerTubeCookieChange
-                                    )
+                                    showLogoutDialog = true
                                 },
                                 showArrow = true,
                                 showSettingsIcon = true,
@@ -369,6 +376,17 @@ fun AccountView(
             )
 
             Spacer(Modifier.height(16.dp))
+
+            // Integrations Section
+            Text(
+                text = stringResource(R.string.integrations).uppercase(),
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp
+                ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
+            )
 
             // Integrations Group
             Material3ExpressiveSettingsGroup(
@@ -385,8 +403,8 @@ fun AccountView(
                                 tint = MaterialTheme.colorScheme.surfaceTint
                             )
                         },
-                        title = "Integrations",
-                        subtitle = "Connect with other services",
+                        title = stringResource(R.string.integrations),
+                        subtitle = stringResource(R.string.integrations_subtitle),
                         onClick = {
                             navController.navigate("settings/integrations")
                         },
@@ -398,6 +416,98 @@ fun AccountView(
 
             Spacer(Modifier.height(32.dp))
         }
+    }
+
+    if (showLogoutDialog) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Do you want to sign out?",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    androidx.compose.material3.HorizontalDivider()
+                }
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (accountImageUrl != null) {
+                            AsyncImage(
+                                model = accountImageUrl,
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(CircleShape)
+                            )
+                        } else {
+                            Icon(
+                                painter = painterResource(R.drawable.account),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.secondaryContainer)
+                                    .padding(8.dp),
+                                tint = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        }
+                        
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Column {
+                            Text(
+                                text = accountNamePref,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = accountEmail,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    androidx.compose.material3.HorizontalDivider()
+                }
+            },
+            confirmButton = {
+                androidx.compose.material3.TextButton(
+                    onClick = {
+                        showLogoutDialog = false
+                        accountSettingsViewModel.logoutAndClearSyncedContent(
+                            context,
+                            onInnerTubeCookieChange
+                        )
+                    }
+                ) {
+                    Text("Confirm")
+                }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(
+                    onClick = { showLogoutDialog = false }
+                ) {
+                    Text("Cancel")
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        )
     }
 
     // Token Editor Dialog

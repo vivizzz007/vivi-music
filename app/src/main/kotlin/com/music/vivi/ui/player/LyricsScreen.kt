@@ -237,11 +237,7 @@ fun LyricsScreen(
                     ) { thumbnailUrl ->
                         if (thumbnailUrl != null) {
                             AsyncImage(
-                                model = ImageRequest.Builder(LocalContext.current)
-                                    .data(thumbnailUrl)
-                                    .size(100, 100)
-                                    .allowHardware(false)
-                                    .build(),
+                                model = thumbnailUrl,
                                 contentDescription = null,
                                 contentScale = ContentScale.FillBounds,
                                 modifier = Modifier
@@ -359,11 +355,7 @@ fun LyricsScreen(
                                 }
                         ) {
                             AsyncImage(
-                                model = ImageRequest.Builder(LocalContext.current)
-                                    .data(mediaMetadata.thumbnailUrl)
-                                    .size(100, 100)
-                                    .allowHardware(false)
-                                    .build(),
+                                model = mediaMetadata.thumbnailUrl,
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier.fillMaxSize()
@@ -426,7 +418,7 @@ fun LyricsScreen(
                                 text = if (mediaMetadata.artists.isNotEmpty()) {
                                     mediaMetadata.artists.joinToString(", ") { it.name }
                                 } else {
-                                    "Unknown Artist"
+                                    stringResource(R.string.unknown_artist)
                                 },
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     fontSize = 14.sp
@@ -461,7 +453,7 @@ fun LyricsScreen(
                                         R.drawable.favorite
                                     else R.drawable.favorite_border
                                 ),
-                                contentDescription = if (currentSong?.song?.liked == true) "Remove from favorites" else "Add to favorites",
+                                contentDescription = if (currentSong?.song?.liked == true) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites),
                                 tint = if (currentSong?.song?.liked == true)
                                     MaterialTheme.colorScheme.error
                                 else
@@ -536,10 +528,12 @@ fun LyricsScreen(
                                 sliderPosition = null
                             },
                             colors = PlayerSliderColors.squigglySliderColors(textBackgroundColor, playerBackground, useDarkTheme),
-                            squigglesSpec = SquigglySlider.SquigglesSpec(
-                                amplitude = if (isPlaying) (2.dp).coerceAtLeast(2.dp) else 0.dp,
-                                strokeWidth = 3.dp,
-                            ),
+                            squigglesSpec =
+                                SquigglySlider.SquigglesSpec(
+                                    amplitude = if (isPlaying) (4.dp).coerceAtLeast(2.dp) else 0.dp,
+                                    strokeWidth = 3.dp,
+                                    wavelength = 36.dp,
+                                ),
                         )
                     }
 

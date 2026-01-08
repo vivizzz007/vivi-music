@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -16,7 +17,7 @@ android {
         applicationId = "com.vivi.vivimusic"
         minSdk = 26
         targetSdk = 36
-        versionCode = 18 //18 //59
+        versionCode = 59 //18 //59
         versionName = "5.0.0" //updated
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -215,8 +216,12 @@ dependencies {
     implementation(project(":lrclib"))
     implementation(project(":kizzy"))
     implementation(project(":lastfm"))
+    implementation(project(":betterlyrics"))
+
 
     implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.json)
 
     coreLibraryDesugaring(libs.desugaring)

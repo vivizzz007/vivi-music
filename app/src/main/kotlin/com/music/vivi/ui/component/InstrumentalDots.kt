@@ -23,63 +23,46 @@ fun InstrumentalDots(
 
     Row(
         modifier = modifier
-            .padding(vertical = 12.dp),
+            .padding(vertical = 24.dp), // More vertical space
         horizontalArrangement = horizontalArrangement,
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // Apple Music style: 3 large, smooth breathing dots
+        // They wave in sequence (scale and alpha)
+        val dotSize = 10.dp
+        val spacing = 8.dp
+        
         repeat(3) { index ->
-            val delay = index * 300
+            val delay = index * 200 // Staggered wave
             
-            val alpha by infiniteTransition.animateFloat(
-                initialValue = 0.2f,
+            val animationProgress by infiniteTransition.animateFloat(
+                initialValue = 0f,
                 targetValue = 1f,
                 animationSpec = infiniteRepeatable(
-                    animation = tween(600, delayMillis = delay, easing = FastOutSlowInEasing),
-                    repeatMode = RepeatMode.Reverse
+                    animation = tween(1200, delayMillis = delay, easing = LinearEasing),
+                    repeatMode = RepeatMode.Restart
                 ),
-                label = "dot_alpha_$index"
+                label = "dot_progress_$index"
             )
 
-            val scale by infiniteTransition.animateFloat(
-                initialValue = 0.8f,
-                targetValue = 1.2f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(600, delayMillis = delay, easing = FastOutSlowInEasing),
-                    repeatMode = RepeatMode.Reverse
-                ),
-                label = "dot_scale_$index"
-            )
+            // Sine wave calculation for smooth breathing
+            val fraction = animationProgress * 2 * Math.PI
+            val alpha = (kotlin.math.sin(fraction).toFloat() + 1f) / 2f * 0.7f + 0.3f // Range 0.3..1.0
+            val scale = (kotlin.math.sin(fraction).toFloat() + 1f) / 2f * 0.4f + 0.8f // Range 0.8..1.2
 
             Box(
-                contentAlignment = Alignment.Center
-            ) {
-                // Outer glow layer
-                Box(
-                    modifier = Modifier
-                        .size(12.dp)
-                        .alpha(alpha * 0.3f)
-                        .graphicsLayer {
-                            scaleX = scale * 1.5f
-                            scaleY = scale * 1.5f
-                        }
-                        .background(dotColor, CircleShape)
-                )
-                
-                // Main dot
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .alpha(alpha)
-                        .graphicsLayer {
-                            scaleX = scale
-                            scaleY = scale
-                        }
-                        .background(dotColor, CircleShape)
-                )
-            }
+                modifier = Modifier
+                    .size(dotSize)
+                    .graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                        this.alpha = alpha
+                    }
+                    .background(dotColor, CircleShape)
+            )
             
             if (index < 2) {
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(spacing))
             }
         }
     }

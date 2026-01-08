@@ -26,6 +26,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -86,6 +87,9 @@ import com.music.vivi.ui.component.ListDialog
 import com.music.vivi.ui.component.LocalBottomSheetPageState
 import com.music.vivi.update.mordernlistmenu.ModernListItem
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
@@ -117,14 +121,11 @@ fun AlbumMenu(
         }
     }
 
-    var downloadState by remember {
-        mutableStateOf(STATE_STOPPED)
-    }
-
-    LaunchedEffect(songs) {
-        if (songs.isEmpty()) return@LaunchedEffect
-        downloadUtil.downloads.collect { downloads ->
-            downloadState =
+    val downloadState by remember(songs) {
+        if (songs.isEmpty()) {
+            flowOf(STATE_STOPPED)
+        } else {
+            downloadUtil.downloads.map { downloads ->
                 if (songs.all { downloads[it.id]?.state == STATE_COMPLETED }) {
                     STATE_COMPLETED
                 } else if (songs.all {
@@ -137,8 +138,9 @@ fun AlbumMenu(
                 } else {
                     STATE_STOPPED
                 }
+            }.flowOn(Dispatchers.Default)
         }
-    }
+    }.collectAsState(initial = STATE_STOPPED)
 
     // Play/Pause state tracking
     val isPlaying by playerConnection.isPlaying.collectAsState()
@@ -173,23 +175,41 @@ fun AlbumMenu(
     }
 
     // Design variables
-    val evenCornerRadiusElems = 26.dp
-    val albumArtShape = AbsoluteSmoothCornerShape(
-        cornerRadiusTR = evenCornerRadiusElems, smoothnessAsPercentBR = 60, cornerRadiusBR = evenCornerRadiusElems,
-        smoothnessAsPercentTL = 60, cornerRadiusTL = evenCornerRadiusElems, smoothnessAsPercentBL = 60,
-        cornerRadiusBL = evenCornerRadiusElems, smoothnessAsPercentTR = 60
-    )
-    val playButtonShape = AbsoluteSmoothCornerShape(
-        cornerRadiusTR = evenCornerRadiusElems, smoothnessAsPercentBR = 60, cornerRadiusBR = evenCornerRadiusElems,
-        smoothnessAsPercentTL = 60, cornerRadiusTL = evenCornerRadiusElems, smoothnessAsPercentBL = 60,
-        cornerRadiusBL = evenCornerRadiusElems, smoothnessAsPercentTR = 60
-    )
+    val cornerRadius = remember { 24.dp }
+    val topShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTL = cornerRadius, smoothnessAsPercentTL = 60,
+            cornerRadiusTR = cornerRadius, smoothnessAsPercentTR = 60,
+            cornerRadiusBL = 0.dp, smoothnessAsPercentBL = 0,
+            cornerRadiusBR = 0.dp, smoothnessAsPercentBR = 0
+        )
+    }
+    val middleShape = remember { RectangleShape }
+    val bottomShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTL = 0.dp, smoothnessAsPercentTL = 0,
+            cornerRadiusTR = 0.dp, smoothnessAsPercentTR = 0,
+            cornerRadiusBL = cornerRadius, smoothnessAsPercentBL = 60,
+            cornerRadiusBR = cornerRadius, smoothnessAsPercentBR = 60
+        )
+    }
+    val singleShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTL = cornerRadius, smoothnessAsPercentTL = 60,
+            cornerRadiusTR = cornerRadius, smoothnessAsPercentTR = 60,
+            cornerRadiusBL = cornerRadius, smoothnessAsPercentBL = 60,
+            cornerRadiusBR = cornerRadius, smoothnessAsPercentBR = 60
+        )
+    }
+
+    val albumArtShape = singleShape
+    val playButtonShape = singleShape
 
     // Favorite state tracking
     val isFavorite = album.album.bookmarkedAt != null
 
     val favoriteButtonCornerRadius by animateDpAsState(
-        targetValue = if (isFavorite) evenCornerRadiusElems else 60.dp,
+        targetValue = if (isFavorite) cornerRadius else 60.dp,
         animationSpec = tween(durationMillis = 300), label = "FavoriteCornerAnimation"
     )
     val favoriteButtonContainerColor by animateColorAsState(
@@ -201,16 +221,14 @@ fun AlbumMenu(
         animationSpec = tween(durationMillis = 300), label = "FavoriteContentColorAnimation"
     )
 
-    val favoriteButtonShape = AbsoluteSmoothCornerShape(
-        cornerRadiusTR = favoriteButtonCornerRadius,
-        smoothnessAsPercentBR = 60,
-        cornerRadiusBR = favoriteButtonCornerRadius,
-        smoothnessAsPercentTL = 60,
-        cornerRadiusTL = favoriteButtonCornerRadius,
-        smoothnessAsPercentBL = 60,
-        cornerRadiusBL = favoriteButtonCornerRadius,
-        smoothnessAsPercentTR = 60
-    )
+    val favoriteButtonShape = remember(favoriteButtonCornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTL = favoriteButtonCornerRadius, smoothnessAsPercentTL = 60,
+            cornerRadiusTR = favoriteButtonCornerRadius, smoothnessAsPercentTR = 60,
+            cornerRadiusBL = favoriteButtonCornerRadius, smoothnessAsPercentBL = 60,
+            cornerRadiusBR = favoriteButtonCornerRadius, smoothnessAsPercentBR = 60
+        )
+    }
 
     // Main Content
     Column(
@@ -232,7 +250,7 @@ fun AlbumMenu(
         ) {
             AsyncImage(
                 model = album.album.thumbnailUrl,
-                contentDescription = "Album Art",
+                contentDescription = stringResource(R.string.album_art_content_desc),
                 modifier = Modifier
                     .size(80.dp)
                     .clip(albumArtShape),
@@ -286,7 +304,7 @@ fun AlbumMenu(
                     painter = painterResource(
                         if (isFavorite) R.drawable.favorite else R.drawable.favorite_border
                     ),
-                    contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
+                    contentDescription = if (isFavorite) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites),
                     tint = if (isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -331,13 +349,13 @@ fun AlbumMenu(
                         painter = painterResource(
                             if (isCurrentAlbumPlaying && isPlaying) R.drawable.pause else R.drawable.play
                         ),
-                        contentDescription = if (isCurrentAlbumPlaying && isPlaying) "Pause" else "Play"
+                        contentDescription = if (isCurrentAlbumPlaying && isPlaying) stringResource(R.string.pause) else stringResource(R.string.play_content_desc)
                     )
                 },
                 text = {
                     Text(
                         modifier = Modifier.padding(end = 10.dp),
-                        text = if (isCurrentAlbumPlaying && isPlaying) "Pause" else "Play",
+                        text = if (isCurrentAlbumPlaying && isPlaying) stringResource(R.string.pause) else stringResource(R.string.play),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         softWrap = false
@@ -366,7 +384,7 @@ fun AlbumMenu(
                     painter = painterResource(
                         if (isFavorite) R.drawable.favorite else R.drawable.favorite_border
                     ),
-                    contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
+                    contentDescription = if (isFavorite) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites),
                     tint = if (isFavorite) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -385,12 +403,12 @@ fun AlbumMenu(
                     }
                     context.startActivity(Intent.createChooser(intent, null))
                 },
-                shape = CircleShape
+                shape = singleShape
             ) {
                 Icon(
                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
                     painter = painterResource(R.drawable.share),
-                    contentDescription = "Share album"
+                    contentDescription = stringResource(R.string.share_album_content_desc),
                 )
             }
         }
@@ -406,7 +424,7 @@ fun AlbumMenu(
                 containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                 contentColor = MaterialTheme.colorScheme.onTertiaryContainer
             ),
-            shape = CircleShape,
+            shape = singleShape,
             onClick = {
                 when (downloadState) {
                     STATE_COMPLETED -> {
@@ -455,14 +473,14 @@ fun AlbumMenu(
                         else -> R.drawable.download
                     }
                 ),
-                contentDescription = "Download album"
+                contentDescription = stringResource(R.string.download_album_content_desc),
             )
             Spacer(Modifier.width(8.dp))
             Text(
                 text = when (downloadState) {
-                    STATE_COMPLETED -> "Remove Offline"
-                    STATE_QUEUED, STATE_DOWNLOADING -> "Downloading..."
-                    else -> "Download Album"
+                    STATE_COMPLETED -> stringResource(R.string.remove_offline)
+                    STATE_QUEUED, STATE_DOWNLOADING -> stringResource(R.string.downloading_ellipsis)
+                    else -> stringResource(R.string.download_album_text)
                 },
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -474,14 +492,14 @@ fun AlbumMenu(
 
         // Details Section
         Column(
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             // Artist
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = topShape,
                 onClick = {
                     if (album.artists.size == 1) {
                         navController.navigate("artist/${album.artists[0].id}")
@@ -493,12 +511,12 @@ fun AlbumMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.artist),
-                    contentDescription = "Artist icon"
+                    contentDescription = stringResource(R.string.artist_icon_content_desc),
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "Artist",
+                        stringResource(R.string.artist_label),
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -512,22 +530,24 @@ fun AlbumMenu(
                 }
             }
 
+            Spacer(modifier = Modifier.height(1.dp))
+
             // Songs Count
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = bottomShape,
                 onClick = { }
             ) {
                 Icon(
                     painter = painterResource(R.drawable.music_note),
-                    contentDescription = "Songs icon"
+                    contentDescription = stringResource(R.string.songs_icon_content_desc),
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "Songs",
+                        stringResource(R.string.songs_label),
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -540,13 +560,20 @@ fun AlbumMenu(
                     )
                 }
             }
+        }
 
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Playback Group
+        Column(
+            verticalArrangement = Arrangement.spacedBy(0.dp)
+        ) {
             // Play Next
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = topShape,
                 onClick = {
                     onDismiss()
                     playerConnection.playNext(songs.map { it.toMediaItem() })
@@ -554,18 +581,18 @@ fun AlbumMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.playlist_play),
-                    contentDescription = "Play next icon"
+                    contentDescription = stringResource(R.string.play_next_icon_content_desc),
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "Play Next",
+                        stringResource(R.string.play_next_label),
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        "Play after current",
+                        stringResource(R.string.play_after_current),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -573,12 +600,14 @@ fun AlbumMenu(
                 }
             }
 
+            Spacer(modifier = Modifier.height(1.dp))
+
             // Add to Queue
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = bottomShape,
                 onClick = {
                     onDismiss()
                     playerConnection.addToQueue(songs.map { it.toMediaItem() })
@@ -586,49 +615,56 @@ fun AlbumMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.queue_music),
-                    contentDescription = "Add to queue icon"
+                    contentDescription = stringResource(R.string.add_to_queue_icon_content_desc),
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "Add to Queue",
+                        stringResource(R.string.add_to_queue_label),
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        "Add to queue end",
+                        stringResource(R.string.add_to_queue_end),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
             }
+        }
 
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Library Group
+        Column(
+            verticalArrangement = Arrangement.spacedBy(0.dp)
+        ) {
             // Add to Playlist
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = topShape,
                 onClick = {
                     showChoosePlaylistDialog = true
                 }
             ) {
                 Icon(
                     painter = painterResource(R.drawable.playlist_add),
-                    contentDescription = "Add to playlist icon"
+                    contentDescription = stringResource(R.string.add_to_playlist_icon_content_desc),
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "Add to Playlist",
+                        stringResource(R.string.add_to_playlist_label),
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        "Add to existing playlist",
+                        stringResource(R.string.add_to_existing_playlist_subtitle),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -636,12 +672,14 @@ fun AlbumMenu(
                 }
             }
 
+            Spacer(modifier = Modifier.height(1.dp))
+
             // Refresh Metadata
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = bottomShape,
                 onClick = {
                     refetchIconDegree -= 360
                     scope.launch(Dispatchers.IO) {
@@ -655,18 +693,18 @@ fun AlbumMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.sync),
-                    contentDescription = "Refresh icon"
+                    contentDescription = stringResource(R.string.refresh_icon_content_desc),
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "Refresh Metadata",
+                        stringResource(R.string.refresh_metadata),
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        "Update album information",
+                        stringResource(R.string.update_album_information),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -687,6 +725,7 @@ fun AlbumMenu(
     // Dialogs
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
+        songsToCheck = songs.map { it.id },
         onGetSong = { playlist ->
             coroutineScope.launch(Dispatchers.IO) {
                 playlist.playlist.browseId?.let { playlistId ->

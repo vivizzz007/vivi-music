@@ -140,8 +140,8 @@ fun ViviUpdatesScreen(
             lastUpdatedDate = dateFormat.format(Date(lastUpdate))
 
         } catch (e: Exception) {
-            buildVersion = "Error loading version"
-            firstInstallDate = "Error loading date"
+            buildVersion = context.getString(R.string.error_loading_version)
+            firstInstallDate = context.getString(R.string.error_loading_date)
         }
     }
 

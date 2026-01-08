@@ -443,8 +443,6 @@ fun BottomSheetPlayer(
             else MaterialTheme.colorScheme.surfaceContainer
     }
 
-
-
     BottomSheet(
         state = state,
         modifier = modifier,
@@ -466,13 +464,9 @@ fun BottomSheetPlayer(
                             if (thumbnailUrl != null) {
                                 Box(modifier = Modifier.graphicsLayer { alpha = state.progress.coerceIn(0f, 1f) }) {
                                     AsyncImage(
-                                        model = ImageRequest.Builder(context)
-                                            .data(thumbnailUrl)
-                                            .size(100, 100)
-                                            .allowHardware(false)
-                                            .build(),
+                                        model = thumbnailUrl,
                                         contentDescription = null,
-                                        contentScale = ContentScale.Crop,
+                                        contentScale = ContentScale.FillBounds,
                                         modifier = Modifier
                                             .fillMaxSize()
                                             .blur(if (useDarkTheme) 150.dp else 100.dp)
@@ -581,10 +575,10 @@ fun BottomSheetPlayer(
                                             }
                                         },
                                         onLongClick = {
-                                            val clip = ClipData.newPlainText("Copied Title", title)
+                                            val clip = ClipData.newPlainText(context.getString(R.string.copied_title), title)
                                             clipboardManager.setPrimaryClip(clip)
                                             Toast
-                                                .makeText(context, "Copied Title", Toast.LENGTH_SHORT)
+                                                .makeText(context, context.getString(R.string.copied_title), Toast.LENGTH_SHORT)
                                                 .show()
                                         }
                                     )
@@ -656,12 +650,12 @@ fun BottomSheetPlayer(
                                         },
                                         onLongClick = {
                                             val clip =
-                                                ClipData.newPlainText("Copied Artist", annotatedString)
+                                                ClipData.newPlainText(context.getString(R.string.copied_artist), annotatedString)
                                             clipboardManager.setPrimaryClip(clip)
                                             Toast
                                                 .makeText(
                                                     context,
-                                                    "Copied Artist",
+                                                    context.getString(R.string.copied_artist),
                                                     Toast.LENGTH_SHORT
                                                 )
                                                 .show()
@@ -1124,12 +1118,12 @@ fun BottomSheetPlayer(
                                 painter = painterResource(
                                     if (isPlaying) R.drawable.pause else R.drawable.play
                                 ),
-                                contentDescription = if (isPlaying) "Pause" else stringResource(R.string.play),
+                                contentDescription = if (isPlaying) stringResource(R.string.pause) else stringResource(R.string.play),
                                 modifier = Modifier.size(32.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = if (isPlaying) "Pause" else stringResource(R.string.play),
+                                text = if (isPlaying) stringResource(R.string.pause) else stringResource(R.string.play),
                                 style = MaterialTheme.typography.titleMedium
                             )
                         }

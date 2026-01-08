@@ -32,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -61,6 +62,7 @@ import com.music.vivi.constants.SongSortDescendingKey
 import com.music.vivi.constants.SongSortType
 import com.music.vivi.constants.SongSortTypeKey
 import com.music.vivi.constants.YtmSyncKey
+import com.music.vivi.db.entities.Song
 import com.music.vivi.extensions.toMediaItem
 import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.playback.queues.ListQueue
@@ -71,6 +73,8 @@ import com.music.vivi.ui.component.SortHeader
 import com.music.vivi.ui.menu.SelectionSongMenu
 import com.music.vivi.ui.menu.SongMenu
 import com.music.vivi.ui.utils.ItemWrapper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.LibrarySongsViewModel
@@ -113,8 +117,13 @@ fun LibrarySongsScreen(
         }
     }
 
-    val wrappedSongs = remember(songs) {
-        songs.map { item -> ItemWrapper(item) }.toMutableList()
+    val wrappedSongs = remember { mutableStateListOf<ItemWrapper<Song>>() }
+    LaunchedEffect(songs) {
+        val wrappers = withContext(Dispatchers.Default) {
+            songs.map { item -> ItemWrapper(item) }
+        }
+        wrappedSongs.clear()
+        wrappedSongs.addAll(wrappers)
     }
     var selection by remember {
         mutableStateOf(false)
@@ -136,12 +145,17 @@ fun LibrarySongsScreen(
     Box(
         modifier = Modifier.fillMaxSize(),
     ) {
-        val filteredSongs = remember(wrappedSongs, hideExplicit) {
-            if (hideExplicit) {
-                wrappedSongs.filter { !it.item.song.explicit }
-            } else {
-                wrappedSongs
+        val filteredSongs = remember { mutableStateListOf<ItemWrapper<Song>>() }
+        LaunchedEffect(wrappedSongs.size, hideExplicit) {
+            val result = withContext(Dispatchers.Default) {
+                if (hideExplicit) {
+                    wrappedSongs.filter { !it.item.song.explicit }
+                } else {
+                    wrappedSongs.toList()
+                }
             }
+            filteredSongs.clear()
+            filteredSongs.addAll(result)
         }
 
         LazyColumn(
@@ -187,7 +201,7 @@ fun LibrarySongsScreen(
                                 {
                                     Icon(
                                         imageVector = Icons.Filled.Done,
-                                        contentDescription = "Selected",
+                                        contentDescription = stringResource(R.string.selected_content_desc),
                                         modifier = Modifier.size(FilterChipDefaults.IconSize),
                                     )
                                 }
@@ -344,7 +358,9 @@ fun LibrarySongsScreen(
                                         )
                                     }
                                 },
-                                isSelected = songWrapper.isSelected && selection,
+                                isSelected = songWrapper.isSelected,
+                                inSelectionMode = selection,
+                                onSelectionChange = { songWrapper.isSelected = it },
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .combinedClickable(

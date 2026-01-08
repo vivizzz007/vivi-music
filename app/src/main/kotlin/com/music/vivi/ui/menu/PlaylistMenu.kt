@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -74,6 +76,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 import java.time.LocalDateTime
 
@@ -110,16 +115,11 @@ fun PlaylistMenu(
         }
     }
 
-    var downloadState by remember {
-        mutableIntStateOf(Download.STATE_STOPPED)
-    }
-
-    val editable: Boolean = playlist.playlist.isEditable == true
-
-    LaunchedEffect(songs) {
-        if (songs.isEmpty()) return@LaunchedEffect
-        downloadUtil.downloads.collect { downloads ->
-            downloadState =
+    val downloadState by remember(songs) {
+        if (songs.isEmpty()) {
+            flowOf(Download.STATE_STOPPED)
+        } else {
+            downloadUtil.downloads.map { downloads ->
                 if (songs.all { downloads[it.id]?.state == Download.STATE_COMPLETED }) {
                     Download.STATE_COMPLETED
                 } else if (songs.all {
@@ -132,8 +132,11 @@ fun PlaylistMenu(
                 } else {
                     Download.STATE_STOPPED
                 }
+            }.flowOn(Dispatchers.Default)
         }
-    }
+    }.collectAsState(initial = Download.STATE_STOPPED)
+
+    val editable: Boolean = playlist.playlist.isEditable == true
 
     // State management
     var showEditDialog by remember { mutableStateOf(false) }
@@ -141,23 +144,51 @@ fun PlaylistMenu(
     var showDeletePlaylistDialog by remember { mutableStateOf(false) }
 
     // Design variables
-    val evenCornerRadiusElems = 26.dp
-    val playlistArtShape = AbsoluteSmoothCornerShape(
-        cornerRadiusTR = evenCornerRadiusElems, smoothnessAsPercentBR = 60, cornerRadiusBR = evenCornerRadiusElems,
-        smoothnessAsPercentTL = 60, cornerRadiusTL = evenCornerRadiusElems, smoothnessAsPercentBL = 60,
-        cornerRadiusBL = evenCornerRadiusElems, smoothnessAsPercentTR = 60
-    )
-    val playButtonShape = AbsoluteSmoothCornerShape(
-        cornerRadiusTR = evenCornerRadiusElems, smoothnessAsPercentBR = 60, cornerRadiusBR = evenCornerRadiusElems,
-        smoothnessAsPercentTL = 60, cornerRadiusTL = evenCornerRadiusElems, smoothnessAsPercentBL = 60,
-        cornerRadiusBL = evenCornerRadiusElems, smoothnessAsPercentTR = 60
-    )
+    val cornerRadius = remember { 24.dp }
+    val playlistArtShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+        )
+    }
+    val playButtonShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+        )
+    }
+
+    // Android 16 grouped shapes
+    val topShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
+            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
+            cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+        )
+    }
+    val middleShape = remember { RectangleShape }
+    val bottomShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
+        )
+    }
+    val singleShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+        )
+    }
 
     // Favorite state tracking
     val isFavorite = dbPlaylist?.playlist?.bookmarkedAt != null
 
     val favoriteButtonCornerRadius by animateDpAsState(
-        targetValue = if (isFavorite) evenCornerRadiusElems else 60.dp,
+        targetValue = if (isFavorite) cornerRadius else 60.dp,
         animationSpec = tween(durationMillis = 300), label = "FavoriteCornerAnimation"
     )
     val favoriteButtonContainerColor by animateColorAsState(
@@ -169,16 +200,18 @@ fun PlaylistMenu(
         animationSpec = tween(durationMillis = 300), label = "FavoriteContentColorAnimation"
     )
 
-    val favoriteButtonShape = AbsoluteSmoothCornerShape(
-        cornerRadiusTR = favoriteButtonCornerRadius,
-        smoothnessAsPercentBR = 60,
-        cornerRadiusBR = favoriteButtonCornerRadius,
-        smoothnessAsPercentTL = 60,
-        cornerRadiusTL = favoriteButtonCornerRadius,
-        smoothnessAsPercentBL = 60,
-        cornerRadiusBL = favoriteButtonCornerRadius,
-        smoothnessAsPercentTR = 60
-    )
+    val favoriteButtonShape = remember(favoriteButtonCornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTR = favoriteButtonCornerRadius,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = favoriteButtonCornerRadius,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = favoriteButtonCornerRadius,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = favoriteButtonCornerRadius,
+            smoothnessAsPercentTR = 60
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -244,13 +277,13 @@ fun PlaylistMenu(
                 icon = {
                     Icon(
                         painter = painterResource(R.drawable.play),
-                        contentDescription = "Play"
+                        contentDescription = stringResource(R.string.play_content_desc),
                     )
                 },
                 text = {
                     Text(
                         modifier = Modifier.padding(end = 10.dp),
-                        text = "Play",
+                        text = stringResource(R.string.play_text),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         softWrap = false
@@ -280,7 +313,7 @@ fun PlaylistMenu(
                         painter = painterResource(
                             if (isFavorite) R.drawable.favorite else R.drawable.favorite_border
                         ),
-                        contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
+                        contentDescription = if (isFavorite) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites),
                         tint = if (isFavorite) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -301,12 +334,12 @@ fun PlaylistMenu(
                             )
                         }
                     },
-                    shape = CircleShape
+                    shape = singleShape
                 ) {
                     Icon(
                         modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
                         painter = painterResource(R.drawable.shuffle),
-                        contentDescription = "Shuffle"
+                        contentDescription = stringResource(R.string.shuffle_content_desc),
                     )
                 }
             }
@@ -327,12 +360,12 @@ fun PlaylistMenu(
                     }
                     context.startActivity(Intent.createChooser(intent, null))
                 },
-                shape = CircleShape
+                shape = singleShape
             ) {
                 Icon(
                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
                     painter = painterResource(R.drawable.share),
-                    contentDescription = "Share playlist"
+                    contentDescription = stringResource(R.string.share_playlist_content_desc),
                 )
             }
         }
@@ -392,15 +425,15 @@ fun PlaylistMenu(
                                 else -> R.drawable.download
                             }
                         ),
-                        contentDescription = "Download"
+                        contentDescription = stringResource(R.string.action_download),
                     )
                 }
                 Spacer(Modifier.width(8.dp))
                 Text(
                     text = when (downloadState) {
-                        Download.STATE_COMPLETED -> "Remove Offline"
-                        Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> "Downloading..."
-                        else -> "Download Playlist"
+                        Download.STATE_COMPLETED -> stringResource(R.string.remove_offline)
+                        Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> stringResource(R.string.downloading_ellipsis)
+                        else -> stringResource(R.string.download_playlist_text)
                     },
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -421,7 +454,7 @@ fun PlaylistMenu(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 66.dp),
-                    shape = CircleShape,
+                    shape = topShape,
                     onClick = {
                         coroutineScope.launch(Dispatchers.IO) {
                             YouTube.playlist(browseId).getOrNull()?.playlist?.let { playlistItem ->
@@ -437,18 +470,18 @@ fun PlaylistMenu(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.radio),
-                        contentDescription = "Radio icon"
+                        contentDescription = stringResource(R.string.radio_icon_content_desc),
                     )
                     Spacer(Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            "Start Radio",
+                            stringResource(R.string.start_radio_label),
                             style = MaterialTheme.typography.bodyLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            "Play similar songs",
+                            stringResource(R.string.play_similar_songs_subtitle),
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -462,7 +495,7 @@ fun PlaylistMenu(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = middleShape,
                 onClick = {
                     coroutineScope.launch {
                         playerConnection.playNext(songs.map { it.toMediaItem() })
@@ -472,18 +505,18 @@ fun PlaylistMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.playlist_play),
-                    contentDescription = "Play next icon"
+                    contentDescription = stringResource(R.string.play_next_icon_content_desc),
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "Play Next",
+                        stringResource(R.string.play_next_label),
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        "Play after current",
+                        stringResource(R.string.play_after_current),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -496,7 +529,7 @@ fun PlaylistMenu(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = CircleShape,
+                shape = bottomShape,
                 onClick = {
                     onDismiss()
                     playerConnection.addToQueue(songs.map { it.toMediaItem() })
@@ -504,18 +537,18 @@ fun PlaylistMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.queue_music),
-                    contentDescription = "Add to queue icon"
+                    contentDescription = stringResource(R.string.add_to_queue_icon_content_desc),
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "Add to Queue",
+                        stringResource(R.string.add_to_queue_label),
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        "Add to queue end",
+                        stringResource(R.string.add_to_queue_end),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -529,25 +562,25 @@ fun PlaylistMenu(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 66.dp),
-                    shape = CircleShape,
+                    shape = singleShape,
                     onClick = {
                         showEditDialog = true
                     }
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.edit),
-                        contentDescription = "Edit icon"
+                        contentDescription = stringResource(R.string.edit_icon_content_desc),
                     )
                     Spacer(Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            "Edit Playlist",
+                            stringResource(R.string.edit_playlist_label),
                             style = MaterialTheme.typography.bodyLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            "Rename playlist",
+                            stringResource(R.string.rename_playlist),
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -581,18 +614,18 @@ fun PlaylistMenu(
                             painter = painterResource(
                                 if (isFavorite) R.drawable.favorite else R.drawable.favorite_border
                             ),
-                            contentDescription = "Favorite icon",
+                            contentDescription = stringResource(R.string.favorite_icon_content_desc),
                             tint = if (isFavorite) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                if (isFavorite) "Remove from Favorites" else "Add to Favorites",
+                                if (isFavorite) stringResource(R.string.remove_from_favorites_menu) else stringResource(R.string.add_to_favorites_menu),
                                 style = MaterialTheme.typography.bodyLarge,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
                             Text(
-                                if (isFavorite) "Remove bookmark" else "Bookmark playlist",
+                                if (isFavorite) stringResource(R.string.remove_bookmark) else stringResource(R.string.bookmark_playlist),
                                 style = MaterialTheme.typography.bodySmall,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
@@ -608,7 +641,7 @@ fun PlaylistMenu(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 66.dp),
-                    shape = CircleShape,
+                    shape = singleShape,
                     colors = ButtonDefaults.filledTonalButtonColors(
                         containerColor = MaterialTheme.colorScheme.errorContainer,
                         contentColor = MaterialTheme.colorScheme.onErrorContainer
@@ -619,18 +652,18 @@ fun PlaylistMenu(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.delete),
-                        contentDescription = "Delete icon"
+                        contentDescription = stringResource(R.string.delete_icon_content_desc),
                     )
                     Spacer(Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            "Delete Playlist",
+                            stringResource(R.string.delete_playlist_label),
                             style = MaterialTheme.typography.bodyLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            "Remove permanently",
+                            stringResource(R.string.remove_permanently),
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis

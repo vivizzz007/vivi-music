@@ -22,6 +22,7 @@ val HidePlayerThumbnailKey = booleanPreferencesKey("hidePlayerThumbnail")
 val SeekExtraSeconds = booleanPreferencesKey("seekExtraSeconds")
 
 val HideVideoSongsKey = booleanPreferencesKey("hideVideoSongs")
+val AccentColorKey = intPreferencesKey("accentColor")
 val RotatingThumbnailKey = booleanPreferencesKey("rotating_thumbnail")
 
 enum class SliderStyle {
@@ -36,6 +37,9 @@ val ContentLanguageKey = stringPreferencesKey("contentLanguage")
 val ContentCountryKey = stringPreferencesKey("contentCountry")
 val EnableKugouKey = booleanPreferencesKey("enableKugou")
 val EnableLrcLibKey = booleanPreferencesKey("enableLrclib")
+val EnableBetterLyricsKey = booleanPreferencesKey("enable_better_lyrics")
+val EnableYouTubeLyricsKey = booleanPreferencesKey("enable_youtube_lyrics")
+val EnableYouTubeSubtitleKey = booleanPreferencesKey("enable_youtube_subtitle")
 val HideExplicitKey = booleanPreferencesKey("hideExplicit")
 val ProxyEnabledKey = booleanPreferencesKey("proxyEnabled")
 val ProxyUrlKey = stringPreferencesKey("proxyUrl")
@@ -275,6 +279,7 @@ enum class QuickPicks {
 }
 
 enum class PreferredLyricsProvider {
+    BETTERLYRICS,
     LRCLIB,
     KUGOU,
 }
@@ -301,6 +306,7 @@ val SwipeGestureEnabledKey = booleanPreferencesKey("swipe_gesture_enabled")
 //new update notification
 val CheckForUpdatesKey = booleanPreferencesKey("check_for_updates")
 val UpdateNotificationsEnabledKey = booleanPreferencesKey("update_notifications_enabled")
+val ShowNewsIconKey = booleanPreferencesKey("show_news_icon")
 
 val UpdateCheckIntervalKey = intPreferencesKey("update_check_interval")
 
@@ -313,10 +319,12 @@ val PlayerButtonsStyleKey = stringPreferencesKey("player_buttons_style")
 val PlayerBackgroundStyleKey = stringPreferencesKey("playerBackgroundStyle")
 val ShowLyricsKey = booleanPreferencesKey("showLyrics")
 val LyricsTextPositionKey = stringPreferencesKey("lyricsTextPosition")
+val LyricsVerticalPositionKey = stringPreferencesKey("lyricsVerticalPosition")
 val LyricsClickKey = booleanPreferencesKey("lyricsClick")
 val LyricsScrollKey = booleanPreferencesKey("lyricsScrollKey")
 val LyricsRomanizeJapaneseKey = booleanPreferencesKey("lyricsRomanizeJapanese")
 val LyricsRomanizeKoreanKey = booleanPreferencesKey("lyricsRomanizeKorean")
+val LyricsRomanizeDevanagariKey = booleanPreferencesKey("lyricsRomanizeDevanagari")
 val LyricsRomanizeRussianKey = booleanPreferencesKey("lyricsRomanizeRussian")
 val LyricsRomanizeUkrainianKey = booleanPreferencesKey("lyricsRomanizeUkrainian")
 val LyricsRomanizeSerbianKey = booleanPreferencesKey("lyricsRomanizeSerbian")
