@@ -29,7 +29,7 @@ import com.music.vivi.ui.screens.settings.AboutScreen
 import com.music.vivi.ui.screens.settings.AppearanceSettings
 import com.music.vivi.ui.screens.settings.BackupAndRestore
 import com.music.vivi.ui.screens.settings.ContentSettings
-import com.music.vivi.ui.screens.settings.integrations.DiscordLoginScreen
+//import com.music.vivi.ui.screens.settings.integrations.DiscordLoginScreen
 import com.music.vivi.ui.screens.settings.integrations.DiscordSettings
 import com.music.vivi.ui.screens.settings.integrations.IntegrationScreen
 import com.music.vivi.ui.screens.settings.integrations.LastFMSettings
@@ -42,6 +42,7 @@ import com.music.vivi.update.account.FunAccountViviSetting
 import com.music.vivi.update.betaupdate.ViviDpiSettings
 import com.music.vivi.update.changelog.ChangelogScreen
 import com.music.vivi.ui.screens.NewsScreen
+import com.music.vivi.ui.screens.settings.DiscordLoginScreen
 import com.music.vivi.update.contribution.ContributionScreen
 import com.music.vivi.update.experiment.ExperimentalSettingsScreen
 import com.music.vivi.update.updatenotification.UpdateInfoScreen
