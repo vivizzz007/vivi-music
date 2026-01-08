@@ -820,19 +820,23 @@ class MainActivity : ComponentActivity() {
                                                 )
                                             },
                                             actions = {
+                                            val (showNewsIcon) = rememberPreference(com.music.vivi.constants.ShowNewsIconKey, true)
+                                            val isUpdateAvailable = updateStatus is UpdateStatus.UpdateAvailable
+
+                                            if (isUpdateAvailable || showNewsIcon) {
                                                 IconButton(onClick = {
-                                                    if (updateStatus is UpdateStatus.UpdateAvailable) {
+                                                    if (isUpdateAvailable) {
                                                         navController.navigate("settings/update")
                                                     } else {
-                                                        navController.navigate("settings/changelog")
+                                                        navController.navigate("news")
                                                     }
                                                 }) {
                                                     Crossfade(
-                                                        targetState = updateStatus is UpdateStatus.UpdateAvailable,
+                                                        targetState = isUpdateAvailable,
                                                         animationSpec = tween(300),
                                                         label = "icon_crossfade"
-                                                    ) { isUpdateAvailable ->
-                                                        if (isUpdateAvailable) {
+                                                    ) { updateAvailable ->
+                                                        if (updateAvailable) {
                                                             Icon(
                                                                 painter = painterResource(id = R.drawable.rocket_new_update),
                                                                 contentDescription = stringResource(R.string.update_available),
@@ -848,6 +852,7 @@ class MainActivity : ComponentActivity() {
                                                         }
                                                     }
                                                 }
+                                            }
 
                                                 IconButton(onClick = { navController.navigate("history") }) {
                                                     Icon(
