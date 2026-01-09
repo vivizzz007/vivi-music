@@ -21,6 +21,16 @@
         {
             "subtitle": "Section 3: What This Means for You",
             "content": "With live updates, you'll always have access to the latest features and improvements without waiting for app store updates. Stay tuned for exciting new content and enhancements coming your way!"
+        },
+        {
+            "subtitle": "How to Activate",
+            "image": "https://github.com/vivizzz007/vivi-music/blob/main/news/newsimage/4.png?raw=true",
+            "content": "You can easily enable this feature by navigating to Player Settings. Look for the 'Live Media' option and simply toggle it on to start receiving real-time updates."
+        },
+        {
+            "subtitle": "LiveMedia Menu",
+            "image": "https://github.com/vivizzz007/vivi-music/blob/main/news/newsimage/3.png?raw=true",
+            "content": "Once enabled, you can access the dedicated LiveMedia menu to manage your settings. This new menu provides a centralized place for all your live update preferences."
         }
     ]
 }
