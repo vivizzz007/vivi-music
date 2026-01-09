@@ -14,24 +14,35 @@ class QSStateListenerService : AccessibilityService() {
 
         val windows = windows
         var isQsOpen = false
+        
+        val displayMetrics = resources.displayMetrics
+        val screenWidth = displayMetrics.widthPixels
+        val screenHeight = displayMetrics.heightPixels
 
         for (window in windows) {
-            if (window.root == null) continue
-            val pkgName = window.root?.packageName?.toString()
+            val root = window.root
+            if (root == null) continue
+            
+            val pkgName = root.packageName?.toString()
             if (pkgName == SYSTEM_UI_PACKAGE) {
-                val displayMetrics = resources.displayMetrics
-                val screenHeight = displayMetrics.heightPixels
-
                 val outBounds = android.graphics.Rect()
                 window.getBoundsInScreen(outBounds)
 
+                val windowWidth = outBounds.width()
                 val windowHeight = outBounds.height()
+                val windowTop = outBounds.top
 
-                if (windowHeight > screenHeight / 2) {
+                // Improved heuristic for Notification Shade / QS:
+                // 1. Must be full width
+                // 2. Must start from the top of the screen (y=0)
+                // 3. Must exceed half the screen height
+                if (windowWidth >= screenWidth && windowTop == 0 && windowHeight > screenHeight / 2) {
                     isQsOpen = true
+                    root.recycle()
+                    break
                 }
-                break
             }
+            root.recycle()
         }
 
         if (isQsOpen) {
