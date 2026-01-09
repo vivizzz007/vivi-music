@@ -28,12 +28,13 @@ fun MusicTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     pureBlack: Boolean = false,
     themeColor: Color = DefaultThemeColor,
+    enableDynamicTheme: Boolean = true,
     overrideColorScheme: ColorScheme? = null,
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
     // Determine if system dynamic colors should be used (Android S+ and default theme color)
-    val useSystemDynamicColor = (themeColor == DefaultThemeColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+    val useSystemDynamicColor = (enableDynamicTheme && themeColor == DefaultThemeColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
 
     // Select the appropriate color scheme generation method
     val baseColorScheme = if (overrideColorScheme != null) {
