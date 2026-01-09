@@ -43,6 +43,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -167,11 +168,20 @@ import kotlinx.coroutines.withContext
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import java.time.LocalDateTime
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.FilledIconToggleButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.SplitButtonLayout
+import androidx.compose.material3.SplitButtonDefaults
+import androidx.compose.material3.IconToggleButton
+import androidx.compose.ui.text.style.TextOverflow
 
 @SuppressLint("RememberReturnType")
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class,
-    ExperimentalMaterial3ExpressiveApi::class
-)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun LocalPlaylistScreen(
     navController: NavController,
@@ -619,24 +629,51 @@ fun LocalPlaylistScreen(
 
                                 Text(
                                     text = buildString {
-                                        append(stringResource(R.string.playlist_text))
-                                        append(stringResource(R.string.playlist_separator))
-                                        if (playlist.songCount == 0 && playlist.playlist.remoteSongCount != null) {
-                                            append("${playlist.playlist.remoteSongCount} Tracks")
+                                        val trackCount = if (playlist.songCount == 0 && playlist.playlist.remoteSongCount != null) {
+                                            playlist.playlist.remoteSongCount ?: 0
                                         } else {
-                                            append("${playlist.songCount} Tracks")
+                                            playlist.songCount
                                         }
+
                                         val hours = playlistLength / 3600
                                         val minutes = (playlistLength % 3600) / 60
-                                        if (hours > 0) {
-                                            append(" • ${hours}h ${minutes}m")
-                                        } else {
-                                            append(" • ${minutes}m")
+
+                                        // Build longer descriptive sentence
+                                        append(stringResource(R.string.playlist_description_start))
+                                        append(" ")
+                                        append(pluralStringResource(R.plurals.n_song, trackCount, trackCount))
+                                        append(". ")
+
+                                        if (hours > 0 && minutes > 0) {
+                                            append(stringResource(R.string.playlist_duration_description))
+                                            append(" $hours ")
+                                            append(if (hours > 1) stringResource(R.string.hours) else stringResource(R.string.hour))
+                                            append(" ")
+                                            append(stringResource(R.string.and))
+                                            append(" $minutes ")
+                                            append(if (minutes > 1) stringResource(R.string.minutes) else stringResource(R.string.minute))
+                                            append(" ")
+                                            append(stringResource(R.string.of_music))
+                                        } else if (hours > 0) {
+                                            append(stringResource(R.string.playlist_duration_description))
+                                            append(" $hours ")
+                                            append(if (hours > 1) stringResource(R.string.hours) else stringResource(R.string.hour))
+                                            append(" ")
+                                            append(stringResource(R.string.of_music))
+                                        } else if (minutes > 0) {
+                                            append(stringResource(R.string.playlist_duration_description))
+                                            append(" $minutes ")
+                                            append(if (minutes > 1) stringResource(R.string.minutes) else stringResource(R.string.minute))
+                                            append(" ")
+                                            append(stringResource(R.string.of_music))
                                         }
+
+                                        append(". ")
+                                        append(stringResource(R.string.playlist_enjoy_message))
                                     },
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    textAlign = TextAlign.Center,
+                                    textAlign = TextAlign.Start,
                                     modifier = Modifier.padding(horizontal = 32.dp)
                                 )
 
@@ -852,38 +889,154 @@ fun LocalPlaylistScreen(
                     }
 
                     item(key = "controls_row") {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .padding(start = 16.dp),
-                        ) {
-                            SortHeader(
-                                sortType = sortType,
-                                sortDescending = sortDescending,
-                                onSortTypeChange = onSortTypeChange,
-                                onSortDescendingChange = onSortDescendingChange,
-                                sortTypeText = { sortType ->
-                                    when (sortType) {
-                                        PlaylistSongSortType.CUSTOM -> R.string.sort_by_custom
-                                        PlaylistSongSortType.CREATE_DATE -> R.string.sort_by_create_date
-                                        PlaylistSongSortType.NAME -> R.string.sort_by_name
-                                        PlaylistSongSortType.ARTIST -> R.string.sort_by_artist
-                                        PlaylistSongSortType.PLAY_TIME -> R.string.sort_by_play_time
+                        var dropdownExpanded by remember { mutableStateOf(false) }
+
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                            ) {
+                                // Split Button on the left with fixed width
+                                SplitButtonLayout(
+                                    leadingButton = {
+                                        SplitButtonDefaults.LeadingButton(
+                                            onClick = { /* Current sort action */ },
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                            ),
+                                            modifier = Modifier.width(140.dp) // Fixed width
+                                        ) {
+                                            Text(
+                                                text = stringResource(
+                                                    when (sortType) {
+                                                        PlaylistSongSortType.CUSTOM -> R.string.sort_by_custom
+                                                        PlaylistSongSortType.CREATE_DATE -> R.string.sort_by_create_date
+                                                        PlaylistSongSortType.NAME -> R.string.sort_by_name
+                                                        PlaylistSongSortType.ARTIST -> R.string.sort_by_artist
+                                                        PlaylistSongSortType.PLAY_TIME -> R.string.sort_by_play_time
+                                                    }
+                                                ),
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        }
+                                    },
+                                    trailingButton = {
+                                        SplitButtonDefaults.TrailingButton(
+                                            checked = dropdownExpanded,
+                                            onCheckedChange = { dropdownExpanded = it },
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                            ),
+                                            modifier = Modifier.semantics {
+                                                stateDescription = if (dropdownExpanded) "Expanded" else "Collapsed"
+                                            }
+                                        ) {
+                                            val rotation: Float by animateFloatAsState(
+                                                targetValue = if (dropdownExpanded) 180f else 0f,
+                                                label = "Dropdown Arrow Rotation"
+                                            )
+                                            Icon(
+                                                painter = painterResource(R.drawable.arrow_downward),
+                                                modifier = Modifier
+                                                    .size(SplitButtonDefaults.TrailingIconSize)
+                                                    .graphicsLayer { rotationZ = rotation },
+                                                contentDescription = null
+                                            )
+                                        }
                                     }
-                                },
-                                modifier = Modifier.weight(1f),
-                            )
-                            if (editable) {
-                                IconButton(
-                                    onClick = { locked = !locked },
-                                    modifier = Modifier.padding(horizontal = 6.dp),
+                                )
+
+                                DropdownMenu(
+                                    expanded = dropdownExpanded,
+                                    onDismissRequest = { dropdownExpanded = false }
                                 ) {
-                                    Icon(
-                                        painter = painterResource(if (locked) R.drawable.lock else R.drawable.lock_open),
-                                        contentDescription = null,
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.sort_by_custom)) },
+                                        onClick = {
+                                            onSortTypeChange(PlaylistSongSortType.CUSTOM)
+                                            dropdownExpanded = false
+                                        },
+                                        leadingIcon = if (sortType == PlaylistSongSortType.CUSTOM) {
+                                            { Icon(painterResource(R.drawable.check), contentDescription = null) }
+                                        } else null
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.sort_by_create_date)) },
+                                        onClick = {
+                                            onSortTypeChange(PlaylistSongSortType.CREATE_DATE)
+                                            dropdownExpanded = false
+                                        },
+                                        leadingIcon = if (sortType == PlaylistSongSortType.CREATE_DATE) {
+                                            { Icon(painterResource(R.drawable.check), contentDescription = null) }
+                                        } else null
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.sort_by_name)) },
+                                        onClick = {
+                                            onSortTypeChange(PlaylistSongSortType.NAME)
+                                            dropdownExpanded = false
+                                        },
+                                        leadingIcon = if (sortType == PlaylistSongSortType.NAME) {
+                                            { Icon(painterResource(R.drawable.check), contentDescription = null) }
+                                        } else null
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.sort_by_artist)) },
+                                        onClick = {
+                                            onSortTypeChange(PlaylistSongSortType.ARTIST)
+                                            dropdownExpanded = false
+                                        },
+                                        leadingIcon = if (sortType == PlaylistSongSortType.ARTIST) {
+                                            { Icon(painterResource(R.drawable.check), contentDescription = null) }
+                                        } else null
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.sort_by_play_time)) },
+                                        onClick = {
+                                            onSortTypeChange(PlaylistSongSortType.PLAY_TIME)
+                                            dropdownExpanded = false
+                                        },
+                                        leadingIcon = if (sortType == PlaylistSongSortType.PLAY_TIME) {
+                                            { Icon(painterResource(R.drawable.check), contentDescription = null) }
+                                        } else null
                                     )
                                 }
+                                // Animated Lock toggle button on the right
+
+                                if (editable) {
+                                    FilledIconToggleButton(
+                                        checked = locked,
+                                        onCheckedChange = { locked = it },
+                                        colors = IconButtonDefaults.filledIconToggleButtonColors(
+                                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                            checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                    ) {
+                                        if (locked) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.lock),
+                                                contentDescription = "Locked"
+                                            )
+                                        } else {
+                                            Icon(
+                                                painter = painterResource(R.drawable.lock_open),
+                                                contentDescription = "Unlocked"
+                                            )
+                                        }
+                                    }
+                                }
                             }
+
+                            // Space between filter and song list
+                            Spacer(Modifier.height(8.dp))
                         }
                     }
 

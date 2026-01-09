@@ -183,7 +183,7 @@
     <string name="release_notes">Release notes</string>
 
     <string name="all_time">All time</string>
-    <string name="past_24_hours">Past 24 hours</string>
+    <string name="past_24_hours">24 hours</string>
     <string name="past_week">Past week</string>
     <string name="past_month">Past month</string>
     <string name="past_year">Past year</string>
@@ -1079,4 +1079,16 @@
     <string name="view_artist_details">View artist details</string>
     <string name="show_album_label">Go to album</string>
     <string name="show_artist_label">Go to artist</string>
+
+<!--localplaylist-->
+    <string name="playlist_description_start">This carefully created playlist features</string>
+    <string name="playlist_duration_description">Experience a total of</string>
+    <string name="hour">hour</string>
+    <string name="hours">hours</string>
+    <string name="minute">minute</string>
+    <string name="minutes">minutes</string>
+    <string name="and">and</string>
+    <string name="of_music">of music</string>
+    <string name="playlist_enjoy_message">Enjoy your listening experience</string>
+
 </resources>
