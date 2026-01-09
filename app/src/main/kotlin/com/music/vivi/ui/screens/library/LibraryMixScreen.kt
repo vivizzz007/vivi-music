@@ -80,8 +80,30 @@ import java.text.Collator
 import java.time.LocalDateTime
 import java.util.Locale
 import java.util.UUID
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SplitButtonDefaults
+import androidx.compose.material3.SplitButtonLayout
+import androidx.compose.material3.Text
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.ToggleButton
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.material3.ToggleButtonDefaults
+import androidx.compose.ui.semantics.semantics
 
-@OptIn(ExperimentalFoundationApi::class)
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun LibraryMixScreen(
     navController: NavController,
@@ -230,42 +252,134 @@ fun LibraryMixScreen(
     }
 
     val headerContent = @Composable {
+        var dropdownExpanded by remember { mutableStateOf(false) }
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(start = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
-            SortHeader(
-                sortType = sortType,
-                sortDescending = sortDescending,
-                onSortTypeChange = onSortTypeChange,
-                onSortDescendingChange = onSortDescendingChange,
-                sortTypeText = { sortType ->
-                    when (sortType) {
-                        MixSortType.CREATE_DATE -> R.string.sort_by_create_date
-                        MixSortType.LAST_UPDATED -> R.string.sort_by_last_updated
-                        MixSortType.NAME -> R.string.sort_by_name
+            // Split Button on the left
+            SplitButtonLayout(
+                leadingButton = {
+                    SplitButtonDefaults.LeadingButton(
+                        onClick = { dropdownExpanded = true },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        ),
+                        modifier = Modifier.width(150.dp)
+                    ) {
+                        Text(
+                            text = stringResource(
+                                when (sortType) {
+                                    MixSortType.CREATE_DATE -> R.string.sort_by_create_date
+                                    MixSortType.LAST_UPDATED -> R.string.sort_by_last_updated
+                                    MixSortType.NAME -> R.string.sort_by_name
+                                }
+                            ),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     }
                 },
+                trailingButton = {
+                    SplitButtonDefaults.TrailingButton(
+                        checked = sortDescending,
+                        onCheckedChange = { onSortDescendingChange(!sortDescending) },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    ) {
+                        Icon(
+                            painter = painterResource(
+                                if (sortDescending) R.drawable.arrow_downward
+                                else R.drawable.arrow_upward
+                            ),
+                            modifier = Modifier.size(SplitButtonDefaults.TrailingIconSize),
+                            contentDescription = null
+                        )
+                    }
+                }
             )
 
-            Spacer(Modifier.weight(1f))
-
-            IconButton(
-                onClick = {
-                    viewType = viewType.toggle()
-                },
-                modifier = Modifier.padding(start = 6.dp, end = 6.dp),
+            DropdownMenu(
+                expanded = dropdownExpanded,
+                onDismissRequest = { dropdownExpanded = false }
             ) {
-                Icon(
-                    painter =
-                    painterResource(
-                        when (viewType) {
-                            LibraryViewType.LIST -> R.drawable.list
-                            LibraryViewType.GRID -> R.drawable.grid_view
-                        },
-                    ),
-                    contentDescription = null,
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.sort_by_create_date)) },
+                    onClick = {
+                        onSortTypeChange(MixSortType.CREATE_DATE)
+                        dropdownExpanded = false
+                    },
+                    leadingIcon = if (sortType == MixSortType.CREATE_DATE) {
+                        { Icon(painterResource(R.drawable.check), contentDescription = null) }
+                    } else null
                 )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.sort_by_last_updated)) },
+                    onClick = {
+                        onSortTypeChange(MixSortType.LAST_UPDATED)
+                        dropdownExpanded = false
+                    },
+                    leadingIcon = if (sortType == MixSortType.LAST_UPDATED) {
+                        { Icon(painterResource(R.drawable.check), contentDescription = null) }
+                    } else null
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.sort_by_name)) },
+                    onClick = {
+                        onSortTypeChange(MixSortType.NAME)
+                        dropdownExpanded = false
+                    },
+                    leadingIcon = if (sortType == MixSortType.NAME) {
+                        { Icon(painterResource(R.drawable.check), contentDescription = null) }
+                    } else null
+                )
+            }
+
+            // Connected toggle buttons for view type on the right
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
+            ) {
+                // List view button
+                ToggleButton(
+                    checked = viewType == LibraryViewType.LIST,
+                    onCheckedChange = { viewType = LibraryViewType.LIST },
+                    shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
+                    colors = ToggleButtonDefaults.toggleButtonColors(
+                        checkedContainerColor = MaterialTheme.colorScheme.primary,
+                        checkedContentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    modifier = Modifier.semantics { role = Role.RadioButton }
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.list),
+                        contentDescription = "List View",
+                        modifier = Modifier.size(ToggleButtonDefaults.IconSize)
+                    )
+                }
+                // Grid view button
+                ToggleButton(
+                    checked = viewType == LibraryViewType.GRID,
+                    onCheckedChange = { viewType = LibraryViewType.GRID },
+                    shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
+                    colors = ToggleButtonDefaults.toggleButtonColors(
+                        checkedContainerColor = MaterialTheme.colorScheme.primary,
+                        checkedContentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    modifier = Modifier.semantics { role = Role.RadioButton }
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.grid_view),
+                        contentDescription = "Grid View",
+                        modifier = Modifier.size(ToggleButtonDefaults.IconSize)
+                    )
+                }
             }
         }
     }
