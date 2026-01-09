@@ -34,6 +34,7 @@ import com.music.vivi.ui.screens.settings.integrations.DiscordSettings
 import com.music.vivi.ui.screens.settings.integrations.IntegrationScreen
 import com.music.vivi.ui.screens.settings.integrations.LastFMSettings
 import com.music.vivi.ui.screens.settings.PlayerSettings
+import com.music.vivi.ui.screens.settings.LiveMedia
 import com.music.vivi.ui.screens.settings.PrivacySettings
 import com.music.vivi.ui.screens.settings.RomanizationSettings
 import com.music.vivi.ui.screens.settings.SettingsScreen
@@ -274,6 +275,9 @@ fun NavGraphBuilder.navigationBuilder(
     }
     composable("settings/player") {
         PlayerSettings(navController, scrollBehavior)
+    }
+    composable("settings/player/live_media") {
+        LiveMedia(navController, scrollBehavior)
     }
     composable("settings/storage") {
         StorageSettings(navController, scrollBehavior)
