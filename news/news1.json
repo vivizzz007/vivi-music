@@ -24,13 +24,13 @@
         },
         {
             "subtitle": "How to Activate",
-            "image": "https://github.com/vivizzz007/vivi-music/blob/main/news/newsimage/4.png?raw=true",
-            "content": "You can easily enable this feature by navigating to Player Settings. Look for the 'Live Media' option and simply toggle it on to start receiving real-time updates."
+            "content": "You can easily enable this feature by navigating to Player Settings. Look for the 'Live Media' option and simply toggle it on to start receiving real-time updates.",
+            "image": "https://github.com/vivizzz007/vivi-music/blob/main/news/newsimage/4.png?raw=true"
         },
         {
             "subtitle": "LiveMedia Menu",
-            "image": "https://github.com/vivizzz007/vivi-music/blob/main/news/newsimage/3.png?raw=true",
-            "content": "Once enabled, you can access the dedicated LiveMedia menu to manage your settings. This new menu provides a centralized place for all your live update preferences."
+            "content": "Once enabled, you can access the dedicated LiveMedia menu to manage your settings. This new menu provides a centralized place for all your live update preferences.",
+            "image": "https://github.com/vivizzz007/vivi-music/blob/main/news/newsimage/3.png?raw=true"
         }
     ]
 }
