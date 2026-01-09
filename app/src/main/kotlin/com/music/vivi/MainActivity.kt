@@ -409,7 +409,7 @@ class MainActivity : ComponentActivity() {
                 if (enableDynamicTheme && themeColor == DefaultThemeColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                      // System colors are fast, can be done on main (context required)
                      generatedColorScheme = if (useDarkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-                } else {
+                } else if (!enableDynamicTheme || themeColor != DefaultThemeColor) {
                     // MaterialKolor generation is expensive, offload to background
                     withContext(Dispatchers.Default) {
                         try {
@@ -468,6 +468,7 @@ class MainActivity : ComponentActivity() {
                 darkTheme = useDarkTheme,
                 pureBlack = pureBlack,
                 themeColor = themeColor,
+                enableDynamicTheme = enableDynamicTheme,
                 overrideColorScheme = generatedColorScheme,
             ) {
                 BoxWithConstraints(

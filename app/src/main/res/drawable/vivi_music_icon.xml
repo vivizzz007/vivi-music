@@ -1,0 +1,23 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24.0"
+    android:viewportHeight="24.0"
+    android:tint="@android:color/white">
+
+    <!-- Thick Outer Ring (Radius 11 and 9) -->
+    <path
+        android:fillColor="@android:color/white"
+        android:fillType="evenOdd"
+        android:pathData="M12,1c-6.08,0 -11,4.92 -11,11s4.92,11,11,11s11,-4.92,11,-11S18.08,1,12,1z
+        M12,3c4.97,0 9,4.03 9,9s-4.03,9 -9,9s-9,-4.03 -9,-9S7.03,3,12,3z" />
+
+    <!-- Library Music Icon (Centered) -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M14.4,8.4v1.2h-1.2v3c0,0.66 -0.54,1.2 -1.2,1.2s-1.2,-0.54 -1.2,-1.2s0.54,-1.2 1.2,-1.2c0.22,0 0.42,0.06 0.6,0.17V8.4h0.6z" />
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M15.6,16.8H7.2V8.4H6.6v9h9v-0.6z M17.4,6.6H8.4v9h9V6.6z M9,7.2h7.8v7.8H9V7.2z" />
+
+</vector>

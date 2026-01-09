@@ -57,10 +57,12 @@ class NewsViewModel @Inject constructor(
                 for (i in 0 until filesArray.length()) {
                     val fileObj = filesArray.getJSONObject(i)
                     val name = fileObj.getString("name")
-                    val downloadUrl = fileObj.getString("download_url")
+                    val type = fileObj.optString("type")
 
-                    if (name.endsWith(".json", ignoreCase = true)) {
+                    // Only process files that end with .json
+                    if (type == "file" && name.endsWith(".json", ignoreCase = true)) {
                         try {
+                            val downloadUrl = fileObj.getString("download_url")
                             // Raw files can be fetched freshly (using timestamp) or cached.
                             // Since we only fetch them if the folder listing changed (or we refreshed), 
                             // we can keep using force-refresh for individual files to ensure immediate updates if the main listing refreshed.
