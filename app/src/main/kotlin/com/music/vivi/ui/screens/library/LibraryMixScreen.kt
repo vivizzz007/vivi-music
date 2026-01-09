@@ -3,6 +3,7 @@ package com.music.vivi.ui.screens.library
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -80,26 +82,16 @@ import java.text.Collator
 import java.time.LocalDateTime
 import java.util.Locale
 import java.util.UUID
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SplitButtonDefaults
-import androidx.compose.material3.SplitButtonLayout
-import androidx.compose.material3.Text
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ToggleButton
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.material3.ToggleButtonDefaults
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.semantics.semantics
 
 
@@ -261,86 +253,19 @@ fun LibraryMixScreen(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
-            // Split Button on the left
-            SplitButtonLayout(
-                leadingButton = {
-                    SplitButtonDefaults.LeadingButton(
-                        onClick = { dropdownExpanded = true },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        ),
-                        modifier = Modifier.width(150.dp)
-                    ) {
-                        Text(
-                            text = stringResource(
-                                when (sortType) {
-                                    MixSortType.CREATE_DATE -> R.string.sort_by_create_date
-                                    MixSortType.LAST_UPDATED -> R.string.sort_by_last_updated
-                                    MixSortType.NAME -> R.string.sort_by_name
-                                }
-                            ),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                },
-                trailingButton = {
-                    SplitButtonDefaults.TrailingButton(
-                        checked = sortDescending,
-                        onCheckedChange = { onSortDescendingChange(!sortDescending) },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    ) {
-                        Icon(
-                            painter = painterResource(
-                                if (sortDescending) R.drawable.arrow_downward
-                                else R.drawable.arrow_upward
-                            ),
-                            modifier = Modifier.size(SplitButtonDefaults.TrailingIconSize),
-                            contentDescription = null
-                        )
+            SortHeader(
+                sortType = sortType,
+                sortDescending = sortDescending,
+                onSortTypeChange = onSortTypeChange,
+                onSortDescendingChange = onSortDescendingChange,
+                sortTypeText = { type ->
+                    when (type) {
+                        MixSortType.CREATE_DATE -> R.string.sort_by_create_date
+                        MixSortType.LAST_UPDATED -> R.string.sort_by_last_updated
+                        MixSortType.NAME -> R.string.sort_by_name
                     }
                 }
             )
-
-            DropdownMenu(
-                expanded = dropdownExpanded,
-                onDismissRequest = { dropdownExpanded = false }
-            ) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.sort_by_create_date)) },
-                    onClick = {
-                        onSortTypeChange(MixSortType.CREATE_DATE)
-                        dropdownExpanded = false
-                    },
-                    leadingIcon = if (sortType == MixSortType.CREATE_DATE) {
-                        { Icon(painterResource(R.drawable.check), contentDescription = null) }
-                    } else null
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.sort_by_last_updated)) },
-                    onClick = {
-                        onSortTypeChange(MixSortType.LAST_UPDATED)
-                        dropdownExpanded = false
-                    },
-                    leadingIcon = if (sortType == MixSortType.LAST_UPDATED) {
-                        { Icon(painterResource(R.drawable.check), contentDescription = null) }
-                    } else null
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.sort_by_name)) },
-                    onClick = {
-                        onSortTypeChange(MixSortType.NAME)
-                        dropdownExpanded = false
-                    },
-                    leadingIcon = if (sortType == MixSortType.NAME) {
-                        { Icon(painterResource(R.drawable.check), contentDescription = null) }
-                    } else null
-                )
-            }
 
             // Connected toggle buttons for view type on the right
             Row(

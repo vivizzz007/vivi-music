@@ -171,12 +171,8 @@ import java.time.LocalDateTime
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.stateDescription
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.FilledIconToggleButton
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.SplitButtonLayout
-import androidx.compose.material3.SplitButtonDefaults
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.ui.text.style.TextOverflow
 
@@ -889,8 +885,6 @@ fun LocalPlaylistScreen(
                     }
 
                     item(key = "controls_row") {
-                        var dropdownExpanded by remember { mutableStateOf(false) }
-
                         Column(modifier = Modifier.fillMaxWidth()) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
@@ -899,114 +893,21 @@ fun LocalPlaylistScreen(
                                     .fillMaxWidth()
                                     .padding(horizontal = 16.dp, vertical = 8.dp),
                             ) {
-                                // Split Button on the left with fixed width
-                                SplitButtonLayout(
-                                    leadingButton = {
-                                        SplitButtonDefaults.LeadingButton(
-                                            onClick = { /* Current sort action */ },
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                            ),
-                                            modifier = Modifier.width(140.dp) // Fixed width
-                                        ) {
-                                            Text(
-                                                text = stringResource(
-                                                    when (sortType) {
-                                                        PlaylistSongSortType.CUSTOM -> R.string.sort_by_custom
-                                                        PlaylistSongSortType.CREATE_DATE -> R.string.sort_by_create_date
-                                                        PlaylistSongSortType.NAME -> R.string.sort_by_name
-                                                        PlaylistSongSortType.ARTIST -> R.string.sort_by_artist
-                                                        PlaylistSongSortType.PLAY_TIME -> R.string.sort_by_play_time
-                                                    }
-                                                ),
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis
-                                            )
-                                        }
-                                    },
-                                    trailingButton = {
-                                        SplitButtonDefaults.TrailingButton(
-                                            checked = dropdownExpanded,
-                                            onCheckedChange = { dropdownExpanded = it },
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                            ),
-                                            modifier = Modifier.semantics {
-                                                stateDescription = if (dropdownExpanded) "Expanded" else "Collapsed"
-                                            }
-                                        ) {
-                                            val rotation: Float by animateFloatAsState(
-                                                targetValue = if (dropdownExpanded) 180f else 0f,
-                                                label = "Dropdown Arrow Rotation"
-                                            )
-                                            Icon(
-                                                painter = painterResource(R.drawable.arrow_downward),
-                                                modifier = Modifier
-                                                    .size(SplitButtonDefaults.TrailingIconSize)
-                                                    .graphicsLayer { rotationZ = rotation },
-                                                contentDescription = null
-                                            )
+                                SortHeader(
+                                    sortType = sortType,
+                                    sortDescending = sortDescending,
+                                    onSortTypeChange = onSortTypeChange,
+                                    onSortDescendingChange = onSortDescendingChange,
+                                    sortTypeText = { type ->
+                                        when (type) {
+                                            PlaylistSongSortType.CUSTOM -> R.string.sort_by_custom
+                                            PlaylistSongSortType.CREATE_DATE -> R.string.sort_by_create_date
+                                            PlaylistSongSortType.NAME -> R.string.sort_by_name
+                                            PlaylistSongSortType.ARTIST -> R.string.sort_by_artist
+                                            PlaylistSongSortType.PLAY_TIME -> R.string.sort_by_play_time
                                         }
                                     }
                                 )
-
-                                DropdownMenu(
-                                    expanded = dropdownExpanded,
-                                    onDismissRequest = { dropdownExpanded = false }
-                                ) {
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.sort_by_custom)) },
-                                        onClick = {
-                                            onSortTypeChange(PlaylistSongSortType.CUSTOM)
-                                            dropdownExpanded = false
-                                        },
-                                        leadingIcon = if (sortType == PlaylistSongSortType.CUSTOM) {
-                                            { Icon(painterResource(R.drawable.check), contentDescription = null) }
-                                        } else null
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.sort_by_create_date)) },
-                                        onClick = {
-                                            onSortTypeChange(PlaylistSongSortType.CREATE_DATE)
-                                            dropdownExpanded = false
-                                        },
-                                        leadingIcon = if (sortType == PlaylistSongSortType.CREATE_DATE) {
-                                            { Icon(painterResource(R.drawable.check), contentDescription = null) }
-                                        } else null
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.sort_by_name)) },
-                                        onClick = {
-                                            onSortTypeChange(PlaylistSongSortType.NAME)
-                                            dropdownExpanded = false
-                                        },
-                                        leadingIcon = if (sortType == PlaylistSongSortType.NAME) {
-                                            { Icon(painterResource(R.drawable.check), contentDescription = null) }
-                                        } else null
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.sort_by_artist)) },
-                                        onClick = {
-                                            onSortTypeChange(PlaylistSongSortType.ARTIST)
-                                            dropdownExpanded = false
-                                        },
-                                        leadingIcon = if (sortType == PlaylistSongSortType.ARTIST) {
-                                            { Icon(painterResource(R.drawable.check), contentDescription = null) }
-                                        } else null
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.sort_by_play_time)) },
-                                        onClick = {
-                                            onSortTypeChange(PlaylistSongSortType.PLAY_TIME)
-                                            dropdownExpanded = false
-                                        },
-                                        leadingIcon = if (sortType == PlaylistSongSortType.PLAY_TIME) {
-                                            { Icon(painterResource(R.drawable.check), contentDescription = null) }
-                                        } else null
-                                    )
-                                }
                                 // Animated Lock toggle button on the right
 
                                 if (editable) {

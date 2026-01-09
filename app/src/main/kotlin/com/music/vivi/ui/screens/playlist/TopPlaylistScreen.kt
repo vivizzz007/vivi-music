@@ -2,7 +2,6 @@ package com.music.vivi.ui.screens.playlist
 
 import android.content.Intent
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -31,15 +30,12 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SplitButtonDefaults
-import androidx.compose.material3.SplitButtonLayout
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -66,7 +62,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -78,7 +73,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
@@ -709,8 +703,6 @@ fun TopPlaylistScreen(
 //                        }
 
                         item(key = "songs_header") {
-                            var dropdownExpanded by remember { mutableStateOf(false) }
-
                             Column(modifier = Modifier.fillMaxWidth()) {
                                 Box(
                                     modifier = Modifier
@@ -722,112 +714,22 @@ fun TopPlaylistScreen(
                                         horizontalArrangement = Arrangement.Start,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        // Split Button on the left side with expressive colors
-                                        SplitButtonLayout(
-                                            leadingButton = {
-                                                SplitButtonDefaults.LeadingButton(
-                                                    onClick = { /* Current filter action */ },
-                                                    colors = ButtonDefaults.buttonColors(
-                                                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                                    )
-                                                ) {
-                                                    Text(
-                                                        text = stringResource(
-                                                            when (sortType) {
-                                                                MyTopFilter.ALL_TIME -> R.string.all_time
-                                                                MyTopFilter.DAY -> R.string.past_24_hours
-                                                                MyTopFilter.WEEK -> R.string.past_week
-                                                                MyTopFilter.MONTH -> R.string.past_month
-                                                                MyTopFilter.YEAR -> R.string.past_year
-                                                            }
-                                                        ),
-                                                        style = MaterialTheme.typography.labelLarge
-                                                    )
+                                        SortHeader(
+                                            sortType = sortType,
+                                            sortDescending = false,
+                                            onSortTypeChange = { viewModel.topPeriod.value = it },
+                                            onSortDescendingChange = {},
+                                            sortTypeText = { type ->
+                                                when (type) {
+                                                    MyTopFilter.ALL_TIME -> R.string.all_time
+                                                    MyTopFilter.DAY -> R.string.past_24_hours
+                                                    MyTopFilter.WEEK -> R.string.past_week
+                                                    MyTopFilter.MONTH -> R.string.past_month
+                                                    MyTopFilter.YEAR -> R.string.past_year
                                                 }
                                             },
-                                            trailingButton = {
-                                                SplitButtonDefaults.TrailingButton(
-                                                    checked = dropdownExpanded,
-                                                    onCheckedChange = { dropdownExpanded = it },
-                                                    colors = ButtonDefaults.buttonColors(
-                                                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                                    ),
-                                                    modifier = Modifier.semantics {
-                                                        stateDescription = if (dropdownExpanded) "Expanded" else "Collapsed"
-                                                    }
-                                                ) {
-                                                    val rotation: Float by animateFloatAsState(
-                                                        targetValue = if (dropdownExpanded) 180f else 0f,
-                                                        label = "Dropdown Arrow Rotation"
-                                                    )
-                                                    Icon(
-                                                        painter = painterResource(R.drawable.arrow_downward),
-                                                        modifier = Modifier
-                                                            .size(SplitButtonDefaults.TrailingIconSize)
-                                                            .graphicsLayer { rotationZ = rotation },
-                                                        contentDescription = null
-                                                    )
-                                                }
-                                            }
+                                            showDescending = false
                                         )
-
-                                        DropdownMenu(
-                                            expanded = dropdownExpanded,
-                                            onDismissRequest = { dropdownExpanded = false }
-                                        ) {
-                                            DropdownMenuItem(
-                                                text = { Text(stringResource(R.string.all_time)) },
-                                                onClick = {
-                                                    viewModel.topPeriod.value = MyTopFilter.ALL_TIME
-                                                    dropdownExpanded = false
-                                                },
-                                                leadingIcon = if (sortType == MyTopFilter.ALL_TIME) {
-                                                    { Icon(painterResource(R.drawable.check), contentDescription = null) }
-                                                } else null
-                                            )
-                                            DropdownMenuItem(
-                                                text = { Text(stringResource(R.string.past_24_hours)) },
-                                                onClick = {
-                                                    viewModel.topPeriod.value = MyTopFilter.DAY
-                                                    dropdownExpanded = false
-                                                },
-                                                leadingIcon = if (sortType == MyTopFilter.DAY) {
-                                                    { Icon(painterResource(R.drawable.check), contentDescription = null) }
-                                                } else null
-                                            )
-                                            DropdownMenuItem(
-                                                text = { Text(stringResource(R.string.past_week)) },
-                                                onClick = {
-                                                    viewModel.topPeriod.value = MyTopFilter.WEEK
-                                                    dropdownExpanded = false
-                                                },
-                                                leadingIcon = if (sortType == MyTopFilter.WEEK) {
-                                                    { Icon(painterResource(R.drawable.check), contentDescription = null) }
-                                                } else null
-                                            )
-                                            DropdownMenuItem(
-                                                text = { Text(stringResource(R.string.past_month)) },
-                                                onClick = {
-                                                    viewModel.topPeriod.value = MyTopFilter.MONTH
-                                                    dropdownExpanded = false
-                                                },
-                                                leadingIcon = if (sortType == MyTopFilter.MONTH) {
-                                                    { Icon(painterResource(R.drawable.check), contentDescription = null) }
-                                                } else null
-                                            )
-                                            DropdownMenuItem(
-                                                text = { Text(stringResource(R.string.past_year)) },
-                                                onClick = {
-                                                    viewModel.topPeriod.value = MyTopFilter.YEAR
-                                                    dropdownExpanded = false
-                                                },
-                                                leadingIcon = if (sortType == MyTopFilter.YEAR) {
-                                                    { Icon(painterResource(R.drawable.check), contentDescription = null) }
-                                                } else null
-                                            )
-                                        }
                                     }
                                 }
 
