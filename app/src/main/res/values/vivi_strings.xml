@@ -358,7 +358,7 @@
     <string name="whats_new">What\'s new?</string>
     <string name="pause">Pause</string>
     <string name="update_available">Update Available</string>
-    <string name="checking_for_updates">Checking for\nupdates…</string>
+    <string name="checking_for_updates">Checking for updates…</string>
     <string name="current_version">Current version: %1$s</string>
     <string name="cant_check_updates">Can\'t check for\nupdates</string>
     <string name="app_up_to_date">App is\nup to date</string>
