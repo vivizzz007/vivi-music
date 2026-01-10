@@ -1,7 +1,0 @@
-{
-    "githubPullRequests.ignoredPullRequestBranches": [
-        "main"
-    ],
-    "git.terminalGitEditor": true
-    "git.path": "/usr/bin/git"
-}
