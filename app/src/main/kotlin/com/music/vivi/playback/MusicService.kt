@@ -90,6 +90,8 @@ import com.music.vivi.constants.PlayerVolumeKey
 import com.music.vivi.constants.RepeatModeKey
 import com.music.vivi.constants.ShowLyricsKey
 import com.music.vivi.constants.SimilarContent
+import com.music.vivi.constants.SmartShuffleKey
+import com.music.vivi.constants.SmartSuggestionsKey
 import com.music.vivi.constants.SkipSilenceKey
 import com.music.vivi.db.MusicDatabase
 import com.music.vivi.db.entities.Event
@@ -1230,19 +1232,39 @@ class MusicService :
         }
 
         // Auto load more songs
-        if (dataStore.get(AutoLoadMoreKey, true) &&
+        if ((dataStore.get(AutoLoadMoreKey, true) || dataStore.get(SmartSuggestionsKey, false)) &&
             reason != Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT &&
             player.mediaItemCount - player.currentMediaItemIndex <= 5 &&
-            currentQueue.hasNextPage() &&
             !(dataStore.get(DisableLoadMoreWhenRepeatAllKey, false) && player.repeatMode == REPEAT_MODE_ALL)
         ) {
-            scope.launch(SilentHandler) {
-                val mediaItems =
-                    currentQueue.nextPage()
-                        .filterExplicit(dataStore.get(HideExplicitKey, false))
-                        .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
-                if (player.playbackState != STATE_IDLE) {
-                    player.addMediaItems(mediaItems.drop(1))
+            if (currentQueue.hasNextPage()) {
+                scope.launch(SilentHandler) {
+                    val mediaItems =
+                        currentQueue.nextPage()
+                            .filterExplicit(dataStore.get(HideExplicitKey, false))
+                            .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
+                    if (player.playbackState != STATE_IDLE) {
+                        player.addMediaItems(mediaItems.drop(1))
+                    }
+                }
+            } else if (dataStore.get(SmartSuggestionsKey, false)) {
+                // Infinite Queue: Fetch suggestions when fixed queue ends
+                scope.launch(SilentHandler) {
+                    val currentMediaId = mediaItem?.mediaId ?: return@launch
+                    YouTube.next(WatchEndpoint(videoId = currentMediaId))
+                        .onSuccess { nextResult ->
+                            val suggestions = nextResult.items
+                                .map { it.toMediaItem() }
+                                .filterExplicit(dataStore.get(HideExplicitKey, false))
+                                .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
+
+                            if (player.playbackState != STATE_IDLE) {
+                                player.addMediaItems(suggestions)
+                                if (player.shuffleModeEnabled && dataStore.get(SmartShuffleKey, false)) {
+                                    applySmartShuffle()
+                                }
+                            }
+                        }
                 }
             }
         }
@@ -1332,22 +1354,53 @@ class MusicService :
     override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
         updateNotification()
         if (shuffleModeEnabled) {
-            // If queue is empty, don't shuffle
-            if (player.mediaItemCount == 0) return
-
-            // Always put current playing item at first
-            val shuffledIndices = IntArray(player.mediaItemCount) { it }
-            shuffledIndices.shuffle()
-            shuffledIndices[shuffledIndices.indexOf(player.currentMediaItemIndex)] =
-                shuffledIndices[0]
-            shuffledIndices[0] = player.currentMediaItemIndex
-            player.setShuffleOrder(DefaultShuffleOrder(shuffledIndices, System.currentTimeMillis()))
+            applySmartShuffle()
         }
 
         // Save state when shuffle mode changes
         if (dataStore.get(PersistentQueueKey, true)) {
             saveQueueToDisk()
         }
+    }
+
+    private fun applySmartShuffle() {
+        if (player.mediaItemCount == 0) return
+
+        val shuffledIndices = IntArray(player.mediaItemCount) { it }
+        shuffledIndices.shuffle()
+
+        // Always put current playing item at first
+        val currentIndex = shuffledIndices.indexOf(player.currentMediaItemIndex)
+        if (currentIndex != -1) {
+            val firstValue = shuffledIndices[0]
+            shuffledIndices[0] = player.currentMediaItemIndex
+            shuffledIndices[currentIndex] = firstValue
+        }
+
+        if (dataStore.get(SmartShuffleKey, false)) {
+            // Smart Shuffle Algorithm: Avoid back-to-back same artists
+            for (i in 1 until shuffledIndices.size - 1) {
+                val currentMediaItem = player.getMediaItemAt(shuffledIndices[i])
+                val previousMediaItem = player.getMediaItemAt(shuffledIndices[i - 1])
+                
+                val currentArtist = currentMediaItem.mediaMetadata.artist?.toString()
+                val previousArtist = previousMediaItem.mediaMetadata.artist?.toString()
+
+                if (currentArtist != null && currentArtist == previousArtist) {
+                    // Try to find a different artist further down the list to swap
+                    for (j in i + 1 until shuffledIndices.size) {
+                        val nextArtist = player.getMediaItemAt(shuffledIndices[j]).mediaMetadata.artist?.toString()
+                        if (nextArtist != currentArtist) {
+                            val temp = shuffledIndices[i]
+                            shuffledIndices[i] = shuffledIndices[j]
+                            shuffledIndices[j] = temp
+                            break
+                        }
+                    }
+                }
+            }
+        }
+        player.setShuffleOrder(DefaultShuffleOrder(shuffledIndices, System.currentTimeMillis()))
     }
 
     override fun onRepeatModeChanged(repeatMode: Int) {

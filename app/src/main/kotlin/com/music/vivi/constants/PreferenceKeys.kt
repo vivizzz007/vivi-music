@@ -71,6 +71,8 @@ val SimilarContent = booleanPreferencesKey("similarContent")
 val AutoSkipNextOnErrorKey = booleanPreferencesKey("autoSkipNextOnError")
 val StopMusicOnTaskClearKey = booleanPreferencesKey("stopMusicOnTaskClear")
 val PauseOnZeroVolumeKey = booleanPreferencesKey("pauseOnZeroVolume")
+val SmartShuffleKey = booleanPreferencesKey("smartShuffle")
+val SmartSuggestionsKey = booleanPreferencesKey("smartSuggestions")
 
 val MaxImageCacheSizeKey = intPreferencesKey("maxImageCacheSize")
 val MaxSongCacheSizeKey = intPreferencesKey("maxSongCacheSize")

@@ -699,6 +699,10 @@
     <string name="stop_playback_when_closed">Stop playback when app is closed</string>
     <string name="pause_on_zero_volume">Pause/resume on zero volume</string>
     <string name="pause_on_zero_volume_description">Automatically pause playback at zero volume and resume when increased</string>
+    <string name="smart_shuffle">Smart Shuffle</string>
+    <string name="smart_shuffle_desc">Avoid playing similar songs or same artists back-to-back</string>
+    <string name="smart_suggestions">Smart Suggestions</string>
+    <string name="smart_suggestions_desc">Get tailored recommendations at the end of your queue</string>
 
     <!-- Appearance Settings -->
     <string name="dynamic_color_theming_subtitle">Dynamic color theming</string>

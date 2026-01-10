@@ -82,6 +82,8 @@ import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.constants.SettingsShapeColorTertiaryKey
 import com.music.vivi.constants.PauseOnZeroVolumeKey
+import com.music.vivi.constants.SmartShuffleKey
+import com.music.vivi.constants.SmartSuggestionsKey
 import com.music.vivi.ui.screens.settings.DarkMode
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -179,6 +181,14 @@ fun PlayerSettings(
     val (historyDuration, onHistoryDurationChange) = rememberPreference(
         HistoryDuration,
         defaultValue = 30f
+    )
+    val (smartShuffle, onSmartShuffleChange) = rememberPreference(
+        SmartShuffleKey,
+        defaultValue = false
+    )
+    val (smartSuggestions, onSmartSuggestionsChange) = rememberPreference(
+        SmartSuggestionsKey,
+        defaultValue = false
     )
 
 
@@ -441,6 +451,48 @@ fun PlayerSettings(
                                     ModernSwitch(
                                         checked = pauseOnZeroVolume,
                                         onCheckedChange = onPauseOnZeroVolumeChange,
+                                        modifier = Modifier.padding(end = 20.dp)
+                                    )
+                                }
+                            },
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.shuffle), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.smart_shuffle),
+                                            subtitle = stringResource(R.string.smart_shuffle_desc),
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = smartShuffle,
+                                        onCheckedChange = onSmartShuffleChange,
+                                        modifier = Modifier.padding(end = 20.dp)
+                                    )
+                                }
+                            },
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.auto_playlist), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.smart_suggestions),
+                                            subtitle = stringResource(R.string.smart_suggestions_desc),
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = smartSuggestions,
+                                        onCheckedChange = onSmartSuggestionsChange,
                                         modifier = Modifier.padding(end = 20.dp)
                                     )
                                 }
