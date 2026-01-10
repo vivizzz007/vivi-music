@@ -257,230 +257,233 @@ fun LiveMedia(
                 }
 
                 item {
-                    AnimatedVisibility(
-                        visible = enabled,
-                        enter = expandVertically() + fadeIn(),
-                        exit = shrinkVertically() + fadeOut()
-                    ) {
-                        Column {
-                            Text(
-                                stringResource(R.string.permissions).uppercase(),
-                                style = MaterialTheme.typography.labelLarge.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 1.sp
-                                ),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
-                            )
+                    Column {
+                        Text(
+                            stringResource(R.string.permissions).uppercase(),
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp
+                            ),
+                            color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f),
+                            modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
+                        )
 
-                            Material3ExpressiveSettingsGroup(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp),
-                                items = listOf(
-                                    {
-                                        ModernInfoItem(
-                                            icon = {
-                                                Icon(
-                                                    painterResource(if (hasNotificationPermission) R.drawable.check else R.drawable.notifications),
-                                                    null,
-                                                    modifier = Modifier.size(22.dp)
-                                                )
-                                            },
-                                            title = stringResource(R.string.notification_listener_permission_needed),
-                                            subtitle = if (hasNotificationPermission) stringResource(R.string.granted) else stringResource(R.string.notification_listener_permission_desc),
-                                            iconBackgroundColor = if (hasNotificationPermission) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f) else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.15f),
-                                            iconContentColor = if (hasNotificationPermission) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
-                                            modifier = Modifier.clickable {
-                                                context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
-                                            }
-                                        )
-                                    },
-                                    {
-                                        ModernInfoItem(
-                                            icon = {
-                                                Icon(
-                                                    painterResource(if (hasAccessibilityPermission) R.drawable.check else R.drawable.accessibility),
-                                                    null,
-                                                    modifier = Modifier.size(22.dp)
-                                                )
-                                            },
-                                            title = stringResource(R.string.accessibility_permission_needed),
-                                            subtitle = if (hasAccessibilityPermission) stringResource(R.string.granted) else stringResource(R.string.accessibility_permission_desc),
-                                            iconBackgroundColor = if (hasAccessibilityPermission) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f) else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.15f),
-                                            iconContentColor = if (hasAccessibilityPermission) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
-                                            modifier = Modifier.clickable {
-                                                context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-                                            }
-                                        )
-                                    }
-                                )
-                            )
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            Text(
-                                stringResource(R.string.notification_body).uppercase(),
-                                style = MaterialTheme.typography.labelLarge.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 1.sp
-                                ),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
-                            )
-
-                            Material3ExpressiveSettingsGroup(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp),
-                                items = listOf(
-                                    {
-                                        ToggleSettingItem(
-                                            title = stringResource(R.string.show_album_art),
-                                            subtitle = stringResource(R.string.show_album_art_desc),
-                                            icon = R.drawable.image,
-                                            checked = showAlbumArt,
-                                            onCheckedChange = onShowAlbumArtChange,
-                                            iconBgColor = iconBgColor,
-                                            iconStyleColor = iconStyleColor
-                                        )
-                                    },
-                                    {
-                                        ToggleSettingItem(
-                                            title = stringResource(R.string.show_artist_name),
-                                            subtitle = stringResource(R.string.show_artist_name_desc),
-                                            icon = R.drawable.person,
-                                            checked = showArtistName,
-                                            onCheckedChange = onShowArtistNameChange,
-                                            iconBgColor = iconBgColor,
-                                            iconStyleColor = iconStyleColor
-                                        )
-                                    },
-                                    {
-                                        ToggleSettingItem(
-                                            title = stringResource(R.string.show_album_name),
-                                            subtitle = stringResource(R.string.show_album_name_desc),
-                                            icon = R.drawable.album,
-                                            checked = showAlbumName,
-                                            onCheckedChange = onShowAlbumNameChange,
-                                            iconBgColor = iconBgColor,
-                                            iconStyleColor = iconStyleColor
-                                        )
-                                    },
-                                    {
-                                        ToggleSettingItem(
-                                            title = stringResource(R.string.show_action_buttons),
-                                            subtitle = stringResource(R.string.show_action_buttons_desc),
-                                            icon = R.drawable.play_arrow,
-                                            checked = showActionButtons,
-                                            onCheckedChange = onShowActionButtonsChange,
-                                            iconBgColor = iconBgColor,
-                                            iconStyleColor = iconStyleColor
-                                        )
-                                    },
-                                    {
-                                        ToggleSettingItem(
-                                            title = stringResource(R.string.show_progress),
-                                            subtitle = stringResource(R.string.show_progress_desc),
-                                            icon = R.drawable.linear_scale,
-                                            checked = showProgress,
-                                            onCheckedChange = onShowProgressChange,
-                                            iconBgColor = iconBgColor,
-                                            iconStyleColor = iconStyleColor
-                                        )
-                                    },
-                                    {
-                                        ToggleSettingItem(
-                                            title = stringResource(R.string.show_timestamps),
-                                            subtitle = stringResource(R.string.show_timestamps_desc),
-                                            icon = R.drawable.timer,
-                                            checked = showTimestamp,
-                                            onCheckedChange = onShowTimestampChange,
-                                            iconBgColor = iconBgColor,
-                                            iconStyleColor = iconStyleColor
-                                        )
-                                    },
-                                    {
-                                        ToggleSettingItem(
-                                            title = stringResource(R.string.hide_on_qs),
-                                            subtitle = stringResource(R.string.hide_on_qs_desc),
-                                            icon = R.drawable.expand_more,
-                                            checked = hideOnQs,
-                                            onCheckedChange = onHideOnQsChange,
-                                            iconBgColor = iconBgColor,
-                                            iconStyleColor = iconStyleColor
-                                        )
-                                    }
-                                )
-                            )
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            Text(
-                                stringResource(R.string.status_bar_pill).uppercase(),
-                                style = MaterialTheme.typography.labelLarge.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 1.sp
-                                ),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
-                            )
-
-                            Material3ExpressiveSettingsGroup(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp),
-                                items = listOf(
-                                    {
-                                        Column(modifier = Modifier.fillMaxWidth()) {
-                                            ModernInfoItem(
-                                                icon = { Icon(painterResource(R.drawable.short_text), null, modifier = Modifier.size(22.dp)) },
-                                                title = stringResource(R.string.status_bar_pill),
-                                                subtitle = stringResource(R.string.pill_content_desc),
-                                                iconBackgroundColor = iconBgColor,
-                                                iconContentColor = iconStyleColor
+                        Material3ExpressiveSettingsGroup(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
+                            items = listOf(
+                                {
+                                    ModernInfoItem(
+                                        icon = {
+                                            Icon(
+                                                painterResource(if (hasNotificationPermission) R.drawable.check else R.drawable.notifications),
+                                                null,
+                                                modifier = Modifier.size(22.dp)
                                             )
-
-                                            val options = PillContent.entries
-                                            val labels = listOf(
-                                                stringResource(R.string.pill_song_title),
-                                                stringResource(R.string.pill_elapsed_time),
-                                                stringResource(R.string.pill_remaining_time)
+                                        },
+                                        title = stringResource(R.string.notification_listener_permission_needed),
+                                        subtitle = if (hasNotificationPermission) stringResource(R.string.granted) else stringResource(R.string.notification_listener_permission_desc),
+                                        iconBackgroundColor = if (hasNotificationPermission) MaterialTheme.colorScheme.primaryContainer.copy(alpha = if (enabled) 0.4f else 0.2f) else MaterialTheme.colorScheme.errorContainer.copy(alpha = if (enabled) 0.15f else 0.08f),
+                                        iconContentColor = if (hasNotificationPermission) MaterialTheme.colorScheme.primary.copy(alpha = if (enabled) 1f else 0.38f) else MaterialTheme.colorScheme.error.copy(alpha = if (enabled) 1f else 0.38f),
+                                        modifier = Modifier.clickable(enabled = enabled) {
+                                            context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+                                        }
+                                    )
+                                },
+                                {
+                                    ModernInfoItem(
+                                        icon = {
+                                            Icon(
+                                                painterResource(if (hasAccessibilityPermission) R.drawable.check else R.drawable.accessibility),
+                                                null,
+                                                modifier = Modifier.size(22.dp)
                                             )
+                                        },
+                                        title = stringResource(R.string.accessibility_permission_needed),
+                                        subtitle = if (hasAccessibilityPermission) stringResource(R.string.granted) else stringResource(R.string.accessibility_permission_desc),
+                                        iconBackgroundColor = if (hasAccessibilityPermission) MaterialTheme.colorScheme.primaryContainer.copy(alpha = if (enabled) 0.4f else 0.2f) else MaterialTheme.colorScheme.errorContainer.copy(alpha = if (enabled) 0.15f else 0.08f),
+                                        iconContentColor = if (hasAccessibilityPermission) MaterialTheme.colorScheme.primary.copy(alpha = if (enabled) 1f else 0.38f) else MaterialTheme.colorScheme.error.copy(alpha = if (enabled) 1f else 0.38f),
+                                        modifier = Modifier.clickable(enabled = enabled) {
+                                            context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                                        }
+                                    )
+                                }
+                            )
+                        )
 
-                                            FlowRow(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(start = 64.dp, bottom = 12.dp, end = 20.dp),
-                                                horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-                                                verticalArrangement = Arrangement.spacedBy(2.dp),
-                                            ) {
-                                                options.forEachIndexed { index, value ->
-                                                    ToggleButton(
-                                                        checked = pillContent == value.name,
-                                                        onCheckedChange = { onPillContentChange(value.name) },
-                                                        colors = ToggleButtonDefaults.toggleButtonColors(
-                                                            checkedContainerColor = MaterialTheme.colorScheme.primary,
-                                                            checkedContentColor = MaterialTheme.colorScheme.onPrimary,
-                                                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                                        ),
-                                                        shapes = when (index) {
-                                                            0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                                                            options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                                                            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                                                        },
-                                                        modifier = Modifier.weight(1f).semantics { role = Role.RadioButton },
-                                                    ) {
-                                                        Text(labels[index], style = MaterialTheme.typography.labelSmall)
-                                                    }
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            stringResource(R.string.notification_body).uppercase(),
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp
+                            ),
+                            color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f),
+                            modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
+                        )
+
+                        Material3ExpressiveSettingsGroup(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
+                            items = listOf(
+                                {
+                                    ToggleSettingItem(
+                                        title = stringResource(R.string.show_album_art),
+                                        subtitle = stringResource(R.string.show_album_art_desc),
+                                        icon = R.drawable.image,
+                                        checked = showAlbumArt,
+                                        onCheckedChange = onShowAlbumArtChange,
+                                        iconBgColor = iconBgColor,
+                                        iconStyleColor = iconStyleColor,
+                                        enabled = enabled
+                                    )
+                                },
+                                {
+                                    ToggleSettingItem(
+                                        title = stringResource(R.string.show_artist_name),
+                                        subtitle = stringResource(R.string.show_artist_name_desc),
+                                        icon = R.drawable.person,
+                                        checked = showArtistName,
+                                        onCheckedChange = onShowArtistNameChange,
+                                        iconBgColor = iconBgColor,
+                                        iconStyleColor = iconStyleColor,
+                                        enabled = enabled
+                                    )
+                                },
+                                {
+                                    ToggleSettingItem(
+                                        title = stringResource(R.string.show_album_name),
+                                        subtitle = stringResource(R.string.show_album_name_desc),
+                                        icon = R.drawable.album,
+                                        checked = showAlbumName,
+                                        onCheckedChange = onShowAlbumNameChange,
+                                        iconBgColor = iconBgColor,
+                                        iconStyleColor = iconStyleColor,
+                                        enabled = enabled
+                                    )
+                                },
+                                {
+                                    ToggleSettingItem(
+                                        title = stringResource(R.string.show_action_buttons),
+                                        subtitle = stringResource(R.string.show_action_buttons_desc),
+                                        icon = R.drawable.play_arrow,
+                                        checked = showActionButtons,
+                                        onCheckedChange = onShowActionButtonsChange,
+                                        iconBgColor = iconBgColor,
+                                        iconStyleColor = iconStyleColor,
+                                        enabled = enabled
+                                    )
+                                },
+                                {
+                                    ToggleSettingItem(
+                                        title = stringResource(R.string.show_progress),
+                                        subtitle = stringResource(R.string.show_progress_desc),
+                                        icon = R.drawable.linear_scale,
+                                        checked = showProgress,
+                                        onCheckedChange = onShowProgressChange,
+                                        iconBgColor = iconBgColor,
+                                        iconStyleColor = iconStyleColor,
+                                        enabled = enabled
+                                    )
+                                },
+                                {
+                                    ToggleSettingItem(
+                                        title = stringResource(R.string.show_timestamps),
+                                        subtitle = stringResource(R.string.show_timestamps_desc),
+                                        icon = R.drawable.timer,
+                                        checked = showTimestamp,
+                                        onCheckedChange = onShowTimestampChange,
+                                        iconBgColor = iconBgColor,
+                                        iconStyleColor = iconStyleColor,
+                                        enabled = enabled
+                                    )
+                                },
+                                {
+                                    ToggleSettingItem(
+                                        title = stringResource(R.string.hide_on_qs),
+                                        subtitle = stringResource(R.string.hide_on_qs_desc),
+                                        icon = R.drawable.expand_more,
+                                        checked = hideOnQs,
+                                        onCheckedChange = onHideOnQsChange,
+                                        iconBgColor = iconBgColor,
+                                        iconStyleColor = iconStyleColor,
+                                        enabled = enabled
+                                    )
+                                }
+                            )
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            stringResource(R.string.status_bar_pill).uppercase(),
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp
+                            ),
+                            color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f),
+                            modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
+                        )
+                        Material3ExpressiveSettingsGroup(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
+                            items = listOf(
+                                {
+                                    Column(modifier = Modifier.fillMaxWidth()) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.short_text), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.status_bar_pill),
+                                            subtitle = stringResource(R.string.pill_content_desc),
+                                            iconBackgroundColor = if (enabled) iconBgColor else iconBgColor.copy(alpha = 0.5f),
+                                            iconContentColor = if (enabled) iconStyleColor else iconStyleColor.copy(alpha = 0.38f)
+                                        )
+
+                                        val options = PillContent.entries
+                                        val labels = listOf(
+                                            stringResource(R.string.pill_song_title),
+                                            stringResource(R.string.pill_elapsed_time),
+                                            stringResource(R.string.pill_remaining_time)
+                                        )
+
+                                        FlowRow(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(start = 64.dp, bottom = 12.dp, end = 20.dp),
+                                            horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+                                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                                        ) {
+                                            options.forEachIndexed { index, value ->
+                                                ToggleButton(
+                                                    checked = pillContent == value.name,
+                                                    onCheckedChange = { onPillContentChange(value.name) },
+                                                    enabled = enabled,
+                                                    colors = ToggleButtonDefaults.toggleButtonColors(
+                                                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.38f),
+                                                        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f),
+                                                        checkedContainerColor = MaterialTheme.colorScheme.primary,
+                                                        checkedContentColor = MaterialTheme.colorScheme.onPrimary
+                                                    ),
+                                                    shapes = when (index) {
+                                                        0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                                        options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                                                    },
+                                                    modifier = Modifier.weight(1f).semantics { role = Role.RadioButton },
+                                                ) {
+                                                    Text(labels[index], style = MaterialTheme.typography.labelSmall)
                                                 }
                                             }
                                         }
                                     }
-                                )
+                                }
                             )
-                        }
+                        )
                     }
                 }
 
@@ -500,7 +503,8 @@ fun ToggleSettingItem(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     iconBgColor: Color,
-    iconStyleColor: Color
+    iconStyleColor: Color,
+    enabled: Boolean = true
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -511,13 +515,14 @@ fun ToggleSettingItem(
                 icon = { Icon(painterResource(icon), null, modifier = Modifier.size(22.dp)) },
                 title = title,
                 subtitle = subtitle,
-                iconBackgroundColor = iconBgColor,
-                iconContentColor = iconStyleColor
+                iconBackgroundColor = if (enabled) iconBgColor else iconBgColor.copy(alpha = 0.5f),
+                iconContentColor = if (enabled) iconStyleColor else iconStyleColor.copy(alpha = 0.38f)
             )
         }
         ModernSwitch(
             checked = checked,
             onCheckedChange = onCheckedChange,
+            enabled = enabled,
             modifier = Modifier.padding(end = 20.dp)
         )
     }
