@@ -183,7 +183,7 @@
     <string name="release_notes">Release notes</string>
 
     <string name="all_time">All time</string>
-    <string name="past_24_hours">Past 24 hours</string>
+    <string name="past_24_hours">24 hours</string>
     <string name="past_week">Past week</string>
     <string name="past_month">Past month</string>
     <string name="past_year">Past year</string>
@@ -358,7 +358,7 @@
     <string name="whats_new">What\'s new?</string>
     <string name="pause">Pause</string>
     <string name="update_available">Update Available</string>
-    <string name="checking_for_updates">Checking for\nupdates…</string>
+    <string name="checking_for_updates">Checking for updates…</string>
     <string name="current_version">Current version: %1$s</string>
     <string name="cant_check_updates">Can\'t check for\nupdates</string>
     <string name="app_up_to_date">App is\nup to date</string>
@@ -697,6 +697,14 @@
     <string name="remove_silent_parts">Remove silent parts</string>
     <string name="normalize_audio_levels">Normalize audio levels</string>
     <string name="stop_playback_when_closed">Stop playback when app is closed</string>
+    <string name="pause_on_zero_volume">Pause/resume on zero volume</string>
+    <string name="pause_on_zero_volume_description">Automatically pause playback at zero volume and resume when increased</string>
+    <string name="smart_shuffle">Smart Shuffle</string>
+    <string name="smart_shuffle_desc">Avoid playing similar songs or same artists back-to-back</string>
+    <string name="smart_suggestions">Smart Suggestions</string>
+    <string name="smart_suggestions_desc">Get tailored recommendations at the end of your queue</string>
+    <string name="smart_pause">Smart Pause</string>
+    <string name="smart_pause_desc">Auto-pause when headphones disconnect</string>
 
     <!-- Appearance Settings -->
     <string name="dynamic_color_theming_subtitle">Dynamic color theming</string>
@@ -1079,4 +1087,54 @@
     <string name="view_artist_details">View artist details</string>
     <string name="show_album_label">Go to album</string>
     <string name="show_artist_label">Go to artist</string>
+
+<!--localplaylist-->
+    <string name="playlist_description_start">This carefully created playlist features</string>
+    <string name="playlist_duration_description">Experience a total of</string>
+    <string name="hour">hour</string>
+    <string name="hours">hours</string>
+    <string name="minute">minute</string>
+    <string name="minutes">minutes</string>
+    <string name="and">and</string>
+    <string name="of_music">of music</string>
+    <string name="playlist_enjoy_message">Enjoy your listening experience</string>
+    <string name="live_media">Live Media</string>
+    <string name="live_media_desc">Live Media provides a dynamic notification and status bar pill for Vivi Music playback.</string>
+    <string name="notification_body">Notification Body</string>
+    <string name="show_album_art">Show Album Art</string>
+    <string name="show_album_art_desc">Display cover art in the notification</string>
+    <string name="show_artist_name">Show Artist Name</string>
+    <string name="show_artist_name_desc">Include artist name in metadata</string>
+    <string name="show_album_name">Show Album Name</string>
+    <string name="show_album_name_desc">Display album name in details</string>
+    <string name="show_action_buttons">Show Action Buttons</string>
+    <string name="show_action_buttons_desc">Controls like Play/Pause, Next, Previous</string>
+    <string name="show_progress">Show Progress</string>
+    <string name="show_progress_desc">Display song progress bar</string>
+    <string name="show_timestamps">Show Timestamps</string>
+    <string name="show_timestamps_desc">Elapsed and total duration</string>
+    <string name="hide_on_qs">Hide on Quick Settings</string>
+    <string name="hide_on_qs_desc">Hide when notification shade is open</string>
+    <string name="status_bar_pill">Status Bar Pill</string>
+    <string name="pill_song_title">Song Title</string>
+    <string name="pill_song_title_desc">Show track title in pill</string>
+    <string name="pill_elapsed_time">Elapsed Time</string>
+    <string name="pill_elapsed_time_desc">Show playback position in pill</string>
+    <string name="pill_remaining_time">Remaining Time</string>
+    <string name="pill_remaining_time_desc">Show time left in song</string>
+    <string name="grant_permission">Grant Permission</string>
+    <string name="notification_listener_permission_needed">Notification Listener Permission Needed</string>
+    <string name="notification_listener_permission_desc">This app requires Notification Access to detect playback and manage the Live Media notification.</string>
+    <string name="accessibility_permission_needed">Accessibility Permission Needed</string>
+    <string name="accessibility_permission_desc">This app requires Accessibility Access to detect Quick Settings.</string>
+    <string name="live_media_compatibility_title">Compatibility Warning</string>
+    <string name="live_media_compatibility_message">Live Media is designed for Android 16 and above. On your current version of Android, it will function as a standard notification and may not provide the full Dynamic Media experience (like the Status Bar Pill).</string>
+    <string name="permissions">Permissions</string>
+    <string name="granted">Granted</string>
+    <string name="confirm">Confirm</string>
+    <string name="pill_content_desc">Configure content for the status bar pill</string>
+    <string name="play_action">Play</string>
+    <string name="pause_action">Pause</string>
+    <string name="next_action">Next</string>
+    <string name="previous_action">Previous</string>
 </resources>

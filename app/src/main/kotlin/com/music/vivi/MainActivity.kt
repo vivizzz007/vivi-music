@@ -409,7 +409,7 @@ class MainActivity : ComponentActivity() {
                 if (enableDynamicTheme && themeColor == DefaultThemeColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                      // System colors are fast, can be done on main (context required)
                      generatedColorScheme = if (useDarkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-                } else {
+                } else if (!enableDynamicTheme || themeColor != DefaultThemeColor) {
                     // MaterialKolor generation is expensive, offload to background
                     withContext(Dispatchers.Default) {
                         try {
@@ -468,6 +468,7 @@ class MainActivity : ComponentActivity() {
                 darkTheme = useDarkTheme,
                 pureBlack = pureBlack,
                 themeColor = themeColor,
+                enableDynamicTheme = enableDynamicTheme,
                 overrideColorScheme = generatedColorScheme,
             ) {
                 BoxWithConstraints(
@@ -820,7 +821,9 @@ class MainActivity : ComponentActivity() {
                                                 )
                                             },
                                             actions = {
-                                            val (showNewsIcon) = rememberPreference(com.music.vivi.constants.ShowNewsIconKey, true)
+                                                val newsViewModel: com.music.vivi.viewmodels.NewsViewModel = hiltViewModel()
+                                                val hasUnreadNews by newsViewModel.hasUnreadNews.collectAsState(initial = false)
+                                                val (showNewsIcon) = rememberPreference(com.music.vivi.constants.ShowNewsIconKey, true)
                                             val isUpdateAvailable = updateStatus is UpdateStatus.UpdateAvailable
 
                                             if (isUpdateAvailable || showNewsIcon) {
@@ -844,11 +847,15 @@ class MainActivity : ComponentActivity() {
                                                                 modifier = Modifier.size(24.dp)
                                                             )
                                                         } else {
-                                                            Icon(
-                                                                painter = painterResource(R.drawable.newspaper_vivi),
-                                                                contentDescription = stringResource(R.string.changelog_title),
-                                                                modifier = Modifier.size(24.dp)
-                                                            )
+                                                            BadgedBox(badge = {
+                                                                if (hasUnreadNews) Badge()
+                                                            }) {
+                                                                Icon(
+                                                                    painter = painterResource(R.drawable.newspaper_vivi),
+                                                                    contentDescription = stringResource(R.string.changelog_title),
+                                                                    modifier = Modifier.size(24.dp)
+                                                                )
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -866,38 +873,33 @@ class MainActivity : ComponentActivity() {
                                                         contentDescription = stringResource(R.string.stats)
                                                     )
                                                 }
-                                                IconButton(onClick = { navController.navigate("settings") }) {
-                                                    BadgedBox(badge = {
-                                                        if (latestVersionName != BuildConfig.VERSION_NAME) {
-                                                            Badge()
-                                                        }
-                                                    }) {
-                                                        if (accountImageUrl != null) {
-                                                            coil.compose.AsyncImage(
-                                                                model = accountImageUrl,
-                                                                contentDescription = stringResource(R.string.account),
-                                                                modifier = Modifier
-                                                                    .size(24.dp)
-                                                                    .clip(CircleShape)
-                                                            )
-                                                        } else {
-                                                            val composition by rememberLottieComposition(
-                                                                LottieCompositionSpec.RawRes(R.raw.setting)
-                                                            )
-                                                            val progress by animateLottieCompositionAsState(
-                                                                composition = composition,
-                                                                isPlaying = true, // Always playing when screen loads
-                                                                iterations = 1, // Play once
-                                                                speed = 1.5f
-                                                            )
 
-                                                            LottieAnimation(
-                                                                composition = composition,
-                                                                progress = { progress },
-                                                                modifier = Modifier.size(50.dp),
-                                                                contentScale = ContentScale.Fit
-                                                            )
-                                                        }
+                                                IconButton(onClick = { navController.navigate("settings") }) {
+                                                    if (accountImageUrl != null) {
+                                                        coil.compose.AsyncImage(
+                                                            model = accountImageUrl,
+                                                            contentDescription = stringResource(R.string.account),
+                                                            modifier = Modifier
+                                                                .size(24.dp)
+                                                                .clip(CircleShape)
+                                                        )
+                                                    } else {
+                                                        val composition by rememberLottieComposition(
+                                                            LottieCompositionSpec.RawRes(R.raw.setting)
+                                                        )
+                                                        val progress by animateLottieCompositionAsState(
+                                                            composition = composition,
+                                                            isPlaying = true, // Always playing when screen loads
+                                                            iterations = 1, // Play once
+                                                            speed = 1.5f
+                                                        )
+
+                                                        LottieAnimation(
+                                                            composition = composition,
+                                                            progress = { progress },
+                                                            modifier = Modifier.size(50.dp),
+                                                            contentScale = ContentScale.Fit
+                                                        )
                                                     }
                                                 }
                                             },

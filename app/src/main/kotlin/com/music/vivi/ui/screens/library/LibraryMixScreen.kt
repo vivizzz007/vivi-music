@@ -3,6 +3,7 @@ package com.music.vivi.ui.screens.library
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -80,8 +82,20 @@ import java.text.Collator
 import java.time.LocalDateTime
 import java.util.Locale
 import java.util.UUID
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ToggleButton
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.material3.ToggleButtonDefaults
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.semantics.semantics
 
-@OptIn(ExperimentalFoundationApi::class)
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun LibraryMixScreen(
     navController: NavController,
@@ -230,42 +244,67 @@ fun LibraryMixScreen(
     }
 
     val headerContent = @Composable {
+        var dropdownExpanded by remember { mutableStateOf(false) }
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(start = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
             SortHeader(
                 sortType = sortType,
                 sortDescending = sortDescending,
                 onSortTypeChange = onSortTypeChange,
                 onSortDescendingChange = onSortDescendingChange,
-                sortTypeText = { sortType ->
-                    when (sortType) {
+                sortTypeText = { type ->
+                    when (type) {
                         MixSortType.CREATE_DATE -> R.string.sort_by_create_date
                         MixSortType.LAST_UPDATED -> R.string.sort_by_last_updated
                         MixSortType.NAME -> R.string.sort_by_name
                     }
-                },
+                }
             )
 
-            Spacer(Modifier.weight(1f))
-
-            IconButton(
-                onClick = {
-                    viewType = viewType.toggle()
-                },
-                modifier = Modifier.padding(start = 6.dp, end = 6.dp),
+            // Connected toggle buttons for view type on the right
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
             ) {
-                Icon(
-                    painter =
-                    painterResource(
-                        when (viewType) {
-                            LibraryViewType.LIST -> R.drawable.list
-                            LibraryViewType.GRID -> R.drawable.grid_view
-                        },
+                // List view button
+                ToggleButton(
+                    checked = viewType == LibraryViewType.LIST,
+                    onCheckedChange = { viewType = LibraryViewType.LIST },
+                    shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
+                    colors = ToggleButtonDefaults.toggleButtonColors(
+                        checkedContainerColor = MaterialTheme.colorScheme.primary,
+                        checkedContentColor = MaterialTheme.colorScheme.onPrimary
                     ),
-                    contentDescription = null,
-                )
+                    modifier = Modifier.semantics { role = Role.RadioButton }
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.list),
+                        contentDescription = "List View",
+                        modifier = Modifier.size(ToggleButtonDefaults.IconSize)
+                    )
+                }
+                // Grid view button
+                ToggleButton(
+                    checked = viewType == LibraryViewType.GRID,
+                    onCheckedChange = { viewType = LibraryViewType.GRID },
+                    shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
+                    colors = ToggleButtonDefaults.toggleButtonColors(
+                        checkedContainerColor = MaterialTheme.colorScheme.primary,
+                        checkedContentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    modifier = Modifier.semantics { role = Role.RadioButton }
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.grid_view),
+                        contentDescription = "Grid View",
+                        modifier = Modifier.size(ToggleButtonDefaults.IconSize)
+                    )
+                }
             }
         }
     }

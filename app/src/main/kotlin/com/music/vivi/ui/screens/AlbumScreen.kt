@@ -29,6 +29,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.RectangleShape
+import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -119,9 +121,7 @@ import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.AlbumViewModel
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class,
-    ExperimentalMaterial3ExpressiveApi::class
-)
+@OptIn(ExperimentalFoundationApi::class,ExperimentalMaterial3Api::class,ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AlbumScreen(
     navController: NavController,
@@ -277,18 +277,21 @@ fun AlbumScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             // Save/Like Button
-                            Surface(
+                            Button(
                                 onClick = {
                                     database.query {
                                         update(albumWithSongs.album.toggleLike())
                                     }
                                 },
-                                shape = RoundedCornerShape(24.dp),
-                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                shapes = ButtonDefaults.shapes(),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                ),
+                                contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 12.dp),
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(vertical = 12.dp),
                                     horizontalArrangement = Arrangement.Center,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
@@ -311,14 +314,13 @@ fun AlbumScreen(
                                     Spacer(Modifier.width(8.dp))
                                     Text(
                                         text = if (albumWithSongs.album.bookmarkedAt != null) stringResource(R.string.saved) else stringResource(R.string.save),
-                                        style = MaterialTheme.typography.labelLarge,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        style = MaterialTheme.typography.labelLarge
                                     )
                                 }
                             }
 
                             // Play Button
-                            Surface(
+                            Button(
                                 onClick = {
                                     if (isPlaying && mediaMetadata?.album?.id == albumWithSongs.album.id) {
                                         playerConnection.player.pause()
@@ -331,12 +333,15 @@ fun AlbumScreen(
                                         )
                                     }
                                 },
-                                shape = RoundedCornerShape(24.dp),
-                                color = MaterialTheme.colorScheme.primary,
+                                shapes = ButtonDefaults.shapes(),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                ),
+                                contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 12.dp),
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(vertical = 12.dp),
                                     horizontalArrangement = Arrangement.Center,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
@@ -355,8 +360,7 @@ fun AlbumScreen(
                                     Text(
                                         text = if (isPlaying && mediaMetadata?.album?.id == albumWithSongs.album.id)
                                             stringResource(R.string.pause) else stringResource(R.string.play),
-                                        style = MaterialTheme.typography.labelLarge,
-                                        color = MaterialTheme.colorScheme.onPrimary
+                                        style = MaterialTheme.typography.labelLarge
                                     )
                                 }
                             }
@@ -692,18 +696,45 @@ fun AlbumScreen(
                                 val isActive = songWrapper.item.id == mediaMetadata?.id
                                 val isSingleSong = wrappedSongs.size == 1
 
+                                val cornerRadius = remember { 24.dp }
+
+                                val topShape = remember(cornerRadius) {
+                                    AbsoluteSmoothCornerShape(
+                                        cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
+                                        smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
+                                        cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+                                    )
+                                }
+                                val middleShape = remember { RectangleShape }
+                                val bottomShape = remember(cornerRadius) {
+                                    AbsoluteSmoothCornerShape(
+                                        cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+                                        smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
+                                        cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
+                                    )
+                                }
+                                val singleShape = remember(cornerRadius) {
+                                    AbsoluteSmoothCornerShape(
+                                        cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+                                        smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
+                                        cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+                                    )
+                                }
+
+                                val shape = remember(isFirst, isLast, cornerRadius) {
+                                    when {
+                                        isFirst && isLast -> singleShape
+                                        isFirst -> topShape
+                                        isLast -> bottomShape
+                                        else -> middleShape
+                                    }
+                                }
+
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(ListItemHeight)
-                                        .clip(
-                                            RoundedCornerShape(
-                                                topStart = if (isFirst) 20.dp else 0.dp,
-                                                topEnd = if (isFirst) 20.dp else 0.dp,
-                                                bottomStart = if (isLast && !isSingleSong) 20.dp else 0.dp,
-                                                bottomEnd = if (isLast && !isSingleSong) 20.dp else 0.dp
-                                            )
-                                        )
+                                        .clip(shape)
                                         .background(
                                             if (isActive) MaterialTheme.colorScheme.secondaryContainer
                                             else MaterialTheme.colorScheme.surfaceContainer
@@ -715,6 +746,7 @@ fun AlbumScreen(
                                         isPlaying = isPlaying,
                                         showInLibraryIcon = true,
                                         isSwipeable = false,
+                                        drawHighlight = false,
                                         trailingContent = {
                                             IconButton(
                                                 onClick = {

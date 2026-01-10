@@ -27,7 +27,9 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -109,9 +111,7 @@ import com.music.vivi.ui.utils.ItemWrapper
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.viewmodels.TopPlaylistViewModel
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class,
-    ExperimentalMaterial3ExpressiveApi::class
-)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TopPlaylistScreen(
     navController: NavController,
@@ -581,33 +581,163 @@ fun TopPlaylistScreen(
                                 Spacer(Modifier.height(24.dp))
                             }
                         }
+//
+//                        item(key = "songs_header") {
+//                            var dropdownExpanded by remember { mutableStateOf(false) }
+//
+//                            Column(modifier = Modifier.fillMaxWidth()) {
+//                                Box(
+//                                    modifier = Modifier
+//                                        .fillMaxWidth()
+//                                        .padding(horizontal = 16.dp, vertical = 8.dp)
+//                                ) {
+//                                    Row(
+//                                        modifier = Modifier.fillMaxWidth(),
+//                                        horizontalArrangement = Arrangement.Start,
+//                                        verticalAlignment = Alignment.CenterVertically
+//                                    ) {
+//                                        // Split Button on the left side
+//                                        SplitButtonLayout(
+//                                            leadingButton = {
+//                                                SplitButtonDefaults.LeadingButton(
+//                                                    onClick = { /* Current filter action */ }
+//                                                ) {
+//                                                    Text(
+//                                                        text = stringResource(
+//                                                            when (sortType) {
+//                                                                MyTopFilter.ALL_TIME -> R.string.all_time
+//                                                                MyTopFilter.DAY -> R.string.past_24_hours
+//                                                                MyTopFilter.WEEK -> R.string.past_week
+//                                                                MyTopFilter.MONTH -> R.string.past_month
+//                                                                MyTopFilter.YEAR -> R.string.past_year
+//                                                            }
+//                                                        ),
+//                                                        style = MaterialTheme.typography.labelLarge
+//                                                    )
+//                                                }
+//                                            },
+//                                            trailingButton = {
+//                                                SplitButtonDefaults.TrailingButton(
+//                                                    checked = dropdownExpanded,
+//                                                    onCheckedChange = { dropdownExpanded = it },
+//                                                    modifier = Modifier.semantics {
+//                                                        stateDescription = if (dropdownExpanded) "Expanded" else "Collapsed"
+//                                                    }
+//                                                ) {
+//                                                    val rotation: Float by animateFloatAsState(
+//                                                        targetValue = if (dropdownExpanded) 180f else 0f,
+//                                                        label = "Dropdown Arrow Rotation"
+//                                                    )
+//                                                    Icon(
+//                                                        painter = painterResource(R.drawable.arrow_downward),
+//                                                        modifier = Modifier
+//                                                            .size(SplitButtonDefaults.TrailingIconSize)
+//                                                            .graphicsLayer { rotationZ = rotation },
+//                                                        contentDescription = null
+//                                                    )
+//                                                }
+//                                            }
+//                                        )
+//
+//                                        DropdownMenu(
+//                                            expanded = dropdownExpanded,
+//                                            onDismissRequest = { dropdownExpanded = false }
+//                                        ) {
+//                                            DropdownMenuItem(
+//                                                text = { Text(stringResource(R.string.all_time)) },
+//                                                onClick = {
+//                                                    viewModel.topPeriod.value = MyTopFilter.ALL_TIME
+//                                                    dropdownExpanded = false
+//                                                },
+//                                                leadingIcon = if (sortType == MyTopFilter.ALL_TIME) {
+//                                                    { Icon(painterResource(R.drawable.check), contentDescription = null) }
+//                                                } else null
+//                                            )
+//                                            DropdownMenuItem(
+//                                                text = { Text(stringResource(R.string.past_24_hours)) },
+//                                                onClick = {
+//                                                    viewModel.topPeriod.value = MyTopFilter.DAY
+//                                                    dropdownExpanded = false
+//                                                },
+//                                                leadingIcon = if (sortType == MyTopFilter.DAY) {
+//                                                    { Icon(painterResource(R.drawable.check), contentDescription = null) }
+//                                                } else null
+//                                            )
+//                                            DropdownMenuItem(
+//                                                text = { Text(stringResource(R.string.past_week)) },
+//                                                onClick = {
+//                                                    viewModel.topPeriod.value = MyTopFilter.WEEK
+//                                                    dropdownExpanded = false
+//                                                },
+//                                                leadingIcon = if (sortType == MyTopFilter.WEEK) {
+//                                                    { Icon(painterResource(R.drawable.check), contentDescription = null) }
+//                                                } else null
+//                                            )
+//                                            DropdownMenuItem(
+//                                                text = { Text(stringResource(R.string.past_month)) },
+//                                                onClick = {
+//                                                    viewModel.topPeriod.value = MyTopFilter.MONTH
+//                                                    dropdownExpanded = false
+//                                                },
+//                                                leadingIcon = if (sortType == MyTopFilter.MONTH) {
+//                                                    { Icon(painterResource(R.drawable.check), contentDescription = null) }
+//                                                } else null
+//                                            )
+//                                            DropdownMenuItem(
+//                                                text = { Text(stringResource(R.string.past_year)) },
+//                                                onClick = {
+//                                                    viewModel.topPeriod.value = MyTopFilter.YEAR
+//                                                    dropdownExpanded = false
+//                                                },
+//                                                leadingIcon = if (sortType == MyTopFilter.YEAR) {
+//                                                    { Icon(painterResource(R.drawable.check), contentDescription = null) }
+//                                                } else null
+//                                            )
+//                                        }
+//                                    }
+//                                }
+//
+//                                // Space between filter and song list
+//                                Spacer(Modifier.height(8.dp))
+//                            }
+//                        }
 
                         item(key = "songs_header") {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(start = 16.dp),
-                            ) {
-                                SortHeader(
-                                    sortType = sortType,
-                                    sortDescending = false,
-                                    onSortTypeChange = {
-                                        viewModel.topPeriod.value = it
-                                    },
-                                    onSortDescendingChange = {},
-                                    sortTypeText = { sortType ->
-                                        when (sortType) {
-                                            MyTopFilter.ALL_TIME -> R.string.all_time
-                                            MyTopFilter.DAY -> R.string.past_24_hours
-                                            MyTopFilter.WEEK -> R.string.past_week
-                                            MyTopFilter.MONTH -> R.string.past_month
-                                            MyTopFilter.YEAR -> R.string.past_year
-                                        }
-                                    },
-                                    modifier = Modifier.weight(1f),
-                                    showDescending = false,
-                                )
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.Start,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        SortHeader(
+                                            sortType = sortType,
+                                            sortDescending = false,
+                                            onSortTypeChange = { viewModel.topPeriod.value = it },
+                                            onSortDescendingChange = {},
+                                            sortTypeText = { type ->
+                                                when (type) {
+                                                    MyTopFilter.ALL_TIME -> R.string.all_time
+                                                    MyTopFilter.DAY -> R.string.past_24_hours
+                                                    MyTopFilter.WEEK -> R.string.past_week
+                                                    MyTopFilter.MONTH -> R.string.past_month
+                                                    MyTopFilter.YEAR -> R.string.past_year
+                                                }
+                                            },
+                                            showDescending = false
+                                        )
+                                    }
+                                }
+
+                                // Space between filter and song list
+                                Spacer(Modifier.height(8.dp))
                             }
                         }
+
                     }
 
                     // Songs List with Quick Pick style
@@ -775,6 +905,10 @@ fun TopPlaylistScreen(
                         }
                     }
                 }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(40.dp))
             }
         }
 

@@ -1,0 +1,36 @@
+{
+    "title": "ViviMusic Gets Live Updates!",
+    "subtitle": "Major Update for Android 16+",
+    "date": "2026-01-09",
+    "type": "news",
+    "description": "ViviMusic now supports live updates for Android 16 and above. A milestone achievement powered by community collaboration!",
+    "image": "https://github.com/vivizzz007/vivi-music/blob/main/news/newsimage/1.png?raw=true",
+    "version": "v5.0.1",
+    "content": "We're excited to announce that ViviMusic now supports live updates! This feature brings real-time content delivery to your music experience without requiring app updates.",
+    "blocks": [
+        {
+            "subtitle": "Section 1: Live Update Support",
+            "image": "https://github.com/vivizzz007/vivi-music/blob/main/news/newsimage/1.png?raw=true",
+            "content": "ViviMusic now supports live updates for Android 16 and above! This breakthrough allows us to push new features, content, and improvements directly to your app in real-time."
+        },
+        {
+            "subtitle": "Section 2: A Community Milestone",
+            "image": "https://github.com/vivizzz007/vivi-music/blob/main/news/newsimage/2.png?raw=true",
+            "content": "The introduction of this dynamic news system is a major milestone for ViviMusic. This achievement was made possible thanks to the source code provided by LiveMedia. Special thanks to RossSihovsk for the LiveMedia project available at https://github.com/RossSihovsk/LiveMedia"
+        },
+        {
+            "subtitle": "Section 3: What This Means for You",
+            "content": "With live updates, you'll always have access to the latest features and improvements without waiting for app store updates. Stay tuned for exciting new content and enhancements coming your way!"
+        },
+        {
+            "subtitle": "How to Activate",
+            "content": "You can easily enable this feature by navigating to Player Settings. Look for the 'Live Media' option and simply toggle it on to start receiving real-time updates.",
+            "image": "https://github.com/vivizzz007/vivi-music/blob/main/news/newsimage/4.png?raw=true"
+        },
+        {
+            "subtitle": "LiveMedia Menu",
+            "content": "Once enabled, you can access the dedicated LiveMedia menu to manage your settings. This new menu provides a centralized place for all your live update preferences.",
+            "image": "https://github.com/vivizzz007/vivi-music/blob/main/news/newsimage/3.png?raw=true"
+        }
+    ]
+}

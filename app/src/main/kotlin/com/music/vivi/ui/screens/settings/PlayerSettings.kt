@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.ui.draw.clip
 import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
@@ -36,6 +37,7 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
@@ -63,6 +65,7 @@ import com.music.vivi.constants.AudioQualityKey
 import com.music.vivi.constants.AutoDownloadOnLikeKey
 import com.music.vivi.constants.AutoLoadMoreKey
 import com.music.vivi.constants.AutoSkipNextOnErrorKey
+import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.DisableLoadMoreWhenRepeatAllKey
 import com.music.vivi.constants.HistoryDuration
 import com.music.vivi.constants.PersistentQueueKey
@@ -78,7 +81,10 @@ import com.music.vivi.update.settingstyle.ModernInfoItem
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.constants.SettingsShapeColorTertiaryKey
-import com.music.vivi.constants.DarkModeKey
+import com.music.vivi.constants.PauseOnZeroVolumeKey
+import com.music.vivi.constants.SmartShuffleKey
+import com.music.vivi.constants.SmartSuggestionsKey
+import com.music.vivi.constants.PauseOnHeadphonesDisconnectKey
 import com.music.vivi.ui.screens.settings.DarkMode
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -148,6 +154,7 @@ fun PlayerSettings(
         AutoLoadMoreKey,
         defaultValue = true
     )
+
     val (disableLoadMoreWhenRepeatAll, onDisableLoadMoreWhenRepeatAllChange) = rememberPreference(
         DisableLoadMoreWhenRepeatAllKey,
         defaultValue = false
@@ -160,6 +167,10 @@ fun PlayerSettings(
         key = SimilarContent,
         defaultValue = true
     )
+    val (pauseOnZeroVolume, onPauseOnZeroVolumeChange) = rememberPreference(
+        PauseOnZeroVolumeKey,
+        defaultValue = false
+    )
     val (autoSkipNextOnError, onAutoSkipNextOnErrorChange) = rememberPreference(
         AutoSkipNextOnErrorKey,
         defaultValue = false
@@ -171,6 +182,18 @@ fun PlayerSettings(
     val (historyDuration, onHistoryDurationChange) = rememberPreference(
         HistoryDuration,
         defaultValue = 30f
+    )
+    val (smartShuffle, onSmartShuffleChange) = rememberPreference(
+        SmartShuffleKey,
+        defaultValue = false
+    )
+    val (smartSuggestions, onSmartSuggestionsChange) = rememberPreference(
+        SmartSuggestionsKey,
+        defaultValue = false
+    )
+    val (smartPause, onSmartPauseChange) = rememberPreference(
+        PauseOnHeadphonesDisconnectKey,
+        defaultValue = false
     )
 
 
@@ -415,6 +438,90 @@ fun PlayerSettings(
                                         modifier = Modifier.padding(end = 20.dp)
                                     )
                                 }
+                            },
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.volume_off), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.pause_on_zero_volume),
+                                            subtitle = stringResource(R.string.pause_on_zero_volume_description),
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = pauseOnZeroVolume,
+                                        onCheckedChange = onPauseOnZeroVolumeChange,
+                                        modifier = Modifier.padding(end = 20.dp)
+                                    )
+                                }
+                            },
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.shuffle), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.smart_shuffle),
+                                            subtitle = stringResource(R.string.smart_shuffle_desc),
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = smartShuffle,
+                                        onCheckedChange = onSmartShuffleChange,
+                                        modifier = Modifier.padding(end = 20.dp)
+                                    )
+                                }
+                            },
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.auto_playlist), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.smart_suggestions),
+                                            subtitle = stringResource(R.string.smart_suggestions_desc),
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = smartSuggestions,
+                                        onCheckedChange = onSmartSuggestionsChange,
+                                        modifier = Modifier.padding(end = 20.dp)
+                                    )
+                                }
+                            },
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.headphones), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.smart_pause),
+                                            subtitle = stringResource(R.string.smart_pause_desc),
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = smartPause,
+                                        onCheckedChange = onSmartPauseChange,
+                                        modifier = Modifier.padding(end = 20.dp)
+                                    )
+                                }
                             }
                         )
                     )
@@ -569,7 +676,6 @@ fun PlayerSettings(
                     )
                 }
 
-                // Misc Section
                 item {
                     Text(
                         text = stringResource(R.string.misc).uppercase(),

@@ -244,20 +244,14 @@
 
   <p>A heartfelt thank you to <strong><a href="https://github.com/mostafaalagamy">Mostafa Alagamy</a></strong> for their inspiration and contributions to the open source community.</p>
 
-  <hr width="60%">
-
+<hr width="60%">
 ## 🎖️ Credits
-
   <p>VIVI Music is built upon the foundation of amazing open-source projects:</p>
-
   <p><strong><a href="https://github.com/better-lyrics/better-lyrics">Better Lyrics</a></strong> – For beautiful time-synced lyrics with word-by-word highlighting, and seamless YouTube Music integration.</p>
-
+  <p><strong><a href="https://github.com/RossSihovsk/LiveMedia">LiveMedia</a></strong> – For persistent media controls and always-on playback notifications that keep music at your fingertips.</p>
   <p align="center">The open-source community for tools, libraries, and APIs that make this project possible.</p>
-
   <p align="center"><strong>Thank you to all the amazing developers who made this project possible!</strong></p>
-
   <hr width="60%">
-
   <p align="center"><strong>Made with ❤️ for music lovers everywhere</strong></p>
   <p align="center">⭐ Star this repo if you enjoy VIVI Music!</p>
 </div>

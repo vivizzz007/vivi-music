@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -70,7 +71,8 @@ import coil3.compose.AsyncImage
 import com.music.vivi.R
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.utils.backToMain
-import com.music.vivi.viewmodels.NewsItem
+import com.music.vivi.repositories.NewsItem
+import com.music.vivi.repositories.ContentBlock
 import com.music.vivi.viewmodels.NewsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -84,6 +86,15 @@ fun NewsScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val error by viewModel.error.collectAsState()
+    val readNewsIds by viewModel.readNewsIds.collectAsState()
+
+    // Auto-refresh every 30 seconds
+    LaunchedEffect(Unit) {
+        while (true) {
+            kotlinx.coroutines.delay(30_000)
+            viewModel.fetchNews(silent = true)
+        }
+    }
 
     // Track selected item by Title to ensure we always show the latest version from the ViewModel
     var selectedNewsTitle by remember { mutableStateOf<String?>(null) }
@@ -122,7 +133,12 @@ fun NewsScreen(
                 isLoading = isLoading,
                 isRefreshing = isRefreshing,
                 error = error,
-                onItemClick = { selectedNewsTitle = it.title },
+                readNewsIds = readNewsIds,
+                getItemId = { viewModel.getItemId(it) },
+                onItemClick = { 
+                    viewModel.markAsRead(it)
+                    selectedNewsTitle = it.title 
+                },
                 onRefresh = { viewModel.fetchNews(isRefresh = true) }
             )
         }
@@ -138,6 +154,8 @@ fun NewsListScreen(
     isLoading: Boolean,
     error: String?,
     isRefreshing: Boolean,
+    readNewsIds: Set<String>,
+    getItemId: (NewsItem) -> String,
     onItemClick: (NewsItem) -> Unit,
     onRefresh: () -> Unit
 ) {
@@ -219,7 +237,11 @@ fun NewsListScreen(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     items(newsItems) { item ->
-                        NewsCard(item = item, onClick = { onItemClick(item) })
+                        NewsCard(
+                            item = item, 
+                            isUnread = !readNewsIds.contains(getItemId(item)),
+                            onClick = { onItemClick(item) }
+                        )
                     }
                 }
             }
@@ -227,12 +249,10 @@ fun NewsListScreen(
     }
 }
 
-
-
-
 @Composable
 fun NewsCard(
     item: NewsItem,
+    isUnread: Boolean,
     onClick: () -> Unit
 ) {
     Card(
@@ -250,7 +270,14 @@ fun NewsCard(
                verticalAlignment = Alignment.CenterVertically,
                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-             // ... (Keep Version and badges logic) ...
+                if (isUnread) {
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .background(MaterialTheme.colorScheme.error, CircleShape)
+                    )
+                }
+
                 if (!item.version.isNullOrEmpty()) {
                     Box(
                         modifier = Modifier
@@ -396,7 +423,7 @@ fun NewsDetailScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(bottom = 32.dp)
+                    .padding(bottom = 100.dp)
             ) {
                  Spacer(modifier = Modifier.height(paddingValues.calculateTopPadding()))
                 
