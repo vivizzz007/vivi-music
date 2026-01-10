@@ -81,7 +81,6 @@ import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.constants.SettingsShapeColorTertiaryKey
 import com.music.vivi.constants.DarkModeKey
-import com.music.vivi.constants.LiveMediaEnabledKey
 import com.music.vivi.ui.screens.settings.DarkMode
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -151,9 +150,6 @@ fun PlayerSettings(
         AutoLoadMoreKey,
         defaultValue = true
     )
-
-    var showLiveMediaCompatibilityDialog by remember { mutableStateOf(false) }
-    val (liveMediaEnabled, onLiveMediaEnabledChange) = rememberPreference(LiveMediaEnabledKey, false)
 
     val (disableLoadMoreWhenRepeatAll, onDisableLoadMoreWhenRepeatAllChange) = rememberPreference(
         DisableLoadMoreWhenRepeatAllKey,
@@ -578,72 +574,6 @@ fun PlayerSettings(
 
                 item {
                     Text(
-                        text = stringResource(R.string.live_media).uppercase(),
-                        style = MaterialTheme.typography.labelLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.sp
-                        ),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
-                    )
-                }
-
-                // Misc Section
-                item {
-                    Material3ExpressiveSettingsGroup(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        items = listOf(
-                            {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Box(modifier = Modifier.weight(1f)) {
-                                        ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.update), null, modifier = Modifier.size(22.dp)) },
-                                            title = stringResource(R.string.live_media),
-                                            subtitle = if (liveMediaEnabled) stringResource(R.string.enabled) else stringResource(R.string.disabled),
-                                            iconBackgroundColor = iconBgColor,
-                                            iconContentColor = iconStyleColor,
-                                            modifier = Modifier.clickable {
-                                                navController.navigate("settings/player/live_media")
-                                            }
-                                        )
-                                    }
-
-                                    VerticalDivider(
-                                        modifier = Modifier.height(32.dp),
-                                        thickness = 1.dp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
-                                    )
-
-                                    Box(
-                                        modifier = Modifier
-                                            .padding(horizontal = 20.dp)
-                                            .size(48.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        ModernSwitch(
-                                            checked = liveMediaEnabled,
-                                            onCheckedChange = { newValue ->
-                                                if (newValue && android.os.Build.VERSION.SDK_INT < 36) {
-                                                    showLiveMediaCompatibilityDialog = true
-                                                } else {
-                                                    onLiveMediaEnabledChange(newValue)
-                                                }
-                                            }
-                                        )
-                                    }
-                                }
-                            }
-                        )
-                    )
-                }
-
-                item {
-                    Text(
                         text = stringResource(R.string.misc).uppercase(),
                         style = MaterialTheme.typography.labelLarge.copy(
                             fontWeight = FontWeight.Bold,
@@ -690,26 +620,5 @@ fun PlayerSettings(
                 }
             }
         }
-    }
-
-    if (showLiveMediaCompatibilityDialog) {
-        AlertDialog(
-            onDismissRequest = { showLiveMediaCompatibilityDialog = false },
-            title = { Text(stringResource(R.string.live_media_compatibility_title)) },
-            text = { Text(stringResource(R.string.live_media_compatibility_message)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    onLiveMediaEnabledChange(true)
-                    showLiveMediaCompatibilityDialog = false
-                }) {
-                    Text(stringResource(R.string.confirm))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showLiveMediaCompatibilityDialog = false }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            }
-        )
     }
 }
