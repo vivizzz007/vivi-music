@@ -29,6 +29,8 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.RectangleShape
+import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonGroupDefaults
@@ -789,18 +791,45 @@ fun OnlinePlaylistScreen(
                                     .fillMaxWidth()
                                     .padding(horizontal = 16.dp)
                             ) {
+                                val cornerRadius = remember { 24.dp }
+
+                                val topShape = remember(cornerRadius) {
+                                    AbsoluteSmoothCornerShape(
+                                        cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
+                                        smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
+                                        cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+                                    )
+                                }
+                                val middleShape = remember { RectangleShape }
+                                val bottomShape = remember(cornerRadius) {
+                                    AbsoluteSmoothCornerShape(
+                                        cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+                                        smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
+                                        cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
+                                    )
+                                }
+                                val singleShape = remember(cornerRadius) {
+                                    AbsoluteSmoothCornerShape(
+                                        cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+                                        smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
+                                        cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+                                    )
+                                }
+
+                                val shape = remember(isFirst, isLast, cornerRadius) {
+                                    when {
+                                        isFirst && isLast -> singleShape
+                                        isFirst -> topShape
+                                        isLast -> bottomShape
+                                        else -> middleShape
+                                    }
+                                }
+
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(ListItemHeight)
-                                        .clip(
-                                            RoundedCornerShape(
-                                                topStart = if (isFirst) 20.dp else 0.dp,
-                                                topEnd = if (isFirst) 20.dp else 0.dp,
-                                                bottomStart = if (isLast) 20.dp else 0.dp,
-                                                bottomEnd = if (isLast) 20.dp else 0.dp
-                                            )
-                                        )
+                                        .clip(shape)
                                         .background(
                                             if (isActive) MaterialTheme.colorScheme.secondaryContainer
                                             else MaterialTheme.colorScheme.surfaceContainer
@@ -813,6 +842,7 @@ fun OnlinePlaylistScreen(
                                         isSelected = songWrapper.isSelected,
                                         inSelectionMode = selection,
                                         onSelectionChange = { songWrapper.isSelected = it },
+                                        drawHighlight = false,
                                         trailingContent = {
                                             IconButton(
                                                 onClick = {
