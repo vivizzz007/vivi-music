@@ -697,6 +697,8 @@
     <string name="remove_silent_parts">Remove silent parts</string>
     <string name="normalize_audio_levels">Normalize audio levels</string>
     <string name="stop_playback_when_closed">Stop playback when app is closed</string>
+    <string name="pause_on_zero_volume">Pause/resume on zero volume</string>
+    <string name="pause_on_zero_volume_description">Automatically pause playback at zero volume and resume when increased</string>
 
     <!-- Appearance Settings -->
     <string name="dynamic_color_theming_subtitle">Dynamic color theming</string>

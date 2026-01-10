@@ -5,8 +5,8 @@ package com.music.vivi.playback
 import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
-import android.content.Intent
-import android.database.SQLException
+import android.content.BroadcastReceiver
+import android.content.IntentFilter
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.audiofx.AudioEffect
@@ -158,12 +158,15 @@ import kotlin.time.Duration.Companion.seconds
 //under testing
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.database.SQLException
 import android.os.Build
 import androidx.core.app.NotificationCompat
 
 
 import com.music.vivi.constants.HideVideoSongsKey
+import com.music.vivi.constants.PauseOnZeroVolumeKey
 import com.music.vivi.playback.queues.filterVideoSongs
 
 import com.music.vivi.extensions.toEnum
@@ -194,6 +197,7 @@ class MusicService :
     private var audioFocusRequest: AudioFocusRequest? = null
     private var lastAudioFocusState = AudioManager.AUDIOFOCUS_NONE
     private var wasPlayingBeforeAudioFocusLoss = false
+    private var wasPausedByZeroVolume = false
     private var hasAudioFocus = false
     private var reentrantFocusGain = false
 
@@ -205,6 +209,32 @@ class MusicService :
     lateinit var connectivityObserver: NetworkConnectivityObserver
     val waitingForNetworkConnection = MutableStateFlow(false)
     private val isNetworkConnected = MutableStateFlow(false)
+
+    private val volumeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == "android.media.VOLUME_CHANGED_ACTION") {
+                val streamType = intent.getIntExtra("android.media.EXTRA_VOLUME_STREAM_TYPE", -1)
+                if (streamType == AudioManager.STREAM_MUSIC) {
+                    val volume = intent.getIntExtra("android.media.EXTRA_VOLUME_STREAM_VALUE", -1)
+                    scope.launch {
+                        if (dataStore.get(PauseOnZeroVolumeKey, false)) {
+                            if (volume == 0) {
+                                if (player.isPlaying) {
+                                    player.pause()
+                                    wasPausedByZeroVolume = true
+                                }
+                            } else if (volume > 0) {
+                                if (wasPausedByZeroVolume) {
+                                    player.play()
+                                    wasPausedByZeroVolume = false
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     @Inject
     lateinit var okHttpClient: OkHttpClient
@@ -321,6 +351,8 @@ class MusicService :
 
         connectivityManager = getSystemService()!!
 //        connectivityObserver = NetworkConnectivityObserver(this)
+
+        registerReceiver(volumeReceiver, IntentFilter("android.media.VOLUME_CHANGED_ACTION"))
 
         audioQuality = dataStore.get(AudioQualityKey).toEnum(com.music.vivi.constants.AudioQuality.AUTO)
         playerVolume = MutableStateFlow(dataStore.get(PlayerVolumeKey, 1f).coerceIn(0f, 1f))
@@ -1238,6 +1270,9 @@ class MusicService :
     }
 
     override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+        if (reason == Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST) {
+            wasPausedByZeroVolume = false
+        }
         if (playWhenReady) {
             setupLoudnessEnhancer()
         }
@@ -1632,6 +1667,7 @@ class MusicService :
         connectivityObserver.unregister()
         abandonAudioFocus()
         releaseLoudnessEnhancer()
+        unregisterReceiver(volumeReceiver)
         mediaSession.release()
         player.removeListener(this)
         player.removeListener(sleepTimer)

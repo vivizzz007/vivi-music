@@ -65,6 +65,7 @@ import com.music.vivi.constants.AudioQualityKey
 import com.music.vivi.constants.AutoDownloadOnLikeKey
 import com.music.vivi.constants.AutoLoadMoreKey
 import com.music.vivi.constants.AutoSkipNextOnErrorKey
+import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.DisableLoadMoreWhenRepeatAllKey
 import com.music.vivi.constants.HistoryDuration
 import com.music.vivi.constants.PersistentQueueKey
@@ -80,7 +81,7 @@ import com.music.vivi.update.settingstyle.ModernInfoItem
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.constants.SettingsShapeColorTertiaryKey
-import com.music.vivi.constants.DarkModeKey
+import com.music.vivi.constants.PauseOnZeroVolumeKey
 import com.music.vivi.ui.screens.settings.DarkMode
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -162,6 +163,10 @@ fun PlayerSettings(
     val (similarContentEnabled, similarContentEnabledChange) = rememberPreference(
         key = SimilarContent,
         defaultValue = true
+    )
+    val (pauseOnZeroVolume, onPauseOnZeroVolumeChange) = rememberPreference(
+        PauseOnZeroVolumeKey,
+        defaultValue = false
     )
     val (autoSkipNextOnError, onAutoSkipNextOnErrorChange) = rememberPreference(
         AutoSkipNextOnErrorKey,
@@ -415,6 +420,27 @@ fun PlayerSettings(
                                     ModernSwitch(
                                         checked = seekExtraSeconds,
                                         onCheckedChange = onSeekExtraSeconds,
+                                        modifier = Modifier.padding(end = 20.dp)
+                                    )
+                                }
+                            },
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.volume_off), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.pause_on_zero_volume),
+                                            subtitle = stringResource(R.string.pause_on_zero_volume_description),
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = pauseOnZeroVolume,
+                                        onCheckedChange = onPauseOnZeroVolumeChange,
                                         modifier = Modifier.padding(end = 20.dp)
                                     )
                                 }
