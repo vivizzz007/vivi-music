@@ -73,6 +73,7 @@ val StopMusicOnTaskClearKey = booleanPreferencesKey("stopMusicOnTaskClear")
 val PauseOnZeroVolumeKey = booleanPreferencesKey("pauseOnZeroVolume")
 val SmartShuffleKey = booleanPreferencesKey("smartShuffle")
 val SmartSuggestionsKey = booleanPreferencesKey("smartSuggestions")
+val PauseOnHeadphonesDisconnectKey = booleanPreferencesKey("pauseOnHeadphonesDisconnect")
 
 val MaxImageCacheSizeKey = intPreferencesKey("maxImageCacheSize")
 val MaxSongCacheSizeKey = intPreferencesKey("maxSongCacheSize")

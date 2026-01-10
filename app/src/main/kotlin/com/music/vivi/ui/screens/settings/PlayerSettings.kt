@@ -84,6 +84,7 @@ import com.music.vivi.constants.SettingsShapeColorTertiaryKey
 import com.music.vivi.constants.PauseOnZeroVolumeKey
 import com.music.vivi.constants.SmartShuffleKey
 import com.music.vivi.constants.SmartSuggestionsKey
+import com.music.vivi.constants.PauseOnHeadphonesDisconnectKey
 import com.music.vivi.ui.screens.settings.DarkMode
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -188,6 +189,10 @@ fun PlayerSettings(
     )
     val (smartSuggestions, onSmartSuggestionsChange) = rememberPreference(
         SmartSuggestionsKey,
+        defaultValue = false
+    )
+    val (smartPause, onSmartPauseChange) = rememberPreference(
+        PauseOnHeadphonesDisconnectKey,
         defaultValue = false
     )
 
@@ -493,6 +498,27 @@ fun PlayerSettings(
                                     ModernSwitch(
                                         checked = smartSuggestions,
                                         onCheckedChange = onSmartSuggestionsChange,
+                                        modifier = Modifier.padding(end = 20.dp)
+                                    )
+                                }
+                            },
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.headphones), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.smart_pause),
+                                            subtitle = stringResource(R.string.smart_pause_desc),
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = smartPause,
+                                        onCheckedChange = onSmartPauseChange,
                                         modifier = Modifier.padding(end = 20.dp)
                                     )
                                 }

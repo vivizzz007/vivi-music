@@ -168,6 +168,7 @@ import androidx.core.app.NotificationCompat
 
 
 import com.music.vivi.constants.HideVideoSongsKey
+import com.music.vivi.constants.PauseOnHeadphonesDisconnectKey
 import com.music.vivi.constants.PauseOnZeroVolumeKey
 import com.music.vivi.playback.queues.filterVideoSongs
 
@@ -232,6 +233,18 @@ class MusicService :
                                 }
                             }
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    private val becomingNoisyReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == AudioManager.ACTION_AUDIO_BECOMING_NOISY) {
+                scope.launch {
+                    if (dataStore.get(PauseOnHeadphonesDisconnectKey, false)) {
+                        player.pause()
                     }
                 }
             }
@@ -304,7 +317,7 @@ class MusicService :
                 .Builder(this)
                 .setMediaSourceFactory(createMediaSourceFactory())
                 .setRenderersFactory(createRenderersFactory())
-                .setHandleAudioBecomingNoisy(true)
+                .setHandleAudioBecomingNoisy(false)
                 .setWakeMode(C.WAKE_MODE_NETWORK)
                 .setAudioAttributes(
                     AudioAttributes
@@ -355,6 +368,7 @@ class MusicService :
 //        connectivityObserver = NetworkConnectivityObserver(this)
 
         registerReceiver(volumeReceiver, IntentFilter("android.media.VOLUME_CHANGED_ACTION"))
+        registerReceiver(becomingNoisyReceiver, IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY))
 
         audioQuality = dataStore.get(AudioQualityKey).toEnum(com.music.vivi.constants.AudioQuality.AUTO)
         playerVolume = MutableStateFlow(dataStore.get(PlayerVolumeKey, 1f).coerceIn(0f, 1f))
@@ -1721,6 +1735,7 @@ class MusicService :
         abandonAudioFocus()
         releaseLoudnessEnhancer()
         unregisterReceiver(volumeReceiver)
+        unregisterReceiver(becomingNoisyReceiver)
         mediaSession.release()
         player.removeListener(this)
         player.removeListener(sleepTimer)
