@@ -150,6 +150,7 @@ import com.music.vivi.ui.component.SongListItem
 import com.music.vivi.ui.component.SortHeader
 import com.music.vivi.ui.component.TextFieldDialog
 import com.music.vivi.ui.menu.CustomThumbnailMenu
+import com.music.vivi.ui.menu.PlaylistMenu
 import com.music.vivi.ui.menu.SelectionSongMenu
 import com.music.vivi.ui.menu.SongMenu
 import com.music.vivi.ui.screens.settings.DarkMode
@@ -1447,6 +1448,25 @@ fun LocalPlaylistScreen(
                             painter = painterResource(R.drawable.search),
                             contentDescription = null
                         )
+                    }
+                    
+                    playlist?.let { playlistData ->
+                        IconButton(
+                            onClick = {
+                                menuState.show {
+                                    PlaylistMenu(
+                                        playlist = playlistData,
+                                        coroutineScope = coroutineScope,
+                                        onDismiss = menuState::dismiss,
+                                    )
+                                }
+                            },
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.more_vert),
+                                contentDescription = null
+                            )
+                        }
                     }
                 }
             },
