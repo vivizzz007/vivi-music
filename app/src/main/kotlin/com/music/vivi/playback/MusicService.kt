@@ -228,7 +228,7 @@ class MusicService :
                                 }
                             } else if (volume > 0) {
                                 if (wasPausedByZeroVolume) {
-                                    player.play()
+                                    safePlay()
                                     wasPausedByZeroVolume = false
                                 }
                             }
@@ -385,7 +385,7 @@ class MusicService :
                             delay(500)
                             player.prepare()
                             if (player.playWhenReady) {
-                                player.play()
+                                safePlay()
                             }
                         }
                     }
@@ -677,7 +677,7 @@ class MusicService :
                     scope.launch {
                         delay(300)
                         if (hasAudioFocus && wasPlayingBeforeAudioFocusLoss && !player.isPlaying) {
-                            player.play()
+                            safePlay()
                             wasPlayingBeforeAudioFocusLoss = false
                         }
                         reentrantFocusGain = false
@@ -724,6 +724,14 @@ class MusicService :
         }
     }
 
+    private fun safePlay() {
+        try {
+            player.play()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start playback (ForegroundServiceStartNotAllowedException?)", e)
+        }
+    }
+
     private fun requestAudioFocus(): Boolean {
         if (hasAudioFocus) return true
 
@@ -767,7 +775,7 @@ class MusicService :
         if (consecutivePlaybackErr <= MAX_CONSECUTIVE_ERR && nextWindowIndex != C.INDEX_UNSET) {
             player.seekTo(nextWindowIndex, C.TIME_UNSET)
             player.prepare()
-            player.play()
+            safePlay()
             return
         }
 
@@ -1467,7 +1475,7 @@ class MusicService :
                 retryCount[mediaId] = currentRetries + 1
                 songUrlCache.remove(mediaId) // Invalidate cache to force re-fetch
                 player.prepare()
-                player.play()
+                safePlay()
                 return
             }
         }
