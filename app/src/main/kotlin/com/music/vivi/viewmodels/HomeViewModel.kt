@@ -29,6 +29,7 @@ import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.get
 import com.music.vivi.utils.SyncUtils
 import com.music.vivi.utils.reportException
+import com.music.vivi.repositories.YouTubeRepository
 import com.music.vivi.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -40,6 +41,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -51,6 +53,7 @@ class HomeViewModel @Inject constructor(
     @ApplicationContext val context: Context,
     val database: MusicDatabase,
     val syncUtils: SyncUtils,
+    private val youtubeRepository: YouTubeRepository,
 ) : ViewModel() {
     val isRefreshing = MutableStateFlow(false)
     val isLoading = MutableStateFlow(false)
@@ -104,103 +107,117 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private suspend fun load() = coroutineScope {
-        isLoading.value = true
+    private fun updateAllLocalItems() {
+        allLocalItems.value = (quickPicks.value.orEmpty() + forgottenFavorites.value.orEmpty() + keepListening.value.orEmpty())
+            .filter { it is Song || it is Album }
+    }
+
+    private fun updateAllYtItems() {
+        allYtItems.value = similarRecommendations.value?.flatMap { it.items }.orEmpty() +
+                homePage.value?.sections?.flatMap { it.items }.orEmpty()
+    }
+
+    private suspend fun load(forceRefresh: Boolean = false) = coroutineScope {
+        isLoading.value = !forceRefresh
         val hideExplicit = context.dataStore.get(HideExplicitKey, false)
         val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
 
-        getQuickPicks()
-        forgottenFavorites.value = database.forgottenFavorites().first().shuffled().take(20)
+        // Load local items immediately
+        launch {
+            getQuickPicks()
+            forgottenFavorites.value = database.forgottenFavorites().first().shuffled().take(20)
 
-        val fromTimeStamp = System.currentTimeMillis() - 86400000 * 7 * 2
-        val keepListeningSongs = database.mostPlayedSongs(fromTimeStamp, limit = 15, offset = 5).first().shuffled().take(10)
-        val keepListeningAlbums = database.mostPlayedAlbums(fromTimeStamp, limit = 8, offset = 2).first().filter { it.album.thumbnailUrl != null }.shuffled().take(5)
-        val keepListeningArtists = database.mostPlayedArtists(fromTimeStamp).first().filter { it.artist.isYouTubeArtist && it.artist.thumbnailUrl != null }.shuffled().take(5)
-        keepListening.value = (keepListeningSongs + keepListeningAlbums + keepListeningArtists).shuffled()
+            val fromTimeStamp = System.currentTimeMillis() - 86400000 * 7 * 2
+            val keepListeningSongs = database.mostPlayedSongs(fromTimeStamp, limit = 15, offset = 5).first().shuffled().take(10)
+            val keepListeningAlbums = database.mostPlayedAlbums(fromTimeStamp, limit = 8, offset = 2).first().filter { it.album.thumbnailUrl != null }.shuffled().take(5)
+            val keepListeningArtists = database.mostPlayedArtists(fromTimeStamp).first().filter { it.artist.isYouTubeArtist && it.artist.thumbnailUrl != null }.shuffled().take(5)
+            keepListening.value = (keepListeningSongs + keepListeningAlbums + keepListeningArtists).shuffled()
+            updateAllLocalItems()
+            if (!forceRefresh) isLoading.value = false
+        }
 
-        val accountPlaylistsDeferred = async(Dispatchers.IO) {
+        // Fetch YouTube data in separate coroutines
+        launch(Dispatchers.IO) {
             fetchAccountPlaylists()
         }
 
-        val artistRecommendationsDeferred = database.mostPlayedArtists(fromTimeStamp, limit = 10).first()
-            .filter { it.artist.isYouTubeArtist }
-            .shuffled().take(3)
-            .map { artist ->
-                async(Dispatchers.IO) {
-                    val items = mutableListOf<YTItem>()
-                    YouTube.artist(artist.id).onSuccess { page ->
-                        val relevantSections = page.sections.filter {
-                            it.title.contains("similar", ignoreCase = true) ||
-                                    it.title.contains("fans", ignoreCase = true)
-                        }.ifEmpty {
-                            listOfNotNull(page.sections.getOrNull(page.sections.size - 2), page.sections.lastOrNull())
+        launch(Dispatchers.IO) {
+            val fromTimeStamp = System.currentTimeMillis() - 86400000 * 7 * 2
+            val artistRecommendationsDeferred = database.mostPlayedArtists(fromTimeStamp, limit = 10).first()
+                .filter { it.artist.isYouTubeArtist }
+                .shuffled().take(3)
+                .map { artist ->
+                    async {
+                        val items = mutableListOf<YTItem>()
+                        YouTube.artist(artist.id).onSuccess { page ->
+                            val relevantSections = page.sections.filter {
+                                it.title.contains("similar", ignoreCase = true) ||
+                                        it.title.contains("fans", ignoreCase = true)
+                            }.ifEmpty {
+                                listOfNotNull(page.sections.getOrNull(page.sections.size - 2), page.sections.lastOrNull())
+                            }
+                            items += relevantSections.flatMap { it.items }
                         }
-                        items += relevantSections.flatMap { it.items }
+                        SimilarRecommendation(
+                            title = artist,
+                            items = items
+                                .filterExplicit(hideExplicit)
+                                .filterVideoSongs(hideVideoSongs)
+                                .shuffled()
+                                .ifEmpty { return@async null }
+                        )
                     }
-                    SimilarRecommendation(
-                        title = artist,
-                        items = items
-                            .filterExplicit(hideExplicit)
-                            .filterVideoSongs(hideVideoSongs)
-                            .shuffled()
-                            .ifEmpty { return@async null }
-                    )
                 }
-            }
 
-        val songRecommendationsDeferred = database.mostPlayedSongs(fromTimeStamp, limit = 10).first()
-            .filter { it.album != null }
-            .shuffled().take(2)
-            .map { song ->
-                async(Dispatchers.IO) {
-                    val endpoint = YouTube.next(WatchEndpoint(videoId = song.id)).getOrNull()?.relatedEndpoint ?: return@async null
-                    val page = YouTube.related(endpoint).getOrNull() ?: return@async null
-                    SimilarRecommendation(
-                        title = song,
-                        items = (page.songs.shuffled().take(8) +
-                                page.albums.shuffled().take(4) +
-                                page.artists.shuffled().take(4) +
-                                page.playlists.shuffled().take(4))
-                            .filterExplicit(hideExplicit)
-                            .shuffled()
-                            .ifEmpty { return@async null }
-                    )
-                }
-            }
-
-        val homePageDeferred = async(Dispatchers.IO) {
-            YouTube.home().onSuccess { page ->
-                homePage.value = page.copy(
-                    sections = page.sections.map { section ->
-                        section.copy(items = section.items.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs))
+            val songRecommendationsDeferred = database.mostPlayedSongs(fromTimeStamp, limit = 10).first()
+                .filter { it.album != null }
+                .shuffled().take(2)
+                .map { song ->
+                    async {
+                        val endpoint = YouTube.next(WatchEndpoint(videoId = song.id)).getOrNull()?.relatedEndpoint ?: return@async null
+                        val page = YouTube.related(endpoint).getOrNull() ?: return@async null
+                        SimilarRecommendation(
+                            title = song,
+                            items = (page.songs.shuffled().take(8) +
+                                    page.albums.shuffled().take(4) +
+                                    page.artists.shuffled().take(4) +
+                                    page.playlists.shuffled().take(4))
+                                .filterExplicit(hideExplicit)
+                                .shuffled()
+                                .ifEmpty { return@async null }
+                        )
                     }
-                )
-            }.onFailure {
-                reportException(it)
+                }
+            similarRecommendations.value = (artistRecommendationsDeferred.awaitAll() + songRecommendationsDeferred.awaitAll()).filterNotNull().shuffled()
+            updateAllYtItems()
+        }
+
+        launch(Dispatchers.IO) {
+            youtubeRepository.getHomePageFlow(forceRefresh).collect { result ->
+                result.onSuccess { page ->
+                    homePage.value = page.copy(
+                        sections = page.sections.map { section ->
+                            section.copy(items = section.items.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs))
+                        }
+                    )
+                    updateAllYtItems()
+                }.onFailure {
+                    reportException(it)
+                }
             }
         }
 
-        val explorePageDeferred = async(Dispatchers.IO) {
-            YouTube.explore().onSuccess { page ->
-                explorePage.value = page.copy(
-                    newReleaseAlbums = page.newReleaseAlbums.filterExplicit(hideExplicit)
-                )
-            }.onFailure {
-                reportException(it)
+        launch(Dispatchers.IO) {
+            youtubeRepository.getExplorePageFlow(forceRefresh).collect { result ->
+                result.onSuccess { page ->
+                    explorePage.value = page.copy(
+                        newReleaseAlbums = page.newReleaseAlbums.filterExplicit(hideExplicit)
+                    )
+                }.onFailure {
+                    reportException(it)
+                }
             }
         }
-
-        accountPlaylistsDeferred.await()
-        similarRecommendations.value = (artistRecommendationsDeferred.awaitAll() + songRecommendationsDeferred.awaitAll()).filterNotNull().shuffled()
-        homePageDeferred.await()
-        explorePageDeferred.await()
-
-        allLocalItems.value = (quickPicks.value.orEmpty() + forgottenFavorites.value.orEmpty() + keepListening.value.orEmpty())
-            .filter { it is Song || it is Album }
-        allYtItems.value = similarRecommendations.value?.flatMap { it.items }.orEmpty() +
-                homePage.value?.sections?.flatMap { it.items }.orEmpty()
-
-        isLoading.value = false
     }
 
     private val _isLoadingMore = MutableStateFlow(false)
@@ -257,7 +274,7 @@ class HomeViewModel @Inject constructor(
         if (isRefreshing.value) return
         viewModelScope.launch(Dispatchers.IO) {
             isRefreshing.value = true
-            load()
+            load(forceRefresh = true)
             isRefreshing.value = false
         }
     }

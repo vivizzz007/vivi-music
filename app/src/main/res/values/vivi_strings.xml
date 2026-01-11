@@ -655,6 +655,8 @@
     <string name="dynamic_color_theming">Dynamic color theming</string>
     <string name="accent_color">Accent Color</string>
     <string name="select_static_theme_color">Select a static theme color</string>
+    <string name="high_refresh_rate">High Refresh Rate</string>
+    <string name="high_refresh_rate_desc">Enable 120Hz/Peak refresh rate for smoother animations</string>
 
     <!-- Song Edit -->
     <!-- song_title, artist_name, edit_song are in strings.xml -->
@@ -697,6 +699,14 @@
     <string name="remove_silent_parts">Remove silent parts</string>
     <string name="normalize_audio_levels">Normalize audio levels</string>
     <string name="stop_playback_when_closed">Stop playback when app is closed</string>
+    <string name="pause_on_zero_volume">Pause/resume on zero volume</string>
+    <string name="pause_on_zero_volume_description">Automatically pause playback at zero volume and resume when increased</string>
+    <string name="smart_shuffle">Smart Shuffle</string>
+    <string name="smart_shuffle_desc">Avoid playing similar songs or same artists back-to-back</string>
+    <string name="smart_suggestions">Smart Suggestions</string>
+    <string name="smart_suggestions_desc">Get tailored recommendations at the end of your queue</string>
+    <string name="smart_pause">Smart Pause</string>
+    <string name="smart_pause_desc">Auto-pause when headphones disconnect</string>
 
     <!-- Appearance Settings -->
     <string name="dynamic_color_theming_subtitle">Dynamic color theming</string>
@@ -723,7 +733,9 @@
     <string name="display_top_songs_playlist">Display top songs playlist</string>
     <string name="display_cached_playlist">Display cached playlist</string>
     <string name="display_uploaded_playlist">Display uploaded playlist</string>
-
+    <string name="apple_music">Apple Music</string>
+    <string name="show_now_playing">Show Now Playing</string>
+    <string name="enable_now_playing_text_on_player_background">Enable now playing text on player background of apple music</string>
     <!-- Content Settings -->
     <string name="filter_explicit_content">Filter explicit content</string>
     <string name="configure_in_system_settings">Configure in system settings</string>
@@ -771,6 +783,7 @@
     <string name="cache_songs">Cache Songs</string>
     <string name="auto_playlist">Auto Playlist</string>
     <string name="selection">Selection</string>
+    <string name="suggestions">Suggestions</string>
 
     <!-- Content Descriptions -->
     <string name="shuffle_content_desc">Shuffle</string>

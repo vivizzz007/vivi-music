@@ -9,6 +9,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,13 +53,22 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -236,36 +246,53 @@ fun PlayerMenu(
                 sliderState.value = playerVolume.value
             }
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 12.dp),
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.volume_up),
-                    contentDescription = null,
-                    modifier = Modifier.size(28.dp),
-                )
-
+            val speakerIcon = painterResource(R.drawable.media3_icon_volume_up)
+            val interactionSource = remember { MutableInteractionSource() }
+            
+            Column(modifier = Modifier.padding(bottom = 12.dp)) {
                 Slider(
                     state = sliderState,
+                    interactionSource = interactionSource,
                     modifier = Modifier
-                        .weight(1f)
-                        .height(36.dp)
+                        .fillMaxWidth()
                         .progressSemantics(
                             currentVolume,
                             sliderState.valueRange.start..sliderState.valueRange.endInclusive,
                             0,
                         ),
                     track = {
+                        val iconSize = DpSize(24.dp, 24.dp)
+                        val iconPadding = 10.dp
+                        val thumbTrackGapSize = 6.dp
+                        val activeIconColor = SliderDefaults.colors().activeTickColor
+                        
                         SliderDefaults.Track(
                             sliderState = sliderState,
-                            modifier = Modifier.height(36.dp),
+                            modifier = Modifier.height(40.dp).drawWithContent {
+                                drawContent()
+
+                                val yOffset = size.height / 2 - iconSize.toSize().height / 2
+                                val activeTrackStart = 0f
+                                val activeTrackEnd =
+                                    size.width * sliderState.coercedValueAsFraction -
+                                            thumbTrackGapSize.toPx()
+
+                                val activeTrackWidth = activeTrackEnd - activeTrackStart
+                                
+                                // Draw only the left icon if there's enough space
+                                if (iconSize.toSize().width < activeTrackWidth - iconPadding.toPx() * 2) {
+                                    translate(activeTrackStart + iconPadding.toPx(), yOffset) {
+                                        with(speakerIcon) {
+                                            draw(iconSize.toSize(), colorFilter = ColorFilter.tint(activeIconColor))
+                                        }
+                                    }
+                                }
+                            },
                             trackCornerSize = 12.dp,
+                            drawStopIndicator = null,
+                            thumbTrackGapSize = thumbTrackGapSize,
                         )
-                    }
+                    },
                 )
             }
 
@@ -306,24 +333,20 @@ fun PlayerMenu(
                 )
             }
 
-            // Copy Link Button
+            // Add to Playlist Button
             FilledTonalIconButton(
                 modifier = Modifier
                     .weight(0.25f)
                     .fillMaxHeight(),
                 onClick = {
-                    val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                    val clip = android.content.ClipData.newPlainText("Song Link", "https://music.youtube.com/watch?v=${mediaMetadata.id}")
-                    clipboard.setPrimaryClip(clip)
-                    android.widget.Toast.makeText(context, R.string.link_copied, android.widget.Toast.LENGTH_SHORT).show()
-                    onDismiss()
+                    showChoosePlaylistDialog = true
                 },
                 shape = singleShape
             ) {
                 Icon(
                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
-                    painter = painterResource(R.drawable.link),
-                    contentDescription = stringResource(R.string.copy_link)
+                    painter = painterResource(R.drawable.playlist_add),
+                    contentDescription = stringResource(R.string.add_to_playlist_icon)
                 )
             }
 
@@ -501,30 +524,34 @@ fun PlayerMenu(
         Column(
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
-            // Add to Playlist
+            // Copy Link
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
                 shape = topShape,
                 onClick = {
-                    showChoosePlaylistDialog = true
+                    val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                    val clip = android.content.ClipData.newPlainText("Song Link", "https://music.youtube.com/watch?v=${mediaMetadata.id}")
+                    clipboard.setPrimaryClip(clip)
+                    android.widget.Toast.makeText(context, R.string.link_copied, android.widget.Toast.LENGTH_SHORT).show()
+                    onDismiss()
                 }
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.playlist_add),
-                    contentDescription = stringResource(R.string.add_to_playlist_icon)
+                    painter = painterResource(R.drawable.link),
+                    contentDescription = stringResource(R.string.copy_link)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        stringResource(R.string.add_to_playlist),
+                        stringResource(R.string.copy_link),
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        stringResource(R.string.add_to_existing_playlist_subtitle),
+                        stringResource(R.string.link_copied),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis

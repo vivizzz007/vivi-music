@@ -37,7 +37,7 @@ object PlayerSliderColors {
                     MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
                 }
             }
-            PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT -> {
+            PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.APPLE_MUSIC -> {
                 Color.White.copy(alpha = 0.4f)
             }
         }
@@ -115,7 +115,7 @@ object PlayerSliderColors {
                     MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
                 }
             }
-            PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT -> {
+            PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.APPLE_MUSIC -> {
                 Color.White.copy(alpha = 0.4f)
             }
         }

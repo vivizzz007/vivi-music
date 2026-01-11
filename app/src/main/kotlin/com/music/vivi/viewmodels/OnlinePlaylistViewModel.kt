@@ -15,6 +15,7 @@ import com.music.vivi.db.MusicDatabase
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.get
 import com.music.vivi.utils.reportException
+import com.music.vivi.repositories.YouTubeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -22,6 +23,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -30,6 +32,7 @@ import javax.inject.Inject
 @HiltViewModel
 class OnlinePlaylistViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val youtubeRepository: YouTubeRepository,
     savedStateHandle: SavedStateHandle,
     database: MusicDatabase
 ) : ViewModel() {
@@ -67,8 +70,8 @@ class OnlinePlaylistViewModel @Inject constructor(
             continuation = null
             proactiveLoadJob?.cancel() // Cancel any ongoing proactive load
 
-            YouTube.playlist(playlistId)
-                .onSuccess { playlistPage ->
+            youtubeRepository.getPlaylistFlow(playlistId).collect { result ->
+                result.onSuccess { playlistPage ->
                     playlist.value = playlistPage.playlist
                     playlistSongs.value = applySongFilters(playlistPage.songs)
                     relatedItems.value = playlistPage.related.orEmpty()
@@ -82,6 +85,7 @@ class OnlinePlaylistViewModel @Inject constructor(
                     _isLoading.value = false
                     reportException(throwable)
                 }
+            }
         }
     }
 

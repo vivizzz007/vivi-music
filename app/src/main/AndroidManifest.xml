@@ -10,7 +10,6 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
-    <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
     <!--    bluetooth connect-->
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <!-- For Android 11 (API 30) and below -->
@@ -204,31 +203,6 @@
                 android:resource="@xml/music_widget_info" />
         </receiver>
 
-
-        <service
-            android:name=".livemedia.LiveMediaService"
-            android:enabled="true"
-            android:exported="true"
-            android:label="@string/live_media"
-            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
-            <intent-filter>
-                <action android:name="android.service.notification.NotificationListenerService" />
-            </intent-filter>
-        </service>
-
-        <service
-            android:name=".livemedia.QSStateListenerService"
-            android:enabled="true"
-            android:exported="true"
-            android:label="@string/live_media"
-            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
-            <intent-filter>
-                <action android:name="android.accessibilityservice.AccessibilityService" />
-            </intent-filter>
-            <meta-data
-                android:name="android.accessibilityservice"
-                android:resource="@xml/accessibility_service_config" />
-        </service>
 
         <meta-data
             android:name="com.google.android.gms.car.application"

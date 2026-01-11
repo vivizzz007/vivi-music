@@ -20,6 +20,9 @@ val UseNewPlayerDesignKey= booleanPreferencesKey("useNewPlayerDesign")
 val UseNewMiniPlayerDesignKey = booleanPreferencesKey("useNewMiniPlayerDesign")
 val HidePlayerThumbnailKey = booleanPreferencesKey("hidePlayerThumbnail")
 val SeekExtraSeconds = booleanPreferencesKey("seekExtraSeconds")
+val ShowNowPlayingAppleMusicKey = booleanPreferencesKey("show_now_playing_apple_music")
+val HighRefreshRateKey = booleanPreferencesKey("high_refresh_rate")
+
 
 val HideVideoSongsKey = booleanPreferencesKey("hideVideoSongs")
 val AccentColorKey = intPreferencesKey("accentColor")
@@ -70,6 +73,10 @@ val AutoDownloadOnLikeKey = booleanPreferencesKey("autoDownloadOnLike")
 val SimilarContent = booleanPreferencesKey("similarContent")
 val AutoSkipNextOnErrorKey = booleanPreferencesKey("autoSkipNextOnError")
 val StopMusicOnTaskClearKey = booleanPreferencesKey("stopMusicOnTaskClear")
+val PauseOnZeroVolumeKey = booleanPreferencesKey("pauseOnZeroVolume")
+val SmartShuffleKey = booleanPreferencesKey("smartShuffle")
+val SmartSuggestionsKey = booleanPreferencesKey("smartSuggestions")
+val PauseOnHeadphonesDisconnectKey = booleanPreferencesKey("pauseOnHeadphonesDisconnect")
 
 val MaxImageCacheSizeKey = intPreferencesKey("maxImageCacheSize")
 val MaxSongCacheSizeKey = intPreferencesKey("maxSongCacheSize")
@@ -296,7 +303,7 @@ enum class PlayerBackgroundStyle {
 
     DEFAULT,
 
-    BLUR,
+    BLUR, APPLE_MUSIC,
 }
 
 val MiniPlayerGradientKey = booleanPreferencesKey("mini_player_gradient")
@@ -342,16 +349,6 @@ val LyricsLineSpacingKey = floatPreferencesKey("lyricsLineSpacing")
 
 val PlayerVolumeKey = floatPreferencesKey("playerVolume")
 val RepeatModeKey = intPreferencesKey("repeatMode")
-
-val LiveMediaEnabledKey = booleanPreferencesKey("liveMediaEnabled")
-val LiveMediaShowAlbumArtKey = booleanPreferencesKey("liveMediaShowAlbumArt")
-val LiveMediaShowArtistNameKey = booleanPreferencesKey("liveMediaShowArtistName")
-val LiveMediaShowAlbumNameKey = booleanPreferencesKey("liveMediaShowAlbumName")
-val LiveMediaShowActionButtonsKey = booleanPreferencesKey("liveMediaShowActionButtons")
-val LiveMediaShowProgressKey = booleanPreferencesKey("liveMediaShowProgress")
-val LiveMediaShowTimestampKey = booleanPreferencesKey("liveMediaShowTimestamp")
-val LiveMediaHideOnQsOpenKey = booleanPreferencesKey("liveMediaHideOnQsOpen")
-val LiveMediaPillContentKey = stringPreferencesKey("liveMediaPillContent")
 
 val SearchSourceKey = stringPreferencesKey("searchSource")
 val SwipeThumbnailKey = booleanPreferencesKey("swipeThumbnail")

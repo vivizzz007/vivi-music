@@ -906,6 +906,10 @@ fun TopPlaylistScreen(
                     }
                 }
             }
+
+            item {
+                Spacer(modifier = Modifier.height(40.dp))
+            }
         }
 
         DraggableScrollbar(

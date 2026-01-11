@@ -65,6 +65,7 @@ import com.music.vivi.constants.AudioQualityKey
 import com.music.vivi.constants.AutoDownloadOnLikeKey
 import com.music.vivi.constants.AutoLoadMoreKey
 import com.music.vivi.constants.AutoSkipNextOnErrorKey
+import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.DisableLoadMoreWhenRepeatAllKey
 import com.music.vivi.constants.HistoryDuration
 import com.music.vivi.constants.PersistentQueueKey
@@ -80,8 +81,10 @@ import com.music.vivi.update.settingstyle.ModernInfoItem
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.constants.SettingsShapeColorTertiaryKey
-import com.music.vivi.constants.DarkModeKey
-import com.music.vivi.constants.LiveMediaEnabledKey
+import com.music.vivi.constants.PauseOnZeroVolumeKey
+import com.music.vivi.constants.SmartShuffleKey
+import com.music.vivi.constants.SmartSuggestionsKey
+import com.music.vivi.constants.PauseOnHeadphonesDisconnectKey
 import com.music.vivi.ui.screens.settings.DarkMode
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -152,9 +155,6 @@ fun PlayerSettings(
         defaultValue = true
     )
 
-    var showLiveMediaCompatibilityDialog by remember { mutableStateOf(false) }
-    val (liveMediaEnabled, onLiveMediaEnabledChange) = rememberPreference(LiveMediaEnabledKey, false)
-
     val (disableLoadMoreWhenRepeatAll, onDisableLoadMoreWhenRepeatAllChange) = rememberPreference(
         DisableLoadMoreWhenRepeatAllKey,
         defaultValue = false
@@ -166,6 +166,10 @@ fun PlayerSettings(
     val (similarContentEnabled, similarContentEnabledChange) = rememberPreference(
         key = SimilarContent,
         defaultValue = true
+    )
+    val (pauseOnZeroVolume, onPauseOnZeroVolumeChange) = rememberPreference(
+        PauseOnZeroVolumeKey,
+        defaultValue = false
     )
     val (autoSkipNextOnError, onAutoSkipNextOnErrorChange) = rememberPreference(
         AutoSkipNextOnErrorKey,
@@ -179,9 +183,19 @@ fun PlayerSettings(
         HistoryDuration,
         defaultValue = 30f
     )
-
-
-
+    val (smartShuffle, onSmartShuffleChange) = rememberPreference(
+        SmartShuffleKey,
+        defaultValue = false
+    )
+    val (smartSuggestions, onSmartSuggestionsChange) = rememberPreference(
+        SmartSuggestionsKey,
+        defaultValue = false
+    )
+    val (smartPause, onSmartPauseChange) = rememberPreference(
+        PauseOnHeadphonesDisconnectKey,
+        defaultValue = false
+    )
+    
     val scrollState = rememberLazyListState()
 
     Box(
@@ -422,6 +436,90 @@ fun PlayerSettings(
                                         modifier = Modifier.padding(end = 20.dp)
                                     )
                                 }
+                            },
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.volume_off), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.pause_on_zero_volume),
+                                            subtitle = stringResource(R.string.pause_on_zero_volume_description),
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = pauseOnZeroVolume,
+                                        onCheckedChange = onPauseOnZeroVolumeChange,
+                                        modifier = Modifier.padding(end = 20.dp)
+                                    )
+                                }
+                            },
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.shuffle), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.smart_shuffle),
+                                            subtitle = stringResource(R.string.smart_shuffle_desc),
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = smartShuffle,
+                                        onCheckedChange = onSmartShuffleChange,
+                                        modifier = Modifier.padding(end = 20.dp)
+                                    )
+                                }
+                            },
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.auto_playlist), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.smart_suggestions),
+                                            subtitle = stringResource(R.string.smart_suggestions_desc),
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = smartSuggestions,
+                                        onCheckedChange = onSmartSuggestionsChange,
+                                        modifier = Modifier.padding(end = 20.dp)
+                                    )
+                                }
+                            },
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.headphones), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.smart_pause),
+                                            subtitle = stringResource(R.string.smart_pause_desc),
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = smartPause,
+                                        onCheckedChange = onSmartPauseChange,
+                                        modifier = Modifier.padding(end = 20.dp)
+                                    )
+                                }
                             }
                         )
                     )
@@ -578,72 +676,6 @@ fun PlayerSettings(
 
                 item {
                     Text(
-                        text = stringResource(R.string.live_media).uppercase(),
-                        style = MaterialTheme.typography.labelLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.sp
-                        ),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
-                    )
-                }
-
-                // Misc Section
-                item {
-                    Material3ExpressiveSettingsGroup(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        items = listOf(
-                            {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Box(modifier = Modifier.weight(1f)) {
-                                        ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.update), null, modifier = Modifier.size(22.dp)) },
-                                            title = stringResource(R.string.live_media),
-                                            subtitle = if (liveMediaEnabled) stringResource(R.string.enabled) else stringResource(R.string.disabled),
-                                            iconBackgroundColor = iconBgColor,
-                                            iconContentColor = iconStyleColor,
-                                            modifier = Modifier.clickable {
-                                                navController.navigate("settings/player/live_media")
-                                            }
-                                        )
-                                    }
-
-                                    VerticalDivider(
-                                        modifier = Modifier.height(32.dp),
-                                        thickness = 1.dp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
-                                    )
-
-                                    Box(
-                                        modifier = Modifier
-                                            .padding(horizontal = 20.dp)
-                                            .size(48.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        ModernSwitch(
-                                            checked = liveMediaEnabled,
-                                            onCheckedChange = { newValue ->
-                                                if (newValue && android.os.Build.VERSION.SDK_INT < 36) {
-                                                    showLiveMediaCompatibilityDialog = true
-                                                } else {
-                                                    onLiveMediaEnabledChange(newValue)
-                                                }
-                                            }
-                                        )
-                                    }
-                                }
-                            }
-                        )
-                    )
-                }
-
-                item {
-                    Text(
                         text = stringResource(R.string.misc).uppercase(),
                         style = MaterialTheme.typography.labelLarge.copy(
                             fontWeight = FontWeight.Bold,
@@ -690,26 +722,5 @@ fun PlayerSettings(
                 }
             }
         }
-    }
-
-    if (showLiveMediaCompatibilityDialog) {
-        AlertDialog(
-            onDismissRequest = { showLiveMediaCompatibilityDialog = false },
-            title = { Text(stringResource(R.string.live_media_compatibility_title)) },
-            text = { Text(stringResource(R.string.live_media_compatibility_message)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    onLiveMediaEnabledChange(true)
-                    showLiveMediaCompatibilityDialog = false
-                }) {
-                    Text(stringResource(R.string.confirm))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showLiveMediaCompatibilityDialog = false }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            }
-        )
     }
 }
