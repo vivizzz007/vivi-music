@@ -337,4 +337,4 @@
     <string name="interval_check_format_days">Check every %1$d days</string>
     <string name="auto_updates_enabled_toast">Automatic update checks enabled</string>
     <string name="auto_updates_disabled_toast">Automatic update checks disabled</string>
-    <string name="notifications_enabled_toast">Update notifications enabled</strin
+    <string name="notifications_enabled_toast">Update notifications enabled</string>
