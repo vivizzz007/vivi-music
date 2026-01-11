@@ -8,6 +8,7 @@ import com.music.innertube.models.AlbumItem
 import com.music.vivi.db.MusicDatabase
 import com.music.vivi.utils.reportException
 import com.music.vivi.utils.Wikipedia
+import com.music.vivi.repositories.YouTubeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -22,7 +24,8 @@ import javax.inject.Inject
 class AlbumViewModel
 @Inject
 constructor(
-    database: MusicDatabase,
+    private val database: MusicDatabase,
+    private val youtubeRepository: YouTubeRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     val albumId = savedStateHandle.get<String>("albumId")!!
@@ -42,7 +45,6 @@ constructor(
 
     init {
         // Reactive Wikipedia Fetching
-        // Observes album updates (local or remote) and fetches description if missing
         viewModelScope.launch(Dispatchers.IO) {
             albumWithSongs.collect { album ->
                 if (album != null) {
@@ -54,7 +56,6 @@ constructor(
                         val description = Wikipedia.fetchAlbumInfo(album.album.title, artistName)
                         if (description != null) {
                             _albumDescription.value = description
-                            // Save to database
                             database.query {
                                 update(album.album.copy(description = description))
                             }
@@ -65,13 +66,12 @@ constructor(
             }
         }
 
-        // Network Refresh
+        // Network Refresh with Caching and Auto-Update
         viewModelScope.launch(Dispatchers.IO) {
             val album = database.album(albumId).first()
 
-            YouTube
-                .album(albumId)
-                .onSuccess { it ->
+            youtubeRepository.getAlbumFlow(albumId).collect { result ->
+                result.onSuccess { it ->
                     playlistId.value = it.album.playlistId
                     otherVersions.value = it.otherVersions
                     releasesForYou.value = it.releasesForYou
@@ -82,7 +82,6 @@ constructor(
                             update(album.album, it, album.artists)
                         }
                     }
-                    // Note: Wikipedia fetching is handled by the collector above
                 }.onFailure {
                     reportException(it)
                     if (it.message?.contains("NOT_FOUND") == true) {
@@ -91,6 +90,7 @@ constructor(
                         }
                     }
                 }
+            }
         }
     }
 }

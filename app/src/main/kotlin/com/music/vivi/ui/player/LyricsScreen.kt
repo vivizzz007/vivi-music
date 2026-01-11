@@ -9,6 +9,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -47,9 +48,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -71,6 +75,8 @@ import coil3.compose.AsyncImage
 import coil3.imageLoader
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
+import coil3.request.crossfade
+import coil3.size.Precision
 import coil3.toBitmap
 import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalPlayerConnection
@@ -178,7 +184,7 @@ fun LyricsScreen(
     val fallbackColor = MaterialTheme.colorScheme.surface.toArgb()
 
     LaunchedEffect(mediaMetadata.id, playerBackground) {
-        if (playerBackground == PlayerBackgroundStyle.GRADIENT && mediaMetadata.thumbnailUrl != null) {
+        if ((playerBackground == PlayerBackgroundStyle.GRADIENT || playerBackground == PlayerBackgroundStyle.APPLE_MUSIC) && mediaMetadata.thumbnailUrl != null) {
             val cachedColors = gradientColorsCache[mediaMetadata.id]
             if (cachedColors != null) {
                 gradientColors = cachedColors
@@ -215,7 +221,7 @@ fun LyricsScreen(
 
     val textBackgroundColor = when (playerBackground) {
         PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.onBackground
-        PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT -> Color.White
+        PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.APPLE_MUSIC -> Color.White
     }
 
     BackHandler(onBack = onBackClick)
@@ -283,7 +289,72 @@ fun LyricsScreen(
                         }
                     }
                 }
-                else -> {
+                PlayerBackgroundStyle.APPLE_MUSIC -> {
+                    AnimatedContent(
+                        targetState = gradientColors,
+                        transitionSpec = {
+                            fadeIn(tween(1200)).togetherWith(fadeOut(tween(1200)))
+                        },
+                        label = "appleMusicLyricsGradientBackground"
+                    ) { colors ->
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            if (colors.isNotEmpty()) {
+                                // Sophisticated blurred gradient background
+                                val color1 = colors[0]
+                                val color2 = colors.getOrElse(1) { colors[0].copy(alpha = 0.8f) }
+                                val color3 = colors.getOrElse(2) { colors[0].copy(alpha = 0.6f) }
+                                
+                                Canvas(modifier = Modifier.fillMaxSize().blur(100.dp)) {
+                                    // Main vertical gradient base
+                                    drawRect(
+                                        brush = Brush.verticalGradient(
+                                            listOf(color1, color2, color3)
+                                        )
+                                    )
+                                    
+                                    // Multiple circular "color blobs" for a dynamic feel
+                                    drawCircle(
+                                        brush = Brush.radialGradient(
+                                            colors = listOf(color1, Color.Transparent),
+                                            center = Offset(size.width * 0.2f, size.height * 0.2f),
+                                            radius = size.width * 0.8f
+                                        ),
+                                        center = Offset(size.width * 0.2f, size.height * 0.2f),
+                                        radius = size.width * 0.8f
+                                    )
+                                    
+                                    drawCircle(
+                                        brush = Brush.radialGradient(
+                                            colors = listOf(color2, Color.Transparent),
+                                            center = Offset(size.width * 0.8f, size.height * 0.5f),
+                                            radius = size.width * 0.7f
+                                        ),
+                                        center = Offset(size.width * 0.8f, size.height * 0.5f),
+                                        radius = size.width * 0.7f
+                                    )
+                                    
+                                    drawCircle(
+                                        brush = Brush.radialGradient(
+                                            colors = listOf(color3, Color.Transparent),
+                                            center = Offset(size.width * 0.3f, size.height * 0.8f),
+                                            radius = size.width * 0.9f
+                                        ),
+                                        center = Offset(size.width * 0.3f, size.height * 0.8f),
+                                        radius = size.width * 0.9f
+                                    )
+                                }
+                                
+                                // Dark overlay for text readability
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(Color.Black.copy(alpha = 0.25f))
+                                )
+                            }
+                        }
+                    }
+                }
+                PlayerBackgroundStyle.DEFAULT -> {
                     // DEFAULT background
                 }
             }

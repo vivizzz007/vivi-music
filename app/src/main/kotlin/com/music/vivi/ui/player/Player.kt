@@ -98,13 +98,15 @@ import androidx.media3.common.Player
 import androidx.media3.common.Player.STATE_ENDED
 import androidx.media3.common.Player.STATE_READY
 import androidx.media3.exoplayer.offline.Download
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import coil3.size.Precision
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.palette.graphics.Palette
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.imageLoader
-import coil3.request.ImageRequest
 import coil3.request.allowHardware
 import coil3.toBitmap
 import com.music.vivi.LocalDatabase
@@ -148,7 +150,7 @@ import kotlinx.coroutines.withContext
 import me.saket.squiggles.SquigglySlider
 import kotlin.math.roundToInt
 
-
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.interaction.InteractionSource
@@ -156,7 +158,9 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.composed
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.drawWithContent
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BottomSheetPlayer(
@@ -198,7 +202,7 @@ fun BottomSheetPlayer(
     }
     val onBackgroundColor = when (playerBackground) {
         PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.secondary
-        else ->
+        PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.APPLE_MUSIC ->
             if (useDarkTheme)
                 MaterialTheme.colorScheme.onSurface
             else
@@ -289,6 +293,7 @@ fun BottomSheetPlayer(
             PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.onBackground
             PlayerBackgroundStyle.BLUR -> Color.White
             PlayerBackgroundStyle.GRADIENT -> Color.White
+            PlayerBackgroundStyle.APPLE_MUSIC -> Color.White
         }
 
     val icBackgroundColor =
@@ -296,6 +301,7 @@ fun BottomSheetPlayer(
             PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.surface
             PlayerBackgroundStyle.BLUR -> Color.Black
             PlayerBackgroundStyle.GRADIENT -> Color.Black
+            PlayerBackgroundStyle.APPLE_MUSIC -> Color.Black
         }
 
     val (textButtonColor, iconButtonColor) = when (playerButtonsStyle) {
@@ -436,7 +442,7 @@ fun BottomSheetPlayer(
     )
 
     val bottomSheetBackgroundColor = when (playerBackground) {
-        PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT ->
+        PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.APPLE_MUSIC ->
             MaterialTheme.colorScheme.surfaceContainer
         else ->
             if (useBlackBackground) Color.Black
@@ -508,6 +514,66 @@ fun BottomSheetPlayer(
                                         .graphicsLayer { alpha = state.progress.coerceIn(0f, 1f) }
                                         .background(Brush.verticalGradient(colorStops = gradientColorStops))
                                         .background(Color.Black.copy(alpha = 0.2f))
+                                )
+                            }
+                        }
+                    }
+                    PlayerBackgroundStyle.APPLE_MUSIC -> {
+                        AnimatedContent(
+                            targetState = mediaMetadata?.thumbnailUrl,
+                            transitionSpec = {
+                                fadeIn(tween(800)).togetherWith(fadeOut(tween(800)))
+                            },
+                            label = "appleMusicBackground",
+                            modifier = Modifier.graphicsLayer { alpha = state.progress.coerceIn(0f, 1f) }
+                        ) { thumbnailUrl ->
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(thumbnailUrl)
+                                        .precision(Precision.EXACT)
+                                        .crossfade(true)
+                                        .build(),
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                                AsyncImage(
+                                    model = thumbnailUrl,
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .blur(80.dp)
+                                        .graphicsLayer {
+                                            // Extend blur mask from roughly 40% height to bottom
+                                            alpha = 1f
+                                            clip = true
+                                        }
+                                        .drawWithContent {
+                                            drawContent()
+                                            drawRect(
+                                                brush = Brush.verticalGradient(
+                                                    0.4f to Color.Transparent,
+                                                    0.6f to Color.Black
+                                                ),
+                                                blendMode = BlendMode.DstIn
+                                            )
+                                        }
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(
+                                            Brush.verticalGradient(
+                                                listOf(
+                                                    Color.Transparent,
+                                                    Color.Black.copy(alpha = 0.3f),
+                                                    Color.Black.copy(alpha = 0.7f)
+                                                ),
+                                                startY = 0.4f
+                                            )
+                                        )
                                 )
                             }
                         }

@@ -15,9 +15,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import android.content.Context
+import com.music.vivi.repositories.YouTubeRepository
 import com.music.innertube.models.filterVideoSongs
 import com.music.vivi.constants.ArtistSongSortType
 import com.music.vivi.constants.HideExplicitKey
@@ -35,6 +37,7 @@ import kotlinx.coroutines.flow.map
 @HiltViewModel
 class ArtistViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val youtubeRepository: YouTubeRepository,
     database: MusicDatabase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -69,12 +72,12 @@ class ArtistViewModel @Inject constructor(
         }
     }
 
-    fun fetchArtistsFromYTM() {
+    fun fetchArtistsFromYTM(forceRefresh: Boolean = false) {
         viewModelScope.launch {
             val hideExplicit = context.dataStore.get(HideExplicitKey, false)
             val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
-            YouTube.artist(artistId)
-                .onSuccess { page ->
+            youtubeRepository.getArtistFlow(artistId, forceRefresh).collect { result ->
+                result.onSuccess { page ->
                     val filteredSections = page.sections
                         .filterNot { section ->
                             section.moreEndpoint?.browseId?.startsWith("MPLAUC") == true
@@ -87,6 +90,7 @@ class ArtistViewModel @Inject constructor(
                 }.onFailure {
                     reportException(it)
                 }
+            }
         }
     }
 }

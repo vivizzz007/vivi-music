@@ -11,6 +11,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.view.View
+import android.view.Surface
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -144,6 +145,8 @@ import com.music.vivi.constants.DynamicThemeKey
 import com.music.vivi.constants.MiniPlayerHeight
 import com.music.vivi.constants.MiniPlayerBottomSpacing
 import com.music.vivi.constants.UseNewMiniPlayerDesignKey
+import com.music.vivi.constants.HighRefreshRateKey
+
 import com.music.vivi.constants.NavigationBarAnimationSpec
 import com.music.vivi.constants.NavigationBarHeight
 import com.music.vivi.constants.PauseSearchHistoryKey
@@ -322,15 +325,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         window.decorView.layoutDirection = View.LAYOUT_DIRECTION_LTR
         WindowCompat.setDecorFitsSystemWindows(window, false)
-
-
         //download notification
         DownloadNotificationManager.initialize(this)
-
         //new download manager and update manager
         UpdateNotificationManager.initialize(this)
         // Check for updates on app start (pass VERSION_NAME, not VERSION_CODE)
-
 //crash log when appp crash
         if (savedInstanceState == null) {
             CrashLogHandler.initialize(applicationContext)
@@ -373,6 +372,11 @@ class MainActivity : ComponentActivity() {
             }
 
             val (checkForUpdatesPreference, _) = rememberPreference(CheckForUpdatesKey, true)
+            val highRefreshRate by rememberPreference(HighRefreshRateKey, defaultValue = false)
+
+            LaunchedEffect(highRefreshRate) {
+                setHighRefreshRate(highRefreshRate)
+            }
 
             LaunchedEffect(checkForUpdatesPreference) {
                 updateViewModel.refreshUpdateStatus()
@@ -1485,6 +1489,26 @@ class MainActivity : ComponentActivity() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             window.navigationBarColor =
                 (if (isDark) Color.Transparent else Color.Black.copy(alpha = 0.2f)).toArgb()
+        }
+    }
+
+    private fun setHighRefreshRate(enable: Boolean) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val layoutParams = window.attributes
+            if (enable) {
+                val display = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    display
+                } else {
+                    @Suppress("DEPRECATION")
+                    windowManager.defaultDisplay
+                }
+                val modes = display?.supportedModes
+                val maxRefreshRateMode = modes?.maxByOrNull { it.refreshRate }
+                layoutParams.preferredDisplayModeId = maxRefreshRateMode?.modeId ?: 0
+            } else {
+                layoutParams.preferredDisplayModeId = 0
+            }
+            window.attributes = layoutParams
         }
     }
 
