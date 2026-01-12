@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="16dp"
+    android:viewportWidth="96"
+    android:viewportHeight="16">
+    
+    <!-- Decorative Squiggle Path -->
+    <path
+        android:pathData="M2,8 Q8,2 14,8 T26,8 T38,8 T50,8 T62,8 T74,8 T86,8 T94,8"
+        android:strokeWidth="3"
+        android:strokeColor="#FFFFFF"
+        android:fillColor="@android:color/transparent"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"/>
+</vector>

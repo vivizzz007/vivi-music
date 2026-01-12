@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="24dp"
+    android:viewportWidth="120"
+    android:viewportHeight="24">
+    
+    <!-- Wave path - smooth sine wave for track -->
+    <path
+        android:pathData="M0,12 Q10,6 20,12 T40,12 T60,12 T80,12 T100,12 T120,12"
+        android:strokeWidth="4"
+        android:strokeColor="@color/widget_system_neutral1_400"
+        android:fillColor="@android:color/transparent"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeAlpha="0.5"/>
+</vector>

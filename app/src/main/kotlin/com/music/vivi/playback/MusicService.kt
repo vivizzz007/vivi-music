@@ -1369,6 +1369,12 @@ class MusicService :
         // Scrobbling
         if (events.containsAny(Player.EVENT_IS_PLAYING_CHANGED)) {
             scrobbleManager?.onPlayerStateChanged(player.isPlaying, player.currentMetadata, duration = player.duration)
+            if (player.isPlaying) {
+                startWidgetUpdates()
+            } else {
+                stopWidgetUpdates()
+                updateWidget() // Ensure one last update to show paused state (straight line)
+            }
         }
 
     }
@@ -1791,10 +1797,32 @@ class MusicService :
                 artworkUri = player.currentMetadata?.thumbnailUrl,
                 isPlaying = player.isPlaying,
                 isLiked = currentSong.value?.song?.liked ?: false,
-                queueItems = player.mediaItems.drop(player.currentMediaItemIndex + 1).take(5)
+                queueItems = player.mediaItems.drop(player.currentMediaItemIndex + 1).take(5),
+                duration = if (player.duration != C.TIME_UNSET) player.duration else 0,
+                currentPosition = player.currentPosition
             )
         }
     }
+
+    private var widgetUpdateJob: Job? = null
+
+    private fun startWidgetUpdates() {
+        widgetUpdateJob?.cancel()
+        widgetUpdateJob = scope.launch {
+            while (isActive) {
+                if (player.isPlaying) {
+                    updateWidget()
+                }
+                delay(200)
+            }
+        }
+    }
+
+    private fun stopWidgetUpdates() {
+        widgetUpdateJob?.cancel()
+        widgetUpdateJob = null
+    }
+
 
     companion object {
         const val ROOT = "root"

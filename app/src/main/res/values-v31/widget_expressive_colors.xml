@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Widget Colors using Material 3 Expressive (Tertiary) palette (API 31+) -->
+    
+    <!-- Background: Tertiary Container -->
+    <color name="widget_system_tertiary_container">@android:color/system_accent3_100</color>
+    <color name="widget_system_on_tertiary_container">@android:color/system_accent3_900</color>
+    
+    <!-- Progress Pill: Tertiary -->
+    <color name="widget_system_tertiary">@android:color/system_accent3_600</color>
+    
+    <!-- Tracks/Dim elements: Tertiary Variant -->
+    <color name="widget_system_on_surface_variant">@android:color/system_neutral2_700</color>
+    
+    <!-- Play Button: Primary Container (for contrast) or Tertiary -->
+    <color name="widget_play_button_container">@android:color/system_accent1_100</color> 
+    <color name="widget_on_play_button_container">@android:color/system_accent1_900</color>
+</resources>

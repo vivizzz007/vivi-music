@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="24dp"
+    android:viewportWidth="96"
+    android:viewportHeight="24">
+    
+    <!-- Wavy Fill Path (Sine Wave) -->
+    <!-- Center Y=12. Amplitude +/- 6. Period 12. -->
+    <path
+        android:pathData="M0,12 
+                          C 3,6 6,6 9,12 
+                          S 15,18 18,12 
+                          S 24,6 27,12 
+                          S 33,18 36,12
+                          S 42,6 45,12
+                          S 51,18 54,12
+                          S 60,6 63,12
+                          S 69,18 72,12
+                          S 78,6 81,12
+                          S 87,18 90,12
+                          S 96,6 99,12"
+        android:strokeWidth="4"
+        android:strokeColor="@color/widget_system_tertiary"
+        android:fillColor="@android:color/transparent"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"/>
+</vector>
