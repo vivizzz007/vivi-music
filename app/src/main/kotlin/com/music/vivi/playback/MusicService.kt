@@ -228,7 +228,7 @@ class MusicService :
                                 }
                             } else if (volume > 0) {
                                 if (wasPausedByZeroVolume) {
-                                    player.play()
+                                    safePlay()
                                     wasPausedByZeroVolume = false
                                 }
                             }
@@ -385,7 +385,7 @@ class MusicService :
                             delay(500)
                             player.prepare()
                             if (player.playWhenReady) {
-                                player.play()
+                                safePlay()
                             }
                         }
                     }
@@ -677,7 +677,7 @@ class MusicService :
                     scope.launch {
                         delay(300)
                         if (hasAudioFocus && wasPlayingBeforeAudioFocusLoss && !player.isPlaying) {
-                            player.play()
+                            safePlay()
                             wasPlayingBeforeAudioFocusLoss = false
                         }
                         reentrantFocusGain = false
@@ -724,6 +724,14 @@ class MusicService :
         }
     }
 
+    private fun safePlay() {
+        try {
+            player.play()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start playback (ForegroundServiceStartNotAllowedException?)", e)
+        }
+    }
+
     private fun requestAudioFocus(): Boolean {
         if (hasAudioFocus) return true
 
@@ -767,7 +775,7 @@ class MusicService :
         if (consecutivePlaybackErr <= MAX_CONSECUTIVE_ERR && nextWindowIndex != C.INDEX_UNSET) {
             player.seekTo(nextWindowIndex, C.TIME_UNSET)
             player.prepare()
-            player.play()
+            safePlay()
             return
         }
 
@@ -1361,6 +1369,12 @@ class MusicService :
         // Scrobbling
         if (events.containsAny(Player.EVENT_IS_PLAYING_CHANGED)) {
             scrobbleManager?.onPlayerStateChanged(player.isPlaying, player.currentMetadata, duration = player.duration)
+            if (player.isPlaying) {
+                startWidgetUpdates()
+            } else {
+                stopWidgetUpdates()
+                updateWidget() // Ensure one last update to show paused state (straight line)
+            }
         }
 
     }
@@ -1467,7 +1481,7 @@ class MusicService :
                 retryCount[mediaId] = currentRetries + 1
                 songUrlCache.remove(mediaId) // Invalidate cache to force re-fetch
                 player.prepare()
-                player.play()
+                safePlay()
                 return
             }
         }
@@ -1783,10 +1797,32 @@ class MusicService :
                 artworkUri = player.currentMetadata?.thumbnailUrl,
                 isPlaying = player.isPlaying,
                 isLiked = currentSong.value?.song?.liked ?: false,
-                queueItems = player.mediaItems.drop(player.currentMediaItemIndex + 1).take(5)
+                queueItems = player.mediaItems.drop(player.currentMediaItemIndex + 1).take(5),
+                duration = if (player.duration != C.TIME_UNSET) player.duration else 0,
+                currentPosition = player.currentPosition
             )
         }
     }
+
+    private var widgetUpdateJob: Job? = null
+
+    private fun startWidgetUpdates() {
+        widgetUpdateJob?.cancel()
+        widgetUpdateJob = scope.launch {
+            while (isActive) {
+                if (player.isPlaying) {
+                    updateWidget()
+                }
+                delay(200)
+            }
+        }
+    }
+
+    private fun stopWidgetUpdates() {
+        widgetUpdateJob?.cancel()
+        widgetUpdateJob = null
+    }
+
 
     companion object {
         const val ROOT = "root"

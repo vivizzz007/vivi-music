@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="16dp"
+    android:viewportWidth="96"
+    android:viewportHeight="16">
+    
+    <!-- Straight Line Track (Centered vertically at y=8) -->
+    <path
+        android:pathData="M2,8 L94,8"
+        android:strokeWidth="4"
+        android:strokeColor="@color/widget_system_on_surface_variant" 
+        android:strokeAlpha="0.3"
+        android:fillColor="@android:color/transparent"
+        android:strokeLineCap="round"/>
+</vector>

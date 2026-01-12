@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark Mode System Colors for Android 12+ -->
+    <color name="widget_system_accent1_100">@android:color/system_accent1_700</color> <!-- Dark background -->
+    <color name="widget_system_accent1_200">@android:color/system_accent1_200</color>
+    <color name="widget_system_accent1_700">@android:color/system_accent1_100</color> <!-- Use light color for what was dark in light mode if needed -->
+    
+    <color name="widget_system_accent2_200">@android:color/system_accent2_200</color>
+    <color name="widget_system_accent2_300">@android:color/system_accent2_300</color>
+    <color name="widget_system_accent2_400">@android:color/system_accent2_400</color>
+    <color name="widget_system_accent2_600">@android:color/system_accent2_600</color>
+    
+    <color name="widget_system_neutral1_400">@android:color/system_neutral1_400</color>
+    
+    <color name="widget_system_on_surface">@android:color/system_neutral1_100</color> <!-- Light text on dark bg -->
+
+    <color name="widget_system_on_secondary_container">@android:color/system_accent2_100</color>
+</resources>

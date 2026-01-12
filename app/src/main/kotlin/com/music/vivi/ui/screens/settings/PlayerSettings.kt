@@ -195,9 +195,7 @@ fun PlayerSettings(
         PauseOnHeadphonesDisconnectKey,
         defaultValue = false
     )
-
-
-
+    
     val scrollState = rememberLazyListState()
 
     Box(

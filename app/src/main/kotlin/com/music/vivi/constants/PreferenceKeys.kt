@@ -20,6 +20,9 @@ val UseNewPlayerDesignKey= booleanPreferencesKey("useNewPlayerDesign")
 val UseNewMiniPlayerDesignKey = booleanPreferencesKey("useNewMiniPlayerDesign")
 val HidePlayerThumbnailKey = booleanPreferencesKey("hidePlayerThumbnail")
 val SeekExtraSeconds = booleanPreferencesKey("seekExtraSeconds")
+val ShowNowPlayingAppleMusicKey = booleanPreferencesKey("show_now_playing_apple_music")
+val HighRefreshRateKey = booleanPreferencesKey("high_refresh_rate")
+
 
 val HideVideoSongsKey = booleanPreferencesKey("hideVideoSongs")
 val AccentColorKey = intPreferencesKey("accentColor")
@@ -300,7 +303,7 @@ enum class PlayerBackgroundStyle {
 
     DEFAULT,
 
-    BLUR,
+    BLUR, APPLE_MUSIC,
 }
 
 val MiniPlayerGradientKey = booleanPreferencesKey("mini_player_gradient")

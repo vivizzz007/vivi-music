@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Fallback colors for Android < 12 (API 31) -->
+    <color name="widget_system_accent1_100">#E8E4D0</color>
+    <color name="widget_system_accent1_200">#D6E4A0</color>
+    <color name="widget_system_accent1_700">#3E4A26</color>
+    
+    <color name="widget_system_accent2_200">#B8D45C</color>
+    <color name="widget_system_accent2_300">#9FBA4F</color>
+    <color name="widget_system_accent2_400">#86A042</color>
+    <color name="widget_system_accent2_600">#6B7A3E</color>
+    
+    <color name="widget_system_neutral1_400">#90909A</color>
+    
+    <color name="widget_system_on_surface">#1C1B1F</color>
+
+    <color name="widget_system_on_secondary_container">#1D192B</color>
+    
+    <!-- Dark Mode Fallbacks (Manual override for manual dark check if needed, but usually night/ uses these) -->
+    <!-- For simplicity, we define light mode defaults here, and if night mode is active, 
+         we might need values-night/widget_colors.xml if we relied on automatic resource selection, 
+         but our drawables use specific names like widget_background_light/dark. 
+         However, the system colors in drawables need to be resolved. 
+         Let's assume these fallbacks are for Light mode.
+    -->
+</resources>
