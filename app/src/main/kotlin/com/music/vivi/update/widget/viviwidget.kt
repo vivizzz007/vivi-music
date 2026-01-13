@@ -4,6 +4,8 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
+import android.os.Build
+import android.util.Log
 import com.music.vivi.playback.MusicService
 
 class MusicPlayerWidgetReceiver : AppWidgetProvider() {
@@ -18,7 +20,11 @@ class MusicPlayerWidgetReceiver : AppWidgetProvider() {
             action = ACTION_UPDATE_WIDGET
         }
         try {
-            context.startService(intent)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
         } catch (e: Exception) {
             // Service might be restricted in background
         }
@@ -34,7 +40,11 @@ class MusicPlayerWidgetReceiver : AppWidgetProvider() {
                     putExtras(intent)
                 }
                 try {
-                    context.startService(serviceIntent)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        context.startForegroundService(serviceIntent)
+                    } else {
+                        context.startService(serviceIntent)
+                    }
                 } catch (e: Exception) {
                     // Usually these buttons are clicked when the user is interacting or the service is already in foreground
                 }

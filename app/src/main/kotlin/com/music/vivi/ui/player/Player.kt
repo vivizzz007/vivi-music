@@ -446,7 +446,7 @@ fun BottomSheetPlayer(
             MaterialTheme.colorScheme.surfaceContainer
         else ->
             if (useBlackBackground) Color.Black
-            else MaterialTheme.colorScheme.surfaceContainer
+            else MaterialTheme.colorScheme.surface
     }
 
     BottomSheet(
@@ -1402,7 +1402,7 @@ fun BottomSheetPlayer(
                 if (useBlackBackground) {
                     Color.Black
                 } else {
-                    MaterialTheme.colorScheme.surfaceContainer
+                    MaterialTheme.colorScheme.surface
                 },
             onBackgroundColor = onBackgroundColor,
             TextBackgroundColor = TextBackgroundColor,

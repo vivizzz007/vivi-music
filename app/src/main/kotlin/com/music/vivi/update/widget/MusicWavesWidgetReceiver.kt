@@ -4,6 +4,7 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import com.music.vivi.playback.MusicService
 
 class MusicWavesWidgetReceiver : AppWidgetProvider() {
@@ -18,7 +19,11 @@ class MusicWavesWidgetReceiver : AppWidgetProvider() {
             action = MusicPlayerWidgetReceiver.ACTION_UPDATE_WIDGET
         }
         try {
-            context.startService(intent)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
         } catch (e: Exception) {
             // Service might be restricted in background
         }
@@ -37,7 +42,11 @@ class MusicWavesWidgetReceiver : AppWidgetProvider() {
                     putExtras(intent)
                 }
                 try {
-                    context.startService(serviceIntent)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        context.startForegroundService(serviceIntent)
+                    } else {
+                        context.startService(serviceIntent)
+                    }
                 } catch (e: Exception) {
                     // Service might be restricted in background
                 }
