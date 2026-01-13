@@ -202,12 +202,12 @@ class ViviWidgetManager @Inject constructor(
         views.setTextViewText(R.id.widget_waves_artist, artist)
 
         // Set progress
-        if (duration > 0) {
-            val progress = (currentPosition.toFloat() / duration * 1000).toInt()
-            views.setProgressBar(R.id.widget_waves_progress, 1000, progress, false)
-        } else {
-            views.setProgressBar(R.id.widget_waves_progress, 1000, 0, false)
-        }
+//        if (duration > 0) {
+//            val progress = (currentPosition.toFloat() / duration * 1000).toInt()
+//            views.setProgressBar(R.id.widget_waves_progress, 1000, progress, false)
+//        } else {
+//            views.setProgressBar(R.id.widget_waves_progress, 1000, 0, false)
+//        }
 
         // Set album art background
         if (albumArt != null) {

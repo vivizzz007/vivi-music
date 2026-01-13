@@ -102,19 +102,19 @@
         </LinearLayout>
 
         <!-- Circular Progress Bar in Bottom Right -->
-        <ProgressBar
-            android:id="@+id/widget_waves_progress"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentEnd="true"
-            android:layout_marginBottom="2dp"
-            android:layout_marginEnd="2dp"
-            android:indeterminate="false"
-            android:max="1000"
-            android:progress="0"
-            android:progressDrawable="@drawable/widget_circular_progress" />
+<!--        <ProgressBar-->
+<!--            android:id="@+id/widget_waves_progress"-->
+<!--            style="?android:attr/progressBarStyleHorizontal"-->
+<!--            android:layout_width="32dp"-->
+<!--            android:layout_height="32dp"-->
+<!--            android:layout_alignParentBottom="true"-->
+<!--            android:layout_alignParentEnd="true"-->
+<!--            android:layout_marginBottom="2dp"-->
+<!--            android:layout_marginEnd="2dp"-->
+<!--            android:indeterminate="false"-->
+<!--            android:max="1000"-->
+<!--            android:progress="0"-->
+<!--            android:progressDrawable="@drawable/widget_circular_progress" />-->
 
     </RelativeLayout>
 </FrameLayout>
