@@ -147,7 +147,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import me.saket.squiggles.SquigglySlider
+import com.music.vivi.ui.component.WavySlider
 import kotlin.math.roundToInt
 
 import androidx.compose.ui.graphics.BlendMode
@@ -970,7 +970,7 @@ fun BottomSheetPlayer(
                 }
             }
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(20.dp))
 
             when (sliderStyle) {
                 SliderStyle.DEFAULT -> {
@@ -992,8 +992,8 @@ fun BottomSheetPlayer(
                     )
                 }
 
-                SliderStyle.SQUIGGLY -> {
-                    SquigglySlider(
+                SliderStyle.WAVY -> {
+                    WavySlider(
                         value = (sliderPosition ?: position).toFloat(),
                         valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
                         onValueChange = {
@@ -1006,14 +1006,10 @@ fun BottomSheetPlayer(
                             }
                             sliderPosition = null
                         },
-                        colors = PlayerSliderColors.squigglySliderColors(textButtonColor, playerBackground, useDarkTheme),
+                        isPlaying = isPlaying,
+                        colors = PlayerSliderColors.wavySliderColors(textButtonColor, playerBackground, useDarkTheme),
                         modifier = Modifier.padding(horizontal = PlayerHorizontalPadding),
-                        squigglesSpec =
-                            SquigglySlider.SquigglesSpec(
-                                amplitude = if (isPlaying) (4.dp).coerceAtLeast(2.dp) else 0.dp,
-                                strokeWidth = 3.dp,
-                                wavelength = 36.dp,
-                            ),
+                        waveSpeed = 40.dp
                     )
                 }
 

@@ -132,7 +132,7 @@ import com.music.vivi.update.settingstyle.ModernInfoItem
 import com.music.vivi.update.widget.MusicPlayerWidgetReceiver
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
-import me.saket.squiggles.SquigglySlider
+import com.music.vivi.ui.component.WavySlider
 import kotlin.math.roundToInt
 
 
@@ -502,24 +502,24 @@ fun AppearanceSettings(
                             .clip(RoundedCornerShape(16.dp))
                             .border(
                                 1.dp,
-                                if (sliderStyle == SliderStyle.SQUIGGLY) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                                if (sliderStyle == SliderStyle.WAVY) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
                                 RoundedCornerShape(16.dp)
                             )
                             .clickable {
-                                onSliderStyleChange(SliderStyle.SQUIGGLY)
+                                onSliderStyleChange(SliderStyle.WAVY)
                                 showSliderOptionDialog = false
                             }
                             .padding(16.dp)
                     ) {
                         var sliderValue by remember { mutableFloatStateOf(0.5f) }
-                        SquigglySlider(
+                        WavySlider(
                             value = sliderValue,
                             valueRange = 0f..1f,
                             onValueChange = { sliderValue = it },
                             modifier = Modifier.weight(1f)
                         )
                         Text(
-                            text = stringResource(R.string.squiggly),
+                            text = stringResource(R.string.wavy),
                             style = MaterialTheme.typography.labelLarge
                         )
                     }
@@ -1235,7 +1235,7 @@ fun AppearanceSettings(
                                     title = stringResource(R.string.player_slider_style),
                                     subtitle = when (sliderStyle) {
                                         SliderStyle.DEFAULT -> stringResource(R.string.default_)
-                                        SliderStyle.SQUIGGLY -> stringResource(R.string.squiggly)
+                                        SliderStyle.WAVY -> stringResource(R.string.wavy)
                                         SliderStyle.SLIM -> stringResource(R.string.slim)
                                     },
                                     onClick = { showSliderOptionDialog = true },
