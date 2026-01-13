@@ -453,6 +453,8 @@ class MusicService :
             .collectLatest(scope) { enabled ->
                 if (enabled) {
                     checkAndLoadMoreItems(player.currentMediaItem, Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED)
+                } else {
+                    clearAutomix()
                 }
             }
 
