@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_waves_background">
+
+    <!-- Album Art Background -->
+    <ImageView
+        android:id="@+id/widget_waves_artwork"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:contentDescription="Background Artwork" />
+
+    <!-- Dark Overlay using ImageView for maximum compatibility -->
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#99000000" />
+
+    <!-- Content Over Art -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="10dp">
+
+        <!-- Top Header: Logo + Brand Name -->
+        <LinearLayout
+            android:id="@+id/header_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentStart="true">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@drawable/vivi_music_icon" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="VIVI"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Top Right Icons: Heart -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true">
+
+            <ImageView
+                android:id="@+id/widget_waves_favorite"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/favorite_border_test"
+                android:layout_marginEnd="4dp" />
+        </LinearLayout>
+
+        <!-- Bottom Track Info -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_alignParentBottom="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Now Playing"
+                android:textColor="#D1D100"
+                android:textSize="10sp" />
+
+            <TextView
+                android:id="@+id/widget_waves_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Not Playing"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <TextView
+                android:id="@+id/widget_waves_artist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tap to play"
+                android:textColor="#CCCCCC"
+                android:textSize="12sp"
+                android:maxLines="1"
+                android:ellipsize="end" />
+        </LinearLayout>
+
+        <!-- Circular Progress Bar in Bottom Right -->
+        <ProgressBar
+            android:id="@+id/widget_waves_progress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginBottom="2dp"
+            android:layout_marginEnd="2dp"
+            android:indeterminate="false"
+            android:max="1000"
+            android:progress="0"
+            android:progressDrawable="@drawable/widget_circular_progress" />
+
+    </RelativeLayout>
+</FrameLayout>

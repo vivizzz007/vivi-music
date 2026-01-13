@@ -203,6 +203,17 @@
                 android:resource="@xml/music_widget_info" />
         </receiver>
 
+        <receiver
+            android:name=".update.widget.MusicWavesWidgetReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/music_waves_widget_info" />
+        </receiver>
+
 
         <meta-data
             android:name="com.google.android.gms.car.application"

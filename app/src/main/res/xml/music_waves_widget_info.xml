@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="100dp"
+    android:minHeight="100dp"
+    android:targetCellWidth="2"
+    android:targetCellHeight="2"
+    android:updatePeriodMillis="1800000"
+    android:previewImage="@drawable/vivi"
+    android:initialLayout="@layout/widget_waves_player"
+    android:description="@string/app_name"
+    android:widgetCategory="home_screen" />
