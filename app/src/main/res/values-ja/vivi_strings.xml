@@ -839,7 +839,6 @@
 
     <!-- Share and Email Messages -->
     <string name="check_out_playlist_share">%1 をYouTube Musicでチェック: %2</string>
-    <string name="check_out_album_share">%2 の %1 をYouTube Musicでチェック: %3</string>
     <string name="vivi_music_crash_report">ViVi Musicクラッシュレポート</string>
     <string name="crash_log_email_body">クラッシュログ（クリップボードにもコピーされました）:\n\n%1\n\nデバイス情報:\n%2</string>
     <string name="feedback_for_vivi_music_app">Vivi Musicアプリへのフィードバック</string>

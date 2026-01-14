@@ -106,11 +106,11 @@
     <string name="slim">İnce</string>
     <string name="slim_navbar">İnce alt navigasyon çubuğu</string>
     <string name="auto_playlists">Otomatik oynatma listeleri</string>
-    <string name="show_liked_playlist">\"Beğenilen\" listesini göster</string>
-    <string name="show_downloaded_playlist">\"İndirilen\" listesini göster</string>
-    <string name="show_top_playlist">\"En iyi\" listesini göster</string>
-    <string name="show_cached_playlist">\"Önbellekte\" listesini göster</string>
-    <string name="show_uploaded_playlist">\"Yüklü\" listesini göster</string>
+    <string name="show_liked_playlist">Beğenilen listesini göster</string>
+    <string name="show_downloaded_playlist">İndirilen listesini göster</string>
+    <string name="show_top_playlist">En iyi listesini göster</string>
+    <string name="show_cached_playlist">Önbellekte listesini göster</string>
+    <string name="show_uploaded_playlist">Yüklü listesini göster</string>
 
     <string name="google">Google</string>
     <string name="discord">Discord</string>
@@ -124,7 +124,7 @@
     
     <!-- Playlist cover edit -->
     <string name="edit_playlist_cover">Oynatma listesi kapağını düzenle</string>
-    <string name="edit_playlist_cover_note">Not: Hesabınızın bir telefon numarasına bağlı ve YouTube Music'te onaylanmış olması gerekir.</string>
+    <string name="edit_playlist_cover_note">Not: Hesabınızın bir telefon numarasına bağlı ve YouTube Music\'te onaylanmış olması gerekir.</string>
     <string name="edit_playlist_cover_note_wait">Resim seçildikten sonra, yeni kapak resmi oynatma listesinde görünmesi için biraz bekleyin.</string>
     <string name="choose_from_library">Kütüphaneden seç</string>
     <string name="remove_custom_image">Kendi resmini kaldır</string>
@@ -153,12 +153,12 @@
     <string name="enable_similar_content">Benzer içerikleri etkinleştir</string>
     <string name="similar_content_desc">Kuyruk sonuna ulaştığınızda daha benzer şarkılar otomatik olarak eklenecek</string>
     <string name="min_playback_duration_title">Minimum oynatma süresi</string>
-    <string name="min_playback_duration_description">Bir şarkının \"oynatılmış\" olarak kabul edilmesi için minimum oynatma süresi</string>
+    <string name="min_playback_duration_description">Bir şarkının oynatılmış olarak kabul edilmesi için minimum oynatma süresi</string>
     <string name="percentage_format">%d%%</string>
     <string name="minimum_playback_duration">Minimum oynatma süresi</string>
 
-    <string name="import_online">\"m3u\" oynatma listesi içe aktar</string>
-    <string name="import_csv">\"csv\" oynatma listesi içe aktar</string>
+    <string name="import_online">m3u oynatma listesi içe aktar</string>
+    <string name="import_csv">csv oynatma listesi içe aktar</string>
     <string name="playlist_add_local_to_synced_note">Not: Yerel şarkıları senkronize/uzak oynatma listelerine eklemek desteklenmiyor. Herhangi başka bir kombinasyon destekleniyor.</string>
 
     <string name="auto_download_on_like">Beğenilen şarkıları otomatik olarak indir</string>
@@ -253,7 +253,6 @@
     <string name="update_channel_name">Uygulama güncelleştirmeleri</string>
     <string name="update_channel_desc">Yeni sürümler hakkında bildirimler</string>
 
-
     <!-- Offload -->
     <string name="audio_offload">Ses offload\'u etkinleştir</string>
     <string name="audio_offload_description">Ses çalma için offload ses yolunu kullanın (ses işlemleri doğrudan donanıma aktarılır). Bunu devre dışı bırakmak güç kullanımını artırabilir ancak ses çalma veya ses işleme ile ilgili sorunlar yaşıyorsanız yararlı olabilir.</string>
@@ -265,7 +264,7 @@
     <!-- Last.fm -->
     <string name="lastfm_integration">Last.fm entegrasyonu</string>
     <string name="enable_scrobbling">Scrobble\'lamayı etkinleştir</string>
-    <string name="lastfm_now_playing">\"Şu an çalıyor\" bilgisini gönder</string>
+    <string name="lastfm_now_playing">Şu an çalıyor bilgisini gönder</string>
     <string name="scrobbling_configuration">Scrobble Yapılandırması</string>
     <string name="scrobble_min_track_duration">Şu süreden uzun şarkıları scrobble\'la</string>
     <string name="scrobble_delay_percent">Scrobble gecikme yüzdesi</string>
@@ -273,13 +272,11 @@
     <string name="profile_image">Profil resmi</string>
     <string name="back">Geri</string>
 
-
     <string name="download_playlist">Oynatma listesini indir</string>
     <string name="remove_download_playlist">Oynatma listesini indir</string>
     <string name="delete_playlist">Oynatma listesini sil</string>
     <string name="cancel_download">İndirmeyi iptal et</string>
     <string name="pitch_and_tempo">Ton ve tempo</string>
-
 
     <!-- Account View Strings -->
     <string name="restore_success">Geri yükleme başarılı</string>
@@ -382,7 +379,6 @@
     <string name="bluetooth_headphones">Bluetooth kulaklık</string>
     <string name="audio_devices">Ses cihazları</string>
 
-    <!-- Crash Page -->
     <!-- Crash Page -->
     <string name="crash_message">Eyvah! ViVi bir hatayla karşılaştı ve aniden durdu. Daha fazla bilgi için aşağıdaki günlüğe bakın. Sayfanın altında daha fazla seçenek bulabilirsiniz.</string>
     <string name="log_copied_to_clipboard">Günlük panoya kopyalandı</string>
