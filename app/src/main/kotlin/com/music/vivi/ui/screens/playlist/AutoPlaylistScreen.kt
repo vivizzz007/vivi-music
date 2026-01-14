@@ -148,6 +148,7 @@ fun AutoPlaylistScreen(
         "uploaded" -> stringResource(R.string.uploaded_playlist)
         else -> stringResource(R.string.offline)
     }
+    val autoPlaylistTitle = stringResource(R.string.auto_playlist)
 
     val songs by viewModel.likedSongs.collectAsState(null)
 
@@ -383,7 +384,7 @@ fun AutoPlaylistScreen(
                                         onClick = {
                                             playerConnection.playQueue(
                                                 ListQueue(
-                                                    title = context.getString(R.string.auto_playlist),
+                                                    title = autoPlaylistTitle,
                                                     items = songs!!.map { it.toMediaItem() },
                                                 ),
                                             )

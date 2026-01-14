@@ -85,6 +85,9 @@
     <string name="seek_seconds_addup_description">If enabled,  Adds up 5 extra seconds incrementally on each seek skip</string>
 
     <string name="similar_content">Similar content</string>
+    <string name="continue_playing">Continue Playing</string>
+    <string name="upcoming_recommendations">Upcoming Recommendations</string>
+    <string name="next_in_queue">Next in Queue</string>
 
     <string name="login_settings">Login settings</string>
     <string name="general_settings">General settings</string>
@@ -272,6 +275,9 @@
     <string name="scrobble_delay_minutes">Scrobble delay minutes</string>
     <string name="profile_image">Profile image</string>
     <string name="back">Back</string>
+    <string name="repeat">Repeat</string>
+    <string name="lock_queue">Lock Queue</string>
+    <string name="unlock_queue">Unlock Queue</string>
 
 
     <string name="download_playlist">Download playlist</string>
@@ -703,8 +709,8 @@
     <string name="pause_on_zero_volume_description">Automatically pause playback at zero volume and resume when increased</string>
     <string name="smart_shuffle">Smart Shuffle</string>
     <string name="smart_shuffle_desc">Avoid playing similar songs or same artists back-to-back</string>
-    <string name="smart_suggestions">Smart Suggestions</string>
-    <string name="smart_suggestions_desc">Get tailored recommendations at the end of your queue</string>
+    <string name="smart_suggestions">Infinite Queue</string>
+    <string name="smart_suggestions_desc">Keep the music playing infinitely with tailored recommendations when your queue ends</string>
     <string name="smart_pause">Smart Pause</string>
     <string name="smart_pause_desc">Auto-pause when headphones disconnect</string>
 
@@ -783,7 +789,7 @@
     <string name="cache_songs">Cache Songs</string>
     <string name="auto_playlist">Auto Playlist</string>
     <string name="selection">Selection</string>
-    <string name="suggestions">Suggestions</string>
+    <string name="suggestions">Infinite Queue</string>
 
     <!-- Content Descriptions -->
     <string name="shuffle_content_desc">Shuffle</string>

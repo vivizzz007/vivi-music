@@ -104,7 +104,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import me.saket.squiggles.SquigglySlider
+import com.music.vivi.ui.component.WavySlider
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -584,8 +584,8 @@ fun LyricsScreen(
                         )
                     }
 
-                    SliderStyle.SQUIGGLY -> {
-                        SquigglySlider(
+                    SliderStyle.WAVY -> {
+                        WavySlider(
                             value = (sliderPosition ?: position).toFloat(),
                             valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
                             onValueChange = {
@@ -598,13 +598,9 @@ fun LyricsScreen(
                                 }
                                 sliderPosition = null
                             },
-                            colors = PlayerSliderColors.squigglySliderColors(textBackgroundColor, playerBackground, useDarkTheme),
-                            squigglesSpec =
-                                SquigglySlider.SquigglesSpec(
-                                    amplitude = if (isPlaying) (4.dp).coerceAtLeast(2.dp) else 0.dp,
-                                    strokeWidth = 3.dp,
-                                    wavelength = 36.dp,
-                                ),
+                            isPlaying = isPlaying,
+                            colors = PlayerSliderColors.wavySliderColors(textBackgroundColor, playerBackground, useDarkTheme),
+                            waveSpeed = 40.dp
                         )
                     }
 

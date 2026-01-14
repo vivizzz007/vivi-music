@@ -58,9 +58,6 @@ class ViviWidgetManager @Inject constructor(
         delay(150)
 
         val appWidgetManager = AppWidgetManager.getInstance(context)
-        val componentName = ComponentName(context, MusicPlayerWidgetReceiver::class.java)
-        val widgetIds = appWidgetManager.getAppWidgetIds(componentName)
-        if (widgetIds.isEmpty()) return
 
         // Fetch latest like state from DB if possible to be 100% sure
         var actualIsLiked = isLiked
@@ -89,20 +86,41 @@ class ViviWidgetManager @Inject constructor(
         // Load and process album art
         val albumArt = artworkUri?.let { loadAlbumArt(it, 300) }
 
-        val views = createRemoteViews(
-            title,
-            artist,
-            albumArt,
-            isPlaying,
-            actualIsLiked,
-            queueItems,
-            emptyList(),
-            duration,
-            currentPosition
-        )
+        // Update standard widgets
+        val standardComponentName = ComponentName(context, MusicPlayerWidgetReceiver::class.java)
+        val standardWidgetIds = appWidgetManager.getAppWidgetIds(standardComponentName)
+        if (standardWidgetIds.isNotEmpty()) {
+            val standardViews = createRemoteViews(
+                title,
+                artist,
+                albumArt,
+                isPlaying,
+                actualIsLiked,
+                queueItems,
+                emptyList(),
+                duration,
+                currentPosition
+            )
+            standardWidgetIds.forEach { widgetId ->
+                appWidgetManager.updateAppWidget(widgetId, standardViews)
+            }
+        }
 
-        widgetIds.forEach { widgetId ->
-            appWidgetManager.updateAppWidget(widgetId, views)
+        // Update Waves widgets
+        val wavesComponentName = ComponentName(context, MusicWavesWidgetReceiver::class.java)
+        val wavesWidgetIds = appWidgetManager.getAppWidgetIds(wavesComponentName)
+        if (wavesWidgetIds.isNotEmpty()) {
+            val wavesViews = createWavesRemoteViews(
+                title,
+                artist,
+                albumArt,
+                actualIsLiked,
+                duration,
+                currentPosition
+            )
+            wavesWidgetIds.forEach { widgetId ->
+                appWidgetManager.updateAppWidget(widgetId, wavesViews)
+            }
         }
     }
 
@@ -164,6 +182,48 @@ class ViviWidgetManager @Inject constructor(
         views.setOnClickPendingIntent(R.id.widget_album_art, getOpenAppIntent())
         views.setOnClickPendingIntent(R.id.widget_play_pause_container, getPlayPauseIntent()) 
         views.setOnClickPendingIntent(R.id.widget_like_button, getLikeIntent())
+
+        return views
+    }
+
+
+    private fun createWavesRemoteViews(
+        title: String,
+        artist: String,
+        albumArt: Bitmap?,
+        isLiked: Boolean,
+        duration: Long,
+        currentPosition: Long
+    ): RemoteViews {
+        val views = RemoteViews(context.packageName, R.layout.widget_waves_player)
+
+        // Set song info
+        views.setTextViewText(R.id.widget_waves_title, title)
+        views.setTextViewText(R.id.widget_waves_artist, artist)
+
+        // Set progress
+//        if (duration > 0) {
+//            val progress = (currentPosition.toFloat() / duration * 1000).toInt()
+//            views.setProgressBar(R.id.widget_waves_progress, 1000, progress, false)
+//        } else {
+//            views.setProgressBar(R.id.widget_waves_progress, 1000, 0, false)
+//        }
+
+        // Set album art background
+        if (albumArt != null) {
+            val roundedAlbumArt = getRoundedCornerBitmap(albumArt, 64f) // Match background corners
+            views.setImageViewBitmap(R.id.widget_waves_artwork, roundedAlbumArt)
+        } else {
+            views.setImageViewResource(R.id.widget_waves_artwork, R.drawable.vivi)
+        }
+
+        // Set like icon using test icons (no theme attributes)
+        val likeIcon = if (isLiked) R.drawable.favorite_test else R.drawable.favorite_border_test
+        views.setImageViewResource(R.id.widget_waves_favorite, likeIcon)
+
+        // Set click intents
+        views.setOnClickPendingIntent(R.id.widget_waves_artwork, getOpenAppIntent())
+        views.setOnClickPendingIntent(R.id.widget_waves_favorite, getLikeIntent())
 
         return views
     }

@@ -5,10 +5,9 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.util.Log
 import com.music.vivi.playback.MusicService
 
-class MusicPlayerWidgetReceiver : AppWidgetProvider() {
+class MusicWavesWidgetReceiver : AppWidgetProvider() {
 
     override fun onUpdate(
         context: Context,
@@ -17,7 +16,7 @@ class MusicPlayerWidgetReceiver : AppWidgetProvider() {
     ) {
         // Trigger update through MusicService if running
         val intent = Intent(context, MusicService::class.java).apply {
-            action = ACTION_UPDATE_WIDGET
+            action = MusicPlayerWidgetReceiver.ACTION_UPDATE_WIDGET
         }
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -34,7 +33,10 @@ class MusicPlayerWidgetReceiver : AppWidgetProvider() {
         super.onReceive(context, intent)
 
         when (intent.action) {
-            ACTION_PLAY_PAUSE, ACTION_LIKE, ACTION_PLAY_SONG, ACTION_PLAY_QUEUE_ITEM -> {
+            MusicPlayerWidgetReceiver.ACTION_PLAY_PAUSE, 
+            MusicPlayerWidgetReceiver.ACTION_LIKE, 
+            MusicPlayerWidgetReceiver.ACTION_PLAY_SONG, 
+            MusicPlayerWidgetReceiver.ACTION_PLAY_QUEUE_ITEM -> {
                 val serviceIntent = Intent(context, MusicService::class.java).apply {
                     action = intent.action
                     putExtras(intent)
@@ -46,17 +48,9 @@ class MusicPlayerWidgetReceiver : AppWidgetProvider() {
                         context.startService(serviceIntent)
                     }
                 } catch (e: Exception) {
-                    // Usually these buttons are clicked when the user is interacting or the service is already in foreground
+                    // Service might be restricted in background
                 }
             }
         }
-    }
-
-    companion object {
-        const val ACTION_PLAY_PAUSE = "com.music.vivi.widget.PLAY_PAUSE"
-        const val ACTION_LIKE = "com.music.vivi.widget.LIKE"
-        const val ACTION_PLAY_SONG = "com.music.vivi.widget.PLAY_SONG"
-        const val ACTION_PLAY_QUEUE_ITEM = "com.music.vivi.widget.PLAY_QUEUE_ITEM"
-        const val ACTION_UPDATE_WIDGET = "com.music.vivi.widget.UPDATE_WIDGET"
     }
 }

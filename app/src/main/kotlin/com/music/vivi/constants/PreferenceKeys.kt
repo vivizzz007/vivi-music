@@ -30,7 +30,7 @@ val RotatingThumbnailKey = booleanPreferencesKey("rotating_thumbnail")
 
 enum class SliderStyle {
     DEFAULT,
-    SQUIGGLY,
+    WAVY,
     SLIM,
 }
 
