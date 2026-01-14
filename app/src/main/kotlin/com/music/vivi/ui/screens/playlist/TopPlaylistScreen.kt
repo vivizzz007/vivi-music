@@ -163,6 +163,8 @@ fun TopPlaylistScreen(
 
     val sortType by viewModel.topPeriod.collectAsState()
     val name = stringResource(R.string.my_top) + " $maxSize"
+    val autoPlaylistTitle = stringResource(R.string.auto_playlist)
+    val shareHeader = stringResource(R.string.check_out_top_share, maxSize.toInt())
 
     val downloadUtil = LocalDownloadUtil.current
     var downloadState by remember { mutableStateOf(Download.STATE_STOPPED) }
@@ -357,7 +359,7 @@ fun TopPlaylistScreen(
                                         onClick = {
                                             playerConnection.playQueue(
                                                 ListQueue(
-                                                    title = context.getString(R.string.auto_playlist),
+                                                    title = autoPlaylistTitle,
                                                     items = songs!!.map { it.toMediaItem() },
                                                 ),
                                             )
@@ -390,7 +392,7 @@ fun TopPlaylistScreen(
                                     Surface(
                                         onClick = {
                                             val shareText = buildString {
-                                                append(context.getString(R.string.check_out_top_share, maxSize))
+                                                append(shareHeader)
                                                 songs!!.take(5).forEachIndexed { index, song ->
                                                     append("${index + 1}. ${song.song.title}")
                                                     if (song.artists.isNotEmpty()) {
