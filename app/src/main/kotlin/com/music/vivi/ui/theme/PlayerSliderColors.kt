@@ -37,7 +37,7 @@ object PlayerSliderColors {
                     MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
                 }
             }
-            PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT -> {
+            PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.APPLE_MUSIC -> {
                 Color.White.copy(alpha = 0.4f)
             }
         }
@@ -72,15 +72,15 @@ object PlayerSliderColors {
     }
 
     /**
-     * Squiggly slider colors using button color scheme
+     * Wavy slider colors using button color scheme
      * 
      * @param buttonColor The active button color from player theme
      * @param playerBackground The player background style
      * @param useDarkTheme Whether dark theme is being used
-     * @return SliderColors configuration for squiggly slider
+     * @return SliderColors configuration for wavy slider
      */
     @Composable
-    fun squigglySliderColors(
+    fun wavySliderColors(
         buttonColor: Color,
         playerBackground: PlayerBackgroundStyle,
         useDarkTheme: Boolean
@@ -115,7 +115,7 @@ object PlayerSliderColors {
                     MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
                 }
             }
-            PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT -> {
+            PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.APPLE_MUSIC -> {
                 Color.White.copy(alpha = 0.4f)
             }
         }

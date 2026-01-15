@@ -129,14 +129,20 @@ inline fun ListItem(
     noinline leadingContent: @Composable (() -> Unit)? = null,
     thumbnailContent: @Composable () -> Unit = {},
     trailingContent: @Composable RowScope.() -> Unit = {},
-    isActive: Boolean = false
+    isActive: Boolean = false,
+    drawHighlight: Boolean = true
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .height(ListItemHeight)
             .padding(horizontal = 8.dp)
-            .then(if (isActive) Modifier.clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.secondaryContainer) else Modifier)
+            .then(
+                if (isActive && drawHighlight) Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.secondaryContainer)
+                else Modifier
+            )
     ) {
         if (leadingContent != null) {
             Box(Modifier.padding(start = 6.dp), contentAlignment = Alignment.Center) { leadingContent() }
@@ -162,11 +168,13 @@ fun ListItem(
     leadingContent: @Composable (() -> Unit)? = null,
     thumbnailContent: @Composable () -> Unit,
     trailingContent: @Composable RowScope.() -> Unit = {},
-    isActive: Boolean = false
+    isActive: Boolean = false,
+    drawHighlight: Boolean = true
 ) = ListItem(
     title = title,
     modifier = modifier,
     isActive = isActive,
+    drawHighlight = drawHighlight,
     leadingContent = leadingContent,
     subtitle = {
         badges()
@@ -290,6 +298,7 @@ fun SongListItem(
     inSelectionMode: Boolean = false,
     onSelectionChange: (Boolean) -> Unit = {},
     trailingContent: @Composable RowScope.() -> Unit = {},
+    drawHighlight: Boolean = true,
 ) {
     val swipeEnabled by rememberPreference(SwipeToSongKey, defaultValue = false)
 
@@ -323,7 +332,8 @@ fun SongListItem(
                 }
             } else trailingContent,
             modifier = modifier,
-            isActive = isActive
+            isActive = isActive,
+            drawHighlight = drawHighlight
         )
     }
 
@@ -409,37 +419,29 @@ fun ArtistListItem(
     modifier: Modifier = Modifier,
     badges: @Composable RowScope.() -> Unit = {
         if (artist.artist.bookmarkedAt != null) {
-            Icon(
-                painter = painterResource(R.drawable.favorite),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.error,
-                modifier = Modifier
-                    .size(18.dp)
-                    .padding(end = 2.dp),
-            )
+            Icon.Favorite()
         }
     },
     trailingContent: @Composable RowScope.() -> Unit = {},
+    isActive: Boolean = false,
+    drawHighlight: Boolean = true,
 ) = ListItem(
     title = artist.artist.name,
     subtitle = pluralStringResource(R.plurals.n_song, artist.songCount, artist.songCount),
     badges = badges,
     thumbnailContent = {
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(artist.artist.thumbnailUrl)
-                .memoryCachePolicy(coil3.request.CachePolicy.ENABLED)
-                .diskCachePolicy(coil3.request.CachePolicy.ENABLED)
-                .networkCachePolicy(coil3.request.CachePolicy.ENABLED)
-                .build(),
-            contentDescription = null,
-            modifier = Modifier
-                .size(ListThumbnailSize)
-                .clip(CircleShape),
+        ItemThumbnail(
+            thumbnailUrl = artist.artist.thumbnailUrl,
+            isActive = isActive,
+            isPlaying = false,
+            shape = CircleShape,
+            modifier = Modifier.size(ListThumbnailSize)
         )
     },
     trailingContent = trailingContent,
     modifier = modifier,
+    isActive = isActive,
+    drawHighlight = drawHighlight
 )
 
 @Composable
@@ -479,44 +481,26 @@ fun ArtistGridItem(
 fun AlbumListItem(
     album: Album,
     modifier: Modifier = Modifier,
-    showLikedIcon: Boolean = true,
     badges: @Composable RowScope.() -> Unit = {
         val downloadUtil = LocalDownloadUtil.current
         val database = LocalDatabase.current
+        val downloadState by downloadUtil.getDownload(album.id)
+            .collectAsState(initial = null)
+        val albumState by database.album(album.id).collectAsState(initial = album)
+        val isFavorite = albumState?.album?.bookmarkedAt != null
 
-        val songs by produceState<List<Song>>(initialValue = emptyList(), album.id) {
-            withContext(Dispatchers.IO) {
-                value = database.albumSongs(album.id).first()
-            }
-        }
-
-        val allDownloads by downloadUtil.downloads.collectAsState()
-
-        val downloadState by remember(songs, allDownloads) {
-            mutableStateOf(
-                if (songs.isEmpty()) {
-                    Download.STATE_STOPPED
-                } else {
-                    when {
-                        songs.all { allDownloads[it.id]?.state == STATE_COMPLETED } -> STATE_COMPLETED
-                        songs.any { allDownloads[it.id]?.state in listOf(STATE_QUEUED, STATE_DOWNLOADING) } -> STATE_DOWNLOADING
-                        else -> Download.STATE_STOPPED
-                    }
-                }
-            )
-        }
-
-        if (showLikedIcon && album.album.bookmarkedAt != null) {
+        if (isFavorite) {
             Icon.Favorite()
         }
         if (album.album.explicit) {
             Icon.Explicit()
         }
-        Icon.Download(downloadState)
+        Icon.Download(downloadState?.state)
     },
     isActive: Boolean = false,
     isPlaying: Boolean = false,
     trailingContent: @Composable RowScope.() -> Unit = {},
+    drawHighlight: Boolean = true,
 ) = ListItem(
     title = album.album.title,
     subtitle = joinByBullet(
@@ -535,7 +519,9 @@ fun AlbumListItem(
         )
     },
     trailingContent = trailingContent,
-    modifier = modifier
+    modifier = modifier,
+    drawHighlight = drawHighlight,
+    isActive = isActive,
 )
 
 @Composable
@@ -637,7 +623,8 @@ fun PlaylistListItem(
     modifier: Modifier = Modifier,
     autoPlaylist: Boolean = false,
     badges: @Composable RowScope.() -> Unit = {},
-    trailingContent: @Composable RowScope.() -> Unit = {}
+    trailingContent: @Composable RowScope.() -> Unit = {},
+    drawHighlight: Boolean = true,
 ) = ListItem(
     title = playlist.playlist.name,
     subtitle = if (autoPlaylist) {
@@ -682,7 +669,8 @@ fun PlaylistListItem(
         )
     },
     trailingContent = trailingContent,
-    modifier = modifier
+    modifier = modifier,
+    drawHighlight = drawHighlight
 )
 
 @Composable
@@ -773,6 +761,7 @@ fun MediaMetadataListItem(
     inSelectionMode: Boolean = false,
     onSelectionChange: (Boolean) -> Unit = {},
     trailingContent: @Composable RowScope.() -> Unit = {},
+    drawHighlight: Boolean = true,
 ) {
     ListItem(
         title = mediaMetadata.title,
@@ -802,7 +791,8 @@ fun MediaMetadataListItem(
             }
         } else trailingContent,
         modifier = modifier,
-        isActive = isActive
+        isActive = isActive,
+        drawHighlight = drawHighlight
     )
 }
 
@@ -842,6 +832,7 @@ fun YouTubeListItem(
             Icon.Download(download?.state)
         }
     },
+    drawHighlight: Boolean = true,
 ) {
     val swipeEnabled by rememberPreference(SwipeToSongKey, defaultValue = false)
 
@@ -877,7 +868,8 @@ fun YouTubeListItem(
                 }
             } else trailingContent,
             modifier = modifier,
-            isActive = isActive
+            isActive = isActive,
+            drawHighlight = drawHighlight
         )
     }
 

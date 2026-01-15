@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Fallback Expressive Colors (Olive/Beige theme from image) -->
+    <color name="widget_system_tertiary_container">#3E4A26</color> <!-- Olive Green -->
+    <color name="widget_system_on_tertiary_container">#E8E4D0</color> <!-- Beige Text -->
+    
+    <color name="widget_system_tertiary">#E8E4D0</color> <!-- Light Beige Progress -->
+    
+    <color name="widget_system_on_surface_variant">#C2C9BD</color> <!-- Dim Green -->
+    
+    <color name="widget_play_button_container">#B8D45C</color> <!-- Bright Green -->
+    <color name="widget_on_play_button_container">#1C1E14</color> <!-- Dark text on Play -->
+</resources>

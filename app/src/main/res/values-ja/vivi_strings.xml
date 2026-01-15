@@ -1,0 +1,1080 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="explore">探索</string>
+
+    <string name="local_history">ローカル</string>
+    <string name="remote_history">リモート</string>
+
+    <string name="charts">チャート</string>
+    <string name="back_button_desc">戻る</string>
+    <string name="no_title">タイトルなし</string>
+    <string name="unknown_artist">不明なアーティスト</string>
+    <string name="unknown_item_type">不明なアイテムタイプ</string>
+    <string name="loading_charts">チャートを読み込み中…</string>
+    <string name="retry_button">再試行</string>
+    <string name="album_cover_desc">アルバムカバー</string>
+    <string name="top_music_videos">トップミュージックビデオ</string>
+    <string name="trending">急上昇</string>
+    <string name="top_result">トップ結果</string>
+    <string name="other">その他</string>
+
+    <string name="weeks">週間</string>
+    <string name="months">ヶ月</string>
+    <string name="years">年</string>
+    <string name="continuous">連続</string>
+
+    <string name="liked">高く評価</string>
+    <string name="offline">ダウンロード済み</string>
+    <string name="my_top">自分のトップ</string>
+    <string name="cached_playlist">キャッシュ済み</string>
+    <string name="uploaded_playlist">アップロード済み</string>
+    <string name="filter_uploaded">アップロード済み</string>
+    <string name="sync_playlist">プレイリストを同期</string>
+    <string name="sync_disabled">同期が無効です</string>
+    <string name="elements_selected">%1$d 要素選択済み</string>
+    <string name="allows_for_sync_witch_youtube">注: これによりYouTube Musicとの同期が可能になります。これは後で変更できません。</string>
+    <string name="generating_image">画像を生成中</string>
+    <string name="please_wait">お待ちください</string>
+    <string name="cancel">キャンセル</string>
+    <string name="share_lyrics">歌詞を共有</string>
+    <string name="share_as_text">テキストとして共有</string>
+    <string name="share_as_image">画像として共有</string>
+    <string name="max_selection_limit">最大選択制限</string>
+    <string name="share_selected">選択したものを共有</string>
+    <string name="customize_colors">色をカスタマイズ</string>
+    <string name="more_options">その他のオプション</string>
+    <string name="text_color">テキストの色</string>
+    <string name="secondary_text_color">二次テキストの色</string>
+    <string name="background_color">背景色</string>
+
+    <string name="added_to_play_next">次に再生に追加しました</string>
+    <string name="added_to_queue">キューに追加しました</string>
+    <string name="remove_from_cache">キャッシュから削除</string>
+    <string name="copy_link">リンクをコピー</string>
+    <string name="select">すべて選択</string>
+    <string name="like_all">すべて高く評価</string>
+    <string name="dislike_all">すべて低く評価</string>
+    <string name="sort_by_last_updated">更新日</string>
+    <string name="link_copied">リンクをクリップボードにコピーしました</string>
+    <string name="starting_radio">ラジオを開始中</string>
+    <string name="now_playing">再生中</string>
+
+    <string name="lyrics">歌詞</string>
+    <string name="close">閉じる</string>
+    <string name="minimum_volume">最小音量</string>
+    <string name="maximum_volume">最大音量</string>
+    <string name="hide_player_thumbnail">プレーヤーのサムネイルを非表示</string>
+    <string name="hide_player_thumbnail_desc">プレーヤーのアルバムアートワークをアプリアイコンに置き換えます</string>
+
+    <string name="already_in_playlist">すでにプレイリストにあります:</string>
+
+    <plurals name="n_element">
+        <item quantity="other">%d 要素</item>
+    </plurals>
+    <plurals name="n_time">
+        <item quantity="other">%d 回</item>
+    </plurals>
+
+    <string name="seek_backward">5秒戻る</string>
+    <string name="seek_forward">5秒進む</string>
+    <string name="seek_forward_dynamic">+%1$d 秒進む</string>
+    <string name="seek_backward_dynamic">-%1$d 秒戻る</string>
+    <string name="seek_seconds_addup">プログレッシブシーク</string>
+    <string name="seek_seconds_addup_description">有効にすると、シークスキップごとに5秒ずつ追加されます</string>
+
+    <string name="similar_content">類似コンテンツ</string>
+
+    <string name="login_settings">ログイン設定</string>
+    <string name="general_settings">一般設定</string>
+
+    <string name="player_background_style">プレーヤーの背景スタイル</string>
+    <string name="follow_theme">テーマに従う</string>
+    <string name="gradient">グラデーション</string>
+    <string name="new_player_design">新しいプレーヤーデザイン</string>
+    <string name="new_mini_player_design">新しいミニプレーヤーデザイン</string>
+    <string name="player_background_blur">ぼかし</string>
+    <string name="player_buttons_style">プレーヤーボタンの色</string>
+    <string name="default_style">デフォルト</string>
+    <string name="secondary_color_style">二次色</string>
+    <string name="enable_squiggly_slider">波線スライダーを有効にする</string>
+    <string name="enable_swipe_thumbnail">スワイプで曲変更を有効にする</string>
+    <string name="swipe_song_to_add">曲を左にスワイプしてキューに追加、右にスワイプして次に再生</string>
+    <string name="lyrics_click_change">クリックで歌詞を変更</string>
+    <string name="lyrics_auto_scroll">歌詞の自動スクロール</string>
+    <string name="slim">スリム</string>
+    <string name="slim_navbar">スリムな下部ナビゲーションバー</string>
+    <string name="auto_playlists">自動プレイリスト</string>
+    <string name="show_liked_playlist">\"高く評価\" プレイリストを表示</string>
+    <string name="show_downloaded_playlist">\"ダウンロード\" プレイリストを表示</string>
+    <string name="show_top_playlist">\"トップ\" プレイリストを表示</string>
+    <string name="show_cached_playlist">\"キャッシュ\" プレイリストを表示</string>
+    <string name="show_uploaded_playlist">\"アップロード\" プレイリストを表示</string>
+
+    <string name="google">Google</string>
+    <string name="discord">Discord</string>
+    <string name="advanced_login">トークンでログイン</string>
+    <string name="token_hidden">タップしてトークンを表示</string>
+    <string name="token_shown">もう一度タップしてコピーまたは編集</string>
+    <string name="token_adv_login_description">これは高度なログイン方法です。Webポータルの代わりに、ここにログイントークンを直接入力または更新できます。例えば、複数のデバイスでのログインを高速化できます。アプリが解析できない無効なトークン形式は受け入れられないことに注意してください</string>
+    <string name="ytm_sync">YouTube Musicアカウントと自動的に同期</string>
+    <string name="yt_sync">アカウントと自動同期</string>
+    <string name="more_content">その他のコンテンツ</string>
+    
+    <!-- Playlist cover edit -->
+    <string name="edit_playlist_cover">プレイリストのカバーを編集</string>
+    <string name="edit_playlist_cover_note">注: プレイリストのカバーを変更するには、アカウントが電話番号に関連付けられ、YouTube Musicで確認されている必要があります。</string>
+    <string name="edit_playlist_cover_note_wait">画像を選択した後、新しいカバーがプレイリストに表示されるまでしばらくお待ちください。</string>
+    <string name="choose_from_library">ライブラリから選択</string>
+    <string name="remove_custom_image">カスタム画像を削除</string>
+
+    <!-- General -->
+    <string name="general">一般</string>
+    <string name="proxy">プロキシ</string>
+    <string name="default_lib_chips">デフォルトのライブラリチップを変更</string>
+    <string name="set_quick_picks">クイックピックを設定</string>
+    <string name="last_song_listened">最後に聴いた曲に基づく</string>
+    <string name="app_language">アプリの言語</string>
+    <string name="configure_app_language">アプリの言語を設定</string>
+    <string name="intent_app_language_not_found">アプリの言語設定が見つかりませんでした。手動で設定してください</string>
+    <string name="open_supported_links">デフォルトでサポートされているリンクを開く</string>
+    <string name="configure_supported_links">サポートされているリンクを設定</string>
+    <string name="intent_supported_links_not_found">サポートされているリンク設定が見つかりませんでした。手動で設定してください</string>
+    <string name="set_first_lyrics_provider">優先する歌詞プロバイダ</string>
+    <string name="config_proxy">プロキシを設定</string>
+    <string name="proxy_username">プロキシユーザー名</string>
+    <string name="proxy_password">プロキシパスワード</string>
+    <string name="enable_authentication">認証を有効にする</string>
+    <string name="discord_use_details">状態の代わりに詳細を使用</string>
+    <string name="discord_use_details_description">アーティスト名の代わりに曲のタイトルを目立つように表示</string>
+
+    <string name="audio_quality_max">最大 (ベータ)</string>
+    <string name="enable_similar_content">類似コンテンツを有効にする</string>
+    <string name="similar_content_desc">キューの最後に達したとき、自動的に類似の曲を追加します</string>
+    <string name="min_playback_duration_title">最小再生時間</string>
+    <string name="min_playback_duration_description">曲が \"再生済み\" とみなされるまでの最小再生時間</string>
+    <string name="percentage_format">%d%%</string>
+    <string name="minimum_playback_duration">最小再生時間</string>
+
+    <string name="import_online">\"m3u\" プレイリストをインポート</string>
+    <string name="import_csv">\"csv\" プレイリストをインポート</string>
+    <string name="playlist_add_local_to_synced_note">注: 同期/リモートプレイリストへのローカル曲の追加はサポートされていません。その他の組み合わせは有効です</string>
+
+    <string name="auto_download_on_like">高く評価で自動ダウンロード</string>
+    <string name="auto_download_on_like_desc">曲を高く評価したときに自動的にダウンロードします</string>
+
+    <string name="swipe_sensitivity">ミニプレーヤーのスワイプ感度</string>
+    <string name="swipe_sensitivity_desc">曲を変更するためのスワイプジェスチャの感度を調整します</string>
+    <string name="sensitivity_percentage">%1$d%%</string>
+
+    <string name="clear_song_cache_dialog">  すべてのキャッシュされた曲をクリアしてもよろしいですか？</string>
+    <string name="clear_image_cache_dialog">  すべてのキャッシュされた画像をクリアしてもよろしいですか？</string>
+    <string name="clear_downloads_dialog">  すべてのダウンロードをクリアしてもよろしいですか？</string>
+
+    <string name="disable">無効</string>
+
+    <string name="pause_remote_listen_history">YouTube Musicとの再生履歴共有を一時停止</string>
+    <string name="not_logged_in_youtube">YouTubeにログインしていません</string>
+
+    <string name="default_links">サポートされているリンクを開く</string>
+    <string name="open_app_settings_error">アプリの設定を開けませんでした</string>
+
+    <string name="release_notes">リリースノート</string>
+
+    <string name="all_time">全期間</string>
+    <string name="past_24_hours">過去24時間</string>
+    <string name="past_week">過去1週間</string>
+    <string name="past_month">過去1ヶ月</string>
+    <string name="past_year">過去1年</string>
+    <string name="top_length">自分のトップリストの長さ</string>
+    <string name="history_duration">履歴期間</string>
+    <string name="information">情報</string>
+    <string name="description">説明</string>
+    <string name="numbers">数字</string>
+    <string name="subscribers">登録者</string>
+    <string name="views">回視聴</string>
+    <string name="likes">高評価</string>
+    <string name="dislikes">低評価</string>
+    <string name="subscribe">チャンネル登録</string>
+    <string name="subscribed">登録済み</string>
+
+    <string name="sub">サブ</string>
+    <string name="subed">登録</string>
+
+    <string name="playlist_not_found">プレイリストが見つかりません</string>
+    <string name="playlist_not_found_desc">リクエストされたプレイリストを読み込めませんでした</string>
+    <string name="empty_playlist">空のプレイリスト</string>
+    <string name="empty_playlist_desc">このプレイリストには曲が含まれていません</string>
+    <plurals name="seconds">
+        <item quantity="other">%d 秒</item>
+    </plurals>
+
+    <!-- Player Settings -->
+    <string name="disable_load_more_when_repeat_all">全曲リピート時に自動追加を無効化</string>
+    <string name="disable_load_more_when_repeat_all_desc">全曲リピートモードが有効な場合、曲や類似コンテンツを自動的に追加しません</string>
+
+    <!-- Romanization Settings -->
+    <string name="lyrics_romanization_cyrillic">キリル文字</string>
+    <string name="lyrics_romanize_title">ローマ字化</string>
+    <string name="lyrics_romanization">歌詞のローマ字化</string>
+    <string name="romanization">ローマ字化</string>
+    <string name="lyrics_romanize_japanese">日本語の歌詞をローマ字化</string>
+    <string name="lyrics_romanize_korean">韓国語の歌詞をローマ字化</string>
+    <string name="lyrics_romanize_devanagari">デーヴァナーガリー文字（ヒンディー語、マラーティー語、サンスクリット語など）の歌詞をローマ字化</string>
+    <string name="lyrics_romanize_russian">ロシア語の歌詞をローマ字化</string>
+    <string name="lyrics_romanize_ukrainian">ウクライナ語の歌詞をローマ字化</string>
+    <string name="lyrics_romanize_belarusian">ベラルーシ語の歌詞をローマ字化</string>
+    <string name="lyrics_romanize_kyrgyz">キルギス語の歌詞をローマ字化</string>
+    <string name="lyrics_romanize_serbian">セルビア語の歌詞をローマ字化</string>
+    <string name="lyrics_romanize_bulgarian">ブルガリア語の歌詞をローマ字化</string>
+    <string name="line_by_line_option_title">実験的: 1行ごとに言語を検出</string>
+    <string name="line_by_line_option_desc">キリル文字の言語は、曲全体ではなく1行ごとに検出されます。</string>
+    <string name="line_by_line_dialog_title">よろしいですか？</string>
+    <string name="line_by_line_dialog_desc">これは当たり外れの大きい実験的な機能です。\n\nデフォルトでは、言語は曲全体から判定されますが、このオプションをオンにすると、1行ごとに判定されます。これにより、多言語の曲が機能するようになりますが、言語が常に正しいとは限りません（たとえば、ウクライナ語特有の文字が含まれていないウクライナ語の歌詞は、ロシア語としてローマ字化される可能性があります）。\n\n問題がない場合は、このオプションをオフにしておくことをお勧めします。</string>
+    <string name="line_by_line_dialog_enable">有効にする</string>
+    <string name="romanize_current_track">現在のトラックをローマ字化</string>
+
+    <!-- Material 3 Settings Sections -->
+    <string name="settings_section_ui">インターフェース</string>
+    <string name="settings_section_privacy">プライバシーとセキュリティ</string>
+    <string name="settings_section_player">プレーヤーとメディア</string>
+    <string name="settings_section_player_content">プレーヤーとコンテンツ</string>
+    <string name="settings_section_storage">ストレージとデータ</string>
+    <string name="settings_section_system">システムと情報</string>
+
+    <!-- Updater -->
+    <string name="updater">アップデータ</string>
+    <string name="appupdate">アップデートを確認</string>
+    <string name="experimental">実験的</string>
+    <string name="check_for_updates">自動的にアップデートを確認</string>
+    <string name="update_notifications">アップデート通知を有効にする</string>
+    <string name="update_channel_name">アプリのアップデート</string>
+    <string name="update_channel_desc">新しいバージョンに関する通知</string>
+
+
+    <!-- Offload -->
+    <string name="audio_offload">オフロードを有効にする</string>
+    <string name="audio_offload_description">オーディオ再生にオフロードオーディオパスを使用します。これを無効にすると電力消費が増える可能性がありますが、オーディオ再生や後処理に問題がある場合に役立つことがあります</string>
+    <string name="lyrics_romanize_macedonian">マケドニア語の歌詞をローマ字化</string>
+
+    <string name="integrations">統合</string>
+    <string name="username">ユーザー名</string>
+    <string name="password">パスワード</string>
+    <!-- Last.fm -->
+    <string name="lastfm_integration">Last.fm統合</string>
+    <string name="enable_scrobbling">Scrobbleを有効にする</string>
+    <string name="lastfm_now_playing">Now Playingを送信</string>
+    <string name="scrobbling_configuration">Scrobble設定</string>
+    <string name="scrobble_min_track_duration">この長さ以上の曲をScrobble</string>
+    <string name="scrobble_delay_percent">Scrobble遅延割合</string>
+    <string name="scrobble_delay_minutes">Scrobble遅延（分）</string>
+    <string name="profile_image">プロフィール画像</string>
+    <string name="back">戻る</string>
+
+
+    <string name="download_playlist">プレイリストをダウンロード</string>
+    <string name="remove_download_playlist">ダウンロードを削除</string>
+    <string name="delete_playlist">プレイリストを削除</string>
+    <string name="cancel_download">ダウンロードをキャンセル</string>
+    <string name="pitch_and_tempo">ピッチとテンポ</string>
+
+
+    <!-- Account View Strings -->
+    <string name="restore_success">復元成功</string>
+    <string name="library">ライブラリ</string>
+    <string name="logout">ログアウト</string>
+    <string name="logged_out">ログアウトしました</string>
+    <string name="swipe_song_to_remove">曲をスワイプしてプレイリストから削除</string>
+    <string name="rotating_thumbnail">回転するサムネイル</string>
+
+    <!-- Contribution Screen Strings -->
+    <string name="contributors">貢献者</string>
+    <string name="contributors_subtitle">このプロジェクトをより良くしてくれた素晴らしい人々</string>
+    <string name="refresh_contributors">貢献者を更新</string>
+    <string name="no_contributors_found">貢献者が見つかりません</string>
+
+    <!-- Error Messages -->
+    <string name="error_failed_to_load_contributors">貢献者の読み込みに失敗しました (%d)</string>
+    <string name="error_loading_contributors">貢献者の読み込みエラー: %s</string>
+
+    <!-- Accessibility -->
+    <string name="contributor_avatar">%s のアバター</string>
+    <string name="github_profile">GitHubプロフィール</string>
+
+    <!-- Vivi Updates Screen -->
+    <string name="app_updates_title">アプリアップデート</string>
+    <string name="changelog">変更履歴</string>
+    <string name="quick_actions">クイックアクション</string>
+    <string name="app_updates_subtitle">アプリアップデートとバージョン情報</string>
+    <string name="system_update">システムアップデート</string>
+    <string name="update_available_subtitle">アップデートが利用可能です - %1$s</string>
+    <string name="update_disabled_subtitle">自動確認は無効です</string>
+    <string name="up_to_date_subtitle">アプリは最新です</string>
+    <string name="experimental_title">実験的</string>
+    <string name="experimental_subtitle">実験的な機能</string>
+    <string name="update_settings_subtitle">アップデートのオン/オフ</string>
+    <string name="changelog_subtitle">現在のアプリバージョン</string>
+    <string name="about_subtitle">アプリと開発者情報</string>
+    <string name="app_info_header">アプリ情報</string>
+    <string name="build_version_title">ビルドバージョン</string>
+    <string name="installed_on_format">%1$s にインストール済み</string>
+
+    <!-- Update Settings Screen (updatesettings.kt) -->
+    <string name="update_settings_title">アップデート設定</string>
+    <string name="manage_header">管理</string>
+    <string name="notification_header">通知</string>
+    <string name="check_for_updates_desc">新しいアップデートを自動的に確認</string>
+    <string name="show_notification">通知を表示</string>
+    <string name="show_notification_desc">アップデートが利用可能な場合に通知を受け取る</string>
+    <string name="update_check_interval">アップデート確認間隔</string>
+    <string name="interval_every_hour">%1$d 時間ごと</string>
+    <string name="interval_every_hours">%1$d 時間ごと</string>
+    <string name="interval_every_day">%1$d 日ごと</string>
+    <string name="interval_every_days">%1$d 日ごと</string>
+    <string name="interval_check_format_hours">%1$d 時間ごとに確認</string>
+    <string name="interval_check_format_days">%1$d 日ごとに確認</string>
+    <string name="auto_updates_enabled_toast">自動アップデート確認が有効になりました</string>
+    <string name="auto_updates_disabled_toast">自動アップデート確認が無効になりました</string>
+    <string name="notifications_enabled_toast">アップデート通知が有効になりました</string>
+    <string name="notifications_disabled_toast">アップデート通知が無効になりました</string>
+    <string name="interval_set_format_hours">アップデート確認間隔を %1$d 時間に設定しました</string>
+    <string name="interval_set_format_days">アップデート確認間隔を %1$d 日に設定しました</string>
+    <string name="one_hour">1時間</string>
+    <string name="seven_days">7日間</string>
+    <string name="ok_caps">OK</string>
+    <string name="account_status">アカウントステータス</string>
+    <string name="account_settings">アカウント設定</string>
+    <string name="integrations_subtitle">外部サービスと接続</string>
+    <string name="cancel_caps">キャンセル</string>
+    <string name="waiting_for_network">ネットワーク接続を待機中…</string>
+
+    <!-- Update Screen Strings -->
+    <string name="installing_system_update">システムアップデートを\nインストール中…</string>
+    <string name="making_update_ready">アップデートを準備しています。しばらくお待ちください</string>
+    <string name="your_app_getting_better">アプリがさらに良くなっています…</string>
+    <string name="update_includes_features">このアップデートには新機能とvivi-music %1$sの最新情報が含まれており、アプリがさらに便利になります。詳細は %2$s をご覧ください。</string>
+    <string name="whats_new">新機能</string>
+    <string name="pause">一時停止</string>
+    <string name="update_available">アップデート利用可能</string>
+    <string name="checking_for_updates">アップデートを\n確認中…</string>
+    <string name="current_version">現在のバージョン: %1$s</string>
+    <string name="cant_check_updates">アップデートを\n確認できません</string>
+    <string name="app_up_to_date">アプリは\n最新です</string>
+    <string name="version">バージョン %1$s</string>
+    <string name="released">リリース済み: %1$s</string>
+    <string name="update_preview">アップデートプレビュー</string>
+    <string name="downloading_percent">ダウンロード中… %1$d%%</string>
+    <string name="download_failed">ダウンロード失敗</string>
+    <string name="new_features_include">新機能:</string>
+    <string name="mobile_network_warning">モバイルネットワークまたはローミング中にアップデートをダウンロードすると、追加料金が発生する場合があります。</string>
+    <string name="update_size">アップデートサイズ: %1$s MB</string>
+    <string name="check_internet_connection">インターネット接続を確認して再試行してください。</string>
+    <string name="vivi_music_version">VIVI MUSIC バージョン %1$s</string>
+    <string name="last_checked">最終確認: %1$s</string>
+    <string name="install">インストール</string>
+    <string name="check_for_update">アップデートを確認</string>
+    <string name="no_changelog_available">変更履歴はありません</string>
+
+    <!-- Player Strings -->
+    <string name="error_playing">再生エラー</string>
+    <string name="bluetooth_headphones">Bluetoothヘッドフォン</string>
+    <string name="audio_devices">オーディオデバイス</string>
+
+
+    <!-- Crash Page -->
+    <string name="crash_message">おっと！ViViが壁にぶつかり、急停止しました。詳細については以下のログをご覧ください。その他のオプションはページ下部にあります。</string>
+    <string name="log_copied_to_clipboard">ログをクリップボードにコピーしました</string>
+
+    <!-- Report Issue -->
+    <string name="report_an_issue">問題を報告</string>
+    <string name="found_bug_suggestion">バグを見つけたり、提案がありますか？</string>
+    <string name="report_issues_description">メールまたはGitHubで直接問題を報告できます。</string>
+    <string name="device_information">デバイス情報（レポートに含まれます）:</string>
+    <string name="no_email_app_found">メールアプリが見つかりません</string>
+    <string name="report_via_email">メールで報告</string>
+    <string name="report_on_github">GitHubで報告</string>
+    <string name="report_issue_title">問題を報告</string>
+
+    <!-- Support Developer -->
+    <string name="support_developer">開発者を支援</string>
+    <string name="upi_payment_methods">UPI支払い方法</string>
+    <string name="google_pay">Google Pay</string>
+    <string name="phonepe">PhonePe</string>
+    <string name="paytm">Paytm</string>
+    <string name="bhim_upi">BHIM UPI</string>
+    <string name="buy_me_a_coffee">Buy Me a Coffee</string>
+    <string name="coming_soon">近日公開</string>
+    <string name="support_title">支援</string>
+
+    <!-- Storage Settings -->
+    <string name="storage_settings">ストレージ設定</string>
+    <string name="manage_storage_cache">アプリのストレージとキャッシュを管理</string>
+    <string name="storage_overview">ストレージ概要</string>
+    <string name="total_storage_used">使用済み合計ストレージ</string>
+    <string name="downloads_section">ダウンロード</string>
+    <string name="song_cache_section">曲のキャッシュ</string>
+    <string name="cache_usage">キャッシュ使用量</string>
+    <string name="image_cache_section">画像キャッシュ</string>
+
+    <!-- Playlist Descriptions -->
+    <string name="top_playlist_description">再生履歴に基づく最も再生されたトラック。この動的なプレイリストは新しい音楽を見つけるにつれて更新されます。</string>
+    <string name="cache_playlist_description">デバイスにローカルに保存されたキャッシュ済みの曲。これらのトラックはオフライン再生が可能で、インターネット接続は必要ありません。</string>
+
+    <!-- Artist Screen -->
+    <string name="about_artist">アーティストについて</string>
+
+    <!-- Album Screen -->
+    <string name="explicit">E  露骨な表現</string>
+
+    <!-- Bluetooth -->
+    <string name="streaming_to">ストリーミング先</string>
+    <string name="this_phone">このスマートフォン</string>
+
+    <!-- Account Screen -->
+    <string name="account_title">アカウント</string>
+    <string name="manage_account_preferences">アカウントと設定を管理</string>
+    <string name="signed_in">ログイン済み</string>
+    <string name="not_signed_in">ログインしていません</string>
+    <string name="tap_to_sign_in">タップしてログイン</string>
+    <string name="token_shown_title">トークン表示中</string>
+    <string name="token_hidden_title">トークン非表示</string>
+    <string name="tap_to_manage_token">タップしてトークンを管理</string>
+    <string name="sign_in_with_cookies">クッキーでログイン</string>
+    <string name="enabled">有効</string>
+    <string name="disabled">無効</string>
+    <string name="sign_out">ログアウト</string>
+
+    <!-- Beta Update -->
+    <string name="vivi_music">VIVI MUSIC</string>
+    <string name="vivi_music_beta_update">Vivi Musicベータアップデート</string>
+    <string name="recheck">再確認</string>
+    <string name="changelog_for_version">%1 の変更履歴</string>
+    <string name="available">利用可能</string>
+    <string name="file_error">ファイルエラー</string>
+    <string name="unknown_error">不明なエラー</string>
+
+    <!-- Settings Screens -->
+    <string name="settings_title">設定</string>
+    <string name="manage_privacy_data">プライバシーとデータを管理</string>
+    <string name="configure_player_audio">プレーヤーとオーディオ設定を構成</string>
+    <string name="configure_content_preferences">コンテンツ設定を構成</string>
+    <string name="romanization_settings">ローマ字化設定</string>
+    <string name="manage_data_playlists">データとプレイリストを管理</string>
+    <string name="data_management">データ管理</string>
+    <string name="import_section">インポート</string>
+    <string name="customize_look_feel">外観をカスタマイズ</string>
+    <string name="select_theme_preference">テーマ設定を選択</string>
+    <string name="select_text_alignment">テキスト配置を選択</string>
+    <string name="lyrics_position">歌詞の位置</string>
+    <string name="select_active_line_position">アクティブな行の位置を選択</string>
+    <string name="size">サイズ</string>
+    <string name="spacing">間隔</string>
+    <string name="top">上</string>
+    <string name="center_option">中央</string>
+
+    <!-- About Screen -->
+    <string name="vivi_music_title">VIVI MUSIC</string>
+    <string name="update_section">アップデート</string>
+    <string name="developer_section">開発者</string>
+    <string name="app_info_section">アプリ情報</string>
+    <string name="community_section">コミュニティ</string>
+    <string name="support_development">開発を支援</string>
+    <string name="website">ウェブサイト</string>
+    <string name="donate">寄付</string>
+
+    <!-- Media Info -->
+    <string name="song_info">曲情報</string>
+    <string name="done">完了</string>
+    <string name="title">タイトル</string>
+    <string name="standard">標準</string>
+    <string name="format">フォーマット</string>
+    <string name="duration">時間</string>
+    <string name="artist">アーティスト</string>
+    <string name="itag">Itag</string>
+
+    <!-- Playlist Actions -->
+    <string name="queue_button">キュー</string>
+    <string name="play_button">再生</string>
+    <string name="delete_button">削除</string>
+    <string name="more">その他</string>
+
+    <!-- Content Descriptions -->
+    <string name="share_playlist">プレイリストを共有</string>
+    <string name="share_song">曲を共有</string>
+    <string name="share_album">アルバムを共有</string>
+    <string name="share_artist">アーティストを共有</string>
+    <string name="download_song">曲をダウンロード</string>
+    <string name="download_album">アルバムをダウンロード</string>
+    <string name="artist_icon">アーティストアイコン</string>
+    <string name="album_icon">アルバムアイコン</string>
+    <string name="library_icon">ライブラリアイコン</string>
+    <string name="delete_icon">削除アイコン</string>
+    <string name="info_icon">情報アイコン</string>
+    <string name="view_information">情報を表示</string>
+    <string name="shuffle_icon">シャッフルアイコン</string>
+    <string name="radio_icon">ラジオアイコン</string>
+    <string name="select_icon">選択アイコン</string>
+    <string name="select_songs">曲を選択</string>
+    <string name="edit_icon">編集アイコン</string>
+    <string name="refresh_icon">更新アイコン</string>
+    <string name="equalizer_icon">イコライザーアイコン</string>
+    <string name="audio_settings">オーディオ設定</string>
+    <string name="advanced_icon">詳細設定アイコン</string>
+    <string name="romanize_icon">ローマ字化アイコン</string>
+    <string name="romanization_enabled">ローマ字化有効</string>
+    <string name="romanization_disabled">ローマ字化無効</string>
+    <string name="swipe_icon">スワイプアイコン</string>
+    <string name="subscribe_icon">登録アイコン</string>
+    <string name="share_icon">共有アイコン</string>
+    <string name="songs_icon">曲アイコン</string>
+    <string name="favorite_icon">お気に入りアイコン</string>
+    <string name="remove_bookmark">ブックマークを削除</string>
+    <string name="bookmark_playlist">プレイリストをブックマーク</string>
+    <string name="remove_permanently">完全に削除</string>
+    <string name="rename_playlist">プレイリスト名を変更</string>
+    <string name="developer">開発者</string>
+
+    <!-- Loading Screen -->
+    <string name="progress_percent">進行状況 %1%%</string>
+
+    <!-- Playlist Screen -->
+    <string name="this_collection">このコレクション</string>
+    <string name="playlist_text">プレイリスト</string>
+
+    <!-- Changelog -->
+    <string name="changelog_title">変更履歴</string>
+    <string name="loading_changelog">変更履歴を読み込み中…</string>
+    <string name="failed_to_load_changelog">変更履歴の読み込みに失敗しました</string>
+    <string name="view_on_github">GitHubで表示</string>
+    <string name="changes">変更点</string>
+    <string name="current">現在</string>
+    <string name="old_releases">過去のリリース</string>
+    <string name="cached">キャッシュ済み</string>
+
+    <!-- Experimental -->
+    <string name="select_apk_variant">APKバリアントを選択</string>
+    <string name="unable_to_fetch_apk_variants">APKバリアントを取得できません</string>
+    <string name="send_feedback">フィードバックを送信</string>
+    <string name="send_email">メールを送信</string>
+    <string name="reset_button">リセット</string>
+    <string name="share_button">共有</string>
+    <string name="delete_button_menu">削除</string>
+    <string name="advanced_settings_experimental">詳細設定と実験的機能</string>
+    <string name="updates_section">アップデート</string>
+    <string name="storage_section">ストレージ</string>
+    <string name="debugging_section">デバッグ</string>
+    <string name="support_section">サポート</string>
+    <string name="crash_logs">クラッシュログ</string>
+    <string name="send_feedback_title">フィードバックを送信</string>
+    <string name="reset_app">アプリをリセット</string>
+    <string name="open_with">アプリケーションで開く</string>
+    <string name="just_now">たった今</string>
+    <string name="selected">選択済み</string>
+    <string name="delete_content_desc">削除</string>
+    <string name="universal_recommended">ユニバーサル (推奨)</string>
+    <string name="arm_older_phones">ARM - %1 MB (古い電話)</string>
+    <string name="x86_64_intel_tablets">x86_64 - %1 MB (Intelタブレット)</string>
+    <string name="x86_emulators">x86 - %1 MB (エミュレータ)</string>
+    <string name="minutes_ago">%1 分前</string>
+    <string name="hours_ago">%1 時間前</string>
+    <string name="days_ago">%1 日前</string>
+
+    <!-- Toast Messages -->
+    <string name="all_crash_logs_cleared">すべてのクラッシュログをクリアしました</string>
+    <string name="crash_log_deleted">クラッシュログを削除しました</string>
+    <string name="please_install_web_browser">Webブラウザをインストールしてください</string>
+    <string name="error_message">エラー: %1</string>
+    <string name="unable_to_open_email_app">メールアプリを開けません: %1</string>
+    <string name="error_sharing_log">ログの共有エラー: %1</string>
+    <string name="no_apk_found">最新のプレリリースにAPKが見つかりません</string>
+    <string name="enable_install_unknown_apps">「不明なアプリのインストール」を有効にして再試行してください。</string>
+    <string name="download_error">ダウンロードエラー: %1</string>
+    <string name="download_started">ダウンロード開始…</string>
+    <string name="download_completed">ダウンロード完了！</string>
+    <string name="download_completed_file_not_found">ダウンロードは完了しましたが、ファイルが見つかりません</string>
+    <string name="download_completed_uri_not_found">ダウンロードは完了しましたが、URIが見つかりません</string>
+    <string name="download_failed_error">ダウンロード失敗: %1</string>
+    <string name="download_tracking_failed">ダウンロード追跡に失敗しました</string>
+    <string name="download_tracking_error">ダウンロード追跡エラー: %1</string>
+    <string name="downloaded_file_not_found">ダウンロードされたファイルが見つかりません</string>
+    <string name="failed_to_track_download">ダウンロード完了の追跡に失敗しました</string>
+    <string name="apk_file_not_found">APKファイルが見つかりません</string>
+    <string name="no_app_to_install_apks">APKをインストールできるアプリケーションがありません</string>
+    <string name="installation_error">インストールエラー: %1</string>
+    <string name="failed_to_create_image">画像の作成に失敗しました: %1</string>
+    <string name="failed_to_parse_proxy_url">プロキシURLの解析に失敗しました。</string>
+
+    <!-- Notification -->
+    <string name="starting">開始中</string>
+    <string name="playing">再生中</string>
+    <string name="paused">一時停止中</string>
+
+    <!-- Backup Restore -->
+    <string name="no_valid_songs_csv">CSVファイルに有効な曲が見つかりません</string>
+    <string name="csv_file_empty_invalid">CSVファイルが空か無効です</string>
+    <string name="backup_not_supported">このアプリはこのバックアップファイルをサポートしていません</string>
+    <string name="backup_corrupted">バックアップファイルが破損しており、復元できません</string>
+    <string name="backup_format_not_supported">このアプリはこのバックアップファイル形式をサポートしていません</string>
+
+    <!-- ViewModels -->
+    <string name="guest">ゲスト</string>
+    <string name="failed_to_load_playlist">プレイリストの読み込みに失敗しました</string>
+
+    <!-- Additional Content Descriptions -->
+    <string name="song_art">曲のアート</string>
+    <string name="playlist_art">プレイリストのアート</string>
+    <string name="play_next_icon">次に再生アイコン</string>
+    <string name="add_to_queue_icon">キューに追加アイコン</string>
+    <string name="start_radio_icon">ラジオを開始アイコン</string>
+    <string name="add_to_playlist_icon">プレイリストに追加アイコン</string>
+
+    <!-- Menu Actions -->
+    <string name="play_similar_songs">似た曲を再生</string>
+    <string name="add_to_existing_playlist">既存のプレイリストに追加</string>
+    <string name="save_to_your_music">自分の音楽に保存</string>
+    <string name="remove_from_your_music">自分の音楽から削除</string>
+    <string name="suggestions_available">提案があります</string>
+
+    <!-- Download Notifications -->
+    <string name="update_failed">アップデート失敗</string>
+    <string name="failed_to_download_version">バージョン %1 のダウンロードに失敗しました</string>
+    <string name="failed_to_download_version_error">バージョン %1 のダウンロードに失敗しました\n%2</string>
+    <string name="server_error">サーバーエラー: %1</string>
+
+    <!-- Media Info -->
+    <string name="no_description_available">説明はありません</string>
+    <string name="views_count">%1 回視聴</string>
+    <string name="likes_count">%1 高評価</string>
+
+    <!-- Backup Restore -->
+    <string name="save_data_settings">データと設定を保存</string>
+    <string name="restore_from_backup">バックアップファイルから復元</string>
+
+    <!-- Appearance Settings -->
+    <string name="dynamic_color_theming">ダイナミックカラーテーマ</string>
+    <string name="accent_color">アクセントカラー</string>
+    <string name="select_static_theme_color">静的テーマカラーを選択</string>
+
+    <!-- Song Edit -->
+    <!-- song_title, artist_name, edit_song are in strings.xml -->
+
+    <!-- Backup Restore Additional -->
+    <!-- backup_create_success, backup_create_failed are in strings.xml -->
+
+    <!-- About Screen Additional -->
+    <string name="developer_name">VIVIDH P ASHOKAN</string>
+    <string name="app_developer">アプリ開発者</string>
+    <string name="installed_date_title">インストール日</string>
+    <string name="view_version_history">バージョン履歴を表示</string>
+    <string name="github_repository">GitHubリポジトリ</string>
+    <string name="view_source_code">ソースコードを表示</string>
+    <string name="see_community_heroes">コミュニティのヒーローを見る</string>
+    <string name="report_issue_title_about">問題を報告</string>
+    <string name="bugs_feedback">バグとフィードバック</string>
+
+    <!-- Crash Page -->
+    <string name="copy_log_content">ログ内容をコピー</string>
+    <string name="copies_crash_log_clipboard">クラッシュログをクリップボードにコピーします。</string>
+    <string name="send_via_gmail">Gmailで送信</string>
+    <string name="copies_log_opens_gmail">ログをコピーしてGmailを開きます。</string>
+    <string name="report_via_github_crash">GitHubで報告</string>
+    <string name="opens_github_report_issue">GitHubを開いて問題を報告します。</string>
+    <string name="restart_vivi">ViViを再起動</string>
+    <string name="restarts_vivi">ViViを再起動します。</string>
+
+    <!-- Settings Screen Subtitles -->
+    <string name="customize_theme_display_settings">テーマと表示設定をカスタマイズ</string>
+    <string name="audio_quality_playback_settings">音質と再生設定</string>
+    <string name="language_content_preferences">言語とコンテンツ設定</string>
+    <string name="privacy_security_settings">プライバシーとセキュリティ設定</string>
+    <string name="manage_storage_downloads">ストレージとダウンロードを管理</string>
+    <string name="backup_restore_data">データのバックアップと復元</string>
+    <string name="app_information_legal">アプリ情報と法的情報</string>
+
+    <!-- Player Settings -->
+    <string name="select_playback_audio_quality">再生音質を選択</string>
+    <string name="remove_silent_parts">無音部分を削除</string>
+    <string name="normalize_audio_levels">音量レベルを正規化</string>
+    <string name="stop_playback_when_closed">アプリ終了時に再生を停止</string>
+
+    <!-- Appearance Settings -->
+    <string name="dynamic_color_theming_subtitle">ダイナミックカラーテーマ</string>
+    <string name="use_pure_black_dark_theme">ダークテーマに完全な黒を使用</string>
+    <string name="settings_shape_tertiary_color">設定形状の三次色</string>
+    <string name="use_tertiary_color_icon_backgrounds">アイコンの背景に三次色を使用</string>
+    <string name="modern_player_interface">モダンなプレーヤーインターフェース</string>
+    <string name="modern_mini_player">モダンなミニプレーヤー</string>
+    <string name="enable_rotating_clover_thumbnail">回転するクローバーサムネイルを有効にする</string>
+    <string name="swipe_on_player_thumbnail">プレーヤーサムネイルをスワイプ</string>
+    <string name="click_change_lyrics_position">クリックして歌詞の位置を変更</string>
+    <string name="auto_scroll_lyrics_subtitle">歌詞の自動スクロール</string>
+    <string name="apple_lyrics">Applemusicの歌詞</string>
+    <string name="highlight_words_discretely">歌に合わせて単語を目立たなくハイライト</string>
+    <string name="letter_by_letter_animation">文字ごとのアニメーション</string>
+    <string name="animate_lyrics_letter_by_letter">単語同期が利用できない場合に歌詞を文字ごとにアニメーション</string>
+    <string name="select_default_tab">デフォルトで開くタブを選択</string>
+    <string name="swipe_add_songs_queue">スワイプして曲をキューに追加</string>
+    <string name="compact_navigation_bar">コンパクトなナビゲーションバー</string>
+    <string name="swipe_remove_songs">スワイプして曲を削除</string>
+    <string name="change_size_items_library">ライブラリ内のアイテムサイズを変更</string>
+    <string name="display_liked_songs_playlist">高く評価した曲プレイリストを表示</string>
+    <string name="display_downloaded_playlist">ダウンロードした曲プレイリストを表示</string>
+    <string name="display_top_songs_playlist">トップソングプレイリストを表示</string>
+    <string name="display_cached_playlist">キャッシュ済みプレイリストを表示</string>
+    <string name="display_uploaded_playlist">アップロード済みプレイリストを表示</string>
+
+    <!-- Content Settings -->
+    <string name="filter_explicit_content">露骨な表現を含むコンテンツをフィルタリング</string>
+    <string name="configure_in_system_settings">システム設定で構成</string>
+    <string name="hide_video_content_songs">曲から動画コンテンツを非表示</string>
+    <string name="route_traffic_through_proxy">トラフィックをプロキシ経由にする</string>
+    <string name="configure_proxy_settings">プロキシ設定を構成</string>
+    <string name="betterlyrics_lyrics">BetterLyrics歌詞</string>
+    <string name="enable_betterlyrics_lyrics_source">歌詞ソースとしてBetterLyricsを有効にする</string>
+    <string name="lrclib_lyrics">LrcLib歌詞</string>
+    <string name="enable_lrclib_lyrics_source">歌詞ソースとしてLrcLibを有効にする</string>
+    <string name="kugou_lyrics">Kugou歌詞</string>
+    <string name="enable_kugou_lyrics_source">歌詞ソースとしてKugouを有効にする</string>
+
+    <!-- Privacy Settings -->
+    <string name="stop_recording_listening_activity">再生履歴の記録を停止</string>
+    <string name="delete_all_listening_history">すべての再生履歴を削除</string>
+    <string name="stop_recording_search_queries">検索クエリの記録を停止</string>
+    <string name="delete_all_search_history">すべての検索履歴を削除</string>
+
+    <!-- Backup and Restore -->
+    <string name="import_playlists_m3u_files">M3Uファイルからプレイリストをインポート</string>
+    <string name="import_playlists_csv_files">CSVファイルからプレイリストをインポート</string>
+
+    <!-- Storage Settings -->
+    <string name="downloaded_songs_title">ダウンロードした曲</string>
+    <string name="remove_all_downloaded_songs">すべてのダウンロードした曲を削除</string>
+    <string name="free_up_cached_song_data">キャッシュされた曲データを解放</string>
+    <string name="free_up_cached_images">キャッシュされた画像を解放</string>
+
+    <!-- Integrations -->
+    <string name="submit_playback_history_lastfm">Last.fmに再生履歴を送信</string>
+    <string name="show_current_song_lastfm_profile">Last.fmプロフィールに現在の曲を表示</string>
+    <string name="connect_with_discord">Discordに接続</string>
+    <string name="connect_with_lastfm">Last.fmに接続</string>
+    <string name="login_using_token">トークンを使用してログイン</string>
+    <string name="show_current_song_discord">Discordに現在の曲を表示</string>
+    <string name="listening_to_vivimusic">Vivimusicを再生中</string>
+
+    <!-- Romanization Settings -->
+    <string name="romanize_japanese_lyrics_subtitle">日本語の歌詞をローマ字化</string>
+    <string name="romanize_korean_lyrics_subtitle">韓国語の歌詞をローマ字化</string>
+    <string name="romanize_cyrillic_lyrics_subtitle">キリル文字の歌詞をローマ字化</string>
+
+    <!-- Playlist Screens -->
+    <string name="cache_songs">曲をキャッシュ</string>
+    <string name="auto_playlist">自動プレイリスト</string>
+    <string name="selection">選択</string>
+
+
+    <!-- Content Descriptions -->
+    <string name="shuffle_content_desc">シャッフル</string>
+    <string name="add_to_queue_content_desc">キューに追加</string>
+    <string name="share_playlist_content_desc">プレイリストを共有</string>
+    <string name="more_options_content_desc">その他のオプション</string>
+    <string name="sync_content_desc">同期</string>
+    <string name="edit_content_desc">編集</string>
+    <string name="selected_content_desc">選択済み</string>
+    <string name="artist_image_content_desc">アーティスト画像</string>
+    <string name="radio_content_desc">ラジオ</string>
+    <string name="share_artist_content_desc">アーティストを共有</string>
+    <string name="radio_icon_content_desc">ラジオアイコン</string>
+    <string name="shuffle_icon_content_desc">シャッフルアイコン</string>
+    <string name="subscribe_icon_content_desc">登録アイコン</string>
+    <string name="share_icon_content_desc">共有アイコン</string>
+    <string name="album_art_content_desc">アルバムアート</string>
+    <string name="play_content_desc">再生</string>
+    <string name="share_album_content_desc">アルバムを共有</string>
+    <string name="download_album_content_desc">アルバムをダウンロード</string>
+    <string name="artist_icon_content_desc">アーティストアイコン</string>
+    <string name="play_next_icon_content_desc">次に再生アイコン</string>
+    <string name="add_to_queue_icon_content_desc">キューに追加アイコン</string>
+    <string name="add_to_playlist_icon_content_desc">プレイリストに追加アイコン</string>
+    <string name="refresh_icon_content_desc">更新アイコン</string>
+    <string name="songs_icon_content_desc">曲アイコン</string>
+    <string name="start_radio_icon_content_desc">ラジオを開始アイコン</string>
+
+    <!-- News Screen -->
+    <string name="whats_new_title">新着情報</string>
+    <string name="no_news_available">ニュースはありません。</string>
+    <string name="reported_bugs">報告されたバグ</string>
+    <string name="fixed_bugs">修正されたバグ</string>
+    <string name="type_bug_report">バグ報告</string>
+    <string name="type_fix">修正</string>
+    <string name="type_feature">機能</string>
+    <string name="type_news">ニュース</string>
+    <string name="home_screen">ホーム画面</string>
+
+    <!-- Update Settings -->
+    <string name="show_news_icon">ニュースアイコンを表示</string>
+    <string name="show_news_icon_desc">トップバーに「新着情報」アイコンを表示</string>
+    <string name="edit_icon_content_desc">編集アイコン</string>
+    <string name="favorite_icon_content_desc">お気に入りアイコン</string>
+    <string name="delete_icon_content_desc">削除アイコン</string>
+    <string name="edit_content_desc_menu">編集</string>
+    <string name="refetch_content_desc">再取得</string>
+    <string name="search_content_desc">検索</string>
+    <string name="romanize_icon_content_desc">ローマ字化アイコン</string>
+    <string name="swipe_icon_content_desc">スワイプアイコン</string>
+    <string name="artist_art_content_desc">アーティストアート</string>
+    <string name="info_icon_content_desc">情報アイコン</string>
+
+    <!-- Additional Menu Text -->
+    <string name="play_text">再生</string>
+    <string name="artist_text">アーティスト</string>
+    <string name="radio_text">ラジオ</string>
+    <string name="shuffle_text">シャッフル</string>
+    <string name="audio_quality_title">音質</string>
+    <string name="progress_percentage">進行状況 %1%%</string>
+    <string name="songs_count">曲数 (%1)</string>
+    <string name="check_out_top_share">Vivi Musicで私のトップ %1 をチェック！\n\n</string>
+    <string name="by_text">By </string>
+    <string name="is_a_playlist">はプレイリストです</string>
+    <string name="album_text">アルバム</string>
+    <string name="playlist_separator"> • </string>
+
+    <!-- Share and Email Messages -->
+    <string name="check_out_playlist_share">%1 をYouTube Musicでチェック: %2</string>
+    <string name="vivi_music_crash_report">ViVi Musicクラッシュレポート</string>
+    <string name="crash_log_email_body">クラッシュログ（クリップボードにもコピーされました）:\n\n%1\n\nデバイス情報:\n%2</string>
+    <string name="feedback_for_vivi_music_app">Vivi Musicアプリへのフィードバック</string>
+    <string name="please_write_feedback">ここにフィードバックをお書きください...</string>
+    <string name="crash_log_subject">クラッシュログ: %1</string>
+    <string name="crash_log_attached">Vivi Musicアプリからのクラッシュログ添付</string>
+    <string name="vivi_music_issue_report">Vivi Music問題レポート - v%1</string>
+
+    <!-- Experimental Settings -->
+    <string name="updates_title">アップデート</string>
+    <string name="apk_variant">APKバリアント</string>
+    <string name="clear_downloaded_apks">ダウンロードしたAPKをクリア</string>
+    <string name="open_crash_logs_folder">クラッシュログフォルダを開く</string>
+    <string name="crash_logs_folder_path">内部ストレージ/Android/data/.../crash_logs</string>
+    <string name="email_or_github_issue">メールまたはGitHubのIssue</string>
+    <string name="clear_all_settings_and_data">すべての設定とデータをクリア</string>
+
+    <!-- Bluetooth -->
+    <string name="bluetooth_permission_required">Bluetooth権限が必要です</string>
+    <string name="battery_content_desc">バッテリー </string>
+    <string name="wired_headphones">有線ヘッドフォン</string>
+    <string name="hdmi">HDMI</string>
+    <string name="phone_speaker">電話スピーカー</string>
+
+    <!-- Content Descriptions -->
+    <string name="github_content_desc">GitHub</string>
+    <string name="back_content_desc">戻る</string>
+
+    <!-- Notification Channel -->
+    <string name="controls_for_music_playback">音楽再生のコントロール</string>
+
+    <!-- Account Settings -->
+    <string name="youtube_sync">YouTube同期</string>
+    <string name="log_out_from_account">アカウントからログアウト</string>
+
+    <!-- Content Descriptions -->
+    <string name="bhim_content_desc">BHIM</string>
+    <string name="github_profile_content_desc">GitHubプロフィール</string>
+
+    <!-- Notification Channels -->
+    <string name="download_progress_channel">ダウンロード進捗</string>
+    <string name="download_progress_description">アプリアップデートのダウンロード進捗を表示</string>
+    <string name="app_updates_channel">アプリアップデート</string>
+    <string name="app_updates_description">アプリアップデートの通知</string>
+
+    <!-- Error Messages -->
+    <string name="error_loading_version">バージョンの読み込みエラー</string>
+    <string name="error_loading_date">日付の読み込みエラー</string>
+
+    <!-- Changelog -->
+    <string name="changes_default">変更点</string>
+
+    <!-- Download Notifications -->
+    <string name="downloading_update">アップデートをダウンロード中</string>
+    <string name="version_file_size">バージョン %1 • %2</string>
+    <string name="version_progress">バージョン %1 • %2%%</string>
+    <string name="update_ready">アップデート準備完了</string>
+    <string name="tap_to_install_version">タップしてバージョン %1 をインストール</string>
+
+    <!-- Beta Update Labels -->
+    <string name="version_label">バージョン</string>
+    <string name="apk_size_label">APKサイズ</string>
+    <string name="upload_date_label">アップロード日</string>
+    <string name="upload_time_label">アップロード時間</string>
+
+    <!-- Settings Screen Update Status -->
+    <string name="update_available_title">アップデート利用可能</string>
+    <string name="automatic_check_disabled">自動確認は無効です • V%1</string>
+    <string name="version_now_available">%1 が利用可能です</string>
+    <string name="not_signed_in_subtitle">タップしてログイン</string>
+
+    <!-- Menu Items -->
+    <string name="remove_offline">オフラインを削除</string>
+    <string name="downloading_ellipsis">ダウンロード中…</string>
+    <string name="saved">保存済み</string>
+    <string name="saving">保存中</string>
+    <string name="download_song_text">曲をダウンロード</string>
+    <string name="download_album_text">アルバムをダウンロード</string>
+    <string name="artist_label">アーティスト</string>
+    <string name="songs_label">曲</string>
+    <string name="album_label">アルバム</string>
+    <string name="view_full_album">フルアルバムを表示</string>
+    <string name="play_next_label">次に再生</string>
+    <string name="play_after_current">現在の曲の後に再生</string>
+    <string name="add_to_queue_label">キューに追加</string>
+    <string name="add_to_queue_end">キューの最後に追加</string>
+    <string name="add_to_playlist_label">プレイリストに追加</string>
+    <string name="add_to_existing_playlist_subtitle">既存のプレイリストに追加</string>
+    <string name="refresh_metadata">メタデータを更新</string>
+    <string name="update_album_information">アルバム情報を更新</string>
+    <string name="delete_from_listening_history">再生履歴から削除</string>
+
+    <!-- Playlist Actions -->
+    <string name="queue_label">キュー</string>
+    <string name="shuffle_label">シャッフル</string>
+    <string name="this_collection_text">このコレクション</string>
+    <string name="playlist_description_suffix">は、あなたのリスニングの楽しみのために厳選されたトラックを特徴としています。</string>
+
+    <!-- Favorite Actions -->
+    <string name="remove_from_favorites">お気に入りから削除</string>
+    <string name="add_to_favorites">お気に入りに追加</string>
+    <string name="unsubscribe">登録解除</string>
+    <string name="following_this_artist">このアーティストをフォロー中</string>
+    <string name="follow_this_artist">このアーティストをフォロー</string>
+
+    <!-- Menu Items Additional -->
+    <string name="view_artist_page">アーティストページを表示</string>
+    <string name="view_full_album_subtitle">フルアルバムを表示</string>
+    <string name="audio_settings_subtitle">オーディオ設定</string>
+    <string name="download_playlist_text">プレイリストをダウンロード</string>
+    <string name="start_radio_label">ラジオを開始</string>
+    <string name="play_similar_songs_subtitle">似た曲を再生</string>
+    <string name="play_in_random_order">ランダム順で再生</string>
+    <string name="edit_playlist_label">プレイリストを編集</string>
+    <string name="edit_song_details">曲の詳細を編集</string>
+    <string name="remove_from_history_label">履歴から削除</string>
+    <string name="remove_from_playlist_label">プレイリストから削除</string>
+    <string name="delete_from_this_playlist">このプレイリストから削除</string>
+    <string name="remove_from_cache_label">キャッシュから削除</string>
+    <string name="clear_cached_data">キャッシュ済みデータをクリア</string>
+    <string name="copied_title">タイトルをコピーしました</string>
+    <string name="copied_artist">アーティストをコピーしました</string>
+    <string name="more_label">その他</string>
+    <string name="sync_label">同期</string>
+    <string name="edit_label">編集</string>
+
+    <!-- Settings Integration -->
+    <string name="discord_account">Discordアカウント</string>
+    <string name="song_title_fallback">曲のタイトル</string>
+    <string name="artist_fallback">アーティスト</string>
+    <string name="listen_on_youtube_music">YouTube Musicで聴く</string>
+    <string name="visit_vivimusic">Vivimusicへ</string>
+    <string name="lastfm_account">Last.fmアカウント</string>
+    <string name="not_logged_in_fallback">ログインしていません</string>
+    <string name="tertiary_color_style">三次色スタイル</string>
+    <string name="lrclib_provider">LrcLib</string>
+    <string name="kugou_provider">KuGou</string>
+
+    <!-- Experimental -->
+    <string name="reset_app_data_question">アプリデータをリセットしますか？</string>
+    <string name="reset_app_data_description">これにより、すべての設定、キャッシュ、ローカルデータがクリアされます。アプリが再起動し、すべてを再設定する必要があります。この操作は元に戻せません。</string>
+    <string name="crash_logs_title">クラッシュログ</string>
+    <string name="clear_all">すべてクリア</string>
+    <string name="no_crash_logs_found">クラッシュログが見つかりません</string>
+    <string name="app_hasnt_crashed_recently">最近アプリはクラッシュしていません</string>
+    <string name="share_label">共有</string>
+    <string name="no_downloaded_files">ダウンロードされたファイルはありません</string>
+    <string name="apk_files_cleared_successfully">APKファイルが正常にクリアされました</string>
+    <string name="choose_email_app">メールアプリを選択</string>
+    <string name="share_crash_log">クラッシュログを共有</string>
+    <string name="crash_log_path">クラッシュログのパス</string>
+    <string name="failed_to_clear_apk_files">APKファイルのクリアに失敗しました</string>
+    <string name="no_apk_files_to_clear">クリアするAPKファイルはありません</string>
+    <string name="no_crashes_detected">クラッシュは検出されませんでした</string>
+    <string name="short_vivi_crash_info">ViViクラッシュ情報（短）</string>
+    <string name="vivi_crash_log">ViViクラッシュログ</string>
+
+    <!-- Menu Items Additional 2 -->
+    <string name="remove_from_favorites_menu">お気に入りから削除</string>
+    <string name="add_to_favorites_menu">お気に入りに追加</string>
+    <string name="delete_playlist_label">プレイリストを削除</string>
+    <string name="refresh_metadata_label">メタデータを更新</string>
+    <string name="update_song_information">曲情報を更新</string>
+    <string name="song_details_label">曲の詳細</string>
+    <string name="share_this_artist">このアーティストを共有</string>
+    <string name="playlist_fallback">プレイリスト</string>
+    <string name="select_label">選択</string>
+    <string name="artist_info_fallback">アーティスト情報</string>
+    <string name="artist_link">アーティストリンク</string>
+
+    <!-- Beta Update Additional -->
+    <string name="downloading_vivi_music_apk">Vivi Music APKをダウンロード中</string>
+    <string name="downloading_vivi_music_prerelease">Vivi Musicプレリリースをダウンロード中</string>
+    <string name="cannot_resume_download">ダウンロードを再開できません</string>
+    <string name="external_storage_not_found">外部ストレージが見つかりません</string>
+    <string name="file_already_exists">ファイルはすでに存在します</string>
+    <string name="http_data_error">HTTPデータエラー</string>
+    <string name="insufficient_storage_space">ストレージの空き容量が不足しています</string>
+    <string name="too_many_redirects">リダイレクトが多すぎます</string>
+    <string name="unhandled_http_code">未処理のHTTPコード</string>
+    <string name="ready_to_install">インストール準備完了</string>
+    <string name="checking_for_update">アップデートを確認中</string>
+    <string name="failed_to_load">読み込みに失敗しました</string>
+    <string name="no_update">アップデートなし</string>
+    <string name="beta_updater">ベータアップデータ</string>
+    <string name="download_label">ダウンロード</string>
+
+    <!-- Changelog -->
+    <string name="error_loading_changelog">変更履歴の読み込みエラー</string>
+    <string name="no_old_releases_with_changelog">変更履歴のある過去のリリースは見つかりませんでした</string>
+    <string name="failed_to_fetch_changelog">変更履歴の取得に失敗しました</string>
+
+    <!-- Notification -->
+    <string name="playing_status">再生中</string>
+    <string name="paused_status">一時停止中</string>
+
+    <!-- Backup and Restore -->
+    <string name="app_does_not_support_backup_file">このアプリはこのバックアップファイルをサポートしていません</string>
+    <string name="backup_file_corrupted">バックアップファイルが破損しており、復元できません</string>
+    <string name="app_does_not_support_backup_missing_db">このアプリはこのバックアップファイルをサポートしていません（データベース欠落）</string>
+    <string name="backup_file_empty">バックアップファイルが空です。このファイルからは復元できません</string>
+    <string name="app_does_not_support_backup_format">このアプリはこのバックアップファイル形式をサポートしていません</string>
+    <string name="cannot_restore_permission_denied">復元できません: 権限が拒否されました</string>
+    <string name="app_does_not_support_backup_with_error">このアプリはこのバックアップファイルをサポートしていません: %1</string>
+    <string name="csv_file_empty_or_invalid">CSVファイルが空か無効です</string>
+    <string name="failed_to_read_csv_file">CSVファイルの読み込みに失敗しました: %1</string>
+    <string name="no_valid_songs_in_csv">CSVファイルに有効な曲が見つかりません</string>
+
+    <!-- Charts -->
+
+    <!-- Create Playlist -->
+    <string name="not_signed_in_warning">ログインしていません</string>
+
+    <!-- Android Auto / Widget -->
+    <string name="not_playing">再生停止中</string>
+    <string name="tap_to_play">タップして再生</string>
+    <string name="automix">オートミックス</string>
+
+    <string name="play_next_icon_desc">次に再生アイコン</string>
+    <string name="add_to_queue_icon_desc">キューに追加アイコン</string>
+    <string name="artist_icon_desc">アーティストアイコン</string>
+
+    <!-- Menu Labels and Subtitles -->
+    <string name="play_after_current_subtitle">現在の曲の後に再生</string>
+    <string name="add_to_queue_end_subtitle">キューの最後に追加</string>
+    <string name="share_this_song">この曲を共有</string>
+    <string name="share_this_song_subtitle">この曲を共有</string>
+    <string name="share_this_artist_subtitle">このアーティストを共有</string>
+    <string name="share_this_album">このアルバムを共有</string>
+    <string name="share_this_album_subtitle">このアルバムを共有</string>
+    <string name="share_artist_link">アーティストリンクを共有</string>
+    <string name="artist_details">アーティストの詳細</string>
+    <string name="view_album_label">アルバムへ移動</string>
+    <string name="view_album_details">アルバムの詳細を表示</string>
+    <string name="view_artist_label">アーティストへ移動</string>
+    <string name="view_artist_details">アーティストの詳細を表示</string>
+    <string name="show_album_label">アルバムへ移動</string>
+    <string name="show_artist_label">アーティストへ移動</string>
+</resources>

@@ -1,0 +1,14 @@
+Version 5.0.1
+
+• Apple Music lyrics support
+• Improved lyrics syncing
+• New player design and slider
+• News section for app info & bug reports
+• Smart play/pause on volume changes
+• Smart pause on Bluetooth disconnect
+• Infinite queue & smart shuffle
+• New queue UI with animations
+• Better performance with caching
+• Accent color & 120Hz support
+• Improved M3U playlists
+• 2 new widgets

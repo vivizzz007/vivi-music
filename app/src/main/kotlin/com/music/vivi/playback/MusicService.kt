@@ -5,8 +5,8 @@ package com.music.vivi.playback
 import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
-import android.content.Intent
-import android.database.SQLException
+import android.content.BroadcastReceiver
+import android.content.IntentFilter
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.audiofx.AudioEffect
@@ -90,6 +90,8 @@ import com.music.vivi.constants.PlayerVolumeKey
 import com.music.vivi.constants.RepeatModeKey
 import com.music.vivi.constants.ShowLyricsKey
 import com.music.vivi.constants.SimilarContent
+import com.music.vivi.constants.SmartShuffleKey
+import com.music.vivi.constants.SmartSuggestionsKey
 import com.music.vivi.constants.SkipSilenceKey
 import com.music.vivi.db.MusicDatabase
 import com.music.vivi.db.entities.Event
@@ -153,22 +155,24 @@ import okhttp3.OkHttpClient
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.time.LocalDateTime
+import java.util.*
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.seconds
 //under testing
-import android.app.NotificationChannel
-import android.app.NotificationManager
+import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.database.SQLException
 import android.os.Build
-import androidx.core.app.NotificationCompat
-
-
 import com.music.vivi.constants.HideVideoSongsKey
+import com.music.vivi.constants.PauseOnHeadphonesDisconnectKey
+import com.music.vivi.constants.PauseOnZeroVolumeKey
 import com.music.vivi.playback.queues.filterVideoSongs
 
 import com.music.vivi.extensions.toEnum
 import com.music.vivi.update.widget.ViviWidgetManager
 import com.music.vivi.update.widget.MusicPlayerWidgetReceiver
+
+
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @AndroidEntryPoint
 class MusicService :
@@ -194,6 +198,7 @@ class MusicService :
     private var audioFocusRequest: AudioFocusRequest? = null
     private var lastAudioFocusState = AudioManager.AUDIOFOCUS_NONE
     private var wasPlayingBeforeAudioFocusLoss = false
+    private var wasPausedByZeroVolume = false
     private var hasAudioFocus = false
     private var reentrantFocusGain = false
 
@@ -205,6 +210,46 @@ class MusicService :
     lateinit var connectivityObserver: NetworkConnectivityObserver
     val waitingForNetworkConnection = MutableStateFlow(false)
     private val isNetworkConnected = MutableStateFlow(false)
+
+    private val addedSuggestionIds = Collections.synchronizedSet(LinkedHashSet<String>())
+
+    private val volumeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == "android.media.VOLUME_CHANGED_ACTION") {
+                val streamType = intent.getIntExtra("android.media.EXTRA_VOLUME_STREAM_TYPE", -1)
+                if (streamType == AudioManager.STREAM_MUSIC) {
+                    val volume = intent.getIntExtra("android.media.EXTRA_VOLUME_STREAM_VALUE", -1)
+                    scope.launch {
+                        if (dataStore.get(PauseOnZeroVolumeKey, false)) {
+                            if (volume == 0) {
+                                if (player.isPlaying) {
+                                    player.pause()
+                                    wasPausedByZeroVolume = true
+                                }
+                            } else if (volume > 0) {
+                                if (wasPausedByZeroVolume) {
+                                    safePlay()
+                                    wasPausedByZeroVolume = false
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private val becomingNoisyReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == AudioManager.ACTION_AUDIO_BECOMING_NOISY) {
+                scope.launch {
+                    if (dataStore.get(PauseOnHeadphonesDisconnectKey, false)) {
+                        player.pause()
+                    }
+                }
+            }
+        }
+    }
 
     @Inject
     lateinit var okHttpClient: OkHttpClient
@@ -256,6 +301,13 @@ class MusicService :
 
     override fun onCreate() {
         super.onCreate()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            setListener(object : Listener {
+                override fun onForegroundServiceStartNotAllowedException() {
+                    Log.e(TAG, "Foreground service start not allowed")
+                }
+            })
+        }
         setMediaNotificationProvider(
             DefaultMediaNotificationProvider(
                 this,
@@ -272,7 +324,7 @@ class MusicService :
                 .Builder(this)
                 .setMediaSourceFactory(createMediaSourceFactory())
                 .setRenderersFactory(createRenderersFactory())
-                .setHandleAudioBecomingNoisy(true)
+                .setHandleAudioBecomingNoisy(false)
                 .setWakeMode(C.WAKE_MODE_NETWORK)
                 .setAudioAttributes(
                     AudioAttributes
@@ -322,6 +374,9 @@ class MusicService :
         connectivityManager = getSystemService()!!
 //        connectivityObserver = NetworkConnectivityObserver(this)
 
+        registerReceiver(volumeReceiver, IntentFilter("android.media.VOLUME_CHANGED_ACTION"))
+        registerReceiver(becomingNoisyReceiver, IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY))
+
         audioQuality = dataStore.get(AudioQualityKey).toEnum(com.music.vivi.constants.AudioQuality.AUTO)
         playerVolume = MutableStateFlow(dataStore.get(PlayerVolumeKey, 1f).coerceIn(0f, 1f))
 
@@ -337,7 +392,7 @@ class MusicService :
                             delay(500)
                             player.prepare()
                             if (player.playWhenReady) {
-                                player.play()
+                                safePlay()
                             }
                         }
                     }
@@ -390,6 +445,17 @@ class MusicService :
             .distinctUntilChanged()
             .collectLatest(scope) {
                 player.skipSilenceEnabled = it
+            }
+
+        dataStore.data
+            .map { it[SmartSuggestionsKey] ?: false }
+            .distinctUntilChanged()
+            .collectLatest(scope) { enabled ->
+                if (enabled) {
+                    checkAndLoadMoreItems(player.currentMediaItem, Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED)
+                } else {
+                    clearAutomix()
+                }
             }
 
         combine(
@@ -624,16 +690,9 @@ class MusicService :
             AudioManager.AUDIOFOCUS_GAIN_TRANSIENT -> {
                 hasAudioFocus = true
 
-                if (wasPlayingBeforeAudioFocusLoss && !player.isPlaying && !reentrantFocusGain) {
-                    reentrantFocusGain = true
-                    scope.launch {
-                        delay(300)
-                        if (hasAudioFocus && wasPlayingBeforeAudioFocusLoss && !player.isPlaying) {
-                            player.play()
-                            wasPlayingBeforeAudioFocusLoss = false
-                        }
-                        reentrantFocusGain = false
-                    }
+                if (wasPlayingBeforeAudioFocusLoss && !player.isPlaying) {
+                    safePlay()
+                    wasPlayingBeforeAudioFocusLoss = false
                 }
 
                 player.volume = playerVolume.value
@@ -673,6 +732,14 @@ class MusicService :
                 player.volume = playerVolume.value
                 lastAudioFocusState = focusChange
             }
+        }
+    }
+
+    private fun safePlay() {
+        try {
+            player.play()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start playback (ForegroundServiceStartNotAllowedException?)", e)
         }
     }
 
@@ -719,7 +786,7 @@ class MusicService :
         if (consecutivePlaybackErr <= MAX_CONSECUTIVE_ERR && nextWindowIndex != C.INDEX_UNSET) {
             player.seekTo(nextWindowIndex, C.TIME_UNSET)
             player.prepare()
-            player.play()
+            safePlay()
             return
         }
 
@@ -828,6 +895,7 @@ class MusicService :
         queue: Queue,
         playWhenReady: Boolean = true,
     ) {
+        addedSuggestionIds.clear()
         if (!scope.isActive) scope = CoroutineScope(Dispatchers.Main) + Job()
         currentQueue = queue
         queueTitle = null
@@ -908,12 +976,84 @@ class MusicService :
         }
     }
 
+    private fun checkAndLoadMoreItems(mediaItem: MediaItem?, reason: Int) {
+        val currentMediaId = mediaItem?.mediaId ?: player.currentMediaItem?.mediaId ?: return
+
+        if ((dataStore.get(AutoLoadMoreKey, true) || dataStore.get(SmartSuggestionsKey, false)) &&
+            reason != Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT &&
+            player.mediaItemCount - player.currentMediaItemIndex <= 5 &&
+            !(dataStore.get(DisableLoadMoreWhenRepeatAllKey, false) && player.repeatMode == REPEAT_MODE_ALL)
+        ) {
+            if (currentQueue.hasNextPage()) {
+                scope.launch(SilentHandler) {
+                    val mediaItems =
+                        currentQueue.nextPage()
+                            .filterExplicit(dataStore.get(HideExplicitKey, false))
+                            .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
+                    if (player.playbackState != STATE_IDLE) {
+                        val wasEnded = player.playbackState == Player.STATE_ENDED
+                        addMediaItemsAndSmartShuffle(mediaItems.drop(1), preserveHistory = true)
+                        if (wasEnded) {
+                            player.prepare()
+                            player.play()
+                        }
+                    }
+                }
+            } else if (dataStore.get(SmartSuggestionsKey, false)) {
+                // Infinite Queue: Fetch suggestions when fixed queue ends
+                scope.launch(SilentHandler) {
+                    YouTube.next(WatchEndpoint(videoId = currentMediaId))
+                        .onSuccess { nextResult ->
+                            val currentMediaIds = (0 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId }.toSet()
+                            
+                            val suggestions = nextResult.items
+                                .map { it.toMediaItem() }
+                                .filterExplicit(dataStore.get(HideExplicitKey, false))
+                                .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
+                                .filter { it.mediaId !in currentMediaIds && it.mediaId !in addedSuggestionIds }
+                                .filterByDiversity(maxPerArtist = 3)
+
+                            if (player.playbackState != STATE_IDLE && suggestions.isNotEmpty()) {
+                                addedSuggestionIds.addAll(suggestions.mapNotNull { it.mediaId })
+                                val wasEnded = player.playbackState == Player.STATE_ENDED
+                                addMediaItemsAndSmartShuffle(suggestions, preserveHistory = true)
+                                if (wasEnded) {
+                                    player.prepare()
+                                    player.play()
+                                }
+                            }
+                        }
+                }
+            }
+        }
+    }
+
     fun getAutomixAlbum(albumId: String) {
         scope.launch(SilentHandler) {
             YouTube
                 .album(albumId)
                 .onSuccess {
                     getAutomix(it.album.playlistId)
+                }
+        }
+    }
+
+    private fun refreshAutomixItems(mediaId: String?) {
+        if (mediaId == null) return
+        scope.launch(SilentHandler) {
+            YouTube.next(WatchEndpoint(videoId = mediaId))
+                .onSuccess { nextResult ->
+                    val currentMediaIds =
+                        (0 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId }
+                            .toSet()
+
+                    val suggestions = nextResult.items
+                        .map { it.toMediaItem() }
+                        .filterExplicit(dataStore.get(HideExplicitKey, false))
+                        .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
+                        .filter { it.mediaId !in currentMediaIds && it.mediaId !in addedSuggestionIds }
+
+                    automixItems.value = suggestions
                 }
         }
     }
@@ -947,6 +1087,7 @@ class MusicService :
                 removeAt(position)
             }
         addToQueue(listOf(item))
+        addedSuggestionIds.add(item.mediaId)
     }
 
     fun playNextAutomix(
@@ -958,6 +1099,7 @@ class MusicService :
                 removeAt(position)
             }
         playNext(listOf(item))
+        addedSuggestionIds.add(item.mediaId)
     }
 
     fun clearAutomix() {
@@ -1197,23 +1339,13 @@ class MusicService :
             scrobbleManager?.onSongStart(player.currentMetadata, duration = player.duration)
         }
 
-        // Auto load more songs
-        if (dataStore.get(AutoLoadMoreKey, true) &&
-            reason != Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT &&
-            player.mediaItemCount - player.currentMediaItemIndex <= 5 &&
-            currentQueue.hasNextPage() &&
-            !(dataStore.get(DisableLoadMoreWhenRepeatAllKey, false) && player.repeatMode == REPEAT_MODE_ALL)
-        ) {
-            scope.launch(SilentHandler) {
-                val mediaItems =
-                    currentQueue.nextPage()
-                        .filterExplicit(dataStore.get(HideExplicitKey, false))
-                        .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
-                if (player.playbackState != STATE_IDLE) {
-                    player.addMediaItems(mediaItems.drop(1))
-                }
-            }
+        // Proactively refresh suggestions pool for UI
+        if (dataStore.get(SmartSuggestionsKey, false)) {
+            refreshAutomixItems(mediaItem?.mediaId)
         }
+
+        // Auto load more songs
+        checkAndLoadMoreItems(mediaItem, reason)
 
         // Save state when media item changes
         if (dataStore.get(PersistentQueueKey, true)) {
@@ -1234,10 +1366,17 @@ class MusicService :
         if (playbackState == Player.STATE_IDLE || playbackState == Player.STATE_ENDED) {
             scrobbleManager?.onSongStop()
         }
+
+        if (playbackState == Player.STATE_ENDED && dataStore.get(SmartSuggestionsKey, false)) {
+            checkAndLoadMoreItems(player.currentMediaItem, Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED)
+        }
         updateWidget()
     }
 
     override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+        if (reason == Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST) {
+            wasPausedByZeroVolume = false
+        }
         if (playWhenReady) {
             setupLoudnessEnhancer()
         }
@@ -1290,6 +1429,12 @@ class MusicService :
         // Scrobbling
         if (events.containsAny(Player.EVENT_IS_PLAYING_CHANGED)) {
             scrobbleManager?.onPlayerStateChanged(player.isPlaying, player.currentMetadata, duration = player.duration)
+            if (player.isPlaying) {
+                startWidgetUpdates()
+            } else {
+                stopWidgetUpdates()
+                updateWidget() // Ensure one last update to show paused state (straight line)
+            }
         }
 
     }
@@ -1297,21 +1442,123 @@ class MusicService :
     override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
         updateNotification()
         if (shuffleModeEnabled) {
-            // If queue is empty, don't shuffle
-            if (player.mediaItemCount == 0) return
-
-            // Always put current playing item at first
-            val shuffledIndices = IntArray(player.mediaItemCount) { it }
-            shuffledIndices.shuffle()
-            shuffledIndices[shuffledIndices.indexOf(player.currentMediaItemIndex)] =
-                shuffledIndices[0]
-            shuffledIndices[0] = player.currentMediaItemIndex
-            player.setShuffleOrder(DefaultShuffleOrder(shuffledIndices, System.currentTimeMillis()))
+            applySmartShuffle()
         }
 
         // Save state when shuffle mode changes
         if (dataStore.get(PersistentQueueKey, true)) {
             saveQueueToDisk()
+        }
+    }
+
+    private fun applySmartShuffle(preserveHistory: Boolean = false) {
+        if (player.mediaItemCount == 0) return
+
+        val shuffledIndices: IntArray
+        val offset: Int
+
+        if (preserveHistory && player.shuffleModeEnabled) {
+            val currentSequence = getShuffleSequence()
+            val currentIndexInSequence = currentSequence.indexOf(player.currentMediaItemIndex)
+            
+            if (currentIndexInSequence != -1) {
+                val pastAndCurrent = currentSequence.subList(0, currentIndexInSequence + 1)
+                val future = currentSequence.subList(currentIndexInSequence + 1, currentSequence.size).toMutableList()
+                
+                // Identify indices not in the current sequence (newly added items)
+                val allIndices = (0 until player.mediaItemCount).toSet()
+                val missingIndices = allIndices - currentSequence.toSet()
+                future.addAll(missingIndices)
+                
+                future.shuffle()
+                shuffledIndices = (pastAndCurrent + future).toIntArray()
+                offset = pastAndCurrent.size
+            } else {
+                shuffledIndices = IntArray(player.mediaItemCount) { it }
+                shuffledIndices.shuffle()
+                val idx = shuffledIndices.indexOf(player.currentMediaItemIndex)
+                if (idx != -1) {
+                    val first = shuffledIndices[0]
+                    shuffledIndices[0] = player.currentMediaItemIndex
+                    shuffledIndices[idx] = first
+                }
+                offset = 1
+            }
+        } else {
+            shuffledIndices = IntArray(player.mediaItemCount) { it }
+            shuffledIndices.shuffle()
+            val currentIndex = shuffledIndices.indexOf(player.currentMediaItemIndex)
+            if (currentIndex != -1) {
+                val firstValue = shuffledIndices[0]
+                shuffledIndices[0] = player.currentMediaItemIndex
+                shuffledIndices[currentIndex] = firstValue
+            }
+            offset = 1
+        }
+
+        if (dataStore.get(SmartShuffleKey, false)) {
+            // Smart Shuffle Algorithm: Avoid back-to-back same artists or albums
+            for (i in offset until shuffledIndices.size - 1) {
+                val currentMediaItem = player.getMediaItemAt(shuffledIndices[i])
+                val previousMediaItem = player.getMediaItemAt(shuffledIndices[i - 1])
+                
+                val currentArtist = currentMediaItem.mediaMetadata.artist?.toString()
+                val previousArtist = previousMediaItem.mediaMetadata.artist?.toString()
+                val currentAlbum = currentMediaItem.mediaMetadata.albumTitle?.toString()
+                val previousAlbum = previousMediaItem.mediaMetadata.albumTitle?.toString()
+
+                if ((currentArtist != null && currentArtist == previousArtist) || 
+                    (currentAlbum != null && currentAlbum == previousAlbum)) {
+                    // Try to find a different artist/album further down the list to swap
+                    for (j in i + 1 until shuffledIndices.size) {
+                        val nextMediaItem = player.getMediaItemAt(shuffledIndices[j])
+                        val nextArtist = nextMediaItem.mediaMetadata.artist?.toString()
+                        val nextAlbum = nextMediaItem.mediaMetadata.albumTitle?.toString()
+                        
+                        if (nextArtist != currentArtist && nextAlbum != currentAlbum) {
+                            val temp = shuffledIndices[i]
+                            shuffledIndices[i] = shuffledIndices[j]
+                            shuffledIndices[j] = temp
+                            break
+                        }
+                    }
+                }
+            }
+        }
+        player.setShuffleOrder(DefaultShuffleOrder(shuffledIndices, System.currentTimeMillis()))
+    }
+
+    private fun getShuffleSequence(): List<Int> {
+        val timeline = player.currentTimeline
+        if (timeline.isEmpty) return emptyList()
+        val sequence = mutableListOf<Int>()
+        var index = timeline.getFirstWindowIndex(true)
+        while (index != -1) {
+            sequence.add(index)
+            index = timeline.getNextWindowIndex(index, Player.REPEAT_MODE_OFF, true)
+        }
+        return sequence
+    }
+
+    private fun addMediaItemsAndSmartShuffle(items: List<MediaItem>, preserveHistory: Boolean = true) {
+        if (items.isEmpty()) return
+        player.addMediaItems(items)
+        if (player.shuffleModeEnabled && dataStore.get(SmartShuffleKey, false)) {
+            applySmartShuffle(preserveHistory)
+        }
+    }
+
+    private fun List<MediaItem>.filterByDiversity(maxPerArtist: Int): List<MediaItem> {
+        val artistCounts = mutableMapOf<String?, Int>()
+        return this.filter { item ->
+            val artist = item.mediaMetadata.artist?.toString()
+            val count = artistCounts.getOrDefault(artist, 0)
+            if (count < maxPerArtist) {
+                artistCounts[artist] = count + 1
+                true
+            } else {
+                false
+            }
         }
     }
 
@@ -1365,7 +1612,7 @@ class MusicService :
                 retryCount[mediaId] = currentRetries + 1
                 songUrlCache.remove(mediaId) // Invalidate cache to force re-fetch
                 player.prepare()
-                player.play()
+                safePlay()
                 return
             }
         }
@@ -1632,6 +1879,8 @@ class MusicService :
         connectivityObserver.unregister()
         abandonAudioFocus()
         releaseLoudnessEnhancer()
+        unregisterReceiver(volumeReceiver)
+        unregisterReceiver(becomingNoisyReceiver)
         mediaSession.release()
         player.removeListener(this)
         player.removeListener(sleepTimer)
@@ -1679,9 +1928,37 @@ class MusicService :
                 artworkUri = player.currentMetadata?.thumbnailUrl,
                 isPlaying = player.isPlaying,
                 isLiked = currentSong.value?.song?.liked ?: false,
-                queueItems = player.mediaItems.drop(player.currentMediaItemIndex + 1).take(5)
+                queueItems = player.mediaItems.drop(player.currentMediaItemIndex + 1).take(5),
+                duration = if (player.duration != C.TIME_UNSET) player.duration else 0,
+                currentPosition = player.currentPosition
             )
         }
+    }
+
+    private var widgetUpdateJob: Job? = null
+
+    private fun startWidgetUpdates() {
+        widgetUpdateJob?.cancel()
+        widgetUpdateJob = scope.launch {
+            while (isActive) {
+                if (player.isPlaying) {
+                    updateWidget()
+                }
+                delay(200)
+            }
+        }
+    }
+
+    private fun stopWidgetUpdates() {
+        widgetUpdateJob?.cancel()
+        widgetUpdateJob = null
+    }
+
+
+    override fun onUpdateNotification(session: MediaSession, startInForeground: Boolean) {
+        // Try to stay in foreground even when paused to avoid ForegroundServiceStartNotAllowedException
+        // when resuming from background on Android 12+
+        super.onUpdateNotification(session, true)
     }
 
     companion object {

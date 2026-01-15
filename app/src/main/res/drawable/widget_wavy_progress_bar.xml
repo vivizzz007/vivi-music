@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Background Track -->
+    <item android:id="@android:id/background"
+          android:drawable="@drawable/widget_wavy_progress_track" />
+    
+    <!-- Secondary Progress (Buffer) - Optional, omitting for simplicity -->
+    
+    <!-- Primary Progress: Clipped Wave Fill -->
+    <item android:id="@android:id/progress">
+        <clip>
+            <item android:drawable="@drawable/widget_wavy_progress_fill" />
+        </clip>
+    </item>
+</layer-list>

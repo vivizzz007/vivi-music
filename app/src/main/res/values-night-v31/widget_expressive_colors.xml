@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Background: Tertiary Container (Dark) -->
+    <color name="widget_system_tertiary_container">@android:color/system_accent3_700</color>
+    <color name="widget_system_on_tertiary_container">@android:color/system_accent3_100</color>
+    
+    <!-- Progress Pill: Tertiary -->
+    <color name="widget_system_tertiary">@android:color/system_accent3_200</color>
+    
+    <!-- Tracks/Dim elements -->
+    <color name="widget_system_on_surface_variant">@android:color/system_neutral2_200</color>
+    
+    <!-- Play Button: Primary Container (Dark) -->
+    <color name="widget_play_button_container">@android:color/system_accent1_700</color>
+    <color name="widget_on_play_button_container">@android:color/system_accent1_100</color>
+</resources>

@@ -20,6 +20,9 @@ val UseNewPlayerDesignKey= booleanPreferencesKey("useNewPlayerDesign")
 val UseNewMiniPlayerDesignKey = booleanPreferencesKey("useNewMiniPlayerDesign")
 val HidePlayerThumbnailKey = booleanPreferencesKey("hidePlayerThumbnail")
 val SeekExtraSeconds = booleanPreferencesKey("seekExtraSeconds")
+val ShowNowPlayingAppleMusicKey = booleanPreferencesKey("show_now_playing_apple_music")
+val HighRefreshRateKey = booleanPreferencesKey("high_refresh_rate")
+
 
 val HideVideoSongsKey = booleanPreferencesKey("hideVideoSongs")
 val AccentColorKey = intPreferencesKey("accentColor")
@@ -27,7 +30,7 @@ val RotatingThumbnailKey = booleanPreferencesKey("rotating_thumbnail")
 
 enum class SliderStyle {
     DEFAULT,
-    SQUIGGLY,
+    WAVY,
     SLIM,
 }
 
@@ -70,6 +73,10 @@ val AutoDownloadOnLikeKey = booleanPreferencesKey("autoDownloadOnLike")
 val SimilarContent = booleanPreferencesKey("similarContent")
 val AutoSkipNextOnErrorKey = booleanPreferencesKey("autoSkipNextOnError")
 val StopMusicOnTaskClearKey = booleanPreferencesKey("stopMusicOnTaskClear")
+val PauseOnZeroVolumeKey = booleanPreferencesKey("pauseOnZeroVolume")
+val SmartShuffleKey = booleanPreferencesKey("smartShuffle")
+val SmartSuggestionsKey = booleanPreferencesKey("smartSuggestions")
+val PauseOnHeadphonesDisconnectKey = booleanPreferencesKey("pauseOnHeadphonesDisconnect")
 
 val MaxImageCacheSizeKey = intPreferencesKey("maxImageCacheSize")
 val MaxSongCacheSizeKey = intPreferencesKey("maxSongCacheSize")
@@ -296,7 +303,7 @@ enum class PlayerBackgroundStyle {
 
     DEFAULT,
 
-    BLUR,
+    BLUR, APPLE_MUSIC,
 }
 
 val MiniPlayerGradientKey = booleanPreferencesKey("mini_player_gradient")

@@ -89,14 +89,10 @@ import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.delay
 import kotlin.math.abs
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
 import com.music.vivi.constants.RotatingThumbnailKey
-import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
+import com.music.vivi.constants.ShowNowPlayingAppleMusicKey
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.CircularWavyProgressIndicator
-import com.music.vivi.ui.utils.SnapLayoutInfoProvider
-
-//import com.music.vivi.ui.utils.SnapLayoutInfoProvider
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -121,6 +117,7 @@ fun Thumbnail(
     val rotatingThumbnail by rememberPreference(RotatingThumbnailKey, false) // NEW: Add this
     val canSkipPrevious by playerConnection.canSkipPrevious.collectAsState()
     val canSkipNext by playerConnection.canSkipNext.collectAsState()
+    val showNowPlayingAppleMusic by rememberPreference(ShowNowPlayingAppleMusicKey, false)
 
     // Player background style for consistent theming
     val playerBackground by rememberEnumPreference(
@@ -132,6 +129,7 @@ fun Thumbnail(
         PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.onBackground
         PlayerBackgroundStyle.BLUR -> Color.White
         PlayerBackgroundStyle.GRADIENT -> Color.White
+        PlayerBackgroundStyle.APPLE_MUSIC -> Color.White
     }
 
     // Grid state
@@ -179,7 +177,7 @@ fun Thumbnail(
     val thumbnailSnapLayoutInfoProvider = remember(thumbnailLazyGridState) {
         SnapLayoutInfoProvider(
             lazyGridState = thumbnailLazyGridState,
-            positionInLayout = { layoutSize, itemSize ->
+            positionInLayout = { layoutSize: Float, itemSize: Float ->
                 (layoutSize * horizontalLazyGridItemWidthFactor / 2f - itemSize / 2f)
             },
             velocityThreshold = 500f
@@ -275,32 +273,41 @@ fun Thumbnail(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Now Playing header
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(horizontal = 32.dp, vertical = 16.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.now_playing),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = textBackgroundColor
-                    )
-
-                    // Add the current song title
-                    mediaMetadata?.let { metadata ->
-                        Spacer(modifier = Modifier.height(4.dp))
+                // Now Playing header - hidden for Apple Music style for a cleaner look unless enabled
+                if (playerBackground != PlayerBackgroundStyle.APPLE_MUSIC || showNowPlayingAppleMusic) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(horizontal = 32.dp, vertical = 16.dp)
+                    ) {
                         Text(
-                            text = metadata.title,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = textBackgroundColor.copy(alpha = 0.8f),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.basicMarquee()
+                            text = stringResource(R.string.now_playing),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = textBackgroundColor
                         )
+
+                        // Add the current song title
+                        mediaMetadata?.let { metadata ->
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = metadata.title,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = textBackgroundColor.copy(alpha = 0.8f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.basicMarquee()
+                            )
+                        }
                     }
+                } else {
+                    // Spacer to maintain layout consistency if needed, but here we want it cleaner
+                    Spacer(modifier = Modifier.height(32.dp))
                 }
 
                 // Thumbnail content
+                val incrementalSeekSkipEnabled by rememberPreference(SeekExtraSeconds, defaultValue = false)
+                var skipMultiplier by remember { mutableIntStateOf(1) }
+                var lastTapTime by remember { mutableLongStateOf(0L) }
+
                 BoxWithConstraints(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier.fillMaxSize()
@@ -321,9 +328,7 @@ fun Thumbnail(
                                 item.mediaId.ifEmpty { "unknown_${item.hashCode()}" }
                             }
                         ) { item ->
-                            val incrementalSeekSkipEnabled by rememberPreference(SeekExtraSeconds, defaultValue = false)
-                            var skipMultiplier by remember { mutableIntStateOf(1) }
-                            var lastTapTime by remember { mutableLongStateOf(0L) }
+                            val isCurrentItem = item.mediaId == (mediaMetadata?.id ?: "")
 
                             Box(
                                 modifier = Modifier
@@ -373,7 +378,7 @@ fun Thumbnail(
                                 val infiniteTransition = rememberInfiniteTransition(label = "rotation")
                                 val rotation by infiniteTransition.animateFloat(
                                     initialValue = 0f,
-                                    targetValue = if (isPlaying && rotatingThumbnail) 360f else 0f,
+                                    targetValue = if (isPlaying && rotatingThumbnail && isCurrentItem) 360f else 0f,
                                     animationSpec = infiniteRepeatable(
                                         animation = tween(20000, easing = LinearEasing),
                                         repeatMode = RepeatMode.Restart
@@ -381,8 +386,11 @@ fun Thumbnail(
                                     label = "rotation"
                                 )
 
-                                // Conditional rendering based on rotatingThumbnail preference
-                                if (rotatingThumbnail) {
+                                // Conditional rendering based on player background and preference
+                                if (playerBackground == PlayerBackgroundStyle.APPLE_MUSIC) {
+                                    // No foreground thumbnail for Apple Music style
+                                    Box(modifier = Modifier.size(containerMaxWidth - (PlayerHorizontalPadding * 2)))
+                                } else if (rotatingThumbnail) {
                                     // Rotating clover shape thumbnail
                                     @OptIn(ExperimentalMaterial3ExpressiveApi::class)
                                     Box(

@@ -50,6 +50,7 @@ import androidx.compose.material3.rememberSliderState
 import com.music.vivi.ui.component.RoundedCheckbox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -99,6 +100,7 @@ import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PlayerBackgroundStyleKey
 import com.music.vivi.constants.PlayerButtonsStyle
 import com.music.vivi.constants.PlayerButtonsStyleKey
+import com.music.vivi.constants.ShowNowPlayingAppleMusicKey
 import com.music.vivi.constants.PureBlackKey
 import com.music.vivi.constants.RotatingThumbnailKey
 import com.music.vivi.constants.SettingsShapeColorTertiaryKey
@@ -116,6 +118,9 @@ import com.music.vivi.constants.SwipeToRemoveSongKey
 import com.music.vivi.constants.SwipeToSongKey
 import com.music.vivi.constants.UseNewMiniPlayerDesignKey
 import com.music.vivi.constants.UseNewPlayerDesignKey
+import com.music.vivi.constants.HighRefreshRateKey
+import com.music.vivi.playback.MusicService
+
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.PlayerSliderTrack
@@ -124,9 +129,10 @@ import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.update.mordernswitch.ModernSwitch
 import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
 import com.music.vivi.update.settingstyle.ModernInfoItem
+import com.music.vivi.update.widget.MusicPlayerWidgetReceiver
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
-import me.saket.squiggles.SquigglySlider
+import com.music.vivi.ui.component.WavySlider
 import kotlin.math.roundToInt
 
 
@@ -150,6 +156,10 @@ fun AppearanceSettings(
     val (darkMode, onDarkModeChange) = rememberEnumPreference(
         DarkModeKey,
         defaultValue = DarkMode.AUTO
+    )
+    val (highRefreshRate, onHighRefreshRateChange) = rememberPreference(
+        HighRefreshRateKey,
+        defaultValue = false
     )
 
     val isSystemInDarkTheme = isSystemInDarkTheme()
@@ -175,12 +185,9 @@ fun AppearanceSettings(
             MaterialTheme.colorScheme.primary
         )
     }
-
-
-    // Trigger widget update when Dark Mode changes
-    androidx.compose.runtime.LaunchedEffect(darkMode) {
-        val intent = android.content.Intent(context, com.music.vivi.playback.MusicService::class.java).apply {
-            action = com.music.vivi.update.widget.MusicPlayerWidgetReceiver.ACTION_UPDATE_WIDGET
+    LaunchedEffect(darkMode) {
+        val intent = android.content.Intent(context, MusicService::class.java).apply {
+            action = MusicPlayerWidgetReceiver.ACTION_UPDATE_WIDGET
         }
         try {
             context.startService(intent)
@@ -215,6 +222,10 @@ fun AppearanceSettings(
     val (playerBackground, onPlayerBackgroundChange) = rememberEnumPreference(
         PlayerBackgroundStyleKey,
         defaultValue = PlayerBackgroundStyle.GRADIENT,
+    )
+    val (showNowPlayingAppleMusic, onShowNowPlayingAppleMusicChange) = rememberPreference(
+        ShowNowPlayingAppleMusicKey,
+        defaultValue = false
     )
     val (pureBlack, onPureBlackChange) = rememberPreference(PureBlackKey, defaultValue = false)
     val (defaultOpenTab, onDefaultOpenTabChange) = rememberEnumPreference(
@@ -491,24 +502,24 @@ fun AppearanceSettings(
                             .clip(RoundedCornerShape(16.dp))
                             .border(
                                 1.dp,
-                                if (sliderStyle == SliderStyle.SQUIGGLY) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                                if (sliderStyle == SliderStyle.WAVY) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
                                 RoundedCornerShape(16.dp)
                             )
                             .clickable {
-                                onSliderStyleChange(SliderStyle.SQUIGGLY)
+                                onSliderStyleChange(SliderStyle.WAVY)
                                 showSliderOptionDialog = false
                             }
                             .padding(16.dp)
                     ) {
                         var sliderValue by remember { mutableFloatStateOf(0.5f) }
-                        SquigglySlider(
+                        WavySlider(
                             value = sliderValue,
                             valueRange = 0f..1f,
                             onValueChange = { sliderValue = it },
                             modifier = Modifier.weight(1f)
                         )
                         Text(
-                            text = stringResource(R.string.squiggly),
+                            text = stringResource(R.string.wavy),
                             style = MaterialTheme.typography.labelLarge
                         )
                     }
@@ -652,6 +663,7 @@ fun AppearanceSettings(
                                     PlayerBackgroundStyle.GRADIENT -> stringResource(R.string.gradient)
                                     PlayerBackgroundStyle.DEFAULT -> stringResource(R.string.follow_theme)
                                     PlayerBackgroundStyle.BLUR -> stringResource(R.string.player_background_blur)
+                                    PlayerBackgroundStyle.APPLE_MUSIC -> stringResource(R.string.apple_music)
                                 }
                             )
                         }
@@ -841,7 +853,7 @@ fun AppearanceSettings(
                 }
 
                 item {
-                    val themeItems = remember(useDarkTheme, dynamicTheme, darkMode, pureBlack, settingsShapeTertiary, iconBgColor, iconStyleColor) {
+                    val themeItems = remember(useDarkTheme, dynamicTheme, darkMode, pureBlack, settingsShapeTertiary, iconBgColor, iconStyleColor, highRefreshRate) {
                         buildList<@Composable () -> Unit> {
                             add {
                                 Row(
@@ -1030,6 +1042,27 @@ fun AppearanceSettings(
                                     )
                                 }
                             }
+                            add {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.palette), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.high_refresh_rate),
+                                            subtitle = stringResource(R.string.high_refresh_rate_desc),
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = highRefreshRate,
+                                        onCheckedChange = onHighRefreshRateChange,
+                                        modifier = Modifier.padding(end = 20.dp)
+                                    )
+                                }
+                            }
                         }
                     }
                     Material3ExpressiveSettingsGroup(
@@ -1054,7 +1087,7 @@ fun AppearanceSettings(
                 }
 
                 item {
-                    val playerItems = remember(useNewPlayerDesign, useNewMiniPlayerDesign, rotatingThumbnail, playerBackground, hidePlayerThumbnail, playerButtonsStyle, sliderStyle, swipeThumbnail, swipeSensitivity, iconBgColor, iconStyleColor) {
+                    val playerItems = remember(useNewPlayerDesign, useNewMiniPlayerDesign, rotatingThumbnail, playerBackground, showNowPlayingAppleMusic, hidePlayerThumbnail, playerButtonsStyle, sliderStyle, swipeThumbnail, swipeSensitivity, iconBgColor, iconStyleColor) {
                         buildList<@Composable () -> Unit> {
                             add {
                                 Row(
@@ -1127,6 +1160,7 @@ fun AppearanceSettings(
                                         PlayerBackgroundStyle.GRADIENT -> stringResource(R.string.gradient)
                                         PlayerBackgroundStyle.DEFAULT -> stringResource(R.string.follow_theme)
                                         PlayerBackgroundStyle.BLUR -> stringResource(R.string.player_background_blur)
+                                        PlayerBackgroundStyle.APPLE_MUSIC -> "Apple Music"
                                     },
                                     onClick = { showPlayerBackgroundDialog = true },
                                     showArrow = true,
@@ -1134,6 +1168,29 @@ fun AppearanceSettings(
                                     iconBackgroundColor = iconBgColor,
                                     iconContentColor = iconStyleColor
                                 )
+                            }
+                            if (playerBackground == PlayerBackgroundStyle.APPLE_MUSIC) {
+                                add {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Box(modifier = Modifier.weight(1f)) {
+                                            ModernInfoItem(
+                                                icon = { Icon(painterResource(R.drawable.play_arrow), null, modifier = Modifier.size(22.dp)) },
+                                                title = stringResource(R.string.show_now_playing),
+                                                subtitle = stringResource(R.string.enable_now_playing_text_on_player_background),
+                                                iconBackgroundColor = iconBgColor,
+                                                iconContentColor = iconStyleColor
+                                            )
+                                        }
+                                        ModernSwitch(
+                                            checked = showNowPlayingAppleMusic,
+                                            onCheckedChange = onShowNowPlayingAppleMusicChange,
+                                            modifier = Modifier.padding(end = 20.dp)
+                                        )
+                                    }
+                                }
                             }
                             add {
                                 Row(
@@ -1178,7 +1235,7 @@ fun AppearanceSettings(
                                     title = stringResource(R.string.player_slider_style),
                                     subtitle = when (sliderStyle) {
                                         SliderStyle.DEFAULT -> stringResource(R.string.default_)
-                                        SliderStyle.SQUIGGLY -> stringResource(R.string.squiggly)
+                                        SliderStyle.WAVY -> stringResource(R.string.wavy)
                                         SliderStyle.SLIM -> stringResource(R.string.slim)
                                     },
                                     onClick = { showSliderOptionDialog = true },
