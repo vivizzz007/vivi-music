@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Upstream InnerTune strings -->
+<!-- Do not add new features here -->
+<!-- Try to re-use strings here, but be careful on its usage e.g. verb vs noun -->
+<!-- "InnerTune" is replaced with "vivi" -->
+<!-- Translators: Do not modify this file for translations, use InnerTune's Weblate instead. -->
+
+<resources>
+    <!-- Bottom navigation -->
+    <string name="home">🏠</string>
+    <string name="songs">🎵</string>
+    <string name="artists">🎤</string>
+    <string name="albums">💿</string>
+    <string name="playlists">📜</string>
+
+    <!-- Top bar -->
+    <plurals name="n_selected">
+        <item quantity="other">%d ✅</item>
+    </plurals>
+
+    <!-- Home -->
+    <string name="history">🕰️</string>
+    <string name="stats">📊</string>
+    <string name="mood_and_genres">🎭 &amp; 🎸</string>
+    <string name="account">👤</string>
+    <string name="quick_picks">⚡👇</string>
+    <string name="quick_picks_empty">🎧 ➡️ ⚡👇</string>
+    <string name="forgotten_favorites">💔⭐</string>
+    <string name="keep_listening">🎧➡️</string>
+    <string name="your_youtube_playlists">📺 📜</string>
+    <string name="similar_to">👯: </string>
+    <string name="new_release_albums">🆕 💿</string>
+    <string name="you_might_also_like">👍 ❓</string>
+
+    <!-- History -->
+    <string name="today">📅</string>
+    <string name="yesterday">⏪📅</string>
+    <string name="this_week">📅 WEEK</string>
+    <string name="last_week">⏪📅 WEEK</string>
+
+    <!-- Stats -->
+    <string name="most_played_songs">🔝 🎵</string>
+    <string name="most_played_artists">🔝 🎤</string>
+    <string name="most_played_albums">🔝 💿</string>
+
+    <!-- Search -->
+    <string name="search">🔍</string>
+    <string name="search_yt_music">🔍 📺🎵…</string>
+    <string name="search_library">🔍 📚…</string>
+    <string name="filter_library">📚</string>
+    <string name="filter_liked">👍 🎵</string>
+    <string name="filter_downloaded">⬇️</string>
+    <string name="filter_all">♾️</string>
+    <string name="filter_songs">🎵</string>
+    <string name="filter_videos">📹</string>
+    <string name="filter_albums">💿</string>
+    <string name="filter_artists">🎤</string>
+    <string name="filter_playlists">📜</string>
+    <string name="filter_community_playlists">🌐 📜</string>
+    <string name="filter_featured_playlists">✨ 📜</string>
+    <string name="filter_bookmarked">🔖</string>
+    <string name="no_results_found">❌ 🔍</string>
+
+    <!-- Library -->
+    <string name="library_song_empty">📚 🎵 ➡️ 📍</string>
+    <string name="library_artist_empty">📚 🎤 ➡️ 📍</string>
+    <string name="library_album_empty">📚 💿 ➡️ 📍</string>
+    <string name="library_playlist_empty">📜 ➡️ 📍</string>
+
+    <!-- Artist screen -->
+    <string name="from_your_library">📚 ➡️</string>
+
+    <!-- Album screen -->
+    <string name="other_versions">🔄</string>
+    <string name="releases_for_you">🆕 🎁</string>
+
+    <!-- Playlist -->
+    <string name="liked_songs">👍 🎵</string>
+    <string name="downloaded_songs">⬇️ 🎵</string>
+    <string name="playlist_is_empty">📜 📭</string>
+    <string name="remove_download_playlist_confirm">🗑️ ⬇️ 📜 \"%s\" ❓</string>
+    <string name="delete_playlist_confirm">🗑️ 📜 \"%s\" ❓</string>
+
+    <!-- Button -->
+    <string name="retry">🔄</string>
+    <string name="radio">📻</string>
+    <string name="shuffle">🔀</string>
+    <string name="reset">↩️</string>
+
+    <!-- Menu -->
+    <string name="details">ℹ️</string>
+    <string name="edit">✏️</string>
+    <string name="start_radio">▶️ 📻</string>
+    <string name="play">▶️</string>
+    <string name="play_next">▶️ ⏭️</string>
+    <string name="add_to_queue">➕ ⏳</string>
+    <string name="add_to_library">➕ 📚</string>
+    <string name="add_all_to_library">➕ ♾️ 📚</string>
+    <string name="remove_from_library">➖ 📚</string>
+    <string name="remove_all_from_library">➖ ♾️ 📚</string>
+    <string name="action_download">⬇️</string>
+    <string name="downloading">⬇️⏳</string>
+    <string name="remove_download">🗑️ ⬇️</string>
+    <string name="import_playlist">📥 📜</string>
+    <string name="add_to_playlist">➕ 📜</string>
+    <string name="view_artist">👁️ 🎤</string>
+    <string name="view_album">👁️ 💿</string>
+    <string name="refetch">🔄 ☁️</string>
+    <string name="share">📤</string>
+    <string name="delete">🗑️</string>
+    <string name="remove_from_history">➖ 🕰️</string>
+    <string name="remove_from_playlist">➖ 📜</string>
+    <string name="remove_from_queue">➖ ⏳</string>
+    <string name="search_online">🔍 🌐</string>
+    <string name="action_sync">🔄</string>
+    <string name="action_resync">🔄🔄</string>
+    <string name="advanced">🛠️</string>
+    <string name="tempo_and_pitch">⏱️ &amp; 🔊</string>
+
+    <!-- Sort menu -->
+    <string name="sort_by_create_date">📅 ➕</string>
+    <string name="sort_by_name">🔤</string>
+    <string name="sort_by_artist">🎤</string>
+    <string name="sort_by_year">📅</string>
+    <string name="sort_by_song_count">🔢 🎵</string>
+    <string name="sort_by_length">⏱️</string>
+    <string name="sort_by_play_time">▶️ ⏱️</string>
+    <string name="sort_by_custom">🛠️</string>
+
+    <!-- Dialog -->
+    <string name="media_id">🆔</string>
+    <string name="mime_type">📄</string>
+    <string name="codecs">📟</string>
+    <string name="bitrate">⚡</string>
+    <string name="sample_rate">📈</string>
+    <string name="loudness">🔊</string>
+    <string name="volume">🔈</string>
+    <string name="file_size">💾</string>
+    <string name="unknown">❓</string>
+    <string name="copied">📋 ✅</string>
+
+    <string name="edit_lyrics">✏️ 📝</string>
+    <string name="search_lyrics">🔍 📝</string>
+
+    <string name="edit_song">✏️ 🎵</string>
+    <string name="song_title">🎵 🏷️</string>
+    <string name="song_artists">🎵 🎤</string>
+    <string name="error_song_title_empty">❌ 🎵 🏷️ 📭</string>
+    <string name="error_song_artist_empty">❌ 🎵 🎤 📭</string>
+    <string name="save">💾</string>
+
+    <string name="choose_playlist">👇 📜</string>
+    <string name="edit_playlist">✏️ 📜</string>
+    <string name="create_playlist">🆕 📜</string>
+    <string name="playlist_name">📜 🏷️</string>
+    <string name="error_playlist_name_empty">❌ 📜 🏷️ 📭</string>
+
+    <string name="edit_artist">✏️ 🎤</string>
+    <string name="artist_name">🎤 🏷️</string>
+    <string name="error_artist_name_empty">❌ 🎤 🏷️ 📭</string>
+
+    <string name="duplicates">👯</string>
+    <string name="skip_duplicates">⏭️ 👯</string>
+    <string name="add_anyway">➕ 🤷</string>
+    <string name="duplicates_description_single">🎵 ➡️ 📜</string>
+    <string name="duplicates_description_multiple">%d 🎵 ➡️ 📜</string>
+
+    <!-- Noun -->
+    <plurals name="n_song">
+        <item quantity="other">%d 🎵</item>
+    </plurals>
+    <plurals name="n_artist">
+        <item quantity="other">%d 🎤</item>
+    </plurals>
+    <plurals name="n_album">
+        <item quantity="other">%d 💿</item>
+    </plurals>
+    <plurals name="n_playlist">
+        <item quantity="other">%d 📜</item>
+    </plurals>
+    <plurals name="n_week">
+        <item quantity="other">%d 📅W</item>
+    </plurals>
+    <plurals name="n_month">
+        <item quantity="other">%d 📅M</item>
+    </plurals>
+    <plurals name="n_year">
+        <item quantity="other">%d 📅Y</item>
+    </plurals>
+
+    <!-- Snackbar -->
+    <string name="playlist_imported">📜 📥</string>
+    <string name="removed_song_from_playlist">➖ \"%s\" 📜</string>
+    <string name="playlist_synced">📜 🔄</string>
+    <string name="undo">↩️</string>
+
+    <!-- Player -->
+    <string name="lyrics_not_found">❌ 📝</string>
+    <string name="sleep_timer">💤 ⏱️</string>
+    <string name="end_of_song">🔚 🎵</string>
+    <plurals name="minute">
+        <item quantity="other">%d ⏱️</item>
+    </plurals>
+    <string name="error_no_stream">❌ 🌊</string>
+    <string name="error_no_internet">❌ 🌐</string>
+    <string name="error_timeout">⏱️ 🛑</string>
+    <string name="error_unknown">❌ ❓</string>
+
+    <!-- Player action -->
+    <string name="action_like">👍</string>
+    <string name="action_like_all">👍 ♾️</string>
+    <string name="action_remove_like">👎</string>
+    <string name="action_remove_like_all">👎 ♾️</string>
+    <string name="action_shuffle_on">🔀 ✅</string>
+    <string name="action_shuffle_off">🔀 ❌</string>
+    <string name="repeat_mode_off">🔁 ❌</string>
+    <string name="repeat_mode_one">🔂</string>
+    <string name="repeat_mode_all">🔁</string>
+
+    <!-- Queue Title -->
+    <string name="queue_all_songs">♾️ 🎵</string>
+    <string name="queue_searched_songs">🔍 🎵</string>
+
+    <!-- Notification name -->
+    <string name="music_player">🎵 ▶️</string>
+
+    <!-- Settings -->
+    <string name="settings">⚙️</string>
+    <string name="appearance">🎨</string>
+    <string name="theme">🖌️</string>
+    <string name="enable_dynamic_theme">🌈 ✅</string>
+    <string name="dark_theme">🌑</string>
+    <string name="dark_theme_on">✅</string>
+    <string name="dark_theme_off">❌</string>
+    <string name="dark_theme_follow_system">📱</string>
+    <string name="pure_black">🖤</string>
+    <string name="customize_navigation_tabs">🛠️ 🗺️</string>
+    <string name="player">▶️</string>
+    <string name="player_text_alignment">📝 📏</string>
+    <string name="lyrics_text_position">📝 📍</string>
+    <string name="sided">↔️</string>
+    <string name="left">⬅️</string>
+    <string name="center">⏺️</string>
+    <string name="right">➡️</string>
+    <string name="player_slider_style">🎚️ 🎨</string>
+    <string name="default_">🧱</string>
+    <string name="wavy">🌊</string>
+    <string name="misc">📦</string>
+    <string name="default_open_tab">🏠 📍</string>
+    <string name="grid_cell_size">▦ 📏</string>
+    <string name="small">▫️</string>
+    <string name="big">⬜</string>
+
+    <string name="content">📦</string>
+    <string name="action_logout">🚪🚶</string>
+    <string name="action_login">🔑</string>
+    <string name="login">🔑</string>
+    <string name="not_logged_in">🚫 🔑</string>
+    <string name="login_failed">❌ 🔑</string>
+
+    <string name="content_language">📦 🗣️</string>
+    <string name="content_country">📦 🗺️</string>
+    <string name="system_default">📱 🧱</string>
+    <string name="enable_proxy">🛡️ ✅</string>
+    <string name="proxy_type">🛡️ 🏷️</string>
+    <string name="proxy_url">🛡️ 🌐</string>
+    <string name="restart_to_take_effect">🔄 ➡️ ✅</string>
+
+    <string name="player_and_audio">▶️ &amp; 🔊</string>
+    <string name="audio_quality">🔊 👌</string>
+    <string name="audio_quality_auto">🤖</string>
+    <string name="audio_quality_high">⬆️</string>
+    <string name="audio_quality_low">⬇️</string>
+    <string name="queue">⏳</string>
+    <string name="persistent_queue">💾 ⏳</string>
+    <string name="persistent_queue_desc">🚀 ➡️ 💾 ⏳</string>
+    <string name="auto_load_more">🤖 ➕</string>
+    <string name="auto_load_more_desc">🔚 ⏳ ➡️ ➕ 🎵</string>
+    <string name="skip_silence">⏭️ 🔇</string>
+    <string name="audio_normalization">🔊 ⚖️</string>
+    <string name="auto_skip_next_on_error">❌ ➡️ ⏭️</string>
+    <string name="auto_skip_next_on_error_desc">🚫 🛑</string>
+    <string name="stop_music_on_task_clear">🧹 ➡️ 🛑 🎵</string>
+    <string name="equalizer">🎚️</string>
+
+    <string name="storage">💾</string>
+    <string name="cache">⚡💾</string>
+    <string name="image_cache">🖼️ ⚡💾</string>
+    <string name="song_cache">🎵 ⚡💾</string>
+    <string name="max_cache_size">🔝 ⚡💾 📏</string>
+    <string name="unlimited">♾️</string>
+    <string name="clear_all_downloads">🗑️ ♾️ ⬇️</string>
+    <string name="max_image_cache_size">🔝 🖼️ ⚡💾 📏</string>
+    <string name="clear_image_cache">🗑️ 🖼️ ⚡💾</string>
+    <string name="max_song_cache_size">🔝 🎵 ⚡💾 📏</string>
+    <string name="clear_song_cache">🗑️ 🎵 ⚡💾</string>
+    <string name="size_used">%s 🔋</string>
+
+    <string name="privacy">🔒</string>
+    <string name="listen_history">👂 🕰️</string>
+    <string name="pause_listen_history">⏸️ 👂 🕰️</string>
+    <string name="clear_listen_history">🗑️ 👂 🕰️</string>
+    <string name="clear_listen_history_confirm">🗑️ ♾️ 👂 🕰️ ❓</string>
+    <string name="search_history">🔍 🕰️</string>
+    <string name="pause_search_history">⏸️ 🔍 🕰️</string>
+    <string name="clear_search_history">🗑️ 🔍 🕰️</string>
+    <string name="clear_search_history_confirm">🗑️ ♾️ 🔍 🕰️ ❓</string>
+    <string name="use_login_for_browse">🔑 ➡️ 🌐</string>
+    <string name="use_login_for_browse_desc">💍 ➡️ 👑 💿</string>
+    <string name="disable_screenshot">🚫 📸</string>
+    <string name="disable_screenshot_desc">🚫 📸 &amp; 📱👀</string>
+    <string name="enable_lrclib">✅ LrcLib</string>
+    <string name="enable_kugou">✅ KuGou</string>
+    <string name="hide_explicit">🙈 🤬</string>
+
+    <string name="backup_restore">📦 &amp; ♻️</string>
+    <string name="action_backup">📦</string>
+    <string name="action_restore">♻️</string>
+    <string name="imported_playlist">📥 📜</string>
+    <string name="backup_create_success">📦 ✅</string>
+    <string name="backup_create_failed">📦 ❌</string>
+    <string name="restore_failed">♻️ ❌</string>
+
+    <string name="discord_integration">🎮 🔗</string>
+    <string name="discord_information">⚠️ Discord RPC. ☠️❓ 🤷. 🔓=⚠️.</string>
+    <string name="dismiss">👋</string>
+    <string name="options">🛠️</string>
+    <string name="preview">👀</string>
+    <string name="enable_discord_rpc">✅ RPC</string>
+
+    <string name="about">ℹ️</string>
+    <string name="app_version">📱 v.0</string>
+
+    <string name="new_version_available">🆕 v.0 🎁</string>
+    <string name="translation_models">🗣️ 🤖</string>
+    <string name="clear_translation_models">🗑️ 🗣️ 🤖</string>
+
+<!--//swipe-->
+    <string name="swipe_to_change_track">👆 ➡️ ⏭️</string>
+    <string name="swipe_to_change_track_description">👆 ⬅️/➡️ ⏭️</string>
+    <string name="use_old_theme">⏪ 🎨</string>
+    <string name="hide_video_songs">🙈 📹 🎵</string>
+    <string name="lyrics_appearance_settings">📝 🎨 ⚙️</string>
+    <string name="lyrics_text_size">📝 📏</string>
+    <string name="lyrics_line_spacing">📝 ↕️</string>
+    <string name="lyrics_style">📝 💅</string>
+</resources>

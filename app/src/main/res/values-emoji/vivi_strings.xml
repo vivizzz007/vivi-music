@@ -1,0 +1,668 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- About Screen -->
+    <string name="vivi_music_title">✌️🎵</string>
+    <string name="update_section">🔄</string>
+    <string name="developer_section">👨‍💻</string>
+    <string name="app_info_section">📱ℹ️</string>
+    <string name="community_section">👥</string>
+    <string name="support_development">💸👨‍💻</string>
+    <string name="website">🌐</string>
+    <string name="donate">☕</string>
+
+    <!-- Media Info -->
+    <string name="song_info">🎵ℹ️</string>
+    <string name="done">✅</string>
+    <string name="title">🏷️</string>
+    <string name="standard">🧱</string>
+    <string name="format">💿</string>
+    <string name="duration">⏱️</string>
+    <string name="artist">🎤</string>
+    <string name="itag">🏷️</string>
+
+    <!-- Playlist Actions -->
+    <string name="queue_button">⏳</string>
+    <string name="play_button">▶️</string>
+    <string name="delete_button">🗑️</string>
+    <string name="more">➕</string>
+
+    <!-- Content Descriptions -->
+    <string name="share_playlist">📤 📜</string>
+    <string name="share_song">📤 🎵</string>
+    <string name="share_album">📤 💿</string>
+    <string name="share_artist">📤 🎤</string>
+    <string name="download_song">⬇️ 🎵</string>
+    <string name="download_album">⬇️ 💿</string>
+    <string name="artist_icon">🎤 🟢</string>
+    <string name="album_icon">💿 🟢</string>
+    <string name="library_icon">📚 🟢</string>
+    <string name="delete_icon">🗑️ 🟢</string>
+    <string name="info_icon">ℹ️ 🟢</string>
+    <string name="view_information">👀 ℹ️</string>
+    <string name="shuffle_icon">🔀 🟢</string>
+    <string name="radio_icon">📻 🟢</string>
+    <string name="select_icon">✅ 🟢</string>
+    <string name="select_songs">✅ 🎵</string>
+    <string name="edit_icon">✏️ 🟢</string>
+    <string name="refresh_icon">🔄 🟢</string>
+    <string name="equalizer_icon">🎚️ 🟢</string>
+    <string name="audio_settings">🔊 ⚙️</string>
+    <string name="advanced_icon">🛠️ 🟢</string>
+    <string name="romanize_icon">🔤 🟢</string>
+    <string name="romanization_enabled">🔤 ✅</string>
+    <string name="romanization_disabled">🔤 ❌</string>
+    <string name="swipe_icon">👆 🟢</string>
+    <string name="subscribe_icon">🔔 🟢</string>
+    <string name="share_icon">📤 🟢</string>
+    <string name="songs_icon">🎵 🟢</string>
+    <string name="favorite_icon">❤️ 🟢</string>
+    <string name="remove_bookmark">🗑️ 🔖</string>
+    <string name="bookmark_playlist">🔖 📜</string>
+    <string name="remove_permanently">🗑️ ♾️</string>
+    <string name="rename_playlist">🏷️ ✏️ 📜</string>
+    <string name="developer">👨‍💻</string>
+
+    <!-- Loading Screen -->
+    <string name="progress_percent">⏳ %1$d%%</string>
+
+    <!-- Playlist Screen -->
+    <string name="this_collection">👉 📦</string>
+    <string name="playlist_text">📜</string>
+
+    <!-- Changelog -->
+    <string name="changelog_title">📝🔄</string>
+    <string name="loading_changelog">⏳ 📝🔄…</string>
+    <string name="failed_to_load_changelog">❌ 📝🔄</string>
+    <string name="view_on_github">👀 🐱</string>
+    <string name="changes">📝</string>
+    <string name="current">📍</string>
+    <string name="old_releases">👵 📦</string>
+    <string name="cached">⚡💾</string>
+
+    <!-- Experimental -->
+    <string name="select_apk_variant">✅ APK</string>
+    <string name="unable_to_fetch_apk_variants">❌ 🎣 APK</string>
+    <string name="send_feedback">📤 💭</string>
+    <string name="send_email">📤 📧</string>
+    <string name="reset_button">↩️</string>
+    <string name="share_button">📤</string>
+    <string name="delete_button_menu">🗑️</string>
+    <string name="advanced_settings_experimental">🛠️ &amp; 🧪</string>
+    <string name="updates_section">🔄</string>
+    <string name="storage_section">💾</string>
+    <string name="debugging_section">🐛</string>
+    <string name="support_section">🆘</string>
+    <string name="crash_logs">💥 📝</string>
+    <string name="send_feedback_title">📤 💭</string>
+    <string name="reset_app">↩️ 📱</string>
+    <string name="open_with">📂 🤝</string>
+    <string name="just_now">⏱️❗</string>
+    <string name="selected">✅</string>
+    <string name="delete_content_desc">🗑️</string>
+    <string name="universal_recommended">🌐 (👍)</string>
+    <string name="arm_older_phones">💪 - %1$s MB (👵📱)</string>
+    <string name="x86_64_intel_tablets">💻 - %1$s MB (💊)</string>
+    <string name="x86_emulators">👾 - %1$s MB (🕹️)</string>
+    <string name="minutes_ago">%1$d ⏱️⏪</string>
+    <string name="hours_ago">%1$d ⏳⏪</string>
+    <string name="days_ago">%1$d 📆⏪</string>
+
+    <!-- Toast Messages -->
+    <string name="all_crash_logs_cleared">🗑️ ♾️ 💥📝</string>
+    <string name="crash_log_deleted">🗑️ 💥📝</string>
+    <string name="please_install_web_browser">🙏 📥 🌐</string>
+    <string name="error_message">❌: %1$s</string>
+    <string name="unable_to_open_email_app">❌ 📂 📧: %1$s</string>
+    <string name="error_sharing_log">❌ 📤 📝: %1$s</string>
+    <string name="no_apk_found">❌ APK 👵</string>
+    <string name="enable_install_unknown_apps">✅ \'❓📱\' &amp; 🔄</string>
+    <string name="download_error">❌ ⬇️: %1$s</string>
+    <string name="download_started">⬇️ ▶️…</string>
+    <string name="download_completed">⬇️ ✅!</string>
+    <string name="download_completed_file_not_found">⬇️ ✅, ❌ 📄</string>
+    <string name="download_completed_uri_not_found">⬇️ ✅, ❌ 🔗</string>
+    <string name="download_failed_error">❌ ⬇️: %1$s</string>
+    <string name="download_tracking_failed">❌ 🕵️‍♂️ ⬇️</string>
+    <string name="download_tracking_error">❌ 🕵️‍♂️ ⬇️: %1$s</string>
+    <string name="downloaded_file_not_found">❌ ⬇️📄</string>
+    <string name="failed_to_track_download">❌ 🕵️‍♂️ ✅⬇️</string>
+    <string name="apk_file_not_found">❌ APK</string>
+    <string name="no_app_to_install_apks">❌ 📱 ➡️ 📥 APK</string>
+    <string name="installation_error">❌ 📥: %1$s</string>
+    <string name="failed_to_create_image">❌ 🎨 🖼️: %1$s</string>
+    <string name="failed_to_parse_proxy_url">❌ 🧩 🛡️🔗.</string>
+
+    <!-- Notification -->
+    <string name="starting">▶️⏳</string>
+    <string name="playing">▶️</string>
+    <string name="paused">⏸️</string>
+
+    <!-- Backup Restore -->
+    <string name="no_valid_songs_csv">❌ 🎵 ➡️ CSV</string>
+    <string name="csv_file_empty_invalid">CSV 📭/❌</string>
+    <string name="backup_not_supported">📱 ❌ 📦</string>
+    <string name="backup_corrupted">📦 🧟</string>
+    <string name="backup_format_not_supported">📱 ❌ 📦🎨</string>
+
+    <!-- ViewModels -->
+    <string name="guest">👻</string>
+    <string name="failed_to_load_playlist">❌ 🏋️ 📜</string>
+
+    <!-- Additional Content Descriptions -->
+    <string name="song_art">🎵 🎨</string>
+    <string name="playlist_art">📜 🎨</string>
+    <string name="play_next_icon">⏭️ 🟢</string>
+    <string name="add_to_queue_icon">➕⏳ 🟢</string>
+    <string name="start_radio_icon">📻 🟢</string>
+    <string name="add_to_playlist_icon">➕📜 🟢</string>
+
+    <!-- Menu Actions -->
+    <string name="play_similar_songs">▶️ 👯 🎵</string>
+    <string name="add_to_existing_playlist">➕ 👴 📜</string>
+    <string name="save_to_your_music">💾 ➡️ 👤🎵</string>
+    <string name="remove_from_your_music">🗑️ ⬅️ 👤🎵</string>
+    <string name="suggestions_available">💡 ✅</string>
+
+    <!-- Download Notifications -->
+    <string name="update_failed">❌ 🔄</string>
+    <string name="failed_to_download_version">❌ ⬇️ v%1$s</string>
+    <string name="failed_to_download_version_error">❌ ⬇️ v%1$s\n%2$s</string>
+    <string name="server_error">🖥️❌: %1$d</string>
+
+    <!-- Media Info -->
+    <string name="no_description_available">❌ 📝</string>
+    <string name="views_count">%1$s 👀</string>
+    <string name="likes_count">%1$s ❤️</string>
+
+    <!-- Backup Restore -->
+    <string name="save_data_settings">💾 📊 &amp; ⚙️</string>
+    <string name="restore_from_backup">♻️ ⬅️ 📦</string>
+
+    <!-- Appearance Settings -->
+    <string name="dynamic_color_theming">🌈 🎨</string>
+    <string name="accent_color">🖍️</string>
+    <string name="select_static_theme_color">✅ 🗿 🎨</string>
+    <string name="high_refresh_rate">🐇 💨</string>
+    <string name="high_refresh_rate_desc">120Hz ✅</string>
+
+    <!-- Backup Restore Additional -->
+    <string name="developer_name">VIVIDH P ASHOKAN</string>
+    <string name="app_developer">👨‍💻</string>
+    <string name="installed_date_title">📥 📅</string>
+    <string name="view_version_history">👀 v.📜</string>
+    <string name="github_repository">🐱 📦</string>
+    <string name="view_source_code">👀 📝</string>
+    <string name="see_community_heroes">👀 🦸</string>
+    <string name="report_issue_title_about">📢 ⚠️</string>
+    <string name="bugs_feedback">🐛 &amp; 💭</string>
+
+    <!-- Crash Page -->
+    <string name="copy_log_content">📋 📝</string>
+    <string name="copies_crash_log_clipboard">💥📝 ➡️ 📋</string>
+    <string name="send_via_gmail">📤 📧</string>
+    <string name="copies_log_opens_gmail">📋 &amp; 📂📧</string>
+    <string name="report_via_github_crash">📢 🐱</string>
+    <string name="opens_github_report_issue">📂 🐱⚠️</string>
+    <string name="restart_vivi">🔄 ViVi</string>
+    <string name="restarts_vivi">🔄 ViVi</string>
+
+    <!-- Settings Screen Subtitles -->
+    <string name="customize_theme_display_settings">🛠️ 🎨 &amp; 🖥️</string>
+    <string name="audio_quality_playback_settings">🔊 👌 &amp; ▶️</string>
+    <string name="language_content_preferences">🗣️ &amp; 📦</string>
+    <string name="privacy_security_settings">🔒 &amp; 🛡️</string>
+    <string name="manage_storage_downloads">💾 &amp; ⬇️</string>
+    <string name="backup_restore_data">📦 &amp; ♻️</string>
+    <string name="app_information_legal">📱ℹ️ &amp; ⚖️</string>
+
+    <!-- Player Settings -->
+    <string name="select_playback_audio_quality">✅ ▶️ 🔊 👌</string>
+    <string name="remove_silent_parts">🗑️ 🔇</string>
+    <string name="normalize_audio_levels">⚖️ 🔊</string>
+    <string name="stop_playback_when_closed">🛑 ▶️ 🚪</string>
+    <string name="pause_on_zero_volume">⏸️ 🔈0</string>
+    <string name="pause_on_zero_volume_description">🔈0 ➡️ ⏸️, 🔊 ➡️ ▶️</string>
+    <string name="smart_shuffle">🧠 🔀</string>
+    <string name="smart_shuffle_desc">🙅‍♂️ 👯 🎵/🎤</string>
+    <string name="smart_suggestions">♾️ ⏳</string>
+    <string name="smart_suggestions_desc">🔚 ⏳ ➡️ 🎵 💡</string>
+    <string name="smart_pause">🧠 ⏸️</string>
+    <string name="smart_pause_desc">🔌❌ ➡️ ⏸️</string>
+
+    <!-- Appearance Settings -->
+    <string name="dynamic_color_theming_subtitle">🌈</string>
+    <string name="use_pure_black_dark_theme">🖤 🌑</string>
+    <string name="settings_shape_tertiary_color">⚙️ 📐 🎨3️⃣</string>
+    <string name="use_tertiary_color_icon_backgrounds">🟢 🔙 🎨3️⃣</string>
+    <string name="modern_player_interface">🚀 ▶️ 🖥️</string>
+    <string name="modern_mini_player">🚀 🤏 ▶️</string>
+    <string name="enable_rotating_clover_thumbnail">🔄 🍀</string>
+    <string name="swipe_on_player_thumbnail">👆 ➡️ 🤏</string>
+    <string name="click_change_lyrics_position">👆 ➡️ 📝📍</string>
+    <string name="auto_scroll_lyrics_subtitle">🤖 📜 📝</string>
+    <string name="apple_lyrics">🍎 📝</string>
+    <string name="highlight_words_discretely">🔦 🔤 🤫</string>
+    <string name="letter_by_letter_animation">🔤 ➡️ 🔤 ✨</string>
+    <string name="animate_lyrics_letter_by_letter">🔤✨ (❌🔄)</string>
+    <string name="select_default_tab">✅ 🏠 📍</string>
+    <string name="swipe_add_songs_queue">👆 ➡️ ➕⏳</string>
+    <string name="compact_navigation_bar">🤏 🗺️</string>
+    <string name="swipe_remove_songs">👆 ➡️ 🗑️</string>
+    <string name="change_size_items_library">📏 📚</string>
+    <string name="display_liked_songs_playlist">👁️ 👍 📜</string>
+    <string name="display_downloaded_playlist">👁️ ⬇️ 📜</string>
+    <string name="display_top_songs_playlist">👁️ 🔝 📜</string>
+    <string name="display_cached_playlist">👁️ ⚡💾 📜</string>
+    <string name="display_uploaded_playlist">👁️ ☁️ 📜</string>
+    <string name="apple_music">🍎 🎵</string>
+    <string name="show_now_playing">👁️ ▶️</string>
+    <string name="enable_now_playing_text_on_player_background">🍎 📝 🔛 ▶️ 🔙</string>
+
+    <!-- Content Settings -->
+    <string name="filter_explicit_content">🚫 🤬</string>
+    <string name="configure_in_system_settings">🛠️ 📱 ⚙️</string>
+    <string name="hide_video_content_songs">🙈 📹 🎵</string>
+    <string name="route_traffic_through_proxy">🛣️ 🛡️</string>
+    <string name="configure_proxy_settings">🛠️ 🛡️</string>
+    <string name="betterlyrics_lyrics">➕📝</string>
+    <string name="enable_betterlyrics_lyrics_source">✅ ➕📝</string>
+    <string name="lrclib_lyrics">📚📝</string>
+    <string name="enable_lrclib_lyrics_source">✅ 📚📝</string>
+    <string name="kugou_lyrics">🐶📝</string>
+    <string name="enable_kugou_lyrics_source">✅ 🐶📝</string>
+
+    <!-- Privacy Settings -->
+    <string name="stop_recording_listening_activity">🛑 ⏺️ 👂</string>
+    <string name="delete_all_listening_history">🗑️ ♾️ 👂 📜</string>
+    <string name="stop_recording_search_queries">🛑 ⏺️ 🔍</string>
+    <string name="delete_all_search_history">🗑️ ♾️ 🔍 📜</string>
+
+    <!-- Backup and Restore -->
+    <string name="import_playlists_m3u_files">📥 📜 (M3U)</string>
+    <string name="import_playlists_csv_files">📥 📜 (CSV)</string>
+
+    <!-- Storage Settings -->
+    <string name="downloaded_songs_title">⬇️ 🎵</string>
+    <string name="remove_all_downloaded_songs">🗑️ ♾️ ⬇️</string>
+    <string name="free_up_cached_song_data">🧹 🎵 ⚡💾</string>
+    <string name="free_up_cached_images">🧹 🖼️ ⚡💾</string>
+
+    <!-- Integrations -->
+    <string name="submit_playback_history_lastfm">📤 ▶️ 📜 ➡️ Last.fm</string>
+    <string name="show_current_song_lastfm_profile">👁️ 🎵 ➡️ Last.fm</string>
+    <string name="connect_with_discord">🔗 🎮</string>
+    <string name="connect_with_lastfm">🔗 Last.fm</string>
+    <string name="login_using_token">🔑 🪙</string>
+    <string name="show_current_song_discord">👁️ 🎵 ➡️ 🎮</string>
+    <string name="listening_to_vivimusic">👂 Vivi</string>
+
+    <!-- Romanization Settings -->
+    <string name="romanize_japanese_lyrics_subtitle">🇯🇵 📝 ➡️ 🔤</string>
+    <string name="romanize_korean_lyrics_subtitle">🇰🇷 📝 ➡️ 🔤</string>
+    <string name="romanize_cyrillic_lyrics_subtitle">🇷🇺 📝 ➡️ 🔤</string>
+
+    <!-- Playlist Screens -->
+    <string name="cache_songs">⚡💾 🎵</string>
+    <string name="auto_playlist">🤖 📜</string>
+    <string name="selection">✅</string>
+    <string name="suggestions">♾️ ⏳</string>
+
+    <!-- Content Descriptions -->
+    <string name="shuffle_content_desc">🔀</string>
+    <string name="add_to_queue_content_desc">➕ ⏳</string>
+    <string name="share_playlist_content_desc">📤 📜</string>
+    <string name="more_options_content_desc">➕ 🛠️</string>
+    <string name="sync_content_desc">🔄</string>
+    <string name="edit_content_desc">✏️</string>
+    <string name="selected_content_desc">✅</string>
+    <string name="artist_image_content_desc">🎤 🖼️</string>
+    <string name="radio_content_desc">📻</string>
+    <string name="share_artist_content_desc">📤 🎤</string>
+    <string name="radio_icon_content_desc">📻 🟢</string>
+    <string name="shuffle_icon_content_desc">🔀 🟢</string>
+    <string name="subscribe_icon_content_desc">🔔 🟢</string>
+    <string name="share_icon_content_desc">📤 🟢</string>
+    <string name="album_art_content_desc">💿 🖼️</string>
+    <string name="play_content_desc">▶️</string>
+    <string name="share_album_content_desc">📤 💿</string>
+    <string name="download_album_content_desc">⬇️ 💿</string>
+    <string name="artist_icon_content_desc">🎤 🟢</string>
+    <string name="play_next_icon_content_desc">⏭️ 🟢</string>
+    <string name="add_to_queue_icon_content_desc">➕⏳ 🟢</string>
+    <string name="add_to_playlist_icon_content_desc">➕📜 🟢</string>
+    <string name="refresh_icon_content_desc">🔄 🟢</string>
+    <string name="songs_icon_content_desc">🎵 🟢</string>
+    <string name="start_radio_icon_content_desc">▶️📻 🟢</string>
+
+    <!-- News Screen -->
+    <string name="whats_new_title">🆕 ❓</string>
+    <string name="no_news_available">❌ 📰</string>
+    <string name="reported_bugs">📢 🐛</string>
+    <string name="fixed_bugs">🔨 🐛</string>
+    <string name="type_bug_report">🐛 📝</string>
+    <string name="type_fix">🔨</string>
+    <string name="type_feature">✨</string>
+    <string name="type_news">📰</string>
+    <string name="home_screen">🏠 🖥️</string>
+
+    <!-- Update Settings -->
+    <string name="show_news_icon">👁️ 📰 🟢</string>
+    <string name="show_news_icon_desc">👁️ \'🆕\' 🟢</string>
+    <string name="edit_icon_content_desc">✏️ 🟢</string>
+    <string name="favorite_icon_content_desc">❤️ 🟢</string>
+    <string name="delete_icon_content_desc">🗑️ 🟢</string>
+    <string name="edit_content_desc_menu">✏️</string>
+    <string name="refetch_content_desc">🔄 ☁️</string>
+    <string name="search_content_desc">🔍</string>
+    <string name="romanize_icon_content_desc">🔤 🟢</string>
+    <string name="swipe_icon_content_desc">👆 🟢</string>
+    <string name="artist_art_content_desc">🎤 🎨</string>
+    <string name="info_icon_content_desc">ℹ️ 🟢</string>
+
+    <!-- Additional Menu Text -->
+    <string name="play_text">▶️</string>
+    <string name="artist_text">🎤</string>
+    <string name="radio_text">📻</string>
+    <string name="shuffle_text">🔀</string>
+    <string name="audio_quality_title">🔊 👌</string>
+    <string name="progress_percentage">⏳ %1$s%%</string>
+    <string name="songs_count">🎵 (%1$d)</string>
+    <string name="check_out_top_share">👀 👤 🔝 %1$d!\n\n</string>
+    <string name="by_text">👤 </string>
+    <string name="is_a_playlist">🟰 📜</string>
+    <string name="album_text">💿</string>
+    <string name="playlist_separator"> • </string>
+
+
+    <!-- Share and Email Messages -->
+    <string name="check_out_playlist_share">👀 📺🎵 %1$s: %2$s</string>
+    <string name="check_out_album_share">👀 %1$s 👤 %2$s 📺🎵: %3$s</string>
+    <string name="vivi_music_crash_report">ViVi 🎵 💥 📝</string>
+    <string name="crash_log_email_body">💥📝 (📋✅):\n\n%1$s\n\n📱ℹ️:\n%2$s</string>
+    <string name="feedback_for_vivi_music_app">ViVi 🎵 📱 💭</string>
+    <string name="please_write_feedback">🙏 ✍️ 💭 📍...</string>
+    <string name="crash_log_subject">💥📝: %1$s</string>
+    <string name="crash_log_attached">ViVi 🎵 📱 💥📝 📎</string>
+    <string name="vivi_music_issue_report">ViVi 🎵 ⚠️ 📝 - v%1$s</string>
+
+    <!-- Experimental Settings -->
+    <string name="updates_title">🔄</string>
+    <string name="apk_variant">APK 🧬</string>
+    <string name="clear_downloaded_apks">🗑️ ⬇️ APK</string>
+    <string name="open_crash_logs_folder">📂 💥📝</string>
+    <string name="crash_logs_folder_path">💾/🤖/📦/.../crash_logs</string>
+    <string name="email_or_github_issue">📧 🆚 🐱⚠️</string>
+    <string name="clear_all_settings_and_data">🗑️ ♾️ ⚙️ &amp; 📊</string>
+
+    <!-- Bluetooth -->
+    <string name="bluetooth_permission_required">🦷 🔒 🛑</string>
+    <string name="battery_content_desc">🔋 </string>
+    <string name="wired_headphones">🎧 🔌</string>
+    <string name="hdmi">📺🔌</string>
+    <string name="phone_speaker">📱 🔊</string>
+
+    <!-- Content Descriptions -->
+    <string name="github_content_desc">🐱</string>
+    <string name="back_content_desc">⬅️</string>
+
+    <!-- Notification Channel -->
+    <string name="controls_for_music_playback">🎛️ 🎵 ▶️</string>
+
+    <!-- Account Settings -->
+    <string name="youtube_sync">📺 🔄</string>
+    <string name="log_out_from_account">🚪🚶 👤</string>
+
+    <!-- Content Descriptions -->
+    <string name="bhim_content_desc">🇮🇳 💳</string>
+    <string name="github_profile_content_desc">🐱 👤</string>
+
+    <!-- Notification Channels -->
+    <string name="download_progress_channel">⬇️ ⏳</string>
+    <string name="download_progress_description">👁️ 📱 🔄 ⬇️ ⏳</string>
+    <string name="app_updates_channel">📱 🔄</string>
+    <string name="app_updates_description">📱 🔄 🔔</string>
+
+    <!-- Error Messages -->
+    <string name="error_loading_version">❌ 🏋️ v.#</string>
+    <string name="error_loading_date">❌ 🏋️ 📅</string>
+
+    <!-- Changelog -->
+    <string name="changes_default">📝</string>
+
+    <!-- Download Notifications -->
+    <string name="downloading_update">⬇️ 🔄</string>
+    <string name="version_file_size">v.%1$s • %2$s</string>
+    <string name="version_progress">v.%1$s • %2$d%%</string>
+    <string name="update_ready">🔄 ✅</string>
+    <string name="tap_to_install_version">👆 ➡️ 📥 v.%1$s</string>
+
+    <!-- Beta Update Labels -->
+    <string name="version_label">v.#</string>
+    <string name="apk_size_label">APK 📏</string>
+    <string name="upload_date_label">📤 📅</string>
+    <string name="upload_time_label">📤 ⏰</string>
+
+    <!-- Settings Screen Update Status -->
+    <string name="update_available_title">🔄 🎁</string>
+    <string name="automatic_check_disabled">🤖✅ ❌ • V%1$s</string>
+    <string name="version_now_available">%1$s ✅</string>
+    <string name="not_signed_in_subtitle">👆 ➡️ 🔑</string>
+
+    <!-- Menu Items -->
+    <string name="remove_offline">🗑️ ✈️</string>
+    <string name="downloading_ellipsis">⬇️…</string>
+    <string name="saved">💾 ✅</string>
+    <string name="saving">💾…</string>
+    <string name="download_song_text">⬇️ 🎵</string>
+    <string name="download_album_text">⬇️ 💿</string>
+    <string name="artist_label">🎤</string>
+    <string name="songs_label">🎵</string>
+    <string name="album_label">💿</string>
+    <string name="view_full_album">👀 🌕 💿</string>
+    <string name="play_next_label">▶️ ⏭️</string>
+    <string name="play_after_current">▶️ ⏭️ 📍</string>
+    <string name="add_to_queue_label">➕ ⏳</string>
+    <string name="add_to_queue_end">➕ ⏳ 🔚</string>
+    <string name="add_to_playlist_label">➕ 📜</string>
+    <string name="add_to_existing_playlist_subtitle">➕ 👴 📜</string>
+    <string name="refresh_metadata">🔄 ℹ️</string>
+    <string name="update_album_information">🔄 💿 ℹ️</string>
+    <string name="delete_from_listening_history">🗑️ 👂 📜</string>
+
+    <!-- Playlist Actions -->
+    <string name="queue_label">⏳</string>
+    <string name="shuffle_label">🔀</string>
+    <string name="this_collection_text">👉 📦</string>
+    <string name="playlist_description_suffix">🎁 👤 👂 😂.</string>
+
+    <!-- Favorite Actions -->
+    <string name="remove_from_favorites">🗑️ ❤️</string>
+    <string name="add_to_favorites">➕ ❤️</string>
+    <string name="unsubscribe">🚫 🔔</string>
+    <string name="following_this_artist">👣 🎤</string>
+    <string name="follow_this_artist">👣 🎤</string>
+
+    <!-- Menu Items Additional -->
+    <string name="view_artist_page">👀 🎤 📄</string>
+    <string name="view_full_album_subtitle">👀 🌕 💿</string>
+    <string name="audio_settings_subtitle">🔊 ⚙️</string>
+    <string name="download_playlist_text">⬇️ 📜</string>
+    <string name="start_radio_label">▶️ 📻</string>
+    <string name="play_similar_songs_subtitle">▶️ 👯 🎵</string>
+    <string name="play_in_random_order">▶️ 🎲</string>
+    <string name="edit_playlist_label">✏️ 📜</string>
+    <string name="edit_song_details">✏️ 🎵 ℹ️</string>
+    <string name="remove_from_history_label">🗑️ 🕰️</string>
+    <string name="remove_from_playlist_label">🗑️ 📜</string>
+    <string name="delete_from_this_playlist">🗑️ 👉 📜</string>
+    <string name="remove_from_cache_label">🗑️ ⚡💾</string>
+    <string name="clear_cached_data">🗑️ ⚡💾 📊</string>
+    <string name="copied_title">📋 🏷️</string>
+    <string name="copied_artist">📋 🎤</string>
+    <string name="more_label">➕</string>
+    <string name="sync_label">🔄</string>
+    <string name="edit_label">✏️</string>
+
+    <!-- Settings Integration -->
+    <string name="discord_account">🎮 👤</string>
+    <string name="song_title_fallback">🎵 🏷️</string>
+    <string name="artist_fallback">🎤</string>
+    <string name="listen_on_youtube_music">👂 📺🎵</string>
+    <string name="visit_vivimusic">🔗 Vivi</string>
+    <string name="lastfm_account">Last.fm 👤</string>
+    <string name="not_logged_in_fallback">🚫 🔑</string>
+    <string name="tertiary_color_style">🎨3️⃣ 💅</string>
+    <string name="lrclib_provider">📚📝</string>
+    <string name="kugou_provider">🐶📝</string>
+
+    <!-- Experimental -->
+    <string name="reset_app_data_question">🔄 📱 📊 ❓</string>
+    <string name="reset_app_data_description">🗑️ ♾️ ⚙️, ⚡💾, &amp; 📍📊. 📱 🔄 &amp; 👤 🛠️ ♾️. ↩️❌.</string>
+    <string name="crash_logs_title">💥 📝</string>
+    <string name="clear_all">🗑️ ♾️</string>
+    <string name="no_crash_logs_found">❌ 💥 📝</string>
+    <string name="app_hasnt_crashed_recently">📱 ✅ (❌💥)</string>
+    <string name="share_label">📤</string>
+    <string name="no_downloaded_files">❌ ⬇️ 📄</string>
+    <string name="apk_files_cleared_successfully">APK 📄 🗑️ ✅</string>
+    <string name="choose_email_app">👇 📧 📱</string>
+    <string name="share_crash_log">📤 💥 📝</string>
+    <string name="crash_log_path">💥 📝 🛣️</string>
+    <string name="failed_to_clear_apk_files">❌ 🗑️ APK 📄</string>
+    <string name="no_apk_files_to_clear">❌ APK 📄 ➡️ 🗑️</string>
+    <string name="no_crashes_detected">❌ 💥 🕵️‍♂️</string>
+    <string name="short_vivi_crash_info">ViVi 💥 🤏ℹ️</string>
+    <string name="vivi_crash_log">ViVi 💥 📝</string>
+
+    <!-- Menu Items Additional 2 -->
+    <string name="remove_from_favorites_menu">🗑️ ❤️</string>
+    <string name="add_to_favorites_menu">➕ ❤️</string>
+    <string name="delete_playlist_label">🗑️ 📜</string>
+    <string name="refresh_metadata_label">🔄 ℹ️</string>
+    <string name="update_song_information">🔄 🎵 ℹ️</string>
+    <string name="song_details_label">🎵 ℹ️</string>
+    <string name="share_this_artist">📤 👉 🎤</string>
+    <string name="playlist_fallback">📜</string>
+    <string name="select_label">👇</string>
+    <string name="artist_info_fallback">🎤 ℹ️</string>
+    <string name="artist_link">🎤 🔗</string>
+
+    <!-- Beta Update Additional -->
+    <string name="downloading_vivi_music_apk">⬇️ ViVi 🎵 APK</string>
+    <string name="downloading_vivi_music_prerelease">⬇️ ViVi 🎵 👶📦</string>
+    <string name="cannot_resume_download">❌ ⏯️ ⬇️</string>
+    <string name="external_storage_not_found">❌ 📤💾</string>
+    <string name="file_already_exists">📄 👯‍♀️</string>
+    <string name="http_data_error">HTTP 📊 ❌</string>
+    <string name="insufficient_storage_space">❌ 💾 🌌</string>
+    <string name="too_many_redirects">♾️ ↪️</string>
+    <string name="unhandled_http_code">🤷 HTTP 🔢</string>
+    <string name="ready_to_install">📥 ✅</string>
+    <string name="checking_for_update">🕵️‍♂️ 🔄</string>
+    <string name="failed_to_load">❌ 🏋️</string>
+    <string name="no_update">❌ 🔄</string>
+    <string name="beta_updater">👶 🔄er</string>
+    <string name="download_label">⬇️</string>
+
+    <!-- Changelog -->
+    <string name="error_loading_changelog">❌ 🏋️ 📝🔄</string>
+    <string name="no_old_releases_with_changelog">❌ 👵 📦 ➕ 📝🔄</string>
+    <string name="failed_to_fetch_changelog">❌ 🎣 📝🔄</string>
+
+    <!-- Notification -->
+    <string name="playing_status">▶️</string>
+    <string name="paused_status">⏸️</string>
+
+    <!-- Backup and Restore -->
+    <string name="app_does_not_support_backup_file">📱 ❌ 📦📄</string>
+    <string name="backup_file_corrupted">📦📄 🧟 ➡️ ❌♻️</string>
+    <string name="app_does_not_support_backup_missing_db">📱 ❌ 📦📄 (❌DB)</string>
+    <string name="backup_file_empty">📦📄 📭. 📱 ❌♻️</string>
+    <string name="app_does_not_support_backup_format">📱 ❌ 📦📄 🎨</string>
+    <string name="cannot_restore_permission_denied">❌♻️: 🔒🛑</string>
+    <string name="app_does_not_support_backup_with_error">📱 ❌ 📦📄: %1$s</string>
+    <string name="csv_file_empty_or_invalid">CSV 📄 📭/❌</string>
+    <string name="failed_to_read_csv_file">❌ 📖 CSV 📄: %1$s</string>
+    <string name="no_valid_songs_in_csv">❌ 🎵 ➡️ CSV</string>
+
+    <!-- Charts -->
+
+    <!-- Create Playlist -->
+    <string name="not_signed_in_warning">🚫 🔑</string>
+
+    <!-- Android Auto / Widget -->
+    <string name="not_playing">❌ ▶️</string>
+    <string name="tap_to_play">👆 ➡️ ▶️</string>
+    <string name="automix">🤖🎛️</string>
+
+    <string name="play_next_icon_desc">⏭️ 🟢</string>
+    <string name="add_to_queue_icon_desc">➕⏳ 🟢</string>
+    <string name="artist_icon_desc">🎤 🟢</string>
+
+    <!-- Menu Labels and Subtitles -->
+    <string name="play_after_current_subtitle">▶️ ⏭️ 📍</string>
+    <string name="add_to_queue_end_subtitle">➕ ⏳ 🔚</string>
+    <string name="share_this_song">📤 👉 🎵</string>
+    <string name="share_this_song_subtitle">📤 👉 🎵</string>
+    <string name="share_this_artist_subtitle">📤 👉 🎤</string>
+    <string name="share_this_album">📤 👉 💿</string>
+    <string name="share_this_album_subtitle">📤 👉 💿</string>
+    <string name="share_artist_link">📤 🎤 🔗</string>
+    <string name="artist_details">🎤 ℹ️</string>
+    <string name="view_album_label">👀 💿</string>
+    <string name="view_album_details">👀 💿 ℹ️</string>
+    <string name="view_artist_label">👀 🎤</string>
+    <string name="view_artist_details">👀 🎤 ℹ️</string>
+    <string name="show_album_label">👀 💿</string>
+    <string name="show_artist_label">👀 🎤</string>
+
+<!--localplaylist-->
+    <string name="playlist_description_start">👉 ❤️ 📜</string>
+    <string name="playlist_duration_description">♾️</string>
+    <string name="hour">⏳</string>
+    <string name="hours">⏳</string>
+    <string name="minute">⏱️</string>
+    <string name="minutes">⏱️</string>
+    <string name="and">&amp;</string>
+    <string name="of_music">🎵 🙂</string>
+    <string name="playlist_enjoy_message">🎧 🙂</string>
+    <string name="live_media">🔴 📻</string>
+    <string name="live_media_desc">🔴 📻 ➡️ ViVi 🎵 ▶️ 🔔 &amp; 📊 💊.</string>
+    <string name="notification_body">🔔 💃</string>
+    <string name="show_album_art">👀 💿 🎨</string>
+    <string name="show_album_art_desc">👀 🎨 ➡️ 🔔</string>
+    <string name="show_artist_name">👀 🎤 🏷️</string>
+    <string name="show_artist_name_desc">➕ 🎤 🏷️ ➡️ ℹ️</string>
+    <string name="show_album_name">👀 💿 🏷️</string>
+    <string name="show_album_name_desc">👀 💿 🏷️ ➡️ 📝</string>
+    <string name="show_action_buttons">👀 🎬 🔘</string>
+    <string name="show_action_buttons_desc">▶️/⏸️, ⏭️, ⏮️</string>
+    <string name="show_progress">👀 ⏳</string>
+    <string name="show_progress_desc">👀 🎵 ⏳ 📏</string>
+    <string name="show_timestamps">👀 ⏱️</string>
+    <string name="show_timestamps_desc">⏱️ &amp; ♾️ ⏰</string>
+    <string name="hide_on_qs">🙈 🔛 ⚡⚙️</string>
+    <string name="hide_on_qs_desc">🙈 ⏱️ 🔔 🕶️</string>
+    <string name="status_bar_pill">📊 💊</string>
+    <string name="pill_song_title">🎵 🏷️</string>
+    <string name="pill_song_title_desc">👀 🎵 🏷️ 🔛 💊</string>
+    <string name="pill_elapsed_time">⏱️</string>
+    <string name="pill_elapsed_time_desc">👀 ▶️ 📍 🔛 💊</string>
+    <string name="pill_remaining_time">⏳</string>
+    <string name="pill_remaining_time_desc">👀 🎵 ⏳ 🔛 💊</string>
+    <string name="grant_permission">🤝 🔒</string>
+    <string name="notification_listener_permission_needed">🔔 👂 🔒 🛑</string>
+    <string name="notification_listener_permission_desc">📱 ➡️ 🔔 👂 🔑 ➡️ 🕵️‍♂️ ▶️ &amp; 🔴 📻 🔔.</string>
+    <string name="accessibility_permission_needed">♿ 🔒 🛑</string>
+    <string name="accessibility_permission_desc">📱 ➡️ ♿ 🔑 ➡️ 🕵️‍♂️ ⚡⚙️.</string>
+    <string name="live_media_compatibility_title">🤝 ⚠️</string>
+    <string name="live_media_compatibility_message">🔴 📻 ➡️ 🤖 16+. 🔛 📍 🤖 v., 🧱 🔔 &amp; ❌ 🔴 📻 (💊).</string>
+    <string name="permissions">🔒</string>
+    <string name="granted">🤝</string>
+    <string name="confirm">✅</string>
+    <string name="pill_content_desc">🛠️ 📊 💊 📦</string>
+    <string name="play_action">▶️</string>
+    <string name="pause_action">⏸️</string>
+    <string name="next_action">⏭️</string>
+    <string name="previous_action">⏮️</string>
+</resources>
