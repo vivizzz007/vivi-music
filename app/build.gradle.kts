@@ -17,8 +17,8 @@ android {
         applicationId = "com.vivi.vivimusic"
         minSdk = 26
         targetSdk = 36
-        versionCode = 59 //18 //59
-        versionName = "5.0.0" //updated
+        versionCode = 19 //19 //60
+        versionName = "5.0.1" //updated
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true

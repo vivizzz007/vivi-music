@@ -1,0 +1,32 @@
+{
+    "title": "App Updated to v5.0.1",
+    "subtitle": "Critical Bug Fix: Downloaded Songs Now Visible",
+    "date": "2026-01-14",
+    "type": "news",
+    "description": "We've released version 5.0.1 to fix an issue where users' downloaded songs weren't showing after the previous update.",
+    "image": "",
+    "version": "v5.0.1",
+    "content": "Version 5.0.1 is now available with an important fix for downloaded content visibility. Users who updated to the previous version may have noticed their downloaded songs were no longer visible in the app.",
+    "blocks": [
+        {
+            "subtitle": "What Was Fixed",
+            "content": "✅ Fix implemented successfully! We've resolved the issue where users' old downloaded songs weren't showing after the update. All your previously downloaded content should now be visible again."
+        },
+        {
+            "subtitle": "Technical Details",
+            "content": "Root cause: Migration 21→22 added the isDownloaded column but didn't migrate existing downloaded songs properly. This caused the app to lose track of previously downloaded content."
+        },
+        {
+            "subtitle": "The Solution",
+            "content": "Our team implemented a comprehensive fix:\n\n1. Updated Migration 21→22 to properly migrate existing downloaded songs\n2. Added Migration 26→27 to fix users who already updated to the previous version\n3. Bumped database version from 26 to 27 to ensure all users receive the fix"
+        },
+        {
+            "subtitle": "📥 Download the Update",
+            "content": "Please download the new vivi.apk (version 5.0.1) to get this fix. After installing the update, your downloaded songs should automatically appear. Make sure to uninstall the old version first if prompted, or install over the existing app."
+        },
+        {
+            "subtitle": "Need Help?",
+            "content": "If you continue to experience issues after downloading the new vivi.apk, please contact our support team. We're here to help ensure your downloaded content is accessible."
+        }
+    ]
+}

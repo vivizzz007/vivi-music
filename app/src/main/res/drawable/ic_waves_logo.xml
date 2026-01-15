@@ -1,0 +1,14 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="40dp"
+    android:height="40dp"
+    android:viewportWidth="40"
+    android:viewportHeight="40">
+    <!-- Orange Background Circle -->
+    <path
+        android:fillColor="#FFB08E"
+        android:pathData="M20,20m-20,0a20,20 0,1 1,40 0a20,20 0,1 1,-40 0" />
+    <!-- White Stylized Symbol (Pixelated Cross-like) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M20,10 L14,16 L20,22 L26,16 Z M20,18 L14,24 L20,30 L26,24 Z M12,18 L18,18 L18,22 L12,22 Z M22,18 L28,18 L28,22 L22,22 Z" />
+</vector>

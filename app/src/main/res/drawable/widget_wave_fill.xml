@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="24dp"
+    android:viewportWidth="120"
+    android:viewportHeight="24">
+    
+    <!-- Wave path - smooth sine wave for fill (progress) -->
+    <path
+        android:pathData="M0,12 Q10,6 20,12 T40,12 T60,12 T80,12 T100,12 T120,12"
+        android:strokeWidth="4"
+        android:strokeColor="@color/widget_system_accent2_200"
+        android:fillColor="@android:color/transparent"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"/>
+</vector>

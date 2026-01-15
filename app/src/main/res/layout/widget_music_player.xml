@@ -3,45 +3,48 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:id="@+id/widget_root"
-    android:orientation="vertical"
-    android:background="@drawable/widget_background"
-    android:padding="12dp">
+    android:orientation="horizontal"
+    android:background="@drawable/widget_background_expressive"
+    android:padding="16dp"
+    android:gravity="center_vertical">
 
-    <!-- Current Song Player (Top Section) -->
-    <LinearLayout
-        android:id="@+id/widget_top_section"
-        android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:background="@drawable/widget_queue_album_bg"
-        android:padding="8dp"
-        android:layout_marginBottom="12dp">
-
-        <!-- Album Art -->
+    <!-- Album Art Section (Left, Large) -->
+    <FrameLayout
+        android:layout_width="88dp"
+        android:layout_height="88dp"
+        android:background="@drawable/widget_album_art_bg_expressive">
+        
         <ImageView
             android:id="@+id/widget_album_art"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:scaleType="fitXY"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
             android:contentDescription="Album Art" />
+    </FrameLayout>
 
-        <!-- Song Info -->
+    <!-- Right Content Column -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="16dp"
+        android:orientation="vertical">
+
+        <!-- Top Row: Song Info -->
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="12dp"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:layout_marginBottom="12dp">
 
             <TextView
                 android:id="@+id/widget_song_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Not Playing"
-                android:textSize="14sp"
+                android:textSize="18sp"
                 android:textStyle="bold"
-                android:textColor="@color/widget_primary_text"
+                android:textColor="@color/widget_system_on_tertiary_container"
                 android:maxLines="1"
                 android:ellipsize="end" />
 
@@ -50,125 +53,99 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Tap to play"
-                android:textSize="12sp"
-                android:textColor="@color/widget_secondary_text"
+                android:textSize="14sp"
+                android:textColor="@color/widget_system_on_surface_variant"
                 android:maxLines="1"
-                android:ellipsize="end" />
-
+                android:ellipsize="end"
+                android:layout_marginTop="2dp" />
         </LinearLayout>
 
-
-        <!-- Like Button with Bun Background -->
-        <FrameLayout
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_marginEnd="8dp">
+        <!-- Middle Row: Interactive Elements (Like Button + Play Pill) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
             
-            <!-- Bun Background -->
-            <ImageView
-                android:id="@+id/widget_like_button_bg"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="fitXY"
-                android:contentDescription="Like Button Background" />
+            <!-- Like Button (was Play Button spot) -->
+            <FrameLayout
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:background="@drawable/widget_play_button_shape_expressive">
+                
+                <ImageButton
+                    android:id="@+id/widget_like_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="14dp"
+                    android:scaleType="fitCenter"
+                    android:background="@android:color/transparent"
+                    android:src="@drawable/star_fav"
+                    android:tint="@color/widget_on_play_button_container"
+                    android:contentDescription="Like" />
+            </FrameLayout>
             
-            <!-- Like Icon -->
-            <ImageButton
-                android:id="@+id/widget_like_button"
+            <!-- Play/Pause Pill (was Progress Pill) -->
+            <!-- Large clickable area for Play/Pause -->
+            <FrameLayout
+                android:id="@+id/widget_play_pause_container"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:layout_marginStart="16dp"
+                android:clickable="true">
+                
+                <!-- Background Pill -->
+                <ImageView
+                    android:id="@+id/widget_play_pause_bg"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/widget_progress_pill_bg"
+                    android:scaleType="fitXY" />
+                    
+                <!-- Play Icon Centered (No Progress Bar) -->
+                <ImageView
+                     android:id="@+id/widget_play_pause"
+                     android:layout_width="24dp"
+                     android:layout_height="24dp"
+                     android:layout_gravity="center"
+                     android:src="@drawable/play"
+                     android:tint="@color/widget_system_tertiary_container" />
+            </FrameLayout>
+
+        </LinearLayout>
+        
+        <!-- Bottom Row: Decorative Squiggle (Right Bottom aligned) -->
+         <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:layout_marginTop="8dp">
+
+             <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="6dp"
-                android:scaleType="fitCenter"
-                android:background="@android:color/transparent"
-                android:src="@drawable/star_fav"
-                android:contentDescription="Like" />
-        </FrameLayout>
+                android:layout_height="24dp">
+                 
+                 <!-- Inactive Track -->
+                 <ImageView
+                    android:id="@+id/widget_progress_track"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/widget_wavy_progress_track"
+                    android:scaleType="fitXY"
+                    android:contentDescription="Progress Track" />
 
-
-        <!-- Play/Pause Button with Clover4Leaf Background -->
-        <FrameLayout
-            android:layout_width="44dp"
-            android:layout_height="44dp">
-            
-            <!-- Clover4Leaf Background -->
-            <ImageView
-                android:id="@+id/widget_play_pause_bg"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="fitXY"
-                android:contentDescription="Button Background" />
-            
-            <!-- Play/Pause Icon -->
-            <ImageButton
-                android:id="@+id/widget_play_pause"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="10dp"
-                android:scaleType="fitCenter"
-                android:background="@android:color/transparent"
-                android:src="@drawable/play"
-                android:contentDescription="Play" />
-        </FrameLayout>
-
-    </LinearLayout>
-
-    <!-- Queue Row - All 6 in horizontal line -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center">
-
-        <!-- Queue Item 1 -->
-        <ImageView
-            android:id="@+id/queue_album_1"
-            android:layout_width="52dp"
-            android:layout_height="52dp"
-            android:layout_margin="4dp"
-            android:scaleType="centerCrop"
-            android:background="@drawable/widget_queue_album_bg"
-            android:contentDescription="Queue Song 1" />
-
-        <!-- Queue Item 2 -->
-        <ImageView
-            android:id="@+id/queue_album_2"
-            android:layout_width="52dp"
-            android:layout_height="52dp"
-            android:layout_margin="4dp"
-            android:scaleType="centerCrop"
-            android:background="@drawable/widget_queue_album_bg"
-            android:contentDescription="Queue Song 2" />
-
-        <!-- Queue Item 3 -->
-        <ImageView
-            android:id="@+id/queue_album_3"
-            android:layout_width="52dp"
-            android:layout_height="52dp"
-            android:layout_margin="4dp"
-            android:scaleType="centerCrop"
-            android:background="@drawable/widget_queue_album_bg"
-            android:contentDescription="Queue Song 3" />
-
-        <!-- Queue Item 4 -->
-        <ImageView
-            android:id="@+id/queue_album_4"
-            android:layout_width="52dp"
-            android:layout_height="52dp"
-            android:layout_margin="4dp"
-            android:scaleType="centerCrop"
-            android:background="@drawable/widget_queue_album_bg"
-            android:contentDescription="Queue Song 4" />
-
-        <!-- Queue Item 5 -->
-        <ImageView
-            android:id="@+id/queue_album_5"
-            android:layout_width="52dp"
-            android:layout_height="52dp"
-            android:layout_margin="4dp"
-            android:scaleType="centerCrop"
-            android:background="@drawable/widget_queue_album_bg"
-            android:contentDescription="Queue Song 5" />
-
+                 <!-- Active Fill (Clipped via Level) -->
+                 <ImageView
+                    android:id="@+id/widget_progress_fill"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/widget_wavy_progress_clip"
+                    android:scaleType="fitXY"
+                    android:contentDescription="Progress Fill" />
+             </FrameLayout>
+         </LinearLayout>
+         
     </LinearLayout>
 
 </LinearLayout>

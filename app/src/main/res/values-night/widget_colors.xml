@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Fallback colors for Dark Mode pre-Android 12 -->
+    <color name="widget_system_accent1_100">#4A5928</color> <!-- Not used in dark bg usually, but for completeness -->
+    <color name="widget_system_accent1_200">#B8D45C</color>
+    <color name="widget_system_accent1_700">#1C1B1F</color> <!-- Dark background -->
+    
+    <color name="widget_system_accent2_200">#B8D45C</color>
+    <color name="widget_system_accent2_300">#D6E4A0</color>
+    <color name="widget_system_accent2_400">#E8E4D0</color>
+    <color name="widget_system_accent2_600">#F2F2F2</color>
+    
+    <color name="widget_system_neutral1_400">#474747</color>
+    
+    <color name="widget_system_on_surface">#E6E1E5</color>
+    <color name="widget_system_on_surface_variant">#CAC4D0</color>
+    <color name="widget_system_on_secondary_container">#E8DEF8</color>
+</resources>
