@@ -51,6 +51,9 @@ val ProxyUsernameKey = stringPreferencesKey("proxyUsername")
 val ProxyPasswordKey = stringPreferencesKey("proxyPassword")
 val YtmSyncKey = booleanPreferencesKey("ytmSync")
 
+const val SYNC_COOLDOWN = 3600L // 1 hour in seconds
+val LastFullSyncKey = longPreferencesKey("last_full_sync")
+
 //val CheckForUpdatesKey = booleanPreferencesKey("checkForUpdates")
 const val KEY_SHOW_UPDATE_NOTIFICATION = "show_update_notification"
 val ShowUpdateNotificationKey = booleanPreferencesKey(KEY_SHOW_UPDATE_NOTIFICATION)

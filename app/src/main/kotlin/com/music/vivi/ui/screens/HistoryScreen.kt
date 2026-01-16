@@ -92,6 +92,7 @@ import com.music.vivi.ui.component.HideOnScrollFAB
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.NavigationTitle
+import com.music.vivi.ui.component.RoundedCheckbox
 import com.music.vivi.ui.component.SongListItem
 import com.music.vivi.ui.component.YouTubeListItem
 import com.music.vivi.ui.menu.SelectionMediaMetadataMenu
@@ -629,23 +630,18 @@ fun HistoryScreen(
             if (selection) {
                 val count = selectedEventIds.size
                 val totalCount = filteredEvents.values.sumOf { it.size }
-                IconButton(
-                    onClick = {
-                        if (count == totalCount) {
-                            selectedEventIds.clear()
-                        } else {
+                RoundedCheckbox(
+                    checked = count == totalCount,
+                    onCheckedChange = { checked ->
+                        if (checked) {
                             selectedEventIds.clear()
                             selectedEventIds.addAll(filteredEvents.values.flatten().map { it.event.id })
+                        } else {
+                            selectedEventIds.clear()
                         }
-                    }
-                ) {
-                    Icon(
-                        painter = painterResource(
-                            if (count == totalCount) R.drawable.deselect else R.drawable.select_all
-                        ),
-                        contentDescription = null
-                    )
-                }
+                    },
+                    modifier = Modifier.padding(end = 12.dp)
+                )
                 IconButton(
                     onClick = {
                         menuState.show {

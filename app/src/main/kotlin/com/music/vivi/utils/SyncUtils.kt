@@ -1,17 +1,23 @@
 package com.music.vivi.utils
 
+import android.content.Context
 import com.music.innertube.YouTube
 import com.music.innertube.models.AlbumItem
 import com.music.innertube.models.ArtistItem
 import com.music.innertube.models.PlaylistItem
 import com.music.innertube.models.SongItem
 import com.music.innertube.utils.completed
+import com.music.vivi.constants.LastFullSyncKey
+import com.music.vivi.constants.SYNC_COOLDOWN
 import com.music.vivi.db.MusicDatabase
 import com.music.vivi.db.entities.ArtistEntity
 import com.music.vivi.db.entities.PlaylistEntity
 import com.music.vivi.db.entities.PlaylistSongMap
 import com.music.vivi.db.entities.SongEntity
+import com.music.vivi.extensions.isInternetConnected
+import com.music.vivi.extensions.isSyncEnabled
 import com.music.vivi.models.toMediaMetadata
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -19,13 +25,18 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.yield
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.MutableStateFlow
+import androidx.datastore.preferences.core.edit
+import com.music.vivi.utils.dataStore
+import com.music.vivi.utils.get
 
 @Singleton
 class SyncUtils @Inject constructor(
@@ -65,7 +76,7 @@ class SyncUtils @Inject constructor(
         try {
             YouTube.playlist("LM").completed().onSuccess { page ->
                 val remoteSongs = page.songs
-                val remoteIds = remoteSongs.map { it.id }
+                val remoteIds = remoteSongs.map { it.id }.toSet()
                 val localSongs = database.likedSongsByNameAsc().first()
 
                 localSongs.filterNot { it.id in remoteIds }.forEach {
@@ -78,11 +89,12 @@ class SyncUtils @Inject constructor(
                     try {
                         val dbSong = database.song(song.id).firstOrNull()
                         val timestamp = LocalDateTime.now().minusSeconds(index.toLong())
+                        val isVideoSong = song.isVideoSong
                         database.transaction {
                             if (dbSong == null) {
-                                insert(song.toMediaMetadata()) { it.copy(liked = true, likedDate = timestamp) }
-                            } else if (!dbSong.song.liked || dbSong.song.likedDate != timestamp) {
-                                update(dbSong.song.copy(liked = true, likedDate = timestamp))
+                                insert(song.toMediaMetadata()) { it.copy(liked = true, likedDate = timestamp, isVideo = isVideoSong) }
+                            } else if (!dbSong.song.liked || dbSong.song.likedDate != timestamp || dbSong.song.isVideo != isVideoSong) {
+                                update(dbSong.song.copy(liked = true, likedDate = timestamp, isVideo = isVideoSong))
                             }
                         }
                     } catch (e: Exception) { e.printStackTrace() }
@@ -368,5 +380,9 @@ class SyncUtils @Inject constructor(
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    suspend fun tryAutoSync() {
+        runAllSyncs()
     }
 }

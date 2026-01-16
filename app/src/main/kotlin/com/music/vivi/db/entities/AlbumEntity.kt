@@ -46,7 +46,6 @@ data class AlbumEntity(
         CoroutineScope(Dispatchers.IO).launch {
             if (playlistId != null)
                 YouTube.likePlaylist(playlistId, bookmarkedAt == null)
-            this.cancel()
         }
     }
 }

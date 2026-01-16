@@ -298,6 +298,8 @@ class MusicService :
     private var consecutivePlaybackErr = 0
     private val songUrlCache = HashMap<String, Pair<String, Long>>()
     private val retryCount = HashMap<String, Int>()
+    private var retryJob: Job? = null
+    private var globalRetryCount = 0
 
     override fun onCreate() {
         super.onCreate()
@@ -768,9 +770,50 @@ class MusicService :
     }
 
     private fun waitOnNetworkError() {
+        if (waitingForNetworkConnection.value) return
+
+        if (globalRetryCount >= MAX_RETRY_COUNT) {
+            Log.w(TAG, "Max retry count ($MAX_RETRY_COUNT) reached, stopping playback")
+            stopOnError()
+            globalRetryCount = 0
+            return
+        }
+
         waitingForNetworkConnection.value = true
-        // Reset retry count so when network returns we try fresh
-        player.currentMediaItem?.mediaId?.let { retryCount.remove(it) }
+        
+        // Start a retry timer with exponential backoff
+        retryJob?.cancel()
+        retryJob = scope.launch {
+            // Exponential backoff: 3s, 6s, 12s, 24s... max 30s
+            val delayMs = minOf(3000L * (1 shl globalRetryCount), 30000L)
+            Log.d(TAG, "Waiting ${delayMs}ms before retry attempt ${globalRetryCount + 1}/$MAX_RETRY_COUNT")
+            delay(delayMs)
+            
+            if (isNetworkConnected.value && waitingForNetworkConnection.value) {
+                globalRetryCount++
+                triggerRetry()
+            }
+        }
+    }
+
+    private fun triggerRetry() {
+        waitingForNetworkConnection.value = false
+        retryJob?.cancel()
+        
+        if (player.currentMediaItem != null) {
+            // After 3+ failed retries, try to refresh the stream URL by seeking to current position
+            // This forces ExoPlayer to re-resolve the data source and get a fresh URL
+            if (globalRetryCount > 3) {
+                Log.d(TAG, "Retry count > 3, attempting to refresh stream URL")
+                val currentPosition = player.currentPosition
+                player.seekTo(player.currentMediaItemIndex, currentPosition)
+            }
+            Log.d(TAG, "Triggering network retry")
+            player.prepare()
+            if (player.playWhenReady) {
+                safePlay()
+            }
+        }
     }
 
     private fun skipOnError() {
@@ -1604,6 +1647,10 @@ class MusicService :
             return
         }
 
+        // If we reach here, we have network but still got an error
+        globalRetryCount = 0 // Reset global retry count since it's not a direct network error now
+        retryJob?.cancel()
+
         // Retry logic for "unlimited streaming" feel
         val mediaId = player.currentMediaItem?.mediaId
         if (mediaId != null) {
@@ -1891,18 +1938,15 @@ class MusicService :
     //better network handling
 
     private fun isNetworkError(error: PlaybackException): Boolean {
-        return when (error.errorCode) {
-            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
-            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT,
-            PlaybackException.ERROR_CODE_IO_UNSPECIFIED -> true
-            else -> {
-                val cause = error.cause
-                cause is java.net.ConnectException ||
-                        cause is java.net.UnknownHostException ||
-                        cause is java.net.SocketTimeoutException ||
-                        (cause is PlaybackException && isNetworkError(cause))
-            }
-        }
+        return error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED ||
+                error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT ||
+                error.errorCode == PlaybackException.ERROR_CODE_IO_INVALID_HTTP_CONTENT_TYPE ||
+                error.errorCode == PlaybackException.ERROR_CODE_IO_UNSPECIFIED ||
+                error.cause is java.io.IOException ||
+                (error.cause as? java.net.ConnectException) != null ||
+                (error.cause as? java.net.UnknownHostException) != null ||
+                (error.cause as? java.net.SocketTimeoutException) != null ||
+                (error.cause as? PlaybackException)?.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED
     }
 
     override fun onBind(intent: Intent?) = super.onBind(intent) ?: binder
@@ -1977,6 +2021,7 @@ class MusicService :
         const val PERSISTENT_AUTOMIX_FILE = "persistent_automix.data"
         const val PERSISTENT_PLAYER_STATE_FILE = "persistent_player_state.data"
         const val MAX_CONSECUTIVE_ERR = 5
+        const val MAX_RETRY_COUNT = 5
         // Constants for audio normalization
         private const val MAX_GAIN_MB = 1000 // Maximum gain in millibels (8 dB)
         private const val MIN_GAIN_MB = -1000 // Minimum gain in millibels (-8 dB)

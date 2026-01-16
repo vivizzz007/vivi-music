@@ -103,6 +103,7 @@ import com.music.vivi.ui.component.DraggableScrollbar
 import com.music.vivi.ui.component.EmptyPlaceholder
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.LocalMenuState
+import com.music.vivi.ui.component.RoundedCheckbox
 import com.music.vivi.ui.component.SongListItem
 import com.music.vivi.ui.component.SortHeader
 import com.music.vivi.ui.menu.SelectionSongMenu
@@ -996,22 +997,17 @@ fun TopPlaylistScreen(
             actions = {
                 if (selection) {
                     val count = wrappedSongs?.count { it.isSelected } ?: 0
-                    IconButton(
-                        onClick = {
-                            if (count == wrappedSongs?.size) {
-                                wrappedSongs.forEach { it.isSelected = false }
-                            } else {
+                    RoundedCheckbox(
+                        checked = count == wrappedSongs?.size,
+                        onCheckedChange = { checked ->
+                            if (checked) {
                                 wrappedSongs?.forEach { it.isSelected = true }
+                            } else {
+                                wrappedSongs?.forEach { it.isSelected = false }
                             }
                         },
-                    ) {
-                        Icon(
-                            painter = painterResource(
-                                if (count == wrappedSongs?.size) R.drawable.deselect else R.drawable.select_all
-                            ),
-                            contentDescription = null
-                        )
-                    }
+                        modifier = Modifier.padding(end = 12.dp)
+                    )
 
                     IconButton(
                         onClick = {

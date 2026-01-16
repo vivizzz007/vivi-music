@@ -88,7 +88,7 @@ class MusicDatabase(
         SortedSongAlbumMap::class,
         PlaylistSongMapPreview::class,
     ],
-    version = 26, // Change from 25 to 26
+    version = 28,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 2, to = 3),
@@ -130,7 +130,12 @@ abstract class InternalDatabase : RoomDatabase() {
                 delegate =
                 Room
                     .databaseBuilder(context, InternalDatabase::class.java, DB_NAME)
-                    .addMigrations(MIGRATION_1_2, MIGRATION_25_26)
+                    .addMigrations(
+                        MIGRATION_1_2,
+                        MIGRATION_25_26,
+                        MIGRATION_26_27,
+                        MIGRATION_27_28
+                    )
                     .build(),
             )
     }
@@ -139,6 +144,39 @@ abstract class InternalDatabase : RoomDatabase() {
 val MIGRATION_25_26 = object : Migration(25, 26) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("ALTER TABLE album ADD COLUMN description TEXT")
+    }
+}
+
+val MIGRATION_26_27 = object : Migration(26, 27) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        migrate26To28(db)
+    }
+}
+
+val MIGRATION_27_28 = object : Migration(27, 28) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        migrate26To28(db)
+    }
+}
+
+private fun migrate26To28(db: SupportSQLiteDatabase) {
+    // song table changes
+    try {
+        db.execSQL("ALTER TABLE song ADD COLUMN lyricsOffset INTEGER NOT NULL DEFAULT 0")
+    } catch (e: Exception) {
+        android.util.Log.w("MusicDatabase", "lyricsOffset may already exist", e)
+    }
+    try {
+        db.execSQL("ALTER TABLE song ADD COLUMN isVideo INTEGER NOT NULL DEFAULT false")
+    } catch (e: Exception) {
+        android.util.Log.w("MusicDatabase", "isVideo may already exist", e)
+    }
+
+    // format table changes
+    try {
+        db.execSQL("ALTER TABLE format ADD COLUMN perceptualLoudnessDb REAL DEFAULT NULL")
+    } catch (e: Exception) {
+        android.util.Log.w("MusicDatabase", "perceptualLoudnessDb may already exist", e)
     }
 }
 

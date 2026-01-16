@@ -68,6 +68,7 @@ import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.playback.queues.ListQueue
 import com.music.vivi.ui.component.HideOnScrollFAB
 import com.music.vivi.ui.component.LocalMenuState
+import com.music.vivi.ui.component.RoundedCheckbox
 import com.music.vivi.ui.component.SongListItem
 import com.music.vivi.ui.component.SortHeader
 import com.music.vivi.ui.menu.SelectionSongMenu
@@ -234,20 +235,16 @@ fun LibrarySongsScreen(
                             text = pluralStringResource(R.plurals.n_song, count, count),
                             modifier = Modifier.weight(1f)
                         )
-                        IconButton(
-                            onClick = {
-                                if (count == wrappedSongs.size) {
-                                    wrappedSongs.forEach { it.isSelected = false }
-                                } else {
+                        RoundedCheckbox(
+                            checked = count == wrappedSongs.size,
+                            onCheckedChange = { checked ->
+                                if (checked) {
                                     wrappedSongs.forEach { it.isSelected = true }
+                                } else {
+                                    wrappedSongs.forEach { it.isSelected = false }
                                 }
                             },
-                        ) {
-                            Icon(
-                                painter = painterResource(if (count == wrappedSongs.size) R.drawable.deselect else R.drawable.select_all),
-                                contentDescription = null,
-                            )
-                        }
+                        )
 
                         IconButton(
                             onClick = {

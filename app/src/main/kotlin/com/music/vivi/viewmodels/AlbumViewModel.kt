@@ -6,9 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.music.innertube.YouTube
 import com.music.innertube.models.AlbumItem
 import com.music.vivi.db.MusicDatabase
-import com.music.vivi.utils.reportException
 import com.music.vivi.utils.Wikipedia
-import com.music.vivi.repositories.YouTubeRepository
+import com.music.vivi.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +15,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,7 +23,6 @@ class AlbumViewModel
 @Inject
 constructor(
     private val database: MusicDatabase,
-    private val youtubeRepository: YouTubeRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     val albumId = savedStateHandle.get<String>("albumId")!!
@@ -66,28 +63,26 @@ constructor(
             }
         }
 
-        // Network Refresh with Caching and Auto-Update
+        // Network Refresh with direct YouTube calls
         viewModelScope.launch(Dispatchers.IO) {
             val album = database.album(albumId).first()
 
-            youtubeRepository.getAlbumFlow(albumId).collect { result ->
-                result.onSuccess { it ->
-                    playlistId.value = it.album.playlistId
-                    otherVersions.value = it.otherVersions
-                    releasesForYou.value = it.releasesForYou
-                    database.transaction {
-                        if (album == null) {
-                            insert(it)
-                        } else {
-                            update(album.album, it, album.artists)
-                        }
+            YouTube.album(albumId).onSuccess { it ->
+                playlistId.value = it.album.playlistId
+                otherVersions.value = it.otherVersions
+                releasesForYou.value = it.releasesForYou
+                database.transaction {
+                    if (album == null) {
+                        insert(it)
+                    } else {
+                        update(album.album, it, album.artists)
                     }
-                }.onFailure {
-                    reportException(it)
-                    if (it.message?.contains("NOT_FOUND") == true) {
-                        database.query {
-                            album?.album?.let(::delete)
-                        }
+                }
+            }.onFailure {
+                reportException(it)
+                if (it.message?.contains("NOT_FOUND") == true) {
+                    database.query {
+                        album?.album?.let(::delete)
                     }
                 }
             }

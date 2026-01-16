@@ -178,6 +178,7 @@ import androidx.compose.material3.FilledIconToggleButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.ui.text.style.TextOverflow
+import com.music.vivi.ui.component.RoundedCheckbox
 
 @SuppressLint("RememberReturnType")
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -1513,22 +1514,17 @@ fun LocalPlaylistScreen(
             actions = {
                 if (selection) {
                     val count = wrappedSongs.count { it.isSelected }
-                    IconButton(
-                        onClick = {
-                            if (count == wrappedSongs.size) {
-                                wrappedSongs.forEach { it.isSelected = false }
-                            } else {
+                    RoundedCheckbox(
+                        checked = count == wrappedSongs.size,
+                        onCheckedChange = { checked ->
+                            if (checked) {
                                 wrappedSongs.forEach { it.isSelected = true }
+                            } else {
+                                wrappedSongs.forEach { it.isSelected = false }
                             }
                         },
-                    ) {
-                        Icon(
-                            painter = painterResource(
-                                if (count == wrappedSongs.size) R.drawable.deselect else R.drawable.select_all
-                            ),
-                            contentDescription = null
-                        )
-                    }
+                        modifier = Modifier.padding(end = 12.dp)
+                    )
 
                     IconButton(
                         onClick = {
