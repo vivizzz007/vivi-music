@@ -117,20 +117,20 @@
 
     <string name="google">Google</string>
     <string name="discord">Discord</string>
-    <string name="advanced_login">Login with token</string>
-    <string name="token_hidden">Tap to show token</string>
-    <string name="token_shown">Tap again to copy or edit</string>
-    <string name="token_adv_login_description">This is an ADVANCED login method. As an alternative to the web portal, you may directly enter or update your login token here. For example, this can speed up logging in on multiple devices. Please note that any invalid token formats the app fails to parse will not be accepted</string>
-    <string name="ytm_sync">Automatically sync with your YouTube Music account</string>
-    <string name="yt_sync">Auto sync with account</string>
-    <string name="more_content">More content</string>
+    <string name="advanced_login">Se connecter avec un jeton</string>
+    <string name="token_hidden">Appuyez pour afficher le jeton</string>
+    <string name="token_shown">Appuyez de nouveau pour copier ou modifier</string>
+    <string name="token_adv_login_description">Il s\'agit d\'une méthode de connexion avancée. En alternative au portail web, vous pouvez saisir ou mettre à jour directement votre jeton de connexion ici. Cela peut, par exemple, accélérer la connexion sur plusieurs appareils. Veuillez noter que tout jeton invalide que l\'application ne parvient pas à analyser sera refusé.</string>
+    <string name="ytm_sync">Synchronisation automatique avec votre compte YouTube Music</string>
+    <string name="yt_sync">Synchronisation automatique avec le compte</string>
+    <string name="more_content">Plus de contenu</string>
     
     <!-- Playlist cover edit -->
-    <string name="edit_playlist_cover">Edit playlist cover</string>
-    <string name="edit_playlist_cover_note">Note: Your account must be linked to a phone number and verified on YouTube Music to change playlist cover.</string>
-    <string name="edit_playlist_cover_note_wait">After selecting an image, please wait a moment for the new cover to appear in your playlist.</string>
-    <string name="choose_from_library">Choose from library</string>
-    <string name="remove_custom_image">Remove custom image</string>
+    <string name="edit_playlist_cover">Modifier la couverture de la playlist</string>
+    <string name="edit_playlist_cover_note">Remarque : votre compte doit être lié à un numéro de téléphone et vérifié sur YouTube Music pour pouvoir modifier la couverture de la playlist.</string>
+    <string name="edit_playlist_cover_note_wait">Après avoir sélectionné une image, veuillez patienter quelques instants le temps que la nouvelle couverture apparaisse dans votre playlist.</string>
+    <string name="choose_from_library">Choisissez dans la bibliothèque</string>
+    <string name="remove_custom_image">Supprimer l\'image personnalisée</string>
 
     <!-- General -->
     <string name="general">General</string>
