@@ -69,48 +69,51 @@
     <string name="already_in_playlist">Déjà présent dans la playlist :</string>
     
     <plurals name="n_element">
-        <item quantity="one">%d element</item>
-        <item quantity="other">%d elements</item>
+        <item quantity="one">%d élément</item>
+        <item quantity="other">%d éléments</item>
     </plurals>
     <plurals name="n_time">
-        <item quantity="one">%d time</item>
-        <item quantity="other">%d times</item>
+        <item quantity="one">%d fois</item>
+        <item quantity="other">%d fois</item>
     </plurals>
 
-    <string name="seek_backward">5 seconds backward</string>
-    <string name="seek_forward">5 seconds forward</string>
-    <string name="seek_forward_dynamic">+%1$d seconds forwards</string>
-    <string name="seek_backward_dynamic">-%1$d seconds backwards</string>
-    <string name="seek_seconds_addup">Progressive seek</string>
-    <string name="seek_seconds_addup_description">If enabled,  Adds up 5 extra seconds incrementally on each seek skip</string>
+    <string name="seek_backward">5 secondes en arrière</string>
+    <string name="seek_forward">5 secondes en avant</string>
+    <string name="seek_forward_dynamic">+%1$d secondes en avant</string>
+    <string name="seek_backward_dynamic">-%1$d secondes en arrière</string>
+    <string name="seek_seconds_addup">Recherche progressive</string>
+    <string name="seek_seconds_addup_description">Si cette option est activée, elle ajoute 5 secondes supplémentaires à chaque saut de recherche.</string>
 
-    <string name="similar_content">Similar content</string>
+    <string name="similar_content">Contenu similaire</string>
+    <string name="continue_playing">Continue la lecture</string>
+    <string name="upcoming_recommendations">Recommandations à venir</string>
+    <string name="next_in_queue">Suivant dans la file d\'attente</string>
 
-    <string name="login_settings">Login settings</string>
-    <string name="general_settings">General settings</string>
+    <string name="login_settings">Paramètres de connexion</string>
+    <string name="general_settings">Paramètres généraux</string>
 
-    <string name="player_background_style">Player background style</string>
-    <string name="follow_theme">Follow theme</string>
-    <string name="gradient">Gradient</string>
-    <string name="new_player_design">New player design</string>
-    <string name="new_mini_player_design">New mini player design</string>
-    <string name="player_background_blur">Blur</string>
-    <string name="player_buttons_style">Player button colors</string>
-    <string name="default_style">Default</string>
-    <string name="secondary_color_style">Secondary</string>
-    <string name="enable_squiggly_slider">Enable squiggly slider</string>
-    <string name="enable_swipe_thumbnail">Enable swipe to change song</string>
-    <string name="swipe_song_to_add">Swipe song to the left to add it to the queue or to the right to play it next</string>
-    <string name="lyrics_click_change">Change lyrics on click</string>
-    <string name="lyrics_auto_scroll">Auto scroll lyrics</string>
-    <string name="slim">Slim</string>
-    <string name="slim_navbar">Slim bottom navigation bar</string>
-    <string name="auto_playlists">Auto playlists</string>
-    <string name="show_liked_playlist">Show \"Liked\" playlist</string>
-    <string name="show_downloaded_playlist">Show \"Downloaded\" playlist</string>
-    <string name="show_top_playlist">Show \"Top\" playlist</string>
-    <string name="show_cached_playlist">Show \"Cached\" playlist</string>
-    <string name="show_uploaded_playlist">Show \"Uploaded\" playlist</string>
+    <string name="player_background_style">Style d\'arrière-plan du lecteur</string>
+    <string name="follow_theme">Suivre le thème</string>
+    <string name="gradient">Dégradé</string>
+    <string name="new_player_design">Nouveau design du lecteur</string>
+    <string name="new_mini_player_design">Nouveau design du mini-lecteur</string>
+    <string name="player_background_blur">Flou</string>
+    <string name="player_buttons_style">Couleurs des boutons du lecteur</string>
+    <string name="default_style">Défaut</string>
+    <string name="secondary_color_style">Secondaire</string>
+    <string name="enable_squiggly_slider">Activer le curseur ondulé</string>
+    <string name="enable_swipe_thumbnail">Activer le glissement pour changer de chanson</string>
+    <string name="swipe_song_to_add">Faites glisser le titre vers la gauche pour l\'ajouter à la file d\'attente ou vers la droite pour le lire ensuite.</string>
+    <string name="lyrics_click_change">Changer les paroles en cliquant</string>
+    <string name="lyrics_auto_scroll">Défilement automatique des paroles</string>
+    <string name="slim">Fine</string>
+    <string name="slim_navbar">Barre de navigation inférieure fine</string>
+    <string name="auto_playlists">Playlists Automatiques</string>
+    <string name="show_liked_playlist">Afficher la playlist \"Favoris\"</string>
+    <string name="show_downloaded_playlist">Afficher la playlist \"Hors-Ligne\"</string>
+    <string name="show_top_playlist">Afficher la playlist \"Mon Top\"</string>
+    <string name="show_cached_playlist">Afficher la playlist \"En Cache\"</string>
+    <string name="show_uploaded_playlist">Afficher la playlist \"Téléchargés\"</string>
 
     <string name="google">Google</string>
     <string name="discord">Discord</string>
