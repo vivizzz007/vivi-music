@@ -15,17 +15,19 @@ class MusicWavesWidgetReceiver : AppWidgetProvider() {
         appWidgetIds: IntArray
     ) {
         // Trigger update through MusicService if running
-        val intent = Intent(context, MusicService::class.java).apply {
-            action = MusicPlayerWidgetReceiver.ACTION_UPDATE_WIDGET
-        }
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(intent)
-            } else {
-                context.startService(intent)
+        if (MusicService.isRunning) {
+            val intent = Intent(context, MusicService::class.java).apply {
+                action = MusicPlayerWidgetReceiver.ACTION_UPDATE_WIDGET
             }
-        } catch (e: Exception) {
-            // Service might be restricted in background
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(intent)
+                } else {
+                    context.startService(intent)
+                }
+            } catch (e: Exception) {
+                // Service might be restricted in background
+            }
         }
     }
 
