@@ -223,12 +223,18 @@
 <hr>
 
 <h2>📄 License</h2>
-
 <p>This project is licensed under the terms specified in the <a href="LICENSE">LICENSE</a> file.</p>
 
 <hr>
 
 <h2>💬 Support & Community</h2>
+
+<div align="center">
+  <a href="https://t.me/+Nen-QpiY0tk1OTE9">
+    <img src="https://img.shields.io/badge/Telegram-Join%20Community-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" alt="Join Telegram">
+  </a>
+  <p>Connect with other music lovers, get support, share feedback, and stay updated with the latest news!</p>
+</div>
 
 <ul>
   <li><strong>Issues:</strong> Report bugs or request features in <a href="https://github.com/vivizzz007/vivi-music/issues">GitHub Issues</a></li>
