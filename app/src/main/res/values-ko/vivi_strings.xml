@@ -1,0 +1,668 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- About Screen -->
+    <string name="vivi_music_title">VIVI MUSIC</string>
+    <string name="update_section">업데이트</string>
+    <string name="developer_section">개발자</string>
+    <string name="app_info_section">앱 정보</string>
+    <string name="community_section">커뮤니티</string>
+    <string name="support_development">개발 지원하기</string>
+    <string name="website">웹사이트</string>
+    <string name="donate">후원하기</string>
+
+    <!-- Media Info -->
+    <string name="song_info">노래 정보</string>
+    <string name="done">완료</string>
+    <string name="title">제목</string>
+    <string name="standard">표준</string>
+    <string name="format">형식</string>
+    <string name="duration">길이</string>
+    <string name="artist">아티스트</string>
+    <string name="itag">Itag</string>
+
+    <!-- Playlist Actions -->
+    <string name="queue_button">대기열</string>
+    <string name="play_button">재생</string>
+    <string name="delete_button">삭제</string>
+    <string name="more">더보기</string>
+
+    <!-- Content Descriptions -->
+    <string name="share_playlist">재생목록 공유</string>
+    <string name="share_song">노래 공유</string>
+    <string name="share_album">앨범 공유</string>
+    <string name="share_artist">아티스트 공유</string>
+    <string name="download_song">노래 다운로드</string>
+    <string name="download_album">앨범 다운로드</string>
+    <string name="artist_icon">아티스트 아이콘</string>
+    <string name="album_icon">앨범 아이콘</string>
+    <string name="library_icon">라이브러리 아이콘</string>
+    <string name="delete_icon">삭제 아이콘</string>
+    <string name="info_icon">정보 아이콘</string>
+    <string name="view_information">정보 보기</string>
+    <string name="shuffle_icon">셔플 아이콘</string>
+    <string name="radio_icon">라디오 아이콘</string>
+    <string name="select_icon">선택 아이콘</string>
+    <string name="select_songs">노래 선택</string>
+    <string name="edit_icon">수정 아이콘</string>
+    <string name="refresh_icon">새로고침 아이콘</string>
+    <string name="equalizer_icon">이퀄라이저 아이콘</string>
+    <string name="audio_settings">오디오 설정</string>
+    <string name="advanced_icon">고급 아이콘</string>
+    <string name="romanize_icon">로마자 표기 아이콘</string>
+    <string name="romanization_enabled">로마자 표기 활성화됨</string>
+    <string name="romanization_disabled">로마자 표기 비활성화됨</string>
+    <string name="swipe_icon">스와이프 아이콘</string>
+    <string name="subscribe_icon">구독 아이콘</string>
+    <string name="share_icon">공유 아이콘</string>
+    <string name="songs_icon">노래 아이콘</string>
+    <string name="favorite_icon">즐겨찾기 아이콘</string>
+    <string name="remove_bookmark">북마크 제거</string>
+    <string name="bookmark_playlist">재생목록 북마크</string>
+    <string name="remove_permanently">영구적으로 제거</string>
+    <string name="rename_playlist">재생목록 이름 변경</string>
+    <string name="developer">개발자</string>
+
+    <!-- Loading Screen -->
+    <string name="progress_percent">진행률 %1$d%%</string>
+
+    <!-- Playlist Screen -->
+    <string name="this_collection">이 컬렉션</string>
+    <string name="playlist_text">재생목록</string>
+
+    <!-- Changelog -->
+    <string name="changelog_title">변경 기록</string>
+    <string name="loading_changelog">변경 기록 불러오는 중…</string>
+    <string name="failed_to_load_changelog">변경 기록을 불러오지 못했습니다</string>
+    <string name="view_on_github">GitHub에서 보기</string>
+    <string name="changes">변경 사항</string>
+    <string name="current">현재</string>
+    <string name="old_releases">이전 버전</string>
+    <string name="cached">캐시됨</string>
+
+    <!-- Experimental -->
+    <string name="select_apk_variant">APK 변형 선택</string>
+    <string name="unable_to_fetch_apk_variants">APK 변형을 가져올 수 없습니다</string>
+    <string name="send_feedback">피드백 보내기</string>
+    <string name="send_email">이메일 보내기</string>
+    <string name="reset_button">재설정</string>
+    <string name="share_button">공유</string>
+    <string name="delete_button_menu">삭제</string>
+    <string name="advanced_settings_experimental">고급 설정 및 실험적 기능</string>
+    <string name="updates_section">업데이트</string>
+    <string name="storage_section">저장공간</string>
+    <string name="debugging_section">디버깅</string>
+    <string name="support_section">지원</string>
+    <string name="crash_logs">충돌 로그</string>
+    <string name="send_feedback_title">피드백 보내기</string>
+    <string name="reset_app">앱 재설정</string>
+    <string name="open_with">다음으로 열기</string>
+    <string name="just_now">방금 전</string>
+    <string name="selected">선택됨</string>
+    <string name="delete_content_desc">삭제</string>
+    <string name="universal_recommended">Universal (권장)</string>
+    <string name="arm_older_phones">ARM - %1$s MB (구형 폰)</string>
+    <string name="x86_64_intel_tablets">x86_64 - %1$s MB (Intel 태블릿)</string>
+    <string name="x86_emulators">x86 - %1$s MB (에뮬레이터)</string>
+    <string name="minutes_ago">%1$d분 전</string>
+    <string name="hours_ago">%1$d시간 전</string>
+    <string name="days_ago">%1$d일 전</string>
+
+    <!-- Toast Messages -->
+    <string name="all_crash_logs_cleared">모든 충돌 로그 지워짐</string>
+    <string name="crash_log_deleted">충돌 로그 삭제됨</string>
+    <string name="please_install_web_browser">웹 브라우저를 설치해주세요</string>
+    <string name="error_message">오류: %1$s</string>
+    <string name="unable_to_open_email_app">이메일 앱을 열 수 없습니다: %1$s</string>
+    <string name="error_sharing_log">로그 공유 오류: %1$s</string>
+    <string name="no_apk_found">지난 프리릴리즈에서 APK를 찾을 수 없습니다</string>
+    <string name="enable_install_unknown_apps">\'알 수 없는 앱 설치\'를 활성화하고 다시 시도하세요.</string>
+    <string name="download_error">다운로드 오류: %1$s</string>
+    <string name="download_started">다운로드 시작됨…</string>
+    <string name="download_completed">다운로드 완료!</string>
+    <string name="download_completed_file_not_found">다운로드 완료되었으나 파일을 찾을 수 없음</string>
+    <string name="download_completed_uri_not_found">다운로드 완료되었으나 URI를 찾을 수 없음</string>
+    <string name="download_failed_error">다운로드 실패: %1$s</string>
+    <string name="download_tracking_failed">다운로드 추적 실패</string>
+    <string name="download_tracking_error">다운로드 추적 오류: %1$s</string>
+    <string name="downloaded_file_not_found">다운로드된 파일을 찾을 수 없음</string>
+    <string name="failed_to_track_download">다운로드 완료 추적 실패</string>
+    <string name="apk_file_not_found">APK 파일을 찾을 수 없음</string>
+    <string name="no_app_to_install_apks">APK를 설치할 앱이 없습니다</string>
+    <string name="installation_error">설치 오류: %1$s</string>
+    <string name="failed_to_create_image">이미지 생성 실패: %1$s</string>
+    <string name="failed_to_parse_proxy_url">프록시 URL 파싱 실패.</string>
+
+    <!-- Notification -->
+    <string name="starting">시작 중</string>
+    <string name="playing">재생 중</string>
+    <string name="paused">일시정지됨</string>
+
+    <!-- Backup Restore -->
+    <string name="no_valid_songs_csv">CSV 파일에서 유효한 노래를 찾을 수 없음</string>
+    <string name="csv_file_empty_invalid">CSV 파일이 비어 있거나 유효하지 않음</string>
+    <string name="backup_not_supported">이 앱은 이 백업 파일을 지원하지 않습니다</string>
+    <string name="backup_corrupted">백업 파일이 손상되어 복원할 수 없습니다</string>
+    <string name="backup_format_not_supported">이 앱은 이 백업 파일 형식을 지원하지 않습니다</string>
+
+    <!-- ViewModels -->
+    <string name="guest">게스트</string>
+    <string name="failed_to_load_playlist">재생목록 로드 실패</string>
+
+    <!-- Additional Content Descriptions -->
+    <string name="song_art">노래 아트</string>
+    <string name="playlist_art">재생목록 아트</string>
+    <string name="play_next_icon">다음 재생 아이콘</string>
+    <string name="add_to_queue_icon">대기열에 추가 아이콘</string>
+    <string name="start_radio_icon">라디오 시작 아이콘</string>
+    <string name="add_to_playlist_icon">재생목록에 추가 아이콘</string>
+
+    <!-- Menu Actions -->
+    <string name="play_similar_songs">비슷한 노래 재생</string>
+    <string name="add_to_existing_playlist">기존 재생목록에 추가</string>
+    <string name="save_to_your_music">내 음악에 저장</string>
+    <string name="remove_from_your_music">내 음악에서 제거</string>
+    <string name="suggestions_available">제안 항목 있음</string>
+
+    <!-- Download Notifications -->
+    <string name="update_failed">업데이트 실패</string>
+    <string name="failed_to_download_version">버전 %1$s 다운로드 실패</string>
+    <string name="failed_to_download_version_error">버전 %1$s 다운로드 실패\n%2$s</string>
+    <string name="server_error">서버 오류: %1$d</string>
+
+    <!-- Media Info -->
+    <string name="no_description_available">설명 없음</string>
+    <string name="views_count">조회수 %1$s회</string>
+    <string name="likes_count">좋아요 %1$s개</string>
+
+    <!-- Backup Restore -->
+    <string name="save_data_settings">데이터 및 설정 저장</string>
+    <string name="restore_from_backup">백업 파일에서 복원</string>
+
+    <!-- Appearance Settings -->
+    <string name="dynamic_color_theming">동적 색상 테마</string>
+    <string name="accent_color">강조 색상</string>
+    <string name="select_static_theme_color">정적 테마 색상 선택</string>
+    <string name="high_refresh_rate">높은 주사율</string>
+    <string name="high_refresh_rate_desc">더 부드러운 애니메이션을 위해 120Hz/최대 주사율 활성화</string>
+
+    <!-- Backup Restore Additional -->
+    <string name="developer_name">VIVIDH P ASHOKAN</string>
+    <string name="app_developer">앱 개발자</string>
+    <string name="installed_date_title">설치 날짜</string>
+    <string name="view_version_history">버전 기록 보기</string>
+    <string name="github_repository">GitHub 저장소</string>
+    <string name="view_source_code">소스 코드 보기</string>
+    <string name="see_community_heroes">커뮤니티 영웅 보기</string>
+    <string name="report_issue_title_about">문제 신고</string>
+    <string name="bugs_feedback">버그 및 피드백</string>
+
+    <!-- Crash Page -->
+    <string name="copy_log_content">로그 내용 복사</string>
+    <string name="copies_crash_log_clipboard">충돌 로그를 클립보드에 복사합니다.</string>
+    <string name="send_via_gmail">Gmail로 보내기</string>
+    <string name="copies_log_opens_gmail">로그를 복사하고 Gmail을 엽니다.</string>
+    <string name="report_via_github_crash">GitHub를 통해 신고</string>
+    <string name="opens_github_report_issue">문제를 신고하기 위해 GitHub를 엽니다.</string>
+    <string name="restart_vivi">ViVi 재시작</string>
+    <string name="restarts_vivi">ViVi를 재시작합니다.</string>
+
+    <!-- Settings Screen Subtitles -->
+    <string name="customize_theme_display_settings">테마 및 디스플레이 설정 사용자 지정</string>
+    <string name="audio_quality_playback_settings">오디오 품질 및 재생 설정</string>
+    <string name="language_content_preferences">언어 및 콘텐츠 환경설정</string>
+    <string name="privacy_security_settings">개인정보 및 보안 설정</string>
+    <string name="manage_storage_downloads">저장공간 및 다운로드 관리</string>
+    <string name="backup_restore_data">데이터 백업 및 복원</string>
+    <string name="app_information_legal">앱 정보 및 법적 고지</string>
+
+    <!-- Player Settings -->
+    <string name="select_playback_audio_quality">재생 오디오 품질 선택</string>
+    <string name="remove_silent_parts">무음 부분 제거</string>
+    <string name="normalize_audio_levels">오디오 레벨 정규화</string>
+    <string name="stop_playback_when_closed">앱이 닫힐 때 재생 중지</string>
+    <string name="pause_on_zero_volume">볼륨 0일 때 일시정지/재개</string>
+    <string name="pause_on_zero_volume_description">볼륨이 0일 때 자동으로 재생을 일시정지하고 볼륨을 높이면 재개합니다</string>
+    <string name="smart_shuffle">스마트 셔플</string>
+    <string name="smart_shuffle_desc">비슷한 노래나 같은 아티스트의 노래가 연속으로 재생되지 않도록 합니다</string>
+    <string name="smart_suggestions">무한 대기열</string>
+    <string name="smart_suggestions_desc">대기열이 끝나면 개인화된 추천으로 음악을 계속 재생합니다</string>
+    <string name="smart_pause">스마트 일시정지</string>
+    <string name="smart_pause_desc">이어폰이 연결 해제되면 자동으로 일시정지합니다</string>
+
+    <!-- Appearance Settings -->
+    <string name="dynamic_color_theming_subtitle">동적 색상</string>
+    <string name="use_pure_black_dark_theme">어두운 테마에 완전 검정 사용</string>
+    <string name="settings_shape_tertiary_color">설정 모양 3차 색상</string>
+    <string name="use_tertiary_color_icon_backgrounds">아이콘 배경에 3차 색상 사용</string>
+    <string name="modern_player_interface">현대적인 플레이어 인터페이스</string>
+    <string name="modern_mini_player">현대적인 미니 플레이어</string>
+    <string name="enable_rotating_clover_thumbnail">회전하는 클로버 썸네일 활성화</string>
+    <string name="swipe_on_player_thumbnail">스와이프하여 최소화</string>
+    <string name="click_change_lyrics_position">클릭하여 가사 위치 변경</string>
+    <string name="auto_scroll_lyrics_subtitle">가사 자동 스크롤</string>
+    <string name="apple_lyrics">Applemusic 가사</string>
+    <string name="highlight_words_discretely">노래할 때 단어를 눈에 띄지 않게 강조</string>
+    <string name="letter_by_letter_animation">글자별 애니메이션</string>
+    <string name="animate_lyrics_letter_by_letter">단어 동기화가 불가능할 때 글자별로 가사 애니메이션</string>
+    <string name="select_default_tab">기본으로 열릴 탭 선택</string>
+    <string name="swipe_add_songs_queue">밀어서 대기열에 노래 추가</string>
+    <string name="compact_navigation_bar">컴팩트한 탐색 바</string>
+    <string name="swipe_remove_songs">밀어서 노래 제거</string>
+    <string name="change_size_items_library">라이브러리 아이템 크기 변경</string>
+    <string name="display_liked_songs_playlist">좋아요 표시한 곡 재생목록 표시</string>
+    <string name="display_downloaded_playlist">다운로드 재생목록 표시</string>
+    <string name="display_top_songs_playlist">인기 곡 재생목록 표시</string>
+    <string name="display_cached_playlist">캐시된 재생목록 표시</string>
+    <string name="display_uploaded_playlist">업로드된 재생목록 표시</string>
+    <string name="apple_music">Apple Music</string>
+    <string name="show_now_playing">지금 재생 중 표시</string>
+    <string name="enable_now_playing_text_on_player_background">Apple Music 스타일의 플레이어 배경에 지금 재생 중 텍스트 활성화</string>
+
+    <!-- Content Settings -->
+    <string name="filter_explicit_content">유해 콘텐츠 필터링</string>
+    <string name="configure_in_system_settings">시스템 설정에서 구성</string>
+    <string name="hide_video_content_songs">노래의 비디오 콘텐츠 숨기기</string>
+    <string name="route_traffic_through_proxy">프록시를 통해 트래픽 라우팅</string>
+    <string name="configure_proxy_settings">프록시 설정 구성</string>
+    <string name="betterlyrics_lyrics">BetterLyrics 가사</string>
+    <string name="enable_betterlyrics_lyrics_source">BetterLyrics를 가사 소스로 활성화</string>
+    <string name="lrclib_lyrics">LrcLib 가사</string>
+    <string name="enable_lrclib_lyrics_source">LrcLib를 가사 소스로 활성화</string>
+    <string name="kugou_lyrics">Kugou 가사</string>
+    <string name="enable_kugou_lyrics_source">Kugou를 가사 소스로 활성화</string>
+
+    <!-- Privacy Settings -->
+    <string name="stop_recording_listening_activity">청취 활동 기록 중지</string>
+    <string name="delete_all_listening_history">모든 청취 기록 삭제</string>
+    <string name="stop_recording_search_queries">검색 검색어 기록 중지</string>
+    <string name="delete_all_search_history">모든 검색 기록 삭제</string>
+
+    <!-- Backup and Restore -->
+    <string name="import_playlists_m3u_files">M3U 파일에서 재생목록 가져오기</string>
+    <string name="import_playlists_csv_files">CSV 파일에서 재생목록 가져오기</string>
+
+    <!-- Storage Settings -->
+    <string name="downloaded_songs_title">다운로드한 노래</string>
+    <string name="remove_all_downloaded_songs">모든 다운로드한 노래 제거</string>
+    <string name="free_up_cached_song_data">캐시된 노래 데이터 확보</string>
+    <string name="free_up_cached_images">캐시된 이미지 확보</string>
+
+    <!-- Integrations -->
+    <string name="submit_playback_history_lastfm">Last.fm에 재생 기록 제출</string>
+    <string name="show_current_song_lastfm_profile">Last.fm 프로필에 현재 노래 표시</string>
+    <string name="connect_with_discord">Discord와 연결</string>
+    <string name="connect_with_lastfm">Last.fm과 연결</string>
+    <string name="login_using_token">토큰으로 로그인</string>
+    <string name="show_current_song_discord">Discord에 현재 노래 표시</string>
+    <string name="listening_to_vivimusic">Vivimusic 듣는 중</string>
+
+    <!-- Romanization Settings -->
+    <string name="romanize_japanese_lyrics_subtitle">일본어 가사 로마자 표기</string>
+    <string name="romanize_korean_lyrics_subtitle">한국어 가사 로마자 표기</string>
+    <string name="romanize_cyrillic_lyrics_subtitle">키릴 문자 가사 로마자 표기</string>
+
+    <!-- Playlist Screens -->
+    <string name="cache_songs">캐시된 노래</string>
+    <string name="auto_playlist">자동 재생목록</string>
+    <string name="selection">선택</string>
+    <string name="suggestions">무한 대기열</string>
+
+    <!-- Content Descriptions -->
+    <string name="shuffle_content_desc">셔플</string>
+    <string name="add_to_queue_content_desc">대기열에 추가</string>
+    <string name="share_playlist_content_desc">재생목록 공유</string>
+    <string name="more_options_content_desc">더 많은 옵션</string>
+    <string name="sync_content_desc">동기화</string>
+    <string name="edit_content_desc">수정</string>
+    <string name="selected_content_desc">선택됨</string>
+    <string name="artist_image_content_desc">아티스트 이미지</string>
+    <string name="radio_content_desc">라디오</string>
+    <string name="share_artist_content_desc">아티스트 공유</string>
+    <string name="radio_icon_content_desc">라디오 아이콘</string>
+    <string name="shuffle_icon_content_desc">셔플 아이콘</string>
+    <string name="subscribe_icon_content_desc">구독 아이콘</string>
+    <string name="share_icon_content_desc">공유 아이콘</string>
+    <string name="album_art_content_desc">앨범 아트</string>
+    <string name="play_content_desc">재생</string>
+    <string name="share_album_content_desc">앨범 공유</string>
+    <string name="download_album_content_desc">앨범 다운로드</string>
+    <string name="artist_icon_content_desc">아티스트 아이콘</string>
+    <string name="play_next_icon_content_desc">다음 재생 아이콘</string>
+    <string name="add_to_queue_icon_content_desc">대기열에 추가 아이콘</string>
+    <string name="add_to_playlist_icon_content_desc">재생목록에 추가 아이콘</string>
+    <string name="refresh_icon_content_desc">새로고침 아이콘</string>
+    <string name="songs_icon_content_desc">노래 아이콘</string>
+    <string name="start_radio_icon_content_desc">라디오 시작 아이콘</string>
+
+    <!-- News Screen -->
+    <string name="whats_new_title">새로운 기능</string>
+    <string name="no_news_available">사용 가능한 뉴스 없음.</string>
+    <string name="reported_bugs">신고된 버그</string>
+    <string name="fixed_bugs">수정된 버그</string>
+    <string name="type_bug_report">버그 리포트</string>
+    <string name="type_fix">수정</string>
+    <string name="type_feature">기능</string>
+    <string name="type_news">뉴스</string>
+    <string name="home_screen">홈 화면</string>
+
+    <!-- Update Settings -->
+    <string name="show_news_icon">뉴스 아이콘 표시</string>
+    <string name="show_news_icon_desc">상단 바에 \'새로운 기능\' 아이콘 표시</string>
+    <string name="edit_icon_content_desc">수정 아이콘</string>
+    <string name="favorite_icon_content_desc">즐겨찾기 아이콘</string>
+    <string name="delete_icon_content_desc">삭제 아이콘</string>
+    <string name="edit_content_desc_menu">수정</string>
+    <string name="refetch_content_desc">새로고침</string>
+    <string name="search_content_desc">검색</string>
+    <string name="romanize_icon_content_desc">로마자 표기 아이콘</string>
+    <string name="swipe_icon_content_desc">스와이프 아이콘</string>
+    <string name="artist_art_content_desc">아티스트 아트</string>
+    <string name="info_icon_content_desc">정보 아이콘</string>
+
+    <!-- Additional Menu Text -->
+    <string name="play_text">재생</string>
+    <string name="artist_text">아티스트</string>
+    <string name="radio_text">라디오</string>
+    <string name="shuffle_text">셔플</string>
+    <string name="audio_quality_title">오디오 품질</string>
+    <string name="progress_percentage">진행률 %1$s%%</string>
+    <string name="songs_count">노래 (%1$d)</string>
+    <string name="check_out_top_share">Vivi Music에서 내 상위 %1$d 확인!\n\n</string>
+    <string name="by_text">By </string>
+    <string name="is_a_playlist">은(는) 재생목록입니다</string>
+    <string name="album_text">앨범</string>
+    <string name="playlist_separator"> • </string>
+
+
+    <!-- Share and Email Messages -->
+    <string name="check_out_playlist_share">YouTube Music에서 %1$s 확인: %2$s</string>
+    <string name="check_out_album_share">YouTube Music에서 %2$s의 %1$s 확인: %3$s</string>
+    <string name="vivi_music_crash_report">ViVi Music 충돌 보고서</string>
+    <string name="crash_log_email_body">충돌 로그 (클립보드에도 복사됨):\n\n%1$s\n\n기기 정보:\n%2$s</string>
+    <string name="feedback_for_vivi_music_app">Vivi Music 앱 피드백</string>
+    <string name="please_write_feedback">여기에 피드백을 작성해주세요...</string>
+    <string name="crash_log_subject">충돌 로그: %1$s</string>
+    <string name="crash_log_attached">Vivi Music 앱 클래시 로그 첨부됨</string>
+    <string name="vivi_music_issue_report">Vivi Music 문제 보고서 - v%1$s</string>
+
+    <!-- Experimental Settings -->
+    <string name="updates_title">업데이트</string>
+    <string name="apk_variant">APK 변형</string>
+    <string name="clear_downloaded_apks">다운로드된 APK 지우기</string>
+    <string name="open_crash_logs_folder">충돌 로그 폴더 열기</string>
+    <string name="crash_logs_folder_path">내부 저장소/Android/data/.../crash_logs</string>
+    <string name="email_or_github_issue">이메일 또는 GitHub 문제</string>
+    <string name="clear_all_settings_and_data">모든 설정 및 데이터 지우기</string>
+
+    <!-- Bluetooth -->
+    <string name="bluetooth_permission_required">Bluetooth 권한 필요</string>
+    <string name="battery_content_desc">배터리 </string>
+    <string name="wired_headphones">유선 헤드폰</string>
+    <string name="hdmi">HDMI</string>
+    <string name="phone_speaker">폰 스피커</string>
+
+    <!-- Content Descriptions -->
+    <string name="github_content_desc">GitHub</string>
+    <string name="back_content_desc">뒤로</string>
+
+    <!-- Notification Channel -->
+    <string name="controls_for_music_playback">음악 재생 컨트롤</string>
+
+    <!-- Account Settings -->
+    <string name="youtube_sync">YouTube 동기화</string>
+    <string name="log_out_from_account">계정에서 로그아웃</string>
+
+    <!-- Content Descriptions -->
+    <string name="bhim_content_desc">BHIM</string>
+    <string name="github_profile_content_desc">GitHub 프로필</string>
+
+    <!-- Notification Channels -->
+    <string name="download_progress_channel">다운로드 진행률</string>
+    <string name="download_progress_description">앱 업데이트 다운로드 진행률 표시</string>
+    <string name="app_updates_channel">앱 업데이트</string>
+    <string name="app_updates_description">앱 업데이트 알림</string>
+
+    <!-- Error Messages -->
+    <string name="error_loading_version">버전 로드 오류</string>
+    <string name="error_loading_date">날짜 로드 오류</string>
+
+    <!-- Changelog -->
+    <string name="changes_default">변경 사항</string>
+
+    <!-- Download Notifications -->
+    <string name="downloading_update">업데이트 다운로드 중</string>
+    <string name="version_file_size">버전 %1$s • %2$s</string>
+    <string name="version_progress">버전 %1$s • %2$d%%</string>
+    <string name="update_ready">업데이트 준비됨</string>
+    <string name="tap_to_install_version">버전 %1$s 설치하려면 탭하세요</string>
+
+    <!-- Beta Update Labels -->
+    <string name="version_label">버전</string>
+    <string name="apk_size_label">APK 크기</string>
+    <string name="upload_date_label">업로드 날짜</string>
+    <string name="upload_time_label">업로드 시간</string>
+
+    <!-- Settings Screen Update Status -->
+    <string name="update_available_title">업데이트 가능</string>
+    <string name="automatic_check_disabled">자동 확인 비활성화됨 • V%1$s</string>
+    <string name="version_now_available">%1$s 사용 가능</string>
+    <string name="not_signed_in_subtitle">로그인하려면 탭하세요</string>
+
+    <!-- Menu Items -->
+    <string name="remove_offline">오프라인 제거</string>
+    <string name="downloading_ellipsis">다운로드 중…</string>
+    <string name="saved">저장됨</string>
+    <string name="saving">저장 중</string>
+    <string name="download_song_text">노래 다운로드</string>
+    <string name="download_album_text">앨범 다운로드</string>
+    <string name="artist_label">아티스트</string>
+    <string name="songs_label">노래</string>
+    <string name="album_label">앨범</string>
+    <string name="view_full_album">전체 앨범 보기</string>
+    <string name="play_next_label">다음 재생</string>
+    <string name="play_after_current">현재 곡 다음에 재생</string>
+    <string name="add_to_queue_label">대기열에 추가</string>
+    <string name="add_to_queue_end">대기열 끝에 추가</string>
+    <string name="add_to_playlist_label">재생목록에 추가</string>
+    <string name="add_to_existing_playlist_subtitle">기존 재생목록에 추가</string>
+    <string name="refresh_metadata">메타데이터 새로고침</string>
+    <string name="update_album_information">앨범 정보 업데이트</string>
+    <string name="delete_from_listening_history">청취 기록에서 삭제</string>
+
+    <!-- Playlist Actions -->
+    <string name="queue_label">대기열</string>
+    <string name="shuffle_label">셔플</string>
+    <string name="this_collection_text">이 컬렉션</string>
+    <string name="playlist_description_suffix">당신의 청취 즐거움을 위해 엄선된 트랙을 제공합니다.</string>
+
+    <!-- Favorite Actions -->
+    <string name="remove_from_favorites">즐겨찾기에서 제거</string>
+    <string name="add_to_favorites">즐겨찾기에 추가</string>
+    <string name="unsubscribe">구독 취소</string>
+    <string name="following_this_artist">이 아티스트 팔로우 중</string>
+    <string name="follow_this_artist">이 아티스트 팔로우</string>
+
+    <!-- Menu Items Additional -->
+    <string name="view_artist_page">아티스트 페이지 보기</string>
+    <string name="view_full_album_subtitle">전체 앨범 보기</string>
+    <string name="audio_settings_subtitle">오디오 설정</string>
+    <string name="download_playlist_text">재생목록 다운로드</string>
+    <string name="start_radio_label">라디오 시작</string>
+    <string name="play_similar_songs_subtitle">비슷한 노래 재생</string>
+    <string name="play_in_random_order">무작위 순서로 재생</string>
+    <string name="edit_playlist_label">재생목록 수정</string>
+    <string name="edit_song_details">노래 세부정보 수정</string>
+    <string name="remove_from_history_label">기록에서 제거</string>
+    <string name="remove_from_playlist_label">재생목록에서 제거</string>
+    <string name="delete_from_this_playlist">이 재생목록에서 삭제</string>
+    <string name="remove_from_cache_label">캐시에서 제거</string>
+    <string name="clear_cached_data">캐시된 데이터 지우기</string>
+    <string name="copied_title">제목 복사됨</string>
+    <string name="copied_artist">아티스트 복사됨</string>
+    <string name="more_label">더보기</string>
+    <string name="sync_label">동기화</string>
+    <string name="edit_label">수정</string>
+
+    <!-- Settings Integration -->
+    <string name="discord_account">Discord 계정</string>
+    <string name="song_title_fallback">노래 제목</string>
+    <string name="artist_fallback">아티스트</string>
+    <string name="listen_on_youtube_music">YouTube Music에서 듣기</string>
+    <string name="visit_vivimusic">Vivimusic 방문</string>
+    <string name="lastfm_account">Last.fm 계정</string>
+    <string name="not_logged_in_fallback">로그인되지 않음</string>
+    <string name="tertiary_color_style">3차 색상 스타일</string>
+    <string name="lrclib_provider">LrcLib</string>
+    <string name="kugou_provider">KuGou</string>
+
+    <!-- Experimental -->
+    <string name="reset_app_data_question">앱 데이터를 재설정하시겠습니까?</string>
+    <string name="reset_app_data_description">이 작업은 모든 설정, 캐시 및 로컬 데이터를 삭제합니다. 앱이 다시 시작되며 모든 것을 다시 구성해야 합니다. 이 작업은 취소할 수 없습니다.</string>
+    <string name="crash_logs_title">충돌 로그</string>
+    <string name="clear_all">모두 지우기</string>
+    <string name="no_crash_logs_found">충돌 로그를 찾을 수 없음</string>
+    <string name="app_hasnt_crashed_recently">앱이 최근에 충돌하지 않았습니다</string>
+    <string name="share_label">공유</string>
+    <string name="no_downloaded_files">다운로드된 파일 없음</string>
+    <string name="apk_files_cleared_successfully">APK 파일이 성공적으로 지워졌습니다</string>
+    <string name="choose_email_app">이메일 앱 선택</string>
+    <string name="share_crash_log">충돌 로그 공유</string>
+    <string name="crash_log_path">충돌 로그 경로</string>
+    <string name="failed_to_clear_apk_files">APK 파일 지우기 실패</string>
+    <string name="no_apk_files_to_clear">지울 APK 파일 없음</string>
+    <string name="no_crashes_detected">충돌 감지되지 않음</string>
+    <string name="short_vivi_crash_info">ViVi 충돌 요약 정보</string>
+    <string name="vivi_crash_log">ViVi 충돌 로그</string>
+
+    <!-- Menu Items Additional 2 -->
+    <string name="remove_from_favorites_menu">즐겨찾기에서 제거</string>
+    <string name="add_to_favorites_menu">즐겨찾기에 추가</string>
+    <string name="delete_playlist_label">재생목록 삭제</string>
+    <string name="refresh_metadata_label">메타데이터 새로고침</string>
+    <string name="update_song_information">노래 정보 업데이트</string>
+    <string name="song_details_label">노래 세부정보</string>
+    <string name="share_this_artist">이 아티스트 공유</string>
+    <string name="playlist_fallback">재생목록</string>
+    <string name="select_label">선택</string>
+    <string name="artist_info_fallback">아티스트 정보</string>
+    <string name="artist_link">아티스트 링크</string>
+
+    <!-- Beta Update Additional -->
+    <string name="downloading_vivi_music_apk">Vivi Music APK 다운로드 중</string>
+    <string name="downloading_vivi_music_prerelease">Vivi Music 프리릴리즈 다운로드 중</string>
+    <string name="cannot_resume_download">다운로드를 재개할 수 없습니다</string>
+    <string name="external_storage_not_found">외부 저장소를 찾을 수 없습니다</string>
+    <string name="file_already_exists">파일이 이미 존재합니다</string>
+    <string name="http_data_error">HTTP 데이터 오류</string>
+    <string name="insufficient_storage_space">저장 공간 부족</string>
+    <string name="too_many_redirects">너무 많은 리디렉션</string>
+    <string name="unhandled_http_code">처리되지 않은 HTTP 코드</string>
+    <string name="ready_to_install">설치 준비됨</string>
+    <string name="checking_for_update">업데이트 확인 중</string>
+    <string name="failed_to_load">로드 실패</string>
+    <string name="no_update">업데이트 없음</string>
+    <string name="beta_updater">베타 업데이터</string>
+    <string name="download_label">다운로드</string>
+
+    <!-- Changelog -->
+    <string name="error_loading_changelog">변경 기록 로드 오류</string>
+    <string name="no_old_releases_with_changelog">변경 기록이 있는 이전 릴리즈 없음</string>
+    <string name="failed_to_fetch_changelog">변경 기록 가져오기 실패</string>
+
+    <!-- Notification -->
+    <string name="playing_status">재생 중</string>
+    <string name="paused_status">일시정지됨</string>
+
+    <!-- Backup and Restore -->
+    <string name="app_does_not_support_backup_file">이 앱은 이 백업 파일을 지원하지 않습니다</string>
+    <string name="backup_file_corrupted">백업 파일이 손상되어 복원할 수 없습니다</string>
+    <string name="app_does_not_support_backup_missing_db">이 앱은 이 백업 파일을 지원하지 않습니다 (DB 누락)</string>
+    <string name="backup_file_empty">백업 파일이 비어 있습니다. 이 앱은 이 파일에서 복원할 수 없습니다</string>
+    <string name="app_does_not_support_backup_format">이 앱은 이 백업 파일 형식을 지원하지 않습니다</string>
+    <string name="cannot_restore_permission_denied">복원할 수 없음: 권한 거부됨</string>
+    <string name="app_does_not_support_backup_with_error">이 앱은 이 백업 파일을 지원하지 않습니다: %1$s</string>
+    <string name="csv_file_empty_or_invalid">CSV 파일이 비어 있거나 유효하지 않습니다</string>
+    <string name="failed_to_read_csv_file">CSV 파일 읽기 실패: %1$s</string>
+    <string name="no_valid_songs_in_csv">CSV 파일에서 유효한 노래를 찾을 수 없습니다</string>
+
+    <!-- Charts -->
+
+    <!-- Create Playlist -->
+    <string name="not_signed_in_warning">로그인되지 않음</string>
+
+    <!-- Android Auto / Widget -->
+    <string name="not_playing">재생 중 아님</string>
+    <string name="tap_to_play">탭하여 재생</string>
+    <string name="automix">오토믹스</string>
+
+    <string name="play_next_icon_desc">다음 재생 아이콘</string>
+    <string name="add_to_queue_icon_desc">대기열에 추가 아이콘</string>
+    <string name="artist_icon_desc">아티스트 아이콘</string>
+
+    <!-- Menu Labels and Subtitles -->
+    <string name="play_after_current_subtitle">현재 곡 다음에 재생</string>
+    <string name="add_to_queue_end_subtitle">대기열 끝에 추가</string>
+    <string name="share_this_song">이 노래 공유</string>
+    <string name="share_this_song_subtitle">이 노래 공유</string>
+    <string name="share_this_artist_subtitle">이 아티스트 공유</string>
+    <string name="share_this_album">이 앨범 공유</string>
+    <string name="share_this_album_subtitle">이 앨범 공유</string>
+    <string name="share_artist_link">아티스트 링크 공유</string>
+    <string name="artist_details">아티스트 세부정보</string>
+    <string name="view_album_label">앨범으로 이동</string>
+    <string name="view_album_details">앨범 세부정보 보기</string>
+    <string name="view_artist_label">아티스트로 이동</string>
+    <string name="view_artist_details">아티스트 세부정보 보기</string>
+    <string name="show_album_label">앨범으로 이동</string>
+    <string name="show_artist_label">아티스트로 이동</string>
+
+<!--localplaylist-->
+    <string name="playlist_description_start">이 정성스럽게 제작된 재생목록은</string>
+    <string name="playlist_duration_description">총</string>
+    <string name="hour">시간</string>
+    <string name="hours">시간</string>
+    <string name="minute">분</string>
+    <string name="minutes">분</string>
+    <string name="and">및</string>
+    <string name="of_music">의 음악을 경험하세요</string>
+    <string name="playlist_enjoy_message">청취 경험을 즐기세요</string>
+    <string name="live_media">라이브 미디어</string>
+    <string name="live_media_desc">라이브 미디어는 Vivi Music 재생을 위한 동적 알림 및 상태 표시줄 알약을 제공합니다.</string>
+    <string name="notification_body">알림 본문</string>
+    <string name="show_album_art">앨범 아트 표시</string>
+    <string name="show_album_art_desc">알림에 아트 표시</string>
+    <string name="show_artist_name">아티스트 이름 표시</string>
+    <string name="show_artist_name_desc">메타데이터에 아티스트 이름 포함</string>
+    <string name="show_album_name">앨범 이름 표시</string>
+    <string name="show_album_name_desc">세부정보에 앨범 이름 표시</string>
+    <string name="show_action_buttons">작업 버튼 표시</string>
+    <string name="show_action_buttons_desc">재생/일시정지, 다음, 이전과 같은 컨트롤</string>
+    <string name="show_progress">진행률 표시</string>
+    <string name="show_progress_desc">노래 진행률 표시줄 표시</string>
+    <string name="show_timestamps">타임스탬프 표시</string>
+    <string name="show_timestamps_desc">경과 시간 및 총 시간</string>
+    <string name="hide_on_qs">빠른 설정에서 숨기기</string>
+    <string name="hide_on_qs_desc">알림 창이 열려 있을 때 숨기기</string>
+    <string name="status_bar_pill">상태 표시줄 알약</string>
+    <string name="pill_song_title">노래 제목</string>
+    <string name="pill_song_title_desc">알약에 노래 제목 표시</string>
+    <string name="pill_elapsed_time">경과 시간</string>
+    <string name="pill_elapsed_time_desc">알약에 재생 위치 표시</string>
+    <string name="pill_remaining_time">남은 시간</string>
+    <string name="pill_remaining_time_desc">노래의 남은 시간 표시</string>
+    <string name="grant_permission">권한 부여</string>
+    <string name="notification_listener_permission_needed">알림 수신 권한 필요</string>
+    <string name="notification_listener_permission_desc">이 앱은 재생을 감지하고 라이브 미디어 알림을 관리하기 위해 알림 액세스 권한이 필요합니다.</string>
+    <string name="accessibility_permission_needed">접근성 권한 필요</string>
+    <string name="accessibility_permission_desc">이 앱은 빠른 설정을 감지하기 위해 접근성 액세스 권한이 필요합니다.</string>
+    <string name="live_media_compatibility_title">호환성 경고</string>
+    <string name="live_media_compatibility_message">라이브 미디어는 Android 16 이상을 위해 설계되었습니다. 현재 Android 버전에서는 표준 알림으로 작동하며 전체 동적 미디어 경험(예: 상태 표시줄 알약)을 제공하지 못할 수 있습니다.</string>
+    <string name="permissions">권한</string>
+    <string name="granted">허용됨</string>
+    <string name="confirm">확인</string>
+    <string name="pill_content_desc">상태 표시줄 알약 내용 구성</string>
+    <string name="play_action">재생</string>
+    <string name="pause_action">일시정지</string>
+    <string name="next_action">다음</string>
+    <string name="previous_action">이전</string>
+</resources>

@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Upstream InnerTune strings -->
+<!-- Do not add new features here -->
+<!-- Try to re-use strings here, but be careful on its usage e.g. verb vs noun -->
+<!-- "InnerTune" is replaced with "vivi" -->
+<!-- Translators: Do not modify this file for translations, use InnerTune's Weblate instead. -->
+
+<resources>
+    <!-- Bottom navigation -->
+    <string name="home">홈</string>
+    <string name="songs">노래</string>
+    <string name="artists">아티스트</string>
+    <string name="albums">앨범</string>
+    <string name="playlists">재생목록</string>
+
+    <!-- Top bar -->
+    <plurals name="n_selected">
+        <item quantity="other">%d개 선택됨</item>
+    </plurals>
+
+    <!-- Home -->
+    <string name="history">기록</string>
+    <string name="stats">통계</string>
+    <string name="mood_and_genres">분위기 및 장르</string>
+    <string name="account">계정</string>
+    <string name="quick_picks">빠른 선곡</string>
+    <string name="quick_picks_empty">노래를 들어서 빠른 선곡을 생성하세요</string>
+    <string name="forgotten_favorites">잊혀진 즐겨찾기</string>
+    <string name="keep_listening">계속 듣기</string>
+    <string name="your_youtube_playlists">YouTube 재생목록</string>
+    <string name="similar_to">비슷한 항목: </string>
+    <string name="new_release_albums">새 앨범</string>
+    <string name="you_might_also_like">추천 항목</string>
+
+    <!-- History -->
+    <string name="today">오늘</string>
+    <string name="yesterday">어제</string>
+    <string name="this_week">이번 주</string>
+    <string name="last_week">지난주</string>
+
+    <!-- Stats -->
+    <string name="most_played_songs">가장 많이 재생한 노래</string>
+    <string name="most_played_artists">가장 많이 재생한 아티스트</string>
+    <string name="most_played_albums">가장 많이 재생한 앨범</string>
+
+    <!-- Search -->
+    <string name="search">검색</string>
+    <string name="search_yt_music">YouTube Music 검색…</string>
+    <string name="search_library">라이브러리 검색…</string>
+    <string name="filter_library">라이브러리</string>
+    <string name="filter_liked">좋아요 표시한 곡</string>
+    <string name="filter_downloaded">다운로드됨</string>
+    <string name="filter_all">전체</string>
+    <string name="filter_songs">노래</string>
+    <string name="filter_videos">동영상</string>
+    <string name="filter_albums">앨범</string>
+    <string name="filter_artists">아티스트</string>
+    <string name="filter_playlists">재생목록</string>
+    <string name="filter_community_playlists">커뮤니티 재생목록</string>
+    <string name="filter_featured_playlists">추천 재생목록</string>
+    <string name="filter_bookmarked">북마크됨</string>
+    <string name="no_results_found">검색 결과 없음</string>
+
+    <!-- Library -->
+    <string name="library_song_empty">라이브러리 노래가 여기에 표시됩니다</string>
+    <string name="library_artist_empty">라이브러리 아티스트가 여기에 표시됩니다</string>
+    <string name="library_album_empty">라이브러리 앨범이 여기에 표시됩니다</string>
+    <string name="library_playlist_empty">재생목록이 여기에 표시됩니다</string>
+
+    <!-- Artist screen -->
+    <string name="from_your_library">라이브러리에서</string>
+
+    <!-- Album screen -->
+    <string name="other_versions">다른 버전</string>
+    <string name="releases_for_you">추천 앨범</string>
+
+    <!-- Playlist -->
+    <string name="liked_songs">좋아요 표시한 곡</string>
+    <string name="downloaded_songs">다운로드한 노래</string>
+    <string name="playlist_is_empty">재생목록이 비어 있음</string>
+    <string name="remove_download_playlist_confirm">정말로 다운로드한 노래 저장소에서 \"%s\" 재생목록의 모든 노래를 삭제하시겠습니까?</string>
+    <string name="delete_playlist_confirm">정말로 \"%s\" 재생목록을 삭제하시겠습니까?</string>
+
+    <!-- Button -->
+    <string name="retry">재시도</string>
+    <string name="radio">라디오</string>
+    <string name="shuffle">셔플</string>
+    <string name="reset">초기화</string>
+
+    <!-- Menu -->
+    <string name="details">세부정보</string>
+    <string name="edit">수정</string>
+    <string name="start_radio">라디오 시작</string>
+    <string name="play">재생</string>
+    <string name="play_next">다음 재생</string>
+    <string name="add_to_queue">대기열에 추가</string>
+    <string name="add_to_library">라이브러리에 추가</string>
+    <string name="add_all_to_library">모두 라이브러리에 추가</string>
+    <string name="remove_from_library">라이브러리에서 제거</string>
+    <string name="remove_all_from_library">라이브러리에서 모두 제거</string>
+    <string name="action_download">다운로드</string>
+    <string name="downloading">다운로드 중</string>
+    <string name="remove_download">다운로드 제거</string>
+    <string name="import_playlist">재생목록 가져오기</string>
+    <string name="add_to_playlist">재생목록에 추가</string>
+    <string name="view_artist">아티스트 보기</string>
+    <string name="view_album">앨범 보기</string>
+    <string name="refetch">새로고침</string>
+    <string name="share">공유</string>
+    <string name="delete">삭제</string>
+    <string name="remove_from_history">기록에서 제거</string>
+    <string name="remove_from_playlist">재생목록에서 제거</string>
+    <string name="remove_from_queue">대기열에서 제거</string>
+    <string name="search_online">온라인 검색</string>
+    <string name="action_sync">동기화</string>
+    <string name="action_resync">재동기화</string>
+    <string name="advanced">고급</string>
+    <string name="tempo_and_pitch">템포 및 피치</string>
+
+    <!-- Sort menu -->
+    <string name="sort_by_create_date">추가한 날짜</string>
+    <string name="sort_by_name">이름</string>
+    <string name="sort_by_artist">아티스트</string>
+    <string name="sort_by_year">연도</string>
+    <string name="sort_by_song_count">곡 수</string>
+    <string name="sort_by_length">길이</string>
+    <string name="sort_by_play_time">재생 시간</string>
+    <string name="sort_by_custom">사용자 지정 순서</string>
+
+    <!-- Dialog -->
+    <string name="media_id">미디어 ID</string>
+    <string name="mime_type">MIME 유형</string>
+    <string name="codecs">코덱</string>
+    <string name="bitrate">비트레이트</string>
+    <string name="sample_rate">샘플링 레이트</string>
+    <string name="loudness">라우드니스</string>
+    <string name="volume">볼륨</string>
+    <string name="file_size">파일 크기</string>
+    <string name="unknown">알 수 없음</string>
+    <string name="copied">클립보드에 복사됨</string>
+
+    <string name="edit_lyrics">가사 수정</string>
+    <string name="search_lyrics">가사 검색</string>
+
+    <string name="edit_song">노래 수정</string>
+    <string name="song_title">노래 제목</string>
+    <string name="song_artists">노래 아티스트</string>
+    <string name="error_song_title_empty">노래 제목은 비어 있을 수 없습니다.</string>
+    <string name="error_song_artist_empty">노래 아티스트는 비어 있을 수 없습니다.</string>
+    <string name="save">저장</string>
+
+    <string name="choose_playlist">재생목록 선택</string>
+    <string name="edit_playlist">재생목록 수정</string>
+    <string name="create_playlist">재생목록 만들기</string>
+    <string name="playlist_name">재생목록 이름</string>
+    <string name="error_playlist_name_empty">재생목록 이름은 비어 있을 수 없습니다.</string>
+
+    <string name="edit_artist">아티스트 수정</string>
+    <string name="artist_name">아티스트 이름</string>
+    <string name="error_artist_name_empty">아티스트 이름은 비어 있을 수 없습니다.</string>
+
+    <string name="duplicates">중복</string>
+    <string name="skip_duplicates">중복 건너뛰기</string>
+    <string name="add_anyway">계속 추가</string>
+    <string name="duplicates_description_single">노래가 이미 재생목록에 있습니다.</string>
+    <string name="duplicates_description_multiple">%d곡이 이미 재생목록에 있습니다.</string>
+
+    <!-- Noun -->
+    <plurals name="n_song">
+        <item quantity="other">%d곡</item>
+    </plurals>
+    <plurals name="n_artist">
+        <item quantity="other">%d명의 아티스트</item>
+    </plurals>
+    <plurals name="n_album">
+        <item quantity="other">%d개의 앨범</item>
+    </plurals>
+    <plurals name="n_playlist">
+        <item quantity="other">%d개의 재생목록</item>
+    </plurals>
+    <plurals name="n_week">
+        <item quantity="other">%d주</item>
+    </plurals>
+    <plurals name="n_month">
+        <item quantity="other">%d개월</item>
+    </plurals>
+    <plurals name="n_year">
+        <item quantity="other">%d년</item>
+    </plurals>
+
+    <!-- Snackbar -->
+    <string name="playlist_imported">재생목록 가져옴</string>
+    <string name="removed_song_from_playlist">재생목록에서 \"%s\" 제거됨</string>
+    <string name="playlist_synced">재생목록 동기화됨</string>
+    <string name="undo">실행 취소</string>
+
+    <!-- Player -->
+    <string name="lyrics_not_found">가사 없음</string>
+    <string name="sleep_timer">취침 타이머</string>
+    <string name="end_of_song">노래 끝</string>
+    <plurals name="minute">
+        <item quantity="other">%d분</item>
+    </plurals>
+    <string name="error_no_stream">스트림 없음</string>
+    <string name="error_no_internet">인터넷 연결 없음</string>
+    <string name="error_timeout">시간 초과</string>
+    <string name="error_unknown">알 수 없는 오류</string>
+
+    <!-- Player action -->
+    <string name="action_like">좋아요</string>
+    <string name="action_like_all">모두 좋아요</string>
+    <string name="action_remove_like">좋아요 취소</string>
+    <string name="action_remove_like_all">모두 좋아요 취소</string>
+    <string name="action_shuffle_on">셔플 켜기</string>
+    <string name="action_shuffle_off">셔플 끄기</string>
+    <string name="repeat_mode_off">반복 끄기</string>
+    <string name="repeat_mode_one">한 곡 반복</string>
+    <string name="repeat_mode_all">전체 반복</string>
+
+    <!-- Queue Title -->
+    <string name="queue_all_songs">모든 노래</string>
+    <string name="queue_searched_songs">검색된 노래</string>
+
+    <!-- Notification name -->
+    <string name="music_player">음악 플레이어</string>
+
+    <!-- Settings -->
+    <string name="settings">설정</string>
+    <string name="appearance">모양</string>
+    <string name="theme">테마</string>
+    <string name="enable_dynamic_theme">동적 테마 활성화</string>
+    <string name="dark_theme">어두운 테마</string>
+    <string name="dark_theme_on">켜짐</string>
+    <string name="dark_theme_off">꺼짐</string>
+    <string name="dark_theme_follow_system">시스템 설정 따름</string>
+    <string name="pure_black">완전 검정</string>
+    <string name="customize_navigation_tabs">탐색 탭 사용자 지정</string>
+    <string name="player">플레이어</string>
+    <string name="player_text_alignment">플레이어 텍스트 정렬</string>
+    <string name="lyrics_text_position">가사 텍스트 위치</string>
+    <string name="sided">측면</string>
+    <string name="left">왼쪽</string>
+    <string name="center">가운데</string>
+    <string name="right">오른쪽</string>
+    <string name="player_slider_style">플레이어 슬라이더 스타일</string>
+    <string name="default_">기본</string>
+    <string name="wavy">물결</string>
+    <string name="misc">기타</string>
+    <string name="default_open_tab">기본 시작 탭</string>
+    <string name="grid_cell_size">그리드 셀 크기</string>
+    <string name="small">작게</string>
+    <string name="big">크게</string>
+
+    <string name="content">콘텐츠</string>
+    <string name="action_logout">로그아웃</string>
+    <string name="action_login">로그인</string>
+    <string name="login">로그인</string>
+    <string name="not_logged_in">로그인되지 않음</string>
+    <string name="login_failed">로그인 실패</string>
+
+    <string name="content_language">기본 콘텐츠 언어</string>
+    <string name="content_country">기본 콘텐츠 국가</string>
+    <string name="system_default">시스템 기본값</string>
+    <string name="enable_proxy">프록시 활성화</string>
+    <string name="proxy_type">프록시 유형</string>
+    <string name="proxy_url">프록시 URL</string>
+    <string name="restart_to_take_effect">적용하려면 재시작하세요</string>
+
+    <string name="player_and_audio">플레이어 및 오디오</string>
+    <string name="audio_quality">오디오 품질</string>
+    <string name="audio_quality_auto">자동</string>
+    <string name="audio_quality_high">높음</string>
+    <string name="audio_quality_low">낮음</string>
+    <string name="queue">대기열</string>
+    <string name="persistent_queue">대기열 유지</string>
+    <string name="persistent_queue_desc">앱 시작 시 마지막 대기열 복원</string>
+    <string name="auto_load_more">자동으로 더 불러오기</string>
+    <string name="auto_load_more_desc">대기열 끝에 도달하면 자동으로 노래 추가</string>
+    <string name="skip_silence">무음 건너뛰기</string>
+    <string name="audio_normalization">오디오 노멀라이제이션</string>
+    <string name="auto_skip_next_on_error">오류 발생 시 자동으로 다음 곡 재생</string>
+    <string name="auto_skip_next_on_error_desc">끊김 없는 재생 경험 보장</string>
+    <string name="stop_music_on_task_clear">작업 지우기 시 음악 중지</string>
+    <string name="equalizer">이퀄라이저</string>
+
+    <string name="storage">저장소</string>
+    <string name="cache">캐시</string>
+    <string name="image_cache">이미지 캐시</string>
+    <string name="song_cache">노래 캐시</string>
+    <string name="max_cache_size">최대 캐시 크기</string>
+    <string name="unlimited">무제한</string>
+    <string name="clear_all_downloads">모든 다운로드 지우기</string>
+    <string name="max_image_cache_size">최대 이미지 캐시 크기</string>
+    <string name="clear_image_cache">이미지 캐시 지우기</string>
+    <string name="max_song_cache_size">최대 노래 캐시 크기</string>
+    <string name="clear_song_cache">노래 캐시 지우기</string>
+    <string name="size_used">%s 사용됨</string>
+
+    <string name="privacy">개인정보 보호</string>
+    <string name="listen_history">재생 기록</string>
+    <string name="pause_listen_history">재생 기록 일시중지</string>
+    <string name="clear_listen_history">재생 기록 지우기</string>
+    <string name="clear_listen_history_confirm">정말로 모든 재생 기록을 지우시겠습니까?</string>
+    <string name="search_history">검색 기록</string>
+    <string name="pause_search_history">검색 기록 일시중지</string>
+    <string name="clear_search_history">검색 기록 지우기</string>
+    <string name="clear_search_history_confirm">정말로 모든 검색 기록을 지우시겠습니까?</string>
+    <string name="use_login_for_browse">로그인을 사용하여 콘텐츠 탐색</string>
+    <string name="use_login_for_browse_desc">이 설정은 표시되는 콘텐츠에 영향을 줄 수 있으며, 프리미엄 계정으로 로그인한 경우 프리미엄 전용 앨범을 표시할 수 있습니다</string>
+    <string name="disable_screenshot">스크린샷 비활성화</string>
+    <string name="disable_screenshot_desc">이 옵션을 활성화하면 스크린샷 캡처 및 최근 앱 미리보기가 비활성화됩니다.</string>
+    <string name="enable_lrclib">LrcLib 가사 제공자 활성화</string>
+    <string name="enable_kugou">KuGou 가사 제공자 활성화</string>
+    <string name="hide_explicit">유해 콘텐츠 숨기기</string>
+
+    <string name="backup_restore">백업 및 복원</string>
+    <string name="action_backup">백업</string>
+    <string name="action_restore">복원</string>
+    <string name="imported_playlist">가져온 재생목록</string>
+    <string name="backup_create_success">백업 성공</string>
+    <string name="backup_create_failed">백업 실패</string>
+    <string name="restore_failed">백업 복원 실패</string>
+
+    <string name="discord_integration">Discord 통합</string>
+    <string name="discord_information">VIVI music은 KizzyRPC 라이브러리를 사용하여 Discord 계정 상태를 설정합니다. 이는 Discord Gateway 연결을 사용하므로 Discord 서비스 약관 위반으로 간주될 수 있습니다. 그러나 이로 인해 사용자 계정이 정지된 알려진 사례는 없습니다. 사용에 따른 위험은 사용자가 감수해야 합니다.\n\nVivimusic은 토큰만 추출하며 다른 모든 것은 로컬에 저장됩니다.</string>
+    <string name="dismiss">닫기</string>
+    <string name="options">옵션</string>
+    <string name="preview">미리보기</string>
+    <string name="enable_discord_rpc">Rich Presence 활성화</string>
+
+    <string name="about">정보</string>
+    <string name="app_version">앱 버전</string>
+
+    <string name="new_version_available">새 버전 사용 가능</string>
+    <string name="translation_models">번역 모델</string>
+    <string name="clear_translation_models">번역 모델 지우기</string>
+
+<!--//swipe-->
+    <string name="swipe_to_change_track">밀어서 트랙 변경</string>
+    <string name="swipe_to_change_track_description">헤더를 왼쪽/오른쪽으로 밀어서 곡을 건너뜁니다</string>
+    <string name="use_old_theme">이전 테마 사용</string>
+    <string name="hide_video_songs">동영상 노래 숨기기</string>
+    <string name="lyrics_appearance_settings">가사 모양 설정</string>
+    <string name="lyrics_text_size">가사 텍스트 크기</string>
+    <string name="lyrics_line_spacing">가사 줄 간격</string>
+    <string name="lyrics_style">가사 스타일</string>
+</resources>
