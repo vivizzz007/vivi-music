@@ -8,6 +8,7 @@ import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -92,6 +93,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.view.WindowCompat
 import androidx.core.net.toUri
 import androidx.media3.common.C
 import androidx.media3.common.Player
@@ -157,6 +159,7 @@ import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.offset
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawWithContent
 
@@ -200,6 +203,50 @@ fun BottomSheetPlayer(
     val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
         if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
     }
+
+    val TextBackgroundColor by animateColorAsState(
+        targetValue = when (playerBackground) {
+            PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.onBackground
+            PlayerBackgroundStyle.BLUR -> Color.White
+            PlayerBackgroundStyle.GRADIENT -> Color.White
+            PlayerBackgroundStyle.APPLE_MUSIC -> Color.White
+        },
+        label = "TextBackgroundColor"
+    )
+
+    val icBackgroundColor by animateColorAsState(
+        targetValue = when (playerBackground) {
+            PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.surface
+            PlayerBackgroundStyle.BLUR -> Color.Black
+            PlayerBackgroundStyle.GRADIENT -> Color.Black
+            PlayerBackgroundStyle.APPLE_MUSIC -> Color.Black
+        },
+        label = "icBackgroundColor"
+    )
+
+    DisposableEffect(playerBackground, state.isExpanded, useDarkTheme) {
+        val window = (context as? android.app.Activity)?.window
+        if (window != null && state.isExpanded) {
+            val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+
+            when (playerBackground) {
+                PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.APPLE_MUSIC -> {
+                    insetsController.isAppearanceLightStatusBars = false
+                }
+                PlayerBackgroundStyle.DEFAULT -> {
+                    insetsController.isAppearanceLightStatusBars = !useDarkTheme
+                }
+            }
+        }
+
+        onDispose {
+            if (window != null) {
+                val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+                insetsController.isAppearanceLightStatusBars = !useDarkTheme
+            }
+        }
+    }
+
     val onBackgroundColor = when (playerBackground) {
         PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.secondary
         PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.APPLE_MUSIC ->
@@ -288,32 +335,76 @@ fun BottomSheetPlayer(
         }
     }
 
-    val TextBackgroundColor =
-        when (playerBackground) {
-            PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.onBackground
-            PlayerBackgroundStyle.BLUR -> Color.White
-            PlayerBackgroundStyle.GRADIENT -> Color.White
-            PlayerBackgroundStyle.APPLE_MUSIC -> Color.White
-        }
 
-    val icBackgroundColor =
-        when (playerBackground) {
-            PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.surface
-            PlayerBackgroundStyle.BLUR -> Color.Black
-            PlayerBackgroundStyle.GRADIENT -> Color.Black
-            PlayerBackgroundStyle.APPLE_MUSIC -> Color.Black
+    val (textButtonColor, iconButtonColor) = when {
+        playerBackground == PlayerBackgroundStyle.BLUR ||
+        playerBackground == PlayerBackgroundStyle.GRADIENT ||
+        playerBackground == PlayerBackgroundStyle.APPLE_MUSIC -> {
+            when (playerButtonsStyle) {
+                PlayerButtonsStyle.DEFAULT -> Pair(Color.White, Color.Black)
+                PlayerButtonsStyle.SECONDARY -> Pair(
+                    MaterialTheme.colorScheme.secondary,
+                    MaterialTheme.colorScheme.onSecondary
+                )
+                PlayerButtonsStyle.TERTIARY -> Pair(
+                    MaterialTheme.colorScheme.tertiary,
+                    MaterialTheme.colorScheme.onTertiary
+                )
+            }
         }
+        else -> {
+            when (playerButtonsStyle) {
+                PlayerButtonsStyle.DEFAULT ->
+                    if (useDarkTheme) Pair(Color.White, Color.Black)
+                    else Pair(Color.Black, Color.White)
+                PlayerButtonsStyle.SECONDARY -> Pair(
+                    MaterialTheme.colorScheme.secondary,
+                    MaterialTheme.colorScheme.onSecondary
+                )
+                PlayerButtonsStyle.TERTIARY -> Pair(
+                    MaterialTheme.colorScheme.tertiary,
+                    MaterialTheme.colorScheme.onTertiary
+                )
+            }
+        }
+    }
 
-    val (textButtonColor, iconButtonColor) = when (playerButtonsStyle) {
-        PlayerButtonsStyle.DEFAULT -> Pair(TextBackgroundColor, icBackgroundColor)
-        PlayerButtonsStyle.SECONDARY -> Pair(
-            MaterialTheme.colorScheme.secondary,
-            MaterialTheme.colorScheme.onSecondary
-        )
-        PlayerButtonsStyle.TERTIARY -> Pair(
-            MaterialTheme.colorScheme.tertiary,
-            MaterialTheme.colorScheme.onTertiary
-        )
+    // Separate colors for Previous/Next buttons in PRIMARY/TERTIARY modes
+    val (sideButtonContainerColor, sideButtonContentColor) = when {
+        playerBackground == PlayerBackgroundStyle.BLUR ||
+        playerBackground == PlayerBackgroundStyle.GRADIENT ||
+        playerBackground == PlayerBackgroundStyle.APPLE_MUSIC -> {
+            when (playerButtonsStyle) {
+                PlayerButtonsStyle.DEFAULT -> Pair(
+                    Color.White.copy(alpha = 0.2f),
+                    Color.White
+                )
+                PlayerButtonsStyle.SECONDARY -> Pair(
+                    MaterialTheme.colorScheme.secondaryContainer,
+                    MaterialTheme.colorScheme.onSecondaryContainer
+                )
+                PlayerButtonsStyle.TERTIARY -> Pair(
+                    MaterialTheme.colorScheme.tertiaryContainer,
+                    MaterialTheme.colorScheme.onTertiaryContainer
+                )
+            }
+        }
+        else -> {
+            when (playerButtonsStyle) {
+                PlayerButtonsStyle.DEFAULT -> Pair(
+                    MaterialTheme.colorScheme.surfaceContainerHighest,
+                    MaterialTheme.colorScheme.onSurface
+                )
+                PlayerButtonsStyle.SECONDARY -> Pair(
+                    MaterialTheme.colorScheme.secondaryContainer,
+                    MaterialTheme.colorScheme.onSecondaryContainer
+                )
+                PlayerButtonsStyle.TERTIARY -> Pair(
+                    MaterialTheme.colorScheme.tertiaryContainer,
+                    MaterialTheme.colorScheme.onTertiaryContainer
+                )
+            }
+        }
     }
 
     val download by LocalDownloadUtil.current.getDownload(mediaMetadata?.id ?: "")
@@ -468,11 +559,15 @@ fun BottomSheetPlayer(
                             label = "blurBackground"
                         ) { thumbnailUrl ->
                             if (thumbnailUrl != null) {
-                                Box(modifier = Modifier.graphicsLayer { alpha = state.progress.coerceIn(0f, 1f) }) {
+                                Box(modifier = Modifier.alpha(state.progress.coerceIn(0f, 1f))) {
                                     AsyncImage(
-                                        model = thumbnailUrl,
+                                        model = ImageRequest.Builder(context)
+                                            .data(thumbnailUrl)
+                                            .size(100, 100)
+                                            .allowHardware(false)
+                                            .build(),
                                         contentDescription = null,
-                                        contentScale = ContentScale.FillBounds,
+                                        contentScale = ContentScale.Crop,
                                         modifier = Modifier
                                             .fillMaxSize()
                                             .blur(if (useDarkTheme) 150.dp else 100.dp)
@@ -1114,20 +1209,6 @@ fun BottomSheetPlayer(
                         label = "nextButtonWeight"
                     )
 
-                    // Side button colors based on player background
-                    val sideButtonColor = if (playerBackground == PlayerBackgroundStyle.BLUR ||
-                        playerBackground == PlayerBackgroundStyle.GRADIENT) {
-                        Color.White.copy(alpha = 0.2f)
-                    } else {
-                        MaterialTheme.colorScheme.surfaceContainerHighest
-                    }
-
-                    val sideButtonContentColor = if (playerBackground == PlayerBackgroundStyle.BLUR ||
-                        playerBackground == PlayerBackgroundStyle.GRADIENT) {
-                        Color.White
-                    } else {
-                        MaterialTheme.colorScheme.onSurface
-                    }
 
                     // Previous Button
                     FilledIconButton(
@@ -1136,7 +1217,7 @@ fun BottomSheetPlayer(
                         shape = RoundedCornerShape(50),
                         interactionSource = backInteractionSource,
                         colors = IconButtonDefaults.filledIconButtonColors(
-                            containerColor = sideButtonColor,
+                            containerColor = sideButtonContainerColor,
                             contentColor = sideButtonContentColor,
                         ),
                         modifier = Modifier
@@ -1200,7 +1281,7 @@ fun BottomSheetPlayer(
                         shape = RoundedCornerShape(50),
                         interactionSource = nextInteractionSource,
                         colors = IconButtonDefaults.filledIconButtonColors(
-                            containerColor = sideButtonColor,
+                            containerColor = sideButtonContainerColor,
                             contentColor = sideButtonContentColor,
                         ),
                         modifier = Modifier
