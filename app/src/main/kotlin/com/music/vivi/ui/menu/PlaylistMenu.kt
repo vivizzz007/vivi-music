@@ -851,7 +851,7 @@ fun AutoPlaylistMenu(
             // Play Button
             MediumExtendedFloatingActionButton(
                 modifier = Modifier
-                    .weight(0.5f)
+                    .weight(1f)
                     .fillMaxHeight(),
                 onClick = {
                     onDismiss()
@@ -905,30 +905,6 @@ fun AutoPlaylistMenu(
                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
                     painter = painterResource(R.drawable.shuffle),
                     contentDescription = stringResource(R.string.shuffle_content_desc),
-                )
-            }
-
-            // Share Button
-            FilledTonalIconButton(
-                modifier = Modifier
-                    .weight(0.25f)
-                    .fillMaxHeight(),
-                onClick = {
-                    onDismiss()
-                    val shareLink = "https://music.youtube.com/playlist?list=${songs.firstOrNull()?.id}" // Placeholder or relevant link
-                    val intent = Intent().apply {
-                        action = Intent.ACTION_SEND
-                        type = "text/plain"
-                        putExtra(Intent.EXTRA_TEXT, shareLink)
-                    }
-                    context.startActivity(Intent.createChooser(intent, null))
-                },
-                shape = singleShape
-            ) {
-                Icon(
-                    modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
-                    painter = painterResource(R.drawable.share),
-                    contentDescription = stringResource(R.string.share_playlist_content_desc),
                 )
             }
         }
