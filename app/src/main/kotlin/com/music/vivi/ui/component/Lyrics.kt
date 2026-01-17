@@ -441,7 +441,7 @@ fun Lyrics(
 
     // Professional animation states for smooth -vivi-style transitions
     var isAnimating by remember { mutableStateOf(false) }
-    var isAutoScrollActive by rememberSaveable { mutableStateOf(true) }
+    var isAutoScrollActive by remember { mutableStateOf(true) }
 
     // Handle back button press - close selection mode instead of exiting screen
     BackHandler(enabled = isSelectionModeActive) {
