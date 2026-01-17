@@ -215,88 +215,91 @@
     </plurals>
 
     <!-- Player Settings -->
-    <string name="disable_load_more_when_repeat_all">Disable load more when repeat all</string>
-    <string name="disable_load_more_when_repeat_all_desc">Don\'t auto load more songs and similar content when repeat all mode is enabled</string>
+    <string name="disable_load_more_when_repeat_all">Désactiver le chargement supplémentaire lors de la répétition de tout</string>
+    <string name="disable_load_more_when_repeat_all_desc">Ne pas charger automatiquement d\'autres titres et contenus similaires lorsque le mode de répétition est activé</string>
 
     <!-- Romanization Settings -->
-    <string name="lyrics_romanization_cyrillic">Cyrillic</string>
-    <string name="lyrics_romanize_title">Romanization</string>
-    <string name="lyrics_romanization">Lyrics romanization</string>
-    <string name="romanization">Romanization</string>
-    <string name="lyrics_romanize_japanese">Romanize Japanese lyrics</string>
-    <string name="lyrics_romanize_korean">Romanize Korean lyrics</string>
-    <string name="lyrics_romanize_devanagari">Romanize Devanagari (Hindi, Marathi, Sanskrit, ..) lyrics</string>
-    <string name="lyrics_romanize_russian">Romanize Russian lyrics</string>
-    <string name="lyrics_romanize_ukrainian">Romanize Ukrainian lyrics</string>
-    <string name="lyrics_romanize_belarusian">Romanize Belarusian lyrics</string>
-    <string name="lyrics_romanize_kyrgyz">Romanize Kyrgyz lyrics</string>
-    <string name="lyrics_romanize_serbian">Romanize Serbian lyrics</string>
-    <string name="lyrics_romanize_bulgarian">Romanize Bulgarian lyrics</string>
-    <string name="line_by_line_option_title">EXPERIMENTAL: Detect language line by line</string>
-    <string name="line_by_line_option_desc">The Cyrillic language will be detected line by line instead of the entire song.</string>
-    <string name="line_by_line_dialog_title">Are you sure?</string>
-    <string name="line_by_line_dialog_desc">This is a hit or miss experimental feature. \n\nBy default, language is determined from the whole song, but with this option on, it will be determined line by line instead. This will allow multi-language songs to work BUT the language might not always be correct (for example if there is a Ukrainian lyric that doesn\'t contain any Ukrainian-specific letters, it might be romanized as Russian instead). \n\nIf you do not have issues, it is recommended to keep this option off.</string>
-    <string name="line_by_line_dialog_enable">Enable</string>
-    <string name="romanize_current_track">Romanize current track</string>
+    <string name="lyrics_romanization_cyrillic">Cyrillique</string>
+    <string name="lyrics_romanize_title">Romanisation</string>
+    <string name="lyrics_romanization">Romanisation des paroles</string>
+    <string name="romanization">Romanisation</string>
+    <string name="lyrics_romanize_japanese">Romaniser les paroles japonaises</string>
+    <string name="lyrics_romanize_korean">Romaniser les paroles coréennes</string>
+    <string name="lyrics_romanize_devanagari">Romaniser les paroles en devanagari (hindi, marathi, sanskrit, etc.)</string>
+    <string name="lyrics_romanize_russian">Romaniser les paroles russes</string>
+    <string name="lyrics_romanize_ukrainian">Romaniser les paroles ukrainiennes</string>
+    <string name="lyrics_romanize_belarusian">Romaniser les paroles en biélorusse</string>
+    <string name="lyrics_romanize_kyrgyz">Romaniser les paroles en kirghize</string>
+    <string name="lyrics_romanize_serbian">Romaniser les paroles en serbe</string>
+    <string name="lyrics_romanize_bulgarian">Romaniser les paroles bulgares</string>
+    <string name="line_by_line_option_title">Détecter la langue ligne par ligne</string>
+    <string name="line_by_line_option_desc">La langue cyrillique sera détectée ligne par ligne plutôt que dans l\'ensemble du titre.</string>
+    <string name="line_by_line_dialog_title">Êtes-vous sûr ?</string>
+    <string name="line_by_line_dialog_desc">Il s\'agit d\'une fonctionnalité expérimentale dont le succès est aléatoire. \n\nPar défaut, la langue est déterminée pour l\'ensemble du titre, mais avec cette option activée, elle sera déterminée ligne par ligne. Cela permettra de lire des titres multilingues, MAIS la langue affichée pourrait ne pas toujours être correcte (par exemple, si un passage en ukrainien ne contient aucun caractère spécifique à l\'ukrainien, il pourrait être romanisé en russe). \n\nSi vous ne rencontrez aucun problème, il est recommandé de désactiver cette option.</string>
+    <string name="line_by_line_dialog_enable">Activer</string>
+    <string name="romanize_current_track">Romaniser le titre actuel</string>
 
     <!-- Material 3 Settings Sections -->
     <string name="settings_section_ui">Interface</string>
-    <string name="settings_section_privacy">Privacy &amp; Security</string>
-    <string name="settings_section_player">Player &amp; Media</string>
-    <string name="settings_section_player_content">Player &amp; Content</string>
-    <string name="settings_section_storage">Storage &amp; Data</string>
-    <string name="settings_section_system">System &amp; About</string>
+    <string name="settings_section_privacy">Confidentialité &amp; Sécurité</string>
+    <string name="settings_section_player">Lecteur &amp; Média</string>
+    <string name="settings_section_player_content">Lecteur &amp; Contenu</string>
+    <string name="settings_section_storage">Stockage &amp; Données</string>
+    <string name="settings_section_system">Système &amp; À propos</string>
 
     <!-- Updater -->
-    <string name="updater">Updater</string>
-    <string name="appupdate">Check for update</string>
-    <string name="experimental">Experimental</string>
-    <string name="check_for_updates">Automatically check for updates</string>
-    <string name="update_notifications">Enable update notifications</string>
-    <string name="update_channel_name">App updates</string>
-    <string name="update_channel_desc">Notifications about new versions</string>
+    <string name="updater">Mise à jour</string>
+    <string name="appupdate">Vérifier les mises à jour</string>
+    <string name="experimental">Expérimental</string>
+    <string name="check_for_updates">Recherche automatique de mises à jour</string>
+    <string name="update_notifications">Activer les notifications de mise à jour</string>
+    <string name="update_channel_name">Mises à jour de l\'application</string>
+    <string name="update_channel_desc">Notifications concernant les nouvelles versions</string>
 
 
     <!-- Offload -->
-    <string name="audio_offload">Enable offload</string>
-    <string name="audio_offload_description">Use the offload audio path for audio playback. Disabling this may increase power usage but can be useful if you experience issues with audio playback or post processing</string>
-    <string name="lyrics_romanize_macedonian">Romanize Macedonian lyrics</string>
+    <string name="audio_offload">Activer le déchargement</string>
+    <string name="audio_offload_description">Utilisez le chemin audio de déchargement pour la lecture audio. La désactivation de cette option peut augmenter la consommation d\'énergie, mais peut être utile si vous rencontrez des problèmes avec la lecture audio ou le post-traitement.</string>
+    <string name="lyrics_romanize_macedonian">Romaniser les paroles macédoniennes</string>
 
-    <string name="integrations">Integrations</string>
-    <string name="username">Username</string>
-    <string name="password">Password</string>
+    <string name="integrations">Intégrations</string>
+    <string name="username">Nom d\'utilisateur</string>
+    <string name="password">Mot de passe</string>
     <!-- Last.fm -->
-    <string name="lastfm_integration">Last.fm Integration</string>
-    <string name="enable_scrobbling">Enable scrobbling</string>
-    <string name="lastfm_now_playing">Send Now Playing</string>
-    <string name="scrobbling_configuration">Scrobbling Configuration</string>
-    <string name="scrobble_min_track_duration">Scrobble songs longer than</string>
-    <string name="scrobble_delay_percent">Scrobble delay percent</string>
-    <string name="scrobble_delay_minutes">Scrobble delay minutes</string>
-    <string name="profile_image">Profile image</string>
-    <string name="back">Back</string>
+    <string name="lastfm_integration">Intégration Last.fm</string>
+    <string name="enable_scrobbling">Activer le scrobbling</string>
+    <string name="lastfm_now_playing">Envoyer Lecture en cours</string>
+    <string name="scrobbling_configuration">Configuration de scrobbling</string>
+    <string name="scrobble_min_track_duration">Scrobble les titres plus longs que</string>
+    <string name="scrobble_delay_percent">Pourcentage de retard de scrobbling</string>
+    <string name="scrobble_delay_minutes">Retard de scrobbling en minutes</string>
+    <string name="profile_image">Image de profil</string>
+    <string name="back">Retour</string>
+    <string name="repeat">Répéter</string>
+    <string name="lock_queue">Verrouiller la file d\'attente</string>
+    <string name="unlock_queue">Déverrouiller la file d\'attente</string>
 
 
-    <string name="download_playlist">Download playlist</string>
-    <string name="remove_download_playlist">Remove download</string>
-    <string name="delete_playlist">Delete playlist</string>
-    <string name="cancel_download">Cancel download</string>
-    <string name="pitch_and_tempo">Pitch and tempo</string>
+    <string name="download_playlist">Télécharger la playlist</string>
+    <string name="remove_download_playlist">Supprimer le téléchargement</string>
+    <string name="delete_playlist">Supprimer la playlist</string>
+    <string name="cancel_download">Annuler le téléchargement</string>
+    <string name="pitch_and_tempo">Hauteur et tempo</string>
 
 
     <!-- Account View Strings -->
-    <string name="restore_success">restore success</string>
-    <string name="library">Library</string>
-    <string name="logout">Logout</string>
-    <string name="logged_out">Logged out successfully</string>
-    <string name="swipe_song_to_remove">Swipe song to remove it from the playlist</string>
-    <string name="rotating_thumbnail">Rotating Thumbnail</string>
+    <string name="restore_success">Restaurer le succès</string>
+    <string name="library">Bibliothèque</string>
+    <string name="logout">Déconnexion</string>
+    <string name="logged_out">Déconnexion réussie</string>
+    <string name="swipe_song_to_remove">Balayez la chanson pour la supprimer de la playlist.</string>
+    <string name="rotating_thumbnail">Miniature rotative</string>
 
     <!-- Contribution Screen Strings -->
-    <string name="contributors">Contributors</string>
-    <string name="contributors_subtitle">Amazing people who made this project better</string>
-    <string name="refresh_contributors">Refresh Contributors</string>
-    <string name="no_contributors_found">No contributors found</string>
+    <string name="contributors">Contributeurs</string>
+    <string name="contributors_subtitle">Les personnes extraordinaires qui ont contribué à améliorer ce projet</string>
+    <string name="refresh_contributors">Actualiser les contributeurs</string>
+    <string name="no_contributors_found">Aucun contributeur trouvé</string>
 
     <!-- Error Messages -->
     <string name="error_failed_to_load_contributors">Failed to load contributors (%d)</string>
