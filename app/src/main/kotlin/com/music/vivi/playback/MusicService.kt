@@ -166,6 +166,7 @@ import android.os.Build
 import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.constants.PauseOnHeadphonesDisconnectKey
 import com.music.vivi.constants.PauseOnZeroVolumeKey
+import com.music.vivi.constants.StopMusicOnTaskClearKey
 import com.music.vivi.playback.queues.filterVideoSongs
 
 import com.music.vivi.extensions.toEnum
@@ -1963,6 +1964,10 @@ class MusicService :
 
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
+        if (dataStore.get(StopMusicOnTaskClearKey, false)) {
+            player.pause()
+            stopSelf()
+        }
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo) = mediaSession
