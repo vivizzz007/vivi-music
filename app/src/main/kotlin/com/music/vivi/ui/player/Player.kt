@@ -851,23 +851,10 @@ fun BottomSheetPlayer(
                                 .clip(favShape)
                                 .background(textButtonColor)
                                 .clickable(
-                                    enabled = !isFavProcessing,
                                     indication = null,
                                     interactionSource = remember { MutableInteractionSource() }
                                 ) {
-                                    currentSong?.song?.let { song ->
-                                        isFavProcessing = true
-                                        coroutineScope.launch(Dispatchers.IO) {
-                                            try {
-                                                val toggledSong = song.toggleLike()
-                                                database.query {
-                                                    update(toggledSong)
-                                                }
-                                            } finally {
-                                                isFavProcessing = false
-                                            }
-                                        }
-                                    }
+                                    playerConnection.toggleLike()
                                 }
                         ) {
                             Image(
