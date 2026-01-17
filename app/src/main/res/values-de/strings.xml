@@ -118,7 +118,7 @@
     <string name="action_resync">Neu synchronisieren</string>
     <string name="advanced">Erweitert</string>
     <string name="tempo_and_pitch">Tempo und Tonhöhe</string>
-    <string name="tempo_and_pitch2">Tempo und Tonhöhe</string>
+
 
     <!-- Sort menu -->
     <string name="sort_by_create_date">Hinzugefügt am</string>
