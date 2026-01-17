@@ -839,6 +839,7 @@
 
     <!-- Share and Email Messages -->
     <string name="check_out_playlist_share">%1 をYouTube Musicでチェック: %2</string>
+    <string name="check_out_album_share">%2 の %1 をYouTube Musicでチェック: %3</string>
     <string name="vivi_music_crash_report">ViVi Musicクラッシュレポート</string>
     <string name="crash_log_email_body">クラッシュログ（クリップボードにもコピーされました）:\n\n%1\n\nデバイス情報:\n%2</string>
     <string name="feedback_for_vivi_music_app">Vivi Musicアプリへのフィードバック</string>
@@ -1077,4 +1078,53 @@
     <string name="view_artist_details">アーティストの詳細を表示</string>
     <string name="show_album_label">アルバムへ移動</string>
     <string name="show_artist_label">アーティストへ移動</string>
+    <!--localplaylist-->
+    <string name="playlist_description_start">この厳選されたプレイリストには</string>
+    <string name="playlist_duration_description">合計</string>
+    <string name="hour">時間</string>
+    <string name="hours">時間</string>
+    <string name="minute">分</string>
+    <string name="minutes">分</string>
+    <string name="and">と</string>
+    <string name="of_music">の音楽が含まれています</string>
+    <string name="playlist_enjoy_message">音楽をお楽しみください</string>
+    <string name="live_media">ライブメディア</string>
+    <string name="live_media_desc">ライブメディアは、Vivi Music再生用の動的な通知とステータスバーピルを提供します。</string>
+    <string name="notification_body">通知本文</string>
+    <string name="show_album_art">アルバムアートを表示</string>
+    <string name="show_album_art_desc">通知にカバーアートを表示</string>
+    <string name="show_artist_name">アーティスト名を表示</string>
+    <string name="show_artist_name_desc">メタデータにアーティスト名を含める</string>
+    <string name="show_album_name">アルバム名を表示</string>
+    <string name="show_album_name_desc">詳細にアルバム名を表示</string>
+    <string name="show_action_buttons">アクションボタンを表示</string>
+    <string name="show_action_buttons_desc">再生/一時停止、次へ、前へなどのコントロール</string>
+    <string name="show_progress">進行状況を表示</string>
+    <string name="show_progress_desc">曲の進行バーを表示</string>
+    <string name="show_timestamps">タイムスタンプを表示</string>
+    <string name="show_timestamps_desc">経過時間と合計時間</string>
+    <string name="hide_on_qs">クイック設定で非表示</string>
+    <string name="hide_on_qs_desc">通知シェードが開いているときに非表示にする</string>
+    <string name="status_bar_pill">ステータスバーピル</string>
+    <string name="pill_song_title">曲のタイトル</string>
+    <string name="pill_song_title_desc">ピルにトラックタイトルを表示</string>
+    <string name="pill_elapsed_time">経過時間</string>
+    <string name="pill_elapsed_time_desc">ピルに再生位置を表示</string>
+    <string name="pill_remaining_time">残り時間</string>
+    <string name="pill_remaining_time_desc">曲の残り時間を表示</string>
+    <string name="grant_permission">権限を付与</string>
+    <string name="notification_listener_permission_needed">通知リスナー権限が必要です</string>
+    <string name="notification_listener_permission_desc">このアプリは、再生を検出し、ライブメディア通知を管理するために通知アクセス権限を必要とします。</string>
+    <string name="accessibility_permission_needed">ユーザー補助権限が必要です</string>
+    <string name="accessibility_permission_desc">このアプリは、クイック設定を検出するためにユーザー補助アクセス権限を必要とします。</string>
+    <string name="live_media_compatibility_title">互換性に関する警告</string>
+    <string name="live_media_compatibility_message">ライブメディアはAndroid 16以上向けに設計されています。現在のAndroidバージョンでは、標準の通知として機能し、完全な動的メディア体験（ステータスバーピルなど）を提供しない場合があります。</string>
+    <string name="permissions">権限</string>
+    <string name="granted">付与済み</string>
+    <string name="confirm">確認</string>
+    <string name="pill_content_desc">ステータスバーピルのコンテンツを設定</string>
+    <string name="play_action">再生</string>
+    <string name="pause_action">一時停止</string>
+    <string name="next_action">次へ</string>
+    <string name="previous_action">前へ</string>
 </resources>
