@@ -1,0 +1,6 @@
+fixed library issue
+fixed lyrics slow loading
+fixed volume not working in player menu
+fixed task on clear background 
+fixed issue in background related crash
+Added new menu in download and like new menu
