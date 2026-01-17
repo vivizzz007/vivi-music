@@ -386,11 +386,16 @@ class MusicService :
         scope.launch {
             connectivityObserver.networkStatus.collect { isConnected ->
                 isNetworkConnected.value = isConnected
-                if (isConnected && (waitingForNetworkConnection.value || player.playbackState == Player.STATE_IDLE)) {
-                    // Check if we were actually stalled or errored due to network
-                    if (waitingForNetworkConnection.value || (player.playerError != null && isNetworkError(player.playerError!!))) {
-                        Log.d(TAG, "Network restored, retrying playback")
+                if (isConnected) {
+                    // Always clear waiting state if network is restored
+                    if (waitingForNetworkConnection.value) {
+                        Log.d(TAG, "Network restored, clearing waiting state")
                         waitingForNetworkConnection.value = false
+                    }
+                    
+                    // Trigger retry if player is idle and was previously in a network error state
+                    if (player.playbackState == Player.STATE_IDLE && player.playerError != null && isNetworkError(player.playerError!!)) {
+                        Log.d(TAG, "Network restored, retrying playback from IDLE")
                         if (player.currentMediaItem != null) {
                             delay(500)
                             player.prepare()
@@ -777,10 +782,13 @@ class MusicService :
             Log.w(TAG, "Max retry count ($MAX_RETRY_COUNT) reached, stopping playback")
             stopOnError()
             globalRetryCount = 0
+            waitingForNetworkConnection.value = false
             return
         }
 
-        waitingForNetworkConnection.value = true
+        if (!isNetworkConnected.value) {
+            waitingForNetworkConnection.value = true
+        }
         
         // Start a retry timer with exponential backoff
         retryJob?.cancel()
