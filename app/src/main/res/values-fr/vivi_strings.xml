@@ -133,85 +133,85 @@
     <string name="remove_custom_image">Supprimer l\'image personnalisée</string>
 
     <!-- General -->
-    <string name="general">General</string>
+    <string name="general">Général</string>
     <string name="proxy">Proxy</string>
-    <string name="default_lib_chips">Change default library chip</string>
-    <string name="set_quick_picks">Set quick picks</string>
-    <string name="last_song_listened">Based on last song listened</string>
-    <string name="app_language">App language</string>
-    <string name="configure_app_language">Configure app languages</string>
-    <string name="intent_app_language_not_found">Couldn\'t find app language settings, please configure them manually</string>
-    <string name="open_supported_links">Open supported link by default</string>
-    <string name="configure_supported_links">Configure supported links</string>
-    <string name="intent_supported_links_not_found">Couldn\'t find supported links settings, please configure them manually</string>
-    <string name="set_first_lyrics_provider">Preferred lyrics provider</string>
-    <string name="config_proxy">Configure proxy</string>
-    <string name="proxy_username">Proxy username</string>
-    <string name="proxy_password">Proxy password</string>
-    <string name="enable_authentication">Enable authentication</string>
-    <string name="discord_use_details">Use details instead of state</string>
-    <string name="discord_use_details_description">Show song title prominently instead of artist names</string>
+    <string name="default_lib_chips">Modifier la puce de bibliothèque par défaut</string>
+    <string name="set_quick_picks">Configurer la Sélection Rapide</string>
+    <string name="last_song_listened">Basé sur le dernier titre écouté</string>
+    <string name="app_language">Langue de l\'application</string>
+    <string name="configure_app_language">Configurer les langues de l\'application</string>
+    <string name="intent_app_language_not_found">Impossible de trouver les paramètres de langue de l\'application. Veuillez les configurer manuellement.</string>
+    <string name="open_supported_links">Ouvrir le lien pris en charge par défaut</string>
+    <string name="configure_supported_links">Configurer les liens pris en charge</string>
+    <string name="intent_supported_links_not_found">Impossible de trouver les paramètres des liens pris en charge. Veuillez les configurer manuellement.</string>
+    <string name="set_first_lyrics_provider">Fournisseur de paroles préféré</string>
+    <string name="config_proxy">Configurer le proxy</string>
+    <string name="proxy_username">Nom d\'utilisateur proxy</string>
+    <string name="proxy_password">Mot de passe du proxy</string>
+    <string name="enable_authentication">Activer l\'authentification</string>
+    <string name="discord_use_details">Utilisez les détails au lieu de l\'état</string>
+    <string name="discord_use_details_description">Afficher le titre de la chanson en évidence plutôt que le nom de l\'artiste</string>
 
-    <string name="audio_quality_max">Max (beta)</string>
-    <string name="enable_similar_content">Enable similar content</string>
-    <string name="similar_content_desc">Automatically add more similar songs when the end of the queue is reached</string>
-    <string name="min_playback_duration_title">Minimum playback duration</string>
-    <string name="min_playback_duration_description">The minimum amount of a song that must be played before it is considered \"played\"</string>
+    <string name="audio_quality_max">Maximale</string>
+    <string name="enable_similar_content">Activer le contenu similaire</string>
+    <string name="similar_content_desc">Ajouter automatiquement d\'autres titres similaires lorsque la fin de la file d'attente est atteinte</string>
+    <string name="min_playback_duration_title">Durée minimale de lecture</string>
+    <string name="min_playback_duration_description">La durée minimale d\'un titre qui doit être joué avant qu\'il soit considéré comme \"joué\".</string>
     <string name="percentage_format">%d%%</string>
-    <string name="minimum_playback_duration">Minimum playback duration</string>
+    <string name="minimum_playback_duration">Durée minimale de lecture</string>
 
-    <string name="import_online">Import a \"m3u\" playlist</string>
-    <string name="import_csv">Import a \"csv\" playlist</string>
-    <string name="playlist_add_local_to_synced_note">Note: Adding local songs to synced/remote playlists is unsupported. Any other combination is valid</string>
+    <string name="import_online">Importer une playlist \"m3u\"</string>
+    <string name="import_csv">Importer une playlist \"csv\"</string>
+    <string name="playlist_add_local_to_synced_note">Remarque : L\’ajout de titres locaux à des playlists synchronisées/distantes n\’est pas pris en charge. Toute autre combinaison est valide.</string>
 
-    <string name="auto_download_on_like">Auto download on like</string>
-    <string name="auto_download_on_like_desc">Automatically download songs when you like them</string>
+    <string name="auto_download_on_like">Téléchargement automatique sur \"J\'aime\"</string>
+    <string name="auto_download_on_like_desc">Téléchargez automatiquement les titres que vous aimez.</string>
 
-    <string name="swipe_sensitivity">Mini player swipe sensitivity</string>
-    <string name="swipe_sensitivity_desc">Adjust how sensitive swipe gestures are for changing songs</string>
+    <string name="swipe_sensitivity">Sensibilité du balayage du mini-lecteur</string>
+    <string name="swipe_sensitivity_desc">Ajustez la sensibilité des gestes de balayage pour changer de titre.</string>
     <string name="sensitivity_percentage">%1$d%%</string>
 
-    <string name="clear_song_cache_dialog">  Are you sure you want to clear all cached songs?</string>
-    <string name="clear_image_cache_dialog">  Are you sure you want to clear all cached image?</string>
-    <string name="clear_downloads_dialog">  Are you sure you want to clear all downloads?</string>
+    <string name="clear_song_cache_dialog">Êtes-vous sûr de vouloir effacer tous les titres mis en cache ?</string>
+    <string name="clear_image_cache_dialog">Êtes-vous sûr de vouloir effacer toutes les images mises en cache ?</string>
+    <string name="clear_downloads_dialog">Êtes-vous sûr de vouloir supprimer tous les téléchargements ?</string>
 
-    <string name="disable">Disable</string>
+    <string name="disable">Désactiver</string>
 
-    <string name="pause_remote_listen_history">Pause share listen history with YouTube Music</string>
-    <string name="not_logged_in_youtube">Not logged in to YouTube</string>
+    <string name="pause_remote_listen_history">Mettez en pause, partagez et consultez votre historique d'écoute sur YouTube Music.</string>
+    <string name="not_logged_in_youtube">Non connecté à YouTube</string>
 
-    <string name="default_links">Open supported links</string>
-    <string name="open_app_settings_error">Couldn\'t open app settings</string>
+    <string name="default_links">Ouvrir les liens pris en charge</string>
+    <string name="open_app_settings_error">Impossible d\'ouvrir les paramètres de l\'application</string>
 
-    <string name="release_notes">Release notes</string>
+    <string name="release_notes">Notes de version</string>
 
-    <string name="all_time">All time</string>
-    <string name="past_24_hours">24 hours</string>
-    <string name="past_week">Past week</string>
-    <string name="past_month">Past month</string>
-    <string name="past_year">Past year</string>
-    <string name="top_length">My Top list length</string>
-    <string name="history_duration">History duration</string>
+    <string name="all_time">Tout le temps</string>
+    <string name="past_24_hours">24 heures</string>
+    <string name="past_week">Semaine dernière</string>
+    <string name="past_month">Mois dernier</string>
+    <string name="past_year">Année dernière</string>
+    <string name="top_length">Longueur de Mon Top</string>
+    <string name="history_duration">Durée de l\'historique</string>
     <string name="information">Information</string>
     <string name="description">Description</string>
-    <string name="numbers">Numbers</string>
-    <string name="subscribers">Subscribers</string>
-    <string name="views">Views</string>
-    <string name="likes">Likes</string>
-    <string name="dislikes">Dislikes</string>
-    <string name="subscribe">Subscribe</string>
-    <string name="subscribed">Subscribed</string>
+    <string name="numbers">Nombres</string>
+    <string name="subscribers">Abonnés</string>
+    <string name="views">Vues</string>
+    <string name="likes">J\'aime</string>
+    <string name="dislikes">Je n\'aime pas</string>
+    <string name="subscribe">S\'abonner</string>
+    <string name="subscribed">Abonné</string>
 
-    <string name="sub">Sub</string>
-    <string name="subed">Subed</string>
+    <string name="sub">Sous</string>
+    <string name="subed">Sous-division</string>
 
-    <string name="playlist_not_found">Playlist not found</string>
-    <string name="playlist_not_found_desc">The requested playlist could not be loaded</string>
-    <string name="empty_playlist">Empty Playlist</string>
-    <string name="empty_playlist_desc">This playlist doesn\'t contain any songs</string>
+    <string name="playlist_not_found">Playlist introuvable</string>
+    <string name="playlist_not_found_desc">La playlist demandée n\'a pas pu être chargée.</string>
+    <string name="empty_playlist">Playlist vide</string>
+    <string name="empty_playlist_desc">Cette playlist ne contient aucun titre.</string>
     <plurals name="seconds">
-        <item quantity="one">1 second</item>
-        <item quantity="other">%d seconds</item>
+        <item quantity="one">1 seconde</item>
+        <item quantity="other">%d secondes</item>
     </plurals>
 
     <!-- Player Settings -->
