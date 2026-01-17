@@ -61,6 +61,7 @@ fun LyricsLine(
     isSelectionModeActive: Boolean,
     isWordForWord: Boolean,
     isScrolling: Boolean,
+    isAutoScrollActive: Boolean,
     modifier: Modifier = Modifier
 ) {
     val (isLetterByLetter, _) = rememberPreference(LyricsLetterByLetterAnimationKey, false)
@@ -115,7 +116,7 @@ fun LyricsLine(
     // Apple Music Style: Blur inactive lines
     val (appleMusicLyricsBlur) = rememberPreference(AppleMusicLyricsBlurKey, true)
     val blurRadius by animateFloatAsState(
-        targetValue = if (!appleMusicLyricsBlur || isScrolling || isActive || !isSynced || isSelectionModeActive || !isWordForWord) 0f else if (distanceFromCurrent == 1) 2f else 6f,
+        targetValue = if (!appleMusicLyricsBlur || !isAutoScrollActive || isActive || !isSynced || isSelectionModeActive) 0f else 6f,
         animationSpec = tween(durationMillis = 600), label = "blur"
     )
 

@@ -218,10 +218,14 @@ fun LyricsScreen(
                     gradientColorsCache[mediaMetadata.id] = extractedColors
                     withContext(Dispatchers.Main) { gradientColors = extractedColors }
                 }
+                // If result is null (e.g. image not loaded yet), we keep existing gradientColors
+                // from the previous song to prevent black flickering.
             }
-        } else {
+        } else if (playerBackground == PlayerBackgroundStyle.DEFAULT) {
             gradientColors = emptyList()
         }
+        // If style is GRADIENT/APPLE_MUSIC but thumbnailUrl is null (e.g. during skip),
+        // we intentionally DON'T clear gradientColors to keep the previous background colored.
     }
 
     val textBackgroundColor = when (playerBackground) {
