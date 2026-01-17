@@ -303,6 +303,7 @@ class MusicService :
 
     override fun onCreate() {
         super.onCreate()
+        isRunning = true
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             setListener(object : Listener {
                 override fun onForegroundServiceStartNotAllowedException() {
@@ -1916,6 +1917,7 @@ class MusicService :
     }
 
     override fun onDestroy() {
+        isRunning = false
         if (dataStore.get(PersistentQueueKey, true)) {
             saveQueueToDisk()
         }
@@ -2027,5 +2029,6 @@ class MusicService :
         private const val MIN_GAIN_MB = -1000 // Minimum gain in millibels (-8 dB)
 
         private const val TAG = "MusicService"
+        var isRunning = false
     }
 }
