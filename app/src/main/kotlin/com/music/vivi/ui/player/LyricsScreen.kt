@@ -81,6 +81,7 @@ import coil3.toBitmap
 import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
+import com.music.vivi.constants.AppleMusicLyricsBlurKey
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PlayerBackgroundStyleKey
 import com.music.vivi.constants.SwipeGestureEnabledKey
@@ -141,6 +142,7 @@ fun LyricsScreen(
     var position by remember { mutableLongStateOf(0L) }
     var duration by remember { mutableLongStateOf(C.TIME_UNSET) }
     var sliderPosition by remember { mutableStateOf<Long?>(null) }
+    val appleMusicLyricsBlur by rememberPreference(AppleMusicLyricsBlurKey, defaultValue = true)
 
     val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.DEFAULT)
 
@@ -307,7 +309,7 @@ fun LyricsScreen(
                                 val color2 = colors.getOrElse(1) { colors[0].copy(alpha = 0.8f) }
                                 val color3 = colors.getOrElse(2) { colors[0].copy(alpha = 0.6f) }
                                 
-                                Canvas(modifier = Modifier.fillMaxSize().blur(100.dp)) {
+                                Canvas(modifier = Modifier.fillMaxSize().then(if (appleMusicLyricsBlur) Modifier.blur(100.dp) else Modifier)) {
                                     // Main vertical gradient base
                                     drawRect(
                                         brush = Brush.verticalGradient(

@@ -729,6 +729,8 @@
     <string name="highlight_words_discretely">Highlight words discretely as they are sung</string>
     <string name="letter_by_letter_animation">Letter by Letter Animation</string>
     <string name="animate_lyrics_letter_by_letter">Animate lyrics letter by letter when word sync is unavailable</string>
+    <string name="apple_music_lyrics_blur">Apple Music Lyrics Blur</string>
+    <string name="apple_music_lyrics_blur_desc">Enable soft blur background for Apple Music style lyrics</string>
     <string name="select_default_tab">Select which tab opens by default</string>
     <string name="swipe_add_songs_queue">Swipe to add songs to queue</string>
     <string name="compact_navigation_bar">Compact navigation bar</string>

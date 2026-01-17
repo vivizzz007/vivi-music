@@ -349,6 +349,7 @@ val TranslateLyricsKey = booleanPreferencesKey("translateLyrics")
 val SettingsShapeColorTertiaryKey = booleanPreferencesKey("settings_shape_color_tertiary")
 val LyricsTextSizeKey = floatPreferencesKey("lyricsTextSize")
 val LyricsLineSpacingKey = floatPreferencesKey("lyricsLineSpacing")
+val AppleMusicLyricsBlurKey = booleanPreferencesKey("apple_music_lyrics_blur")
 
 val PlayerVolumeKey = floatPreferencesKey("playerVolume")
 val RepeatModeKey = intPreferencesKey("repeatMode")
