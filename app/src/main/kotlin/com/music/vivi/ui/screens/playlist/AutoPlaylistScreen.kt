@@ -107,6 +107,7 @@ import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.RoundedCheckbox
 import com.music.vivi.ui.component.SongListItem
+import com.music.vivi.ui.menu.AutoPlaylistMenu
 import com.music.vivi.ui.menu.SelectionSongMenu
 import com.music.vivi.ui.menu.SongMenu
 import com.music.vivi.ui.utils.ItemWrapper
@@ -369,7 +370,7 @@ fun AutoPlaylistScreen(
                                         onClick = {
                                             playerConnection.playQueue(
                                                 ListQueue(
-                                                    title = "Auto Playlist",
+                                                    title = playlist,
                                                     items = songs!!.map { it.toMediaItem() },
                                                 ),
                                             )
@@ -561,7 +562,37 @@ fun AutoPlaylistScreen(
                                     ToggleButton(
                                         checked = false,
                                         onCheckedChange = {
-                                            // Opens a menu with sort and other playlist options
+                                            menuState.show {
+                                                AutoPlaylistMenu(
+                                                    name = playlist,
+                                                    songs = songs ?: emptyList(),
+                                                    downloadState = downloadState,
+                                                    onDownload = {
+                                                        when (downloadState) {
+                                                            Download.STATE_COMPLETED, Download.STATE_DOWNLOADING -> {
+                                                                showRemoveDownloadDialog = true
+                                                            }
+                                                            else -> {
+                                                                songs!!.forEach { song ->
+                                                                    val downloadRequest =
+                                                                        DownloadRequest
+                                                                            .Builder(song.song.id, song.song.id.toUri())
+                                                                            .setCustomCacheKey(song.song.id)
+                                                                            .setData(song.song.title.toByteArray())
+                                                                            .build()
+                                                                    DownloadService.sendAddDownload(
+                                                                        context,
+                                                                        ExoDownloadService::class.java,
+                                                                        downloadRequest,
+                                                                        false,
+                                                                    )
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    onDismiss = { menuState.dismiss() }
+                                                )
+                                            }
                                         },
                                         modifier = Modifier.weight(1f).semantics { role = Role.Button },
                                         shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
