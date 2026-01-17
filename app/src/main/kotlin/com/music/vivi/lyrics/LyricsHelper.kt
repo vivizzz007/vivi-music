@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 
 class LyricsHelper
@@ -77,60 +78,54 @@ constructor(
             return cached.lyrics
         }
 
-        // Check network connectivity before making network requests
-        // Use synchronous check as fallback if flow doesn't emit
         val isNetworkAvailable = try {
             networkConnectivity.isCurrentlyConnected()
         } catch (e: Exception) {
-            // If network check fails, try to proceed anyway
             true
         }
         
         if (!isNetworkAvailable) {
-            // Still proceed but return not found to avoid hanging
             return LYRICS_NOT_FOUND
         }
 
         val providers = getOrderedProviders()
-        val scope = CoroutineScope(SupervisorJob())
-        val deferred = scope.async {
-            for (provider in providers) {
-                if (provider.isEnabled(context)) {
-                    try {
-                        val result = provider.getLyrics(
-                            mediaMetadata.id,
-                            mediaMetadata.title,
-                            mediaMetadata.artists.joinToString { it.name },
-                            mediaMetadata.duration,
-                        )
-                        result.onSuccess { rawLyrics ->
-                            val processedLyrics = if (provider != BetterLyricsLyricsProvider) {
-                                rawLyrics.stripWordTimestamps()
-                            } else {
-                                rawLyrics
-                            }
-                            return@async processedLyrics
-                        }.onFailure {
-                            reportException(it)
-                        }
-                    } catch (e: Exception) {
-                        // Catch network-related exceptions like UnresolvedAddressException
-                        reportException(e)
-                    }
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        
+        val deferreds = providers.filter { it.isEnabled(context) }.map { provider ->
+            scope.async {
+                try {
+                    val result = provider.getLyrics(
+                        mediaMetadata.id,
+                        mediaMetadata.title,
+                        mediaMetadata.artists.joinToString { it.name },
+                        mediaMetadata.duration,
+                    )
+                    
+                    result.getOrNull()
+                } catch (e: Exception) {
+                    reportException(e)
+                    null
                 }
             }
-            return@async LYRICS_NOT_FOUND
         }
 
-        if (deferred.isCancelled) return LYRICS_NOT_FOUND
-        val lyrics = deferred.await()
+        // Wait for results and pick the best one
+        // Priority: 
+        // 1. Synced lyrics (starts with [)
+        // 2. Plain lyrics
+        
+        var bestLyrics: String? = null
+        
+        // Wait for all but we can optimize by returning early if we find high-quality synced lyrics
+        // However, with small number of providers, waiting for all is okay and simple.
+        val results = deferreds.mapNotNull { it.await() }
+        
+        bestLyrics = results.find { it.startsWith("[") } ?: results.firstOrNull() ?: LYRICS_NOT_FOUND
+        
         scope.cancel()
-        return lyrics
+        return bestLyrics
     }
 
-    private fun String.stripWordTimestamps(): String {
-        return this.replace("<[^>]*>".toRegex(), "")
-    }
 
     suspend fun getAllLyrics(
         mediaId: String,
@@ -170,12 +165,7 @@ constructor(
                 if (provider.isEnabled(context)) {
                     try {
                         provider.getAllLyrics(mediaId, songTitle, songArtists, duration) { rawLyrics ->
-                            val processedLyrics = if (provider != BetterLyricsLyricsProvider) {
-                                rawLyrics.stripWordTimestamps()
-                            } else {
-                                rawLyrics
-                            }
-                            val result = LyricsResult(provider.name, processedLyrics)
+                            val result = LyricsResult(provider.name, rawLyrics)
                             allResult += result
                             callback(result)
                         }

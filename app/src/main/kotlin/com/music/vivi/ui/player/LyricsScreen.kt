@@ -100,6 +100,7 @@ import com.music.vivi.constants.SliderStyle
 import com.music.vivi.constants.SliderStyleKey
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -143,10 +144,12 @@ fun LyricsScreen(
 
     val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.DEFAULT)
 
+    var lyricsFetchJob by remember { mutableStateOf<Job?>(null) }
+
     LaunchedEffect(mediaMetadata.id, currentLyrics) {
         if (currentLyrics == null) {
-            delay(500)
-            coroutineScope.launch(Dispatchers.IO) {
+            lyricsFetchJob?.cancel()
+            lyricsFetchJob = coroutineScope.launch(Dispatchers.IO) {
                 try {
                     val entryPoint = EntryPointAccessors.fromApplication(
                         context.applicationContext,
