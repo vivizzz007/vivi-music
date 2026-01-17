@@ -706,6 +706,7 @@ fun Lyrics(
                             textSize = lyricsTextSize,
                             lineSpacing = lyricsLineSpacing,
                             isWordForWord = lyricsWordForWord,
+                            isScrolling = lazyListState.isScrollInProgress,
                             onClick = {
                                 if (isSelectionModeActive) {
                                     if (isSelected) {
