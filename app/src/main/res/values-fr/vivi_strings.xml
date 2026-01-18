@@ -403,100 +403,100 @@
     <string name="report_issue_title">Signaler un problème</string>
 
     <!-- Support Developer -->
-    <string name="support_developer">SUPPORT DEVELOPER</string>
-    <string name="upi_payment_methods">UPI Payment Methods</string>
+    <string name="support_developer">SOUTENIR LE DÉVELOPPEUR</string>
+    <string name="upi_payment_methods">Modes de paiement UPI</string>
     <string name="google_pay">Google Pay</string>
     <string name="phonepe">PhonePe</string>
     <string name="paytm">Paytm</string>
     <string name="bhim_upi">BHIM UPI</string>
-    <string name="buy_me_a_coffee">Buy Me a Coffee</string>
-    <string name="coming_soon">COMING SOON</string>
-    <string name="support_title">Support</string>
+    <string name="buy_me_a_coffee">Offrez-moi un café</string>
+    <string name="coming_soon">À VENIR</string>
+    <string name="support_title">Soutien</string>
 
     <!-- Storage Settings -->
-    <string name="storage_settings">Storage Settings</string>
-    <string name="manage_storage_cache">Manage your app storage and cache</string>
-    <string name="storage_overview">STORAGE OVERVIEW</string>
-    <string name="total_storage_used">Total Storage Used</string>
-    <string name="downloads_section">DOWNLOADS</string>
-    <string name="song_cache_section">SONG CACHE</string>
-    <string name="cache_usage">Cache Usage</string>
-    <string name="image_cache_section">IMAGE CACHE</string>
+    <string name="storage_settings">Paramètres de stockage</string>
+    <string name="manage_storage_cache">Gérez le stockage et le cache de votre application</string>
+    <string name="storage_overview">APERÇU DU STOCKAGE</string>
+    <string name="total_storage_used">Espace de stockage total utilisé</string>
+    <string name="downloads_section">TÉLÉCHARGEMENTS</string>
+    <string name="song_cache_section">CACHE DE TITRES</string>
+    <string name="cache_usage">Utilisation du cache</string>
+    <string name="image_cache_section">CACHE D\'IMAGES</string>
 
     <!-- Playlist Descriptions -->
-    <string name="top_playlist_description">Your most played tracks based on your listening history. This dynamic playlist updates as you discover new music.</string>
-    <string name="cache_playlist_description">Your cached songs stored locally on your device. These tracks are available for offline playback and don\'t require an internet connection.</string>
+    <string name="top_playlist_description">Vos titres les plus écoutés, d\'après votre historique d\'écoute. Cette playlist dynamique se met à jour au fur et à mesure que vous découvrez de nouvelles musiques.</string>
+    <string name="cache_playlist_description">Vos morceaux mis en cache sont stockés localement sur votre appareil. Ces titres sont disponibles pour une écoute hors ligne et ne nécessitent pas de connexion Internet.</string>
 
     <!-- Artist Screen -->
-    <string name="about_artist">About Artist</string>
+    <string name="about_artist">À propos de l\'artiste</string>
 
     <!-- Album Screen -->
-    <string name="explicit">E  Explicit</string>
+    <string name="explicit">E  Explicite</string>
 
     <!-- Bluetooth -->
-    <string name="streaming_to">Streaming to</string>
-    <string name="this_phone">This phone</string>
+    <string name="streaming_to">Diffusion en continu vers</string>
+    <string name="this_phone">Ce téléphone</string>
 
     <!-- Account Screen -->
-    <string name="account_title">Account</string>
-    <string name="manage_account_preferences">Manage your account and preferences</string>
-    <string name="signed_in">Signed in</string>
-    <string name="not_signed_in">Not signed in</string>
-    <string name="tap_to_sign_in">Tap to sign in</string>
-    <string name="token_shown_title">Token shown</string>
-    <string name="token_hidden_title">Token hidden</string>
-    <string name="tap_to_manage_token">Tap to manage token</string>
-    <string name="sign_in_with_cookies">Sign in with cookies</string>
-    <string name="enabled">Enabled</string>
-    <string name="disabled">Disabled</string>
-    <string name="sign_out">Sign out</string>
+    <string name="account_title">Compte</string>
+    <string name="manage_account_preferences">Gérez votre compte et vos préférences</string>
+    <string name="signed_in">Connecté</string>
+    <string name="not_signed_in">Non connecté</string>
+    <string name="tap_to_sign_in">Appuyez pour vous connecter</string>
+    <string name="token_shown_title">Jeton affiché</string>
+    <string name="token_hidden_title">Jeton caché</string>
+    <string name="tap_to_manage_token">Appuyez pour gérer le jeton</string>
+    <string name="sign_in_with_cookies">Se connecter avec les cookies</string>
+    <string name="enabled">Activé</string>
+    <string name="disabled">Désactivé</string>
+    <string name="sign_out">Se déconnecter</string>
 
     <!-- Beta Update -->
     <string name="vivi_music">VIVI MUSIC</string>
-    <string name="vivi_music_beta_update">Vivi Music Beta Update</string>
-    <string name="recheck">Recheck</string>
-    <string name="changelog_for_version">Changelog for %1$s</string>
-    <string name="available">Available</string>
-    <string name="file_error">File error</string>
-    <string name="unknown_error">Unknown error</string>
+    <string name="vivi_music_beta_update">Mise à jour bêta de Vivi Music</string>
+    <string name="recheck">Vérifier à nouveau</string>
+    <string name="changelog_for_version">Journal des modifications pour %1$s</string>
+    <string name="available">Disponible</string>
+    <string name="file_error">Erreur de fichier</string>
+    <string name="unknown_error">Erreur inconnue</string>
 
     <!-- Settings Screens -->
-    <string name="settings_title">Settings</string>
-    <string name="manage_privacy_data">Manage your privacy and data</string>
-    <string name="configure_player_audio">Configure player and audio settings</string>
-    <string name="configure_content_preferences">Configure content preferences</string>
-    <string name="romanization_settings">Romanization settings</string>
-    <string name="manage_data_playlists">Manage your data and playlists</string>
-    <string name="data_management">DATA MANAGEMENT</string>
-    <string name="import_section">IMPORT</string>
-    <string name="customize_look_feel">Customize the look and feel</string>
-    <string name="select_theme_preference">Select theme preference</string>
-    <string name="select_text_alignment">Select text alignment</string>
-    <string name="lyrics_position">Lyrics position</string>
-    <string name="select_active_line_position">Select active line position</string>
-    <string name="size">Size</string>
-    <string name="spacing">Spacing</string>
-    <string name="top">Top</string>
-    <string name="center_option">Center</string>
+    <string name="settings_title">Paramètres</string>
+    <string name="manage_privacy_data">Gérez votre confidentialité et vos données</string>
+    <string name="configure_player_audio">Configurer les paramètres du lecteur et de l\'audio</string>
+    <string name="configure_content_preferences">Configurer les préférences de contenu</string>
+    <string name="romanization_settings">Paramètres de romanisation</string>
+    <string name="manage_data_playlists">Gérez vos données et vos playlists</string>
+    <string name="data_management">GESTION DES DONNÉES</string>
+    <string name="import_section">IMPORTATION</string>
+    <string name="customize_look_feel">Personnalisez l\'apparence et le confort d\'utilisation</string>
+    <string name="select_theme_preference">Sélectionnez le thème préféré</string>
+    <string name="select_text_alignment">Sélectionnez l\'alignement du texte</string>
+    <string name="lyrics_position">Position des paroles</string>
+    <string name="select_active_line_position">Sélectionnez la position de la ligne active</string>
+    <string name="size">Taille</string>
+    <string name="spacing">Espacement</string>
+    <string name="top">En Haut</string>
+    <string name="center_option">Au Centre</string>
 
     <!-- About Screen -->
     <string name="vivi_music_title">VIVI MUSIC</string>
-    <string name="update_section">UPDATE</string>
-    <string name="developer_section">DEVELOPER</string>
-    <string name="app_info_section">APP INFO</string>
-    <string name="community_section">COMMUNITY</string>
-    <string name="support_development">Support development</string>
-    <string name="website">Website</string>
-    <string name="donate">Donate</string>
+    <string name="update_section">MISE À JOUR</string>
+    <string name="developer_section">DÉVELOPPEUR</string>
+    <string name="app_info_section">INFORMATIONS SUR L\'APPLICATION</string>
+    <string name="community_section">COMMUNAUTÉ</string>
+    <string name="support_development">Soutenir le développement</string>
+    <string name="website">Site Web</string>
+    <string name="donate">Faire un don</string>
 
     <!-- Media Info -->
-    <string name="song_info">Song Info</string>
-    <string name="done">Done</string>
-    <string name="title">Title</string>
+    <string name="song_info">Informations sur le titre</string>
+    <string name="done">Terminé</string>
+    <string name="title">Titre</string>
     <string name="standard">Standard</string>
     <string name="format">Format</string>
-    <string name="duration">Duration</string>
-    <string name="artist">Artist</string>
+    <string name="duration">Durée</string>
+    <string name="artist">Artiste</string>
     <string name="itag">Itag</string>
 
     <!-- Playlist Actions -->
