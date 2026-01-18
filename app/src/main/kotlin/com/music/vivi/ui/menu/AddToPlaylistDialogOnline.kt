@@ -2,14 +2,28 @@ package com.music.vivi.ui.menu
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -21,19 +35,26 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import androidx.datastore.preferences.core.edit
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.music.innertube.YouTube
 import com.music.innertube.models.SongItem
 import com.music.vivi.LocalDatabase
 import com.music.vivi.R
+import com.music.vivi.constants.AddToPlaylistSortDescendingKey
+import com.music.vivi.constants.AddToPlaylistSortTypeKey
 import com.music.vivi.constants.ListThumbnailSize
+import com.music.vivi.constants.PlaylistSortType
 import com.music.vivi.db.entities.Playlist
 import com.music.vivi.db.entities.Song
+import com.music.vivi.extensions.toEnum
 import com.music.vivi.models.ItemsPage
 import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.ui.component.CreatePlaylistDialog
@@ -41,14 +62,19 @@ import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.ListDialog
 import com.music.vivi.ui.component.ListItem
 import com.music.vivi.ui.component.PlaylistListItem
+import com.music.vivi.ui.component.SortHeader
+import com.music.vivi.utils.dataStore
+import com.music.vivi.utils.rememberEnumPreference
+import com.music.vivi.utils.rememberPreference
 import com.music.vivi.utils.reportException
+import com.music.vivi.viewmodels.PlaylistsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
-
+import androidx.compose.foundation.background
 @Composable
 fun AddToPlaylistDialogOnline(
     isVisible: Boolean,
@@ -57,14 +83,15 @@ fun AddToPlaylistDialogOnline(
     songs: SnapshotStateList<Song>, // list of song ids. Songs should be inserted to database in this function.
     onDismiss: () -> Unit,
     onProgressStart: (Boolean) -> Unit,
-    onPercentageChange: (Int) -> Unit
+    onPercentageChange: (Int) -> Unit,
+    viewModel: PlaylistsViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     val database = LocalDatabase.current
     val coroutineScope = rememberCoroutineScope()
     val viewStateMap = remember { mutableStateMapOf<String, ItemsPage?>() }
-    var playlists by remember {
-        mutableStateOf(emptyList<Playlist>())
-    }
+
+    val playlists by viewModel.allPlaylists.collectAsState()
 
 
     var showCreatePlaylistDialog by rememberSaveable {
@@ -84,35 +111,92 @@ fun AddToPlaylistDialogOnline(
         mutableStateOf(emptyList<String>())
     }
 
+    // State to hold IDs of playlists that already contain the song(s)
+    var containingPlaylists by remember {
+        mutableStateOf<Set<String>>(emptySet())
+    }
 
-    LaunchedEffect(Unit) {
-        database.editablePlaylistsByCreateDateAsc().collect {
-            playlists = it.asReversed()
+    // Check for existing songs in playlists
+    val songsToCheck = remember(songs) { songs.map { it.id } }
+    LaunchedEffect(playlists, songsToCheck) {
+        if (songsToCheck.isNotEmpty() && playlists.isNotEmpty()) {
+            withContext(Dispatchers.IO) {
+                val foundIn = mutableSetOf<String>()
+                playlists.forEach { playlist ->
+                    val dupes = database.playlistDuplicates(playlist.id, songsToCheck)
+                    if (dupes.isNotEmpty()) {
+                        foundIn.add(playlist.id)
+                    }
+                }
+                containingPlaylists = foundIn
+            }
         }
     }
+
+    // Playlists are handled by ViewModel
 
     if (isVisible) {
         ListDialog(
             onDismiss = onDismiss
         ) {
             item {
-                ListItem(
-                    title = stringResource(R.string.create_playlist),
-                    thumbnailContent = {
-                        Image(
-                            painter = painterResource(id = R.drawable.playlist_add),
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    FilledTonalButton(
+                        modifier = Modifier
+                            .height(64.dp)
+                            .fillMaxWidth(0.8f),
+                        shape = CircleShape,
+                        colors = ButtonDefaults.filledTonalButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        ),
+                        contentPadding = PaddingValues(horizontal = 24.dp),
+                        onClick = {
+                            showCreatePlaylistDialog = true
+                        }
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.playlist_add),
                             contentDescription = null,
-                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
-                            modifier = Modifier.size(ListThumbnailSize)
+                            modifier = Modifier.size(28.dp)
                         )
-                    },
-                    modifier = Modifier.clickable {
-                        showCreatePlaylistDialog = true
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = stringResource(R.string.create_playlist),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                }
+            }
+
+            item {
+                val (sortType, onSortTypeChange) = rememberEnumPreference(AddToPlaylistSortTypeKey, PlaylistSortType.CREATE_DATE)
+                val (sortDescending, onSortDescendingChange) = rememberPreference(AddToPlaylistSortDescendingKey, true)
+
+                SortHeader(
+                    sortType = sortType,
+                    sortDescending = sortDescending,
+                    onSortTypeChange = onSortTypeChange,
+                    onSortDescendingChange = onSortDescendingChange,
+                    sortTypeText = {
+                        when (it) {
+                            PlaylistSortType.CREATE_DATE -> R.string.sort_by_create_date
+                            PlaylistSortType.NAME -> R.string.sort_by_name
+                            PlaylistSortType.SONG_COUNT -> R.string.sort_by_song_count
+                            PlaylistSortType.LAST_UPDATED -> R.string.sort_by_last_updated
+                        }
                     }
                 )
             }
 
             items(playlists) { playlist ->
+                val isAlreadyAdded = containingPlaylists.contains(playlist.id)
+
                 PlaylistListItem(
                     playlist = playlist,
                     modifier = Modifier.clickable {
@@ -171,6 +255,23 @@ fun AddToPlaylistDialogOnline(
 
                             }
 
+                        }
+                    },
+                    trailingContent = {
+                        if (isAlreadyAdded) {
+                            Box(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .background(MaterialTheme.colorScheme.tertiaryContainer, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.check),
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
                         }
                     }
                 )
