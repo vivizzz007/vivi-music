@@ -302,105 +302,105 @@
     <string name="no_contributors_found">Aucun contributeur trouvé</string>
 
     <!-- Error Messages -->
-    <string name="error_failed_to_load_contributors">Failed to load contributors (%d)</string>
-    <string name="error_loading_contributors">Error loading contributors: %s</string>
+    <string name="error_failed_to_load_contributors">Échec du chargement des contributeurs (%d)</string>
+    <string name="error_loading_contributors">Erreur lors du chargement des contributeurs : %s</string>
 
     <!-- Accessibility -->
-    <string name="contributor_avatar">Avatar of %s</string>
-    <string name="github_profile">GitHub Profile</string>
+    <string name="contributor_avatar">Avatar de %s</string>
+    <string name="github_profile">Profil GitHub</string>
 
     <!-- Vivi Updates Screen -->
-    <string name="app_updates_title">App Updates</string>
-    <string name="changelog">Changelog</string>
-    <string name="quick_actions">Quick actions</string>
-    <string name="app_updates_subtitle">App updates and version information</string>
-    <string name="system_update">System update</string>
-    <string name="update_available_subtitle">Update available - %1$s</string>
-    <string name="update_disabled_subtitle">Automatic checks disabled</string>
-    <string name="up_to_date_subtitle">App is up to date</string>
-    <string name="experimental_title">Experimental</string>
-    <string name="experimental_subtitle">Experimental feature</string>
-    <string name="update_settings_subtitle">Turn on and off updates</string>
-    <string name="changelog_subtitle">Current app version</string>
-    <string name="about_subtitle">app &amp; dev information</string>
-    <string name="app_info_header">APP INFO</string>
-    <string name="build_version_title">Build version</string>
-    <string name="installed_on_format">Installed on %1$s</string>
+    <string name="app_updates_title">Mises à jour de l\'application</string>
+    <string name="changelog">Journal des modifications</string>
+    <string name="quick_actions">Actions rapides</string>
+    <string name="app_updates_subtitle">Informations sur les mises à jour et la version de l\'application</string>
+    <string name="system_update">Mise à jour du système</string>
+    <string name="update_available_subtitle">Mise à jour disponible - %1$s</string>
+    <string name="update_disabled_subtitle">Contrôle automatique désactivé</string>
+    <string name="up_to_date_subtitle">L\'application est à jour.</string>
+    <string name="experimental_title">Expérimental</string>
+    <string name="experimental_subtitle">Fonctionnalité expérimentale</string>
+    <string name="update_settings_subtitle">Activer et désactiver les mises à jour</string>
+    <string name="changelog_subtitle">Version actuelle de l\'application</string>
+    <string name="about_subtitle">Informations sur l\'application et le développement</string>
+    <string name="app_info_header">INFORMATIONS SUR L\'APPLICATION</string>
+    <string name="build_version_title">Version de compilation</string>
+    <string name="installed_on_format">Installé sur %1$s</string>
 
     <!-- Update Settings Screen (updatesettings.kt) -->
-    <string name="update_settings_title">Update Settings</string>
-    <string name="manage_header">Manage</string>
+    <string name="update_settings_title">Paramètres de mise à jour</string>
+    <string name="manage_header">Gestion</string>
     <string name="notification_header">Notifications</string>
-    <string name="check_for_updates_desc">Automatically check for new updates</string>
-    <string name="show_notification">Show notification</string>
-    <string name="show_notification_desc">Get notified when updates are available</string>
-    <string name="update_check_interval">Update check interval</string>
-    <string name="interval_every_hour">Every %1$d hour</string>
-    <string name="interval_every_hours">Every %1$d hours</string>
-    <string name="interval_every_day">Every %1$d day</string>
-    <string name="interval_every_days">Every %1$d days</string>
-    <string name="interval_check_format_hours">Check every %1$d hours</string>
-    <string name="interval_check_format_days">Check every %1$d days</string>
-    <string name="auto_updates_enabled_toast">Automatic update checks enabled</string>
-    <string name="auto_updates_disabled_toast">Automatic update checks disabled</string>
-    <string name="notifications_enabled_toast">Update notifications enabled</string>
-    <string name="notifications_disabled_toast">Update notifications disabled</string>
-    <string name="interval_set_format_hours">Update check interval set to %1$d hours</string>
-    <string name="interval_set_format_days">Update check interval set to %1$d days</string>
-    <string name="one_hour">1 hour</string>
-    <string name="seven_days">7 days</string>
+    <string name="check_for_updates_desc">Vérifier automatiquement les nouvelles mises à jour</string>
+    <string name="show_notification">Afficher une notification</string>
+    <string name="show_notification_desc">Recevez une notification lorsque des mises à jour sont disponibles.</string>
+    <string name="update_check_interval">Intervalle de vérification des mises à jour</string>
+    <string name="interval_every_hour">Chaque %1$d heure</string>
+    <string name="interval_every_hours">Toutes les %1$d heures</string>
+    <string name="interval_every_day">Chaque %1$d jour</string>
+    <string name="interval_every_days">Tous les %1$d jours</string>
+    <string name="interval_check_format_hours">Vérifier toutes les %1$d heures</string>
+    <string name="interval_check_format_days">Vérifier tous les %1$d jours</string>
+    <string name="auto_updates_enabled_toast">Vérification automatique des mises à jour activée</string>
+    <string name="auto_updates_disabled_toast">Vérification automatique des mises à jour désactivée</string>
+    <string name="notifications_enabled_toast">Notification de mise à jour activée</string>
+    <string name="notifications_disabled_toast">Notification de mise à jour désactivée</string>
+    <string name="interval_set_format_hours">Intervalle de vérification des mises à jour défini sur %1$d heures</string>
+    <string name="interval_set_format_days">Intervalle de vérification des mises à jour défini sur %1$d jours</string>
+    <string name="one_hour">1 heure</string>
+    <string name="seven_days">7 jours</string>
     <string name="ok_caps">OK</string>
-    <string name="account_status">Account Status</string>
-    <string name="account_settings">Account Settings</string>
-    <string name="integrations_subtitle">Connect with external services</string>
-    <string name="cancel_caps">CANCEL</string>
-    <string name="waiting_for_network">Waiting for network connection…</string>
+    <string name="account_status">État du compte</string>
+    <string name="account_settings">Paramètres du compte</string>
+    <string name="integrations_subtitle">Se connecter à des services externes</string>
+    <string name="cancel_caps">ANNULER</string>
+    <string name="waiting_for_network">En attente de connexion réseau…</string>
 
     <!-- Update Screen Strings -->
-    <string name="installing_system_update">Installing system\nupdate…</string>
-    <string name="making_update_ready">Making Update ready , this may take a while</string>
-    <string name="your_app_getting_better">Your App is getting even better…</string>
-    <string name="update_includes_features">This update includes new features and the latest from vivi-music %1$s, making your app even more helpful. Learn more at %2$s.</string>
-    <string name="whats_new">What\'s new?</string>
+    <string name="installing_system_update">Installation du système\nmise à jour…</string>
+    <string name="making_update_ready">Préparation de la mise à jour, cela peut prendre un certain temps.</string>
+    <string name="your_app_getting_better">Votre application s\'améliore encore...</string>
+    <string name="update_includes_features">Cette mise à jour comprend de nouvelles fonctionnalités et les dernières nouveautés de vivi-music %1$s, rendant votre application encore plus utile. Pour en savoir plus, rendez-vous sur %2$s.</string>
+    <string name="whats_new">Quoi de neuf ?</string>
     <string name="pause">Pause</string>
-    <string name="update_available">Update Available</string>
-    <string name="checking_for_updates">Checking for updates…</string>
-    <string name="current_version">Current version: %1$s</string>
-    <string name="cant_check_updates">Can\'t check for\nupdates</string>
-    <string name="app_up_to_date">App is\nup to date</string>
+    <string name="update_available">Mise à jour disponible</string>
+    <string name="checking_for_updates">Recherche de mises à jour…</string>
+    <string name="current_version">Version actuelle : %1$s</string>
+    <string name="cant_check_updates">Impossible de vérifier\nles mises à jour</string>
+    <string name="app_up_to_date">L\'application est\nà jour.</string>
     <string name="version">Version %1$s</string>
-    <string name="released">Released: %1$s</string>
-    <string name="update_preview">Update preview</string>
-    <string name="downloading_percent">Downloading… %1$d%%</string>
-    <string name="download_failed">Download Failed</string>
-    <string name="new_features_include">New features include:</string>
-    <string name="mobile_network_warning">Downloading updates over a mobile network or while roaming may cause additional charges.</string>
-    <string name="update_size">Update size: %1$s MB</string>
-    <string name="check_internet_connection">Check your internet connection and try again.</string>
+    <string name="released">Sortie : %1$s</string>
+    <string name="update_preview">Aperçu de la mise à jour</string>
+    <string name="downloading_percent">Téléchargement en cours… %1$d%%</string>
+    <string name="download_failed">Échec du téléchargement</string>
+    <string name="new_features_include">Parmi les nouvelles fonctionnalités :</string>
+    <string name="mobile_network_warning">Le téléchargement de mises à jour via un réseau mobile ou en itinérance peut entraîner des frais supplémentaires.</string>
+    <string name="update_size">Taille de la mise à jour : %1$s Mo</string>
+    <string name="check_internet_connection">Vérifiez votre connexion internet et réessayez.</string>
     <string name="vivi_music_version">VIVI MUSIC version %1$s</string>
-    <string name="last_checked">Last checked: %1$s</string>
-    <string name="install">Install</string>
-    <string name="check_for_update">Check for update</string>
-    <string name="no_changelog_available">No changelog available</string>
+    <string name="last_checked">Dernière vérification : %1$s</string>
+    <string name="install">Installer</string>
+    <string name="check_for_update">Vérifier les mises à jour</string>
+    <string name="no_changelog_available">Aucun journal des modifications disponible</string>
 
     <!-- Player Strings -->
-    <string name="error_playing">Error playing</string>
-    <string name="bluetooth_headphones">Bluetooth headphones</string>
-    <string name="audio_devices">Audio devices</string>
+    <string name="error_playing">Erreur de lecture</string>
+    <string name="bluetooth_headphones">Écouteurs Bluetooth</string>
+    <string name="audio_devices">Appareils audio</string>
 
     <!-- Crash Page -->
-    <string name="crash_message">Uh oh! ViVi hit a wall and came to an abrupt stop. See the log below for more information. More options are provided on the bottom of the page.</string>
-    <string name="log_copied_to_clipboard">Log copied to clipboard</string>
+    <string name="crash_message">Oups ! ViVi a rencontré un problème et s\'est arrêté brusquement. Consultez le journal ci-dessous pour plus d\'informations. D\'autres options sont disponibles en bas de la page.</string>
+    <string name="log_copied_to_clipboard">Journal copié dans le presse-papiers</string>
 
     <!-- Report Issue -->
-    <string name="report_an_issue">REPORT AN ISSUE</string>
-    <string name="found_bug_suggestion">Found a bug or have a suggestion?</string>
-    <string name="report_issues_description">You can report issues through email or directly on GitHub.</string>
-    <string name="device_information">Device Information (will be included in report):</string>
-    <string name="no_email_app_found">No email app found</string>
-    <string name="report_via_email">Report via Email</string>
-    <string name="report_on_github">Report on GitHub</string>
-    <string name="report_issue_title">Report Issue</string>
+    <string name="report_an_issue">SIGNALER UN PROBLÈME</string>
+    <string name="found_bug_suggestion">Vous avez trouvé un bug ou vous avez une suggestion ?</string>
+    <string name="report_issues_description">Vous pouvez signaler les problèmes par e-mail ou directement sur GitHub.</string>
+    <string name="device_information">Informations sur l\'appareil (seront incluses dans le rapport) :</string>
+    <string name="no_email_app_found">Aucune application de messagerie trouvée</string>
+    <string name="report_via_email">Signaler par e-mail</string>
+    <string name="report_on_github">Signaler sur GitHub</string>
+    <string name="report_issue_title">Signaler un problème</string>
 
     <!-- Support Developer -->
     <string name="support_developer">SUPPORT DEVELOPER</string>
