@@ -701,96 +701,97 @@
     <string name="app_information_legal">Informations et mentions légales concernant l\'application/string>
 
     <!-- Player Settings -->
-    <string name="select_playback_audio_quality">Select playback audio quality</string>
-    <string name="remove_silent_parts">Remove silent parts</string>
-    <string name="normalize_audio_levels">Normalize audio levels</string>
-    <string name="stop_playback_when_closed">Stop playback when app is closed</string>
-    <string name="pause_on_zero_volume">Pause/resume on zero volume</string>
-    <string name="pause_on_zero_volume_description">Automatically pause playback at zero volume and resume when increased</string>
-    <string name="smart_shuffle">Smart Shuffle</string>
-    <string name="smart_shuffle_desc">Avoid playing similar songs or same artists back-to-back</string>
-    <string name="smart_suggestions">Smart Suggestions</string>
-    <string name="smart_suggestions_desc">Get tailored recommendations at the end of your queue</string>
-    <string name="smart_pause">Smart Pause</string>
-    <string name="smart_pause_desc">Auto-pause when headphones disconnect</string>
+    <string name="select_playback_audio_quality">Sélectionnez la qualité audio de lecture</string>
+    <string name="remove_silent_parts">Supprimer les parties silencieuses</string>
+    <string name="normalize_audio_levels">Normaliser les niveaux audio</string>
+    <string name="stop_playback_when_closed">Arrêter la lecture lorsque l\'application est fermée</string>
+    <string name="pause_on_zero_volume">Pause/Reprise au volume zéro</string>
+    <string name="pause_on_zero_volume_description">Mettre automatiquement la lecture en pause lorsque le volume est à zéro et la reprendre lorsqu\'il augmente.</string>
+    <string name="smart_shuffle">Mélange intelligent</string>
+    <string name="smart_shuffle_desc">Évitez de passer des titres similaires ou des artistes identiques à la suite.</string>
+    <string name="smart_suggestions">File d\'attente infinie</string>
+    <string name="smart_suggestions_desc">Continuez à écouter de la musique à l\'infini grâce à des recommandations personnalisées lorsque votre playlist est terminée.</string>
+    <string name="smart_pause">Pause intelligente</string>
+    <string name="smart_pause_desc">Mise en pause automatique en cas de déconnexion des écouteurs</string>
 
     <!-- Appearance Settings -->
-    <string name="dynamic_color_theming_subtitle">Dynamic color theming</string>
-    <string name="use_pure_black_dark_theme">Use pure black for dark theme</string>
-    <string name="settings_shape_tertiary_color">Settings Shape Tertiary Color</string>
-    <string name="use_tertiary_color_icon_backgrounds">Use tertiary color for icon backgrounds</string>
-    <string name="modern_player_interface">Modern player interface</string>
-    <string name="modern_mini_player">Modern mini player</string>
-    <string name="enable_rotating_clover_thumbnail">Enable rotating clover thumbnail</string>
-    <string name="swipe_on_player_thumbnail">Swipe on player thumbnail</string>
-    <string name="click_change_lyrics_position">Click to change lyrics position</string>
-    <string name="auto_scroll_lyrics_subtitle">Auto scroll lyrics</string>
-    <string name="apple_lyrics">Applemusic lyrics</string>
-    <string name="highlight_words_discretely">Highlight words discretely as they are sung</string>
-    <string name="letter_by_letter_animation">Letter by Letter Animation</string>
-    <string name="animate_lyrics_letter_by_letter">Animate lyrics letter by letter when word sync is unavailable</string>
-    <string name="select_default_tab">Select which tab opens by default</string>
-    <string name="swipe_add_songs_queue">Swipe to add songs to queue</string>
-    <string name="compact_navigation_bar">Compact navigation bar</string>
-    <string name="swipe_remove_songs">Swipe to remove songs</string>
-    <string name="change_size_items_library">Change the size of items in the library</string>
-    <string name="display_liked_songs_playlist">Display liked songs playlist</string>
-    <string name="display_downloaded_playlist">Display downloaded playlist</string>
-    <string name="display_top_songs_playlist">Display top songs playlist</string>
-    <string name="display_cached_playlist">Display cached playlist</string>
-    <string name="display_uploaded_playlist">Display uploaded playlist</string>
+    <string name="dynamic_color_theming_subtitle">Thèmes de couleurs dynamiques</string>
+    <string name="use_pure_black_dark_theme">Utilisez un noir intense pour le thème sombre.</string>
+    <string name="settings_shape_tertiary_color">Paramètres de forme couleur tertiaire</string>
+    <string name="use_tertiary_color_icon_backgrounds">Utilisez une couleur tertiaire pour l\'arrière-plan des icônes.</string>
+    <string name="modern_player_interface">Interface de lecteur moderne</string>
+    <string name="modern_mini_player">Mini-lecteur moderne</string>
+    <string name="enable_rotating_clover_thumbnail">Activer la rotation des vignettes en forme de trèfle</string>
+    <string name="swipe_on_player_thumbnail">Faites glisser votre doigt sur la vignette du lecteur.</string>
+    <string name="click_change_lyrics_position">Cliquez pour modifier la position des paroles.</string>
+    <string name="auto_scroll_lyrics_subtitle">Défilement automatique des paroles</string>
+    <string name="apple_lyrics">Paroles d\'Apple Music</string>
+    <string name="highlight_words_discretely">Mettez discrètement en évidence les mots au fur et à mesure qu\'ils sont chantés.</string>
+    <string name="letter_by_letter_animation">Animation lettre par lettre</string>
+    <string name="animate_lyrics_letter_by_letter">Animez les paroles lettre par lettre lorsque la synchronisation des mots est indisponible.</string>
+    <string name="apple_music_lyrics_blur">Paroles d\'Apple Music floues</string>
+    <string name="apple_music_lyrics_blur_desc">Activez le flou d\'arrière-plan pour les paroles de style Apple Music.</string>
+    <string name="select_default_tab">Sélectionnez l\'onglet qui s\'ouvre par défaut.</string>
+    <string name="swipe_add_songs_queue">Balayez pour ajouter des titres à la file d\'attente.</string>
+    <string name="compact_navigation_bar">Barre de navigation compacte</string>
+    <string name="swipe_remove_songs">Balayez pour supprimer des titres.</string>
+    <string name="change_size_items_library">Modifiez la taille des éléments de la bibliothèque.</string>
+    <string name="display_liked_songs_playlist">Affichez la playlist des titres favoris.</string>
+    <string name="display_downloaded_playlist">Affichez la playlist téléchargée.</string>
+    <string name="display_top_songs_playlist">Affichez la playlist des meilleurs titres.</string>
+    <string name="display_cached_playlist">Affichez la playlist en cache.</string>
+    <string name="display_uploaded_playlist">Affichez la playlist téléchargée.</string>
     <string name="apple_music">Apple Music</string>
-    <string name="show_now_playing">Show Now Playing</string>
-    <string name="enable_now_playing_text_on_player_background">Enable now playing text on player background of apple music</string>
-    
+    <string name="show_now_playing">Affichez la lecture en cours.</string>
+    <string name="enable_now_playing_text_on_player_background">Activez l\'affichage du texte « Lecture en cours » en arrière-plan du lecteur Apple Music.</string>
     <!-- Content Settings -->
-    <string name="filter_explicit_content">Filter explicit content</string>
-    <string name="configure_in_system_settings">Configure in system settings</string>
-    <string name="hide_video_content_songs">Hide video content from songs</string>
-    <string name="route_traffic_through_proxy">Route traffic through proxy</string>
-    <string name="configure_proxy_settings">Configure proxy settings</string>
-    <string name="betterlyrics_lyrics">BetterLyrics Lyrics</string>
-    <string name="enable_betterlyrics_lyrics_source">Enable BetterLyrics as a lyrics source</string>
-    <string name="lrclib_lyrics">LrcLib Lyrics</string>
-    <string name="enable_lrclib_lyrics_source">Enable LrcLib as a lyrics source</string>
-    <string name="kugou_lyrics">Kugou Lyrics</string>
-    <string name="enable_kugou_lyrics_source">Enable Kugou as a lyrics source</string>
+    <string name="filter_explicit_content">Filtrez le contenu explicite.</string>
+    <string name="configure_in_system_settings">Configurez dans les paramètres système.</string>
+    <string name="hide_video_content_songs">Masquez le contenu vidéo des titres.</string>
+    <string name="route_traffic_through_proxy">Acheminez le trafic via un proxy.</string>
+    <string name="configure_proxy_settings">Configurez les paramètres du proxy.</string>
+    <string name="betterlyrics_lyrics">Paroles de BetterLyrics</string>
+    <string name="enable_betterlyrics_lyrics_source">Activez BetterLyrics comme source de paroles.</string>
+    <string name="lrclib_lyrics">Paroles de LrcLib</string>
+    <string name="enable_lrclib_lyrics_source">Activez LrcLib comme source de paroles.</string>
+    <string name="kugou_lyrics">Paroles de Kugou</string>
+    <string name="enable_kugou_lyrics_source">Activez Kugou comme source de paroles.</string>
 
     <!-- Privacy Settings -->
-    <string name="stop_recording_listening_activity">Stop recording listening activity</string>
-    <string name="delete_all_listening_history">Delete all listening history</string>
-    <string name="stop_recording_search_queries">Stop recording search queries</string>
-    <string name="delete_all_search_history">Delete all search history</string>
+    <string name="stop_recording_listening_activity">Arrêtez l\'enregistrement de l\'activité d\'écoute.</string>
+    <string name="delete_all_listening_history">Supprimez tout l\'historique d\'écoute.</string>
+    <string name="stop_recording_search_queries">Arrêtez l\'enregistrement des requêtes de recherche.</string>
+    <string name="delete_all_search_history">Supprimez tout l\'historique de recherche.</string>
 
     <!-- Backup and Restore -->
-    <string name="import_playlists_m3u_files">Import playlists from M3U files</string>
-    <string name="import_playlists_csv_files">Import playlists from CSV files</string>
+    <string name="import_playlists_m3u_files">Importez des playlists à partir de fichiers M3U.</string>
+    <string name="import_playlists_csv_files">Importez des playlists à partir de fichiers CSV.</string>
 
     <!-- Storage Settings -->
-    <string name="downloaded_songs_title">Downloaded Songs</string>
-    <string name="remove_all_downloaded_songs">Remove all downloaded songs</string>
-    <string name="free_up_cached_song_data">Free up cached song data</string>
-    <string name="free_up_cached_images">Free up cached images</string>
+    <string name="downloaded_songs_title">Titres téléchargés</string>
+    <string name="remove_all_downloaded_songs">Supprimez tous les titres téléchargés.</string>
+    <string name="free_up_cached_song_data">Libérez les données de titres mises en cache.</string>
+    <string name="free_up_cached_images">Libérez les images mises en cache.</string>
 
     <!-- Integrations -->
-    <string name="submit_playback_history_lastfm">Submit playback history to Last.fm</string>
-    <string name="show_current_song_lastfm_profile">Show current song on Last.fm profile</string>
-    <string name="connect_with_discord">Connect with Discord</string>
-    <string name="connect_with_lastfm">Connect with Last.fm</string>
-    <string name="login_using_token">Login using token</string>
-    <string name="show_current_song_discord">Show current song on Discord</string>
-    <string name="listening_to_vivimusic">Listening to Vivimusic</string>
+    <string name="submit_playback_history_lastfm">Envoyer l\'historique de lecture à Last.fm</string>
+    <string name="show_current_song_lastfm_profile">Affichez le titre en cours sur le profil Last.fm</string>
+    <string name="connect_with_discord">Connectez-vous à Discord.</string>
+    <string name="connect_with_lastfm">Connectez-vous à Last.fm</string>
+    <string name="login_using_token">Connexion à l\'aide d\'un jeton</string>
+    <string name="show_current_song_discord">Affichez le titre en cours sur Discord.</string>
+    <string name="listening_to_vivimusic">Écouter sur Vivimusic</string>
 
     <!-- Romanization Settings -->
-    <string name="romanize_japanese_lyrics_subtitle">Romanize Japanese lyrics</string>
-    <string name="romanize_korean_lyrics_subtitle">Romanize Korean lyrics</string>
-    <string name="romanize_cyrillic_lyrics_subtitle">Romanize Cyrillic lyrics</string>
+    <string name="romanize_japanese_lyrics_subtitle">Romanisez les paroles japonaises.</string>
+    <string name="romanize_korean_lyrics_subtitle">Romanisez les paroles coréennes.</string>
+    <string name="romanize_cyrillic_lyrics_subtitle">Romanisez les paroles en cyrillique.</string>
 
     <!-- Playlist Screens -->
-    <string name="cache_songs">Cache Songs</string>
-    <string name="auto_playlist">Auto Playlist</string>
-    <string name="selection">Selection</string>
-    <string name="suggestions">Suggestions</string>
+    <string name="cache_songs">Titres en cache</string>
+    <string name="auto_playlist">Playlist Automatique</string>
+    <string name="selection">Sélection</string>
+    <string name="suggestions">File d\'attente infinie</string>
 
     <!-- Content Descriptions -->
     <string name="shuffle_content_desc">Shuffle</string>
