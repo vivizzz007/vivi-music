@@ -617,52 +617,52 @@
     <string name="paused">En pause</string>
 
     <!-- Backup Restore -->
-    <string name="no_valid_songs_csv">No valid songs found in CSV file</string>
-    <string name="csv_file_empty_invalid">CSV file is empty or invalid</string>
-    <string name="backup_not_supported">This app does not support this backup file</string>
-    <string name="backup_corrupted">Backup file is corrupted and cannot be restored</string>
-    <string name="backup_format_not_supported">This app does not support this backup file format</string>
+    <string name="no_valid_songs_csv">Aucun titre valide trouvé dans le fichier CSV</string>
+    <string name="csv_file_empty_invalid">Le fichier CSV est vide ou invalide.</string>
+    <string name="backup_not_supported">Cette application ne prend pas en charge ce fichier de sauvegarde.</string>
+    <string name="backup_corrupted">Le fichier de sauvegarde est corrompu et ne peut pas être restauré.</string>
+    <string name="backup_format_not_supported">Cette application ne prend pas en charge ce format de fichier de sauvegarde.</string>
 
     <!-- ViewModels -->
-    <string name="guest">Guest</string>
-    <string name="failed_to_load_playlist">Failed to load playlist</string>
+    <string name="guest">Invité</string>
+    <string name="failed_to_load_playlist">Impossible de charger la playlist</string>
 
     <!-- Additional Content Descriptions -->
-    <string name="song_art">Song Art</string>
-    <string name="playlist_art">Playlist Art</string>
-    <string name="play_next_icon">Play next icon</string>
-    <string name="add_to_queue_icon">Add to queue icon</string>
-    <string name="start_radio_icon">Start radio icon</string>
-    <string name="add_to_playlist_icon">Add to playlist icon</string>
+    <string name="song_art">Art du titre</string>
+    <string name="playlist_art">Art de la playlist</string>
+    <string name="play_next_icon">Icône « Lecture suivante »</string>
+    <string name="add_to_queue_icon">Icône d\'ajout à la file d\'attente</string>
+    <string name="start_radio_icon">Icône de démarrage radio</string>
+    <string name="add_to_playlist_icon">Icône d\'ajout à la playlist</string>
 
     <!-- Menu Actions -->
-    <string name="play_similar_songs">Play similar songs</string>
-    <string name="add_to_existing_playlist">Add to existing playlist</string>
-    <string name="save_to_your_music">Save to your music</string>
-    <string name="remove_from_your_music">Remove from your music</string>
-    <string name="suggestions_available">Suggestions available</string>
+    <string name="play_similar_songs">Écouter des titres similaires</string>
+    <string name="add_to_existing_playlist">Ajouter à une playlist existante</string>
+    <string name="save_to_your_music">Enregistrer dans votre musique</string>
+    <string name="remove_from_your_music">Supprimer de votre musique</string>
+    <string name="suggestions_available">Suggestions disponibles</string>
 
     <!-- Download Notifications -->
-    <string name="update_failed">Update Failed</string>
-    <string name="failed_to_download_version">Failed to download version %1$s</string>
-    <string name="failed_to_download_version_error">Failed to download version %1$s\n%2$s</string>
-    <string name="server_error">Server Error: %1$d</string>
+    <string name="update_failed">Échec de la mise à jour</string>
+    <string name="failed_to_download_version">Échec du téléchargement de la version %1$s</string>
+    <string name="failed_to_download_version_error">Échec du téléchargement de la version %1$s\n%2$s</string>
+    <string name="server_error">Erreur serveur : %1$d</string>
 
     <!-- Media Info -->
-    <string name="no_description_available">No description available</string>
-    <string name="views_count">%1$s Views</string>
-    <string name="likes_count">%1$s Likes</string>
+    <string name="no_description_available">Aucune description disponible</string>
+    <string name="views_count">%1$s Vues</string>
+    <string name="likes_count">%1$s J\'aime</string>
 
     <!-- Backup Restore -->
-    <string name="save_data_settings">Save your data and settings</string>
-    <string name="restore_from_backup">Restore from a backup file</string>
+    <string name="save_data_settings">Sauvegardez vos données et paramètres</string>
+    <string name="restore_from_backup">Restaurez à partir d\'un fichier de sauvegarde</string>
 
     <!-- Appearance Settings -->
-    <string name="dynamic_color_theming">Dynamic color theming</string>
-    <string name="accent_color">Accent Color</string>
-    <string name="select_static_theme_color">Select a static theme color</string>
-    <string name="high_refresh_rate">High Refresh Rate</string>
-    <string name="high_refresh_rate_desc">Enable 120Hz/Peak refresh rate for smoother animations</string>
+    <string name="dynamic_color_theming">Thèmes de couleurs dynamiques</string>
+    <string name="accent_color">Couleur d\'accentuation</string>
+    <string name="select_static_theme_color">Sélectionnez une couleur de thème statique</string>
+    <string name="high_refresh_rate">Taux de rafraîchissement élevé</string>
+    <string name="high_refresh_rate_desc">Activez le taux de rafraîchissement de 120 Hz/crête pour des animations plus fluides.</string>
 
     <!-- Song Edit -->
     <!-- song_title, artist_name, edit_song are in strings.xml -->
@@ -672,33 +672,33 @@
 
     <!-- About Screen Additional -->
     <string name="developer_name">VIVIDH P ASHOKAN</string>
-    <string name="app_developer">App Developer</string>
-    <string name="installed_date_title">Installed Date</string>
-    <string name="view_version_history">View version history</string>
-    <string name="github_repository">GitHub Repository</string>
-    <string name="view_source_code">View source code</string>
-    <string name="see_community_heroes">See our community heroes</string>
-    <string name="report_issue_title_about">Report Issue</string>
-    <string name="bugs_feedback">Bugs &amp; feedback</string>
+    <string name="app_developer">Développeur de l\'application</string>
+    <string name="installed_date_title">Date d\'installation</string>
+    <string name="view_version_history">Voir l\'historique des versions</string>
+    <string name="github_repository">Dépôt GitHub</string>
+    <string name="view_source_code">Afficher le code source</string>
+    <string name="see_community_heroes">Découvrez nos héros de la communauté</string>
+    <string name="report_issue_title_about">Signalement d\'un problème</string>
+    <string name="bugs_feedback">Bugs &amp; commentaires</string>
 
     <!-- Crash Page -->
-    <string name="copy_log_content">Copy Log Content</string>
-    <string name="copies_crash_log_clipboard">Copies the crash log to clipboard.</string>
-    <string name="send_via_gmail">Send via Gmail</string>
-    <string name="copies_log_opens_gmail">Copies the log and opens Gmail.</string>
-    <string name="report_via_github_crash">Report via GitHub</string>
-    <string name="opens_github_report_issue">Opens GitHub to report the issue.</string>
-    <string name="restart_vivi">Restart ViVi</string>
-    <string name="restarts_vivi">Restarts ViVi.</string>
+    <string name="copy_log_content">Copier le contenu du journal</string>
+    <string name="copies_crash_log_clipboard">Copie le journal d'erreur dans le presse-papiers.</string>
+    <string name="send_via_gmail">Envoyer via Gmail</string>
+    <string name="copies_log_opens_gmail">Copie le journal et ouvre Gmail.</string>
+    <string name="report_via_github_crash">Signaler via GitHub</string>
+    <string name="opens_github_report_issue">Ouvre GitHub pour signaler le problème.</string>
+    <string name="restart_vivi">Redémarrer ViVi</string>
+    <string name="restarts_vivi">Redémarre ViVi.</string>
 
     <!-- Settings Screen Subtitles -->
-    <string name="customize_theme_display_settings">Customize theme and display settings</string>
-    <string name="audio_quality_playback_settings">Audio quality and playback settings</string>
-    <string name="language_content_preferences">Language and content preferences</string>
-    <string name="privacy_security_settings">Privacy and security settings</string>
-    <string name="manage_storage_downloads">Manage storage and downloads</string>
-    <string name="backup_restore_data">Backup and restore your data</string>
-    <string name="app_information_legal">App information and legal</string>
+    <string name="customize_theme_display_settings">Personnaliser le thème et les paramètres d\'affichage</string>
+    <string name="audio_quality_playback_settings">Qualité audio et paramètres de lecture</string>
+    <string name="language_content_preferences">Préférences linguistiques et de contenu</string>
+    <string name="privacy_security_settings">Paramètres de confidentialité et de sécurité</string>
+    <string name="manage_storage_downloads">Gérer le stockage et les téléchargements</string>
+    <string name="backup_restore_data">Sauvegardez et restaurez vos données</string>
+    <string name="app_information_legal">Informations et mentions légales concernant l\'application/string>
 
     <!-- Player Settings -->
     <string name="select_playback_audio_quality">Select playback audio quality</string>
