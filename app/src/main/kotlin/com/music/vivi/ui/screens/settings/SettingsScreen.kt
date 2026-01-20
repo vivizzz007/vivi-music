@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BatteryFull
 import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -336,6 +337,24 @@ fun SettingsScreen(
                             title = stringResource(R.string.content),
                             subtitle = stringResource(R.string.language_content_preferences),
                             onClick = { navController.navigate("settings/content") },
+                            showArrow = true,
+                            iconBackgroundColor = iconBgColor,
+                            iconContentColor = iconStyleColor
+                        )
+                    },
+                    {
+                        // Power Saver
+                        ModernInfoItem(
+                            icon = {
+                                Icon(
+                                    imageVector = Icons.Filled.BatteryFull,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            },
+                            title = stringResource(R.string.power_saver),
+                            subtitle = stringResource(R.string.power_saver_subtitle),
+                            onClick = { navController.navigate("settings/power_saver") },
                             showArrow = true,
                             iconBackgroundColor = iconBgColor,
                             iconContentColor = iconStyleColor

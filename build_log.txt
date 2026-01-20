@@ -1,0 +1,101 @@
+Reusing configuration cache.
+> Task :kugou:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :innertube:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :betterlyrics:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :lastfm:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:preBuild UP-TO-DATE
+> Task :kizzy:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :lrclib:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:preArm64StandardDebugBuild UP-TO-DATE
+> Task :lrclib:processResources NO-SOURCE
+> Task :betterlyrics:processResources NO-SOURCE
+> Task :kizzy:processResources NO-SOURCE
+> Task :kugou:processResources NO-SOURCE
+> Task :innertube:processResources NO-SOURCE
+> Task :lastfm:processResources NO-SOURCE
+> Task :app:mergeArm64StandardDebugNativeDebugMetadata NO-SOURCE
+> Task :app:generateArm64StandardDebugResValues UP-TO-DATE
+> Task :app:javaPreCompileArm64StandardDebug UP-TO-DATE
+> Task :app:writeArm64StandardDebugAppMetadata UP-TO-DATE
+> Task :app:generateArm64StandardDebugBuildConfig UP-TO-DATE
+> Task :app:desugarArm64StandardDebugFileDependencies UP-TO-DATE
+> Task :app:extractDeepLinksArm64StandardDebug UP-TO-DATE
+> Task :app:l8DexDesugarLibArm64StandardDebug UP-TO-DATE
+> Task :app:mergeArm64StandardDebugShaders UP-TO-DATE
+> Task :app:processArm64StandardDebugNavigationResources UP-TO-DATE
+> Task :app:validateSigningArm64StandardDebug UP-TO-DATE
+> Task :app:writeArm64StandardDebugSigningConfigVersions UP-TO-DATE
+> Task :app:mergeArm64StandardDebugJniLibFolders UP-TO-DATE
+> Task :lrclib:compileKotlin UP-TO-DATE
+> Task :lastfm:compileKotlin UP-TO-DATE
+> Task :app:extractArm64StandardDebugSupportedLocales UP-TO-DATE
+> Task :betterlyrics:compileKotlin UP-TO-DATE
+> Task :app:createArm64StandardDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:generateArm64StandardDebugResources UP-TO-DATE
+> Task :kugou:compileKotlin UP-TO-DATE
+> Task :app:compileArm64StandardDebugShaders NO-SOURCE
+> Task :app:compileArm64StandardDebugNavigationResources UP-TO-DATE
+> Task :app:generateArm64StandardDebugAssets UP-TO-DATE
+> Task :kugou:compileJava NO-SOURCE
+> Task :lastfm:compileJava NO-SOURCE
+> Task :app:checkArm64StandardDebugAarMetadata UP-TO-DATE
+> Task :lrclib:compileJava NO-SOURCE
+> Task :lastfm:classes UP-TO-DATE
+> Task :lrclib:classes UP-TO-DATE
+> Task :betterlyrics:compileJava NO-SOURCE
+> Task :kizzy:compileKotlin UP-TO-DATE
+> Task :kugou:classes UP-TO-DATE
+> Task :betterlyrics:classes UP-TO-DATE
+> Task :innertube:compileKotlin UP-TO-DATE
+> Task :app:checkArm64StandardDebugDuplicateClasses UP-TO-DATE
+> Task :lastfm:jar UP-TO-DATE
+> Task :lrclib:jar UP-TO-DATE
+> Task :kizzy:compileJava NO-SOURCE
+> Task :app:processArm64StandardDebugMainManifest UP-TO-DATE
+> Task :kugou:jar UP-TO-DATE
+> Task :app:mapArm64StandardDebugSourceSetPaths UP-TO-DATE
+> Task :app:mergeArm64StandardDebugAssets UP-TO-DATE
+> Task :innertube:compileJava NO-SOURCE
+> Task :innertube:classes UP-TO-DATE
+> Task :kizzy:classes UP-TO-DATE
+> Task :app:compressArm64StandardDebugAssets UP-TO-DATE
+> Task :app:processArm64StandardDebugManifest UP-TO-DATE
+> Task :innertube:jar UP-TO-DATE
+> Task :betterlyrics:jar UP-TO-DATE
+> Task :app:processArm64StandardDebugManifestForPackage UP-TO-DATE
+> Task :kizzy:jar UP-TO-DATE
+> Task :app:mergeLibDexArm64StandardDebug UP-TO-DATE
+> Task :app:mergeArm64StandardDebugNativeLibs UP-TO-DATE
+> Task :app:stripArm64StandardDebugDebugSymbols UP-TO-DATE
+> Task :app:mergeExtDexArm64StandardDebug UP-TO-DATE
+> Task :app:generateArm64StandardDebugLocaleConfig UP-TO-DATE
+> Task :app:mergeArm64StandardDebugResources UP-TO-DATE
+> Task :app:processArm64StandardDebugResources UP-TO-DATE
+> Task :app:kspArm64StandardDebugKotlin UP-TO-DATE
+
+> Task :app:compileArm64StandardDebugKotlin FAILED
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/MainActivity.kt:377:17 Conflicting declarations:
+local val highRefreshRate: Boolean
+local val highRefreshRate: Boolean
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/MainActivity.kt:410:17 Conflicting declarations:
+local val highRefreshRate: Boolean
+local val highRefreshRate: Boolean
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/settings/PowerSaverSettings.kt:44:21 Unresolved reference 'TopAppBarScrollBehavior'.
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileArm64StandardDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 7s
+45 actionable tasks: 1 executed, 44 up-to-date
+Configuration cache entry reused.

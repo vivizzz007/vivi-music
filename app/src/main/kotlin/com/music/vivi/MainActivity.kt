@@ -147,6 +147,7 @@ import com.music.vivi.constants.MiniPlayerHeight
 import com.music.vivi.constants.MiniPlayerBottomSpacing
 import com.music.vivi.constants.UseNewMiniPlayerDesignKey
 import com.music.vivi.constants.HighRefreshRateKey
+import com.music.vivi.constants.PowerSaverKey
 
 import com.music.vivi.constants.NavigationBarAnimationSpec
 import com.music.vivi.constants.NavigationBarHeight
@@ -373,11 +374,7 @@ class MainActivity : ComponentActivity() {
             }
 
             val (checkForUpdatesPreference, _) = rememberPreference(CheckForUpdatesKey, true)
-            val highRefreshRate by rememberPreference(HighRefreshRateKey, defaultValue = false)
 
-            LaunchedEffect(highRefreshRate) {
-                setHighRefreshRate(highRefreshRate)
-            }
 
             LaunchedEffect(checkForUpdatesPreference) {
                 updateViewModel.refreshUpdateStatus()
@@ -403,6 +400,13 @@ class MainActivity : ComponentActivity() {
 
             var themeColor by rememberSaveable(stateSaver = ColorSaver) {
                 mutableStateOf(DefaultThemeColor)
+            }
+
+            val (powerSaver, _) = rememberPreference(PowerSaverKey, false)
+            val highRefreshRate by rememberPreference(HighRefreshRateKey, false)
+
+            LaunchedEffect(highRefreshRate, powerSaver) {
+                setHighRefreshRate(highRefreshRate && !powerSaver)
             }
 
             val accentColorInt by rememberPreference(AccentColorKey, defaultValue = DefaultThemeColor.toArgb())

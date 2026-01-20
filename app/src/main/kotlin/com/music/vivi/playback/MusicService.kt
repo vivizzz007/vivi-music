@@ -86,6 +86,7 @@ import com.music.vivi.constants.MediaSessionConstants.CommandToggleShuffle
 import com.music.vivi.constants.MediaSessionConstants.CommandToggleStartRadio
 import com.music.vivi.constants.PauseListenHistoryKey
 import com.music.vivi.constants.PersistentQueueKey
+import com.music.vivi.constants.PowerSaverKey
 import com.music.vivi.constants.PlayerVolumeKey
 import com.music.vivi.constants.RepeatModeKey
 import com.music.vivi.constants.ShowLyricsKey
@@ -221,7 +222,7 @@ class MusicService :
                 if (streamType == AudioManager.STREAM_MUSIC) {
                     val volume = intent.getIntExtra("android.media.EXTRA_VOLUME_STREAM_VALUE", -1)
                     scope.launch {
-                        if (dataStore.get(PauseOnZeroVolumeKey, false)) {
+                        if (dataStore.get(PauseOnZeroVolumeKey, false) || dataStore.get(PowerSaverKey, false)) {
                             if (volume == 0) {
                                 if (player.isPlaying) {
                                     player.pause()
@@ -477,15 +478,15 @@ class MusicService :
         }.collectLatest(scope) { (format, normalizeAudio) -> setupLoudnessEnhancer()}
 
         dataStore.data
-            .map { it[DiscordTokenKey] to (it[EnableDiscordRPCKey] ?: true) }
+            .map { Triple(it[DiscordTokenKey], it[EnableDiscordRPCKey] ?: true, it[PowerSaverKey] ?: false) }
             .debounce(300)
             .distinctUntilChanged()
-            .collect(scope) { (key, enabled) ->
+            .collect(scope) { (key, enabled, powerSaver) ->
                 if (discordRpc?.isRpcRunning() == true) {
                     discordRpc?.closeRPC()
                 }
                 discordRpc = null
-                if (key != null && enabled) {
+                if (key != null && enabled && !powerSaver) {
                     discordRpc = DiscordRPC(this, key)
                     if (player.playbackState == Player.STATE_READY && player.playWhenReady) {
                         currentSong.value?.let {
@@ -513,11 +514,12 @@ class MusicService :
             }
 
         dataStore.data
-            .map { it[EnableLastFMScrobblingKey] ?: false }
+            .map { (it[EnableLastFMScrobblingKey] ?: false) to (it[PowerSaverKey] ?: false) }
             .debounce(300)
             .distinctUntilChanged()
-            .collect(scope) { enabled ->
-                if (enabled && scrobbleManager == null) {
+            .collect(scope) { (enabled, powerSaver) ->
+                val shouldEnable = enabled && !powerSaver
+                if (shouldEnable && scrobbleManager == null) {
                     val delayPercent = dataStore.get(ScrobbleDelayPercentKey, LastFM.DEFAULT_SCROBBLE_DELAY_PERCENT)
                     val minSongDuration = dataStore.get(ScrobbleMinSongDurationKey, LastFM.DEFAULT_SCROBBLE_MIN_SONG_DURATION)
                     val delaySeconds = dataStore.get(ScrobbleDelaySecondsKey, LastFM.DEFAULT_SCROBBLE_DELAY_SECONDS)
@@ -528,7 +530,7 @@ class MusicService :
                         scrobbleDelaySeconds = delaySeconds
                     )
                     scrobbleManager?.useNowPlaying = dataStore.get(LastFMUseNowPlaying, false)
-                } else if (!enabled && scrobbleManager != null) {
+                } else if (!shouldEnable && scrobbleManager != null) {
                     scrobbleManager?.destroy()
                     scrobbleManager = null
                 }
