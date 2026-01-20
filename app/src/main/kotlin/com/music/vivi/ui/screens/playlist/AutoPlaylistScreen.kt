@@ -106,13 +106,18 @@ import com.music.vivi.ui.component.EmptyPlaceholder
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.RoundedCheckbox
+import com.music.vivi.constants.SongSortDescendingKey
+import com.music.vivi.constants.SongSortType
+import com.music.vivi.constants.SongSortTypeKey
 import com.music.vivi.ui.component.SongListItem
+import com.music.vivi.ui.component.SortHeader
 import com.music.vivi.ui.menu.AutoPlaylistMenu
 import com.music.vivi.ui.menu.SelectionSongMenu
 import com.music.vivi.ui.menu.SongMenu
 import com.music.vivi.ui.utils.ItemWrapper
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.utils.makeTimeString
+import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.AutoPlaylistViewModel
 import kotlinx.coroutines.Dispatchers
@@ -161,6 +166,9 @@ fun AutoPlaylistScreen(
 
     val (ytmSync) = rememberPreference(YtmSyncKey, true)
     val hideExplicit by rememberPreference(key = HideExplicitKey, defaultValue = false)
+
+    var sortType by rememberEnumPreference(SongSortTypeKey, SongSortType.CREATE_DATE)
+    var sortDescending by rememberPreference(SongSortDescendingKey, true)
 
     val likeLength = remember(songs) {
         songs?.fastSumBy { it.song.duration } ?: 0
@@ -362,7 +370,10 @@ fun AutoPlaylistScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(horizontal = 32.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+                                    horizontalArrangement = Arrangement.spacedBy(
+                                        12.dp,
+                                        Alignment.CenterHorizontally
+                                    ),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     // Play Button
@@ -405,7 +416,8 @@ fun AutoPlaylistScreen(
                                             playerConnection.playQueue(
                                                 ListQueue(
                                                     title = playlist,
-                                                    items = songs!!.shuffled().map { it.toMediaItem() },
+                                                    items = songs!!.shuffled()
+                                                        .map { it.toMediaItem() },
                                                 ),
                                             )
                                         },
@@ -439,7 +451,13 @@ fun AutoPlaylistScreen(
                                 // Playlist Info
                                 Text(
                                     text = buildString {
-                                        append(pluralStringResource(R.plurals.n_song, songs!!.size, songs!!.size))
+                                        append(
+                                            pluralStringResource(
+                                                R.plurals.n_song,
+                                                songs!!.size,
+                                                songs!!.size
+                                            )
+                                        )
                                         append(" • ${makeTimeString(likeLength * 1000L)}")
                                     },
                                     style = MaterialTheme.typography.bodyMedium,
@@ -483,11 +501,15 @@ fun AutoPlaylistScreen(
                                                 Download.STATE_COMPLETED, Download.STATE_DOWNLOADING -> {
                                                     showRemoveDownloadDialog = true
                                                 }
+
                                                 else -> {
                                                     songs!!.forEach { song ->
                                                         val downloadRequest =
                                                             DownloadRequest
-                                                                .Builder(song.song.id, song.song.id.toUri())
+                                                                .Builder(
+                                                                    song.song.id,
+                                                                    song.song.id.toUri()
+                                                                )
                                                                 .setCustomCacheKey(song.song.id)
                                                                 .setData(song.song.title.toByteArray())
                                                                 .build()
@@ -501,7 +523,8 @@ fun AutoPlaylistScreen(
                                                 }
                                             }
                                         },
-                                        modifier = Modifier.weight(1f).semantics { role = Role.Button },
+                                        modifier = Modifier.weight(1f)
+                                            .semantics { role = Role.Button },
                                         shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
                                     ) {
                                         when (downloadState) {
@@ -512,6 +535,7 @@ fun AutoPlaylistScreen(
                                                     modifier = Modifier.size(20.dp)
                                                 )
                                             }
+
                                             Download.STATE_DOWNLOADING -> {
                                                 CircularProgressIndicator(
                                                     strokeWidth = 2.dp,
@@ -519,6 +543,7 @@ fun AutoPlaylistScreen(
                                                     color = MaterialTheme.colorScheme.onSurface
                                                 )
                                             }
+
                                             else -> {
                                                 Icon(
                                                     painter = painterResource(R.drawable.download),
@@ -546,7 +571,8 @@ fun AutoPlaylistScreen(
                                                 items = songs!!.map { it.toMediaItem() },
                                             )
                                         },
-                                        modifier = Modifier.weight(1f).semantics { role = Role.Button },
+                                        modifier = Modifier.weight(1f)
+                                            .semantics { role = Role.Button },
                                         shapes = ButtonGroupDefaults.connectedMiddleButtonShapes(),
                                     ) {
                                         Icon(
@@ -572,11 +598,15 @@ fun AutoPlaylistScreen(
                                                             Download.STATE_COMPLETED, Download.STATE_DOWNLOADING -> {
                                                                 showRemoveDownloadDialog = true
                                                             }
+
                                                             else -> {
                                                                 songs!!.forEach { song ->
                                                                     val downloadRequest =
                                                                         DownloadRequest
-                                                                            .Builder(song.song.id, song.song.id.toUri())
+                                                                            .Builder(
+                                                                                song.song.id,
+                                                                                song.song.id.toUri()
+                                                                            )
                                                                             .setCustomCacheKey(song.song.id)
                                                                             .setData(song.song.title.toByteArray())
                                                                             .build()
@@ -594,7 +624,8 @@ fun AutoPlaylistScreen(
                                                 )
                                             }
                                         },
-                                        modifier = Modifier.weight(1f).semantics { role = Role.Button },
+                                        modifier = Modifier.weight(1f)
+                                            .semantics { role = Role.Button },
                                         shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
                                     ) {
                                         Icon(
@@ -612,7 +643,30 @@ fun AutoPlaylistScreen(
                         }
                     }
 
-                    // Songs List with Quick Pick style - Using itemsIndexed for lazy rendering
+                    item(key = "songs_header") {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp),
+                        ) {
+                            SortHeader(
+                                sortType = sortType,
+                                sortDescending = sortDescending,
+                                onSortTypeChange = { sortType = it },
+                                onSortDescendingChange = { sortDescending = it },
+                                sortTypeText = { sortType ->
+                                    when (sortType) {
+                                        SongSortType.CREATE_DATE -> R.string.sort_by_create_date
+                                        SongSortType.NAME -> R.string.sort_by_name
+                                        SongSortType.ARTIST -> R.string.sort_by_artist
+                                        SongSortType.PLAY_TIME -> R.string.sort_by_play_time
+                                    }
+                                },
+                            )
+                        }
+                    }
+                }
+
+                // Songs List with Quick Pick style - Using itemsIndexed for lazy rendering
                     itemsIndexed(
                         items = filteredSongs,
                         key = { _, song -> song.item.song.id },
@@ -714,7 +768,6 @@ fun AutoPlaylistScreen(
                     }
                 }
             }
-        }
 
         // Top App Bar
         TopAppBar(

@@ -412,6 +412,30 @@ fun CachePlaylistScreen(
                     }
                 }
 
+                if (filteredSongs.isNotEmpty()) {
+                    item(key = "sort_header") {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp),
+                        ) {
+                            SortHeader(
+                                sortType = sortType,
+                                sortDescending = sortDescending,
+                                onSortTypeChange = { onSortTypeChange(it) },
+                                onSortDescendingChange = { onSortDescendingChange(it) },
+                                sortTypeText = { sortType ->
+                                    when (sortType) {
+                                        SongSortType.CREATE_DATE -> R.string.sort_by_create_date
+                                        SongSortType.NAME -> R.string.sort_by_name
+                                        SongSortType.ARTIST -> R.string.sort_by_artist
+                                        SongSortType.PLAY_TIME -> R.string.sort_by_play_time
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
+
                 // Songs List with Quick Pick style
                 if (filteredSongs.isNotEmpty()) {
                     itemsIndexed(
