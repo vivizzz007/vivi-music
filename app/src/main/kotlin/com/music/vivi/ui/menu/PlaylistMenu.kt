@@ -50,6 +50,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -80,6 +81,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
+import com.music.vivi.models.toMediaMetadata
 import java.time.LocalDateTime
 
 
@@ -379,16 +381,10 @@ fun PlaylistMenu(
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
                 colors = ButtonDefaults.filledTonalButtonColors(
-                    containerColor = when (downloadState) {
-                        Download.STATE_COMPLETED -> MaterialTheme.colorScheme.errorContainer
-                        else -> MaterialTheme.colorScheme.tertiaryContainer
-                    },
-                    contentColor = when (downloadState) {
-                        Download.STATE_COMPLETED -> MaterialTheme.colorScheme.onErrorContainer
-                        else -> MaterialTheme.colorScheme.onTertiaryContainer
-                    }
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer
                 ),
-                shape = CircleShape,
+                shape = singleShape,
                 onClick = {
                     when (downloadState) {
                         Download.STATE_COMPLETED -> {
@@ -446,7 +442,7 @@ fun PlaylistMenu(
 
         // Details Section
         Column(
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             // Start Radio
             playlist.playlist.browseId?.let { browseId ->
@@ -454,7 +450,7 @@ fun PlaylistMenu(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 66.dp),
-                    shape = topShape,
+                    shape = if (autoPlaylist != true) topShape else singleShape,
                     onClick = {
                         coroutineScope.launch(Dispatchers.IO) {
                             YouTube.playlist(browseId).getOrNull()?.playlist?.let { playlistItem ->
@@ -490,12 +486,16 @@ fun PlaylistMenu(
                 }
             }
 
+            if (autoPlaylist != true) {
+                Spacer(modifier = Modifier.height(1.dp))
+            }
+
             // Play Next
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = middleShape,
+                shape = if (autoPlaylist != true) middleShape else topShape,
                 onClick = {
                     coroutineScope.launch {
                         playerConnection.playNext(songs.map { it.toMediaItem() })
@@ -524,12 +524,14 @@ fun PlaylistMenu(
                 }
             }
 
+            Spacer(modifier = Modifier.height(1.dp))
+
             // Add to Queue
             FilledTonalButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 66.dp),
-                shape = bottomShape,
+                shape = if (autoPlaylist != true && editable) middleShape else bottomShape,
                 onClick = {
                     onDismiss()
                     playerConnection.addToQueue(songs.map { it.toMediaItem() })
@@ -558,11 +560,12 @@ fun PlaylistMenu(
 
             // Edit Playlist
             if (editable && autoPlaylist != true) {
+                Spacer(modifier = Modifier.height(1.dp))
                 FilledTonalButton(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 66.dp),
-                    shape = singleShape,
+                    shape = bottomShape,
                     onClick = {
                         showEditDialog = true
                     }
@@ -591,6 +594,7 @@ fun PlaylistMenu(
 
             // Favorite/Bookmark (only for non-editable playlists)
             if (!editable) {
+                Spacer(modifier = Modifier.height(10.dp))
                 FilledIconButton(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -637,6 +641,7 @@ fun PlaylistMenu(
 
             // Delete Playlist
             if (autoPlaylist != true) {
+                Spacer(modifier = Modifier.height(10.dp))
                 FilledTonalButton(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -777,5 +782,289 @@ fun PlaylistMenu(
                 }
             }
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun AutoPlaylistMenu(
+    name: String,
+    songs: List<Song>,
+    downloadState: Int,
+    onDownload: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val context = LocalContext.current
+    val playerConnection = LocalPlayerConnection.current ?: return
+
+    // Design variables
+    val cornerRadius = remember { 24.dp }
+    val playButtonShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+        )
+    }
+
+    // Android 16 grouped shapes
+    val topShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
+            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
+            cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+        )
+    }
+    val middleShape = remember { RectangleShape }
+    val bottomShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
+        )
+    }
+    val singleShape = remember(cornerRadius) {
+        AbsoluteSmoothCornerShape(
+            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+        )
+    }
+
+    Column(
+        modifier = Modifier
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(0.dp)
+    ) {
+        Spacer(modifier = Modifier.height(1.dp))
+
+        // Action Buttons Row (Play, Shuffle, Share)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Play Button
+            MediumExtendedFloatingActionButton(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+                onClick = {
+                    onDismiss()
+                    if (songs.isNotEmpty()) {
+                        playerConnection.playQueue(
+                            ListQueue(
+                                title = name,
+                                items = songs.map(Song::toMediaItem)
+                            )
+                        )
+                    }
+                },
+                elevation = FloatingActionButtonDefaults.elevation(0.dp),
+                shape = playButtonShape,
+                icon = {
+                    Icon(
+                        painter = painterResource(R.drawable.play),
+                        contentDescription = stringResource(R.string.play_content_desc),
+                    )
+                },
+                text = {
+                    Text(
+                        modifier = Modifier.padding(end = 10.dp),
+                        text = stringResource(R.string.play_text),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        softWrap = false
+                    )
+                }
+            )
+
+            // Shuffle Button
+            FilledTonalIconButton(
+                modifier = Modifier
+                    .weight(0.25f)
+                    .fillMaxHeight(),
+                onClick = {
+                    onDismiss()
+                    if (songs.isNotEmpty()) {
+                        playerConnection.playQueue(
+                            ListQueue(
+                                title = name,
+                                items = songs.shuffled().map(Song::toMediaItem)
+                            )
+                        )
+                    }
+                },
+                shape = singleShape
+            ) {
+                Icon(
+                    modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
+                    painter = painterResource(R.drawable.shuffle),
+                    contentDescription = stringResource(R.string.shuffle_content_desc),
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Download Button
+        FilledTonalButton(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 66.dp),
+            colors = ButtonDefaults.filledTonalButtonColors(
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+            ),
+            shape = singleShape,
+            onClick = {
+                onDownload()
+                if (downloadState != Download.STATE_DOWNLOADING && downloadState != Download.STATE_QUEUED) {
+                    onDismiss()
+                }
+            }
+        ) {
+            if (downloadState == Download.STATE_QUEUED || downloadState == Download.STATE_DOWNLOADING) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+            } else {
+                Icon(
+                    painter = painterResource(
+                        when (downloadState) {
+                            Download.STATE_COMPLETED -> R.drawable.offline
+                            else -> R.drawable.download
+                        }
+                    ),
+                    contentDescription = stringResource(R.string.action_download),
+                )
+            }
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = when (downloadState) {
+                    Download.STATE_COMPLETED -> stringResource(R.string.remove_offline)
+                    Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> stringResource(R.string.downloading_ellipsis)
+                    else -> stringResource(R.string.download_playlist_text)
+                },
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                softWrap = false
+            )
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // Details Section
+        Column(
+            verticalArrangement = Arrangement.spacedBy(0.dp)
+        ) {
+            // Start Radio
+            FilledTonalButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 66.dp),
+                shape = topShape,
+                onClick = {
+                    onDismiss()
+                    if (songs.isNotEmpty()) {
+                        playerConnection.playQueue(YouTubeQueue.radio(songs.first().toMediaMetadata()))
+                    }
+                }
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.radio),
+                    contentDescription = stringResource(R.string.radio_icon_content_desc),
+                )
+                Spacer(Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        stringResource(R.string.start_radio_label),
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        stringResource(R.string.play_similar_songs_subtitle),
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(1.dp))
+
+            // Play Next
+            FilledTonalButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 66.dp),
+                shape = middleShape,
+                onClick = {
+                    playerConnection.playNext(songs.map { it.toMediaItem() })
+                    onDismiss()
+                }
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.playlist_play),
+                    contentDescription = stringResource(R.string.play_next_icon_content_desc),
+                )
+                Spacer(Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        stringResource(R.string.play_next_label),
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        stringResource(R.string.play_after_current),
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(1.dp))
+
+            // Add to Queue
+            FilledTonalButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 66.dp),
+                shape = bottomShape,
+                onClick = {
+                    onDismiss()
+                    playerConnection.addToQueue(songs.map { it.toMediaItem() })
+                }
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.queue_music),
+                    contentDescription = stringResource(R.string.add_to_queue_icon_content_desc),
+                )
+                Spacer(Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        stringResource(R.string.add_to_queue_label),
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        stringResource(R.string.add_to_queue_end),
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+        }
     }
 }

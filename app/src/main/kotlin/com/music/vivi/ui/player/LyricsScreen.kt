@@ -81,6 +81,7 @@ import coil3.toBitmap
 import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
+import com.music.vivi.constants.AppleMusicLyricsBlurKey
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PlayerBackgroundStyleKey
 import com.music.vivi.constants.SwipeGestureEnabledKey
@@ -100,6 +101,7 @@ import com.music.vivi.constants.SliderStyle
 import com.music.vivi.constants.SliderStyleKey
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -140,13 +142,16 @@ fun LyricsScreen(
     var position by remember { mutableLongStateOf(0L) }
     var duration by remember { mutableLongStateOf(C.TIME_UNSET) }
     var sliderPosition by remember { mutableStateOf<Long?>(null) }
+    val appleMusicLyricsBlur by rememberPreference(AppleMusicLyricsBlurKey, defaultValue = true)
 
     val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.DEFAULT)
 
+    var lyricsFetchJob by remember { mutableStateOf<Job?>(null) }
+
     LaunchedEffect(mediaMetadata.id, currentLyrics) {
         if (currentLyrics == null) {
-            delay(500)
-            coroutineScope.launch(Dispatchers.IO) {
+            lyricsFetchJob?.cancel()
+            lyricsFetchJob = coroutineScope.launch(Dispatchers.IO) {
                 try {
                     val entryPoint = EntryPointAccessors.fromApplication(
                         context.applicationContext,
@@ -213,10 +218,14 @@ fun LyricsScreen(
                     gradientColorsCache[mediaMetadata.id] = extractedColors
                     withContext(Dispatchers.Main) { gradientColors = extractedColors }
                 }
+                // If result is null (e.g. image not loaded yet), we keep existing gradientColors
+                // from the previous song to prevent black flickering.
             }
-        } else {
+        } else if (playerBackground == PlayerBackgroundStyle.DEFAULT) {
             gradientColors = emptyList()
         }
+        // If style is GRADIENT/APPLE_MUSIC but thumbnailUrl is null (e.g. during skip),
+        // we intentionally DON'T clear gradientColors to keep the previous background colored.
     }
 
     val textBackgroundColor = when (playerBackground) {
@@ -304,7 +313,7 @@ fun LyricsScreen(
                                 val color2 = colors.getOrElse(1) { colors[0].copy(alpha = 0.8f) }
                                 val color3 = colors.getOrElse(2) { colors[0].copy(alpha = 0.6f) }
                                 
-                                Canvas(modifier = Modifier.fillMaxSize().blur(100.dp)) {
+                                Canvas(modifier = Modifier.fillMaxSize().then(if (appleMusicLyricsBlur) Modifier.blur(100.dp) else Modifier)) {
                                     // Main vertical gradient base
                                     drawRect(
                                         brush = Brush.verticalGradient(

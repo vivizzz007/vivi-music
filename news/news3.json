@@ -1,0 +1,40 @@
+{
+    "title": "App Update v5.0.2 Coming Soon",
+    "subtitle": "Major Fixes & Performance Improvements Comming On the Way",
+    "date": "2026-01-17",
+    "type": "news",
+    "description": "Version 5.0.2 is getting ready with comprehensive fixes for library issues, volume control, performance optimization, and more.",
+    "image": "",
+    "version": "v5.0.2",
+    "content": "We're preparing version 5.0.2 with major improvements across the board. This update addresses critical issues reported by users and brings significant performance enhancements.",
+    "blocks": [
+        {
+            "subtitle": "Library Issues - Fixed",
+            "content": "✅ All library-related issues have been resolved. Your music collection will now display correctly, sync properly, and respond as expected."
+        },
+        {
+            "subtitle": "Volume Control - Fixed",
+            "content": "✅ Volume control issues are now fixed. Adjusting volume will work smoothly and consistently across all playback scenarios."
+        },
+        {
+            "subtitle": "Performance Optimization",
+            "content": "✅ Fixed blur effects causing performance degradation. The app will now run much smoother with improved rendering efficiency."
+        },
+        {
+            "subtitle": "New Blur Animation",
+            "content": "🎨 Added stunning new blur animation from MetroList to enhance the visual experience without compromising performance."
+        },
+        {
+            "subtitle": "Player & Stability Fixes",
+            "content": "✅ Fixed network connectivity issues in the player\n✅ Resolved crashes for improved app stability\n\nThe player will now handle network changes better and provide a more reliable listening experience."
+        },
+        {
+            "subtitle": "📥 Release Coming Soon",
+            "content": "Version 5.0.2 is currently in final testing and will be available for download shortly. Stay tuned for the release announcement!"
+        },
+        {
+            "subtitle": "Need Help?",
+            "content": "If you're experiencing any of these issues on the current version, the upcoming update will resolve them. Contact our support team if you need immediate assistance."
+        }
+    ]
+}

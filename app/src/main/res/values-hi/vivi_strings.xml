@@ -1,0 +1,668 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- About Screen -->
+    <string name="vivi_music_title">VIVI MUSIC</string>
+    <string name="update_section">अपडेट</string>
+    <string name="developer_section">डेवलपर</string>
+    <string name="app_info_section">ऐप जानकारी</string>
+    <string name="community_section">कम्युनिटी</string>
+    <string name="support_development">विकास का समर्थन करें</string>
+    <string name="website">वेबसाइट</string>
+    <string name="donate">दान करें</string>
+
+    <!-- Media Info -->
+    <string name="song_info">गाने की जानकारी</string>
+    <string name="done">हो गया</string>
+    <string name="title">शीर्षक</string>
+    <string name="standard">मानक</string>
+    <string name="format">प्रारूप</string>
+    <string name="duration">अवधि</string>
+    <string name="artist">कलाकार</string>
+    <string name="itag">Itag</string>
+
+    <!-- Playlist Actions -->
+    <string name="queue_button">कतार</string>
+    <string name="play_button">बजाएं</string>
+    <string name="delete_button">हटाएं</string>
+    <string name="more">अधिक</string>
+
+    <!-- Content Descriptions -->
+    <string name="share_playlist">प्लेलिस्ट साझा करें</string>
+    <string name="share_song">गाना साझा करें</string>
+    <string name="share_album">एल्बम साझा करें</string>
+    <string name="share_artist">कलाकार साझा करें</string>
+    <string name="download_song">गाना डाउनलोड करें</string>
+    <string name="download_album">एल्बम डाउनलोड करें</string>
+    <string name="artist_icon">कलाकार आइकन</string>
+    <string name="album_icon">एल्बम आइकन</string>
+    <string name="library_icon">लाइब्रेरी आइकन</string>
+    <string name="delete_icon">डिलीट आइकन</string>
+    <string name="info_icon">जानकारी आइकन</string>
+    <string name="view_information">जानकारी देखें</string>
+    <string name="shuffle_icon">शफल आइकन</string>
+    <string name="radio_icon">रेडियो आइकन</string>
+    <string name="select_icon">चयन आइकन</string>
+    <string name="select_songs">गाने चुनें</string>
+    <string name="edit_icon">संपादन आइकन</string>
+    <string name="refresh_icon">रीफ्रेश आइकन</string>
+    <string name="equalizer_icon">इक्वलाइज़र आइकन</string>
+    <string name="audio_settings">ऑडियो सेटिंग्स</string>
+    <string name="advanced_icon">उन्नत आइकन</string>
+    <string name="romanize_icon">रोमानाइज़ आइकन</string>
+    <string name="romanization_enabled">रोमानाइज़ेशन सक्षम</string>
+    <string name="romanization_disabled">रोमानाइज़ेशन अक्षम</string>
+    <string name="swipe_icon">स्वाइप आइकन</string>
+    <string name="subscribe_icon">सब्सक्राइब आइकन</string>
+    <string name="share_icon">शेयर आइकन</string>
+    <string name="songs_icon">गाने आइकन</string>
+    <string name="favorite_icon">पसंदीदा आइकन</string>
+    <string name="remove_bookmark">बुकमार्क हटाएं</string>
+    <string name="bookmark_playlist">प्लेलिस्ट बुकमार्क करें</string>
+    <string name="remove_permanently">स्थायी रूप से हटाएं</string>
+    <string name="rename_playlist">प्लेलिस्ट का नाम बदलें</string>
+    <string name="developer">डेवलपर</string>
+
+    <!-- Loading Screen -->
+    <string name="progress_percent">प्रगति %1$d%%</string>
+
+    <!-- Playlist Screen -->
+    <string name="this_collection">यह संग्रह</string>
+    <string name="playlist_text">प्लेलिस्ट</string>
+
+    <!-- Changelog -->
+    <string name="changelog_title">चेंजलॉग</string>
+    <string name="loading_changelog">चेंजलॉग लोड हो रहा है…</string>
+    <string name="failed_to_load_changelog">चेंजलॉग लोड करने में विफल</string>
+    <string name="view_on_github">GitHub पर देखें</string>
+    <string name="changes">परिवर्तन</string>
+    <string name="current">वर्तमान</string>
+    <string name="old_releases">पुराने संस्करण</string>
+    <string name="cached">कैश किया गया</string>
+
+    <!-- Experimental -->
+    <string name="select_apk_variant">APK वेरिएंट चुनें</string>
+    <string name="unable_to_fetch_apk_variants">APK वेरिएंट लाने में असमर्थ</string>
+    <string name="send_feedback">फीडबैक भेजें</string>
+    <string name="send_email">ईमेल भेजें</string>
+    <string name="reset_button">रीसेट</string>
+    <string name="share_button">शेयर</string>
+    <string name="delete_button_menu">हटाएं</string>
+    <string name="advanced_settings_experimental">उन्नत सेटिंग्स और प्रयोगात्मक</string>
+    <string name="updates_section">अपडेट</string>
+    <string name="storage_section">स्टोरेज</string>
+    <string name="debugging_section">डीबगिंग</string>
+    <string name="support_section">सहायता</string>
+    <string name="crash_logs">क्रैश लॉग</string>
+    <string name="send_feedback_title">फीडबैक भेजें</string>
+    <string name="reset_app">ऐप रीसेट करें</string>
+    <string name="open_with">इसके साथ खोलें</string>
+    <string name="just_now">अभी</string>
+    <string name="selected">चयनित</string>
+    <string name="delete_content_desc">हटाएं</string>
+    <string name="universal_recommended">यूनिवर्सल (अनुशंसित)</string>
+    <string name="arm_older_phones">ARM - %1$s MB (पुराने फ़ोन)</string>
+    <string name="x86_64_intel_tablets">x86_64 - %1$s MB (Intel टैबलेट)</string>
+    <string name="x86_emulators">x86 - %1$s MB (एमुलेटर)</string>
+    <string name="minutes_ago">%1$d मिनट पहले</string>
+    <string name="hours_ago">%1$d घंटे पहले</string>
+    <string name="days_ago">%1$d दिन पहले</string>
+
+    <!-- Toast Messages -->
+    <string name="all_crash_logs_cleared">सभी क्रैश लॉग साफ़ किए गए</string>
+    <string name="crash_log_deleted">क्रैश लॉग हटा दिया गया</string>
+    <string name="please_install_web_browser">कृपया वेब ब्राउज़र इंस्टॉल करें</string>
+    <string name="error_message">त्रुटि: %1$s</string>
+    <string name="unable_to_open_email_app">ईमेल ऐप खोलने में असमर्थ: %1$s</string>
+    <string name="error_sharing_log">लॉग साझा करने में त्रुटि: %1$s</string>
+    <string name="no_apk_found">पिछले प्री-रिलीज़ से कोई APK नहीं मिला</string>
+    <string name="enable_install_unknown_apps">\'अज्ञात ऐप इंस्टॉल करें\' को सक्षम करें और पुनः प्रयास करें।</string>
+    <string name="download_error">डाउनलोड त्रुटि: %1$s</string>
+    <string name="download_started">डाउनलोड शुरू हुआ…</string>
+    <string name="download_completed">डाउनलोड पूर्ण!</string>
+    <string name="download_completed_file_not_found">डाउनलोड पूर्ण, फ़ाइल नहीं मिली</string>
+    <string name="download_completed_uri_not_found">डाउनलोड पूर्ण, URI नहीं मिला</string>
+    <string name="download_failed_error">डाउनलोड विफल: %1$s</string>
+    <string name="download_tracking_failed">डाउनलोड ट्रैकिंग विफल</string>
+    <string name="download_tracking_error">डाउनलोड ट्रैकिंग त्रुटि: %1$s</string>
+    <string name="downloaded_file_not_found">डाउनलोड की गई फ़ाइल नहीं मिली</string>
+    <string name="failed_to_track_download">डाउनलोड पूर्ण होने को ट्रैक करने में विफल</string>
+    <string name="apk_file_not_found">APK फ़ाइल नहीं मिली</string>
+    <string name="no_app_to_install_apks">APK इंस्टॉल करने के लिए कोई ऐप नहीं</string>
+    <string name="installation_error">इंस्टॉलेशन त्रुटि: %1$s</string>
+    <string name="failed_to_create_image">छवि बनाने में विफल: %1$s</string>
+    <string name="failed_to_parse_proxy_url">प्रॉक्सी URL पार्स करने में विफल।</string>
+
+    <!-- Notification -->
+    <string name="starting">शुरू हो रहा है</string>
+    <string name="playing">बजा रहा है</string>
+    <string name="paused">रुका हुआ</string>
+
+    <!-- Backup Restore -->
+    <string name="no_valid_songs_csv">CSV फ़ाइल में कोई वैध गाना नहीं मिला</string>
+    <string name="csv_file_empty_invalid">CSV फ़ाइल खाली या अमान्य है</string>
+    <string name="backup_not_supported">यह ऐप इस बैकअप फ़ाइल का समर्थन नहीं करता है</string>
+    <string name="backup_corrupted">बैकअप फ़ाइल दूषित है और बहाल नहीं की जा सकती</string>
+    <string name="backup_format_not_supported">यह ऐप इस बैकअप फ़ाइल प्रारूप का समर्थन नहीं करता है</string>
+
+    <!-- ViewModels -->
+    <string name="guest">अतिथि</string>
+    <string name="failed_to_load_playlist">प्लेलिस्ट लोड करने में विफल</string>
+
+    <!-- Additional Content Descriptions -->
+    <string name="song_art">गाने की कला</string>
+    <string name="playlist_art">प्लेलिस्ट कला</string>
+    <string name="play_next_icon">अगला बजाएं आइकन</string>
+    <string name="add_to_queue_icon">कतार में जोड़ें आइकन</string>
+    <string name="start_radio_icon">रेडियो शुरू करें आइकन</string>
+    <string name="add_to_playlist_icon">प्लेलिस्ट में जोड़ें आइकन</string>
+
+    <!-- Menu Actions -->
+    <string name="play_similar_songs">समान गाने बजाएं</string>
+    <string name="add_to_existing_playlist">मौजूदा प्लेलिस्ट में जोड़ें</string>
+    <string name="save_to_your_music">अपने संगीत में सहेजें</string>
+    <string name="remove_from_your_music">अपने संगीत से हटाएं</string>
+    <string name="suggestions_available">सुझाव उपलब्ध</string>
+
+    <!-- Download Notifications -->
+    <string name="update_failed">अपडेट विफल</string>
+    <string name="failed_to_download_version">संस्करण %1$s डाउनलोड करने में विफल</string>
+    <string name="failed_to_download_version_error">संस्करण %1$s डाउनलोड करने में विफल\n%2$s</string>
+    <string name="server_error">सर्वर त्रुटि: %1$d</string>
+
+    <!-- Media Info -->
+    <string name="no_description_available">कोई विवरण उपलब्ध नहीं</string>
+    <string name="views_count">%1$s बार देखा गया</string>
+    <string name="likes_count">%1$s लाइक्स</string>
+
+    <!-- Backup Restore -->
+    <string name="save_data_settings">डेटा और सेटिंग्स सहेजें</string>
+    <string name="restore_from_backup">बैकअप फ़ाइल से बहाल करें</string>
+
+    <!-- Appearance Settings -->
+    <string name="dynamic_color_theming">डायनामिक रंग थीम</string>
+    <string name="accent_color">एक्सेंट रंग</string>
+    <string name="select_static_theme_color">स्थिर थीम रंग चुनें</string>
+    <string name="high_refresh_rate">उच्च रिफ्रेश दर</string>
+    <string name="high_refresh_rate_desc">चिकनी एनीमेशन के लिए 120Hz/अधिकतम रिफ्रेश दर सक्षम करें</string>
+
+    <!-- Backup Restore Additional -->
+    <string name="developer_name">VIVIDH P ASHOKAN</string>
+    <string name="app_developer">ऐप डेवलपर</string>
+    <string name="installed_date_title">इंस्टॉल दिनांक</string>
+    <string name="view_version_history">संस्करण इतिहास देखें</string>
+    <string name="github_repository">GitHub रिपॉजिटरी</string>
+    <string name="view_source_code">सोर्स कोड देखें</string>
+    <string name="see_community_heroes">कम्युनिटी हीरोज देखें</string>
+    <string name="report_issue_title_about">समस्या की रिपोर्ट करें</string>
+    <string name="bugs_feedback">बग और फीडबैक</string>
+
+    <!-- Crash Page -->
+    <string name="copy_log_content">लॉग सामग्री कॉपी करें</string>
+    <string name="copies_crash_log_clipboard">क्रैश लॉग को क्लिपबोर्ड पर कॉपी करता है।</string>
+    <string name="send_via_gmail">Gmail के माध्यम से भेजें</string>
+    <string name="copies_log_opens_gmail">लॉग को कॉपी करता है और Gmail खोलता है।</string>
+    <string name="report_via_github_crash">GitHub के माध्यम से रिपोर्ट करें</string>
+    <string name="opens_github_report_issue">समस्या की रिपोर्ट करने के लिए GitHub खोलता है।</string>
+    <string name="restart_vivi">ViVi पुनरारंभ करें</string>
+    <string name="restarts_vivi">ViVi को पुनरारंभ करता है।</string>
+
+    <!-- Settings Screen Subtitles -->
+    <string name="customize_theme_display_settings">थीम और डिस्प्ले सेटिंग्स कस्टमाइज़ करें</string>
+    <string name="audio_quality_playback_settings">ऑडियो गुणवत्ता और प्लेबैक सेटिंग्स</string>
+    <string name="language_content_preferences">भाषा और सामग्री वरीयताएँ</string>
+    <string name="privacy_security_settings">गोपनीयता और सुरक्षा सेटिंग्स</string>
+    <string name="manage_storage_downloads">स्टोरेज और डाउनलोड प्रबंधित करें</string>
+    <string name="backup_restore_data">बैकअप और रिस्टोर डेटा</string>
+    <string name="app_information_legal">ऐप जानकारी और कानूनी</string>
+
+    <!-- Player Settings -->
+    <string name="select_playback_audio_quality">प्लेबैक ऑडियो गुणवत्ता चुनें</string>
+    <string name="remove_silent_parts">मौन भागों को हटा दें</string>
+    <string name="normalize_audio_levels">ऑडियो स्तरों को सामान्य करें</string>
+    <string name="stop_playback_when_closed">ऐप बंद होने पर प्लेबैक रोकें</string>
+    <string name="pause_on_zero_volume">शून्य वॉल्यूम पर रोकें/फिर से शुरू करें</string>
+    <string name="pause_on_zero_volume_description">वॉल्यूम 0 होने पर प्लेबैक को स्वचालित रूप से रोक देता है और वॉल्यूम बढ़ने पर फिर से शुरू करता है</string>
+    <string name="smart_shuffle">स्मार्ट शफल</string>
+    <string name="smart_shuffle_desc">सुनिश्चित करता है कि समान गाने या एक ही कलाकार के गाने एक के बाद एक न चलें</string>
+    <string name="smart_suggestions">अनंत कतार</string>
+    <string name="smart_suggestions_desc">कतार समाप्त होने पर व्यक्तिगत सिफारिशों के साथ संगीत बजाना जारी रखता है</string>
+    <string name="smart_pause">स्मार्ट पॉज़</string>
+    <string name="smart_pause_desc">हेडफ़ोन डिस्कनेक्ट होने पर स्वचालित रूप से रोक देता है</string>
+
+    <!-- Appearance Settings -->
+    <string name="dynamic_color_theming_subtitle">डायनामिक रंग</string>
+    <string name="use_pure_black_dark_theme">डार्क थीम के लिए शुद्ध काला प्रयोग करें</string>
+    <string name="settings_shape_tertiary_color">सेटिंग्स आकार तृतीयक रंग</string>
+    <string name="use_tertiary_color_icon_backgrounds">आइकन पृष्ठभूमि के लिए तृतीयक रंग का उपयोग करें</string>
+    <string name="modern_player_interface">आधुनिक प्लेयर इंटरफ़ेस</string>
+    <string name="modern_mini_player">आधुनिक मिनी प्लेयर</string>
+    <string name="enable_rotating_clover_thumbnail">घूमती हुई तिपतिया घास थंबनेल सक्षम करें</string>
+    <string name="swipe_on_player_thumbnail">छोटा करने के लिए स्वाइप करें</string>
+    <string name="click_change_lyrics_position">लिरिक्स स्थिति बदलने के लिए क्लिक करें</string>
+    <string name="auto_scroll_lyrics_subtitle">लिरिक्स का ऑटो स्क्रॉल</string>
+    <string name="apple_lyrics">Applemusic लिरिक्स</string>
+    <string name="highlight_words_discretely">गाते समय शब्दों को विवेकपूर्ण तरीके से हाइलाइट करें</string>
+    <string name="letter_by_letter_animation">अक्षर दर अक्षर एनीमेशन</string>
+    <string name="animate_lyrics_letter_by_letter">जब शब्द सिंक संभव न हो तो अक्षर दर अक्षर लिरिक्स एनिमेट करें</string>
+    <string name="select_default_tab">डिफ़ॉल्ट रूप से खुलने के लिए टैब चुनें</string>
+    <string name="swipe_add_songs_queue">कतार में गाने जोड़ने के लिए स्वाइप करें</string>
+    <string name="compact_navigation_bar">कॉम्पैक्ट नेविगेशन बार</string>
+    <string name="swipe_remove_songs">गाने हटाने के लिए स्वाइप करें</string>
+    <string name="change_size_items_library">लाइब्रेरी आइटम का आकार बदलें</string>
+    <string name="display_liked_songs_playlist">पसंद किए गए गानों की प्लेलिस्ट प्रदर्शित करें</string>
+    <string name="display_downloaded_playlist">डाउनलोड प्लेलिस्ट प्रदर्शित करें</string>
+    <string name="display_top_songs_playlist">शीर्ष गाने प्लेलिस्ट प्रदर्शित करें</string>
+    <string name="display_cached_playlist">कैश की गई प्लेलिस्ट प्रदर्शित करें</string>
+    <string name="display_uploaded_playlist">अपलोड की गई प्लेलिस्ट प्रदर्शित करें</string>
+    <string name="apple_music">Apple Music</string>
+    <string name="show_now_playing">अब चल रहा है दिखाएं</string>
+    <string name="enable_now_playing_text_on_player_background">Apple Music शैली में प्लेयर की पृष्ठभूमि पर अब चल रहा पाठ सक्षम करें</string>
+
+    <!-- Content Settings -->
+    <string name="filter_explicit_content">अश्लील सामग्री फ़िल्टर करें</string>
+    <string name="configure_in_system_settings">सिस्टम सेटिंग्स में कॉन्फ़िगर करें</string>
+    <string name="hide_video_content_songs">गानों की वीडियो सामग्री छिपाएं</string>
+    <string name="route_traffic_through_proxy">प्रॉक्सी के माध्यम से ट्रैफ़िक रूट करें</string>
+    <string name="configure_proxy_settings">प्रॉक्सी सेटिंग्स कॉन्फ़िगर करें</string>
+    <string name="betterlyrics_lyrics">BetterLyrics लिरिक्स</string>
+    <string name="enable_betterlyrics_lyrics_source">BetterLyrics को लिरिक्स स्रोत के रूप में सक्षम करें</string>
+    <string name="lrclib_lyrics">LrcLib लिरिक्स</string>
+    <string name="enable_lrclib_lyrics_source">LrcLib को लिरिक्स स्रोत के रूप में सक्षम करें</string>
+    <string name="kugou_lyrics">Kugou लिरिक्स</string>
+    <string name="enable_kugou_lyrics_source">Kugou को लिरिक्स स्रोत के रूप में सक्षम करें</string>
+
+    <!-- Privacy Settings -->
+    <string name="stop_recording_listening_activity">सुनने की गतिविधि रिकॉर्ड करना बंद करें</string>
+    <string name="delete_all_listening_history">सभी सुनने के इतिहास को हटाएं</string>
+    <string name="stop_recording_search_queries">खोज प्रश्नों को रिकॉर्ड करना बंद करें</string>
+    <string name="delete_all_search_history">सभी खोज इतिहास को हटाएं</string>
+
+    <!-- Backup and Restore -->
+    <string name="import_playlists_m3u_files">M3U फ़ाइलों से प्लेलिस्ट आयात करें</string>
+    <string name="import_playlists_csv_files">CSV फ़ाइलों से प्लेलिस्ट आयात करें</string>
+
+    <!-- Storage Settings -->
+    <string name="downloaded_songs_title">डाउनलोड किए गए गाने</string>
+    <string name="remove_all_downloaded_songs">सभी डाउनलोड किए गए गाने हटाएं</string>
+    <string name="free_up_cached_song_data">कैश किए गए गीत डेटा को मुक्त करें</string>
+    <string name="free_up_cached_images">कैश की गई छवियों को मुक्त करें</string>
+
+    <!-- Integrations -->
+    <string name="submit_playback_history_lastfm">Last.fm पर प्लेबैक इतिहास जमा करें</string>
+    <string name="show_current_song_lastfm_profile">Last.fm प्रोफाइल पर वर्तमान गीत दिखाएं</string>
+    <string name="connect_with_discord">Discord के साथ जुड़ें</string>
+    <string name="connect_with_lastfm">Last.fm के साथ जुड़ें</string>
+    <string name="login_using_token">टोकन का उपयोग करके लॉगिन करें</string>
+    <string name="show_current_song_discord">Discord पर वर्तमान गीत दिखाएं</string>
+    <string name="listening_to_vivimusic">Vivimusic सुन रहे हैं</string>
+
+    <!-- Romanization Settings -->
+    <string name="romanize_japanese_lyrics_subtitle">जापानी गीतों को रोमानाइज़ करें</string>
+    <string name="romanize_korean_lyrics_subtitle">कोरियाई गीतों को रोमानाइज़ करें</string>
+    <string name="romanize_cyrillic_lyrics_subtitle">सिरिलिक गीतों को रोमानाइज़ करें</string>
+
+    <!-- Playlist Screens -->
+    <string name="cache_songs">कैश गीत</string>
+    <string name="auto_playlist">ऑटो प्लेलिस्ट</string>
+    <string name="selection">चयन</string>
+    <string name="suggestions">अनंत कतार</string>
+
+    <!-- Content Descriptions -->
+    <string name="shuffle_content_desc">शफल</string>
+    <string name="add_to_queue_content_desc">कतार में जोड़ें</string>
+    <string name="share_playlist_content_desc">प्लेलिस्ट साझा करें</string>
+    <string name="more_options_content_desc">अधिक विकल्प</string>
+    <string name="sync_content_desc">सिंक</string>
+    <string name="edit_content_desc">संपादित करें</string>
+    <string name="selected_content_desc">चयनित</string>
+    <string name="artist_image_content_desc">कलाकार छवि</string>
+    <string name="radio_content_desc">रेडियो</string>
+    <string name="share_artist_content_desc">कलाकार साझा करें</string>
+    <string name="radio_icon_content_desc">रेडियो आइकन</string>
+    <string name="shuffle_icon_content_desc">शफल आइकन</string>
+    <string name="subscribe_icon_content_desc">सब्सक्राइब आइकन</string>
+    <string name="share_icon_content_desc">शेयर आइकन</string>
+    <string name="album_art_content_desc">एल्बम कला</string>
+    <string name="play_content_desc">बजाएं</string>
+    <string name="share_album_content_desc">एल्बम साझा करें</string>
+    <string name="download_album_content_desc">एल्बम डाउनलोड करें</string>
+    <string name="artist_icon_content_desc">कलाकार आइकन</string>
+    <string name="play_next_icon_content_desc">अगला बजाएं आइकन</string>
+    <string name="add_to_queue_icon_content_desc">कतार में जोड़ें आइकन</string>
+    <string name="add_to_playlist_icon_content_desc">प्लेलिस्ट में जोड़ें आइकन</string>
+    <string name="refresh_icon_content_desc">रीफ्रेश आइकन</string>
+    <string name="songs_icon_content_desc">गाने आइकन</string>
+    <string name="start_radio_icon_content_desc">रेडियो शुरू करें आइकन</string>
+
+    <!-- News Screen -->
+    <string name="whats_new_title">नया क्या है</string>
+    <string name="no_news_available">कोई समाचार उपलब्ध नहीं।</string>
+    <string name="reported_bugs">रिपोर्ट किए गए बग</string>
+    <string name="fixed_bugs">ठीक किए गए बग</string>
+    <string name="type_bug_report">बग रिपोर्ट</string>
+    <string name="type_fix">फिक्स</string>
+    <string name="type_feature">फ़ीचर</string>
+    <string name="type_news">समाचार</string>
+    <string name="home_screen">होम स्क्रीन</string>
+
+    <!-- Update Settings -->
+    <string name="show_news_icon">समाचार आइकन दिखाएं</string>
+    <string name="show_news_icon_desc">शीर्ष पट्टी पर \'नया क्या है\' आइकन दिखाएं</string>
+    <string name="edit_icon_content_desc">संपादन आइकन</string>
+    <string name="favorite_icon_content_desc">पसंदीदा आइकन</string>
+    <string name="delete_icon_content_desc">डिलीट आइकन</string>
+    <string name="edit_content_desc_menu">संपादित करें</string>
+    <string name="refetch_content_desc">रीफ़ैच</string>
+    <string name="search_content_desc">खोजें</string>
+    <string name="romanize_icon_content_desc">रोमानाइज़ आइकन</string>
+    <string name="swipe_icon_content_desc">स्वाइप आइकन</string>
+    <string name="artist_art_content_desc">कलाकार कला</string>
+    <string name="info_icon_content_desc">जानकारी आइकन</string>
+
+    <!-- Additional Menu Text -->
+    <string name="play_text">बजाएं</string>
+    <string name="artist_text">कलाकार</string>
+    <string name="radio_text">रेडियो</string>
+    <string name="shuffle_text">शफल</string>
+    <string name="audio_quality_title">ऑडियो गुणवत्ता</string>
+    <string name="progress_percentage">प्रगति %1$s%%</string>
+    <string name="songs_count">गाने (%1$d)</string>
+    <string name="check_out_top_share">Vivi Music में मेरे शीर्ष %1$d देखें!\n\n</string>
+    <string name="by_text">द्वारा </string>
+    <string name="is_a_playlist">एक प्लेलिस्ट है</string>
+    <string name="album_text">एल्बम</string>
+    <string name="playlist_separator"> • </string>
+
+
+    <!-- Share and Email Messages -->
+    <string name="check_out_playlist_share">YouTube Music में %1$s देखें: %2$s</string>
+    <string name="check_out_album_share">YouTube Music में %2$s का %1$s देखें: %3$s</string>
+    <string name="vivi_music_crash_report">ViVi Music क्रैश रिपोर्ट</string>
+    <string name="crash_log_email_body">क्रैश लॉग (क्लिपबोर्ड पर भी कॉपी किया गया):\n\n%1$s\n\nडिवाइस की जानकारी:\n%2$s</string>
+    <string name="feedback_for_vivi_music_app">Vivi Music ऐप फीडबैक</string>
+    <string name="please_write_feedback">कृपया यहाँ फीडबैक लिखें...</string>
+    <string name="crash_log_subject">क्रैश लॉग: %1$s</string>
+    <string name="crash_log_attached">Vivi Music ऐप क्रैश लॉग संलग्न</string>
+    <string name="vivi_music_issue_report">Vivi Music समस्या रिपोर्ट - v%1$s</string>
+
+    <!-- Experimental Settings -->
+    <string name="updates_title">अपडेट</string>
+    <string name="apk_variant">APK वेरिएंट</string>
+    <string name="clear_downloaded_apks">डाउनलोड किए गए APK साफ़ करें</string>
+    <string name="open_crash_logs_folder">क्रैश लॉग फ़ोल्डर खोलें</string>
+    <string name="crash_logs_folder_path">आंतरिक संग्रहण/Android/data/.../crash_logs</string>
+    <string name="email_or_github_issue">ईमेल या GitHub समस्या</string>
+    <string name="clear_all_settings_and_data">सभी सेटिंग्स और डेटा साफ़ करें</string>
+
+    <!-- Bluetooth -->
+    <string name="bluetooth_permission_required">ब्लूटूथ अनुमति आवश्यक</string>
+    <string name="battery_content_desc">बैटरी </string>
+    <string name="wired_headphones">वायर्ड हेडफ़ोन</string>
+    <string name="hdmi">HDMI</string>
+    <string name="phone_speaker">फ़ोन स्पीकर</string>
+
+    <!-- Content Descriptions -->
+    <string name="github_content_desc">GitHub</string>
+    <string name="back_content_desc">वापस</string>
+
+    <!-- Notification Channel -->
+    <string name="controls_for_music_playback">संगीत प्लेबैक के लिए नियंत्रण</string>
+
+    <!-- Account Settings -->
+    <string name="youtube_sync">YouTube सिंक</string>
+    <string name="log_out_from_account">खाते से लॉग आउट करें</string>
+
+    <!-- Content Descriptions -->
+    <string name="bhim_content_desc">BHIM</string>
+    <string name="github_profile_content_desc">GitHub प्रोफ़ाइल</string>
+
+    <!-- Notification Channels -->
+    <string name="download_progress_channel">डाउनलोड प्रगति</string>
+    <string name="download_progress_description">ऐप अपडेट डाउनलोड प्रगति दिखाएं</string>
+    <string name="app_updates_channel">ऐप अपडेट</string>
+    <string name="app_updates_description">ऐप अपडेट अधिसूचना</string>
+
+    <!-- Error Messages -->
+    <string name="error_loading_version">संस्करण लोड करने में त्रुटि</string>
+    <string name="error_loading_date">दिनांक लोड करने में त्रुटि</string>
+
+    <!-- Changelog -->
+    <string name="changes_default">परिवर्तन</string>
+
+    <!-- Download Notifications -->
+    <string name="downloading_update">अपडेट डाउनलोड हो रहा है</string>
+    <string name="version_file_size">संस्करण %1$s • %2$s</string>
+    <string name="version_progress">संस्करण %1$s • %2$d%%</string>
+    <string name="update_ready">अपडेट तैयार</string>
+    <string name="tap_to_install_version">संस्करण %1$s इंस्टॉल करने के लिए टैप करें</string>
+
+    <!-- Beta Update Labels -->
+    <string name="version_label">संस्करण</string>
+    <string name="apk_size_label">APK आकार</string>
+    <string name="upload_date_label">अपलोड दिनांक</string>
+    <string name="upload_time_label">अपलोड समय</string>
+
+    <!-- Settings Screen Update Status -->
+    <string name="update_available_title">अपडेट उपलब्ध</string>
+    <string name="automatic_check_disabled">स्वचालित जाँच अक्षम • V%1$s</string>
+    <string name="version_now_available">%1$s अब उपलब्ध है</string>
+    <string name="not_signed_in_subtitle">साइन इन करने के लिए टैप करें</string>
+
+    <!-- Menu Items -->
+    <string name="remove_offline">ऑफ़लाइन निकालें</string>
+    <string name="downloading_ellipsis">डाउनलोड हो रहा है…</string>
+    <string name="saved">सहेजा गया</string>
+    <string name="saving">सहेजा जा रहा है</string>
+    <string name="download_song_text">गाना डाउनलोड करें</string>
+    <string name="download_album_text">एल्बम डाउनलोड करें</string>
+    <string name="artist_label">कलाकार</string>
+    <string name="songs_label">गाने</string>
+    <string name="album_label">एल्बम</string>
+    <string name="view_full_album">पूरा एल्बम देखें</string>
+    <string name="play_next_label">अगला बजाएं</string>
+    <string name="play_after_current">वर्तमान के बाद बजाएं</string>
+    <string name="add_to_queue_label">कतार में जोड़ें</string>
+    <string name="add_to_queue_end">कतार के अंत में जोड़ें</string>
+    <string name="add_to_playlist_label">प्लेलिस्ट में जोड़ें</string>
+    <string name="add_to_existing_playlist_subtitle">मौजूदा प्लेलिस्ट में जोड़ें</string>
+    <string name="refresh_metadata">मेटाडेटा रीफ्रेश करें</string>
+    <string name="update_album_information">एल्बम जानकारी अपडेट करें</string>
+    <string name="delete_from_listening_history">सुनने के इतिहास से हटाएं</string>
+
+    <!-- Playlist Actions -->
+    <string name="queue_label">कतार</string>
+    <string name="shuffle_label">शफल</string>
+    <string name="this_collection_text">यह संग्रह</string>
+    <string name="playlist_description_suffix">आपके सुनने के आनंद के लिए विशेष रूप से क्यूरेट किया गया।</string>
+
+    <!-- Favorite Actions -->
+    <string name="remove_from_favorites">पसंदीदा से निकालें</string>
+    <string name="add_to_favorites">पसंदीदा में जोड़ें</string>
+    <string name="unsubscribe">अनसब्सक्राइब</string>
+    <string name="following_this_artist">इस कलाकार का अनुसरण कर रहे हैं</string>
+    <string name="follow_this_artist">इस कलाकार का अनुसरण करें</string>
+
+    <!-- Menu Items Additional -->
+    <string name="view_artist_page">कलाकार पृष्ठ देखें</string>
+    <string name="view_full_album_subtitle">पूरा एल्बम देखें</string>
+    <string name="audio_settings_subtitle">ऑडियो सेटिंग्स</string>
+    <string name="download_playlist_text">प्लेलिस्ट डाउनलोड करें</string>
+    <string name="start_radio_label">रेडियो शुरू करें</string>
+    <string name="play_similar_songs_subtitle">समान गाने बजाएं</string>
+    <string name="play_in_random_order">यादृच्छिक क्रम में बजाएं</string>
+    <string name="edit_playlist_label">प्लेलिस्ट संपादित करें</string>
+    <string name="edit_song_details">गीत विवरण संपादित करें</string>
+    <string name="remove_from_history_label">इतिहास से हटाएं</string>
+    <string name="remove_from_playlist_label">प्लेलिस्ट से हटाएं</string>
+    <string name="delete_from_this_playlist">इस प्लेलिस्ट से हटाएं</string>
+    <string name="remove_from_cache_label">कैश से हटाएं</string>
+    <string name="clear_cached_data">कैश किया गया डेटा साफ़ करें</string>
+    <string name="copied_title">शीर्षक कॉपी किया गया</string>
+    <string name="copied_artist">कलाकार कॉपी किया गया</string>
+    <string name="more_label">अधिक</string>
+    <string name="sync_label">सिंक</string>
+    <string name="edit_label">संपादित करें</string>
+
+    <!-- Settings Integration -->
+    <string name="discord_account">Discord खाता</string>
+    <string name="song_title_fallback">गाने का शीर्षक</string>
+    <string name="artist_fallback">कलाकार</string>
+    <string name="listen_on_youtube_music">YouTube Music पर सुनें</string>
+    <string name="visit_vivimusic">Vivimusic पर जाएं</string>
+    <string name="lastfm_account">Last.fm खाता</string>
+    <string name="not_logged_in_fallback">लॉग इन नहीं है</string>
+    <string name="tertiary_color_style">तृतीयक रंग शैली</string>
+    <string name="lrclib_provider">LrcLib</string>
+    <string name="kugou_provider">KuGou</string>
+
+    <!-- Experimental -->
+    <string name="reset_app_data_question">क्या आप ऐप डेटा रीसेट करना चाहते हैं?</string>
+    <string name="reset_app_data_description">यह सभी सेटिंग्स, कैश और स्थानीय डेटा हटा देगा। ऐप पुनः आरंभ होगा और आपको सब कुछ फिर से कॉन्फ़िगर करना होगा। इसे पूर्ववत नहीं किया जा सकता।</string>
+    <string name="crash_logs_title">क्रैश लॉग</string>
+    <string name="clear_all">सभी साफ़ करें</string>
+    <string name="no_crash_logs_found">कोई क्रैश लॉग नहीं मिला</string>
+    <string name="app_hasnt_crashed_recently">ऐप हाल ही में क्रैश नहीं हुआ है</string>
+    <string name="share_label">साझा करें</string>
+    <string name="no_downloaded_files">कोई डाउनलोड की गई फ़ाइल नहीं</string>
+    <string name="apk_files_cleared_successfully">APK फ़ाइलें सफलतापूर्वक साफ़ की गईं</string>
+    <string name="choose_email_app">ईमेल ऐप चुनें</string>
+    <string name="share_crash_log">क्रैश लॉग साझा करें</string>
+    <string name="crash_log_path">क्रैश लॉग पथ</string>
+    <string name="failed_to_clear_apk_files">APK फ़ाइलें साफ़ करने में विफल</string>
+    <string name="no_apk_files_to_clear">साफ़ करने के लिए कोई APK फ़ाइल नहीं</string>
+    <string name="no_crashes_detected">कोई क्रैश पता नहीं चला</string>
+    <string name="short_vivi_crash_info">ViVi क्रैश संक्षिप्त जानकारी</string>
+    <string name="vivi_crash_log">ViVi क्रैश लॉग</string>
+
+    <!-- Menu Items Additional 2 -->
+    <string name="remove_from_favorites_menu">पसंदीदा से निकालें</string>
+    <string name="add_to_favorites_menu">पसंदीदा में जोड़ें</string>
+    <string name="delete_playlist_label">प्लेलिस्ट हटाएं</string>
+    <string name="refresh_metadata_label">मेटाडेटा रीफ्रेश करें</string>
+    <string name="update_song_information">गीत जानकारी अपडेट करें</string>
+    <string name="song_details_label">गीत विवरण</string>
+    <string name="share_this_artist">इस कलाकार को साझा करें</string>
+    <string name="playlist_fallback">प्लेलिस्ट</string>
+    <string name="select_label">चुनें</string>
+    <string name="artist_info_fallback">कलाकार जानकारी</string>
+    <string name="artist_link">कलाकार लिंक</string>
+
+    <!-- Beta Update Additional -->
+    <string name="downloading_vivi_music_apk">Vivi Music APK डाउनलोड हो रहा है</string>
+    <string name="downloading_vivi_music_prerelease">Vivi Music प्री-रिलीज़ डाउनलोड हो रहा है</string>
+    <string name="cannot_resume_download">डाउनलोड फिर से शुरू नहीं कर सकता</string>
+    <string name="external_storage_not_found">बाहरी संग्रहण नहीं मिला</string>
+    <string name="file_already_exists">फ़ाइल पहले से मौजूद है</string>
+    <string name="http_data_error">HTTP डेटा त्रुटि</string>
+    <string name="insufficient_storage_space">अपर्याप्त संग्रहण स्थान</string>
+    <string name="too_many_redirects">बहुत अधिक पुनर्निर्देशन</string>
+    <string name="unhandled_http_code">अनहैंडल्ड HTTP कोड</string>
+    <string name="ready_to_install">इंस्टॉल करने के लिए तैयार</string>
+    <string name="checking_for_update">अपडेट की जाँच हो रही है</string>
+    <string name="failed_to_load">लोड करने में विफल</string>
+    <string name="no_update">कोई अपडेट नहीं</string>
+    <string name="beta_updater">बीटा अपडेटर</string>
+    <string name="download_label">डाउनलोड</string>
+
+    <!-- Changelog -->
+    <string name="error_loading_changelog">चेंजलॉग लोड करने में त्रुटि</string>
+    <string name="no_old_releases_with_changelog">चेंजलॉग के साथ कोई पुराना रिलीज़ नहीं</string>
+    <string name="failed_to_fetch_changelog">चेंजलॉग लाने में विफल</string>
+
+    <!-- Notification -->
+    <string name="playing_status">बजा रहा है</string>
+    <string name="paused_status">रुका हुआ</string>
+
+    <!-- Backup and Restore -->
+    <string name="app_does_not_support_backup_file">यह ऐप इस बैकअप फ़ाइल का समर्थन नहीं करता है</string>
+    <string name="backup_file_corrupted">बैकअप फ़ाइल दूषित है और बहाल नहीं की जा सकती</string>
+    <string name="app_does_not_support_backup_missing_db">यह ऐप इस बैकअप फ़ाइल का समर्थन नहीं करता है (DB गायब)</string>
+    <string name="backup_file_empty">बैकअप फ़ाइल खाली है। यह ऐप इस फ़ाइल से बहाल नहीं कर सकता</string>
+    <string name="app_does_not_support_backup_format">यह ऐप इस बैकअप फ़ाइल प्रारूप का समर्थन नहीं करता है</string>
+    <string name="cannot_restore_permission_denied">बहाल नहीं कर सकता: अनुमति अस्वीकृत</string>
+    <string name="app_does_not_support_backup_with_error">यह ऐप इस बैकअप फ़ाइल का समर्थन नहीं करता है: %1$s</string>
+    <string name="csv_file_empty_or_invalid">CSV फ़ाइल खाली या अमान्य है</string>
+    <string name="failed_to_read_csv_file">CSV फ़ाइल पढ़ने में विफल: %1$s</string>
+    <string name="no_valid_songs_in_csv">CSV फ़ाइल में कोई वैध गाना नहीं मिला</string>
+
+    <!-- Charts -->
+
+    <!-- Create Playlist -->
+    <string name="not_signed_in_warning">लॉग इन नहीं है</string>
+
+    <!-- Android Auto / Widget -->
+    <string name="not_playing">नहीं बज रहा है</string>
+    <string name="tap_to_play">बजाने के लिए टैप करें</string>
+    <string name="automix">ऑटोमिक्स</string>
+
+    <string name="play_next_icon_desc">अगला बजाएं आइकन</string>
+    <string name="add_to_queue_icon_desc">कतार में जोड़ें आइकन</string>
+    <string name="artist_icon_desc">कलाकार आइकन</string>
+
+    <!-- Menu Labels and Subtitles -->
+    <string name="play_after_current_subtitle">वर्तमान के बाद खेलें</string>
+    <string name="add_to_queue_end_subtitle">कतार के अंत में जोड़ें</string>
+    <string name="share_this_song">इस गाने को शेयर करें</string>
+    <string name="share_this_song_subtitle">इस गाने को शेयर करें</string>
+    <string name="share_this_artist_subtitle">इस कलाकार को शेयर करें</string>
+    <string name="share_this_album">इस एल्बम को शेयर करें</string>
+    <string name="share_this_album_subtitle">इस एल्बम को शेयर करें</string>
+    <string name="share_artist_link">कलाकार लिंक साझा करें</string>
+    <string name="artist_details">कलाकार विवरण</string>
+    <string name="view_album_label">एल्बम पर जाएं</string>
+    <string name="view_album_details">एल्बम विवरण देखें</string>
+    <string name="view_artist_label">कलाकार पर जाएं</string>
+    <string name="view_artist_details">कलाकार विवरण देखें</string>
+    <string name="show_album_label">एल्बम पर जाएं</string>
+    <string name="show_artist_label">कलाकार पर जाएं</string>
+
+<!--localplaylist-->
+    <string name="playlist_description_start">यह प्यार से बनाई गई प्लेलिस्ट</string>
+    <string name="playlist_duration_description">कुल</string>
+    <string name="hour">घंटा</string>
+    <string name="hours">घंटे</string>
+    <string name="minute">मिनट</string>
+    <string name="minutes">मिनट</string>
+    <string name="and">और</string>
+    <string name="of_music">संगीत का अनुभव करें</string>
+    <string name="playlist_enjoy_message">सुनने का आनंद लें</string>
+    <string name="live_media">लाइव मीडिया</string>
+    <string name="live_media_desc">लाइव मीडिया Vivi Music प्लेबैक के लिए एक डायनामिक नोटिफिकेशन और स्टेटस बार पिल प्रदान करता है।</string>
+    <string name="notification_body">सूचना निकाय</string>
+    <string name="show_album_art">एल्बम कला दिखाएं</string>
+    <string name="show_album_art_desc">सूचना में कला दिखाएं</string>
+    <string name="show_artist_name">कलाकार का नाम दिखाएं</string>
+    <string name="show_artist_name_desc">मेटाडेटा में कलाकार का नाम शामिल करें</string>
+    <string name="show_album_name">एल्बम का नाम दिखाएं</string>
+    <string name="show_album_name_desc">विवरण में एल्बम का नाम दिखाएं</string>
+    <string name="show_action_buttons">एक्शन बटन दिखाएं</string>
+    <string name="show_action_buttons_desc">प्ले/पॉज़, नेक्सट, प्रिवियस जैसे नियंत्रण</string>
+    <string name="show_progress">प्रगति दिखाएं</string>
+    <string name="show_progress_desc">गीत प्रगति बार दिखाएं</string>
+    <string name="show_timestamps">टाइमस्टैम्प दिखाएं</string>
+    <string name="show_timestamps_desc">बीता हुआ और कुल समय</string>
+    <string name="hide_on_qs">क्विक सेटिंग्स पर छिपाएं</string>
+    <string name="hide_on_qs_desc">अधिसूचना शेड खुलने पर छिपाएं</string>
+    <string name="status_bar_pill">स्टेटस बार पिल</string>
+    <string name="pill_song_title">गाने का शीर्षक</string>
+    <string name="pill_song_title_desc">पिल पर गाने का शीर्षक दिखाएं</string>
+    <string name="pill_elapsed_time">बीता हुआ समय</string>
+    <string name="pill_elapsed_time_desc">पिल पर प्लेबैक स्थिति दिखाएं</string>
+    <string name="pill_remaining_time">शेष समय</string>
+    <string name="pill_remaining_time_desc">गाने का शेष समय दिखाएं</string>
+    <string name="grant_permission">अनुमति दें</string>
+    <string name="notification_listener_permission_needed">अधिसूचना श्रोता अनुमति की आवश्यकता है</string>
+    <string name="notification_listener_permission_desc">प्लेबैक का पता लगाने और लाइव मीडिया सूचनाओं को प्रबंधित करने के लिए इस ऐप को अधिसूचना एक्सेस की आवश्यकता है।</string>
+    <string name="accessibility_permission_needed">एक्सेसिबिलिटी अनुमति की आवश्यकता है</string>
+    <string name="accessibility_permission_desc">त्वरित सेटिंग्स का पता लगाने के लिए इस ऐप को एक्सेसिबिलिटी एक्सेस की आवश्यकता है।</string>
+    <string name="live_media_compatibility_title">संगतता चेतावनी</string>
+    <string name="live_media_compatibility_message">लाइव मीडिया Android 16+ के लिए डिज़ाइन किया गया है। वर्तमान Android संस्करण पर, यह एक मानक अधिसूचना के रूप में कार्य करेगा और पूर्ण डायनामिक मीडिया अनुभव (जैसे स्टेटस बार पिल) प्रदान नहीं कर सकता है।</string>
+    <string name="permissions">अनुमतियां</string>
+    <string name="granted">अनुमत</string>
+    <string name="confirm">पुष्टि करें</string>
+    <string name="pill_content_desc">स्टेटस बार पिल सामग्री कॉन्फ़िगर करें</string>
+    <string name="play_action">बजाएं</string>
+    <string name="pause_action">रोकें</string>
+    <string name="next_action">अगला</string>
+    <string name="previous_action">पिछला</string>
+</resources>

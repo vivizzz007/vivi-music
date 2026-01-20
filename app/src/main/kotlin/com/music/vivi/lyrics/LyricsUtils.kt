@@ -401,7 +401,7 @@ object LyricsUtils {
         }
 
         val words = if (wordMatches.isNotEmpty()) {
-            wordMatches.map { match ->
+            wordMatches.mapNotNull { match ->
                 val tagContent = match.groupValues[1]
                 val text = match.groupValues[2].trim()
                 
@@ -409,7 +409,7 @@ object LyricsUtils {
                 val timeStr = parts[0]
                 val duration = parts.getOrNull(1)?.toLongOrNull()
                 
-                val tMatch = TIME_REGEX.find("[$timeStr]")!!
+                val tMatch = TIME_REGEX.find("[$timeStr]") ?: return@mapNotNull null
                 val min = tMatch.groupValues[1].toLong()
                 val sec = tMatch.groupValues[2].toLong()
                 val milString = tMatch.groupValues[3]
@@ -417,7 +417,7 @@ object LyricsUtils {
                 if (milString.length == 2) mil *= 10
                 val time = min * DateUtils.MINUTE_IN_MILLIS + sec * DateUtils.SECOND_IN_MILLIS + mil
                 LyricsEntry.WordEntry(time, text, duration)
-            }
+            }.filterNotNull()
         } else null
 
         return timeMatchResults

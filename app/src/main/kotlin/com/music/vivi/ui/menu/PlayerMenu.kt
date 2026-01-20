@@ -93,6 +93,7 @@ import com.music.vivi.playback.ExoDownloadService
 import com.music.vivi.ui.component.BigSeekBar
 import com.music.vivi.ui.component.BottomSheetState
 import com.music.vivi.ui.component.ListDialog
+import com.music.vivi.ui.component.VolumeSlider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
@@ -229,74 +230,21 @@ fun PlayerMenu(
         Spacer(modifier = Modifier.height(1.dp))
 
         if (isQueueTrigger != true) {
-            val audioManager = remember { context.getSystemService(Context.AUDIO_SERVICE) as AudioManager }
-            var currentVolume by remember { mutableFloatStateOf(playerVolume.value) }
-            val sliderState = rememberSliderState(
-                value = currentVolume,
-                valueRange = 0f..audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC).toFloat(),
-            )
-            sliderState.onValueChange = {
-                currentVolume = it
-                sliderState.value = it
-                playerConnection.service.playerVolume.value = it
-            }
-
-            LaunchedEffect(playerVolume.value) {
-                currentVolume = playerVolume.value
-                sliderState.value = playerVolume.value
-            }
-
-            val speakerIcon = painterResource(R.drawable.media3_icon_volume_up)
-            val interactionSource = remember { MutableInteractionSource() }
-            
-            Column(modifier = Modifier.padding(bottom = 12.dp)) {
-                Slider(
-                    state = sliderState,
-                    interactionSource = interactionSource,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .progressSemantics(
-                            currentVolume,
-                            sliderState.valueRange.start..sliderState.valueRange.endInclusive,
-                            0,
-                        ),
-                    track = {
-                        val iconSize = DpSize(24.dp, 24.dp)
-                        val iconPadding = 10.dp
-                        val thumbTrackGapSize = 6.dp
-                        val activeIconColor = SliderDefaults.colors().activeTickColor
-                        
-                        SliderDefaults.Track(
-                            sliderState = sliderState,
-                            modifier = Modifier.height(40.dp).drawWithContent {
-                                drawContent()
-
-                                val yOffset = size.height / 2 - iconSize.toSize().height / 2
-                                val activeTrackStart = 0f
-                                val activeTrackEnd =
-                                    size.width * sliderState.coercedValueAsFraction -
-                                            thumbTrackGapSize.toPx()
-
-                                val activeTrackWidth = activeTrackEnd - activeTrackStart
-                                
-                                // Draw only the left icon if there's enough space
-                                if (iconSize.toSize().width < activeTrackWidth - iconPadding.toPx() * 2) {
-                                    translate(activeTrackStart + iconPadding.toPx(), yOffset) {
-                                        with(speakerIcon) {
-                                            draw(iconSize.toSize(), colorFilter = ColorFilter.tint(activeIconColor))
-                                        }
-                                    }
-                                }
-                            },
-                            trackCornerSize = 12.dp,
-                            drawStopIndicator = null,
-                            thumbTrackGapSize = thumbTrackGapSize,
-                        )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp)
+                    .padding(top = 8.dp, bottom = 12.dp),
+            ) {
+                VolumeSlider(
+                    value = playerVolume.value,
+                    onValueChange = { volume ->
+                        playerConnection.service.playerVolume.value = volume
                     },
+                    modifier = Modifier.fillMaxWidth(),
+                    accentColor = MaterialTheme.colorScheme.primary
                 )
             }
-
-            Spacer(modifier = Modifier.height(2.dp))
         }
 
         // Action Buttons Row

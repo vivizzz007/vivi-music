@@ -1,9 +1,11 @@
 package com.music.vivi.ui.component
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -43,100 +45,101 @@ inline fun <reified T : Enum<T>> SortHeader(
     var menuExpanded by remember { mutableStateOf(false) }
     val displayDescending = showDescending == true && sortType != PlaylistSongSortType.CUSTOM
 
-    SplitButtonLayout(
-        modifier = modifier.padding(vertical = 8.dp),
-        leadingButton = {
-            SplitButtonDefaults.LeadingButton(
-                onClick = { menuExpanded = true },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                ),
-                modifier = Modifier.widthIn(min = 120.dp)
-            ) {
-                Text(
-                    text = stringResource(sortTypeText(sortType)),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.labelLarge
+    Box(modifier = modifier.padding(vertical = 8.dp).wrapContentSize()) {
+        SplitButtonLayout(
+            leadingButton = {
+                SplitButtonDefaults.LeadingButton(
+                    onClick = { menuExpanded = true },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ),
+                    modifier = Modifier.widthIn(min = 120.dp)
+                ) {
+                    Text(
+                        text = stringResource(sortTypeText(sortType)),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+            },
+            trailingButton = {
+                if (displayDescending) {
+                    SplitButtonDefaults.TrailingButton(
+                        checked = !sortDescending,
+                        onCheckedChange = { onSortDescendingChange(!sortDescending) },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    ) {
+                        val rotation by animateFloatAsState(
+                            targetValue = if (!sortDescending) 180f else 0f,
+                            label = "Sort Order Rotation"
+                        )
+                        Icon(
+                            painter = painterResource(R.drawable.arrow_downward),
+                            modifier = Modifier
+                                .size(SplitButtonDefaults.TrailingIconSize)
+                                .graphicsLayer { rotationZ = rotation },
+                            contentDescription = null
+                        )
+                    }
+                } else {
+                    SplitButtonDefaults.TrailingButton(
+                        checked = menuExpanded,
+                        onCheckedChange = { menuExpanded = it },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    ) {
+                        val rotation by animateFloatAsState(
+                            targetValue = if (menuExpanded) 180f else 0f,
+                            label = "Dropdown Arrow Rotation"
+                        )
+                        Icon(
+                            painter = painterResource(R.drawable.arrow_downward),
+                            modifier = Modifier
+                                .size(SplitButtonDefaults.TrailingIconSize)
+                                .graphicsLayer { rotationZ = rotation },
+                            contentDescription = null
+                        )
+                    }
+                }
+            }
+        )
+
+        DropdownMenu(
+            expanded = menuExpanded,
+            onDismissRequest = { menuExpanded = false },
+            modifier = Modifier.widthIn(min = 172.dp),
+        ) {
+            enumValues<T>().forEach { type ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = stringResource(sortTypeText(type)),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Normal,
+                        )
+                    },
+                    trailingIcon = {
+                        Icon(
+                            painter = painterResource(
+                                if (sortType == type) R.drawable.radio_button_checked
+                                else R.drawable.radio_button_unchecked
+                            ),
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        onSortTypeChange(type)
+                        menuExpanded = false
+                    },
                 )
             }
-        },
-        trailingButton = {
-            if (displayDescending) {
-                SplitButtonDefaults.TrailingButton(
-                    checked = !sortDescending,
-                    onCheckedChange = { onSortDescendingChange(!sortDescending) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                ) {
-                    val rotation by animateFloatAsState(
-                        targetValue = if (!sortDescending) 180f else 0f,
-                        label = "Sort Order Rotation"
-                    )
-                    Icon(
-                        painter = painterResource(R.drawable.arrow_downward),
-                        modifier = Modifier
-                            .size(SplitButtonDefaults.TrailingIconSize)
-                            .graphicsLayer { rotationZ = rotation },
-                        contentDescription = null
-                    )
-                }
-            } else {
-                SplitButtonDefaults.TrailingButton(
-                    checked = menuExpanded,
-                    onCheckedChange = { menuExpanded = it },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                ) {
-                    val rotation by animateFloatAsState(
-                        targetValue = if (menuExpanded) 180f else 0f,
-                        label = "Dropdown Arrow Rotation"
-                    )
-                    Icon(
-                        painter = painterResource(R.drawable.arrow_downward),
-                        modifier = Modifier
-                            .size(SplitButtonDefaults.TrailingIconSize)
-                            .graphicsLayer { rotationZ = rotation },
-                        contentDescription = null
-                    )
-                }
-            }
-        }
-    )
-
-    DropdownMenu(
-        expanded = menuExpanded,
-        onDismissRequest = { menuExpanded = false },
-        modifier = Modifier.widthIn(min = 172.dp),
-    ) {
-        enumValues<T>().forEach { type ->
-            DropdownMenuItem(
-                text = {
-                    Text(
-                        text = stringResource(sortTypeText(type)),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Normal,
-                    )
-                },
-                trailingIcon = {
-                    Icon(
-                        painter = painterResource(
-                            if (sortType == type) R.drawable.radio_button_checked
-                            else R.drawable.radio_button_unchecked
-                        ),
-                        contentDescription = null,
-                    )
-                },
-                onClick = {
-                    onSortTypeChange(type)
-                    menuExpanded = false
-                },
-            )
         }
     }
 }

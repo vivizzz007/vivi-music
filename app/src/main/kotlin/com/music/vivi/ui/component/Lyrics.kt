@@ -441,7 +441,7 @@ fun Lyrics(
 
     // Professional animation states for smooth -vivi-style transitions
     var isAnimating by remember { mutableStateOf(false) }
-    var isAutoScrollActive by rememberSaveable { mutableStateOf(true) }
+    var isAutoScrollActive by remember { mutableStateOf(true) }
 
     // Handle back button press - close selection mode instead of exiting screen
     BackHandler(enabled = isSelectionModeActive) {
@@ -485,10 +485,11 @@ fun Lyrics(
         }
     }
 
-    // Reset selection mode if lyrics change
+    // Reset selection mode and auto-scroll if lyrics change
     LaunchedEffect(lines) {
         isSelectionModeActive = false
         selectedIndices.clear()
+        isAutoScrollActive = true
     }
 
     // Use rememberUpdatedState to ensure the latest playingPosition is used inside the loop
@@ -645,7 +646,7 @@ fun Lyrics(
                                 available: Offset,
                                 source: NestedScrollSource
                             ): Offset {
-                                if (!isSelectionModeActive && (consumed.y != 0f || available.y != 0f)) {
+                                if (source == NestedScrollSource.UserInput && !isSelectionModeActive && (consumed.y != 0f || available.y != 0f)) {
                                     isAutoScrollActive = false
                                 }
                                 return super.onPostScroll(consumed, available, source)
@@ -655,7 +656,8 @@ fun Lyrics(
                                 consumed: Velocity,
                                 available: Velocity
                             ): Velocity {
-                                if (!isSelectionModeActive) { // Only update preview time if not selecting
+                                // Fling is always user input initiated in this context
+                                if (!isSelectionModeActive) {
                                     isAutoScrollActive = false
                                 }
                                 return super.onPostFling(consumed, available)
@@ -706,6 +708,8 @@ fun Lyrics(
                             textSize = lyricsTextSize,
                             lineSpacing = lyricsLineSpacing,
                             isWordForWord = lyricsWordForWord,
+                            isScrolling = lazyListState.isScrollInProgress,
+                            isAutoScrollActive = isAutoScrollActive,
                             onClick = {
                                 if (isSelectionModeActive) {
                                     if (isSelected) {

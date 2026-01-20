@@ -166,6 +166,7 @@ import android.os.Build
 import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.constants.PauseOnHeadphonesDisconnectKey
 import com.music.vivi.constants.PauseOnZeroVolumeKey
+import com.music.vivi.constants.StopMusicOnTaskClearKey
 import com.music.vivi.playback.queues.filterVideoSongs
 
 import com.music.vivi.extensions.toEnum
@@ -303,6 +304,7 @@ class MusicService :
 
     override fun onCreate() {
         super.onCreate()
+        isRunning = true
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             setListener(object : Listener {
                 override fun onForegroundServiceStartNotAllowedException() {
@@ -385,11 +387,16 @@ class MusicService :
         scope.launch {
             connectivityObserver.networkStatus.collect { isConnected ->
                 isNetworkConnected.value = isConnected
-                if (isConnected && (waitingForNetworkConnection.value || player.playbackState == Player.STATE_IDLE)) {
-                    // Check if we were actually stalled or errored due to network
-                    if (waitingForNetworkConnection.value || (player.playerError != null && isNetworkError(player.playerError!!))) {
-                        Log.d(TAG, "Network restored, retrying playback")
+                if (isConnected) {
+                    // Always clear waiting state if network is restored
+                    if (waitingForNetworkConnection.value) {
+                        Log.d(TAG, "Network restored, clearing waiting state")
                         waitingForNetworkConnection.value = false
+                    }
+                    
+                    // Trigger retry if player is idle and was previously in a network error state
+                    if (player.playbackState == Player.STATE_IDLE && player.playerError != null && isNetworkError(player.playerError!!)) {
+                        Log.d(TAG, "Network restored, retrying playback from IDLE")
                         if (player.currentMediaItem != null) {
                             delay(500)
                             player.prepare()
@@ -776,10 +783,13 @@ class MusicService :
             Log.w(TAG, "Max retry count ($MAX_RETRY_COUNT) reached, stopping playback")
             stopOnError()
             globalRetryCount = 0
+            waitingForNetworkConnection.value = false
             return
         }
 
-        waitingForNetworkConnection.value = true
+        if (!isNetworkConnected.value) {
+            waitingForNetworkConnection.value = true
+        }
         
         // Start a retry timer with exponential backoff
         retryJob?.cancel()
@@ -1232,30 +1242,35 @@ class MusicService :
     }
 
     fun toggleLike() {
-        database.query {
-            currentSong.value?.let {
+        scope.launch {
+            val songToToggle = currentSong.first()
+            songToToggle?.let {
                 val song = it.song.toggleLike()
-                update(song)
-                syncUtils.likeSong(song)
+                database.query {
+                    update(song)
+                    syncUtils.likeSong(song)
 
-                // Check if auto-download on like is enabled and the song is now liked
-                if (dataStore.get(AutoDownloadOnLikeKey, false) && song.liked) {
-                    // Trigger download for the liked song
-                    val downloadRequest = androidx.media3.exoplayer.offline.DownloadRequest
-                        .Builder(song.id, song.id.toUri())
-                        .setCustomCacheKey(song.id)
-                        .setData(song.title.toByteArray())
-                        .build()
-                    androidx.media3.exoplayer.offline.DownloadService.sendAddDownload(
-                        this@MusicService,
-                        ExoDownloadService::class.java,
-                        downloadRequest,
-                        false
-                    )
+                    // Check if auto-download on like is enabled and the song is now liked
+                    if (dataStore.get(AutoDownloadOnLikeKey, false) && song.liked) {
+                        // Trigger download for the liked song
+                        val downloadRequest =
+                            androidx.media3.exoplayer.offline.DownloadRequest
+                                .Builder(song.id, song.id.toUri())
+                                .setCustomCacheKey(song.id)
+                                .setData(song.title.toByteArray())
+                                .build()
+                        androidx.media3.exoplayer.offline.DownloadService.sendAddDownload(
+                            this@MusicService,
+                            ExoDownloadService::class.java,
+                            downloadRequest,
+                            false
+                        )
+                    }
                 }
+                currentMediaMetadata.value = player.currentMetadata
+                updateWidget()
             }
         }
-        updateWidget()
     }
 
     fun toggleStartRadio() {
@@ -1916,6 +1931,7 @@ class MusicService :
     }
 
     override fun onDestroy() {
+        isRunning = false
         if (dataStore.get(PersistentQueueKey, true)) {
             saveQueueToDisk()
         }
@@ -1953,6 +1969,10 @@ class MusicService :
 
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
+        if (dataStore.get(StopMusicOnTaskClearKey, false)) {
+            player.pause()
+            stopSelf()
+        }
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo) = mediaSession
@@ -2027,5 +2047,6 @@ class MusicService :
         private const val MIN_GAIN_MB = -1000 // Minimum gain in millibels (-8 dB)
 
         private const val TAG = "MusicService"
+        var isRunning = false
     }
 }

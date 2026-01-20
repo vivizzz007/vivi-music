@@ -60,10 +60,13 @@ import com.music.vivi.db.entities.LyricsEntity
 import com.music.vivi.db.entities.SongEntity
 import com.music.vivi.lyrics.LyricsResult
 import com.music.vivi.models.MediaMetadata
+import com.music.vivi.constants.LyricsLetterByLetterAnimationKey
+import com.music.vivi.constants.LyricsWordForWordKey
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.ListDialog
 import com.music.vivi.ui.component.TextFieldDialog
 import com.music.vivi.update.mordernswitch.ModernSwitch
+import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.flow.StateFlow
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 import androidx.compose.ui.graphics.RectangleShape
@@ -447,6 +450,56 @@ fun LyricsMenu(
                     checked = isRomanized,
                     onCheckedChange = { enabled ->
                         songProvider()?.let { viewModel.setRomanization(it, enabled) }
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(1.dp))
+
+            // Apple Music Lyrics
+            val (lyricsWordForWord, onLyricsWordForWordChange) = rememberPreference(LyricsWordForWordKey, true)
+            val (_, onLetterByLetterAnimationChange) = rememberPreference(LyricsLetterByLetterAnimationKey, false)
+
+            FilledTonalButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 66.dp),
+                shape = middleShape,
+                onClick = {
+                    val newValue = !lyricsWordForWord
+                    onLyricsWordForWordChange(newValue)
+                    if (newValue) {
+                        onLetterByLetterAnimationChange(false)
+                    }
+                },
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.lyrics),
+                    contentDescription = null,
+                )
+                Spacer(Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        stringResource(R.string.apple_lyrics),
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        stringResource(R.string.highlight_words_discretely),
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                ModernSwitch(
+                    checked = lyricsWordForWord,
+                    onCheckedChange = { enabled ->
+                        onLyricsWordForWordChange(enabled)
+                        if (enabled) {
+                            onLetterByLetterAnimationChange(false)
+                        }
                     }
                 )
             }

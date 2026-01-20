@@ -82,6 +82,7 @@ import com.music.vivi.constants.ChipSortTypeKey
 import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.DefaultOpenTabKey
 import com.music.vivi.constants.DynamicThemeKey
+import com.music.vivi.constants.AppleMusicLyricsBlurKey
 import com.music.vivi.constants.EnableBetterLyricsKey
 import com.music.vivi.constants.GridItemSize
 import com.music.vivi.constants.GridItemsSizeKey
@@ -311,6 +312,10 @@ fun AppearanceSettings(
     val (letterByLetterAnimation, onLetterByLetterAnimationChange) = rememberPreference(
         LyricsLetterByLetterAnimationKey,
         defaultValue = false
+    )
+    val (appleMusicLyricsBlur, onAppleMusicLyricsBlurChange) = rememberPreference(
+        AppleMusicLyricsBlurKey,
+        defaultValue = true
     )
 
     val availableBackgroundStyles = remember(Build.VERSION.SDK_INT) {
@@ -1531,6 +1536,28 @@ fun AppearanceSettings(
                                     )
                                 }
                             },
+
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(id = R.drawable.blur_on), null, modifier = Modifier.size(22.dp)) },
+                                            title = stringResource(R.string.apple_music_lyrics_blur),
+                                            subtitle = stringResource(R.string.apple_music_lyrics_blur_desc),
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = appleMusicLyricsBlur,
+                                        onCheckedChange = onAppleMusicLyricsBlurChange,
+                                        modifier = Modifier.padding(end = 20.dp)
+                                    )
+                                }
+                            },
                             {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
@@ -1556,7 +1583,7 @@ fun AppearanceSettings(
                                         modifier = Modifier.padding(end = 20.dp)
                                     )
                                 }
-                            },
+                            }
                         )
                     )
                 }

@@ -92,7 +92,7 @@ import androidx.compose.animation.core.*
 import com.music.vivi.constants.RotatingThumbnailKey
 import com.music.vivi.constants.ShowNowPlayingAppleMusicKey
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.material3.CircularWavyProgressIndicator
+
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -109,7 +109,7 @@ fun Thumbnail(
     // States
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val error by playerConnection.error.collectAsState()
-    val waitingForNetworkConnection by playerConnection.waitingForNetworkConnection.collectAsState()
+
     val queueTitle by playerConnection.queueTitle.collectAsState()
 
     val swipeThumbnail by rememberPreference(SwipeThumbnailKey, true)
@@ -226,37 +226,18 @@ fun Thumbnail(
     Box(modifier = modifier) {
         // Error or Waiting view
         AnimatedVisibility(
-            visible = error != null || waitingForNetworkConnection,
+            visible = error != null,
             enter = fadeIn(),
             exit = fadeOut(),
             modifier = Modifier
                 .padding(32.dp)
                 .align(Alignment.Center),
         ) {
-            if (waitingForNetworkConnection) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    CircularWavyProgressIndicator(
-                        modifier = Modifier.size(48.dp),
-                        color = MaterialTheme.colorScheme.primary,
-                        trackColor = Color.Transparent
-                    )
-                    Text(
-                        text = stringResource(R.string.waiting_for_network),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = textBackgroundColor,
-                        textAlign = TextAlign.Center
-                    )
-                }
-            } else {
-                error?.let { playbackError ->
-                    PlaybackError(
-                        error = playbackError,
-                        retry = playerConnection.player::prepare,
-                    )
-                }
+            error?.let { playbackError ->
+                PlaybackError(
+                    error = playbackError,
+                    retry = playerConnection.player::prepare,
+                )
             }
         }
 
