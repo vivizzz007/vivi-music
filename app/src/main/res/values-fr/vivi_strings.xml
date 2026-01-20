@@ -1001,106 +1001,106 @@
     <string name="kugou_provider">KuGou</string>
 
     <!-- Experimental -->
-    <string name="reset_app_data_question">Reset app data?</string>
-    <string name="reset_app_data_description">This will clear all settings, cache, and local data. The app will restart and you\'ll need to set up everything again. This action cannot be undone.</string>
-    <string name="crash_logs_title">Crash Logs</string>
-    <string name="clear_all">Clear All</string>
-    <string name="no_crash_logs_found">No crash logs found</string>
-    <string name="app_hasnt_crashed_recently">Your app hasn\'t crashed recently</string>
-    <string name="share_label">Share</string>
-    <string name="no_downloaded_files">No downloaded files</string>
-    <string name="apk_files_cleared_successfully">APK files cleared successfully</string>
-    <string name="choose_email_app">Choose Email App</string>
-    <string name="share_crash_log">Share crash log</string>
-    <string name="crash_log_path">Crash Log Path</string>
-    <string name="failed_to_clear_apk_files">Failed to clear APK files</string>
-    <string name="no_apk_files_to_clear">No APK files to clear</string>
-    <string name="no_crashes_detected">No crashes detected</string>
-    <string name="short_vivi_crash_info">Short ViVi Crash Info</string>
-    <string name="vivi_crash_log">ViVi Crash Log</string>
+    <string name="reset_app_data_question">Réinitialiser les données de l\'application ?</string>
+    <string name="reset_app_data_description">Cette opération effacera tous les paramètres, le cache et les données locales. L\'application redémarrera et vous devrez tout configurer à nouveau. Cette action est irréversible.</string>
+    <string name="crash_logs_title">Journaux d\'erreurs</string>
+    <string name="clear_all">Tout effacer</string>
+    <string name="no_crash_logs_found">Aucun journal d\'erreur trouvé</string>
+    <string name="app_hasnt_crashed_recently">Votre application n\'a pas planté récemment.</string>
+    <string name="share_label">Partager</string>
+    <string name="no_downloaded_files">Aucun fichier téléchargé</string>
+    <string name="apk_files_cleared_successfully">Les fichiers APK ont été supprimés avec succès.</string>
+    <string name="choose_email_app">Choisissez l\'application de messagerie.</string>
+    <string name="share_crash_log">Partager le journal des incidents</string>
+    <string name="crash_log_path">Chemin d\'accès au journal des incidents</string>
+    <string name="failed_to_clear_apk_files">Échec de la suppression des fichiers APK</string>
+    <string name="no_apk_files_to_clear">Aucun fichier APK à supprimer</string>
+    <string name="no_crashes_detected">Aucun plantage détecté</string>
+    <string name="short_vivi_crash_info">Brève information sur l\'accident de Vivi Music</string>
+    <string name="vivi_crash_log">Journal des plantages de Vivi Music</string>
 
     <!-- Menu Items Additional 2 -->
-    <string name="remove_from_favorites_menu">Remove from Favorites</string>
-    <string name="add_to_favorites_menu">Add to Favorites</string>
-    <string name="delete_playlist_label">Delete Playlist</string>
-    <string name="refresh_metadata_label">Refresh Metadata</string>
-    <string name="update_song_information">Update song information</string>
-    <string name="song_details_label">Song Details</string>
-    <string name="share_this_artist">Share this artist</string>
+    <string name="remove_from_favorites_menu">Supprimer des favoris</string>
+    <string name="add_to_favorites_menu">Ajouter aux favoris</string>
+    <string name="delete_playlist_label">Supprimer la playlist</string>
+    <string name="refresh_metadata_label">Actualiser les métadonnées</string>
+    <string name="update_song_information">Mise à jour des informations sur le titre</string>
+    <string name="song_details_label">Détails du titre</string>
+    <string name="share_this_artist">Partager cet artiste</string>
     <string name="playlist_fallback">Playlist</string>
-    <string name="select_label">Select</string>
-    <string name="artist_info_fallback">Artist Info</string>
-    <string name="artist_link">Artist Link</string>
+    <string name="select_label">Sélectionner</string>
+    <string name="artist_info_fallback">Informations sur l\'artiste</string>
+    <string name="artist_link">Lien vers l\'artiste</string>
 
     <!-- Beta Update Additional -->
-    <string name="downloading_vivi_music_apk">Downloading Vivi Music APK</string>
-    <string name="downloading_vivi_music_prerelease">Downloading Vivi Music pre-release</string>
-    <string name="cannot_resume_download">Cannot resume download</string>
-    <string name="external_storage_not_found">External storage not found</string>
-    <string name="file_already_exists">File already exists</string>
-    <string name="http_data_error">HTTP data error</string>
-    <string name="insufficient_storage_space">Insufficient storage space</string>
-    <string name="too_many_redirects">Too many redirects</string>
-    <string name="unhandled_http_code">Unhandled HTTP code</string>
-    <string name="ready_to_install">Ready to install</string>
-    <string name="checking_for_update">Checking for update</string>
-    <string name="failed_to_load">Failed to load</string>
-    <string name="no_update">No Update</string>
-    <string name="beta_updater">Beta Updater</string>
-    <string name="download_label">Download</string>
+    <string name="downloading_vivi_music_apk">Télécharger l\'APK Vivi Music</string>
+    <string name="downloading_vivi_music_prerelease">Téléchargement de la préversion de Vivi Music</string>
+    <string name="cannot_resume_download">Impossible de reprendre le téléchargement</string>
+    <string name="external_storage_not_found">Stockage externe introuvable</string>
+    <string name="file_already_exists">Le fichier existe déjà.</string>
+    <string name="http_data_error">Erreur de données HTTP</string>
+    <string name="insufficient_storage_space">Espace de stockage insuffisant</string>
+    <string name="too_many_redirects">Trop de redirections</string>
+    <string name="unhandled_http_code">Code HTTP non géré</string>
+    <string name="ready_to_install">Prêt à installer</string>
+    <string name="checking_for_update">Vérification des mises à jour</string>
+    <string name="failed_to_load">Échec du chargement</string>
+    <string name="no_update">Aucune mise à jour</string>
+    <string name="beta_updater">Mise à jour bêta</string>
+    <string name="download_label">Télécharger</string>
 
     <!-- Changelog -->
-    <string name="error_loading_changelog">Error loading changelog</string>
-    <string name="no_old_releases_with_changelog">No old releases with changelog found</string>
-    <string name="failed_to_fetch_changelog">Failed to fetch changelog</string>
+    <string name="error_loading_changelog">Erreur lors du chargement du journal des modifications</string>
+    <string name="no_old_releases_with_changelog">Aucune ancienne version avec journal des modifications trouvée</string>
+    <string name="failed_to_fetch_changelog">Échec de la récupération du journal des modifications</string>
 
     <!-- Notification -->
-    <string name="playing_status">Playing</string>
-    <string name="paused_status">Paused</string>
+    <string name="playing_status">Lecture en cours</string>
+    <string name="paused_status">En pause</string>
 
     <!-- Backup and Restore -->
-    <string name="app_does_not_support_backup_file">This app does not support this backup file</string>
-    <string name="backup_file_corrupted">Backup file is corrupted and cannot be restored</string>
-    <string name="app_does_not_support_backup_missing_db">This app does not support this backup file (missing database)</string>
-    <string name="backup_file_empty">Backup file is empty. This app cannot restore from this file</string>
-    <string name="app_does_not_support_backup_format">This app does not support this backup file format</string>
-    <string name="cannot_restore_permission_denied">Cannot restore: Permission denied</string>
-    <string name="app_does_not_support_backup_with_error">This app does not support this backup file: %1$s</string>
-    <string name="csv_file_empty_or_invalid">CSV file is empty or invalid</string>
-    <string name="failed_to_read_csv_file">Failed to read CSV file: %1$s</string>
-    <string name="no_valid_songs_in_csv">No valid songs found in CSV file</string>
+    <string name="app_does_not_support_backup_file">Cette application ne prend pas en charge ce fichier de sauvegarde.</string>
+    <string name="backup_file_corrupted">Le fichier de sauvegarde est corrompu et ne peut pas être restauré.</string>
+    <string name="app_does_not_support_backup_missing_db">Cette application ne prend pas en charge ce fichier de sauvegarde (base de données manquante).</string>
+    <string name="backup_file_empty">Le fichier de sauvegarde est vide. Cette application ne peut pas restaurer à partir de ce fichier.</string>
+    <string name="app_does_not_support_backup_format">Cette application ne prend pas en charge ce format de fichier de sauvegarde.</string>
+    <string name="cannot_restore_permission_denied">Impossible de restaurer : autorisation refusée</string>
+    <string name="app_does_not_support_backup_with_error">Cette application ne prend pas en charge ce fichier de sauvegarde : %1$s</string>
+    <string name="csv_file_empty_or_invalid">Le fichier CSV est vide ou invalide.</string>
+    <string name="failed_to_read_csv_file">Échec de la lecture du fichier CSV : %1$s</string>
+    <string name="no_valid_songs_in_csv">Aucun titre valide trouvé dans le fichier CSV</string>
 
     <!-- Charts -->
 
     <!-- Create Playlist -->
-    <string name="not_signed_in_warning">Not signed in</string>
+    <string name="not_signed_in_warning">Non connecté</string>
 
     <!-- Android Auto / Widget -->
-    <string name="not_playing">Not Playing</string>
-    <string name="tap_to_play">Tap to play</string>
+    <string name="not_playing">Ne joue pas</string>
+    <string name="tap_to_play">Appuyez pour lire</string>
     <string name="automix">Automix</string>
 
-    <string name="play_next_icon_desc">Play next icon</string>
-    <string name="add_to_queue_icon_desc">Add to queue icon</string>
-    <string name="artist_icon_desc">Artist icon</string>
+    <string name="play_next_icon_desc">Icône de lecture suivante</string>
+    <string name="add_to_queue_icon_desc">Icône d\'ajout à la file d\'attente</string>
+    <string name="artist_icon_desc">Icône d\'artiste</string>
 
     <!-- Menu Labels and Subtitles -->
-    <string name="play_after_current_subtitle">Play after current song</string>
-    <string name="add_to_queue_end_subtitle">Add to end of queue</string>
-    <string name="share_this_song">Share this song</string>
-    <string name="share_this_song_subtitle">Share this song</string>
-    <string name="share_this_artist_subtitle">Share this artist</string>
-    <string name="share_this_album">Share this album</string>
-    <string name="share_this_album_subtitle">Share this album</string>
-    <string name="share_artist_link">Share artist link</string>
-    <string name="artist_details">Artist details</string>
-    <string name="view_album_label">Go to album</string>
-    <string name="view_album_details">View album details</string>
-    <string name="view_artist_label">Go to artist</string>
-    <string name="view_artist_details">View artist details</string>
-    <string name="show_album_label">Go to album</string>
-    <string name="show_artist_label">Go to artist</string>
-    
+    <string name="play_after_current_subtitle">Lire après le titre actuel</string>
+    <string name="add_to_queue_end_subtitle">Ajouter à la fin de la file d\'attente</string>
+    <string name="share_this_song">Partager ce titre</string>
+    <string name="share_this_song_subtitle">Partager ce titre</string>
+    <string name="share_this_artist_subtitle">Partager cet artiste</string>
+    <string name="share_this_album">Partager cet album</string>
+    <string name="share_this_album_subtitle">Partager cet album</string>
+    <string name="share_artist_link">Partager le lien de l\'artiste</string>
+    <string name="artist_details">Détails sur l\'artiste</string>
+    <string name="view_album_label">Voir l\'album</string>
+    <string name="view_album_details">Voir les détails de l\'album</string>
+    <string name="view_artist_label">Voir l\'artiste</string>
+    <string name="view_artist_details">Voir les détails de l\'artiste</string>
+    <string name="show_album_label">Voir l\'album</string>
+    <string name="show_artist_label">Voir l\'artiste</string>
+
     <!--localplaylist-->
     <string name="playlist_description_start">This carefully created playlist features</string>
     <string name="playlist_duration_description">Experience a total of</string>
