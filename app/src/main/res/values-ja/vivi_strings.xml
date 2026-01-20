@@ -534,7 +534,7 @@
     <string name="developer">開発者</string>
 
     <!-- Loading Screen -->
-    <string name="progress_percent">進行状況 %1%%</string>
+    <string name="progress_percent">進行状況 %1$d%%</string>
 
     <!-- Playlist Screen -->
     <string name="this_collection">このコレクション</string>
@@ -574,20 +574,20 @@
     <string name="arm_older_phones">ARM - %1 MB (古い電話)</string>
     <string name="x86_64_intel_tablets">x86_64 - %1 MB (Intelタブレット)</string>
     <string name="x86_emulators">x86 - %1 MB (エミュレータ)</string>
-    <string name="minutes_ago">%1 分前</string>
-    <string name="hours_ago">%1 時間前</string>
-    <string name="days_ago">%1 日前</string>
+    <string name="minutes_ago">%1$d 分前</string>
+    <string name="hours_ago">%1$d 時間前</string>
+    <string name="days_ago">%1$d 日前</string>
 
     <!-- Toast Messages -->
     <string name="all_crash_logs_cleared">すべてのクラッシュログをクリアしました</string>
     <string name="crash_log_deleted">クラッシュログを削除しました</string>
     <string name="please_install_web_browser">Webブラウザをインストールしてください</string>
-    <string name="error_message">エラー: %1</string>
+    <string name="error_message">エラー: %1$s</string>
     <string name="unable_to_open_email_app">メールアプリを開けません: %1</string>
     <string name="error_sharing_log">ログの共有エラー: %1</string>
     <string name="no_apk_found">最新のプレリリースにAPKが見つかりません</string>
     <string name="enable_install_unknown_apps">「不明なアプリのインストール」を有効にして再試行してください。</string>
-    <string name="download_error">ダウンロードエラー: %1</string>
+    <string name="download_error">ダウンロードエラー: %1$s</string>
     <string name="download_started">ダウンロード開始…</string>
     <string name="download_completed">ダウンロード完了！</string>
     <string name="download_completed_file_not_found">ダウンロードは完了しましたが、ファイルが見つかりません</string>
@@ -642,8 +642,8 @@
 
     <!-- Media Info -->
     <string name="no_description_available">説明はありません</string>
-    <string name="views_count">%1 回視聴</string>
-    <string name="likes_count">%1 高評価</string>
+    <string name="views_count">%1$s 回視聴</string>
+    <string name="likes_count">%1$s 高評価</string>
 
     <!-- Backup Restore -->
     <string name="save_data_settings">データと設定を保存</string>
@@ -830,8 +830,8 @@
     <string name="shuffle_text">シャッフル</string>
     <string name="audio_quality_title">音質</string>
     <string name="progress_percentage">進行状況 %1%%</string>
-    <string name="songs_count">曲数 (%1)</string>
-    <string name="check_out_top_share">Vivi Musicで私のトップ %1 をチェック！\n\n</string>
+    <string name="songs_count">曲数 (%1$d)</string>
+    <string name="check_out_top_share">Vivi Musicで私のトップ %1$d をチェック！\n\n</string>
     <string name="by_text">By </string>
     <string name="is_a_playlist">はプレイリストです</string>
     <string name="album_text">アルバム</string>
