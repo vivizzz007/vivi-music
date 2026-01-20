@@ -30,6 +30,7 @@ fun MusicTheme(
     themeColor: Color = DefaultThemeColor,
     enableDynamicTheme: Boolean = true,
     overrideColorScheme: ColorScheme? = null,
+    expressive: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
@@ -65,6 +66,7 @@ fun MusicTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = AppTypography, // Use the defined AppTypography
+        shapes = if (expressive) ExpressiveShapes else DefaultShapes,
         content = content
     )
 }

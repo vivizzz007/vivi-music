@@ -141,6 +141,7 @@ import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.DefaultOpenTabKey
 import com.music.vivi.constants.DisableScreenshotKey
 import com.music.vivi.constants.AccentColorKey
+import com.music.vivi.constants.Material3ExpressiveKey
 import com.music.vivi.constants.DynamicThemeKey
 import com.music.vivi.constants.MiniPlayerHeight
 import com.music.vivi.constants.MiniPlayerBottomSpacing
@@ -398,6 +399,8 @@ class MainActivity : ComponentActivity() {
                 pureBlackEnabled && useDarkTheme 
             }
 
+            val material3Expressive by rememberPreference(Material3ExpressiveKey, defaultValue = false)
+
             var themeColor by rememberSaveable(stateSaver = ColorSaver) {
                 mutableStateOf(DefaultThemeColor)
             }
@@ -474,6 +477,7 @@ class MainActivity : ComponentActivity() {
                 themeColor = themeColor,
                 enableDynamicTheme = enableDynamicTheme,
                 overrideColorScheme = generatedColorScheme,
+                expressive = material3Expressive,
             ) {
                 BoxWithConstraints(
                     modifier =
