@@ -902,101 +902,101 @@
     <string name="github_profile_content_desc">Profil GitHub</string>
 
     <!-- Notification Channels -->
-    <string name="download_progress_channel">Download Progress</string>
-    <string name="download_progress_description">Shows download progress for app updates</string>
-    <string name="app_updates_channel">App Updates</string>
-    <string name="app_updates_description">Notifications for app updates</string>
+    <string name="download_progress_channel">Progression du téléchargement</string>
+    <string name="download_progress_description">Affiche la progression du téléchargement des mises à jour de l\'application.</string>
+    <string name="app_updates_channel">Mises à jour de l\'application</string>
+    <string name="app_updates_description">Notifications pour les mises à jour de l\'application</string>
 
     <!-- Error Messages -->
-    <string name="error_loading_version">Error loading version</string>
-    <string name="error_loading_date">Error loading date</string>
+    <string name="error_loading_version">Erreur lors du chargement de la version</string>
+    <string name="error_loading_date">Erreur lors du chargement de la date</string>
 
     <!-- Changelog -->
-    <string name="changes_default">Changes</string>
+    <string name="changes_default">Changements</string>
 
     <!-- Download Notifications -->
-    <string name="downloading_update">Downloading Update</string>
+    <string name="downloading_update">Téléchargement de la mise à jour</string>
     <string name="version_file_size">Version %1$s • %2$s</string>
     <string name="version_progress">Version %1$s • %2$d%%</string>
-    <string name="update_ready">Update Ready</string>
-    <string name="tap_to_install_version">Tap to install version %1$s</string>
+    <string name="update_ready">Prêt pour la mise à jour</string>
+    <string name="tap_to_install_version">Appuyez pour installer la version %1$s</string>
 
     <!-- Beta Update Labels -->
     <string name="version_label">Version</string>
-    <string name="apk_size_label">APK Size</string>
-    <string name="upload_date_label">Upload Date</string>
-    <string name="upload_time_label">Upload Time</string>
+    <string name="apk_size_label">Taille de l\'APK</string>
+    <string name="upload_date_label">Date de téléchargement</string>
+    <string name="upload_time_label">Temps de téléchargement</string>
 
     <!-- Settings Screen Update Status -->
-    <string name="update_available_title">Update Available</string>
-    <string name="automatic_check_disabled">Automatic check disabled • V%1$s</string>
-    <string name="version_now_available">%1$s is now available</string>
-    <string name="not_signed_in_subtitle">Tap to sign in</string>
+    <string name="update_available_title">Mise à jour disponible</string>
+    <string name="automatic_check_disabled">Vérification automatique désactivée • V%1$s</string>
+    <string name="version_now_available">%1$s est désormais disponible</string>
+    <string name="not_signed_in_subtitle">Appuyez pour vous connecter</string>
 
     <!-- Menu Items -->
-    <string name="remove_offline">Remove Offline</string>
-    <string name="downloading_ellipsis">Downloading…</string>
-    <string name="saved">Saved</string>
-    <string name="saving">Saving</string>
-    <string name="download_song_text">Download Song</string>
-    <string name="download_album_text">Download Album</string>
-    <string name="artist_label">Artist</string>
-    <string name="songs_label">Songs</string>
+    <string name="remove_offline">Supprimer hors-ligne</string>
+    <string name="downloading_ellipsis">Téléchargement en cours…</string>
+    <string name="saved">Enregistré</string>
+    <string name="saving">Enregistrement</string>
+    <string name="download_song_text">Télécharger le titre</string>
+    <string name="download_album_text">Télécharger l\'album</string>
+    <string name="artist_label">Artiste</string>
+    <string name="songs_label">Titres</string>
     <string name="album_label">Album</string>
-    <string name="view_full_album">View full album</string>
-    <string name="play_next_label">Play Next</string>
-    <string name="play_after_current">Play after current</string>
-    <string name="add_to_queue_label">Add to Queue</string>
-    <string name="add_to_queue_end">Add to queue end</string>
-    <string name="add_to_playlist_label">Add to Playlist</string>
-    <string name="add_to_existing_playlist_subtitle">Add to existing playlist</string>
-    <string name="refresh_metadata">Refresh Metadata</string>
-    <string name="update_album_information">Update album information</string>
-    <string name="delete_from_listening_history">Delete from listening history</string>
+    <string name="view_full_album">Voir l\'album complet</string>
+    <string name="play_next_label">Lire le suivant</string>
+    <string name="play_after_current">Lire après l\'actuel</string>
+    <string name="add_to_queue_label">Ajouter à la file d\'attente</string>
+    <string name="add_to_queue_end">Ajouter à la fin de la file d\'attente</string>
+    <string name="add_to_playlist_label">Ajouter à la playlist</string>
+    <string name="add_to_existing_playlist_subtitle">Ajouter à la playlist existante</string>
+    <string name="refresh_metadata">Actualiser les métadonnées</string>
+    <string name="update_album_information">Mettre à jour les informations de l\'album</string>
+    <string name="delete_from_listening_history">Supprimer de l\'historique d\'écoute</string>
 
     <!-- Playlist Actions -->
-    <string name="queue_label">Queue</string>
-    <string name="shuffle_label">Shuffle</string>
-    <string name="this_collection_text">This collection</string>
-    <string name="playlist_description_suffix">features a curated selection of tracks for your listening pleasure.</string>
+    <string name="queue_label">File d\'attente</string>
+    <string name="shuffle_label">Lecture Aléatoire</string>
+    <string name="this_collection_text">Cette collection</string>
+    <string name="playlist_description_suffix">propose une sélection de morceaux triés sur le volet pour votre plus grand plaisir.</string>
 
     <!-- Favorite Actions -->
-    <string name="remove_from_favorites">Remove from favorites</string>
-    <string name="add_to_favorites">Add to favorites</string>
-    <string name="unsubscribe">Unsubscribe</string>
-    <string name="following_this_artist">Following this artist</string>
-    <string name="follow_this_artist">Follow this artist</string>
+    <string name="remove_from_favorites">Supprimer des favoris</string>
+    <string name="add_to_favorites">Ajouter aux favoris</string>
+    <string name="unsubscribe">Se désabonner</string>
+    <string name="following_this_artist">Suivre cet artiste</string>
+    <string name="follow_this_artist">Suivez cet artiste</string>
 
     <!-- Menu Items Additional -->
-    <string name="view_artist_page">View artist page</string>
-    <string name="view_full_album_subtitle">View full album</string>
-    <string name="audio_settings_subtitle">Audio settings</string>
-    <string name="download_playlist_text">Download Playlist</string>
-    <string name="start_radio_label">Start Radio</string>
-    <string name="play_similar_songs_subtitle">Play similar songs</string>
-    <string name="play_in_random_order">Play in random order</string>
-    <string name="edit_playlist_label">Edit Playlist</string>
-    <string name="edit_song_details">Edit song details</string>
-    <string name="remove_from_history_label">Remove from History</string>
-    <string name="remove_from_playlist_label">Remove from Playlist</string>
-    <string name="delete_from_this_playlist">Delete from this playlist</string>
-    <string name="remove_from_cache_label">Remove from Cache</string>
-    <string name="clear_cached_data">Clear cached data</string>
-    <string name="copied_title">Copied Title</string>
-    <string name="copied_artist">Copied Artist</string>
-    <string name="more_label">More</string>
-    <string name="sync_label">Sync</string>
-    <string name="edit_label">Edit</string>
+    <string name="view_artist_page">Voir la page de l\'artiste</string>
+    <string name="view_full_album_subtitle">Voir l\'album complet</string>
+    <string name="audio_settings_subtitle">Paramètres audio</string>
+    <string name="download_playlist_text">Télécharger la playlist</string>
+    <string name="start_radio_label">Démarrer la radio</string>
+    <string name="play_similar_songs_subtitle">Lire des titres similaires</string>
+    <string name="play_in_random_order">Lire dans un ordre aléatoire</string>
+    <string name="edit_playlist_label">Modifier la playlist</string>
+    <string name="edit_song_details">Modifier les détails du titre</string>
+    <string name="remove_from_history_label">Supprimer de l\'historique</string>
+    <string name="remove_from_playlist_label">Supprimer de la playlist</string>
+    <string name="delete_from_this_playlist">Supprimer de cette playlist</string>
+    <string name="remove_from_cache_label">Supprimer du cache</string>
+    <string name="clear_cached_data">Effacer les données mises en cache</string>
+    <string name="copied_title">Titre copié</string>
+    <string name="copied_artist">Artiste copié</string>
+    <string name="more_label">Plus</string>
+    <string name="sync_label">Synchronisation</string>
+    <string name="edit_label">Modifier</string>
 
     <!-- Settings Integration -->
-    <string name="discord_account">Discord Account</string>
-    <string name="song_title_fallback">Song Title</string>
-    <string name="artist_fallback">Artist</string>
-    <string name="listen_on_youtube_music">Listen on YouTube Music</string>
-    <string name="visit_vivimusic">Visit Vivimusic</string>
-    <string name="lastfm_account">Last.fm Account</string>
-    <string name="not_logged_in_fallback">Not logged in</string>
-    <string name="tertiary_color_style">Tertiary Color Style</string>
+    <string name="discord_account">Compte Discord</string>
+    <string name="song_title_fallback">Titre</string>
+    <string name="artist_fallback">Artiste</string>
+    <string name="listen_on_youtube_music">Écoutez sur YouTube Music</string>
+    <string name="visit_vivimusic">Visitez Vivi Music</string>
+    <string name="lastfm_account">Compte Last.fm</string>
+    <string name="not_logged_in_fallback">Non connecté</string>
+    <string name="tertiary_color_style">Style de couleur tertiaire</string>
     <string name="lrclib_provider">LrcLib</string>
     <string name="kugou_provider">KuGou</string>
 
