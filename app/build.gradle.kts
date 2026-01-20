@@ -179,6 +179,7 @@ dependencies {
     implementation(libs.compose.ui.tooling)
     implementation(libs.compose.animation)
     implementation(libs.compose.reorderable)
+    implementation(libs.compose.google.fonts)
 
     implementation(libs.viewmodel)
     implementation(libs.viewmodel.compose)
