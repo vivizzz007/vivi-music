@@ -794,112 +794,112 @@
     <string name="suggestions">File d\'attente infinie</string>
 
     <!-- Content Descriptions -->
-    <string name="shuffle_content_desc">Shuffle</string>
-    <string name="add_to_queue_content_desc">Add to queue</string>
-    <string name="share_playlist_content_desc">Share playlist</string>
-    <string name="more_options_content_desc">More options</string>
-    <string name="sync_content_desc">Sync</string>
-    <string name="edit_content_desc">Edit</string>
-    <string name="selected_content_desc">Selected</string>
-    <string name="artist_image_content_desc">Artist Image</string>
+    <string name="shuffle_content_desc">Lecture Aléatoire</string>
+    <string name="add_to_queue_content_desc">Ajoutez à la file d\'attente.</string>
+    <string name="share_playlist_content_desc">Partagez la playlist.</string>
+    <string name="more_options_content_desc">Plus d\'options</string>
+    <string name="sync_content_desc">Synchronisation</string>
+    <string name="edit_content_desc">Modifier</string>
+    <string name="selected_content_desc">Sélectionnés</string>
+    <string name="artist_image_content_desc">Photo de l\'artiste</string>
     <string name="radio_content_desc">Radio</string>
-    <string name="share_artist_content_desc">Share artist</string>
-    <string name="radio_icon_content_desc">Radio icon</string>
-    <string name="shuffle_icon_content_desc">Shuffle icon</string>
-    <string name="subscribe_icon_content_desc">Subscribe icon</string>
-    <string name="share_icon_content_desc">Share icon</string>
-    <string name="album_art_content_desc">Album Art</string>
-    <string name="play_content_desc">Play</string>
-    <string name="share_album_content_desc">Share album</string>
-    <string name="download_album_content_desc">Download album</string>
-    <string name="artist_icon_content_desc">Artist icon</string>
-    <string name="play_next_icon_content_desc">Play next icon</string>
-    <string name="add_to_queue_icon_content_desc">Add to queue icon</string>
-    <string name="add_to_playlist_icon_content_desc">Add to playlist icon</string>
-    <string name="refresh_icon_content_desc">Refresh icon</string>
-    <string name="songs_icon_content_desc">Songs icon</string>
-    <string name="start_radio_icon_content_desc">Start radio icon</string>
+    <string name="share_artist_content_desc">Partager l\'artiste</string>
+    <string name="radio_icon_content_desc">Icône radio</string>
+    <string name="shuffle_icon_content_desc">Icône de lecture aléatoire</string>
+    <string name="subscribe_icon_content_desc">Icône d\'abonnement</string>
+    <string name="share_icon_content_desc">Icône Partager</string>
+    <string name="album_art_content_desc">Pochette d\'album</string>
+    <string name="play_content_desc">Lecture</string>
+    <string name="share_album_content_desc">Partager l\'album</string>
+    <string name="download_album_content_desc">Télécharger l\'album</string>
+    <string name="artist_icon_content_desc">Icône de l\'artiste</string>
+    <string name="play_next_icon_content_desc">Icône suivant</string>
+    <string name="add_to_queue_icon_content_desc">Icône Ajouter à la file d\'attente</string>
+    <string name="add_to_playlist_icon_content_desc">Icône Ajouter à la playlist</string>
+    <string name="refresh_icon_content_desc">Icône de rafraîchissement</string>
+    <string name="songs_icon_content_desc">Icône des titres</string>
+    <string name="start_radio_icon_content_desc">Icône de démarrage radio</string>
 
     <!-- News Screen -->
-    <string name="whats_new_title">What\'s New</string>
-    <string name="no_news_available">No news available.</string>
-    <string name="reported_bugs">Reported Bugs</string>
-    <string name="fixed_bugs">Fixed Bugs</string>
-    <string name="type_bug_report">Bug Report</string>
-    <string name="type_fix">Fix</string>
-    <string name="type_feature">Feature</string>
-    <string name="type_news">News</string>
-    <string name="home_screen">Home screen</string>
+    <string name="whats_new_title">Quoi de neuf ?</string>
+    <string name="no_news_available">Aucune actualité disponible.</string>
+    <string name="reported_bugs">Bugs Signalés</string>
+    <string name="fixed_bugs">Bugs Corrigés</string>
+    <string name="type_bug_report">Rapport de Bug</string>
+    <string name="type_fix">Correction</string>
+    <string name="type_feature">Fonctionnalité</string>
+    <string name="type_news">Nouveautés</string>
+    <string name="home_screen">Écran d\'accueil</string>
 
     <!-- Update Settings -->
-    <string name="show_news_icon">Show News Icon</string>
-    <string name="show_news_icon_desc">Show the \'What\'s New\' icon in the top bar</string>
-    <string name="edit_icon_content_desc">Edit icon</string>
-    <string name="favorite_icon_content_desc">Favorite icon</string>
-    <string name="delete_icon_content_desc">Delete icon</string>
-    <string name="edit_content_desc_menu">Edit</string>
-    <string name="refetch_content_desc">Refetch</string>
-    <string name="search_content_desc">Search</string>
-    <string name="romanize_icon_content_desc">Romanize icon</string>
-    <string name="swipe_icon_content_desc">Swipe icon</string>
-    <string name="artist_art_content_desc">Artist Art</string>
-    <string name="info_icon_content_desc">Info icon</string>
+    <string name="show_news_icon">Afficher l\'icône Actualités</string>
+    <string name="show_news_icon_desc">Afficher l\'icône \'Quoi de neuf ?\' dans la barre supérieure</string>
+    <string name="edit_icon_content_desc">Icône Modifier</string>
+    <string name="favorite_icon_content_desc">Icône Favoris</string>
+    <string name="delete_icon_content_desc">Icône de suppression</string>
+    <string name="edit_content_desc_menu">Modifier</string>
+    <string name="refetch_content_desc">Récupérer</string>
+    <string name="search_content_desc">Recherche</string>
+    <string name="romanize_icon_content_desc">Icône de Romanisation</string>
+    <string name="swipe_icon_content_desc">Icône de balayage</string>
+    <string name="artist_art_content_desc">Photo de l\'artiste</string>
+    <string name="info_icon_content_desc">Icône d\'information</string>
 
     <!-- Additional Menu Text -->
-    <string name="play_text">Play</string>
-    <string name="artist_text">Artist</string>
+    <string name="play_text">Lecture</string>
+    <string name="artist_text">Artiste</string>
     <string name="radio_text">Radio</string>
-    <string name="shuffle_text">Shuffle</string>
-    <string name="audio_quality_title">Audio Quality</string>
-    <string name="progress_percentage">Progress %1$s%%</string>
-    <string name="songs_count">Songs (%1$d)</string>
-    <string name="check_out_top_share">Check out my Top %1$d on Vivi Music!\n\n</string>
-    <string name="by_text">By </string>
-    <string name="is_a_playlist">is a playlist</string>
+    <string name="shuffle_text">Lecture Aléatoire</string>
+    <string name="audio_quality_title">Qualité Audio</string>
+    <string name="progress_percentage">Progression %1$s%%</string>
+    <string name="songs_count">Titres (%1$d)</string>
+    <string name="check_out_top_share">Découvrez mon Top %1$d sur Vivi Music !\n\n</string>
+    <string name="by_text">Par </string>
+    <string name="is_a_playlist">est une playlist</string>
     <string name="album_text">Album</string>
     <string name="playlist_separator"> • </string>
 
     <!-- Share and Email Messages -->
-    <string name="check_out_playlist_share">Check out %1$s on YouTube Music: %2$s</string>
-    <string name="check_out_album_share">Check out %1$s by %2$s on YouTube Music: %3$s</string>
-    <string name="vivi_music_crash_report">ViVi Music Crash Report</string>
-    <string name="crash_log_email_body">Crash Log (also copied to clipboard):\n\n%1$s\n\nDevice Info:\n%2$s</string>
-    <string name="feedback_for_vivi_music_app">Feedback for Vivi Music App</string>
-    <string name="please_write_feedback">Please write your feedback here...</string>
-    <string name="crash_log_subject">Crash Log: %1$s</string>
-    <string name="crash_log_attached">Crash log attached from Vivi Music App</string>
-    <string name="vivi_music_issue_report">Vivi Music Issue Report - v%1$s</string>
+    <string name="check_out_playlist_share">Découvrez %1$s sur YouTube Music : %2$s</string>
+    <string name="check_out_album_share">Découvrez %1$s par %2$s sur YouTube Music : %3$s</string>
+    <string name="vivi_music_crash_report">Rapport d\'incident Vivi Music</string>
+    <string name="crash_log_email_body">Journal d\'incident (également copié dans le presse-papiers) :\n\n%1$s\n\nInformations sur l\'appareil :\n%2$s</string>
+    <string name="feedback_for_vivi_music_app">Commentaires sur l\'application Vivi Music</string>
+    <string name="please_write_feedback">Veuillez nous faire part de vos commentaires ici...</string>
+    <string name="crash_log_subject">Journal des incidents : %1$s</string>
+    <string name="crash_log_attached">Journal des incidents joint depuis l\'application Vivi Music</string>
+    <string name="vivi_music_issue_report">Rapport sur les problèmes de Vivi Music - v%1$s</string>
 
     <!-- Experimental Settings -->
-    <string name="updates_title">Updates</string>
-    <string name="apk_variant">APK variant</string>
-    <string name="clear_downloaded_apks">Clear downloaded APKs</string>
-    <string name="open_crash_logs_folder">Open crash logs folder</string>
+    <string name="updates_title">Mises à jour</string>
+    <string name="apk_variant">Variante APK</string>
+    <string name="clear_downloaded_apks">Supprimer les APK téléchargés</string>
+    <string name="open_crash_logs_folder">Ouvrir le dossier des journaux d\'erreurs</string>
     <string name="crash_logs_folder_path">Internal storage/Android/data/.../crash_logs</string>
-    <string name="email_or_github_issue">Email or GitHub issue</string>
-    <string name="clear_all_settings_and_data">Clear all settings and data</string>
+    <string name="email_or_github_issue">E-mail ou ticket GitHub</string>
+    <string name="clear_all_settings_and_data">Effacez tous les paramètres et toutes les données.</string>
 
     <!-- Bluetooth -->
-    <string name="bluetooth_permission_required">Bluetooth permission required</string>
-    <string name="battery_content_desc">Battery </string>
-    <string name="wired_headphones">Wired Headphones</string>
+    <string name="bluetooth_permission_required">Autorisation Bluetooth requise</string>
+    <string name="battery_content_desc">Batterie</string>
+    <string name="wired_headphones">Casque Filaire</string>
     <string name="hdmi">HDMI</string>
-    <string name="phone_speaker">Phone Speaker</string>
+    <string name="phone_speaker">Haut-parleur du téléphone</string>
 
     <!-- Content Descriptions -->
     <string name="github_content_desc">GitHub</string>
-    <string name="back_content_desc">Back</string>
+    <string name="back_content_desc">Retour</string>
 
     <!-- Notification Channel -->
-    <string name="controls_for_music_playback">Controls for music playback</string>
+    <string name="controls_for_music_playback">Commandes pour la lecture de musique</string>
 
     <!-- Account Settings -->
-    <string name="youtube_sync">YouTube sync</string>
-    <string name="log_out_from_account">Log out from your account</string>
+    <string name="youtube_sync">Synchronisation YouTube</string>
+    <string name="log_out_from_account">Déconnectez-vous de votre compte.</string>
 
     <!-- Content Descriptions -->
     <string name="bhim_content_desc">BHIM</string>
-    <string name="github_profile_content_desc">GitHub Profile</string>
+    <string name="github_profile_content_desc">Profil GitHub</string>
 
     <!-- Notification Channels -->
     <string name="download_progress_channel">Download Progress</string>
