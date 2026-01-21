@@ -391,9 +391,10 @@ class MainActivity : ComponentActivity() {
                 setSystemBarAppearance(useDarkTheme)
             }
 
+            val (powerSaver, _) = rememberPreference(PowerSaverKey, false)
             val pureBlackEnabled by rememberPreference(PureBlackKey, defaultValue = false)
-            val pureBlack = remember(pureBlackEnabled, useDarkTheme) {
-                pureBlackEnabled && useDarkTheme 
+            val pureBlack = remember(pureBlackEnabled, useDarkTheme, powerSaver) {
+                (pureBlackEnabled || powerSaver) && useDarkTheme
             }
 
             val material3Expressive by rememberPreference(Material3ExpressiveKey, defaultValue = false)
@@ -402,7 +403,7 @@ class MainActivity : ComponentActivity() {
                 mutableStateOf(DefaultThemeColor)
             }
 
-            val (powerSaver, _) = rememberPreference(PowerSaverKey, false)
+
             val highRefreshRate by rememberPreference(HighRefreshRateKey, false)
 
             LaunchedEffect(highRefreshRate, powerSaver) {

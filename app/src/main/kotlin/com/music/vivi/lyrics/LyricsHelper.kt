@@ -2,6 +2,7 @@ package com.music.vivi.lyrics
 
 import android.content.Context
 import android.util.LruCache
+import com.music.vivi.constants.PowerSaverKey
 import com.music.vivi.constants.PreferredLyricsProvider
 import com.music.vivi.constants.PreferredLyricsProviderKey
 import com.music.vivi.db.entities.LyricsEntity.Companion.LYRICS_NOT_FOUND
@@ -141,6 +142,15 @@ constructor(
             results.forEach {
                 callback(it)
             }
+            return
+        }
+
+        // Check power saver before making network requests
+        val powerSaver = context.dataStore.data
+            .map { it[PowerSaverKey] ?: false }
+            .firstOrNull() ?: false
+
+        if (powerSaver) {
             return
         }
 
