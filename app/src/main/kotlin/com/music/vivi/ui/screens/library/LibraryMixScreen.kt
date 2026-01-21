@@ -100,6 +100,7 @@ import androidx.compose.ui.semantics.semantics
 fun LibraryMixScreen(
     navController: NavController,
     filterContent: @Composable () -> Unit,
+    onNavigate: ((String) -> Unit)? = null,
     viewModel: LibraryMixViewModel = hiltViewModel(),
 ) {
     val menuState = LocalMenuState.current
@@ -344,7 +345,8 @@ fun LibraryMixScreen(
                                 Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        navController.navigate("auto_playlist/liked")
+                                        val route = "auto_playlist/liked"
+                                        if (onNavigate != null) onNavigate(route) else navController.navigate(route)
                                     }
                                     .animateItem(),
                             )
@@ -363,7 +365,8 @@ fun LibraryMixScreen(
                                 Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        navController.navigate("auto_playlist/downloaded")
+                                        val route = "auto_playlist/downloaded"
+                                        if (onNavigate != null) onNavigate(route) else navController.navigate(route)
                                     }
                                     .animateItem(),
                             )
@@ -382,7 +385,8 @@ fun LibraryMixScreen(
                                 Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        navController.navigate("top_playlist/$topSize")
+                                        val route = "top_playlist/$topSize"
+                                        if (onNavigate != null) onNavigate(route) else navController.navigate(route)
                                     }
                                     .animateItem(),
                             )
@@ -401,7 +405,8 @@ fun LibraryMixScreen(
                                 Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        navController.navigate("cache_playlist/cached")
+                                        val route = "cache_playlist/cached"
+                                        if (onNavigate != null) onNavigate(route) else navController.navigate(route)
                                     }
                                     .animateItem(),
                             )
@@ -420,7 +425,8 @@ fun LibraryMixScreen(
                                     Modifier
                                         .fillMaxWidth()
                                         .clickable {
-                                            navController.navigate("auto_playlist/uploaded")
+                                            val route = "auto_playlist/uploaded"
+                                            if (onNavigate != null) onNavigate(route) else navController.navigate(route)
                                         }
                                         .animateItem(),
                             )
@@ -459,7 +465,8 @@ fun LibraryMixScreen(
                                         .fillMaxWidth()
                                         .combinedClickable(
                                             onClick = {
-                                                navController.navigate("local_playlist/${item.id}")
+                                                val route = "local_playlist/${item.id}"
+                                                if (onNavigate != null) onNavigate(route) else navController.navigate(route)
                                             },
                                             onLongClick = {
                                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -502,7 +509,8 @@ fun LibraryMixScreen(
                                         .fillMaxWidth()
                                         .combinedClickable(
                                             onClick = {
-                                                navController.navigate("artist/${item.id}")
+                                                val route = "artist/${item.id}"
+                                                if (onNavigate != null) onNavigate(route) else navController.navigate(route)
                                             },
                                             onLongClick = {
                                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -547,7 +555,8 @@ fun LibraryMixScreen(
                                         .fillMaxWidth()
                                         .combinedClickable(
                                             onClick = {
-                                                navController.navigate("album/${item.id}")
+                                                val route = "album/${item.id}"
+                                                if (onNavigate != null) onNavigate(route) else navController.navigate(route)
                                             },
                                             onLongClick = {
                                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -608,7 +617,8 @@ fun LibraryMixScreen(
                                     .fillMaxWidth()
                                     .combinedClickable(
                                         onClick = {
-                                            navController.navigate("auto_playlist/liked")
+                                            val route = "auto_playlist/liked"
+                                            if (onNavigate != null) onNavigate(route) else navController.navigate(route)
                                         },
                                     )
                                     .animateItem(),
@@ -630,7 +640,8 @@ fun LibraryMixScreen(
                                     .fillMaxWidth()
                                     .combinedClickable(
                                         onClick = {
-                                            navController.navigate("auto_playlist/downloaded")
+                                            val route = "auto_playlist/downloaded"
+                                            if (onNavigate != null) onNavigate(route) else navController.navigate(route)
                                         },
                                     )
                                     .animateItem(),
@@ -652,7 +663,8 @@ fun LibraryMixScreen(
                                     .fillMaxWidth()
                                     .combinedClickable(
                                         onClick = {
-                                            navController.navigate("top_playlist/$topSize")
+                                            val route = "top_playlist/$topSize"
+                                            if (onNavigate != null) onNavigate(route) else navController.navigate(route)
                                         },
                                     )
                                     .animateItem(),
@@ -674,7 +686,8 @@ fun LibraryMixScreen(
                                     .fillMaxWidth()
                                     .combinedClickable(
                                         onClick = {
-                                            navController.navigate("cache_playlist/cached")
+                                            val route = "cache_playlist/cached"
+                                            if (onNavigate != null) onNavigate(route) else navController.navigate(route)
                                         },
                                     )
                                     .animateItem(),
@@ -717,7 +730,8 @@ fun LibraryMixScreen(
                                         .fillMaxWidth()
                                         .combinedClickable(
                                             onClick = {
-                                                navController.navigate("local_playlist/${item.id}")
+                                                val route = "local_playlist/${item.id}"
+                                                if (onNavigate != null) onNavigate(route) else navController.navigate(route)
                                             },
                                             onLongClick = {
                                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -743,7 +757,8 @@ fun LibraryMixScreen(
                                         .fillMaxWidth()
                                         .combinedClickable(
                                             onClick = {
-                                                navController.navigate("artist/${item.id}")
+                                                val route = "artist/${item.id}"
+                                                if (onNavigate != null) onNavigate(route) else navController.navigate(route)
                                             },
                                             onLongClick = {
                                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -772,7 +787,8 @@ fun LibraryMixScreen(
                                         .fillMaxWidth()
                                         .combinedClickable(
                                             onClick = {
-                                                navController.navigate("album/${item.id}")
+                                                val route = "album/${item.id}"
+                                                if (onNavigate != null) onNavigate(route) else navController.navigate(route)
                                             },
                                             onLongClick = {
                                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)

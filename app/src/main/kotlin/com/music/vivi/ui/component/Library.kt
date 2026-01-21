@@ -27,7 +27,8 @@ fun LibraryArtistListItem(
     menuState: MenuState,
     coroutineScope: CoroutineScope,
     artist: Artist,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onItemClick: (() -> Unit)? = null
 ) = ArtistListItem(
     artist = artist,
     trailingContent = {
@@ -51,7 +52,11 @@ fun LibraryArtistListItem(
     modifier = modifier
         .fillMaxWidth()
         .clickable {
-            navController.navigate("artist/${artist.id}")
+            if (onItemClick != null) {
+                onItemClick()
+            } else {
+                navController.navigate("artist/${artist.id}")
+            }
         }
 )
 
@@ -62,7 +67,8 @@ fun LibraryArtistGridItem(
     menuState: MenuState,
     coroutineScope: CoroutineScope,
     artist: Artist,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onItemClick: (() -> Unit)? = null
 ) = ArtistGridItem(
     artist = artist,
     fillMaxWidth = true,
@@ -70,7 +76,11 @@ fun LibraryArtistGridItem(
         .fillMaxWidth()
         .combinedClickable(
             onClick = {
-                navController.navigate("artist/${artist.id}")
+                if (onItemClick != null) {
+                    onItemClick()
+                } else {
+                    navController.navigate("artist/${artist.id}")
+                }
             },
             onLongClick = {
                 menuState.show {
@@ -91,7 +101,8 @@ fun LibraryAlbumListItem(
     menuState: MenuState,
     album: Album,
     isActive: Boolean = false,
-    isPlaying: Boolean = false
+    isPlaying: Boolean = false,
+    onItemClick: (() -> Unit)? = null
 ) = AlbumListItem(
     album = album,
     isActive = isActive,
@@ -117,7 +128,11 @@ fun LibraryAlbumListItem(
     modifier = modifier
         .fillMaxWidth()
         .clickable {
-            navController.navigate("album/${album.id}")
+            if (onItemClick != null) {
+                onItemClick()
+            } else {
+                navController.navigate("album/${album.id}")
+            }
         }
 )
 
@@ -130,7 +145,8 @@ fun LibraryAlbumGridItem(
     coroutineScope: CoroutineScope,
     album: Album,
     isActive: Boolean = false,
-    isPlaying: Boolean = false
+    isPlaying: Boolean = false,
+    onItemClick: (() -> Unit)? = null
 ) = AlbumGridItem(
     album = album,
     isActive = isActive,
@@ -141,7 +157,11 @@ fun LibraryAlbumGridItem(
         .fillMaxWidth()
         .combinedClickable(
             onClick = {
-                navController.navigate("album/${album.id}")
+                if (onItemClick != null) {
+                    onItemClick()
+                } else {
+                    navController.navigate("album/${album.id}")
+                }
             },
             onLongClick = {
                 menuState.show {
@@ -161,7 +181,8 @@ fun LibraryPlaylistListItem(
     menuState: MenuState,
     coroutineScope: CoroutineScope,
     playlist: Playlist,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onItemClick: (() -> Unit)? = null
 ) = PlaylistListItem(
     playlist = playlist,
     trailingContent = {
@@ -214,10 +235,14 @@ fun LibraryPlaylistListItem(
     modifier = modifier
         .fillMaxWidth()
         .clickable {
-            if (!playlist.playlist.isEditable && playlist.songCount == 0 && playlist.playlist.remoteSongCount != 0)
-                navController.navigate("online_playlist/${playlist.playlist.browseId}")
-            else
-                navController.navigate("local_playlist/${playlist.id}")
+            if (onItemClick != null) {
+                onItemClick()
+            } else {
+                if (!playlist.playlist.isEditable && playlist.songCount == 0 && playlist.playlist.remoteSongCount != 0)
+                    navController.navigate("online_playlist/${playlist.playlist.browseId}")
+                else
+                    navController.navigate("local_playlist/${playlist.id}")
+            }
         }
 )
 
@@ -228,7 +253,8 @@ fun LibraryPlaylistGridItem(
     menuState: MenuState,
     coroutineScope: CoroutineScope,
     playlist: Playlist,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onItemClick: (() -> Unit)? = null
 ) = PlaylistGridItem(
     playlist = playlist,
     fillMaxWidth = true,
@@ -236,10 +262,14 @@ fun LibraryPlaylistGridItem(
         .fillMaxWidth()
         .combinedClickable(
             onClick = {
-                if (!playlist.playlist.isEditable && playlist.songCount == 0 && playlist.playlist.remoteSongCount != 0)
-                    navController.navigate("online_playlist/${playlist.playlist.browseId}")
-                else
-                    navController.navigate("local_playlist/${playlist.id}")
+                if (onItemClick != null) {
+                    onItemClick()
+                } else {
+                    if (!playlist.playlist.isEditable && playlist.songCount == 0 && playlist.playlist.remoteSongCount != 0)
+                        navController.navigate("online_playlist/${playlist.playlist.browseId}")
+                    else
+                        navController.navigate("local_playlist/${playlist.id}")
+                }
             },
             onLongClick = {
                 menuState.show {

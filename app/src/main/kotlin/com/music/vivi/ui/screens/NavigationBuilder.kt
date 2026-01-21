@@ -64,7 +64,7 @@ fun NavGraphBuilder.navigationBuilder(
     composable(
         Screens.Library.route,
     ) {
-        LibraryScreen(navController)
+        AdaptiveLibraryScreen(navController)
     }
     composable("history") {
         HistoryScreen(navController)

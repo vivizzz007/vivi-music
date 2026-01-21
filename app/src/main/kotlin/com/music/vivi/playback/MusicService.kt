@@ -130,6 +130,10 @@ import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.enumPreference
 import com.music.vivi.utils.get
 import com.music.vivi.utils.reportException
+import com.music.vivi.utils.get
+import com.music.vivi.utils.reportException
+import com.music.vivi.playback.managers.QueueManager
+import com.music.vivi.playback.managers.IntegrationManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -196,6 +200,12 @@ class MusicService :
     @Inject
     lateinit var widgetManager: ViviWidgetManager
 
+    @Inject
+    lateinit var queueManager: QueueManager
+
+    @Inject
+    lateinit var integrationManager: IntegrationManager
+
     private lateinit var audioManager: AudioManager
     private var audioFocusRequest: AudioFocusRequest? = null
     private var lastAudioFocusState = AudioManager.AUDIOFOCUS_NONE
@@ -257,8 +267,6 @@ class MusicService :
     lateinit var okHttpClient: OkHttpClient
 
     private lateinit var audioQuality: com.music.vivi.constants.AudioQuality
-    private var currentQueue: Queue = EmptyQueue
-    var queueTitle: String? = null
 
     val currentMediaMetadata = MutableStateFlow<com.music.vivi.models.MediaMetadata?>(null)
     private val currentSong =
@@ -352,6 +360,8 @@ class MusicService :
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         setupAudioFocusRequest()
 
+        integrationManager.start(scope, player)
+
         mediaLibrarySessionCallback.apply {
             toggleLike = ::toggleLike
             toggleStartRadio = ::toggleStartRadio
@@ -384,6 +394,8 @@ class MusicService :
 
         audioQuality = dataStore.get(AudioQualityKey).toEnum(com.music.vivi.constants.AudioQuality.AUTO)
         playerVolume = MutableStateFlow(dataStore.get(PlayerVolumeKey, 1f).coerceIn(0f, 1f))
+
+        queueManager.setScope(scope)
 
         scope.launch {
             connectivityObserver.networkStatus.collect { isConnected ->
@@ -477,89 +489,6 @@ class MusicService :
             format to normalizeAudio
         }.collectLatest(scope) { (format, normalizeAudio) -> setupLoudnessEnhancer()}
 
-        dataStore.data
-            .map { Triple(it[DiscordTokenKey], it[EnableDiscordRPCKey] ?: true, it[PowerSaverKey] ?: false) }
-            .debounce(300)
-            .distinctUntilChanged()
-            .collect(scope) { (key, enabled, powerSaver) ->
-                if (discordRpc?.isRpcRunning() == true) {
-                    discordRpc?.closeRPC()
-                }
-                discordRpc = null
-                if (key != null && enabled && !powerSaver) {
-                    discordRpc = DiscordRPC(this, key)
-                    if (player.playbackState == Player.STATE_READY && player.playWhenReady) {
-                        currentSong.value?.let {
-                            discordRpc?.updateSong(it, player.currentPosition, player.playbackParameters.speed, dataStore.get(DiscordUseDetailsKey, false))
-                        }
-                    }
-                }
-            }
-
-        // details key stuff
-        dataStore.data
-            .map { it[DiscordUseDetailsKey] ?: false }
-            .debounce(1000)
-            .distinctUntilChanged()
-            .collect(scope) { useDetails ->
-                if (player.playbackState == Player.STATE_READY && player.playWhenReady) {
-                    currentSong.value?.let { song ->
-                        discordUpdateJob?.cancel()
-                        discordUpdateJob = scope.launch {
-                            delay(1000)
-                            discordRpc?.updateSong(song, player.currentPosition, player.playbackParameters.speed, useDetails)
-                        }
-                    }
-                }
-            }
-
-        dataStore.data
-            .map { (it[EnableLastFMScrobblingKey] ?: false) to (it[PowerSaverKey] ?: false) }
-            .debounce(300)
-            .distinctUntilChanged()
-            .collect(scope) { (enabled, powerSaver) ->
-                val shouldEnable = enabled && !powerSaver
-                if (shouldEnable && scrobbleManager == null) {
-                    val delayPercent = dataStore.get(ScrobbleDelayPercentKey, LastFM.DEFAULT_SCROBBLE_DELAY_PERCENT)
-                    val minSongDuration = dataStore.get(ScrobbleMinSongDurationKey, LastFM.DEFAULT_SCROBBLE_MIN_SONG_DURATION)
-                    val delaySeconds = dataStore.get(ScrobbleDelaySecondsKey, LastFM.DEFAULT_SCROBBLE_DELAY_SECONDS)
-                    scrobbleManager = ScrobbleManager(
-                        scope,
-                        minSongDuration = minSongDuration,
-                        scrobbleDelayPercent = delayPercent,
-                        scrobbleDelaySeconds = delaySeconds
-                    )
-                    scrobbleManager?.useNowPlaying = dataStore.get(LastFMUseNowPlaying, false)
-                } else if (!shouldEnable && scrobbleManager != null) {
-                    scrobbleManager?.destroy()
-                    scrobbleManager = null
-                }
-            }
-
-        dataStore.data
-            .map { it[LastFMUseNowPlaying] ?: false }
-            .distinctUntilChanged()
-            .collectLatest(scope) {
-                scrobbleManager?.useNowPlaying = it
-            }
-
-        dataStore.data
-            .map { prefs ->
-                Triple(
-                    prefs[ScrobbleDelayPercentKey] ?: LastFM.DEFAULT_SCROBBLE_DELAY_PERCENT,
-                    prefs[ScrobbleMinSongDurationKey] ?: LastFM.DEFAULT_SCROBBLE_MIN_SONG_DURATION,
-                    prefs[ScrobbleDelaySecondsKey] ?: LastFM.DEFAULT_SCROBBLE_DELAY_SECONDS
-                )
-            }
-            .distinctUntilChanged()
-            .collect(scope) { (delayPercent, minSongDuration, delaySeconds) ->
-                scrobbleManager?.let {
-                    it.scrobbleDelayPercent = delayPercent
-                    it.minSongDuration = minSongDuration
-                    it.scrobbleDelaySeconds = delaySeconds
-                }
-            }
-
         if (dataStore.get(PersistentQueueKey, true)) {
             runCatching {
                 filesDir.resolve(PERSISTENT_QUEUE_FILE).inputStream().use { fis ->
@@ -570,7 +499,7 @@ class MusicService :
             }.onSuccess { queue ->
                 // Convert back to proper queue type
                 val restoredQueue = queue.toQueue()
-                playQueue(
+                queueManager.playQueue(
                     queue = restoredQueue,
                     playWhenReady = false,
                 )
@@ -950,55 +879,7 @@ class MusicService :
         queue: Queue,
         playWhenReady: Boolean = true,
     ) {
-        addedSuggestionIds.clear()
-        if (!scope.isActive) scope = CoroutineScope(Dispatchers.Main) + Job()
-        currentQueue = queue
-        queueTitle = null
-        player.shuffleModeEnabled = false
-        if (queue.preloadItem != null) {
-            player.setMediaItem(queue.preloadItem!!.toMediaItem())
-            player.prepare()
-            player.playWhenReady = playWhenReady
-        }
-        scope.launch(SilentHandler) {
-            val initialStatus =
-                withContext(Dispatchers.IO) {
-                    queue.getInitialStatus()
-                        .filterExplicit(dataStore.get(HideExplicitKey, false))
-                        .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
-                }
-            if (queue.preloadItem != null && player.playbackState == STATE_IDLE) return@launch
-            if (initialStatus.title != null) {
-                queueTitle = initialStatus.title
-            }
-            if (initialStatus.items.isEmpty()) return@launch
-            if (queue.preloadItem != null) {
-                player.addMediaItems(
-                    0,
-                    initialStatus.items.subList(0, initialStatus.mediaItemIndex)
-                )
-                player.addMediaItems(
-                    initialStatus.items.subList(
-                        initialStatus.mediaItemIndex + 1,
-                        initialStatus.items.size
-                    )
-                )
-            } else {
-                player.setMediaItems(
-                    initialStatus.items,
-                    if (initialStatus.mediaItemIndex >
-                        0
-                    ) {
-                        initialStatus.mediaItemIndex
-                    } else {
-                        0
-                    },
-                    initialStatus.position,
-                )
-                player.prepare()
-                player.playWhenReady = playWhenReady
-            }
-        }
+        queueManager.playQueue(queue, playWhenReady)
     }
 
     fun startRadioSeamlessly() {
@@ -1022,12 +903,12 @@ class MusicService :
             val initialStatus = radioQueue.getInitialStatus()
 
             if (initialStatus.title != null) {
-                queueTitle = initialStatus.title
+                queueManager.setQueueTitle(initialStatus.title)
             }
 
             // Add radio songs after current song
             player.addMediaItems(initialStatus.items.drop(1))
-            currentQueue = radioQueue
+            queueManager.setQueue(radioQueue)
         }
     }
 
@@ -1039,10 +920,10 @@ class MusicService :
             player.mediaItemCount - player.currentMediaItemIndex <= 5 &&
             !(dataStore.get(DisableLoadMoreWhenRepeatAllKey, false) && player.repeatMode == REPEAT_MODE_ALL)
         ) {
-            if (currentQueue.hasNextPage()) {
+            if (queueManager.currentQueue.hasNextPage()) {
                 scope.launch(SilentHandler) {
                     val mediaItems =
-                        currentQueue.nextPage()
+                        queueManager.currentQueue.nextPage()
                             .filterExplicit(dataStore.get(HideExplicitKey, false))
                             .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
                     if (player.playbackState != STATE_IDLE) {
@@ -1392,13 +1273,6 @@ class MusicService :
 
         setupLoudnessEnhancer()
 
-        discordUpdateJob?.cancel()
-
-        scrobbleManager?.onSongStop()
-        if (player.playWhenReady && player.playbackState == Player.STATE_READY) {
-            scrobbleManager?.onSongStart(player.currentMetadata, duration = player.duration)
-        }
-
         // Proactively refresh suggestions pool for UI
         if (dataStore.get(SmartSuggestionsKey, false)) {
             refreshAutomixItems(mediaItem?.mediaId)
@@ -1467,28 +1341,8 @@ class MusicService :
             currentMediaMetadata.value = player.currentMetadata
         }
 
-        // Discord RPC updates
-
-        // Update the Discord RPC activity if the player is playing
+        // Widget updates
         if (events.containsAny(Player.EVENT_IS_PLAYING_CHANGED)) {
-            if (player.isPlaying) {
-                currentSong.value?.let { song ->
-                    scope.launch {
-                        discordRpc?.updateSong(song, player.currentPosition, player.playbackParameters.speed, dataStore.get(DiscordUseDetailsKey, false))
-                    }
-                }
-            }
-            // Send empty activity to the Discord RPC if the player is not playing
-            else if (!events.containsAny(Player.EVENT_POSITION_DISCONTINUITY, Player.EVENT_MEDIA_ITEM_TRANSITION)){
-                scope.launch {
-                    discordRpc?.stopActivity()
-                }
-            }
-        }
-
-        // Scrobbling
-        if (events.containsAny(Player.EVENT_IS_PLAYING_CHANGED)) {
-            scrobbleManager?.onPlayerStateChanged(player.isPlaying, player.currentMetadata, duration = player.duration)
             if (player.isPlaying) {
                 startWidgetUpdates()
             } else {
@@ -1636,23 +1490,7 @@ class MusicService :
         }
     }
 
-    override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters) {
-        super.onPlaybackParametersChanged(playbackParameters)
-        if (playbackParameters.speed != lastPlaybackSpeed) {
-            lastPlaybackSpeed = playbackParameters.speed
-            discordUpdateJob?.cancel()
 
-            // update scheduling thingy
-            discordUpdateJob = scope.launch {
-                delay(1000)
-                if (player.playWhenReady && player.playbackState == Player.STATE_READY) {
-                    currentSong.value?.let { song ->
-                        discordRpc?.updateSong(song, player.currentPosition, playbackParameters.speed, dataStore.get(DiscordUseDetailsKey, false))
-                    }
-                }
-            }
-        }
-    }
 
     override fun onPlayerError(error: PlaybackException) {
         super.onPlayerError(error)
@@ -1877,8 +1715,8 @@ class MusicService :
         }
 
         // Save current queue with proper type information
-        val persistQueue = currentQueue.toPersistQueue(
-            title = queueTitle,
+        val persistQueue = queueManager.currentQueue.toPersistQueue(
+            title = queueManager.queueTitle,
             items = player.mediaItems.mapNotNull { it.metadata },
             mediaItemIndex = player.currentMediaItemIndex,
             position = player.currentPosition
@@ -1937,10 +1775,8 @@ class MusicService :
         if (dataStore.get(PersistentQueueKey, true)) {
             saveQueueToDisk()
         }
-        if (discordRpc?.isRpcRunning() == true) {
-            discordRpc?.closeRPC()
-        }
-        discordRpc = null
+        
+        integrationManager.stop(player)
         connectivityObserver.unregister()
         abandonAudioFocus()
         releaseLoudnessEnhancer()
@@ -1950,7 +1786,6 @@ class MusicService :
         player.removeListener(this)
         player.removeListener(sleepTimer)
         player.release()
-        discordUpdateJob?.cancel()
         super.onDestroy()
     }
     //better network handling
