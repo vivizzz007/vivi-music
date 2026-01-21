@@ -46,6 +46,7 @@ import com.music.vivi.update.mordernswitch.ModernSwitch
 fun RomanizationSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    onBack: (() -> Unit)? = null,
 ) {
     val (settingsShapeTertiary, _) = rememberPreference(SettingsShapeColorTertiaryKey, false)
     val (darkMode, _) = rememberEnumPreference(
@@ -283,7 +284,7 @@ fun RomanizationSettings(
         title = { Text(stringResource(R.string.lyrics_romanize_title)) },
         navigationIcon = {
             IconButton(
-                onClick = navController::navigateUp,
+                onClick = { onBack?.invoke() ?: navController.navigateUp() },
                 onLongClick = navController::backToMain,
             ) {
                 Icon(

@@ -8,6 +8,7 @@ lifecycle = "2.9.4"
 material3 = "1.5.0-alpha11"
 appcompat = "1.7.1"
 media3 = "1.7.1"
+material3Adaptive = "1.0.0"
 room = "2.7.2"
 hilt = "2.57.1"
 ktor = "3.3.0"
@@ -41,6 +42,7 @@ uiGraphics = "1.10.0"
 robolectric = "4.14.1"
 mockk = "1.13.13"
 espresso = "3.6.1"
+coreKtx = "1.12.0"
 
 [libraries]
 annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
@@ -133,6 +135,11 @@ coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", ve
 espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }
 ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "compose" }
 ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "compose" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+
+material3-adaptive = { module = "androidx.compose.material3.adaptive:adaptive", version.ref = "material3Adaptive" }
+material3-adaptive-layout = { module = "androidx.compose.material3.adaptive:adaptive-layout", version.ref = "material3Adaptive" }
+material3-adaptive-navigation = { module = "androidx.compose.material3.adaptive:adaptive-navigation", version.ref = "material3Adaptive" }
 
 [plugins]
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

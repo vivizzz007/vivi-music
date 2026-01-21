@@ -143,6 +143,13 @@ constructor(
                     MusicService.ROOT ->
                         listOf(
                             browsableMediaItem(
+                                MusicService.RECOMMENDED,
+                                context.getString(R.string.quick_picks), // Using Quick Picks string for "Recommended" to match Home Tab
+                                null,
+                                drawableUri(R.drawable.sparkles),
+                                MediaMetadata.MEDIA_TYPE_PLAYLIST,
+                            ),
+                            browsableMediaItem(
                                 MusicService.SONG,
                                 context.getString(R.string.songs),
                                 null,
@@ -173,6 +180,9 @@ constructor(
                         )
 
                     MusicService.SONG -> database.songsByCreateDateAsc().first()
+                        .map { it.toMediaItem(parentId) }
+
+                    MusicService.RECOMMENDED -> database.quickPicks().first().shuffled().take(20)
                         .map { it.toMediaItem(parentId) }
 
                     MusicService.ARTIST ->

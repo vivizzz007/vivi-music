@@ -143,6 +143,7 @@ import kotlin.math.roundToInt
 fun AppearanceSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    onBack: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -800,7 +801,7 @@ fun AppearanceSettings(
                     title = {},
                     navigationIcon = {
                         IconButton(
-                            onClick = navController::navigateUp,
+                            onClick = { onBack?.invoke() ?: navController.navigateUp() },
                             onLongClick = navController::backToMain
                         ) {
                             Icon(

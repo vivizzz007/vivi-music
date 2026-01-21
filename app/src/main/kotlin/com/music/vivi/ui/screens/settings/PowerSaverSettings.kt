@@ -43,6 +43,7 @@ import com.music.vivi.utils.rememberPreference
 fun PowerSaverSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    onBack: (() -> Unit)? = null,
 ) {
     val (powerSaver, onPowerSaverChange) = rememberPreference(PowerSaverKey, defaultValue = false)
 
@@ -52,7 +53,7 @@ fun PowerSaverSettings(
                 title = { Text(stringResource(R.string.power_saver)) },
                 navigationIcon = {
                     IconButton(
-                        onClick = navController::navigateUp,
+                        onClick = { onBack?.invoke() ?: navController.navigateUp() },
                         onLongClick = navController::backToMain
                     ) {
                         Icon(
