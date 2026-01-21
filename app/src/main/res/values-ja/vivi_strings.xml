@@ -829,24 +829,24 @@
     <string name="radio_text">ラジオ</string>
     <string name="shuffle_text">シャッフル</string>
     <string name="audio_quality_title">音質</string>
-    <string name="progress_percentage">進行状況 %1%%</string>
-    <string name="songs_count">曲数 (%1)</string>
-    <string name="check_out_top_share">Vivi Musicで私のトップ %1 をチェック！\n\n</string>
+    <string name="progress_percentage">進行状況 %1$s%%</string>
+    <string name="songs_count">曲数 (%1$s)</string>
+    <string name="check_out_top_share">Vivi Musicで私のトップ %1$s をチェック！\n\n</string>
     <string name="by_text">By </string>
     <string name="is_a_playlist">はプレイリストです</string>
     <string name="album_text">アルバム</string>
     <string name="playlist_separator"> • </string>
 
     <!-- Share and Email Messages -->
-    <string name="check_out_playlist_share">%1 をYouTube Musicでチェック: %2</string>
-    <string name="check_out_album_share">%2 の %1 をYouTube Musicでチェック: %3</string>
+    <string name="check_out_playlist_share">%1$s をYouTube Musicでチェック: %2$s</string>
+    <string name="check_out_album_share">%2$s の %1$s をYouTube Musicでチェック: %3$s</string>
     <string name="vivi_music_crash_report">ViVi Musicクラッシュレポート</string>
-    <string name="crash_log_email_body">クラッシュログ（クリップボードにもコピーされました）:\n\n%1\n\nデバイス情報:\n%2</string>
+    <string name="crash_log_email_body">クラッシュログ（クリップボードにもコピーされました）:\n\n%1$s\n\nデバイス情報:\n%2$s</string>
     <string name="feedback_for_vivi_music_app">Vivi Musicアプリへのフィードバック</string>
     <string name="please_write_feedback">ここにフィードバックをお書きください...</string>
-    <string name="crash_log_subject">クラッシュログ: %1</string>
+    <string name="crash_log_subject">クラッシュログ: %1$s</string>
     <string name="crash_log_attached">Vivi Musicアプリからのクラッシュログ添付</string>
-    <string name="vivi_music_issue_report">Vivi Music問題レポート - v%1</string>
+    <string name="vivi_music_issue_report">Vivi Music問題レポート - v%1$s</string>
 
     <!-- Experimental Settings -->
     <string name="updates_title">アップデート</string>
@@ -894,10 +894,10 @@
 
     <!-- Download Notifications -->
     <string name="downloading_update">アップデートをダウンロード中</string>
-    <string name="version_file_size">バージョン %1 • %2</string>
-    <string name="version_progress">バージョン %1 • %2%%</string>
+    <string name="version_file_size">バージョン %1$s • %2$s</string>
+    <string name="version_progress">バージョン %1$s • %2$s%%</string>
     <string name="update_ready">アップデート準備完了</string>
-    <string name="tap_to_install_version">タップしてバージョン %1 をインストール</string>
+    <string name="tap_to_install_version">タップしてバージョン %1$s をインストール</string>
 
     <!-- Beta Update Labels -->
     <string name="version_label">バージョン</string>

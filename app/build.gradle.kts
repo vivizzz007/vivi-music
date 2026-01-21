@@ -196,6 +196,9 @@ dependencies {
     implementation(libs.viewmodel.compose)
 
     implementation(libs.material3)
+    implementation(libs.material3.adaptive)
+    implementation(libs.material3.adaptive.layout)
+    implementation(libs.material3.adaptive.navigation)
     implementation(libs.palette)
     implementation(libs.materialKolor)
 
@@ -246,18 +249,18 @@ dependencies {
     implementation("androidx.compose.material:material-icons-core:1.7.8")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation("com.airbnb.android:lottie-compose:6.6.9")
-    implementation("io.coil-kt:coil-compose:2.7.0")
-    implementation("com.squareup.okhttp3:okhttp:4.10.0")
     implementation("com.google.code.gson:gson:2.13.2")
     implementation("com.github.racra:smooth-corner-rect-android-compose:v1.0.0")
     implementation("com.squareup.retrofit2:retrofit:3.0.0")
     implementation("com.squareup.retrofit2:converter-gson:3.0.0")
     implementation("com.squareup.okhttp3:logging-interceptor:5.1.0")
-    implementation("androidx.core:core-ktx:1.17.0")
-    implementation("androidx.work:work-runtime-ktx:2.9.0")
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.compose.ui:ui:1.6.1")
-    implementation("androidx.graphics:graphics-shapes:1.1.0")
+
+    implementation(libs.androidx.core.ktx) // Replaces hardcoded core-ktx
+    // work-runtime-ktx is already added via libs.androidx.work.runtime.ktx (line 244)
+    // implementation("androidx.work:work-runtime-ktx:2.9.0") 
+
+    implementation("androidx.compose.ui:ui:1.6.1") // This might conflict with libs.compose.ui, but leaving for now if specifically needed, though typically should align.
+    implementation("androidx.graphics:graphics-shapes:1.1.0") // Duplicate of libs.androidx.graphics.shapes?
     implementation("androidx.glance:glance-appwidget:1.1.0")
     implementation("androidx.glance:glance-material3:1.1.0")
 
