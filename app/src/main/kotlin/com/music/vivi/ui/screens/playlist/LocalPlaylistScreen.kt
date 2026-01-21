@@ -183,11 +183,18 @@ import com.music.vivi.ui.component.RoundedCheckbox
 @SuppressLint("RememberReturnType")
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
+@Composable
 fun LocalPlaylistScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    playlistId: String? = null,
     viewModel: LocalPlaylistViewModel = hiltViewModel(),
 ) {
+    if (playlistId != null) {
+        LaunchedEffect(playlistId) {
+            viewModel.setPlaylistId(playlistId)
+        }
+    }
     val context = LocalContext.current
     val menuState = LocalMenuState.current
     val database = LocalDatabase.current

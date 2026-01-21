@@ -12,10 +12,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,12 +28,14 @@ constructor(
     private val database: MusicDatabase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    val albumId = savedStateHandle.get<String>("albumId")!!
+    private val _albumId = MutableStateFlow(savedStateHandle.get<String>("albumId"))
+    val albumId: StateFlow<String?> = _albumId.asStateFlow()
+    
     val playlistId = MutableStateFlow("")
-    val albumWithSongs =
-        database
-            .albumWithSongs(albumId)
-            .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val albumWithSongs = _albumId.filterNotNull().flatMapLatest { id ->
+            database.albumWithSongs(id)
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
     var otherVersions = MutableStateFlow<List<AlbumItem>>(emptyList())
     var releasesForYou = MutableStateFlow<List<AlbumItem>>(emptyList())
 
@@ -65,27 +70,35 @@ constructor(
 
         // Network Refresh with direct YouTube calls
         viewModelScope.launch(Dispatchers.IO) {
-            val album = database.album(albumId).first()
-
-            YouTube.album(albumId).onSuccess { it ->
-                playlistId.value = it.album.playlistId
-                otherVersions.value = it.otherVersions
-                releasesForYou.value = it.releasesForYou
-                database.transaction {
-                    if (album == null) {
-                        insert(it)
-                    } else {
-                        update(album.album, it, album.artists)
+            _albumId.collect { id ->
+                if (id == null) return@collect
+                val album = database.album(id).first()
+                YouTube.album(id).onSuccess { it ->
+                    playlistId.value = it.album.playlistId
+                    otherVersions.value = it.otherVersions
+                    releasesForYou.value = it.releasesForYou
+                    database.transaction {
+                        if (album == null) {
+                            insert(it)
+                        } else {
+                            update(album.album, it, album.artists)
+                        }
                     }
-                }
-            }.onFailure {
-                reportException(it)
-                if (it.message?.contains("NOT_FOUND") == true) {
-                    database.query {
-                        album?.album?.let(::delete)
+                }.onFailure {
+                    reportException(it)
+                    if (it.message?.contains("NOT_FOUND") == true) {
+                        database.query {
+                            album?.album?.let(::delete)
+                        }
                     }
                 }
             }
+        }
+    }
+
+    fun setAlbumId(id: String) {
+        if (_albumId.value != id) {
+            _albumId.value = id
         }
     }
 }

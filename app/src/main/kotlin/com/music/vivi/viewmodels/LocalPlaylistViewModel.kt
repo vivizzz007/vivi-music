@@ -34,20 +34,29 @@ constructor(
     database: MusicDatabase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    val playlistId = savedStateHandle.get<String>("playlistId")!!
-    val playlist =
-        database
-            .playlist(playlistId)
-            .stateIn(viewModelScope, SharingStarted.Lazily, null)
+    private val _playlistId = MutableStateFlow(savedStateHandle.get<String>("playlistId"))
+    val playlistId = _playlistId.asStateFlow()
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val playlist = _playlistId.filterNotNull().flatMapLatest { id ->
+        database.playlist(id)
+    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     val playlistSongs: StateFlow<List<PlaylistSong>> =
         combine(
-            database.playlistSongs(playlistId),
+            _playlistId.filterNotNull(),
             context.dataStore.data
                 .map {
                     it[PlaylistSongSortTypeKey].toEnum(PlaylistSongSortType.CUSTOM) to (it[PlaylistSongSortDescendingKey]
                         ?: true)
                 }.distinctUntilChanged(),
-        ) { songs, (sortType, sortDescending) ->
+        ) { id, (sortType, sortDescending) ->
+            Triple(id, sortType, sortDescending)
+        }.flatMapLatest { (id, sortType, sortDescending) ->
+            val songsFlow = database.playlistSongs(id)
+            songsFlow.map { songs ->
+                 sortSongs(songs, sortType, sortDescending)
+            }
             when (sortType) {
                 PlaylistSongSortType.CUSTOM -> songs
                 PlaylistSongSortType.CREATE_DATE -> songs.sortedBy { it.map.id }
@@ -75,17 +84,36 @@ constructor(
             }.reversed(sortDescending && sortType != PlaylistSongSortType.CUSTOM)
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    init {
-        viewModelScope.launch {
-            val sortedSongs =
-                playlistSongs.first().sortedWith(compareBy({ it.map.position }, { it.map.id }))
-            database.transaction {
-                sortedSongs.forEachIndexed { index, playlistSong ->
-                    if (playlistSong.map.position != index) {
-                        update(playlistSong.map.copy(position = index))
-                    }
-                }
+    private fun sortSongs(songs: List<PlaylistSong>, sortType: PlaylistSongSortType, sortDescending: Boolean): List<PlaylistSong> {
+        return when (sortType) {
+            PlaylistSongSortType.CUSTOM -> songs
+            PlaylistSongSortType.CREATE_DATE -> songs.sortedBy { it.map.id }
+            PlaylistSongSortType.NAME -> {
+                val collator = Collator.getInstance(Locale.getDefault())
+                collator.strength = Collator.PRIMARY
+                songs.sortedWith(compareBy(collator) { it.song.song.title })
             }
+            PlaylistSongSortType.ARTIST -> {
+                val collator = Collator.getInstance(Locale.getDefault())
+                collator.strength = Collator.PRIMARY
+                songs
+                    .sortedWith(compareBy(collator) { song -> song.song.artists.joinToString("") { it.name } })
+                    .groupBy { it.song.album?.title }
+                    .flatMap { (_, songsByAlbum) ->
+                        songsByAlbum.sortedBy {
+                            it.song.artists.joinToString(
+                                ""
+                            ) { it.name }
+                        }
+                    }
+            }
+            PlaylistSongSortType.PLAY_TIME -> songs.sortedBy { it.song.song.totalPlayTime }
+        }.reversed(sortDescending && sortType != PlaylistSongSortType.CUSTOM)
+    }
+
+    fun setPlaylistId(id: String) {
+        if (_playlistId.value != id) {
+             _playlistId.value = id
         }
     }
 }

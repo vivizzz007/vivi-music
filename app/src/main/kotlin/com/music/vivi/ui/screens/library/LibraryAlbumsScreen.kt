@@ -82,6 +82,7 @@ import kotlinx.coroutines.withContext
 fun LibraryAlbumsScreen(
     navController: NavController,
     onDeselect: () -> Unit,
+    onNavigate: ((String) -> Unit)? = null,
     viewModel: LibraryAlbumsViewModel = hiltViewModel(),
 ) {
     val menuState = LocalMenuState.current
@@ -302,7 +303,8 @@ fun LibraryAlbumsScreen(
                                             album = album,
                                             isActive = isActive,
                                             isPlaying = isPlaying,
-                                            modifier = Modifier.fillMaxSize()
+                                            modifier = Modifier.fillMaxSize(),
+                                            onItemClick = onNavigate?.let { navigate -> { navigate("album/${album.id}") } }
                                         )
                                     }
 
@@ -371,7 +373,8 @@ fun LibraryAlbumsScreen(
                                 album = album,
                                 isActive = album.id == mediaMetadata?.album?.id,
                                 isPlaying = isPlaying,
-                                modifier = Modifier
+                                modifier = Modifier,
+                                onItemClick = onNavigate?.let { navigate -> { navigate("album/${album.id}") } }
                             )
                         }
                     }

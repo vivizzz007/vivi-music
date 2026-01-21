@@ -140,8 +140,14 @@ import com.music.vivi.constants.ListItemHeight
 fun ArtistScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    artistId: String? = null,
     viewModel: ArtistViewModel = hiltViewModel(),
 ) {
+    if (artistId != null) {
+        LaunchedEffect(artistId) {
+            viewModel.setArtistId(artistId)
+        }
+    }
     val context = LocalContext.current
     val database = LocalDatabase.current
     val menuState = LocalMenuState.current
