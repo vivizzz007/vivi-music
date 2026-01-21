@@ -38,6 +38,9 @@ extractor = "06b7ae2"
 graphics-shapes = "1.1.0"
 workmanager = "2.11.0"
 uiGraphics = "1.10.0"
+robolectric = "4.14.1"
+mockk = "1.13.13"
+espresso = "3.6.1"
 
 [libraries]
 annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
@@ -123,6 +126,13 @@ extractor = { module = "com.github.mostafaalagamy:MetrolistExtractor", version.r
 
 kuromoji-ipadic = { module = "com.atilika.kuromoji:kuromoji-ipadic", version.ref = "kuromojiIpadic" }
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics", version.ref = "uiGraphics" }
+
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutinesGuava" }
+espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }
+ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "compose" }
+ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "compose" }
 
 [plugins]
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

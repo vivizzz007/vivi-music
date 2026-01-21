@@ -712,7 +712,10 @@ fun <T> ValueAdjuster(
         IconButton(
             enabled = currentValue != values.first(),
             onClick = {
-                onValueUpdate(values[values.indexOf(currentValue) - 1])
+                val index = values.indexOf(currentValue)
+                if (index > 0) {
+                    onValueUpdate(values[index - 1])
+                }
             },
         ) {
             Icon(
@@ -731,7 +734,10 @@ fun <T> ValueAdjuster(
         IconButton(
             enabled = currentValue != values.last(),
             onClick = {
-                onValueUpdate(values[values.indexOf(currentValue) + 1])
+                val index = values.indexOf(currentValue)
+                if (index >= 0 && index < values.size - 1) {
+                    onValueUpdate(values[index + 1])
+                }
             },
         ) {
             Icon(

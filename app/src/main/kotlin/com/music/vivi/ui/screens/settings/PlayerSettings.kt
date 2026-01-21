@@ -293,10 +293,11 @@ fun PlayerSettings(
                                         iconContentColor = iconStyleColor
                                     )
 
-                                    val options = listOf(AudioQuality.AUTO, AudioQuality.HIGH, AudioQuality.LOW)
+                                    val options = listOf(AudioQuality.AUTO, AudioQuality.HIGH, AudioQuality.VERY_HIGH, AudioQuality.LOW)
                                     val labels = listOf(
                                         stringResource(R.string.audio_quality_auto),
                                         stringResource(R.string.audio_quality_high),
+                                        stringResource(R.string.audio_quality_very_high),
                                         stringResource(R.string.audio_quality_low)
                                     )
 
