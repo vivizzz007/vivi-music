@@ -1137,8 +1137,3 @@ fun String.extractUrls(): List<Pair<IntRange, String>> {
 
     return urlList
 }
-
-
-
-
-}
