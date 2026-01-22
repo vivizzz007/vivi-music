@@ -23,6 +23,7 @@ import com.music.vivi.utils.get
 import com.music.vivi.extensions.metadata
 import com.music.vivi.extensions.toMediaItem
 import com.music.vivi.extensions.currentMetadata
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -46,11 +47,11 @@ object LastFM {
 }
 
 class IntegrationManager @Inject constructor(
-    private val context: Context,
+    @ApplicationContext private val context: Context,
     private val dataStore: DataStore<Preferences>,
     private val database: MusicDatabase,
 ) : Player.Listener {
-
+    // ... (rest of the file remains unchanged)
     private var scope: CoroutineScope? = null
     private var player: ExoPlayer? = null
     private var discordRpc: DiscordRPC? = null
