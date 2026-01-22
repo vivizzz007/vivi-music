@@ -35,15 +35,14 @@ class AppNavigationTest {
     fun navigateToSearch_verifiesSearchScreen() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val searchString = context.getString(R.string.search)
+        val searchInputHint = context.getString(R.string.search_yt_music)
 
         // Click Search Tab
-        // Assuming tab has text "Search" or content description equal to title
         composeTestRule.onNodeWithText(searchString).performClick()
 
-        // Verify Search Screen (maybe check for Search Bar)
-        // Since Search triggers a separate screen or changes content, we verify some element unique to Search
-        // e.g., the Search Bar placeholder or title again if it's in the top bar
-        composeTestRule.onNodeWithText(searchString).assertIsDisplayed()
+        // Verify Search Input field is displayed (placeholder text)
+        // Adjust this if the placeholder logic differs, but R.string.search_yt_music is used in TopSearch
+        composeTestRule.onNodeWithText(searchInputHint).assertIsDisplayed()
     }
 
     @Test
@@ -56,5 +55,19 @@ class AppNavigationTest {
         
         // Verify Library Screen content
         composeTestRule.onNodeWithText(libraryString).assertIsDisplayed()
+    }
+
+    @Test
+    fun navigateToSettings_verifiesSettingsScreen() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val settingsString = "Settings" // Hardcoded as per Content Description added
+        // Note: The title on screen might be from R.string.settings which is "Settings"
+
+        // Ensure we are on Home (or somewhere with the TopBar)
+        // Click Settings Icon
+        composeTestRule.onNodeWithContentDescription("Settings").performClick()
+        
+        // Verify Settings Screen Title is displayed
+        composeTestRule.onNodeWithText(context.getString(R.string.settings)).assertIsDisplayed()
     }
 }
