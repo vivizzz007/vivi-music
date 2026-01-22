@@ -41,7 +41,6 @@ import com.music.vivi.ui.screens.settings.PrivacySettings
 import com.music.vivi.ui.screens.settings.RomanizationSettings
 import com.music.vivi.ui.screens.settings.SettingsScreen
 import com.music.vivi.ui.screens.settings.StorageSettings
-import com.music.vivi.update.UpdateScreen // Import hinzugefügt
 import com.music.vivi.update.account.FunAccountViviSetting
 import com.music.vivi.update.betaupdate.ViviDpiSettings
 import com.music.vivi.update.changelog.ChangelogScreen
