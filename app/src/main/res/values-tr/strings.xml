@@ -45,7 +45,7 @@
 
     <!-- Search -->
     <string name="search">Ara</string>
-    <string name="search_yt_music">YouTube Music\'te ara…</string>
+    <string name="search_yt_music">YouTube Music'te ara…</string>
     <string name="search_library">Kitaplıkta ara…</string>
     <string name="filter_library">Kitaplık</string>
     <string name="filter_liked">Beğenilenler</string>
@@ -269,7 +269,7 @@
     <string name="content_language">Varsayılan içerik dili</string>
     <string name="content_country">Varsayılan içerik ülke</string>
     <string name="system_default">Sistem varsayılanı</string>
-    <string name="enable_proxy">Proxy'yi etkinleştir</string>
+    <string name="enable_proxy">Proxyyi etkinleştir</string>
     <string name="proxy_type">Proxy türü</string>
     <string name="proxy_url">Proxy URL</string>
     <string name="restart_to_take_effect">Değişikliklerin etkili olması için yeniden başlatın</string>
