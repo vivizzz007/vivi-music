@@ -89,7 +89,7 @@ fun AccountSettings(
     var showToken by remember { mutableStateOf(false) }
     var showTokenEditor by remember { mutableStateOf(false) }
 
-    // FIX START: Scaffold als Root-Element verwenden
+    // LÖSUNG: Scaffold garantiert eine korrekte Hintergrundfarbe
     Scaffold(
         topBar = {
             Row(
@@ -109,7 +109,8 @@ fun AccountSettings(
                 }
             }
         },
-        containerColor = MaterialTheme.colorScheme.background // Sicherer Hintergrund statt surfaceContainer
+        // WICHTIG: 'background' nutzen, da 'surfaceContainer' oft nicht existiert/schwarz ist
+        containerColor = MaterialTheme.colorScheme.background 
     ) { paddingValues ->
         
         Column(
@@ -120,7 +121,6 @@ fun AccountSettings(
                 .verticalScroll(rememberScrollState())
         ) {
             
-            // Login/Account Section
             val accountSectionModifier = Modifier.clickable {
                 onClose()
                 if (isLoggedIn) {
@@ -130,12 +130,13 @@ fun AccountSettings(
                 }
             }
 
+            // Account Karte
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = accountSectionModifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant) // Kontrastreicherer Hintergrund für Cards
+                    .background(MaterialTheme.colorScheme.surfaceVariant) // Sicherer Kontrast
                     .padding(horizontal = 18.dp, vertical = 12.dp)
             ) {
                 if (isLoggedIn && accountImageUrl != null) {
@@ -159,7 +160,7 @@ fun AccountSettings(
                 Column(Modifier.weight(1f)) {
                     Text(
                         text = if (isLoggedIn) accountName else stringResource(R.string.login),
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                         modifier = Modifier.padding(start = 5.dp)
                     )
@@ -171,7 +172,6 @@ fun AccountSettings(
                             accountSettingsViewModel.logoutAndClearSyncedContent(context, onInnerTubeCookieChange)
                         },
                         colors = ButtonDefaults.outlinedButtonColors(
-                            // containerColor hier weglassen für transparenten Hintergrund oder surfaceVariant anpassen
                             contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     ) {
@@ -182,7 +182,7 @@ fun AccountSettings(
 
             Spacer(Modifier.height(4.dp))
 
-            // Token Editor Dialog Logic
+            // Token Editor
             if (showTokenEditor) {
                 val text = """
                     ***INNERTUBE COOKIE*** =$innerTubeCookie
@@ -244,7 +244,6 @@ fun AccountSettings(
 
             Spacer(Modifier.height(4.dp))
 
-            // Settings Switches
             if (isLoggedIn) {
                 SwitchPreference(
                     title = { Text(stringResource(R.string.more_content)) },
@@ -287,16 +286,12 @@ fun AccountSettings(
                     title = { Text(stringResource(R.string.integrations)) },
                     icon = { Icon(painterResource(R.drawable.integration), null) },
                     onClick = {
-                        // Navigation nicht schließen, damit User zurück kann
                         navController.navigate("settings/integrations")
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                    // Hintergrund wird bereits vom Parent Column gesetzt
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
             
-            // Platzhalter am Ende für besseres Scrolling
             Spacer(Modifier.height(32.dp))
         }
     }
