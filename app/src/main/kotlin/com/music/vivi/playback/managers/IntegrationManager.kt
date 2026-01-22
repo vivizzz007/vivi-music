@@ -151,13 +151,14 @@ class IntegrationManager @Inject constructor(
                 .collect { (enabled, powerSaver) ->
                     val shouldEnable = enabled && !powerSaver
                     if (shouldEnable && scrobbleManager == null) {
-                        val delayPercent = dataStore.get(ScrobbleDelayPercentKey, LastFM.DEFAULT_SCROBBLE_DELAY_PERCENT)
-                        val minSongDuration = dataStore.get(ScrobbleMinSongDurationKey, LastFM.DEFAULT_SCROBBLE_MIN_SONG_DURATION)
+                        // FIX: Explicitly cast default values to match the Key types (Float and Int)
+                        val delayPercent = dataStore.get(ScrobbleDelayPercentKey, LastFM.DEFAULT_SCROBBLE_DELAY_PERCENT.toFloat())
+                        val minSongDuration = dataStore.get(ScrobbleMinSongDurationKey, LastFM.DEFAULT_SCROBBLE_MIN_SONG_DURATION.toInt())
                         val delaySeconds = dataStore.get(ScrobbleDelaySecondsKey, LastFM.DEFAULT_SCROBBLE_DELAY_SECONDS)
                         scrobbleManager = ScrobbleManager(
                             scope!!,
-                            minSongDuration = minSongDuration.toInt(), // FIX: Cast to Int
-                            scrobbleDelayPercent = delayPercent.toFloat(), // FIX: Cast to Float
+                            minSongDuration = minSongDuration,
+                            scrobbleDelayPercent = delayPercent,
                             scrobbleDelaySeconds = delaySeconds
                         )
                         scrobbleManager?.useNowPlaying = dataStore.get(LastFMUseNowPlaying, false)
@@ -180,17 +181,18 @@ class IntegrationManager @Inject constructor(
          scope?.launch {
             dataStore.data
                 .map { prefs ->
+                    // FIX: Explicitly cast the constants to match preference key types
                     Triple(
-                        prefs[ScrobbleDelayPercentKey] ?: LastFM.DEFAULT_SCROBBLE_DELAY_PERCENT,
-                        prefs[ScrobbleMinSongDurationKey] ?: LastFM.DEFAULT_SCROBBLE_MIN_SONG_DURATION,
+                        prefs[ScrobbleDelayPercentKey] ?: LastFM.DEFAULT_SCROBBLE_DELAY_PERCENT.toFloat(),
+                        prefs[ScrobbleMinSongDurationKey] ?: LastFM.DEFAULT_SCROBBLE_MIN_SONG_DURATION.toInt(),
                         prefs[ScrobbleDelaySecondsKey] ?: LastFM.DEFAULT_SCROBBLE_DELAY_SECONDS
                     )
                 }
                 .distinctUntilChanged()
                 .collect { (delayPercent, minSongDuration, delaySeconds) ->
                     scrobbleManager?.let {
-                        it.scrobbleDelayPercent = delayPercent.toFloat() // FIX: Cast to Float
-                        it.minSongDuration = minSongDuration.toInt() // FIX: Cast to Int
+                        it.scrobbleDelayPercent = delayPercent
+                        it.minSongDuration = minSongDuration
                         it.scrobbleDelaySeconds = delaySeconds
                     }
                 }
@@ -200,9 +202,6 @@ class IntegrationManager @Inject constructor(
     override fun onMediaItemTransition(mediaItem: androidx.media3.common.MediaItem?, reason: Int) {
         lastPlaybackSpeed = -1.0f // force update song
         discordUpdateJob?.cancel()
-        
-        // FIX: Removed unnecessary .toMediaItem() call. 
-        // Using extension property .metadata directly on the ExoPlayer MediaItem.
         currentMediaMetadata.value = mediaItem?.metadata
     }
     
