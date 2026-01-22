@@ -1,5 +1,6 @@
 package com.music.vivi.ui.screens.settings
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -109,14 +110,19 @@ fun AccountSettings(
                 }
             }
         },
-        // WICHTIG: 'background' nutzen, da 'surfaceContainer' oft nicht existiert/schwarz ist
-        containerColor = MaterialTheme.colorScheme.background 
+        // WICHTIG: 'background' nutzen. Falls background immer noch schwarz ist, surface erzwingen.
+        // Wir nutzen hier explizit surface, da background oft schwarz ist und wir sicher sein wollen.
+        containerColor = MaterialTheme.colorScheme.surface 
     ) { paddingValues ->
         
+        // Debug Logging
+        Log.d("AccountSettings", "Composing AccountSettings screen")
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .background(MaterialTheme.colorScheme.surface) // Doppelter Boden: Hintergrund explizit setzen
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
