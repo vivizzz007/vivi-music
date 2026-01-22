@@ -45,7 +45,7 @@
 
     <!-- Search -->
     <string name="search">Ara</string>
-    <string name="search_yt_music">YouTube Music'te ara…</string>
+    <string name="search_yt_music">YouTube Music\te ara…</string>
     <string name="search_library">Kitaplıkta ara…</string>
     <string name="filter_library">Kitaplık</string>
     <string name="filter_liked">Beğenilenler</string>
