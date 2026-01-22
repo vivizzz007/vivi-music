@@ -250,7 +250,9 @@
     <string name="right">Derecha</string>
     <string name="player_slider_style">Estilo del control deslizante del reproductor</string>
     <string name="default_">Predeterminado</string>
-    <string name="squiggly">Ondulado</string>
+    <string name="wavy">Ondulado</string>
+    <string name="squiggly">Garabateado</string>
+    <string name="slim">Delgado</string>
     <string name="misc">Miscelánea</string>
     <string name="default_open_tab">Pestaña abierta por defecto</string>
     <string name="grid_cell_size">Tamaño de celda de cuadrícula</string>
@@ -350,5 +352,6 @@
     <string name="lyrics_text_size">Tamaño del texto de letras</string>
     <string name="lyrics_line_spacing">Espaciado de líneas de letras</string>
     <string name="lyrics_style">Estilo de letras</string>
+    <string name="login_required_premium">Se requiere YouTube Premium para calidad muy alta</string>
 </resources>
 

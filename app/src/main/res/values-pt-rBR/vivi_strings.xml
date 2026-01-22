@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="explore">Explorar</string>
+    <string name="charts">Paradas</string>
+    <string name="trending">Em alta</string>
+    <string name="new_release_albums">Lançamentos</string>
+    
+    <string name="back_button_desc">Voltar</string>
+    <string name="retry_button">Tentar novamente</string>
+    <string name="cancel">Cancelar</string>
+    <string name="close">Fechar</string>
+    <string name="done">Concluído</string>
+    
+    <string name="enable_squiggly_slider">Ativar controle deslizante garabateado</string>
+    <string name="enable_swipe_thumbnail">Deslize para trocar música</string>
+    
+    <string name="settings_title">Configurações</string>
+    <string name="settings_section_ui">Interface</string>
+    <string name="settings_section_privacy">Privacidade e Segurança</string>
+    <string name="settings_section_player">Reprodutor e Mídia</string>
+    <string name="settings_section_storage">Armazenamento e Dados</string>
+    <string name="settings_section_system">Sistema e Sobre</string>
+
+    <string name="appearance">Aparência</string>
+    <string name="player_background_style">Estilo de fundo do reprodutor</string>
+    <string name="modern_player_interface">Interface moderna do reprodutor</string>
+    
+    <string name="lyrics">Letras</string>
+    <string name="share_lyrics">Compartilhar letras</string>
+    <string name="edit_lyrics">Editar letras</string>
+
+    <string name="download_song">Baixar música</string>
+    <string name="download_album">Baixar álbum</string>
+    <string name="download_playlist">Baixar playlist</string>
+
+    <string name="spotify_login">Login do Spotify</string>
+    <string name="discord_integration">Integração com Discord</string>
+    <string name="connect_with_discord">Conectar com Discord</string>
+    
+    <string name="about_subtitle">Informações do app e dev</string>
+    <string name="developer">Desenvolvedor</string>
+    <string name="app_developer">Desenvolvedor do App</string>
+    
+    <string name="update_available">Atualização disponível</string>
+    <string name="check_for_updates">Verificar atualizações</string>
+
+    <string name="reset_app">Redefinir aplicativo</string>
+    <string name="send_feedback">Enviar feedback</string>
+    <string name="report_issue_title">Relatar problema</string>
+</resources>

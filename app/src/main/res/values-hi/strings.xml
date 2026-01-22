@@ -246,6 +246,9 @@
     <string name="player_slider_style">प्लेयर स्लाइडर शैली</string>
     <string name="default_">डिफ़ॉल्ट</string>
     <string name="wavy">लहराते</string>
+    <string name="squiggly">टेढ़ा-मेढ़ा</string>
+    <string name="slim">पतला</string>
+
     <string name="misc">विविध</string>
     <string name="default_open_tab">डिफ़ॉल्ट ओपन टैब</string>
     <string name="grid_cell_size">ग्रिड सेल आकार</string>
@@ -345,4 +348,5 @@
     <string name="lyrics_text_size">गीत टेक्स्ट का आकार</string>
     <string name="lyrics_line_spacing">गीत लाइन रिक्ति</string>
     <string name="lyrics_style">गीत शैली</string>
+    <string name="login_required_premium">बहुत उच्च गुणवत्ता के लिए YouTube Premium आवश्यक है</string>
 </resources>
