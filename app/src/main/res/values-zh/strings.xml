@@ -245,7 +245,9 @@
     <string name="right">右对齐</string>
     <string name="player_slider_style">播放器滑块样式</string>
     <string name="default_">默认</string>
+    <string name="wavy">波浪</string>
     <string name="squiggly">波浪线</string>
+    <string name="slim">细长</string>
     <string name="misc">杂项</string>
     <string name="default_open_tab">默认打开标签</string>
     <string name="grid_cell_size">网格单元大小</string>
@@ -345,4 +347,5 @@
     <string name="lyrics_text_size">歌词字号</string>
     <string name="lyrics_line_spacing">歌词行间距</string>
     <string name="lyrics_style">歌词样式</string>
+    <string name="login_required_premium">极高画质需要 YouTube Premium</string>
 </resources>
