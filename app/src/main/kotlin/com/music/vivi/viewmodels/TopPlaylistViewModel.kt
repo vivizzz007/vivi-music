@@ -11,6 +11,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
@@ -20,8 +23,7 @@ class TopPlaylistViewModel
 @Inject
 constructor(
     @ApplicationContext context: Context,
-    database: MusicDatabase,
-    database: MusicDatabase,
+    private val database: MusicDatabase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val _top = MutableStateFlow(savedStateHandle.get<String>("top"))
@@ -30,7 +32,6 @@ constructor(
     val topPeriod = MutableStateFlow(MyTopFilter.ALL_TIME)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val topSongs =
     val topSongs =
         combine(topPeriod, _top.filterNotNull()) { period, topVal ->
             Pair(period, topVal)
