@@ -1,6 +1,7 @@
 package com.music.vivi.ui.screens.settings
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.AnimatedPane
@@ -14,7 +15,7 @@ import com.music.vivi.ui.screens.settings.integrations.IntegrationScreen
 import com.music.vivi.ui.screens.settings.integrations.LastFMSettings
 import com.music.vivi.ui.screens.settings.RomanizationSettings
 
-@OptIn(ExperimentalMaterial3AdaptiveApi::class)
+@OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun AdaptiveSettingsScreen(
     navController: NavController,
