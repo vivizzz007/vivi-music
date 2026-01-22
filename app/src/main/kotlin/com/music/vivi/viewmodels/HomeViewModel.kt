@@ -276,7 +276,9 @@ class HomeViewModel @Inject constructor(
                                 accountName.value = info.name
                                 accountImageUrl.value = info.thumbnailUrl
                             }.onFailure {
-                                reportException(it)
+                                if (it.message != "Active account info not found in header") {
+                                    reportException(it)
+                                }
                             }
                         } else {
                             accountName.value = "Guest"
