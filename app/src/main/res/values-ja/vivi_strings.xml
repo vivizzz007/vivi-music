@@ -636,8 +636,8 @@
 
     <!-- Download Notifications -->
     <string name="update_failed">アップデート失敗</string>
-    <string name="failed_to_download_version">バージョン %1 のダウンロードに失敗しました</string>
-    <string name="failed_to_download_version_error">バージョン %1 のダウンロードに失敗しました\n%2</string>
+    <string name="failed_to_download_version">バージョン %1$s のダウンロードに失敗しました</string>
+    <string name="failed_to_download_version_error">バージョン %1$s のダウンロードに失敗しました\n%2$s</string>
     <string name="server_error">サーバーエラー: %1</string>
 
     <!-- Media Info -->

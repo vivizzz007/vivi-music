@@ -11,12 +11,23 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
 import com.music.vivi.ui.screens.AlbumScreen
 import com.music.vivi.ui.screens.artist.ArtistScreen
+import com.music.vivi.ui.screens.playlist.AutoPlaylistScreen
+import com.music.vivi.ui.screens.playlist.CachePlaylistScreen
+import com.music.vivi.ui.screens.playlist.LocalPlaylistScreen
+import com.music.vivi.ui.screens.playlist.OnlinePlaylistScreen
+import com.music.vivi.ui.screens.playlist.TopPlaylistScreen
 import kotlinx.parcelize.Parcelize
 
+@Parcelize
 @Parcelize
 sealed class LibraryRoute : Parcelable {
     data class Artist(val id: String) : LibraryRoute()
     data class Album(val id: String) : LibraryRoute()
+    data class LocalPlaylist(val id: String) : LibraryRoute()
+    data class OnlinePlaylist(val id: String) : LibraryRoute()
+    data class AutoPlaylist(val playlistParam: String) : LibraryRoute()
+    data class CachePlaylist(val param: String) : LibraryRoute()
+    data class TopPlaylist(val topParam: String) : LibraryRoute()
 }
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalMaterial3Api::class)
@@ -41,6 +52,26 @@ fun AdaptiveLibraryScreen(
                             val id = route.removePrefix("album/")
                             navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, LibraryRoute.Album(id))
                         }
+                        route.startsWith("local_playlist/") -> {
+                            val id = route.removePrefix("local_playlist/")
+                            navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, LibraryRoute.LocalPlaylist(id))
+                        }
+                        route.startsWith("online_playlist/") -> {
+                            val id = route.removePrefix("online_playlist/")
+                            navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, LibraryRoute.OnlinePlaylist(id))
+                        }
+                        route.startsWith("auto_playlist/") -> {
+                            val param = route.removePrefix("auto_playlist/")
+                            navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, LibraryRoute.AutoPlaylist(param))
+                        }
+                        route.startsWith("cache_playlist/") -> {
+                            val param = route.removePrefix("cache_playlist/")
+                            navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, LibraryRoute.CachePlaylist(param))
+                        }
+                        route.startsWith("top_playlist/") -> {
+                            val param = route.removePrefix("top_playlist/")
+                            navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, LibraryRoute.TopPlaylist(param))
+                        }
                         else -> {
                             navController.navigate(route)
                         }
@@ -58,14 +89,56 @@ fun AdaptiveLibraryScreen(
                     ArtistScreen(
                         navController = navController,
                         scrollBehavior = scrollBehavior,
-                        artistId = content.id
+                        artistId = content.id,
+                        onBack = { navigator.navigateBack() }
                     )
                 }
                 is LibraryRoute.Album -> {
                     AlbumScreen(
                         navController = navController,
                         scrollBehavior = scrollBehavior,
-                        albumId = content.id
+                        albumId = content.id,
+                        onBack = { navigator.navigateBack() }
+                    )
+                }
+                is LibraryRoute.LocalPlaylist -> {
+                    LocalPlaylistScreen(
+                        navController = navController,
+                        scrollBehavior = scrollBehavior,
+                        playlistId = content.id,
+                        onBack = { navigator.navigateBack() }
+                    )
+                }
+                is LibraryRoute.OnlinePlaylist -> {
+                    OnlinePlaylistScreen(
+                        navController = navController,
+                        scrollBehavior = scrollBehavior,
+                        playlistId = content.id,
+                        onBack = { navigator.navigateBack() }
+                    )
+                }
+                is LibraryRoute.AutoPlaylist -> {
+                    AutoPlaylistScreen(
+                        navController = navController,
+                        scrollBehavior = scrollBehavior,
+                        playlistId = content.playlistParam,
+                        onBack = { navigator.navigateBack() }
+                    )
+                }
+                is LibraryRoute.CachePlaylist -> {
+                    CachePlaylistScreen(
+                        navController = navController,
+                        scrollBehavior = scrollBehavior,
+                        onBack = { navigator.navigateBack() }
+                        // CachePlaylistScreen doesn't take params yet, but we handle the route
+                    )
+                }
+                is LibraryRoute.TopPlaylist -> {
+                    TopPlaylistScreen(
+                        navController = navController,
+                        scrollBehavior = scrollBehavior,
+                        topParam = content.topParam,
+                        onBack = { navigator.navigateBack() }
                     )
                 }
                 null -> {

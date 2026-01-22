@@ -33,8 +33,8 @@ class OnlinePlaylistViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     database: MusicDatabase
 ) : ViewModel() {
-    private val playlistId = savedStateHandle.get<String>("playlistId")!!
-
+    private val _playlistId = MutableStateFlow(savedStateHandle.get<String>("playlistId"))
+    
     val playlist = MutableStateFlow<PlaylistItem?>(null)
     val playlistSongs = MutableStateFlow<List<SongItem>>(emptyList())
     val relatedItems = MutableStateFlow<List<YTItem>>(emptyList())
@@ -48,8 +48,10 @@ class OnlinePlaylistViewModel @Inject constructor(
     private val _isLoadingMore = MutableStateFlow(false)
     val isLoadingMore = _isLoadingMore.asStateFlow()
 
-    val dbPlaylist = database.playlistByBrowseId(playlistId)
-        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val dbPlaylist = _playlistId.filterNotNull().flatMapLatest { id ->
+        database.playlistByBrowseId(id)
+    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     var continuation: String? = null
         private set
@@ -57,17 +59,23 @@ class OnlinePlaylistViewModel @Inject constructor(
     private var proactiveLoadJob: Job? = null
 
     init {
-        fetchInitialPlaylistData()
+        viewModelScope.launch {
+            _playlistId.filterNotNull().collect {
+                fetchInitialPlaylistData()
+            }
+        }
     }
 
     private fun fetchInitialPlaylistData() {
+        val currentId = _playlistId.value ?: return
+
         viewModelScope.launch(Dispatchers.IO) {
             _isLoading.value = true
             _error.value = null
             continuation = null
             proactiveLoadJob?.cancel() // Cancel any ongoing proactive load
 
-            YouTube.playlist(playlistId)
+            YouTube.playlist(currentId)
                 .onSuccess { playlistPage ->
                     playlist.value = playlistPage.playlist
                     playlistSongs.value = applySongFilters(playlistPage.songs)
@@ -157,5 +165,11 @@ class OnlinePlaylistViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         proactiveLoadJob?.cancel()
+    }
+
+    fun setPlaylistId(id: String) {
+        if (_playlistId.value != id) {
+            _playlistId.value = id
+        }
     }
 }

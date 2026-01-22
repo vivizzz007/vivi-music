@@ -21,16 +21,26 @@ class TopPlaylistViewModel
 constructor(
     @ApplicationContext context: Context,
     database: MusicDatabase,
+    database: MusicDatabase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    val top = savedStateHandle.get<String>("top")!!
+    private val _top = MutableStateFlow(savedStateHandle.get<String>("top"))
+    val top = _top.asStateFlow()
 
     val topPeriod = MutableStateFlow(MyTopFilter.ALL_TIME)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val topSongs =
-        topPeriod
-            .flatMapLatest { period ->
-                database.mostPlayedSongs(period.toTimeMillis(), top.toInt())
-            }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    val topSongs =
+        combine(topPeriod, _top.filterNotNull()) { period, topVal ->
+            Pair(period, topVal)
+        }.flatMapLatest { (period, topVal) ->
+            database.mostPlayedSongs(period.toTimeMillis(), topVal.toInt())
+        }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    fun setTop(topParam: String) {
+        if (_top.value != topParam) {
+            _top.value = topParam
+        }
+    }
 }

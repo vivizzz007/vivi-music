@@ -128,7 +128,8 @@ fun AlbumScreen(
     scrollBehavior: TopAppBarScrollBehavior,
     albumId: String? = null,
     viewModel: AlbumViewModel = hiltViewModel(),
-    onDismiss: () -> Unit = {}
+    onDismiss: () -> Unit = {},
+    onBack: () -> Unit = { navController.navigateUp() },
 ) {
     if (albumId != null) {
         LaunchedEffect(albumId) {
@@ -931,7 +932,7 @@ fun AlbumScreen(
                         if (selection) {
                             selection = false
                         } else {
-                            navController.navigateUp()
+                            onBack()
                         }
                     },
                     onLongClick = {
