@@ -53,6 +53,7 @@ import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -889,7 +890,7 @@ class MainActivity : ComponentActivity() {
 
                                                 IconButton(onClick = { navController.navigate("settings") }) {
                                                     if (accountImageUrl != null) {
-                                                        coil.compose.AsyncImage(
+                                                        coil3.compose.AsyncImage( // Updated to coil3.compose.AsyncImage
                                                             model = accountImageUrl,
                                                             contentDescription = stringResource(R.string.account),
                                                             modifier = Modifier
