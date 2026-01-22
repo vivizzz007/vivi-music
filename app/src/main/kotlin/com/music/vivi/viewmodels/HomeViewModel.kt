@@ -75,6 +75,7 @@ class HomeViewModel @Inject constructor(
 
     val accountName = MutableStateFlow("Guest")
     val accountImageUrl = MutableStateFlow<String?>(null)
+    val isLoggedIn = MutableStateFlow(false)
 
     // Track last processed cookie to avoid unnecessary updates
     private var lastProcessedCookie: String? = null
@@ -275,15 +276,21 @@ class HomeViewModel @Inject constructor(
                             YouTube.accountInfo().onSuccess { info ->
                                 accountName.value = info.name
                                 accountImageUrl.value = info.thumbnailUrl
+                                isLoggedIn.value = true
                             }.onFailure {
                                 if (it.message != "Active account info not found in header") {
                                     reportException(it)
                                 }
+                                // Keep generic logged in state if we have a valid cookie, even if info fetch fails?
+                                // Better to assume logged in if we have a cookie, but verified by info fetch is better.
+                                // For now, let's set true here if cookie was valid enough to try.
+                                isLoggedIn.value = true 
                             }
                         } else {
                             accountName.value = "Guest"
                             accountImageUrl.value = null
                             accountPlaylists.value = null
+                            isLoggedIn.value = false
                         }
                     } finally {
                         isProcessingAccountData = false

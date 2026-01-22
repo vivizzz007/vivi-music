@@ -86,6 +86,7 @@ class IntegrationManager @Inject constructor(
 
         setupDiscord(player)
         setupScrobble(player)
+        setupSongUpdates(player)
         
         // Initial metadata
         currentMediaMetadata.value = player.currentMetadata
@@ -130,6 +131,21 @@ class IntegrationManager @Inject constructor(
                 }
         }
     // ...
+    }
+
+    private fun setupSongUpdates(player: ExoPlayer) {
+        scope?.launch {
+            currentSongFlow?.collectLatest { song ->
+                if (song != null && player.isPlaying) {
+                    discordRpc?.updateSong(
+                        song,
+                        player.currentPosition,
+                        player.playbackParameters.speed,
+                        dataStore.get(DiscordUseDetailsKey, false)
+                    )
+                }
+            }
+        }
     }
 
     private fun setupScrobble(player: ExoPlayer) {
