@@ -151,6 +151,18 @@ import com.music.vivi.update.networkmoniter.NetworkConnectivityObserver
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class,
     ExperimentalMaterial3ExpressiveApi::class
 )
+/**
+ * The main Dashboard/Home screen of the app.
+ *
+ * Displays:
+ * - **Quick Picks**: Recently played or recommended songs.
+ * - **Listen History**: Recently played songs/videos.
+ * - **Suggested Albums/Artists**: Recommendations based on listening habits.
+ *
+ * **Performance Note**:
+ * Uses strictly typed [lazy] lists (LazyColumn/LazyRow) with [contentType] and [key] parameters
+ * to ensure efficient recycling and minimizing recompositions during scrolling.
+ */
 @Composable
 fun HomeScreen(
     navController: NavController,

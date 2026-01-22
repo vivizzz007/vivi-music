@@ -51,6 +51,18 @@ import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.plus
 import javax.inject.Inject
 
+/**
+ * Handles MediaSession events and MediaBrowserService requests.
+ *
+ * This class is the bridge between the app's data and external media controls (Android Auto,
+ * Bluetooth, System Media Controls).
+ *
+ * Capabilities:
+ * - **Playback Control**: Handles commands like Play/Pause/Skip/Shuffle/Repeat.
+ * - **Browsing**: Implements [onGetLibraryRoot] and [onGetChildren] to expose a browsable
+ *   hierarchy (Songs, Artists, Albums, Playlists) to clients like Android Auto.
+ * - **Searching**: Handles voice search commands via [onSearch] and [onGetSearchResult].
+ */
 class MediaLibrarySessionCallback
 @Inject
 constructor(
@@ -129,6 +141,13 @@ constructor(
             ),
         )
 
+    /**
+     * Called when a client (e.g. Android Auto) requests the children of a specific media ID.
+     *
+     * - **ROOT**: Returns the main categories (Songs, Artists, Albums, Playlists).
+     * - **Category ID**: Returns the list of items within that category (e.g. list of all Albums).
+     * - **Item ID**: Returns the songs within that item (e.g. songs in a specific Album).
+     */
     override fun onGetChildren(
         session: MediaLibrarySession,
         browser: MediaSession.ControllerInfo,
@@ -330,6 +349,15 @@ constructor(
         return Futures.immediateFuture(LibraryResult.ofVoid())
     }
 
+    /**
+     * Handles search requests (e.g. "Play Hey Jude on Vivi Music").
+     *
+     * It searches:
+     * 1. **Local Database**: Songs, Artists, Albums, Playlists.
+     * 2. **Online (YouTube)**: Fetches and caches results if not found locally.
+     *
+     * Returns a combined list of [MediaItem]s matching the query.
+     */
     override fun onGetSearchResult(
         session: MediaLibrarySession,
         browser: MediaSession.ControllerInfo,

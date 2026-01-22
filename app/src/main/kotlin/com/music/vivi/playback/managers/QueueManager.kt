@@ -26,6 +26,15 @@ import kotlinx.coroutines.withContext
 import java.util.Collections
 import javax.inject.Inject
 
+/**
+ * Manages the current playback queue and initiates playback.
+ *
+ * This class is responsible for:
+ * - holding the [currentQueue] state.
+ * - preparing the [ExoPlayer] with media items from the queue.
+ * - Resolving the initial items (e.g. fetching song list from a playlist ID) on a background thread
+ *   before passing them to the player to avoid UI blocking.
+ */
 class QueueManager @Inject constructor(
     @ApplicationContext private val context: Context,
     private val dataStore: DataStore<Preferences>,
@@ -51,6 +60,12 @@ class QueueManager @Inject constructor(
         player = exoPlayer
     }
 
+    /**
+     * Loads the given [queue] and starts playback.
+     *
+     * @param queue The queue to play (can be a Playlist, Album, or Single Song queue).
+     * @param playWhenReady Whether to start playing immediately after preparation.
+     */
     fun playQueue(
         queue: Queue,
         playWhenReady: Boolean = true,

@@ -178,6 +178,19 @@ import com.music.vivi.update.widget.ViviWidgetManager
 import com.music.vivi.update.widget.MusicPlayerWidgetReceiver
 
 
+/**
+ * The core Service responsible for handling media playback, notification management,
+ * and background audio focus.
+ *
+ * This service extends [MediaLibraryService] to provide a MediaSession to the system,
+ * allowing external controls (Bluetooth, Android Auto, Lockscreen) to interact with the app.
+ *
+ * Key responsibilities:
+ * - Managing the [ExoPlayer] instance.
+ * - Handling Audio Focus (pausing when other apps play audio).
+ * - Reacting to network changes (pausing/retrying).
+ * - Persisting playback state and queue to disk.
+ */
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @AndroidEntryPoint
 class MusicService :
@@ -682,6 +695,13 @@ class MusicService :
         }
     }
 
+    /**
+     * Attempts to start playback safely.
+     *
+     * In Android 12+, starting a foreground service from the background is restricted.
+     * Use this method to catch potential [android.app.ForegroundServiceStartNotAllowedException]
+     * or other playback initialization errors.
+     */
     private fun safePlay() {
         try {
             player.play()
