@@ -29,8 +29,6 @@ android {
         buildConfigField("String", "LASTFM_SECRET", "\"${System.getenv("LASTFM_SECRET") ?: ""}\"")
     }
 
-
-
     flavorDimensions += listOf("abi", "distribution")
 
     productFlavors {
@@ -112,14 +110,18 @@ android {
         targetCompatibility = JavaVersion.VERSION_21
     }
 
+    // KORRIGIERTER BLOCK
     kotlin {
         jvmToolchain(21)
         compilerOptions {
-            freeCompilerArgs.add("-Xannotation-default-target=param-property"
-            "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-            "-opt-in=kotlinx.coroutines.FlowPreview")
+            freeCompilerArgs.addAll(
+                listOf(
+                    "-Xannotation-default-target=param-property",
+                    "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
+                    "-opt-in=kotlinx.coroutines.FlowPreview"
+                )
+            )
             jvmTarget.set(JvmTarget.JVM_21)
-
         }
     }
 
