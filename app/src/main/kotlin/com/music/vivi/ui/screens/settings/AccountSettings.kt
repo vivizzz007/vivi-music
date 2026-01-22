@@ -23,7 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.Scaffold // WICHTIG: Scaffold importieren
+import androidx.compose.material3.Scaffold // IMPORTANT: Import Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -72,7 +72,7 @@ fun AccountSettings(
 ) {
     val context = LocalContext.current
 
-    // **ÄNDERUNG: ViewModels zuerst initialisieren, damit sie weiter unten verwendet werden können**
+    // **CHANGE: Initialize ViewModels first so they can be used below**
     val homeViewModel: HomeViewModel = hiltViewModel()
     val accountSettingsViewModel: AccountSettingsViewModel = hiltViewModel()
 
@@ -83,7 +83,7 @@ fun AccountSettings(
     val (visitorData, onVisitorDataChange) = rememberPreference(VisitorDataKey, "")
     val (dataSyncId, onDataSyncIdChange) = rememberPreference(DataSyncIdKey, "")
 
-    // Jetzt ist homeViewModel bekannt und kann hier verwendet werden
+    // Now homeViewModel is known and can be used here
     val isLoggedIn by homeViewModel.isLoggedIn.collectAsState()
     val (useLoginForBrowse, onUseLoginForBrowseChange) = rememberPreference(UseLoginForBrowse, true)
     val (ytmSync, onYtmSyncChange) = rememberPreference(YtmSyncKey, true)
@@ -94,7 +94,7 @@ fun AccountSettings(
     var showToken by remember { mutableStateOf(false) }
     var showTokenEditor by remember { mutableStateOf(false) }
 
-    // LÖSUNG: Wir nutzen TopAppBar wie in SettingsScreen für konsistentes Layout
+    // SOLUTION: We use TopAppBar like in SettingsScreen for consistent layout
     Scaffold(
         topBar = {
             TopAppBar(
@@ -138,13 +138,13 @@ fun AccountSettings(
                 }
             }
 
-            // Account Karte
+            // Account Card
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = accountSectionModifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant) // Sicherer Kontrast
+                    .background(MaterialTheme.colorScheme.surfaceVariant) // Safe contrast
                     .padding(horizontal = 18.dp, vertical = 12.dp)
             ) {
                 if (isLoggedIn && accountImageUrl != null) {

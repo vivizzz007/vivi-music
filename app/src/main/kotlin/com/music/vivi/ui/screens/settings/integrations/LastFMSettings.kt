@@ -116,10 +116,13 @@ fun LastFMSettings(
     var lastfmUsername by rememberPreference(LastFMUsernameKey, "")
     var lastfmSession by rememberPreference(LastFMSessionKey, "")
 
-    val isLoggedIn =
-        remember(lastfmSession) {
-            lastfmSession != ""
-        }
+    val integrationsViewModel: com.music.vivi.viewmodels.IntegrationsViewModel = androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel()
+    val lastFmState by integrationsViewModel.lastFmState.collectAsState()
+
+    var lastfmUsername by rememberPreference(LastFMUsernameKey, "")
+    var lastfmSession by rememberPreference(LastFMSessionKey, "")
+
+    val isLoggedIn = lastFmState.isLoggedIn
 
     val (useNowPlaying, onUseNowPlayingChange) = rememberPreference(
         key = LastFMUseNowPlaying,

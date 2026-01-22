@@ -138,22 +138,20 @@ fun DiscordSettings(
     val coroutineScope = rememberCoroutineScope()
 
     var discordToken by rememberPreference(DiscordTokenKey, "")
-    var discordUsername by rememberPreference(DiscordUsernameKey, "")
-    var discordName by rememberPreference(DiscordNameKey, "")
+    val integrationsViewModel: com.music.vivi.viewmodels.IntegrationsViewModel = androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel()
+    val discordState by integrationsViewModel.discordState.collectAsState()
+
+    var discordToken by rememberPreference(DiscordTokenKey, "")
+    // Delegate actual display values to VM state for reliability
+    val discordUsername = discordState.username
+    val discordName = discordState.name
+    val isLoggedIn = discordState.isLoggedIn
+    
     var infoDismissed by rememberPreference(DiscordInfoDismissedKey, false)
 
-    LaunchedEffect(discordToken) {
-        val token = discordToken
-        if (token.isEmpty()) {
-            return@LaunchedEffect
-        }
-        coroutineScope.launch(Dispatchers.IO) {
-            KizzyRPC.getUserInfo(token).onSuccess {
-                discordUsername = it.username
-                discordName = it.name
-            }
-        }
-    }
+    // Local manual update for token editing still writes to DataStore via rememberPreference
+    // VM observes DataStore and updates state.
+
 
     LaunchedEffect(playbackState) {
         if (playbackState == STATE_READY) {
@@ -174,10 +172,7 @@ fun DiscordSettings(
         defaultValue = false
     )
 
-    val isLoggedIn =
-        remember(discordToken) {
-            discordToken != ""
-        }
+
 
     var showTokenDialog by rememberSaveable { mutableStateOf(false) }
 
