@@ -127,7 +127,7 @@ fun SettingsListContent(
                     },
                     title = accountTitle,
                     subtitle = accountSubtitle,
-                    // FIX: Route angepasst, damit sie mit NavigationBuilder übereinstimmt
+                    // FIX: Route adapted to match NavigationBuilder
                     onClick = { onNavigate("settings/account_settings") }, 
                     showArrow = true,
                     iconBackgroundColor = iconBgColor,

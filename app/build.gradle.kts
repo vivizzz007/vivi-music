@@ -110,7 +110,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_21
     }
 
-    // KORRIGIERTER BLOCK
+    // KORRIGIERTER BLOCK -> // CORRECTED BLOCK
+    // implementation(libs.coil.compose) wurde entfernt -> // implementation(libs.coil.compose) was removed
     kotlin {
         jvmToolchain(21)
         compilerOptions {

@@ -12,7 +12,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-// NEU: Import für BuildConfig und AccountSettings
+// NEW: Import for BuildConfig and AccountSettings
 import com.music.vivi.BuildConfig
 import com.music.vivi.support.SupportScreen
 import com.music.vivi.support.ViviIssueScreen
@@ -29,7 +29,7 @@ import com.music.vivi.ui.screens.playlist.TopPlaylistScreen
 import com.music.vivi.ui.screens.playlist.CachePlaylistScreen
 import com.music.vivi.ui.screens.search.OnlineSearchResult
 import com.music.vivi.ui.screens.settings.AboutScreen
-// NEU: Import
+// NEW: Import
 import com.music.vivi.ui.screens.settings.AccountSettings
 import com.music.vivi.ui.screens.settings.AppearanceSettings
 import com.music.vivi.ui.screens.settings.AdaptiveSettingsScreen
@@ -307,7 +307,7 @@ fun NavGraphBuilder.navigationBuilder(
         DiscordLoginScreen(navController)
     }
     
-    // NEU HINZUFÜGEN: Account Settings Route
+    // ADD NEW: Account Settings Route
     composable("settings/account_settings") {
         AccountSettings(
             navController = navController,
