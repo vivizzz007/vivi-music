@@ -83,7 +83,7 @@ class App : Application(), SingletonImageLoader.Factory {
         }
 
         // Initialize LastFM with API keys
-        LastFM.initialize()
+        LastFM.initialize(BuildConfig.LASTFM_API_KEY, BuildConfig.LASTFM_SECRET)
 
         // Initialize crash log handler app crash
         CrashLogHandler.initialize(this)
