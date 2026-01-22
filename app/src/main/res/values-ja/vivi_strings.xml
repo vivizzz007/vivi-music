@@ -101,7 +101,6 @@
     <string name="swipe_song_to_add">曲を左にスワイプしてキューに追加、右にスワイプして次に再生</string>
     <string name="lyrics_click_change">クリックで歌詞を変更</string>
     <string name="lyrics_auto_scroll">歌詞の自動スクロール</string>
-    <string name="slim">スリム</string>
     <string name="slim_navbar">スリムな下部ナビゲーションバー</string>
     <string name="auto_playlists">自動プレイリスト</string>
     <string name="show_liked_playlist">\"高く評価\" プレイリストを表示</string>

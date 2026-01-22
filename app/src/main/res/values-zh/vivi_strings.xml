@@ -101,7 +101,6 @@
     <string name="swipe_song_to_add">左滑歌曲添加到队列，右滑下一首播放</string>
     <string name="lyrics_click_change">点击更改歌词</string>
     <string name="lyrics_auto_scroll">歌词自动滚动</string>
-    <string name="slim">轻量</string>
     <string name="slim_navbar">轻量级底部导航栏</string>
     <string name="auto_playlists">自动歌单</string>
     <string name="show_liked_playlist">显示“喜欢的歌曲”歌单</string>
