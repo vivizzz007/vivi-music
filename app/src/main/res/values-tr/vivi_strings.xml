@@ -85,6 +85,9 @@
     <string name="seek_seconds_addup_description">Etkinleştirildiğinde, her zaman atlayışında 5 ekstra saniye katlanır</string>
 
     <string name="similar_content">Benzer İçerik</string>
+    <string name="continue_playing">Oynatmaya Devam Et</string>
+    <string name="upcoming_recommendations">Yaklaşan Öneriler</string>
+    <string name="next_in_queue">Kuyrukta Sonraki</string>
 
     <string name="login_settings">Giriş ayarları</string>
     <string name="general_settings">Genel ayarlar</string>
@@ -271,6 +274,9 @@
     <string name="scrobble_delay_minutes">Scrobble gecikme dakikası</string>
     <string name="profile_image">Profil resmi</string>
     <string name="back">Geri</string>
+    <string name="repeat">Tekrarla</string>
+    <string name="lock_queue">Kuyruğu Kilitle</string>
+    <string name="unlock_queue">Kuyruk Kilidini Aç</string>
 
     <string name="download_playlist">Oynatma listesini indir</string>
     <string name="remove_download_playlist">Oynatma listesini indir</string>
@@ -652,6 +658,8 @@
     <string name="dynamic_color_theming">Dinamik renk teması</string>
     <string name="accent_color">Vurgu Rengi</string>
     <string name="select_static_theme_color">Statik bir tema rengi seçin</string>
+    <string name="high_refresh_rate">Yüksek Yenileme Hızı</string>
+    <string name="high_refresh_rate_desc">Daha akıcı animasyonlar için 120Hz/Peak yenileme hızını etkinleştir</string>
 
     <!-- Song Edit -->
     <!-- song_title, artist_name, edit_song are in strings.xml -->
@@ -694,6 +702,14 @@
     <string name="remove_silent_parts">Sessiz kısımları atla</string>
     <string name="normalize_audio_levels">Ses seviyelerini normalleştir</string>
     <string name="stop_playback_when_closed">Uygulama kapandığında oynatmayı durdur</string>
+    <string name="pause_on_zero_volume">Sıfır ses seviyesinde duraklat/devam ettir</string>
+    <string name="pause_on_zero_volume_description">Ses seviyesi sıfıra indiğinde oynatmayı otomatik olarak duraklat ve ses artırıldığında devam ettir</string>
+    <string name="smart_shuffle">Akıllı Karıştırma</string>
+    <string name="smart_shuffle_desc">Benzer şarkıların veya aynı sanatçıların arka arkaya çalınmasını önle</string>
+    <string name="smart_suggestions">Sonsuz Kuyruk</string>
+    <string name="smart_suggestions_desc">Kuyruğunuz sona erdiğinde özel önerilerle müziğin sonsuza kadar çalmasını sağlayın</string>
+    <string name="smart_pause">Akıllı Duraklatma</string>
+    <string name="smart_pause_desc">Kulaklık bağlantısı kesildiğinde otomatik duraklat</string>
 
     <!-- Appearance Settings -->
     <string name="dynamic_color_theming_subtitle">Dinamik renk teması</string>
@@ -710,6 +726,8 @@
     <string name="highlight_words_discretely">Söylenen kelimeleri vurgula</string>
     <string name="letter_by_letter_animation">Harf Harf Animasyon</string>
     <string name="animate_lyrics_letter_by_letter">Kelime senkronizasyonu olmadığında harf harf oynat</string>
+    <string name="apple_music_lyrics_blur">Apple Müzik Şarkı Sözü Bulanıklığı</string>
+    <string name="apple_music_lyrics_blur_desc">Apple Müzik tarzı şarkı sözleri için yumuşak bulanık arka planı etkinleştir</string>
     <string name="select_default_tab">Varsayılan olarak açılacak sekmeyi seç</string>
     <string name="swipe_add_songs_queue">Şarkıları sıraya eklemek için kaydır</string>
     <string name="compact_navigation_bar">Kompakt gezinme çubuğu</string>
@@ -720,6 +738,9 @@
     <string name="display_top_songs_playlist">En çok dinlenenler listesini göster</string>
     <string name="display_cached_playlist">Önbellek listesini göster</string>
     <string name="display_uploaded_playlist">Yüklenenler listesini göster</string>
+    <string name="apple_music">Apple Müzik</string>
+    <string name="show_now_playing">Şimdi Çalıyor'u Göster</string>
+    <string name="enable_now_playing_text_on_player_background">Apple Müzik'in oynatıcı arka planında şimdi çalıyor metnini etkinleştir</string>
 
     <!-- Content Settings -->
     <string name="filter_explicit_content">Yetişkin içerikleri filtrele</string>
@@ -768,6 +789,7 @@
     <string name="cache_songs">Şarkıları Önbelleğe Al</string>
     <string name="auto_playlist">Otomatik Oynatma Listesi</string>
     <string name="selection">Seçim</string>
+    <string name="suggestions">Sonsuz Kuyruk</string>
 
     <!-- Content Descriptions -->
     <string name="shuffle_content_desc">Karıştır</string>
@@ -795,6 +817,17 @@
     <string name="refresh_icon_content_desc">Yenile simgesi</string>
     <string name="songs_icon_content_desc">Şarkılar simgesi</string>
     <string name="start_radio_icon_content_desc">Radyo başlat simgesi</string>
+    <string name="whats_new_title">Neler Yeni</string>
+    <string name="no_news_available">Haber yok.</string>
+    <string name="reported_bugs">Bildirilen Hatalar</string>
+    <string name="fixed_bugs">Düzeltilen Hatalar</string>
+    <string name="type_bug_report">Hata Raporu</string>
+    <string name="type_fix">Düzeltme</string>
+    <string name="type_feature">Özellik</string>
+    <string name="type_news">Haberler</string>
+    <string name="home_screen">Ana ekran</string>
+    <string name="show_news_icon">Haber Simgesini Göster</string>
+    <string name="show_news_icon_desc">Üst çubukta 'Neler Yeni' simgesini göster</string>
     <string name="edit_icon_content_desc">Düzenle simgesi</string>
     <string name="favorite_icon_content_desc">Favori simgesi</string>
     <string name="delete_icon_content_desc">Sil simgesi</string>
@@ -1061,4 +1094,52 @@
     <string name="view_artist_details">Sanatçı detaylarını görüntüle</string>
     <string name="show_album_label">Albümünü göster</string>
     <string name="show_artist_label">Sanatçısını göster</string>
+    <string name="playlist_description_start">Bu özenle oluşturulmuş oynatma listesi şunları içerir:</string>
+    <string name="playlist_duration_description">Toplamda şu kadarlık bir deneyim:</string>
+    <string name="hour">saat</string>
+    <string name="hours">saat</string>
+    <string name="minute">dakika</string>
+    <string name="minutes">dakika</string>
+    <string name="and">ve</string>
+    <string name="of_music">müzik</string>
+    <string name="playlist_enjoy_message">Dinleme deneyiminizin tadını çıkarın</string>
+    <string name="live_media">Live Media</string>
+    <string name="live_media_desc">Live Media, Vivi Music oynatımı için dinamik bir bildirim ve durum çubuğu hapı sağlar.</string>
+    <string name="notification_body">Bildirim İçeriği</string>
+    <string name="show_album_art">Albüm Kapağını Göster</string>
+    <string name="show_album_art_desc">Bildirimde kapak resmini göster</string>
+    <string name="show_artist_name">Sanatçı Adını Göster</string>
+    <string name="show_artist_name_desc">Sanatçı adını meta verilere dahil et</string>
+    <string name="show_album_name">Albüm Adını Göster</string>
+    <string name="show_album_name_desc">Albüm adını detaylarda göster</string>
+    <string name="show_action_buttons">İşlem Düğmelerini Göster</string>
+    <string name="show_action_buttons_desc">Kontroller: Oynat/Duraklat, Sonraki, Önceki</string>
+    <string name="show_progress">İlerlemeyi Göster</string>
+    <string name="show_progress_desc">Şarkı ilerleme çubuğunu göster</string>
+    <string name="show_timestamps">Zaman Damgalarını Göster</string>
+    <string name="show_timestamps_desc">Geçen ve toplam süre</string>
+    <string name="hide_on_qs">Hızlı Ayarlarda Gizle</string>
+    <string name="hide_on_qs_desc">Bildirim paneli açık olduğunda gizle</string>
+    <string name="status_bar_pill">Durum Çubuğu Hapı</string>
+    <string name="pill_song_title">Şarkı Başlığı</string>
+    <string name="pill_song_title_desc">Hap içinde parça başlığını göster</string>
+    <string name="pill_elapsed_time">Geçen Süre</string>
+    <string name="pill_elapsed_time_desc">Hap içinde oynatma konumunu göster</string>
+    <string name="pill_remaining_time">Kalan Süre</string>
+    <string name="pill_remaining_time_desc">Şarkıda kalan süreyi göster</string>
+    <string name="grant_permission">İzin Ver</string>
+    <string name="notification_listener_permission_needed">Bildirim Dinleyici İzni Gerekli</string>
+    <string name="notification_listener_permission_desc">Bu uygulama, oynatımı algılamak ve Live Media bildirimini yönetmek için Bildirim Erişimi gerektirir.</string>
+    <string name="accessibility_permission_needed">Erişilebilirlik İzni Gerekli</string>
+    <string name="accessibility_permission_desc">Bu uygulama, Hızlı Ayarları algılamak için Erişilebilirlik Erişimine ihtiyaç duyar.</string>
+    <string name="live_media_compatibility_title">Uyumluluk Uyarısı</string>
+    <string name="live_media_compatibility_message">Live Media, Android 16 ve üzeri için tasarlanmıştır. Android'in mevcut sürümünde standart bir bildirim olarak çalışacaktır ve tam Dinamik Medya deneyimini (Durum Çubuğu Hapı gibi) sağlamayabilir.</string>
+    <string name="permissions">İzinler</string>
+    <string name="granted">İzin Verildi</string>
+    <string name="confirm">Onayla</string>
+    <string name="pill_content_desc">Durum çubuğu hapı için içeriği yapılandır</string>
+    <string name="play_action">Oynat</string>
+    <string name="pause_action">Duraklat</string>
+    <string name="next_action">Sonraki</string>
+    <string name="previous_action">Önceki</string>
 </resources>
