@@ -129,7 +129,6 @@ fun AdaptiveLibraryScreen(
                         navController = navController,
                         scrollBehavior = scrollBehavior,
                         onBack = { navigator.navigateBack() }
-                        // CachePlaylistScreen doesn't take params yet, but we handle the route
                     )
                 }
                 is LibraryRoute.TopPlaylist -> {
