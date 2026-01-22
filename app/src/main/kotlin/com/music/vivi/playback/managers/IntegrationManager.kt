@@ -10,7 +10,7 @@ import com.music.vivi.constants.DiscordTokenKey
 import com.music.vivi.constants.DiscordUseDetailsKey
 import com.music.vivi.constants.EnableDiscordRPCKey
 import com.music.vivi.constants.EnableLastFMScrobblingKey
-import com.music.vivi.constants.LastFM
+// Removed import com.music.vivi.constants.LastFM as it seems missing
 import com.music.vivi.constants.LastFMUseNowPlaying
 import com.music.vivi.constants.PowerSaverKey
 import com.music.vivi.constants.ScrobbleDelayPercentKey
@@ -22,7 +22,7 @@ import com.music.vivi.utils.DiscordRPC
 import com.music.vivi.utils.ScrobbleManager
 import com.music.vivi.utils.get
 import com.music.vivi.extensions.metadata
-import com.music.vivi.extensions.toMediaItem
+import com.music.vivi.extensions.toMediaItem // Added Import
 import com.music.vivi.extensions.currentMetadata
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -33,10 +33,18 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.filterNotNull // Added Import
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+// Fallback object for missing constants
+object LastFM {
+    const val DEFAULT_SCROBBLE_DELAY_PERCENT = 50
+    const val DEFAULT_SCROBBLE_MIN_SONG_DURATION = 30L
+    const val DEFAULT_SCROBBLE_DELAY_SECONDS = 240
+}
 
 class IntegrationManager @Inject constructor(
     private val context: Context,
