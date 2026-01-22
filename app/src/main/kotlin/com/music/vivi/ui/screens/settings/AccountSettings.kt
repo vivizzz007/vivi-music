@@ -21,6 +21,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.Scaffold // WICHTIG: Scaffold importieren
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -61,6 +63,7 @@ import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.AccountSettingsViewModel
 import com.music.vivi.viewmodels.HomeViewModel
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun AccountSettings(
     navController: NavController,
@@ -90,39 +93,37 @@ fun AccountSettings(
     var showToken by remember { mutableStateOf(false) }
     var showTokenEditor by remember { mutableStateOf(false) }
 
-    // LÖSUNG: Scaffold garantiert eine korrekte Hintergrundfarbe
+    // LÖSUNG: Wir nutzen TopAppBar wie in SettingsScreen für konsistentes Layout
     Scaffold(
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(id = R.string.app_name),
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    modifier = Modifier.padding(start = 4.dp)
+            TopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(id = R.string.app_name),
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onClose) {
+                        Icon(painterResource(R.drawable.close), contentDescription = null)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
                 )
-                Spacer(modifier = Modifier.weight(1f))
-                IconButton(onClick = onClose) {
-                    Icon(painterResource(R.drawable.close), contentDescription = null)
-                }
-            }
+            )
         },
-        // WICHTIG: 'background' nutzen. Falls background immer noch schwarz ist, surface erzwingen.
-        // Wir nutzen hier explizit surface, da background oft schwarz ist und wir sicher sein wollen.
-        containerColor = MaterialTheme.colorScheme.surface 
+        containerColor = MaterialTheme.colorScheme.background 
     ) { paddingValues ->
         
         // Debug Logging
-        Log.d("AccountSettings", "Composing AccountSettings screen")
+        Log.d("AccountSettings", "Composing AccountSettings screen with padding: $paddingValues")
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(MaterialTheme.colorScheme.surface) // Doppelter Boden: Hintergrund explizit setzen
+                .background(MaterialTheme.colorScheme.background) 
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
