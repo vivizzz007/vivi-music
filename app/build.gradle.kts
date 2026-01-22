@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     id("com.android.application")
     kotlin("android")
-    id("kotlin-parcelize") // Plugin hinzugefügt
+    id("kotlin-parcelize")
 
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlin.ksp)
@@ -19,13 +19,12 @@ android {
         applicationId = "com.vivi.vivimusic"
         minSdk = 26
         targetSdk = 36
-        versionCode = 20 //20 //61
-        versionName = "5.0.2" //updated
+        versionCode = 20
+        versionName = "5.0.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
 
-        // LastFM API keys from GitHub Secrets
         buildConfigField("String", "LASTFM_API_KEY", "\"${System.getenv("LASTFM_API_KEY") ?: ""}\"")
         buildConfigField("String", "LASTFM_SECRET", "\"${System.getenv("LASTFM_SECRET") ?: ""}\"")
     }
@@ -33,7 +32,6 @@ android {
     flavorDimensions += listOf("abi", "distribution")
 
     productFlavors {
-        // ABI Dimension (Architecture)
         create("universal") {
             dimension = "abi"
             ndk {
@@ -62,16 +60,13 @@ android {
             buildConfigField("String", "ARCHITECTURE", "\"x86_64\"")
         }
 
-        // Distribution Dimension (Build Type)
         create("foss") {
             dimension = "distribution"
             buildConfigField("String", "BUILD_TYPE", "\"foss\"")
-
         }
         create("standard") {
-            dimension = "distribution" // Zeilenumbruch korrigiert
+            dimension = "distribution"
             buildConfigField("String", "BUILD_TYPE", "\"standard\"")
-
         }
     }
     signingConfigs {
@@ -98,7 +93,6 @@ android {
         }
     }
 
-
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
@@ -111,7 +105,7 @@ android {
     }
 
     compileOptions {
-        isCoreLibraryDesugaringEnabled = true // Zeilenumbruch korrigiert
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
@@ -208,7 +202,7 @@ dependencies {
     // Coil dependencies
     implementation(libs.coil)
     implementation(libs.coil.network.okhttp)
-    implementation(libs.coil.compose)
+    // implementation(libs.coil.compose) wurde entfernt
 
     implementation(libs.ucrop)
 
@@ -238,7 +232,6 @@ dependencies {
     implementation(project(":lastfm"))
     implementation(project(":betterlyrics"))
 
-
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.client.content.negotiation)
@@ -252,7 +245,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-core:1.7.8")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation("com.airbnb.android:lottie-compose:6.6.9")
-    implementation("com.google.code.gson:2.10.1")
+    implementation("com.google.code.gson:gson:2.13.2")
     implementation("com.github.racra:smooth-corner-rect-android-compose:v1.0.0")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
