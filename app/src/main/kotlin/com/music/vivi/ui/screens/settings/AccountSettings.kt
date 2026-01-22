@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -95,6 +96,7 @@ fun AccountSettings(
 
     Column(
         modifier = Modifier
+            .fillMaxSize() // WICHTIG: Damit der Hintergrund den ganzen Screen füllt
             .background(MaterialTheme.colorScheme.surfaceContainer)
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
