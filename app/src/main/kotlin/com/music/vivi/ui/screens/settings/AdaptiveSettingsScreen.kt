@@ -47,6 +47,11 @@ fun AdaptiveSettingsScreen(
                 val route = navigator.currentDestination?.content
                 if (route != null) {
                     when (route) {
+                        "settings/account_settings" -> AccountSettings(
+                            navController = navController,
+                            onClose = { navigator.navigateBack() },
+                            latestVersionName = com.music.vivi.BuildConfig.VERSION_NAME
+                        )
                         "settings/appearance" -> AppearanceSettings(navController, scrollBehavior, onBack = { navigator.navigateBack() })
                         "settings/player" -> PlayerSettings(navController, scrollBehavior, onBack = { navigator.navigateBack() })
                         "settings/backup_restore" -> BackupAndRestore(navController, scrollBehavior, onBack = { navigator.navigateBack() })
