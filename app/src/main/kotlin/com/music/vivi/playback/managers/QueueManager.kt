@@ -16,6 +16,7 @@ import com.music.vivi.playback.queues.Queue
 import com.music.vivi.playback.queues.filterExplicit
 import com.music.vivi.playback.queues.filterVideoSongs
 import com.music.vivi.utils.get
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -26,10 +27,11 @@ import java.util.Collections
 import javax.inject.Inject
 
 class QueueManager @Inject constructor(
-    private val context: Context,
-    private val player: ExoPlayer,
+    @ApplicationContext private val context: Context,
     private val dataStore: DataStore<Preferences>,
 ) {
+    private lateinit var player: ExoPlayer
+
     var scope: CoroutineScope = CoroutineScope(Dispatchers.Main)
         private set
     
@@ -43,6 +45,10 @@ class QueueManager @Inject constructor(
 
     fun setScope(newScope: CoroutineScope) {
         scope = newScope
+    }
+
+    fun setPlayer(exoPlayer: ExoPlayer) {
+        player = exoPlayer
     }
 
     fun playQueue(
