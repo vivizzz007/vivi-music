@@ -143,11 +143,19 @@ import kotlin.collections.isNotEmpty
     ExperimentalMaterial3ExpressiveApi::class
 )
 @Composable
+
 fun OnlinePlaylistScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    playlistId: String? = null,
     viewModel: OnlinePlaylistViewModel = hiltViewModel(),
+    onBack: () -> Unit = { navController.navigateUp() },
 ) {
+    if (playlistId != null) {
+        LaunchedEffect(playlistId) {
+            viewModel.setPlaylistId(playlistId)
+        }
+    }
     val context = LocalContext.current
     val menuState = LocalMenuState.current
     val database = LocalDatabase.current
@@ -1063,7 +1071,7 @@ fun OnlinePlaylistScreen(
                         } else if (selection) {
                             selection = false
                         } else {
-                            navController.navigateUp()
+                            onBack()
                         }
                     },
                     onLongClick = {

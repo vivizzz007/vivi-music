@@ -135,8 +135,15 @@ enum class PlaylistType {
 fun AutoPlaylistScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    playlistId: String? = null,
     viewModel: AutoPlaylistViewModel = hiltViewModel(),
+    onBack: () -> Unit = { navController.navigateUp() },
 ) {
+    if (playlistId != null) {
+        LaunchedEffect(playlistId) {
+            viewModel.setPlaylist(playlistId)
+        }
+    }
     val context = LocalContext.current
     val menuState = LocalMenuState.current
     val haptic = LocalHapticFeedback.current
@@ -826,7 +833,7 @@ fun AutoPlaylistScreen(
                                 selection = false
                             }
                             else -> {
-                                navController.navigateUp()
+                                onBack()
                             }
                         }
                     },

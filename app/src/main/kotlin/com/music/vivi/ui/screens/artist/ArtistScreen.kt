@@ -142,6 +142,7 @@ fun ArtistScreen(
     scrollBehavior: TopAppBarScrollBehavior,
     artistId: String? = null,
     viewModel: ArtistViewModel = hiltViewModel(),
+    onBack: () -> Unit = { navController.navigateUp() },
 ) {
     if (artistId != null) {
         LaunchedEffect(artistId) {
@@ -916,7 +917,7 @@ fun ArtistScreen(
         title = { if (!transparentAppBar) Text(artistPage?.artist?.title.orEmpty()) },
         navigationIcon = {
             IconButton(
-                onClick = navController::navigateUp,
+                onClick = onBack,
                 onLongClick = navController::backToMain,
             ) {
                 Icon(

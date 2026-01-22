@@ -114,11 +114,19 @@ import com.music.vivi.viewmodels.TopPlaylistViewModel
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
+
 fun TopPlaylistScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    topParam: String? = null,
     viewModel: TopPlaylistViewModel = hiltViewModel(),
+    onBack: () -> Unit = { navController.navigateUp() },
 ) {
+    if (topParam != null) {
+        LaunchedEffect(topParam) {
+            viewModel.setTop(topParam)
+        }
+    }
     val context = LocalContext.current
     val menuState = LocalMenuState.current
     val haptic = LocalHapticFeedback.current
@@ -976,7 +984,7 @@ fun TopPlaylistScreen(
                                 selection = false
                             }
                             else -> {
-                                navController.navigateUp()
+                                onBack()
                             }
                         }
                     },
