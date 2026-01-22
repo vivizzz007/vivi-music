@@ -17,11 +17,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow // Import hinzugefügt
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -39,6 +40,7 @@ constructor(
 ) : ViewModel() {
     private val _playlist = MutableStateFlow(savedStateHandle.get<String>("playlist"))
     val playlist = _playlist.asStateFlow()
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val likedSongs =
         context.dataStore.data
@@ -64,7 +66,7 @@ constructor(
                         "uploaded" -> database.uploadedSongs(sortType, descending)
                             .map { it.filterExplicit(hideExplicit) }
 
-                        else -> kotlinx.coroutines.flow.flowOf(emptyList())
+                        else -> flowOf(emptyList())
                     }
                 }
             }
@@ -83,3 +85,4 @@ constructor(
     fun syncUploadedSongs() {
         viewModelScope.launch(Dispatchers.IO) { syncUtils.syncUploadedSongs() }
     }
+}
