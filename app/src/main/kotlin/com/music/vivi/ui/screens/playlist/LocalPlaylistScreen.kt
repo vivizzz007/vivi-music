@@ -427,12 +427,12 @@ fun LocalPlaylistScreen(
         if (!reorderableState.isAnyItemDragging) {
             dragInfo?.let { (from, to) ->
                 database.transaction {
-                    move(viewModel.playlistId, from, to)
+                    move(viewModel.playlistId.value!!, from, to)
                 }
 
                 if (viewModel.playlist.value?.playlist?.browseId != null) {
                     viewModel.viewModelScope.launch(Dispatchers.IO) {
-                        val playlistSongMap = database.playlistSongMaps(viewModel.playlistId, 0)
+                        val playlistSongMap = database.playlistSongMaps(viewModel.playlistId.value!!, 0)
                         val successorIndex = if (from > to) to else to + 1
                         val successorSetVideoId = playlistSongMap.getOrNull(successorIndex)?.setVideoId
 
