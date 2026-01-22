@@ -80,7 +80,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.navigation.NavHostController
 import com.music.vivi.R
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import com.music.vivi.BuildConfig
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
@@ -1140,3 +1140,5 @@ fun String.extractUrls(): List<Pair<IntRange, String>> {
 
 
 
+
+}
