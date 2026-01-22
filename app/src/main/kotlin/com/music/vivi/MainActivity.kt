@@ -98,6 +98,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
@@ -892,7 +894,12 @@ class MainActivity : ComponentActivity() {
                                                     )
                                                 }
 
-                                                IconButton(onClick = { navController.navigate("settings") }) {
+                                                IconButton(
+                                                    onClick = { navController.navigate("settings") },
+                                                    modifier = Modifier.semantics {
+                                                        contentDescription = "Settings"
+                                                    }
+                                                ) {
                                                     if (accountImageUrl != null) {
                                                         // HIER GEÄNDERT: coil3.compose.AsyncImage statt coil.compose.AsyncImage
                                                         coil3.compose.AsyncImage(
