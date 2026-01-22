@@ -22,6 +22,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -134,8 +136,9 @@ class OnlinePlaylistViewModel @Inject constructor(
             YouTube.playlistContinuation(tokenForManualLoad)
                 .onSuccess { playlistContinuationPage ->
                     val currentSongs = playlistSongs.value.toMutableList()
+                    // Fix: Add new songs to the list
+                    currentSongs.addAll(playlistContinuationPage.songs)
                     playlistSongs.value = applySongFilters(currentSongs)
-                    playlistSongs.value = currentSongs.distinctBy { it.id }
                     continuation = playlistContinuationPage.continuation
                 }.onFailure { throwable ->
                     reportException(throwable)
