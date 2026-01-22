@@ -740,7 +740,7 @@
     <string name="display_uploaded_playlist">Yüklenenler listesini göster</string>
     <string name="apple_music">Apple Müzik</string>
     <string name="show_now_playing">Şimdi Çalıyor'u Göster</string>
-    <string name="enable_now_playing_text_on_player_background">Apple Müzik'in oynatıcı arka planında şimdi çalıyor metnini etkinleştir</string>
+    <string name="enable_now_playing_text_on_player_background">Apple Müzik\'in oynatıcı arka planında şimdi çalıyor metnini etkinleştir</string>
 
     <!-- Content Settings -->
     <string name="filter_explicit_content">Yetişkin içerikleri filtrele</string>
