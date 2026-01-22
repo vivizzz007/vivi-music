@@ -60,8 +60,8 @@ fun DiscordLoginScreen(navController: NavController) {
 
                 addJavascriptInterface(object {
                     @JavascriptInterface
-                    fun onRetrieveToken(token: String) {
-                        Timber.d("Token: %s", token)
+                        fun onRetrieveToken(token: String) {
+                            // Timber.d("Token: %s", token) // REMOVED FOR SECURITY
                         if (token != "null" && token != "error") {
                             discordToken = token
                             scope.launch(Dispatchers.Main) {
