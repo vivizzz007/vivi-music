@@ -890,7 +890,8 @@ class MainActivity : ComponentActivity() {
 
                                                 IconButton(onClick = { navController.navigate("settings") }) {
                                                     if (accountImageUrl != null) {
-                                                        coil3.compose.AsyncImage( // Updated to coil3.compose.AsyncImage
+                                                        // HIER GEÄNDERT: coil3.compose.AsyncImage statt coil.compose.AsyncImage
+                                                        coil3.compose.AsyncImage(
                                                             model = accountImageUrl,
                                                             contentDescription = stringResource(R.string.account),
                                                             modifier = Modifier
