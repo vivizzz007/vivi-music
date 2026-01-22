@@ -31,6 +31,7 @@ class QueueManager @Inject constructor(
     private val dataStore: DataStore<Preferences>,
 ) {
     var scope: CoroutineScope = CoroutineScope(Dispatchers.Main)
+        private set
     
     var currentQueue: Queue = EmptyQueue
         private set
