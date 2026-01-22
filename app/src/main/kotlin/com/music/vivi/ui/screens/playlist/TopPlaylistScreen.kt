@@ -387,10 +387,9 @@ fun TopPlaylistScreen(
                                     onSortDescendingChange = { },
                                     sortTypeText = { period ->
                                         when (period) {
-                                            StatPeriod.ALL_TIME -> R.string.all_time
-                                            StatPeriod.MONTH -> R.string.month
-                                            StatPeriod.WEEK -> R.string.week
-                                            StatPeriod.TODAY -> R.string.today
+                                            StatPeriod.ALL -> R.string.all_time
+                                            StatPeriod.MONTH_1 -> R.string.month
+                                            StatPeriod.WEEK_1 -> R.string.week
                                             else -> R.string.all_time // Fallback for other periods
                                         }
                                     }
