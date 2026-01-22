@@ -141,11 +141,10 @@ fun DiscordSettings(
     val integrationsViewModel: com.music.vivi.viewmodels.IntegrationsViewModel = androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel()
     val discordState by integrationsViewModel.discordState.collectAsState()
 
-    var discordToken by rememberPreference(DiscordTokenKey, "")
-    // Delegate actual display values to VM state for reliability
-    val discordUsername = discordState.username
-    val discordName = discordState.name
-    val isLoggedIn = discordState.isLoggedIn
+    // Delegate actual display values to VM state for reliability, but use preferences for mutability
+    var discordUsername by rememberPreference(DiscordUsernameKey, "")
+    var discordName by rememberPreference(DiscordNameKey, "")
+    val isLoggedIn = discordToken.isNotEmpty()
     
     var infoDismissed by rememberPreference(DiscordInfoDismissedKey, false)
 

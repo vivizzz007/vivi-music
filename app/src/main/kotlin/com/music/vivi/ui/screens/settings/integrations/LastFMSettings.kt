@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -119,8 +120,7 @@ fun LastFMSettings(
     val integrationsViewModel: com.music.vivi.viewmodels.IntegrationsViewModel = androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel()
     val lastFmState by integrationsViewModel.lastFmState.collectAsState()
 
-    var lastfmUsername by rememberPreference(LastFMUsernameKey, "")
-    var lastfmSession by rememberPreference(LastFMSessionKey, "")
+
 
     val isLoggedIn = lastFmState.isLoggedIn
 
