@@ -252,6 +252,7 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
     implementation(libs.androidx.core.ktx)
+    implementation(libs.profileinstaller)
     
     implementation("androidx.compose.ui:ui:1.6.1")
     implementation("androidx.graphics:graphics-shapes:1.0.0-alpha05")

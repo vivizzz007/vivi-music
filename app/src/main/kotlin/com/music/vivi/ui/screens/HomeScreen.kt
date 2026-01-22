@@ -518,8 +518,9 @@ fun HomeScreen(
                                 verticalArrangement = Arrangement.spacedBy(3.dp)
                             ) {
                                 songGroup.forEachIndexed { index, originalSong ->
-                                    val song by database.song(originalSong.id)
-                                        .collectAsState(initial = originalSong)
+                                    // REDUNDANT FLOW REMOVED: val song by database.song(originalSong.id).collectAsState(initial = originalSong)
+                                    // Use originalSong directly as it comes from quickPicks which is already observable
+                                    val song = originalSong
 
                                     val isFirst = index == 0
                                     val isLast = index == songGroup.size - 1
@@ -544,7 +545,7 @@ fun HomeScreen(
                                             )
                                     ) {
                                         SongListItem(
-                                            song = song!!,
+                                            song = song,
                                             showInLibraryIcon = true,
                                             isActive = isActive,
                                             isPlaying = isPlaying,
@@ -554,7 +555,7 @@ fun HomeScreen(
                                                     onClick = {
                                                         menuState.show {
                                                             SongMenu(
-                                                                originalSong = song!!,
+                                                                originalSong = song,
                                                                 navController = navController,
                                                                 onDismiss = menuState::dismiss
                                                             )
@@ -571,12 +572,12 @@ fun HomeScreen(
                                                 .fillMaxSize()
                                                 .combinedClickable(
                                                     onClick = {
-                                                        if (song!!.id == mediaMetadata?.id) {
+                                                        if (song.id == mediaMetadata?.id) {
                                                             playerConnection.player.togglePlayPause()
                                                         } else {
                                                             playerConnection.playQueue(
                                                                 YouTubeQueue.radio(
-                                                                    song!!.toMediaMetadata()
+                                                                    song.toMediaMetadata()
                                                                 )
                                                             )
                                                         }
@@ -585,7 +586,7 @@ fun HomeScreen(
                                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                         menuState.show {
                                                             SongMenu(
-                                                                originalSong = song!!,
+                                                                originalSong = song,
                                                                 navController = navController,
                                                                 onDismiss = menuState::dismiss
                                                             )
@@ -715,13 +716,13 @@ fun HomeScreen(
                                 items = forgottenFavorites.distinctBy { it.id },
                                 key = { it.id }
                             ) { originalSong ->
-                                val song by database.song(originalSong.id)
-                                    .collectAsState(initial = originalSong)
+                                // REDUNDANT FLOW REMOVED
+                                val song = originalSong
 
                                 SongListItem(
-                                    song = song!!,
+                                    song = song,
                                     showInLibraryIcon = true,
-                                    isActive = song!!.id == mediaMetadata?.id,
+                                    isActive = song.id == mediaMetadata?.id,
                                     isPlaying = isPlaying,
                                     isSwipeable = false,
                                     trailingContent = {
@@ -730,7 +731,7 @@ fun HomeScreen(
                                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                 menuState.show {
                                                     SongMenu(
-                                                        originalSong = song!!,
+                                                        originalSong = song,
                                                         navController = navController,
                                                         onDismiss = menuState::dismiss
                                                     )
@@ -747,12 +748,12 @@ fun HomeScreen(
                                         .width(horizontalLazyGridItemWidth)
                                         .combinedClickable(
                                             onClick = {
-                                                if (song!!.id == mediaMetadata?.id) {
+                                                if (song.id == mediaMetadata?.id) {
                                                     playerConnection.player.togglePlayPause()
                                                 } else {
                                                     playerConnection.playQueue(
                                                         YouTubeQueue.radio(
-                                                            song!!.toMediaMetadata()
+                                                            song.toMediaMetadata()
                                                         )
                                                     )
                                                 }
@@ -761,7 +762,7 @@ fun HomeScreen(
                                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                 menuState.show {
                                                     SongMenu(
-                                                        originalSong = song!!,
+                                                        originalSong = song,
                                                         navController = navController,
                                                         onDismiss = menuState::dismiss
                                                     )
