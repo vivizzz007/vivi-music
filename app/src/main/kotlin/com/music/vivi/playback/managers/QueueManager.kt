@@ -49,7 +49,8 @@ class QueueManager @Inject constructor(
         playWhenReady: Boolean = true,
     ) {
         addedSuggestionIds.clear()
-        if (!scope.isActive) scope = CoroutineScope(Dispatchers.Main) + Job()
+        // KORREKTUR: Job() muss zum Context addiert werden, nicht zum Scope-Objekt
+        if (!scope.isActive) scope = CoroutineScope(Dispatchers.Main + Job())
         
         currentQueue = queue
         queueTitle = null
