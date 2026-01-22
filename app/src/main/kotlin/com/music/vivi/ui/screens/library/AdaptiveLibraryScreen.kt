@@ -34,7 +34,8 @@ sealed class LibraryRoute : Parcelable {
 fun AdaptiveLibraryScreen(
     navController: NavController,
 ) {
-    val navigator = rememberListDetailPaneScaffoldNavigator<LibraryRoute>()
+    // FIX: Changed generic type to Any to satisfy compiler expectation
+    val navigator = rememberListDetailPaneScaffoldNavigator<Any>()
 
     NavigableListDetailPaneScaffold(
         navigator = navigator,
@@ -79,7 +80,8 @@ fun AdaptiveLibraryScreen(
             )
         },
         detailPane = {
-            val content = navigator.currentDestination?.content
+            // FIX: Cast content to LibraryRoute
+            val content = navigator.currentDestination?.content as? LibraryRoute
             // Use pinned scroll behavior for the detail pane to avoid conflict with list pane
             val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
             
@@ -129,7 +131,6 @@ fun AdaptiveLibraryScreen(
                         navController = navController,
                         scrollBehavior = scrollBehavior,
                         onBack = { navigator.navigateBack() }
-                        // CachePlaylistScreen doesn't take params yet, but we handle the route
                     )
                 }
                 is LibraryRoute.TopPlaylist -> {
@@ -141,7 +142,7 @@ fun AdaptiveLibraryScreen(
                     )
                 }
                 null -> {
-                    // Empty state or placeholder if needed
+                    // Empty state
                 }
             }
         }
