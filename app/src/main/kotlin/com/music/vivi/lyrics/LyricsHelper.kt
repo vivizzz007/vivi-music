@@ -147,7 +147,7 @@ constructor(
 
         // Check power saver before making network requests
         val powerSaver = context.dataStore.data
-            .map { it[PowerSaverKey] ?: false }
+            .map { (it[PowerSaverKey] ?: false) && (it[PowerSaverLyricsKey] ?: true) }
             .firstOrNull() ?: false
 
         if (powerSaver) {

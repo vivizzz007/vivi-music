@@ -230,7 +230,11 @@ class MusicService :
                 if (streamType == AudioManager.STREAM_MUSIC) {
                     val volume = intent.getIntExtra("android.media.EXTRA_VOLUME_STREAM_VALUE", -1)
                     scope.launch {
-                        if (dataStore.get(PauseOnZeroVolumeKey, false) || dataStore.get(PowerSaverKey, false)) {
+                        val powerSaver = dataStore.get(PowerSaverKey, false)
+                        val powerSaverPause = dataStore.get(PowerSaverPauseOnZeroVolumeKey, true)
+                        
+                        // "Pause on Zero Volume" preference OR (PowerSaver AND PowerSaverPauseOnZeroVolume)
+                        if (dataStore.get(PauseOnZeroVolumeKey, false) || (powerSaver && powerSaverPause)) {
                             if (volume == 0) {
                                 if (player.isPlaying) {
                                     player.pause()

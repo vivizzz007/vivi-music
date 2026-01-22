@@ -114,6 +114,94 @@ fun PowerSaverSettings(
                             modifier = Modifier.padding(end = 8.dp)
                         )
                     }
+
+                    if (powerSaver) {
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Text(
+                            text = "Actions",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+
+                        val (powerSaverPureBlack, onPowerSaverPureBlackChange) = rememberPreference(com.music.vivi.constants.PowerSaverPureBlackKey, defaultValue = true)
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Force Pure Black / Dark Mode",
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            ModernSwitch(checked = powerSaverPureBlack, onCheckedChange = onPowerSaverPureBlackChange)
+                        }
+
+                        val (powerSaverHighRefresh, onPowerSaverHighRefreshChange) = rememberPreference(com.music.vivi.constants.PowerSaverHighRefreshRateKey, defaultValue = true)
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Disable High Refresh Rate",
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            ModernSwitch(checked = powerSaverHighRefresh, onCheckedChange = onPowerSaverHighRefreshChange)
+                        }
+
+                        val (powerSaverDiscord, onPowerSaverDiscordChange) = rememberPreference(com.music.vivi.constants.PowerSaverDiscordKey, defaultValue = true)
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Disable Discord RPC",
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            ModernSwitch(checked = powerSaverDiscord, onCheckedChange = onPowerSaverDiscordChange)
+                        }
+
+                        val (powerSaverLastFM, onPowerSaverLastFMChange) = rememberPreference(com.music.vivi.constants.PowerSaverLastFMKey, defaultValue = true)
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Disable Last.fm Scrobbling",
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            ModernSwitch(checked = powerSaverLastFM, onCheckedChange = onPowerSaverLastFMChange)
+                        }
+
+                        val (powerSaverLyrics, onPowerSaverLyricsChange) = rememberPreference(com.music.vivi.constants.PowerSaverLyricsKey, defaultValue = true)
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Disable Lyrics Fetching",
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            ModernSwitch(checked = powerSaverLyrics, onCheckedChange = onPowerSaverLyricsChange)
+                        }
+                        
+                         val (powerSaverPauseOnZeroVolume, onPowerSaverPauseOnZeroVolumeChange) = rememberPreference(com.music.vivi.constants.PowerSaverPauseOnZeroVolumeKey, defaultValue = true)
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Pause on Zero Volume",
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            ModernSwitch(checked = powerSaverPauseOnZeroVolume, onCheckedChange = onPowerSaverPauseOnZeroVolumeChange)
+                        }
+                    }
                 }
             }
         }

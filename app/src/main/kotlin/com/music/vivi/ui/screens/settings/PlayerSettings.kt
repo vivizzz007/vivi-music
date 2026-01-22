@@ -28,6 +28,8 @@ import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.ui.platform.LocalContext
+import com.music.vivi.constants.InnerTubeCookieKey
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -294,13 +296,19 @@ fun PlayerSettings(
                                         iconContentColor = iconStyleColor
                                     )
 
-                                    val options = listOf(AudioQuality.AUTO, AudioQuality.HIGH, AudioQuality.VERY_HIGH, AudioQuality.LOW)
+                                    val options = listOf(AudioQuality.LOW, AudioQuality.HIGH, AudioQuality.VERY_HIGH, AudioQuality.AUTO)
                                     val labels = listOf(
-                                        stringResource(R.string.audio_quality_auto),
+                                        stringResource(R.string.audio_quality_low),
                                         stringResource(R.string.audio_quality_high),
                                         stringResource(R.string.audio_quality_very_high),
-                                        stringResource(R.string.audio_quality_low)
+                                        stringResource(R.string.audio_quality_auto)
                                     )
+
+                                    val context = LocalContext.current
+                                    val (innerTubeCookie, _) = rememberPreference(InnerTubeCookieKey, "")
+                                    val isLoggedIn = remember(innerTubeCookie) {
+                                        "SAPISID" in com.music.innertube.utils.parseCookieString(innerTubeCookie)
+                                    }
 
                                     FlowRow(
                                         modifier = Modifier
@@ -312,7 +320,18 @@ fun PlayerSettings(
                                         options.forEachIndexed { index, value ->
                                             ToggleButton(
                                                 checked = audioQuality == value,
-                                                onCheckedChange = { onAudioQualityChange(value) },
+                                                onCheckedChange = { 
+                                                    if (value == AudioQuality.VERY_HIGH) {
+                                                         if (!isLoggedIn) {
+                                                             android.widget.Toast.makeText(context, R.string.login_required_premium, android.widget.Toast.LENGTH_SHORT).show()
+                                                             onAudioQualityChange(value) // Still allow selection, but warn
+                                                         } else {
+                                                             onAudioQualityChange(value)
+                                                         }
+                                                    } else {
+                                                        onAudioQualityChange(value)
+                                                    }
+                                                },
                                                 colors = ToggleButtonDefaults.toggleButtonColors(
                                                     checkedContainerColor = MaterialTheme.colorScheme.primary,
                                                     checkedContentColor = MaterialTheme.colorScheme.onPrimary,

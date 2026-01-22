@@ -381,21 +381,25 @@ class MainActivity : ComponentActivity() {
                 updateViewModel.refreshUpdateStatus()
             }
 
+            val (powerSaver, _) = rememberPreference(PowerSaverKey, false)
+            val (powerSaverPureBlack, _) = rememberPreference(com.music.vivi.constants.PowerSaverPureBlackKey, defaultValue = true)
+            val (powerSaverHighRefresh, _) = rememberPreference(com.music.vivi.constants.PowerSaverHighRefreshRateKey, defaultValue = true)
+
             val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)
             val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
             val isSystemInDarkTheme = isSystemInDarkTheme()
-            val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
-                if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
+            val useDarkTheme = remember(darkTheme, isSystemInDarkTheme, powerSaver, powerSaverPureBlack) {
+                if (powerSaver && powerSaverPureBlack) true
+                else if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
             }
 
             LaunchedEffect(useDarkTheme) {
                 setSystemBarAppearance(useDarkTheme)
             }
 
-            val (powerSaver, _) = rememberPreference(PowerSaverKey, false)
             val pureBlackEnabled by rememberPreference(PureBlackKey, defaultValue = false)
-            val pureBlack = remember(pureBlackEnabled, useDarkTheme, powerSaver) {
-                (pureBlackEnabled || powerSaver) && useDarkTheme
+            val pureBlack = remember(pureBlackEnabled, useDarkTheme, powerSaver, powerSaverPureBlack) {
+                (pureBlackEnabled || (powerSaver && powerSaverPureBlack)) && useDarkTheme
             }
 
             val material3Expressive by rememberPreference(Material3ExpressiveKey, defaultValue = false)
@@ -407,8 +411,8 @@ class MainActivity : ComponentActivity() {
 
             val highRefreshRate by rememberPreference(HighRefreshRateKey, false)
 
-            LaunchedEffect(highRefreshRate, powerSaver) {
-                setHighRefreshRate(highRefreshRate && !powerSaver)
+            LaunchedEffect(highRefreshRate, powerSaver, powerSaverHighRefresh) {
+                setHighRefreshRate(highRefreshRate && !(powerSaver && powerSaverHighRefresh))
             }
 
             val accentColorInt by rememberPreference(AccentColorKey, defaultValue = DefaultThemeColor.toArgb())
