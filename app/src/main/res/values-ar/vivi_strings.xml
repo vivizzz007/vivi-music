@@ -3,7 +3,6 @@
     <string name="explore">استكشاف</string>
     <string name="charts">القوائم</string>
     <string name="trending">الشائع</string>
-    <string name="new_release_albums">إصدارات جديدة</string>
     
     <string name="back_button_desc">رجوع</string>
     <string name="retry_button">إعادة المحاولة</string>
@@ -21,20 +20,17 @@
     <string name="settings_section_storage">التخزين والبيانات</string>
     <string name="settings_section_system">النظام وحول</string>
 
-    <string name="appearance">المظهر</string>
     <string name="player_background_style">نمط خلفية المشغل</string>
     <string name="modern_player_interface">واجهة المشغل الحديثة</string>
     
     <string name="lyrics">كلمات الأغنية</string>
     <string name="share_lyrics">مشاركة الكلمات</string>
-    <string name="edit_lyrics">تعديل الكلمات</string>
 
     <string name="download_song">تنزيل الأغنية</string>
     <string name="download_album">تنزيل الألبوم</string>
     <string name="download_playlist">تنزيل قائمة التشغيل</string>
 
     <string name="spotify_login">تسجيل دخول Spotify</string>
-    <string name="discord_integration">تكامل Discord</string>
     <string name="connect_with_discord">الاتصال بـ Discord</string>
     
     <string name="about_subtitle">معلومات التطبيق والمطور</string>

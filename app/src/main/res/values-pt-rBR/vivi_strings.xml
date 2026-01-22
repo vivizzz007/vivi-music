@@ -3,7 +3,6 @@
     <string name="explore">Explorar</string>
     <string name="charts">Paradas</string>
     <string name="trending">Em alta</string>
-    <string name="new_release_albums">Lançamentos</string>
     
     <string name="back_button_desc">Voltar</string>
     <string name="retry_button">Tentar novamente</string>
@@ -21,20 +20,17 @@
     <string name="settings_section_storage">Armazenamento e Dados</string>
     <string name="settings_section_system">Sistema e Sobre</string>
 
-    <string name="appearance">Aparência</string>
     <string name="player_background_style">Estilo de fundo do reprodutor</string>
     <string name="modern_player_interface">Interface moderna do reprodutor</string>
     
     <string name="lyrics">Letras</string>
     <string name="share_lyrics">Compartilhar letras</string>
-    <string name="edit_lyrics">Editar letras</string>
 
     <string name="download_song">Baixar música</string>
     <string name="download_album">Baixar álbum</string>
     <string name="download_playlist">Baixar playlist</string>
 
     <string name="spotify_login">Login do Spotify</string>
-    <string name="discord_integration">Integração com Discord</string>
     <string name="connect_with_discord">Conectar com Discord</string>
     
     <string name="about_subtitle">Informações do app e dev</string>
