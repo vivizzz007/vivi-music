@@ -63,38 +63,35 @@ class IntegrationManager @Inject constructor(
     
     private var currentSongFlow: kotlinx.coroutines.flow.StateFlow<com.music.vivi.db.entities.Song?>? = null
 
-    fun start(serviceScope: CoroutineScope, exoPlayer: ExoPlayer) {
-        scope = serviceScope
-        player = exoPlayer
+    fun start(scope: CoroutineScope, player: ExoPlayer) {
+        this.scope = scope
+        this.player = player
         
         // Initialize currentSong flow
         currentSongFlow = currentMediaMetadata
             .flatMapLatest { mediaMetadata ->
                 database.song(mediaMetadata?.id)
-            }.stateIn(scope!!, SharingStarted.Lazily, null)
+            }.stateIn(scope, SharingStarted.Lazily, null)
 
-        setupDiscord(exoPlayer)
-        setupScrobble(exoPlayer)
+        setupDiscord(player)
+        setupScrobble(player)
         
         // Initial metadata
-        currentMediaMetadata.value = exoPlayer.currentMetadata
+        currentMediaMetadata.value = player.currentMetadata
         
-        exoPlayer.addListener(this)
+        player.addListener(this)
     }
-    
-    fun stop(exoPlayer: ExoPlayer) {
-        exoPlayer.removeListener(this)
-        discordRpc?.closeRPC()
-        scrobbleManager?.destroy()
-        discordUpdateJob?.cancel()
-        player = null
-        scope = null
-    }
-    
+
     private fun setupDiscord(player: ExoPlayer) {
         scope?.launch {
             dataStore.data
-                .map { Triple(it[DiscordTokenKey], it[EnableDiscordRPCKey] ?: true, it[PowerSaverKey] ?: false) }
+                .map { 
+                    Triple(
+                        it[DiscordTokenKey], 
+                        it[EnableDiscordRPCKey] ?: true, 
+                        (it[PowerSaverKey] ?: false) && (it[PowerSaverDiscordKey] ?: true)
+                    ) 
+                }
                 .debounce(300)
                 .distinctUntilChanged()
                 .collect { (key, enabled, powerSaver) ->
@@ -102,6 +99,9 @@ class IntegrationManager @Inject constructor(
                         discordRpc?.closeRPC()
                     }
                     discordRpc = null
+                    // If enabled is true AND powerSaver is false (i.e., not saving power OR specific Discord saver is off)
+                    // Wait, logic: enabled=true. PowerSaver=true.
+                    // effectivelyEnabled = enabled && !powerSaver
                     if (key != null && enabled && !powerSaver) {
                         discordRpc = DiscordRPC(context, key)
                         if (player.playbackState == Player.STATE_READY && player.playWhenReady) {
@@ -112,41 +112,13 @@ class IntegrationManager @Inject constructor(
                     }
                 }
         }
-
-        scope?.launch {
-            dataStore.data
-                .map { it[DiscordUseDetailsKey] ?: false }
-                .debounce(1000)
-                .distinctUntilChanged()
-                .collect { useDetails ->
-                    if (player.playbackState == Player.STATE_READY && player.playWhenReady) {
-                        currentSongFlow?.value?.let { song ->
-                            discordUpdateJob?.cancel()
-                            discordUpdateJob = scope?.launch {
-                                delay(1000)
-                                discordRpc?.updateSong(song, player.currentPosition, player.playbackParameters.speed, useDetails)
-                            }
-                        }
-                    }
-                }
-        }
-        
-        // Observer for song changes to update Discord
-        scope?.launch {
-            currentSongFlow?.debounce(1000)?.collect { song ->
-                if (song != null && player.playWhenReady && player.playbackState == Player.STATE_READY) {
-                    discordRpc?.updateSong(song, player.currentPosition, player.playbackParameters.speed, dataStore.get(DiscordUseDetailsKey, false))
-                } else {
-                    discordRpc?.closeRPC()
-                }
-            }
-        }
+    // ...
     }
 
     private fun setupScrobble(player: ExoPlayer) {
          scope?.launch {
              dataStore.data
-                .map { (it[EnableLastFMScrobblingKey] ?: false) to (it[PowerSaverKey] ?: false) }
+                .map { (it[EnableLastFMScrobblingKey] ?: false) to ((it[PowerSaverKey] ?: false) && (it[PowerSaverLastFMKey] ?: true)) }
                 .debounce(300)
                 .distinctUntilChanged()
                 .collect { (enabled, powerSaver) ->

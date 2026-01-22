@@ -79,29 +79,40 @@ fun DiscordLoginScreen(navController: NavController) {
                                 """
                                 (function() {
                                     try {
-                                        var token = localStorage.getItem("token");
+                                        // Attempt 1: Webpack extraction (most reliable for Discord Web)
+                                        let token = (webpackChunkdiscord_app.push([[''],{},e=>{m=[];for(let c in e.c)m.push(e.c[c])}]),m).find(m=>m?.exports?.default?.getToken!==undefined).exports.default.getToken();
                                         if (token) {
-                                            Android.onRetrieveToken(token.slice(1, -1));
-                                        } else {
-                                            // fallback إلى alert (منطق kizzy)
-                                            var i = document.createElement('iframe');
-                                            document.body.appendChild(i);
-                                            setTimeout(function() {
-                                                try {
-                                                    var alt = i.contentWindow.localStorage.token;
-                                                    if (alt) {
-                                                        alert(alt.slice(1, -1));
-                                                    } else {
-                                                        alert("null");
-                                                    }
-                                                } catch (e) {
-                                                    alert("error");
-                                                }
-                                            }, 1000);
+                                            Android.onRetrieveToken(token);
+                                            return;
                                         }
                                     } catch (e) {
-                                        alert("error");
+                                        console.log("Webpack extraction failed");
                                     }
+
+                                    try {
+                                        // Attempt 2: LocalStorage (Legacy)
+                                        let token = localStorage.getItem("token");
+                                        if (token) {
+                                            Android.onRetrieveToken(token.replace(/^"|"$/g, '')); // Remove quotes safely
+                                            return;
+                                        }
+                                    } catch (e) {
+                                        console.log("LocalStorage extraction failed");
+                                    }
+                                    
+                                    try {
+                                        // Attempt 3: Iframe fallback
+                                        var i = document.createElement('iframe');
+                                        document.body.appendChild(i);
+                                        setTimeout(function() {
+                                            try {
+                                                var alt = i.contentWindow.localStorage.token;
+                                                if (alt) {
+                                                    Android.onRetrieveToken(alt.replace(/^"|"$/g, ''));
+                                                } 
+                                            } catch (e) {}
+                                        }, 1000);
+                                    } catch(e) {}
                                 })();
                                 """.trimIndent(), null
                             )
