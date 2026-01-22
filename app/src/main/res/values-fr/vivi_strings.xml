@@ -389,7 +389,7 @@
     <string name="audio_devices">Appareils audio</string>
 
     <!-- Crash Page -->
-    <string name="crash_message">Oups ! ViVi a rencontré un problème et s\'est arrêté brusquement. Consultez le journal ci-dessous pour plus d\'informations. D\'autres options sont disponibles en bas de la page.</string>
+    <string name="crash_message">Oups ! Vivi Music a rencontré un problème et s\'est arrêté brusquement. Consultez le journal ci-dessous pour plus d\'informations. D\'autres options sont disponibles en bas de la page.</string>
     <string name="log_copied_to_clipboard">Journal copié dans le presse-papiers</string>
 
     <!-- Report Issue -->
@@ -688,8 +688,8 @@
     <string name="copies_log_opens_gmail">Copie le journal et ouvre Gmail.</string>
     <string name="report_via_github_crash">Signaler via GitHub</string>
     <string name="opens_github_report_issue">Ouvre GitHub pour signaler le problème.</string>
-    <string name="restart_vivi">Redémarrer ViVi</string>
-    <string name="restarts_vivi">Redémarre ViVi.</string>
+    <string name="restart_vivi">Redémarrer Vivi Music</string>
+    <string name="restarts_vivi">Redémarre Vivi Music.</string>
 
     <!-- Settings Screen Subtitles -->
     <string name="customize_theme_display_settings">Personnaliser le thème et les paramètres d\'affichage</string>
@@ -698,7 +698,7 @@
     <string name="privacy_security_settings">Paramètres de confidentialité et de sécurité</string>
     <string name="manage_storage_downloads">Gérer le stockage et les téléchargements</string>
     <string name="backup_restore_data">Sauvegardez et restaurez vos données</string>
-    <string name="app_information_legal">Informations et mentions légales concernant l\'application/string>
+    <string name="app_information_legal">Informations et mentions légales concernant l\'application</string>
 
     <!-- Player Settings -->
     <string name="select_playback_audio_quality">Sélectionnez la qualité audio de lecture</string>
