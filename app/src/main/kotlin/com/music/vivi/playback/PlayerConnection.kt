@@ -79,7 +79,7 @@ class PlayerConnection(
         playbackState.value = player.playbackState
         playWhenReady.value = player.playWhenReady
         mediaMetadata.value = player.currentMetadata
-        // KORREKTUR: Zugriff über queueManager
+        // CORRECTION: Access via queueManager
         queueTitle.value = service.queueManager.queueTitle
         queueWindows.value = player.getQueueWindows()
         currentWindowIndex.value = player.getCurrentQueueIndex()
@@ -151,7 +151,7 @@ class PlayerConnection(
         reason: Int,
     ) {
         queueWindows.value = player.getQueueWindows()
-        // KORREKTUR: Zugriff über queueManager
+        // CORRECTION: Access via queueManager
         queueTitle.value = service.queueManager.queueTitle
         currentMediaItemIndex.value = player.currentMediaItemIndex
         currentWindowIndex.value = player.getCurrentQueueIndex()
