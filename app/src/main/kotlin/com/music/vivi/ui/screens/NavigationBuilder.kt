@@ -19,6 +19,7 @@ import com.music.vivi.ui.screens.artist.ArtistItemsScreen
 import com.music.vivi.ui.screens.artist.ArtistScreen
 import com.music.vivi.ui.screens.artist.ArtistSongsScreen
 import com.music.vivi.ui.screens.library.LibraryScreen
+import com.music.vivi.ui.screens.library.AdaptiveLibraryScreen // Import hinzugefügt
 import com.music.vivi.ui.screens.playlist.AutoPlaylistScreen
 import com.music.vivi.ui.screens.playlist.LocalPlaylistScreen
 import com.music.vivi.ui.screens.playlist.OnlinePlaylistScreen
@@ -40,6 +41,7 @@ import com.music.vivi.ui.screens.settings.PrivacySettings
 import com.music.vivi.ui.screens.settings.RomanizationSettings
 import com.music.vivi.ui.screens.settings.SettingsScreen
 import com.music.vivi.ui.screens.settings.StorageSettings
+import com.music.vivi.update.UpdateScreen // Import hinzugefügt
 import com.music.vivi.update.account.FunAccountViviSetting
 import com.music.vivi.update.betaupdate.ViviDpiSettings
 import com.music.vivi.update.changelog.ChangelogScreen
