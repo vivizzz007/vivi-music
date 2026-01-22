@@ -18,7 +18,7 @@ import com.music.vivi.ui.screens.playlist.OnlinePlaylistScreen
 import com.music.vivi.ui.screens.playlist.TopPlaylistScreen
 import kotlinx.parcelize.Parcelize
 
-@Parcelize // Removed duplicate annotation
+@Parcelize
 sealed class LibraryRoute : Parcelable {
     data class Artist(val id: String) : LibraryRoute()
     data class Album(val id: String) : LibraryRoute()
@@ -129,6 +129,7 @@ fun AdaptiveLibraryScreen(
                         navController = navController,
                         scrollBehavior = scrollBehavior,
                         onBack = { navigator.navigateBack() }
+                        // CachePlaylistScreen doesn't take params yet, but we handle the route
                     )
                 }
                 is LibraryRoute.TopPlaylist -> {
