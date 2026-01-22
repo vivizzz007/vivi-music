@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     id("com.android.application")
     kotlin("android")
+    id("kotlin-parcelize") // Added this plugin
 
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlin.ksp)
@@ -21,7 +22,8 @@ android {
         versionCode = 20 //20 //61
         versionName = "5.0.2" //updated
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+   
+     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
 
         // LastFM API keys from GitHub Secrets
@@ -34,7 +36,8 @@ android {
     productFlavors {
         // ABI Dimension (Architecture)
         create("universal") {
-            dimension = "abi"
+         
+   dimension = "abi"
             ndk {
                 abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
             }
@@ -42,7 +45,8 @@ android {
         }
         create("arm64") {
             dimension = "abi"
-            ndk { abiFilters += "arm64-v8a" }
+    
+        ndk { abiFilters += "arm64-v8a" }
             buildConfigField("String", "ARCHITECTURE", "\"arm64\"")
         }
         create("armeabi") {
@@ -50,7 +54,8 @@ android {
             ndk { abiFilters += "armeabi-v7a" }
             buildConfigField("String", "ARCHITECTURE", "\"armeabi\"")
         }
-        create("x86") {
+   
+     create("x86") {
             dimension = "abi"
             ndk { abiFilters += "x86" }
             buildConfigField("String", "ARCHITECTURE", "\"x86\"")
@@ -58,7 +63,8 @@ android {
         create("x86_64") {
             dimension = "abi"
             ndk { abiFilters += "x86_64" }
-            buildConfigField("String", "ARCHITECTURE", "\"x86_64\"")
+ 
+           buildConfigField("String", "ARCHITECTURE", "\"x86_64\"")
         }
 
         // Distribution Dimension (Build Type)
@@ -68,7 +74,8 @@ android {
 
         }
         create("standard") {
-            dimension = "distribution"
+            dimension 
+= "distribution"
             buildConfigField("String", "BUILD_TYPE", "\"standard\"")
 
         }
@@ -79,7 +86,8 @@ android {
             storePassword = System.getenv("STORE_PASSWORD")
             keyAlias = System.getenv("KEY_ALIAS")
             keyPassword = System.getenv("KEY_PASSWORD")
-        }
+   
+     }
     }
 
     buildTypes {
@@ -89,7 +97,8 @@ android {
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
-            )
+     
+       )
         }
         debug {
             applicationIdSuffix = ".debug"
@@ -101,7 +110,8 @@ android {
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
-            all {
+        
+    all {
                 it.testLogging {
                     events("passed", "skipped", "failed", "standardOut", "standardError")
                 }
@@ -110,7 +120,8 @@ android {
     }
 
     compileOptions {
-        isCoreLibraryDesugaringEnabled = true
+        isCoreLibraryDesugaringEnabled 
+= true
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
@@ -125,7 +136,8 @@ android {
 
     buildFeatures {
         compose = true
-        buildConfig = true
+  
+      buildConfig = true
     }
 
     dependenciesInfo {
@@ -141,7 +153,8 @@ android {
     }
 
     androidResources {
-        generateLocaleConfig = true
+     
+   generateLocaleConfig = true
     }
 
     packaging {
@@ -151,7 +164,8 @@ android {
                 "**/libandroidx.graphics.path.so",
                 "**/libdatastore_shared_counter.so"
             )
-        }
+     
+   }
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
             excludes += "META-INF/NOTICE.md"
@@ -167,7 +181,8 @@ ksp {
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     compilerOptions {
-        freeCompilerArgs.addAll(
+        
+freeCompilerArgs.addAll(
             "-opt-in=kotlin.RequiresOptIn"
         )
         suppressWarnings.set(false)
@@ -195,7 +210,8 @@ dependencies {
     implementation(libs.viewmodel)
     implementation(libs.viewmodel.compose)
 
-    implementation(libs.material3)
+   
+ implementation(libs.material3)
     implementation(libs.material3.adaptive)
     implementation(libs.material3.adaptive.layout)
     implementation(libs.material3.adaptive.navigation)
@@ -206,6 +222,7 @@ dependencies {
 
     implementation(libs.coil)
     implementation(libs.coil.network.okhttp)
+    implementation(libs.coil.compose)
 
     implementation(libs.ucrop)
 
@@ -229,7 +246,8 @@ dependencies {
     ksp(libs.hilt.compiler)
 
     implementation(project(":innertube"))
-    implementation(project(":kugou"))
+   
+ implementation(project(":kugou"))
     implementation(project(":lrclib"))
     implementation(project(":kizzy"))
     implementation(project(":lastfm"))
@@ -249,20 +267,19 @@ dependencies {
     implementation("androidx.compose.material:material-icons-core:1.7.8")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation("com.airbnb.android:lottie-compose:6.6.9")
-    implementation("com.google.code.gson:gson:2.13.2")
+    implementation("com.google.code.gson:2.10.1")
     implementation("com.github.racra:smooth-corner-rect-android-compose:v1.0.0")
-    implementation("com.squareup.retrofit2:retrofit:3.0.0")
-    implementation("com.squareup.retrofit2:converter-gson:3.0.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:5.1.0")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
-    implementation(libs.androidx.core.ktx) // Replaces hardcoded core-ktx
-    // work-runtime-ktx is already added via libs.androidx.work.runtime.ktx (line 244)
-    // implementation("androidx.work:work-runtime-ktx:2.9.0") 
-
-    implementation("androidx.compose.ui:ui:1.6.1") // This might conflict with libs.compose.ui, but leaving for now if specifically needed, though typically should align.
-    implementation("androidx.graphics:graphics-shapes:1.1.0") // Duplicate of libs.androidx.graphics.shapes?
-    implementation("androidx.glance:glance-appwidget:1.1.0")
-    implementation("androidx.glance:glance-material3:1.1.0")
+    implementation(libs.androidx.core.ktx) 
+    
+    // Check conflicts here
+    implementation("androidx.compose.ui:ui:1.6.1") 
+    implementation("androidx.graphics:graphics-shapes:1.0.0-alpha05")
+    implementation("androidx.glance:glance-appwidget:1.0.0")
+    implementation("androidx.glance:glance-material3:1.0.0")
 
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
