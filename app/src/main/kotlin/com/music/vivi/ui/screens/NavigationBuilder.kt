@@ -12,6 +12,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+// NEU: Import für BuildConfig und AccountSettings
+import com.music.vivi.BuildConfig
 import com.music.vivi.support.SupportScreen
 import com.music.vivi.support.ViviIssueScreen
 import com.music.vivi.ui.screens.artist.ArtistAlbumsScreen
@@ -19,7 +21,7 @@ import com.music.vivi.ui.screens.artist.ArtistItemsScreen
 import com.music.vivi.ui.screens.artist.ArtistScreen
 import com.music.vivi.ui.screens.artist.ArtistSongsScreen
 import com.music.vivi.ui.screens.library.LibraryScreen
-import com.music.vivi.ui.screens.library.AdaptiveLibraryScreen // Import hinzugefügt
+import com.music.vivi.ui.screens.library.AdaptiveLibraryScreen
 import com.music.vivi.ui.screens.playlist.AutoPlaylistScreen
 import com.music.vivi.ui.screens.playlist.LocalPlaylistScreen
 import com.music.vivi.ui.screens.playlist.OnlinePlaylistScreen
@@ -27,6 +29,8 @@ import com.music.vivi.ui.screens.playlist.TopPlaylistScreen
 import com.music.vivi.ui.screens.playlist.CachePlaylistScreen
 import com.music.vivi.ui.screens.search.OnlineSearchResult
 import com.music.vivi.ui.screens.settings.AboutScreen
+// NEU: Import
+import com.music.vivi.ui.screens.settings.AccountSettings
 import com.music.vivi.ui.screens.settings.AppearanceSettings
 import com.music.vivi.ui.screens.settings.AdaptiveSettingsScreen
 import com.music.vivi.ui.screens.settings.BackupAndRestore
@@ -301,6 +305,15 @@ fun NavGraphBuilder.navigationBuilder(
     }
     composable("settings/discord/login") {
         DiscordLoginScreen(navController)
+    }
+    
+    // NEU HINZUFÜGEN: Account Settings Route
+    composable("settings/account_settings") {
+        AccountSettings(
+            navController = navController,
+            onClose = { navController.popBackStack() },
+            latestVersionName = BuildConfig.VERSION_NAME
+        )
     }
 
     composable("settings/about") {
