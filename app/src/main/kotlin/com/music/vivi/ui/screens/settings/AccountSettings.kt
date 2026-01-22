@@ -72,6 +72,10 @@ fun AccountSettings(
 ) {
     val context = LocalContext.current
 
+    // **ÄNDERUNG: ViewModels zuerst initialisieren, damit sie weiter unten verwendet werden können**
+    val homeViewModel: HomeViewModel = hiltViewModel()
+    val accountSettingsViewModel: AccountSettingsViewModel = hiltViewModel()
+
     val (accountNamePref, onAccountNameChange) = rememberPreference(AccountNameKey, "")
     val (accountEmail, onAccountEmailChange) = rememberPreference(AccountEmailKey, "")
     val (accountChannelHandle, onAccountChannelHandleChange) = rememberPreference(AccountChannelHandleKey, "")
@@ -79,12 +83,11 @@ fun AccountSettings(
     val (visitorData, onVisitorDataChange) = rememberPreference(VisitorDataKey, "")
     val (dataSyncId, onDataSyncIdChange) = rememberPreference(DataSyncIdKey, "")
 
+    // Jetzt ist homeViewModel bekannt und kann hier verwendet werden
     val isLoggedIn by homeViewModel.isLoggedIn.collectAsState()
     val (useLoginForBrowse, onUseLoginForBrowseChange) = rememberPreference(UseLoginForBrowse, true)
     val (ytmSync, onYtmSyncChange) = rememberPreference(YtmSyncKey, true)
 
-    val homeViewModel: HomeViewModel = hiltViewModel()
-    val accountSettingsViewModel: AccountSettingsViewModel = hiltViewModel()
     val accountName by homeViewModel.accountName.collectAsState()
     val accountImageUrl by homeViewModel.accountImageUrl.collectAsState()
 
