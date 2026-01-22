@@ -73,7 +73,7 @@ import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.ListItemHeight
-import com.music.vivi.constants.StatPeriod
+import com.music.vivi.constants.MyTopFilter
 import com.music.vivi.db.entities.Song
 import com.music.vivi.extensions.toMediaItem
 import com.music.vivi.extensions.togglePlayPause
@@ -387,10 +387,11 @@ fun TopPlaylistScreen(
                                     onSortDescendingChange = { },
                                     sortTypeText = { period ->
                                         when (period) {
-                                            StatPeriod.ALL -> R.string.all_time
-                                            StatPeriod.MONTH_1 -> R.string.month
-                                            StatPeriod.WEEK_1 -> R.string.week
-                                            else -> R.string.all_time // Fallback for other periods
+                                            MyTopFilter.ALL_TIME -> R.string.all_time
+                                            MyTopFilter.MONTH -> R.string.month
+                                            MyTopFilter.WEEK -> R.string.week
+                                            MyTopFilter.DAY -> R.string.today
+                                            MyTopFilter.YEAR -> R.string.year
                                         }
                                     }
                                 )
