@@ -15,7 +15,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import com.music.vivi.R // Ensure R is imported
+import com.music.vivi.R
 import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
 import com.music.vivi.update.settingstyle.ModernInfoItem
 import com.music.vivi.updatesreen.UpdateStatus
@@ -52,7 +52,7 @@ fun SettingsListContent(
                         )
                     },
                     title = when (updateStatus) {
-                        is UpdateStatus.UpdateAvailable -> stringResource(R.string.update_available_title) // R.string might need import correction
+                        is UpdateStatus.UpdateAvailable -> stringResource(R.string.update_available_title)
                         is UpdateStatus.Loading -> stringResource(R.string.appupdate)
                         is UpdateStatus.Disabled -> stringResource(R.string.appupdate)
                         else -> stringResource(R.string.appupdate)
@@ -62,9 +62,8 @@ fun SettingsListContent(
                             stringResource(R.string.automatic_check_disabled, currentVersion)
                         }
                         is UpdateStatus.UpdateAvailable -> {
-                            // Assuming UpdateAvailable has latestVersion property based on original code
                             stringResource(
-                                R.string.version_now_available, 
+                                R.string.version_now_available,
                                 (updateStatus as UpdateStatus.UpdateAvailable).latestVersion
                             )
                         }
@@ -113,8 +112,8 @@ fun SettingsListContent(
                         if (isLoggedIn && accountImageUrl != null) {
                             AsyncImage(
                                 model = accountImageUrl,
-                                contentDescription = null, 
-                                modifier = Modifier.size(28.dp) // Assuming formatting
+                                contentDescription = null,
+                                modifier = Modifier.size(28.dp)
                             )
                         } else {
                             Icon(
@@ -128,7 +127,8 @@ fun SettingsListContent(
                     },
                     title = accountTitle,
                     subtitle = accountSubtitle,
-                    onClick = { onNavigate("settings/account_view") },
+                    // FIX: Route angepasst, damit sie mit NavigationBuilder übereinstimmt
+                    onClick = { onNavigate("settings/account_settings") }, 
                     showArrow = true,
                     iconBackgroundColor = iconBgColor,
                     iconContentColor = iconStyleColor
