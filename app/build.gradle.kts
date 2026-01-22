@@ -115,8 +115,11 @@ android {
     kotlin {
         jvmToolchain(21)
         compilerOptions {
-            freeCompilerArgs.add("-Xannotation-default-target=param-property")
+            freeCompilerArgs.add("-Xannotation-default-target=param-property"
+            "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
+            "-opt-in=kotlinx.coroutines.FlowPreview")
             jvmTarget.set(JvmTarget.JVM_21)
+
         }
     }
 
