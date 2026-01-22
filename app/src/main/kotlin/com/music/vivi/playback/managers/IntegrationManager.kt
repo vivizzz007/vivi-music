@@ -12,6 +12,8 @@ import com.music.vivi.constants.EnableDiscordRPCKey
 import com.music.vivi.constants.EnableLastFMScrobblingKey
 import com.music.vivi.constants.LastFMUseNowPlaying
 import com.music.vivi.constants.PowerSaverKey
+import com.music.vivi.constants.PowerSaverDiscordKey
+import com.music.vivi.constants.PowerSaverLastFMKey
 import com.music.vivi.constants.ScrobbleDelayPercentKey
 import com.music.vivi.constants.ScrobbleDelaySecondsKey
 import com.music.vivi.constants.ScrobbleMinSongDurationKey
@@ -226,4 +228,14 @@ class IntegrationManager @Inject constructor(
             }
         }
     }
+
+    fun stop(player: ExoPlayer) {
+        player.removeListener(this)
+        discordRpc?.closeRPC()
+        scrobbleManager?.destroy()
+        discordUpdateJob?.cancel()
+        scope = null
+        this.player = null
+    }
 }
+

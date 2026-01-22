@@ -87,6 +87,7 @@ import com.music.vivi.constants.MediaSessionConstants.CommandToggleStartRadio
 import com.music.vivi.constants.PauseListenHistoryKey
 import com.music.vivi.constants.PersistentQueueKey
 import com.music.vivi.constants.PowerSaverKey
+import com.music.vivi.constants.PowerSaverPauseOnZeroVolumeKey
 import com.music.vivi.constants.PlayerVolumeKey
 import com.music.vivi.constants.RepeatModeKey
 import com.music.vivi.constants.ShowLyricsKey
