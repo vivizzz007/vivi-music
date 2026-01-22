@@ -27,6 +27,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
@@ -37,6 +38,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,7 +62,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastSumBy
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadRequest
@@ -71,7 +73,7 @@ import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.ListItemHeight
-import com.music.vivi.constants.MyTopFilter
+import com.music.vivi.constants.StatPeriod
 import com.music.vivi.db.entities.Song
 import com.music.vivi.extensions.toMediaItem
 import com.music.vivi.extensions.togglePlayPause
@@ -89,9 +91,7 @@ import com.music.vivi.ui.menu.SelectionSongMenu
 import com.music.vivi.ui.menu.SongMenu
 import com.music.vivi.ui.utils.ItemWrapper
 import com.music.vivi.ui.utils.backToMain
-import com.music.vivi.ui.utils.makeTimeString
 import com.music.vivi.viewmodels.TopPlaylistViewModel
-import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -115,15 +115,13 @@ fun TopPlaylistScreen(
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
-    // KORREKTUR: StateFlows richtig einsammeln
     val topValue by viewModel.top.collectAsState()
-    val maxSize = topValue ?: "0" // Fallback, falls null
+    val maxSize = topValue ?: "0"
 
     val songs by viewModel.topSongs.collectAsState()
     
-    // KORREKTUR: Zugriff auf den Value der MutableStateFlow
     var topPeriod by remember { mutableStateOf(viewModel.topPeriod.value) }
-    // Update viewModel wenn sich der lokale State ändert
+    
     LaunchedEffect(topPeriod) {
         viewModel.topPeriod.value = topPeriod
     }
@@ -160,7 +158,7 @@ fun TopPlaylistScreen(
     val downloadUtil = LocalDownloadUtil.current
     val downloads by downloadUtil.downloads.collectAsState(emptyMap())
     
-    var downloadState by remember { androidx.compose.runtime.mutableIntStateOf(Download.STATE_STOPPED) }
+    var downloadState by remember { mutableIntStateOf(Download.STATE_STOPPED) }
 
     LaunchedEffect(songs) {
         mutableSongs.apply {
@@ -389,13 +387,13 @@ fun TopPlaylistScreen(
                                     onSortDescendingChange = { },
                                     sortTypeText = { period ->
                                         when (period) {
-                                            MyTopFilter.ALL_TIME -> R.string.all_time
-                                            MyTopFilter.MONTH -> R.string.month
-                                            MyTopFilter.WEEK -> R.string.week
-                                            MyTopFilter.TODAY -> R.string.today
+                                            StatPeriod.ALL_TIME -> R.string.all_time
+                                            StatPeriod.MONTH -> R.string.month
+                                            StatPeriod.WEEK -> R.string.week
+                                            StatPeriod.TODAY -> R.string.today
+                                            else -> R.string.all_time // Fallback for other periods
                                         }
-                                    },
-                                    icon = R.drawable.calendar // Optional: Custom icon if SortHeader supports it or wrap it
+                                    }
                                 )
                             }
                         }
