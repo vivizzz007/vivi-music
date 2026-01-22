@@ -130,8 +130,6 @@ import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.enumPreference
 import com.music.vivi.utils.get
 import com.music.vivi.utils.reportException
-import com.music.vivi.utils.get
-import com.music.vivi.utils.reportException
 import com.music.vivi.playback.managers.QueueManager
 import com.music.vivi.playback.managers.IntegrationManager
 import dagger.hilt.android.AndroidEntryPoint
@@ -356,6 +354,10 @@ class MusicService :
                     addAnalyticsListener(PlaybackStatsListener(false, this@MusicService))
                     setOffloadEnabled(dataStore.get(AudioOffload, false))
                 }
+
+        // --- FIX: Setzen des Players im QueueManager ---
+        queueManager.setPlayer(player)
+        // ----------------------------------------------
 
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         setupAudioFocusRequest()
