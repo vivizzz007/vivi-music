@@ -146,7 +146,7 @@ constructor(
                                 MusicService.RECOMMENDED,
                                 context.getString(R.string.quick_picks), // Using Quick Picks string for "Recommended" to match Home Tab
                                 null,
-                                drawableUri(R.drawable.sparkles),
+                                drawableUri(R.drawable.similar), // Geändert von R.drawable.sparkles
                                 MediaMetadata.MEDIA_TYPE_PLAYLIST,
                             ),
                             browsableMediaItem(
