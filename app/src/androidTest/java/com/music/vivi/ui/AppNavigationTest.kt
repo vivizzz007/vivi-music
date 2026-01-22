@@ -13,6 +13,15 @@ import org.junit.Test
 import com.music.vivi.R
 import androidx.test.platform.app.InstrumentationRegistry
 
+/**
+ * End-to-End (E2E) UI Tests for verifying the app's navigation structure.
+ *
+ * It uses:
+ * - [HiltAndroidRule] to inject dependencies.
+ * - [createAndroidComposeRule] to interact with Compose UI nodes.
+ *
+ * Covers: Home, Search, Library, and Settings navigation.
+ */
 @HiltAndroidTest
 class AppNavigationTest {
 

@@ -232,6 +232,16 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.ui.platform.LocalContext
 
+/**
+ * The single Activity of the application.
+ *
+ * It is responsible for:
+ * - Setting up the Jetpack Compose content ([setContent]).
+ * - Providing global CompositionLocals (Theme, Database, PlayerConnection).
+ * - Initializing global singletons like [DownloadNotificationManager].
+ * - Implementing the main [NavHost] for screen navigation.
+ * - Binding to the [MusicService] to control playback.
+ */
 @Suppress("DEPRECATION", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {

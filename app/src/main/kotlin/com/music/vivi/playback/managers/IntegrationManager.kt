@@ -48,6 +48,15 @@ object LastFM {
     const val DEFAULT_SCROBBLE_DELAY_SECONDS = 240
 }
 
+/**
+ * Manages external integrations and background observation tasks.
+ *
+ * Responsibilities include:
+ * 1. **Discord RPC**: Updates Discord status with current song info (using [DiscordRPC]).
+ * 2. **LastFM Scrobbling**: Reports "Now Playing" and "Scrobble" events to LastFM (using [ScrobbleManager]).
+ * 3. **DataStore Observation**: Listens to user preferences (like RPC enabled, Scrobble settings) and rebuilds
+ *    integration states dynamically.
+ */
 class IntegrationManager @Inject constructor(
     @ApplicationContext private val context: Context,
     private val dataStore: DataStore<Preferences>,
@@ -84,6 +93,12 @@ class IntegrationManager @Inject constructor(
         player.addListener(this)
     }
 
+    /**
+     * Watches DataStore for Discord settings changes and initializes/cleans up [DiscordRPC].
+     *
+     * It observes not just the "Enabled" flag, but also the "Power Saver" mode, which can
+     * override this feature to save battery.
+     */
     private fun setupDiscord(player: ExoPlayer) {
         scope?.launch {
             dataStore.data
