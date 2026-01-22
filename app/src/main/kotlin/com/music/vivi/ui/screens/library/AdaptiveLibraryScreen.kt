@@ -19,7 +19,6 @@ import com.music.vivi.ui.screens.playlist.TopPlaylistScreen
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-@Parcelize
 sealed class LibraryRoute : Parcelable {
     data class Artist(val id: String) : LibraryRoute()
     data class Album(val id: String) : LibraryRoute()
