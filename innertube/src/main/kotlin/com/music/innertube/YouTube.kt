@@ -1084,10 +1084,12 @@ object YouTube {
     }
 
     suspend fun accountInfo(): Result<AccountInfo> = runCatching {
-        innerTube.accountMenu(WEB_REMIX).body<AccountMenuResponse>()
-            .actions[0].openPopupAction.popup.multiPageMenuRenderer
-            .header?.activeAccountHeaderRenderer
-            ?.toAccountInfo()!!
+        val response = innerTube.accountMenu(WEB_REMIX).body<AccountMenuResponse>()
+        val renderer = response.actions.getOrNull(0)?.openPopupAction?.popup?.multiPageMenuRenderer
+            ?: throw IllegalStateException("Account menu renderer not found")
+        
+        renderer.header?.activeAccountHeaderRenderer?.toAccountInfo()
+            ?: throw IllegalStateException("Active account info not found in header")
     }
 
     suspend fun feedback(tokens: List<String>): Result<Boolean> = runCatching {
