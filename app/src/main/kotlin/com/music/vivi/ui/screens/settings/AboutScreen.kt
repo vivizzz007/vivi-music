@@ -275,7 +275,7 @@ fun AboutScreen(
                                 .padding(horizontal = 16.dp, vertical = 8.dp)
                         ) {
                             Text(
-                                text = "v${BuildConfig.VERSION_NAME} -alpha - Van Halen • Stable",
+                                text = "v${BuildConfig.VERSION_NAME} • Van Halen • Stable",
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.primary
                             )
