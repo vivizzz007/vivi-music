@@ -4,10 +4,12 @@ import android.os.Parcelable
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavController
 import com.music.vivi.ui.screens.AlbumScreen
 import com.music.vivi.ui.screens.artist.ArtistScreen
@@ -36,6 +38,15 @@ fun AdaptiveLibraryScreen(
 ) {
     // FIX: Changed generic type to Any to satisfy compiler expectation
     val navigator = rememberListDetailPaneScaffoldNavigator<Any>()
+
+    // Communicate detail pane visibility to MainActivity via savedStateHandle
+    // We only hide the global top bar if the detail pane is active AND the list pane is hidden (single pane mode)
+    val isDetailShown = navigator.currentDestination != null && 
+                       navigator.scaffoldValue[ListDetailPaneScaffoldRole.List] == PaneAdaptedValue.Hidden
+    
+    LaunchedEffect(isDetailShown) {
+        navController.currentBackStackEntry?.savedStateHandle?.set("is_detail_shown", isDetailShown)
+    }
 
     NavigableListDetailPaneScaffold(
         navigator = navigator,

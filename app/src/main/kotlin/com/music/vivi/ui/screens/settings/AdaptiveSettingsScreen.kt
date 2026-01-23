@@ -14,6 +14,7 @@ import com.music.vivi.ui.screens.settings.integrations.DiscordSettings
 import com.music.vivi.ui.screens.settings.integrations.IntegrationScreen
 import com.music.vivi.ui.screens.settings.integrations.LastFMSettings
 import com.music.vivi.ui.screens.settings.RomanizationSettings
+import com.music.vivi.updatesreen.ViviUpdatesScreen
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -49,8 +50,7 @@ fun AdaptiveSettingsScreen(
                     when (route) {
                         "settings/account_settings" -> AccountSettings(
                             navController = navController,
-                            onClose = { navigator.navigateBack() },
-                            latestVersionName = com.music.vivi.BuildConfig.VERSION_NAME
+                            onBack = { navigator.navigateBack() }
                         )
                         "settings/appearance" -> AppearanceSettings(navController, scrollBehavior, onBack = { navigator.navigateBack() })
                         "settings/player" -> PlayerSettings(navController, scrollBehavior, onBack = { navigator.navigateBack() })
@@ -65,6 +65,11 @@ fun AdaptiveSettingsScreen(
                         "settings/privacy" -> PrivacySettings(navController, scrollBehavior, onBack = { navigator.navigateBack() })
                         "settings/power_saver" -> PowerSaverSettings(navController, scrollBehavior, onBack = { navigator.navigateBack() })
                         "settings/about" -> AboutScreen(navController, scrollBehavior, onBack = { navigator.navigateBack() })
+                        "settings/software_updates" -> ViviUpdatesScreen(
+                            navController = navController,
+                            scrollBehavior = scrollBehavior,
+                            onBack = { navigator.navigateBack() }
+                        )
                         "settings/integrations" -> IntegrationScreen(navController, scrollBehavior, onBack = { navigator.navigateBack() })
                         "settings/integrations/discord" -> DiscordSettings(navController, scrollBehavior, onBack = { navigator.navigateBack() })
                         "settings/integrations/lastfm" -> LastFMSettings(navController, scrollBehavior, onBack = { navigator.navigateBack() })

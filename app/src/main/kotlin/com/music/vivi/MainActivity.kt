@@ -773,10 +773,14 @@ class MainActivity : ComponentActivity() {
                     }
 
                     var shouldShowTopBar by rememberSaveable { mutableStateOf(false) }
+                    val isDetailShown by navBackStackEntry?.savedStateHandle?.getStateFlow("is_detail_shown", false)?.collectAsState() ?: remember { mutableStateOf(false) }
 
-                    LaunchedEffect(navBackStackEntry) {
+                    LaunchedEffect(navBackStackEntry, isDetailShown) {
                         shouldShowTopBar =
-                            !active && navBackStackEntry?.destination?.route in topLevelScreens && navBackStackEntry?.destination?.route != "settings"
+                            !active && 
+                            navBackStackEntry?.destination?.route in topLevelScreens && 
+                            navBackStackEntry?.destination?.route != "settings" && 
+                            isDetailShown != true
                     }
 
                     val coroutineScope = rememberCoroutineScope()
@@ -1399,8 +1403,7 @@ class MainActivity : ComponentActivity() {
                                 onDismiss = {
                                     showAccountDialog = false
                                     homeViewModel.refresh()
-                                },
-                                latestVersionName = latestVersionName
+                                }
                             )
                         }
 

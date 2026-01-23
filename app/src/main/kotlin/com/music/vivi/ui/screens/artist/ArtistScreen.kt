@@ -37,7 +37,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -118,6 +117,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
@@ -131,11 +131,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import com.music.vivi.constants.ListItemHeight
-//this is more option in artist screen leading to here
-//artistscreen
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class,
-    ExperimentalMaterial3ExpressiveApi::class
-)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ArtistScreen(
     navController: NavController,
@@ -911,42 +907,43 @@ fun ArtistScreen(
                 .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
                 .align(Alignment.BottomCenter)
         )
-    }
 
-    TopAppBar(
-        title = { if (!transparentAppBar) Text(artistPage?.artist?.title.orEmpty()) },
-        navigationIcon = {
-            IconButton(
-                onClick = onBack,
-                onLongClick = navController::backToMain,
-            ) {
-                Icon(
-                    painterResource(R.drawable.arrow_back),
-                    contentDescription = null,
-                )
-            }
-        },
-        actions = {
-            IconButton(
-                onClick = {
-                    viewModel.artistPage?.artist?.shareLink?.let { link ->
-                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        val clip = ClipData.newPlainText(context.getString(R.string.artist_link), link)
-                        clipboard.setPrimaryClip(clip)
-                        Toast.makeText(context, R.string.link_copied, Toast.LENGTH_SHORT).show()
-                    }
-                },
-            ) {
-                Icon(
-                    painterResource(R.drawable.link),
-                    contentDescription = null,
-                )
-            }
-        },
-        colors = if (transparentAppBar) {
-            TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-        } else {
-            TopAppBarDefaults.topAppBarColors()
-        }
-    )
+        TopAppBar(
+            title = { if (!transparentAppBar) Text(artistPage?.artist?.title.orEmpty()) },
+            navigationIcon = {
+                IconButton(
+                    onClick = onBack,
+                    onLongClick = navController::backToMain,
+                ) {
+                    Icon(
+                        painterResource(R.drawable.arrow_back),
+                        contentDescription = null,
+                    )
+                }
+            },
+            actions = {
+                IconButton(
+                    onClick = {
+                        viewModel.artistPage?.artist?.shareLink?.let { link ->
+                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                            val clip = ClipData.newPlainText(context.getString(R.string.artist_link), link)
+                            clipboard.setPrimaryClip(clip)
+                            Toast.makeText(context, R.string.link_copied, Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                ) {
+                    Icon(
+                        painterResource(R.drawable.link),
+                        contentDescription = null,
+                    )
+                }
+            },
+            colors = if (transparentAppBar) {
+                TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+            } else {
+                TopAppBarDefaults.topAppBarColors()
+            },
+            scrollBehavior = scrollBehavior
+        )
+    }
 }

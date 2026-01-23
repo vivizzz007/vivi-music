@@ -594,8 +594,8 @@ fun AudioQualitySelector(context: Context) {
 
         val options = listOf(
             stringResource(R.string.audio_quality_auto),
-            stringResource(R.string.audio_quality_high),
             stringResource(R.string.audio_quality_very_high),
+            stringResource(R.string.audio_quality_high),
             stringResource(R.string.audio_quality_low)
         )
         val selectedIndex = when (audioQuality) {

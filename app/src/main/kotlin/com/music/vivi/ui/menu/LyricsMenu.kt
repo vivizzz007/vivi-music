@@ -92,6 +92,8 @@ fun LyricsMenu(
             onDismiss = { showEditDialog = false },
             icon = { Icon(painter = painterResource(R.drawable.edit), contentDescription = null) },
             title = { Text(text = mediaMetadataProvider().title) },
+            initialTextFieldValue = TextFieldValue(lyricsProvider()?.lyrics.orEmpty()),
+            singleLine = false,
             onDone = {
                 viewModel.updateLyrics(mediaMetadataProvider().id, it)
             },
@@ -332,6 +334,13 @@ fun LyricsMenu(
         cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
     )
 
+    val evenCornerRadiusElems = 26.dp
+    val playButtonShape = AbsoluteSmoothCornerShape(
+        cornerRadiusTR = evenCornerRadiusElems, smoothnessAsPercentBR = 60, cornerRadiusBR = evenCornerRadiusElems,
+        smoothnessAsPercentTL = 60, cornerRadiusTL = evenCornerRadiusElems, smoothnessAsPercentBL = 60,
+        cornerRadiusBL = evenCornerRadiusElems, smoothnessAsPercentTR = 60
+    )
+
     Column(
         modifier = Modifier
             .padding(16.dp)
@@ -350,28 +359,31 @@ fun LyricsMenu(
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             // Edit Button
-            FilledTonalButton(
+            MediumExtendedFloatingActionButton(
                 modifier = Modifier
                     .weight(0.5f)
                     .fillMaxHeight(),
                 onClick = {
                     showEditDialog = true
                 },
-                shape = singleShape,
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp)
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.edit),
-                    contentDescription = stringResource(R.string.edit_content_desc_menu),
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    text = stringResource(R.string.edit),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    softWrap = false
-                )
-            }
+                elevation = FloatingActionButtonDefaults.elevation(0.dp),
+                shape = playButtonShape,
+                icon = {
+                    Icon(
+                        painter = painterResource(R.drawable.edit),
+                        contentDescription = stringResource(R.string.edit_content_desc_menu),
+                    )
+                },
+                text = {
+                    Text(
+                        modifier = Modifier.padding(end = 10.dp),
+                        text = stringResource(R.string.edit),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        softWrap = false
+                    )
+                }
+            )
 
             // Refetch Button
             FilledTonalIconButton(

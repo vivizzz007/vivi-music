@@ -882,7 +882,12 @@ fun AppearanceSettings(
                                     }
                                     ModernSwitch(
                                         checked = dynamicTheme,
-                                        onCheckedChange = onDynamicThemeChange,
+                                        onCheckedChange = { checked ->
+                                            onDynamicThemeChange(checked)
+                                            if (!checked) {
+                                                onAccentColorChange(Color(0xFF4285F4).toArgb())
+                                            }
+                                        },
                                         modifier = Modifier.padding(end = 20.dp)
                                     )
                                 }

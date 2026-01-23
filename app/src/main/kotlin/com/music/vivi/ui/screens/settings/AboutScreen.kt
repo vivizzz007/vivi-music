@@ -127,6 +127,7 @@ fun AboutScreen(
 
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
+    val unknownString = stringResource(R.string.unknown)
     val scrollState = rememberLazyListState()
 
     var latestRelease by remember { mutableStateOf<String?>(null) }
@@ -149,7 +150,7 @@ fun AboutScreen(
             val installTime = packageInfo.firstInstallTime
             SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date(installTime))
         } catch (_: Exception) {
-            context.getString(R.string.unknown)
+            unknownString
         }
     }
 
@@ -274,7 +275,7 @@ fun AboutScreen(
                                 .padding(horizontal = 16.dp, vertical = 8.dp)
                         ) {
                             Text(
-                                text = "v${BuildConfig.VERSION_NAME} • Stable",
+                                text = "v${BuildConfig.VERSION_NAME} -alpha - Van Halen • Stable",
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.primary
                             )

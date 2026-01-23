@@ -286,7 +286,7 @@
     <string name="audio_quality">Audio quality</string>
     <string name="audio_quality_auto">Auto</string>
     <string name="audio_quality_high">High</string>
-    <string name="audio_quality_very_high">Very High</string>
+    <string name="audio_quality_very_high">Ultra</string>
     <string name="audio_quality_low">Low</string>
     <string name="queue">Queue</string>
     <string name="persistent_queue">Persistent queue</string>
@@ -362,4 +362,12 @@
     <string name="lyrics_line_spacing">Lyrics line spacing</string>
     <string name="lyrics_style">Lyrics Style</string>
     <string name="login_required_premium">YouTube Premium required for Very High Quality</string>
+    <string name="power_saver_pure_black">Force Pure Black / Dark Mode</string>
+    <string name="power_saver_high_refresh">Disable High Refresh Rate</string>
+    <string name="power_saver_discord">Disable Discord RPC</string>
+    <string name="power_saver_lastfm">Disable Last.fm Scrobbling</string>
+    <string name="power_saver_lyrics">Disable Lyrics Fetching</string>
+    <string name="power_saver_pause_on_zero_volume">Pause on Zero Volume</string>
+    <string name="lastfm_scrobbling">Last.fm Scrobbling</string>
+    <string name="actions">Actions</string>
 </resources>

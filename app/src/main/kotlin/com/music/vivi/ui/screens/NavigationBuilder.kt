@@ -1,5 +1,6 @@
 package com.music.vivi.ui.screens
 
+import com.music.vivi.ui.screens.settings.AccountSettings
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -30,7 +31,6 @@ import com.music.vivi.ui.screens.playlist.CachePlaylistScreen
 import com.music.vivi.ui.screens.search.OnlineSearchResult
 import com.music.vivi.ui.screens.settings.AboutScreen
 // NEW: Import
-import com.music.vivi.ui.screens.settings.AccountSettings
 import com.music.vivi.ui.screens.settings.AppearanceSettings
 import com.music.vivi.ui.screens.settings.AdaptiveSettingsScreen
 import com.music.vivi.ui.screens.settings.BackupAndRestore
@@ -309,11 +309,7 @@ fun NavGraphBuilder.navigationBuilder(
     
     // ADD NEW: Account Settings Route
     composable("settings/account_settings") {
-        AccountSettings(
-            navController = navController,
-            onClose = { navController.popBackStack() },
-            latestVersionName = BuildConfig.VERSION_NAME
-        )
+        AccountSettings(navController)
     }
 
     composable("settings/about") {

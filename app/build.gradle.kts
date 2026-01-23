@@ -19,8 +19,8 @@ android {
         applicationId = "com.vivi.vivimusic"
         minSdk = 26
         targetSdk = 36
-        versionCode = 21
-        versionName = "5.0.3-alpha - Van Halen"
+        versionCode = 61 //61 //21
+        versionName = "5.0.2"
 
         testInstrumentationRunner = "com.music.vivi.CustomTestRunner"
         vectorDrawables.useSupportLibrary = true
