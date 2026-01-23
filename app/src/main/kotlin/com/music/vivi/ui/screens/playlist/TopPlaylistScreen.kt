@@ -62,6 +62,24 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastSumBy
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.shape.CircleShape
+import coil3.compose.AsyncImage
+import android.content.Intent
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.media3.exoplayer.offline.Download
@@ -93,7 +111,9 @@ import com.music.vivi.ui.utils.ItemWrapper
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.viewmodels.TopPlaylistViewModel
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class
+)
 @Composable
 fun TopPlaylistScreen(
     navController: NavController,
@@ -119,6 +139,10 @@ fun TopPlaylistScreen(
     val maxSize = topValue ?: "0"
 
     val songs by viewModel.topSongs.collectAsState()
+
+    val likeLength = remember(songs) {
+        songs.fastSumBy { it.song.duration }
+    }
     
     var topPeriod by remember { mutableStateOf(viewModel.topPeriod.value) }
     
@@ -158,23 +182,11 @@ fun TopPlaylistScreen(
     val downloadUtil = LocalDownloadUtil.current
     val downloads by downloadUtil.downloads.collectAsState(emptyMap())
     
-    var downloadState by remember { mutableIntStateOf(Download.STATE_STOPPED) }
-
-    LaunchedEffect(songs) {
-        mutableSongs.apply {
-            clear()
-            addAll(songs)
-        }
-    }
-
-    LaunchedEffect(songs, downloads) {
+    val downloadState = remember(songs, downloads) {
         if (songs.isEmpty()) {
-            downloadState = Download.STATE_STOPPED
-            return@LaunchedEffect
-        }
-        
-        downloadState =
-            if (songs.all { downloads[it.song.id]?.state == Download.STATE_COMPLETED }) {
+            Download.STATE_STOPPED
+        } else {
+             if (songs.all { downloads[it.song.id]?.state == Download.STATE_COMPLETED }) {
                 Download.STATE_COMPLETED
             } else if (songs.all {
                     downloads[it.song.id]?.state == Download.STATE_QUEUED ||
@@ -186,6 +198,7 @@ fun TopPlaylistScreen(
             } else {
                 Download.STATE_STOPPED
             }
+        }
     }
 
     var showRemoveDownloadDialog by remember { mutableStateOf(false) }
@@ -239,7 +252,7 @@ fun TopPlaylistScreen(
 
     val transparentAppBar by remember {
         derivedStateOf {
-            state.firstVisibleItemIndex == 0 && state.firstVisibleItemScrollOffset < 10
+            state.firstVisibleItemIndex == 0 && state.firstVisibleItemScrollOffset < 200
         }
     }
 
@@ -248,18 +261,18 @@ fun TopPlaylistScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             state = state,
-            contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
+            contentPadding = LocalPlayerAwareWindowInsets.current.union(WindowInsets.ime).asPaddingValues(),
         ) {
             if (songs.isEmpty()) {
-                item {
+                item(key = "empty_placeholder") {
                     EmptyPlaceholder(
                         icon = R.drawable.music_note,
                         text = stringResource(R.string.playlist_is_empty),
                     )
                 }
             } else {
-                item {
-                    if (!isSearching) {
+                if (!isSearching) {
+                    item(key = "playlist_header") {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -268,14 +281,35 @@ fun TopPlaylistScreen(
                         ) {
                             Spacer(Modifier.height(50.dp))
 
-                            // Playlist Title with Logo Icon
+                            // Playlist Artwork
+                            if (songs.isNotEmpty()) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 48.dp)
+                                ) {
+                                    AsyncImage(
+                                        model = songs[0].song.thumbnailUrl,
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .aspectRatio(1f)
+                                            .clip(RoundedCornerShape(8.dp)),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+                            }
+
+                            Spacer(Modifier.height(32.dp))
+
+                            // Playlist Title with Logo
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.Center,
                                 modifier = Modifier.padding(horizontal = 32.dp)
                             ) {
                                 Icon(
-                                    painter = painterResource(R.drawable.stats),
+                                    painter = painterResource(R.drawable.featured_play_list),
                                     contentDescription = null,
                                     modifier = Modifier.size(30.dp),
                                     tint = MaterialTheme.colorScheme.onSurface
@@ -297,12 +331,40 @@ fun TopPlaylistScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 32.dp),
-                                horizontalArrangement = Arrangement.spacedBy(
-                                    12.dp,
-                                    Alignment.CenterHorizontally
-                                ),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
+                                // Add to Queue
+                                Surface(
+                                    onClick = {
+                                        playerConnection.addToQueue(
+                                            items = songs.map { it.toMediaItem() },
+                                        )
+                                    },
+                                    shape = RoundedCornerShape(24.dp),
+                                    color = MaterialTheme.colorScheme.surfaceVariant,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(vertical = 12.dp),
+                                        horizontalArrangement = Arrangement.Center,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.queue_music),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(20.dp),
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Spacer(Modifier.width(8.dp))
+                                        Text(
+                                            text = "Queue",
+                                            style = MaterialTheme.typography.labelLarge,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+
                                 // Play Button
                                 Surface(
                                     onClick = {
@@ -330,16 +392,184 @@ fun TopPlaylistScreen(
                                         )
                                         Spacer(Modifier.width(8.dp))
                                         Text(
-                                            text = stringResource(R.string.play),
+                                            text = "Play",
                                             style = MaterialTheme.typography.labelLarge,
                                             color = MaterialTheme.colorScheme.onPrimary
                                         )
                                     }
                                 }
 
-                                // Shuffle Button
+                                // Share Button
                                 Surface(
                                     onClick = {
+                                        val shareText = buildString {
+                                            append("Check out my Top $maxSize on Vivi Music!\n\n")
+                                            songs.take(5).forEachIndexed { index, song ->
+                                                append("${index + 1}. ${song.song.title}")
+                                                if (song.artists.isNotEmpty()) {
+                                                    append(" - ${song.artists.joinToString(", ") { it.name }}")
+                                                }
+                                                // Add YouTube Music link for each song
+                                                append("\nhttps://music.youtube.com/watch?v=${song.song.id}")
+                                                append("\n\n")
+                                            }
+                                            if (songs.size > 5) {
+                                                append("... and ${songs.size - 5} more tracks")
+                                            }
+                                        }
+                                        val intent = Intent().apply {
+                                            action = Intent.ACTION_SEND
+                                            type = "text/plain"
+                                            putExtra(Intent.EXTRA_TEXT, shareText)
+                                        }
+                                        context.startActivity(Intent.createChooser(intent, null))
+                                    },
+                                    shape = CircleShape,
+                                    color = MaterialTheme.colorScheme.surfaceVariant,
+                                    modifier = Modifier.size(48.dp)
+                                ) {
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier.fillMaxSize()
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.share),
+                                            contentDescription = "Share playlist",
+                                            modifier = Modifier.size(20.dp),
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            }
+
+                            Spacer(Modifier.height(24.dp))
+
+                            // Playlist Info
+                            Text(
+                                text = buildString {
+                                    append("Playlist • ")
+                                    val trackCount = songs.size
+                                    append(pluralStringResource(R.plurals.n_song, trackCount, trackCount))
+
+                                    val hours = likeLength / 3600
+                                    val minutes = (likeLength % 3600) / 60
+
+                                    if (hours > 0 && minutes > 0) {
+                                        append(" • $hours hour${if (hours > 1) "s" else ""} $minutes minute${if (minutes > 1) "s" else ""}")
+                                    } else if (hours > 0) {
+                                        append(" • $hours hour${if (hours > 1) "s" else ""}")
+                                    } else {
+                                        append(" • $minutes minute${if (minutes > 1) "s" else ""}")
+                                    }
+                                },
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 32.dp)
+                            )
+
+                            Spacer(Modifier.height(16.dp))
+
+                            // Playlist Description
+                            Text(
+                                text = "Your most played tracks based on your listening history. This dynamic playlist updates as you discover new music.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Start,
+                                modifier = Modifier.padding(horizontal = 32.dp),
+                                maxLines = 3,
+                                overflow = TextOverflow.Ellipsis
+                            )
+
+                            Spacer(Modifier.height(24.dp))
+
+                            // Download and Shuffle buttons
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 32.dp),
+                                horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+                            ) {
+                                // Download Button
+                                ToggleButton(
+                                    checked = downloadState == Download.STATE_COMPLETED || downloadState == Download.STATE_DOWNLOADING,
+                                    onCheckedChange = {
+                                        when (downloadState) {
+                                            Download.STATE_COMPLETED -> {
+                                                showRemoveDownloadDialog = true
+                                            }
+                                            Download.STATE_DOWNLOADING -> {
+                                                songs.forEach { song ->
+                                                    DownloadService.sendRemoveDownload(
+                                                        context,
+                                                        ExoDownloadService::class.java,
+                                                        song.song.id,
+                                                        false,
+                                                    )
+                                                }
+                                            }
+                                            else -> {
+                                                songs.forEach { song ->
+                                                    val downloadRequest =
+                                                        DownloadRequest
+                                                            .Builder(
+                                                                song.song.id,
+                                                                song.song.id.toUri()
+                                                            )
+                                                            .setCustomCacheKey(song.song.id)
+                                                            .setData(song.song.title.toByteArray())
+                                                            .build()
+                                                    DownloadService.sendAddDownload(
+                                                        context,
+                                                        ExoDownloadService::class.java,
+                                                        downloadRequest,
+                                                        false,
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    },
+                                    modifier = Modifier.weight(1f).semantics { role = Role.Button },
+                                    shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
+                                ) {
+                                    when (downloadState) {
+                                        Download.STATE_COMPLETED -> {
+                                            Icon(
+                                                painter = painterResource(R.drawable.offline),
+                                                contentDescription = "saved",
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
+                                        Download.STATE_DOWNLOADING -> {
+                                            CircularProgressIndicator(
+                                                strokeWidth = 2.dp,
+                                                modifier = Modifier.size(16.dp),
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
+                                        else -> {
+                                            Icon(
+                                                painter = painterResource(R.drawable.download),
+                                                contentDescription = "save",
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
+                                    }
+                                    Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
+                                    Text(
+                                        text = when (downloadState) {
+                                            Download.STATE_COMPLETED -> "saved"
+                                            Download.STATE_DOWNLOADING -> "saving"
+                                            else -> "save"
+                                        },
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
+                                }
+
+                                // Shuffle Button
+                                ToggleButton(
+                                    checked = false,
+                                    onCheckedChange = {
                                         playerConnection.playQueue(
                                             ListQueue(
                                                 title = "$playlistTitle $maxSize",
@@ -347,56 +577,43 @@ fun TopPlaylistScreen(
                                             ),
                                         )
                                     },
-                                    shape = RoundedCornerShape(24.dp),
-                                    color = MaterialTheme.colorScheme.surfaceVariant,
-                                    modifier = Modifier.weight(1f)
+                                    modifier = Modifier.weight(1f).semantics { role = Role.Button },
+                                    shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
                                 ) {
-                                    Row(
-                                        modifier = Modifier.padding(vertical = 12.dp),
-                                        horizontalArrangement = Arrangement.Center,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(R.drawable.shuffle),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(20.dp),
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        Spacer(Modifier.width(8.dp))
-                                        Text(
-                                            text = stringResource(R.string.shuffle),
-                                            style = MaterialTheme.typography.labelLarge,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
+                                    Icon(
+                                        painter = painterResource(R.drawable.shuffle),
+                                        contentDescription = "Shuffle",
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
+                                    Text("Shuffle", style = MaterialTheme.typography.labelMedium)
                                 }
                             }
 
-                            Spacer(Modifier.height(16.dp))
-                            
-                            // Period Filter
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                            ) {
-                                SortHeader(
-                                    sortType = topPeriod,
-                                    sortDescending = false, // Not used for this filter
-                                    onSortTypeChange = { topPeriod = it },
-                                    onSortDescendingChange = { },
-                                    sortTypeText = { period ->
-                                        when (period) {
-                                            MyTopFilter.ALL_TIME -> R.string.all_time
-                                            MyTopFilter.MONTH -> R.string.month
-                                            MyTopFilter.WEEK -> R.string.week
-                                            MyTopFilter.DAY -> R.string.today
-                                            MyTopFilter.YEAR -> R.string.year
-                                        }
-                                    }
-                                )
-                            }
                         }
+                    }
+                }
+
+                item(key = "songs_header") {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp),
+                    ) {
+                        SortHeader(
+                            sortType = topPeriod,
+                            sortDescending = false, // Not used for this filter
+                            onSortTypeChange = { topPeriod = it },
+                            onSortDescendingChange = { },
+                            sortTypeText = { period ->
+                                when (period) {
+                                    MyTopFilter.ALL_TIME -> R.string.all_time
+                                    MyTopFilter.MONTH -> R.string.month
+                                    MyTopFilter.WEEK -> R.string.week
+                                    MyTopFilter.DAY -> R.string.today
+                                    MyTopFilter.YEAR -> R.string.year
+                                }
+                            }
+                        )
                     }
                 }
 
