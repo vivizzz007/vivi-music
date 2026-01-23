@@ -914,9 +914,6 @@
     <!-- Changelog -->
     <string name="changes_default">Changements</string>
 
-    <!-- Changelog -->
-    <string name="changes_default">Changements</string>
-
     <!-- Download Notifications -->
     <string name="downloading_update">Téléchargement de la mise à jour</string>
     <string name="version_file_size">Version %1$s • %2$s</string>
@@ -1154,5 +1151,3 @@
     <string name="next_action">Suivant</string>
     <string name="previous_action">Précédent</string>
 </resources>
-
-        
