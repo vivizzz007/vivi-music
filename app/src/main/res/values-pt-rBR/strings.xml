@@ -356,10 +356,7 @@
     <string name="lyrics_style">Estilo das Letras</string>
     <string name="login_required_premium">YouTube Premium necessário para Muito Alta Qualidade</string>
     <!-- Power Saver -->
-    <string name="power_saver">Economia de Energia</string>
-    <string name="power_saver_description">Ative a Economia de Energia para prolongar a vida útil da bateria reduzindo o desempenho e desativando recursos em segundo plano.</string>
-    <string name="enable_power_saver">Ativar Economia de Energia</string>
-    <string name="power_saver_subtitle">Reduz efeitos visuais e atividade em segundo plano</string>
+
     <string name="estimated_power_saved">Economia de energia estimada</string>
     <string name="disable_animations">Desativar animações</string>
     <string name="disable_animations_desc">Reduz o uso da bateria desativando efeitos visuais</string>
