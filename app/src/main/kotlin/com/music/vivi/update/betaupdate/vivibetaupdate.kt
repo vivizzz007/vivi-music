@@ -107,6 +107,8 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -315,7 +317,7 @@ class DpiSettingsViewModel @Inject constructor(
                         }
 
                         try {
-                            val releases = json.decodeFromString<List<GitHubRelease>>(jsonString)
+                            val releases = this@DpiSettingsViewModel.json.decodeFromString<List<GitHubRelease>>(jsonString)
 
                             Log.d("DpiSettingsViewModel", "Total releases found: ${releases.size}")
 
