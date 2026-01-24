@@ -118,7 +118,7 @@ import java.util.TimeZone
 import java.util.concurrent.TimeUnit
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "dpi_settings")
 

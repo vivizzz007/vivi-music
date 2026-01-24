@@ -28,13 +28,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -266,7 +266,7 @@ fun UpdateScreen(navController: NavHostController) {
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(
-                            Icons.Default.ArrowBack,
+                            Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.back_content_desc),
                             tint = MaterialTheme.colorScheme.onSurface
                         )
@@ -784,7 +784,7 @@ fun UpdateScreen(navController: NavHostController) {
 
                                 ////
                                 Spacer(modifier = Modifier.height(15.dp))
-                                Divider(
+                                HorizontalDivider(
                                     modifier = Modifier.padding(vertical = 8.dp),
                                     color = MaterialTheme.colorScheme.outlineVariant,
                                     thickness = 2.dp
