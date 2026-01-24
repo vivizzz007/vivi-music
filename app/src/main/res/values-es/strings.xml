@@ -240,7 +240,7 @@
     <string name="dark_theme_off">Desactivado</string>
     <string name="dark_theme_follow_system">sistema</string>
     <string name="pure_black">Negro puro</string>
-    <string name="use_pure_black_dark_theme">Usar negro puro para el tema oscuro. Recomendado para pantallas OLED para ahorrar batería.</string>
+
     <string name="customize_navigation_tabs">Personalizar pestañas de navegación</string>
     <string name="player">Reproductor</string>
     <string name="player_text_alignment">Alineación de texto del reproductor</string>
