@@ -246,6 +246,8 @@
     <string name="player_slider_style">플레이어 슬라이더 스타일</string>
     <string name="default_">기본</string>
     <string name="wavy">물결</string>
+    <string name="squiggly">구불구불</string>
+    <string name="slim">슬림</string>
     <string name="misc">기타</string>
     <string name="default_open_tab">기본 시작 탭</string>
     <string name="grid_cell_size">그리드 셀 크기</string>
@@ -345,4 +347,5 @@
     <string name="lyrics_text_size">가사 텍스트 크기</string>
     <string name="lyrics_line_spacing">가사 줄 간격</string>
     <string name="lyrics_style">가사 스타일</string>
+    <string name="login_required_premium">매우 높은 품질을 사용하려면 YouTube Premium이 필요합니다</string>
 </resources>

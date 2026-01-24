@@ -11,6 +11,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
@@ -20,17 +23,25 @@ class TopPlaylistViewModel
 @Inject
 constructor(
     @ApplicationContext context: Context,
-    database: MusicDatabase,
+    private val database: MusicDatabase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    val top = savedStateHandle.get<String>("top")!!
+    private val _top = MutableStateFlow(savedStateHandle.get<String>("top"))
+    val top = _top.asStateFlow()
 
     val topPeriod = MutableStateFlow(MyTopFilter.ALL_TIME)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val topSongs =
-        topPeriod
-            .flatMapLatest { period ->
-                database.mostPlayedSongs(period.toTimeMillis(), top.toInt())
-            }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+        combine(topPeriod, _top.filterNotNull()) { period, topVal ->
+            Pair(period, topVal)
+        }.flatMapLatest { (period, topVal) ->
+            database.mostPlayedSongs(period.toTimeMillis(), topVal.toInt())
+        }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    fun setTop(topParam: String) {
+        if (_top.value != topParam) {
+            _top.value = topParam
+        }
+    }
 }

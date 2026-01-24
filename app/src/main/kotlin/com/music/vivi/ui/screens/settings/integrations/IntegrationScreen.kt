@@ -47,6 +47,7 @@ import androidx.compose.runtime.remember
 fun IntegrationScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    onBack: (() -> Unit)? = null,
 ) {
     val (settingsShapeTertiary, _) = rememberPreference(SettingsShapeColorTertiaryKey, false)
     val (darkMode, _) = rememberEnumPreference(
@@ -89,7 +90,7 @@ fun IntegrationScreen(
                 },
                 navigationIcon = {
                     IconButton(
-                        onClick = navController::navigateUp,
+                        onClick = { onBack?.invoke() ?: navController.navigateUp() },
                         onLongClick = navController::backToMain
                     ) {
                         Icon(

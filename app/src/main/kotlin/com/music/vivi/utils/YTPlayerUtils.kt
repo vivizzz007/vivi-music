@@ -250,8 +250,15 @@ object YTPlayerUtils {
             ?.filter { it.isAudio && it.isOriginal }
             ?.maxByOrNull {
                 it.bitrate * when (audioQuality) {
-                    AudioQuality.AUTO -> if (connectivityManager.isActiveNetworkMetered) -1 else 1
+                    // Update Auto to always use best available (prioritize high bitrate/opus)
+                    AudioQuality.AUTO -> {
+                         if (it.itag == 774) 100 else 2
+                    }
                     AudioQuality.HIGH -> 1
+                    AudioQuality.VERY_HIGH -> {
+                        // Prioritize ITAG 774 (256kbps Opus) slightly more than others, but generally prefer higher bitrate
+                        if (it.itag == 774) 100 else 2
+                    }
                     AudioQuality.LOW -> -1
                 } + (if (it.mimeType.startsWith("audio/webm")) 10240 else 0) // prefer opus stream
             }

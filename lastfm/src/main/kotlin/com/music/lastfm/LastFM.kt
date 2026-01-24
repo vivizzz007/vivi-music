@@ -121,9 +121,9 @@ object LastFM {
      * @param secret LastFM secret key
      */
 
-    fun initialize() {
-        API_KEY = "694cbaa17c78202a133eac4656dff651"
-        SECRET = "a0fdaf6060f19128c4a84f297c71e627"
+    fun initialize(apiKey: String = "", secret: String = "") {
+        API_KEY = apiKey.ifBlank { "694cbaa17c78202a133eac4656dff651" }
+        SECRET = secret.ifBlank { "a0fdaf6060f19128c4a84f297c71e627" }
     }
 
     const val DEFAULT_SCROBBLE_DELAY_PERCENT = 0.5f

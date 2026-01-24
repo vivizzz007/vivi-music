@@ -255,7 +255,9 @@
     <string name="right">Rechts</string>
     <string name="player_slider_style">Stil des Fortschrittsbalkens</string>
     <string name="default_">Standard</string>
+    <string name="wavy">Wellenförmig</string>
     <string name="squiggly">Geschlängelt</string>
+    <string name="slim">Schmal</string>
     <string name="misc">Verschiedenes</string>
     <string name="default_open_tab">Standard-Tab beim Öffnen</string>
     <string name="grid_cell_size">Größe der Gitterzellen</string>
@@ -355,4 +357,5 @@
     <string name="lyrics_text_size">Textgröße</string>
     <string name="lyrics_line_spacing">Zeilenabstand</string>
     <string name="lyrics_style">Textstil</string>
+    <string name="login_required_premium">YouTube Premium für sehr hohe Qualität erforderlich</string>
 </resources>

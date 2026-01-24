@@ -254,11 +254,18 @@
     <string name="player_slider_style">Player slider style</string>
     <string name="default_">Default</string>
     <string name="wavy">Wavy</string>
+    <string name="squiggly">Squiggly</string>
+    <string name="slim">Slim</string>
     <string name="misc">Misc</string>
     <string name="default_open_tab">Default open tab</string>
     <string name="grid_cell_size">Grid cell size</string>
     <string name="small">Small</string>
     <string name="big">Big</string>
+
+    <string name="power_saver">Power Saver</string>
+    <string name="power_saver_description">Enable Power Saver to extend battery life by reducing performance and disabling background features.</string>
+    <string name="enable_power_saver">Enable Power Saver</string>
+    <string name="power_saver_subtitle">Reduces visual effects and background activity</string>
 
     <string name="content">Content</string>
     <string name="action_logout">Log out</string>
@@ -279,6 +286,7 @@
     <string name="audio_quality">Audio quality</string>
     <string name="audio_quality_auto">Auto</string>
     <string name="audio_quality_high">High</string>
+    <string name="audio_quality_very_high">Ultra</string>
     <string name="audio_quality_low">Low</string>
     <string name="queue">Queue</string>
     <string name="persistent_queue">Persistent queue</string>
@@ -353,4 +361,13 @@
     <string name="lyrics_text_size">Lyrics text size</string>
     <string name="lyrics_line_spacing">Lyrics line spacing</string>
     <string name="lyrics_style">Lyrics Style</string>
+    <string name="login_required_premium">YouTube Premium required for Very High Quality</string>
+    <string name="power_saver_pure_black">Force Pure Black / Dark Mode</string>
+    <string name="power_saver_high_refresh">Disable High Refresh Rate</string>
+    <string name="power_saver_discord">Disable Discord RPC</string>
+    <string name="power_saver_lastfm">Disable Last.fm Scrobbling</string>
+    <string name="power_saver_lyrics">Disable Lyrics Fetching</string>
+    <string name="power_saver_pause_on_zero_volume">Pause on Zero Volume</string>
+    <string name="lastfm_scrobbling">Last.fm Scrobbling</string>
+    <string name="actions">Actions</string>
 </resources>
