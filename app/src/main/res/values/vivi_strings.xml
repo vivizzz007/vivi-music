@@ -623,6 +623,9 @@
     <string name="high_refresh_rate_desc">Enable 120Hz/Peak refresh rate for smoother animations</string>
 
     <string name="developer_name">VIVIDH P ASHOKAN</string>
+    <string name="collaborator_section">COLLABORATOR</string>
+    <string name="collaborator_tboyke">T-Boyke</string>
+    <string name="collaborator_role">Collaborator</string>
     <string name="app_developer">App Developer</string>
     <string name="installed_date_title">Installed Date</string>
     <string name="view_version_history">View version history</string>

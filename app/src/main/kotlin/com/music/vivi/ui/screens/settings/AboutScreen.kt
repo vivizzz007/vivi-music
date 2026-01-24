@@ -387,6 +387,44 @@ fun AboutScreen(
                     )
                 }
 
+                // Collaborator Section
+                item {
+                    Text(
+                        text = stringResource(R.string.collaborator_section),
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
+                    )
+                }
+
+                item {
+                    Material3ExpressiveSettingsGroup(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        items = listOf {
+                            ModernInfoItem(
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.person),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                },
+                                title = stringResource(R.string.collaborator_tboyke),
+                                subtitle = stringResource(R.string.collaborator_role),
+                                onClick = { uriHandler.openUri("https://github.com/T-Boyke") },
+                                showArrow = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
+                            )
+                        }
+                    )
+                }
+
                 // App Information Section
                 item {
                     Text(
