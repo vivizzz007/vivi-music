@@ -116,7 +116,40 @@ fun PowerSaverSettings(
                     }
 
                     if (powerSaver) {
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Statistic Card
+                        val savedPower = 20 + // Base
+                                (if (rememberPreference(com.music.vivi.constants.PowerSaverPureBlackKey, true).value) 15 else 0) +
+                                (if (rememberPreference(com.music.vivi.constants.PowerSaverHighRefreshRateKey, true).value) 15 else 0) +
+                                (if (rememberPreference(com.music.vivi.constants.PowerSaverAnimationsKey, true).value) 10 else 0) +
+                                (if (rememberPreference(com.music.vivi.constants.PowerSaverDiscordKey, true).value) 5 else 0) +
+                                (if (rememberPreference(com.music.vivi.constants.PowerSaverLastFMKey, true).value) 5 else 0) +
+                                (if (rememberPreference(com.music.vivi.constants.PowerSaverLyricsKey, true).value) 5 else 0)
+
+                        androidx.compose.material3.Card(
+                            colors = androidx.compose.material3.CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                            ),
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(
+                                    text = stringResource(R.string.estimated_power_saved),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "~$savedPower%",
+                                    style = MaterialTheme.typography.displaySmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    
                         Text(
                             text = "Actions",
                             style = MaterialTheme.typography.titleMedium,
@@ -129,11 +162,17 @@ fun PowerSaverSettings(
                             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = "Force Pure Black / Dark Mode",
-                                modifier = Modifier.weight(1f),
-                                style = MaterialTheme.typography.bodyLarge
-                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(R.string.pure_black),
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                                Text(
+                                    text = stringResource(R.string.use_pure_black_dark_theme), // This string now contains the OLED recommendation
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                             ModernSwitch(checked = powerSaverPureBlack, onCheckedChange = onPowerSaverPureBlackChange)
                         }
 
@@ -148,6 +187,25 @@ fun PowerSaverSettings(
                                 style = MaterialTheme.typography.bodyLarge
                             )
                             ModernSwitch(checked = powerSaverHighRefresh, onCheckedChange = onPowerSaverHighRefreshChange)
+                        }
+
+                        val (powerSaverAnimations, onPowerSaverAnimationsChange) = rememberPreference(com.music.vivi.constants.PowerSaverAnimationsKey, defaultValue = true)
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(R.string.disable_animations),
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                                Text(
+                                    text = stringResource(R.string.disable_animations_desc),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            ModernSwitch(checked = powerSaverAnimations, onCheckedChange = onPowerSaverAnimationsChange)
                         }
 
                         val (powerSaverDiscord, onPowerSaverDiscordChange) = rememberPreference(com.music.vivi.constants.PowerSaverDiscordKey, defaultValue = true)

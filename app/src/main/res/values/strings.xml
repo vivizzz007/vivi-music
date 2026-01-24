@@ -243,6 +243,7 @@
     <string name="dark_theme_off">Off</string>
     <string name="dark_theme_follow_system">system</string>
     <string name="pure_black">Pure black</string>
+    <string name="use_pure_black_dark_theme">Use pure black for dark theme. Recommended for OLED screens to save battery.</string>
     <string name="customize_navigation_tabs">Customize navigation tabs</string>
     <string name="player">Player</string>
     <string name="player_text_alignment">Player text alignment</string>
@@ -266,6 +267,10 @@
     <string name="power_saver_description">Enable Power Saver to extend battery life by reducing performance and disabling background features.</string>
     <string name="enable_power_saver">Enable Power Saver</string>
     <string name="power_saver_subtitle">Reduces visual effects and background activity</string>
+    <string name="estimated_power_saved">Estimated Power Saved</string>
+    <string name="disable_animations">Disable Animations</string>
+    <string name="disable_animations_desc">Reduces battery usage by disabling visual effects</string>
+
 
     <string name="content">Content</string>
     <string name="action_logout">Log out</string>

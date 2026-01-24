@@ -349,4 +349,12 @@
     <string name="lyrics_line_spacing">गीत लाइन रिक्ति</string>
     <string name="lyrics_style">गीत शैली</string>
     <string name="login_required_premium">बहुत उच्च गुणवत्ता के लिए YouTube Premium आवश्यक है</string>
+    <!-- Power Saver -->
+    <string name="power_saver">पावर सेवर</string>
+    <string name="power_saver_description">प्रदर्शन को कम करके और पृष्ठभूमि सुविधाओं को अक्षम करके बैटरी जीवन को बढ़ाने के लिए पावर सेवर सक्षम करें।</string>
+    <string name="enable_power_saver">पावर सेवर सक्षम करें</string>
+    <string name="power_saver_subtitle">दृश्य प्रभाव और पृष्ठभूमि गतिविधि को कम करता है</string>
+    <string name="estimated_power_saved">अनुमानित बिजली बचत</string>
+    <string name="disable_animations">एनिमेशन अक्षम करें</string>
+    <string name="disable_animations_desc">दृश्य प्रभावों को अक्षम करके बैटरी का उपयोग कम करता है</string>
 </resources>

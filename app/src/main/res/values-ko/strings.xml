@@ -348,4 +348,12 @@
     <string name="lyrics_line_spacing">가사 줄 간격</string>
     <string name="lyrics_style">가사 스타일</string>
     <string name="login_required_premium">매우 높은 품질을 사용하려면 YouTube Premium이 필요합니다</string>
+    <!-- Power Saver -->
+    <string name="power_saver">절전 모드</string>
+    <string name="power_saver_description">성능을 낮추고 백그라운드 기능을 비활성화하여 배터리 수명을 연장하려면 절전 모드를 활성화하세요.</string>
+    <string name="enable_power_saver">절전 모드 활성화</string>
+    <string name="power_saver_subtitle">시각 효과 및 백그라운드 활동 감소</string>
+    <string name="estimated_power_saved">예상 전력 절감</string>
+    <string name="disable_animations">애니메이션 비활성화</string>
+    <string name="disable_animations_desc">시각 효과를 비활성화하여 배터리 사용량을 줄입니다</string>
 </resources>
