@@ -47,11 +47,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -162,7 +164,10 @@ import kotlin.time.Duration.Companion.seconds
 fun Lyrics(
     sliderPositionProvider: () -> Long?,
     modifier: Modifier = Modifier,
-    playingPosition: Long? = null
+    playingPosition: Long? = null,
+    showResyncButton: Boolean = true,
+    resyncTrigger: Int = 0,
+    onAutoScrollChange: (Boolean) -> Unit = {}
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val menuState = LocalMenuState.current
@@ -443,6 +448,74 @@ fun Lyrics(
     var isAnimating by remember { mutableStateOf(false) }
     var isAutoScrollActive by remember { mutableStateOf(true) }
 
+    LaunchedEffect(isAutoScrollActive) {
+        onAutoScrollChange(isAutoScrollActive)
+    }
+
+    // Apple Music style scrolling - keep active line at preferred position with smooth movement
+    suspend fun performSmoothTopScroll(targetIndex: Int, duration: Int = 1000) {
+        if (isAnimating || targetIndex < 0) return
+        isAnimating = true
+        try {
+            val itemInfo = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
+            val viewportHeight = lazyListState.layoutInfo.viewportEndOffset - lazyListState.layoutInfo.viewportStartOffset
+
+            if (itemInfo != null) {
+                val targetTopPosition = if (lyricsVerticalPosition == LyricsVerticalPosition.CENTER) {
+                    lazyListState.layoutInfo.viewportStartOffset + (viewportHeight / 2) - (itemInfo.size / 2)
+                } else {
+                    lazyListState.layoutInfo.viewportStartOffset + 100
+                }
+
+                val currentItemTop = itemInfo.offset
+                val scrollOffset = currentItemTop - targetTopPosition
+
+                if (kotlin.math.abs(scrollOffset) > 10) {
+                    lazyListState.animateScrollBy(
+                        value = scrollOffset.toFloat(),
+                        animationSpec = tween(durationMillis = duration, easing = FastOutSlowInEasing)
+                    )
+                }
+            } else {
+                // Item not visible, scroll to it first then adjust position
+                lazyListState.scrollToItem(index = targetIndex)
+                
+                // Now get the item info after scrolling
+                val newItemInfo = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
+                if (newItemInfo != null) {
+                    val targetTopPosition = if (lyricsVerticalPosition == LyricsVerticalPosition.CENTER) {
+                        lazyListState.layoutInfo.viewportStartOffset + (viewportHeight / 2) - (newItemInfo.size / 2)
+                    } else {
+                        lazyListState.layoutInfo.viewportStartOffset + 100
+                    }
+                    
+                    val currentItemTop = newItemInfo.offset
+                    val scrollOffset = currentItemTop - targetTopPosition
+                    
+                    if (kotlin.math.abs(scrollOffset) > 10) {
+                        lazyListState.animateScrollBy(
+                            value = scrollOffset.toFloat(),
+                            animationSpec = tween(durationMillis = duration, easing = FastOutSlowInEasing)
+                        )
+                    }
+                }
+            }
+        } finally {
+            isAnimating = false
+        }
+    }
+
+    // Handle external resync trigger
+    LaunchedEffect(resyncTrigger) {
+        if (resyncTrigger > 0) {
+            isAutoScrollActive = true
+            if (currentLineIndex != -1) {
+                performSmoothTopScroll(currentLineIndex, 1000)
+            }
+        }
+    }
+
+
     // Handle back button press - close selection mode instead of exiting screen
     BackHandler(enabled = isSelectionModeActive) {
         isSelectionModeActive = false
@@ -492,6 +565,8 @@ fun Lyrics(
         isAutoScrollActive = true
     }
 
+
+
     // Use rememberUpdatedState to ensure the latest playingPosition is used inside the loop
     val currentPlayingPosition by androidx.compose.runtime.rememberUpdatedState(playingPosition)
 
@@ -522,84 +597,29 @@ fun Lyrics(
         }
     }
 
-    // Apple Music style scrolling - keep active line at top of screen with smooth movement
-    suspend fun performSmoothTopScroll(targetIndex: Int, duration: Int = 1000) {
-        if (isAnimating || targetIndex < 0) return
 
-        isAnimating = true
 
-        try {
-            val itemInfo = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
-            val viewportHeight = lazyListState.layoutInfo.viewportEndOffset - lazyListState.layoutInfo.viewportStartOffset
-
-            if (itemInfo != null) {
-                val targetTopPosition = if (lyricsVerticalPosition == LyricsVerticalPosition.CENTER) {
-                    lazyListState.layoutInfo.viewportStartOffset + (viewportHeight / 2) - (itemInfo.size / 2)
-                } else {
-                    lazyListState.layoutInfo.viewportStartOffset + 100
-                }
-
-                val currentItemTop = itemInfo.offset
-                val scrollOffset = currentItemTop - targetTopPosition
-
-                if (kotlin.math.abs(scrollOffset) > 10) {
-                    lazyListState.animateScrollBy(
-                        value = scrollOffset.toFloat(),
-                        animationSpec = tween(
-                            durationMillis = duration,
-                            easing = FastOutSlowInEasing
-                        )
-                    )
-                }
-            } else {
-                // Item not visible, scroll to it first then adjust position
-                lazyListState.scrollToItem(index = targetIndex)
-                
-                // Now get the item info after scrolling
-                val itemInfo = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
-                if (itemInfo != null) {
-                    val viewportHeight = lazyListState.layoutInfo.viewportEndOffset - lazyListState.layoutInfo.viewportStartOffset
-                    val targetTopPosition = if (lyricsVerticalPosition == LyricsVerticalPosition.CENTER) {
-                        lazyListState.layoutInfo.viewportStartOffset + (viewportHeight / 2) - (itemInfo.size / 2)
-                    } else {
-                        lazyListState.layoutInfo.viewportStartOffset + 100
-                    }
-                    
-                    val currentItemTop = itemInfo.offset
-                    val scrollOffset = currentItemTop - targetTopPosition
-                    
-                    if (kotlin.math.abs(scrollOffset) > 10) {
-                        lazyListState.animateScrollBy(
-                            value = scrollOffset.toFloat(),
-                            animationSpec = tween(
-                                durationMillis = duration,
-                                easing = FastOutSlowInEasing
-                            )
-                        )
-                    }
-                }
-            }
-        } finally {
-            isAnimating = false
-        }
-    }
-
-    LaunchedEffect(currentLineIndex, lastPreviewTime, initialScrollDone) {
+    LaunchedEffect(currentLineIndex, lastPreviewTime, initialScrollDone, isAutoScrollActive) {
         if (!isSynced) return@LaunchedEffect
 
-        if((currentLineIndex == 0 && shouldScrollToFirstLine) || !initialScrollDone) {
-            shouldScrollToFirstLine = false
-            performSmoothTopScroll(kotlin.math.max(0, currentLineIndex), 800)
-            if(!isAppMinimized) {
-                initialScrollDone = true
-            }
-        } else if (currentLineIndex != -1) {
+        if (currentLineIndex != -1) {
             deferredCurrentLineIndex = currentLineIndex
-            if (isSeeking) {
-                performSmoothTopScroll(currentLineIndex, 400) // Fast for seeking
-            } else if (isAutoScrollActive && scrollLyrics) {
-                if (currentLineIndex != previousLineIndex) {
-                    performSmoothTopScroll(currentLineIndex, 1200) // Smooth auto-scroll
+        }
+
+        if (isAutoScrollActive) {
+            if ((currentLineIndex == 0 && shouldScrollToFirstLine) || !initialScrollDone) {
+                shouldScrollToFirstLine = false
+                performSmoothTopScroll(kotlin.math.max(0, currentLineIndex), 800)
+                if (!isAppMinimized) {
+                    initialScrollDone = true
+                }
+            } else if (currentLineIndex != -1) {
+                if (isSeeking) {
+                    performSmoothTopScroll(currentLineIndex, 400) // Fast for seeking
+                } else if (scrollLyrics) {
+                    if (currentLineIndex != previousLineIndex) {
+                        performSmoothTopScroll(currentLineIndex, 1200) // Smooth auto-scroll
+                    }
                 }
             }
         }
@@ -853,48 +873,6 @@ fun Lyrics(
             // Removed the more button from bottom - it's now in the top header
         }
         
-        androidx.compose.animation.AnimatedVisibility(
-            visible = !isAutoScrollActive && isSynced,
-            enter = fadeIn(animationSpec = tween(300)) + androidx.compose.animation.scaleIn(animationSpec = tween(300)),
-            exit = fadeOut(animationSpec = tween(300)) + androidx.compose.animation.scaleOut(animationSpec = tween(300)),
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 50.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer)
-                    .clickable {
-                        isAutoScrollActive = true
-                        if (currentLineIndex != -1) {
-                            scope.launch {
-                                // smooth scroll to current line
-                                performSmoothTopScroll(currentLineIndex, 800)
-                            }
-                        }
-                    }
-                    .padding(horizontal = 16.dp, vertical = 10.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.sync),
-                        contentDescription = stringResource(R.string.action_resync),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = stringResource(R.string.action_resync),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-            }
-        }
 
         if (showProgressDialog) {
             BasicAlertDialog(onDismissRequest = { /* Don't dismiss */ }) {
@@ -909,6 +887,48 @@ fun Lyrics(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
+                }
+            }
+        }
+
+        androidx.compose.animation.AnimatedVisibility(
+            visible = showResyncButton && !isAutoScrollActive && isSynced,
+            enter = fadeIn(animationSpec = tween(300)) + scaleIn(animationSpec = tween(300)),
+            exit = fadeOut(animationSpec = tween(300)) + scaleOut(animationSpec = tween(300)),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 50.dp)
+        ) {
+            FilledTonalButton(
+                onClick = {
+                    isAutoScrollActive = true
+                    if (currentLineIndex != -1) {
+                        scope.launch {
+                            performSmoothTopScroll(currentLineIndex, 800)
+                        }
+                    }
+                },
+                shape = CircleShape,
+                colors = ButtonDefaults.filledTonalButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                ),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 24.dp, vertical = 12.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.sync),
+                        contentDescription = stringResource(R.string.action_resync),
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.action_resync),
+                        style = MaterialTheme.typography.labelLarge
+                    )
                 }
             }
         }
