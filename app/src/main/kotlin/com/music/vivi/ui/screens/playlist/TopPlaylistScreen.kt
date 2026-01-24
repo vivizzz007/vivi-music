@@ -81,7 +81,7 @@ import androidx.compose.foundation.shape.CircleShape
 import coil3.compose.AsyncImage
 import android.content.Intent
 import androidx.core.net.toUri
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
