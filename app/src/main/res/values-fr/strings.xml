@@ -357,4 +357,12 @@
     <string name="lyrics_line_spacing">Espacement des lignes des paroles</string>
     <string name="lyrics_style">Style des paroles</string>
     <string name="login_required_premium">YouTube Premium requis pour la très haute qualité</string>
+    <!-- Power Saver -->
+    <string name="power_saver">Économiseur d\'énergie</string>
+    <string name="power_saver_description">Activez l\'économiseur d\'énergie pour prolonger la durée de vie de la batterie en réduisant les performances et en désactivant les fonctionnalités d\'arrière-plan.</string>
+    <string name="enable_power_saver">Activer l\'économiseur d\'énergie</string>
+    <string name="power_saver_subtitle">Réduit les effets visuels et l\'activité en arrière-plan</string>
+    <string name="estimated_power_saved">Économie d\'énergie estimée</string>
+    <string name="disable_animations">Désactiver les animations</string>
+    <string name="disable_animations_desc">Réduit l\'utilisation de la batterie en désactivant les effets visuels</string>
 </resources>

@@ -349,4 +349,12 @@
     <string name="lyrics_line_spacing">歌詞の行間</string>
     <string name="lyrics_style">歌詞のスタイル</string>
     <string name="login_required_premium">超高音質にはYouTube Premiumが必要です</string>
+    <!-- Power Saver -->
+    <string name="power_saver">省電力モード</string>
+    <string name="power_saver_description">パフォーマンスを低下させ、バックグラウンド機能を無効にすることでバッテリー寿命を延ばすために、省電力モードを有効にします。</string>
+    <string name="enable_power_saver">省電力モードを有効化</string>
+    <string name="power_saver_subtitle">視覚効果とバックグラウンドアクティビティを削減します</string>
+    <string name="estimated_power_saved">推定電力節約</string>
+    <string name="disable_animations">アニメーションを無効化</string>
+    <string name="disable_animations_desc">視覚効果を無効にしてバッテリー使用量を削減します</string>
 </resources>

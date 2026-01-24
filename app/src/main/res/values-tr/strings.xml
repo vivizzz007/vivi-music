@@ -349,4 +349,12 @@
     <string name="lyrics_line_spacing">Sözlerin satır aralığı</string>
     <string name="lyrics_style">Sözlerin stili</string>
     <string name="login_required_premium">Çok Yüksek Kalite için YouTube Premium gerekir</string>
+    <!-- Power Saver -->
+    <string name="power_saver">Güç Tasarrufu</string>
+    <string name="power_saver_description">Performansı düşürerek ve arka plan özelliklerini devre dışı bırakarak pil ömrünü uzatmak için Güç Tasarrufu\'nu etkinleştirin.</string>
+    <string name="enable_power_saver">Güç Tasarrufu\'nu Etkinleştir</string>
+    <string name="power_saver_subtitle">Görsel efektleri ve arka plan etkinliğini azaltır</string>
+    <string name="estimated_power_saved">Tahmini Güç Tasarrufu</string>
+    <string name="disable_animations">Animasyonları Devre Dışı Bırak</string>
+    <string name="disable_animations_desc">Görsel efektleri devre dışı bırakarak pil kullanımını azaltır</string>
 </resources>

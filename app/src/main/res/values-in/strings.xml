@@ -346,4 +346,12 @@
     <string name="lyrics_line_spacing">Spasi baris lirik</string>
     <string name="lyrics_style">Gaya Lirik</string>
     <string name="login_required_premium">YouTube Premium diperlukan untuk Kualitas Sangat Tinggi</string>
+    <!-- Power Saver -->
+    <string name="power_saver">Penghemat Daya</string>
+    <string name="power_saver_description">Aktifkan Penghemat Daya untuk memperpanjang masa pakai baterai dengan mengurangi kinerja dan menonaktifkan fitur latar belakang.</string>
+    <string name="enable_power_saver">Aktifkan Penghemat Daya</string>
+    <string name="power_saver_subtitle">Mengurangi efek visual dan aktivitas latar belakang</string>
+    <string name="estimated_power_saved">Perkiraan Hemat Daya</string>
+    <string name="disable_animations">Nonaktifkan Animasi</string>
+    <string name="disable_animations_desc">Mengurangi penggunaan baterai dengan menonaktifkan efek visual</string>
 </resources>

@@ -391,4 +391,12 @@
     <string name="lyrics_line_spacing">تباعد أسطر الكلمات</string>
     <string name="lyrics_style">نمط الكلمات</string>
     <string name="login_required_premium">مطلوب YouTube Premium للجودة العالية جداً</string>
+    <!-- Power Saver -->
+    <string name="power_saver">توفير الطاقة</string>
+    <string name="power_saver_description">قم بتمكين موفر الطاقة لإطالة عمر البطارية عن طريق تقليل الأداء وتعطيل ميزات الخلفية.</string>
+    <string name="enable_power_saver">تمكين موفر الطاقة</string>
+    <string name="power_saver_subtitle">يقلل من التأثيرات البصرية وأنشطة الخلفية</string>
+    <string name="estimated_power_saved">توفير الطاقة المقدر</string>
+    <string name="disable_animations">تعطيل الرسوم المتحركة</string>
+    <string name="disable_animations_desc">يقلل من استخدام البطارية عن طريق تعطيل التأثيرات البصرية</string>
 </resources>

@@ -348,4 +348,12 @@
     <string name="lyrics_line_spacing">歌词行间距</string>
     <string name="lyrics_style">歌词样式</string>
     <string name="login_required_premium">极高画质需要 YouTube Premium</string>
+    <!-- Power Saver -->
+    <string name="power_saver">省电模式</string>
+    <string name="power_saver_description">启用省电模式以通过降低性能和禁用后台功能来延长电池寿命。</string>
+    <string name="enable_power_saver">启用省电模式</string>
+    <string name="power_saver_subtitle">减少视觉效果和后台活动</string>
+    <string name="estimated_power_saved">预计节省电量</string>
+    <string name="disable_animations">禁用动画</string>
+    <string name="disable_animations_desc">通过禁用视觉效果减少电池使用</string>
 </resources>
