@@ -60,10 +60,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
-import com.music.vivi.utils.abbreviateMonthlyListeners
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -167,8 +165,6 @@ fun ArtistScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var showLocal by rememberSaveable { mutableStateOf(false) }
     val density = LocalDensity.current
-    val configuration = LocalConfiguration.current
-    val isCompact = configuration.screenWidthDp < 380
 
     // Calculate the offset value outside of the offset lambda
     val systemBarsTopPadding = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -304,9 +300,6 @@ fun ArtistScreen(
 
                                     if (showMonthlyListeners) {
                                         artistPage?.monthlyListenerCount?.let { monthlyListeners ->
-                                            val formattedListeners = remember(monthlyListeners, isCompact) {
-                                                abbreviateMonthlyListeners(monthlyListeners, isCompact)
-                                            }
                                             Row(
                                                 verticalAlignment = Alignment.CenterVertically,
                                                 modifier = Modifier
@@ -322,12 +315,10 @@ fun ArtistScreen(
                                                 )
                                                 Spacer(modifier = Modifier.width(6.dp))
                                                 Text(
-                                                    text = formattedListeners,
+                                                    text = monthlyListeners,
                                                     style = MaterialTheme.typography.labelLarge,
                                                     color = MaterialTheme.colorScheme.onTertiaryContainer,
-                                                    fontWeight = FontWeight.Medium,
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis
+                                                    fontWeight = FontWeight.Medium
                                                 )
                                             }
                                         }
