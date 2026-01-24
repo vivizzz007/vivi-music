@@ -29,7 +29,10 @@ import com.music.vivi.constants.LibraryFilter
 import com.music.vivi.utils.rememberEnumPreference
 
 @Composable
-fun LibraryScreen(navController: NavController) {
+fun LibraryScreen(
+    navController: NavController,
+    onNavigate: ((String) -> Unit)? = null
+) {
     var filterType by rememberEnumPreference(ChipSortTypeKey, LibraryFilter.LIBRARY)
 
     val filterContent = @Composable {
@@ -76,19 +79,21 @@ fun LibraryScreen(navController: NavController) {
         modifier = Modifier.fillMaxSize(),
     ) {
         when (filterType) {
-            LibraryFilter.LIBRARY -> LibraryMixScreen(navController, filterContent)
-            LibraryFilter.PLAYLISTS -> LibraryPlaylistsScreen(navController, filterContent)
+            LibraryFilter.LIBRARY -> LibraryMixScreen(navController, filterContent, onNavigate)
+            LibraryFilter.PLAYLISTS -> LibraryPlaylistsScreen(navController, filterContent, onNavigate)
             LibraryFilter.SONGS -> LibrarySongsScreen(
                 navController,
                 { filterType = LibraryFilter.LIBRARY })
 
             LibraryFilter.ALBUMS -> LibraryAlbumsScreen(
                 navController,
-                { filterType = LibraryFilter.LIBRARY })
+                { filterType = LibraryFilter.LIBRARY },
+                onNavigate = onNavigate)
 
             LibraryFilter.ARTISTS -> LibraryArtistsScreen(
                 navController,
-                { filterType = LibraryFilter.LIBRARY })
+                { filterType = LibraryFilter.LIBRARY },
+                onNavigate = onNavigate)
         }
     }
 }

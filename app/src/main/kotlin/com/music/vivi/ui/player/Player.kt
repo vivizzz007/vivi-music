@@ -870,9 +870,6 @@ fun BottomSheetPlayer(
                                     .size(24.dp)
                             )
                         }
-
-
-
                         // Download Button
                         Box(
                             modifier = Modifier
@@ -1477,29 +1474,12 @@ fun BottomSheetPlayer(
         )
 
         mediaMetadata?.let { metadata ->
-            BottomSheet(
-                state = lyricsSheetState,
-                background = { Box(Modifier.fillMaxSize().background(Color.Unspecified)) },
-                onDismiss = { },
-                collapsedContent = {
-                }
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .graphicsLayer {
-                            alpha = lyricsSheetState.progress.coerceIn(0f, 1f)
-                        }
-                        .background(MaterialTheme.colorScheme.surface)
-                ) {
-                    LyricsScreen(
-                        mediaMetadata = metadata,
-                        onBackClick = { lyricsSheetState.collapseSoft() },
-                        navController = navController,
-                        backgroundAlpha = { lyricsSheetState.progress.coerceIn(0f, 1f) }
-                    )
-                }
-            }
+                LyricsBottomSheet(
+                    state = lyricsSheetState,
+                    navController = navController,
+                    mediaMetadata = metadata,
+                    onDismiss = { lyricsSheetState.collapseSoft() }
+                )
         }
     }
 }

@@ -37,7 +37,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -61,8 +60,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import com.music.vivi.utils.abbreviateMonthlyListeners
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -84,6 +85,7 @@ import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.AppBarHeight
 import com.music.vivi.constants.HideExplicitKey
+import com.music.vivi.constants.ShowMonthlyListenersKey
 import com.music.vivi.db.entities.ArtistEntity
 import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.extensions.toMediaItem
@@ -118,6 +120,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
@@ -131,17 +134,20 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import com.music.vivi.constants.ListItemHeight
-//this is more option in artist screen leading to here
-//artistscreen
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class,
-    ExperimentalMaterial3ExpressiveApi::class
-)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ArtistScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    artistId: String? = null,
     viewModel: ArtistViewModel = hiltViewModel(),
+    onBack: () -> Unit = { navController.navigateUp() },
 ) {
+    if (artistId != null) {
+        LaunchedEffect(artistId) {
+            viewModel.setArtistId(artistId)
+        }
+    }
     val context = LocalContext.current
     val database = LocalDatabase.current
     val menuState = LocalMenuState.current
@@ -155,11 +161,14 @@ fun ArtistScreen(
     val librarySongs by viewModel.librarySongs.collectAsState()
     val libraryAlbums by viewModel.libraryAlbums.collectAsState()
     val hideExplicit by rememberPreference(key = HideExplicitKey, defaultValue = false)
+    val showMonthlyListeners by rememberPreference(key = ShowMonthlyListenersKey, defaultValue = true)
 
     val lazyListState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
     var showLocal by rememberSaveable { mutableStateOf(false) }
     val density = LocalDensity.current
+    val configuration = LocalConfiguration.current
+    val isCompact = configuration.screenWidthDp < 380
 
     // Calculate the offset value outside of the offset lambda
     val systemBarsTopPadding = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -264,28 +273,64 @@ fun ArtistScreen(
 //                                changes from youtube.kt
 //                                subscriptionbutton
 
-                                artistPage?.artist?.subscriberCountText?.let { subscribers ->
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier
-                                            .padding(bottom = 16.dp)
-                                            .clip(RoundedCornerShape(12.dp))
-                                            .background(MaterialTheme.colorScheme.secondaryContainer)
-                                            .padding(horizontal = 12.dp, vertical = 6.dp)
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(R.drawable.person), // or use a subscribers icon if you have one
-                                            contentDescription = null,
-                                            modifier = Modifier.size(16.dp),
-                                            tint = MaterialTheme.colorScheme.onSecondaryContainer
-                                        )
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        Text(
-                                            text = subscribers,
-                                            style = MaterialTheme.typography.labelLarge,
-                                            color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                            fontWeight = FontWeight.Medium
-                                        )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.padding(bottom = 16.dp)
+                                ) {
+                                    artistPage?.artist?.subscriberCountText?.let { subscribers ->
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(12.dp))
+                                                .background(MaterialTheme.colorScheme.secondaryContainer)
+                                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.person),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(16.dp),
+                                                tint = MaterialTheme.colorScheme.onSecondaryContainer
+                                            )
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                            Text(
+                                                text = subscribers,
+                                                style = MaterialTheme.typography.labelLarge,
+                                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                        }
+                                    }
+
+                                    if (showMonthlyListeners) {
+                                        artistPage?.monthlyListenerCount?.let { monthlyListeners ->
+                                            val formattedListeners = remember(monthlyListeners, isCompact) {
+                                                abbreviateMonthlyListeners(monthlyListeners, isCompact)
+                                            }
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                modifier = Modifier
+                                                    .clip(RoundedCornerShape(12.dp))
+                                                    .background(MaterialTheme.colorScheme.tertiaryContainer)
+                                                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.graphic_eq),
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(16.dp),
+                                                    tint = MaterialTheme.colorScheme.onTertiaryContainer
+                                                )
+                                                Spacer(modifier = Modifier.width(6.dp))
+                                                Text(
+                                                    text = formattedListeners,
+                                                    style = MaterialTheme.typography.labelLarge,
+                                                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                                    fontWeight = FontWeight.Medium,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
+                                                )
+                                            }
+                                        }
                                     }
                                 }
 
@@ -904,42 +949,43 @@ fun ArtistScreen(
                 .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
                 .align(Alignment.BottomCenter)
         )
-    }
 
-    TopAppBar(
-        title = { if (!transparentAppBar) Text(artistPage?.artist?.title.orEmpty()) },
-        navigationIcon = {
-            IconButton(
-                onClick = navController::navigateUp,
-                onLongClick = navController::backToMain,
-            ) {
-                Icon(
-                    painterResource(R.drawable.arrow_back),
-                    contentDescription = null,
-                )
-            }
-        },
-        actions = {
-            IconButton(
-                onClick = {
-                    viewModel.artistPage?.artist?.shareLink?.let { link ->
-                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        val clip = ClipData.newPlainText(context.getString(R.string.artist_link), link)
-                        clipboard.setPrimaryClip(clip)
-                        Toast.makeText(context, R.string.link_copied, Toast.LENGTH_SHORT).show()
-                    }
-                },
-            ) {
-                Icon(
-                    painterResource(R.drawable.link),
-                    contentDescription = null,
-                )
-            }
-        },
-        colors = if (transparentAppBar) {
-            TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-        } else {
-            TopAppBarDefaults.topAppBarColors()
-        }
-    )
+        TopAppBar(
+            title = { if (!transparentAppBar) Text(artistPage?.artist?.title.orEmpty()) },
+            navigationIcon = {
+                IconButton(
+                    onClick = onBack,
+                    onLongClick = navController::backToMain,
+                ) {
+                    Icon(
+                        painterResource(R.drawable.arrow_back),
+                        contentDescription = null,
+                    )
+                }
+            },
+            actions = {
+                IconButton(
+                    onClick = {
+                        viewModel.artistPage?.artist?.shareLink?.let { link ->
+                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                            val clip = ClipData.newPlainText(context.getString(R.string.artist_link), link)
+                            clipboard.setPrimaryClip(clip)
+                            Toast.makeText(context, R.string.link_copied, Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                ) {
+                    Icon(
+                        painterResource(R.drawable.link),
+                        contentDescription = null,
+                    )
+                }
+            },
+            colors = if (transparentAppBar) {
+                TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+            } else {
+                TopAppBarDefaults.topAppBarColors()
+            },
+            scrollBehavior = scrollBehavior
+        )
+    }
 }

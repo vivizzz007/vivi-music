@@ -31,6 +31,18 @@ import java.util.concurrent.Executor
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Handles the logic for downloading media for offline playback.
+ *
+ * It uses ExoPlayer's [DownloadManager] and maintains a local cache ([playerCache])
+ * for partially downloaded content.
+ *
+ * **Key Logic**:
+ * - It creates a custom [ResolvingDataSource] that checks if a file is already cached.
+ * - If not cached, it fetches the playback stream URL (handling potential stream expiration).
+ * - It updates the [MusicDatabase] with the download status (isDownloaded = true/false)
+ *   and other format details (e.g., loudness, audio quality).
+ */
 @Singleton
 class DownloadUtil
 @Inject
@@ -186,9 +198,10 @@ constructor(
 
     init {
         val result = mutableMapOf<String, Download>()
-        val cursor = downloadManager.downloadIndex.getDownloads()
-        while (cursor.moveToNext()) {
-            result[cursor.download.request.id] = cursor.download
+        downloadManager.downloadIndex.getDownloads().use { cursor ->
+            while (cursor.moveToNext()) {
+                result[cursor.download.request.id] = cursor.download
+            }
         }
         downloads.value = result
     }

@@ -8,6 +8,7 @@ lifecycle = "2.9.4"
 material3 = "1.5.0-alpha11"
 appcompat = "1.7.1"
 media3 = "1.7.1"
+material3Adaptive = "1.0.0"
 room = "2.7.2"
 hilt = "2.57.1"
 ktor = "3.3.0"
@@ -38,6 +39,11 @@ extractor = "06b7ae2"
 graphics-shapes = "1.1.0"
 workmanager = "2.11.0"
 uiGraphics = "1.10.0"
+robolectric = "4.14.1"
+mockk = "1.13.13"
+espresso = "3.6.1"
+coreKtx = "1.12.0"
+profileinstaller = "1.4.1"
 
 [libraries]
 annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
@@ -60,6 +66,7 @@ compose-ui-util = { module = "androidx.compose.ui:ui-util", version.ref = "compo
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
 compose-animation = { module = "androidx.compose.animation:animation-graphics", version.ref = "compose" }
 compose-reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "composeReorderable" }
+compose-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts", version.ref = "compose" }
 
 androidx-graphics-shapes = { module = "androidx.graphics:graphics-shapes", version.ref = "graphics-shapes" }
 
@@ -122,6 +129,22 @@ extractor = { module = "com.github.mostafaalagamy:MetrolistExtractor", version.r
 
 kuromoji-ipadic = { module = "com.atilika.kuromoji:kuromoji-ipadic", version.ref = "kuromojiIpadic" }
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics", version.ref = "uiGraphics" }
+
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutinesGuava" }
+espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }
+ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "compose" }
+ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "compose" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+
+material3-adaptive = { module = "androidx.compose.material3.adaptive:adaptive", version.ref = "material3Adaptive" }
+material3-adaptive-layout = { module = "androidx.compose.material3.adaptive:adaptive-layout", version.ref = "material3Adaptive" }
+material3-adaptive-navigation = { module = "androidx.compose.material3.adaptive:adaptive-navigation", version.ref = "material3Adaptive" }
+profileinstaller = { module = "androidx.profileinstaller:profileinstaller", version.ref = "profileinstaller" }
+hilt-android-testing = { module = "com.google.dagger:hilt-android-testing", version.ref = "hilt" }
+compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "compose" }
+androidx-test-runner = "androidx.test:runner:1.6.2"
 
 [plugins]
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

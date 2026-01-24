@@ -101,7 +101,6 @@
     <string name="swipe_song_to_add">左滑歌曲添加到队列，右滑下一首播放</string>
     <string name="lyrics_click_change">点击更改歌词</string>
     <string name="lyrics_auto_scroll">歌词自动滚动</string>
-    <string name="slim">轻量</string>
     <string name="slim_navbar">轻量级底部导航栏</string>
     <string name="auto_playlists">自动歌单</string>
     <string name="show_liked_playlist">显示“喜欢的歌曲”歌单</string>
@@ -446,7 +445,7 @@
     <string name="vivi_music">VIVI MUSIC</string>
     <string name="vivi_music_beta_update">Vivi Music Beta 更新</string>
     <string name="recheck">重新检查</string>
-    <string name="changelog_for_version">%1 的更新日志</string>
+    <string name="changelog_for_version">%1$s 的更新日志</string>
     <string name="available">可用</string>
     <string name="file_error">文件错误</string>
     <string name="unknown_error">未知错误</string>
@@ -636,7 +635,7 @@
     <!-- Download Notifications -->
     <string name="update_failed">更新失败</string>
     <string name="failed_to_download_version">下载版本 %1 失败</string>
-    <string name="failed_to_download_version_error">下载版本 %1 失败\n%2</string>
+    <string name="failed_to_download_version_error">下载版本 %1$s 失败\n%2$s</string>
     <string name="server_error">服务器错误：%1</string>
 
     <!-- Media Info -->
@@ -809,10 +808,10 @@
     <string name="playlist_separator"> • </string>
 
     <!-- Share and Email Messages -->
-    <string name="check_out_playlist_share">在 YouTube Music 上查看 %1：%2</string>
-    <string name="check_out_album_share">在 YouTube Music 上查看 %2 的 %1：%3</string>
+    <string name="check_out_playlist_share">在 YouTube Music 上查看 %1$s：%2$s</string>
+    <string name="check_out_album_share">在 YouTube Music 上查看 %2$s 的 %1$s：%3$s</string>
     <string name="vivi_music_crash_report">ViVi Music 崩溃报告</string>
-    <string name="crash_log_email_body">崩溃日志（也已复制到剪贴板）：\n\n%1\n\n设备信息：\n%2</string>
+    <string name="crash_log_email_body">崩溃日志（也已复制到剪贴板）：\n\n%1$s\n\n设备信息：\n%2$s</string>
     <string name="feedback_for_vivi_music_app">Vivi Music 应用反馈</string>
     <string name="please_write_feedback">请在此处填写您的反馈…</string>
     <string name="crash_log_subject">崩溃日志：%1</string>
@@ -865,8 +864,8 @@
 
     <!-- Download Notifications -->
     <string name="downloading_update">正在下载更新</string>
-    <string name="version_file_size">版本 %1 • %2</string>
-    <string name="version_progress">版本 %1 • %2%%</string>
+    <string name="version_file_size">版本 %1$s • %2$s</string>
+    <string name="version_progress">版本 %1$s • %2$s%%</string>
     <string name="update_ready">更新就绪</string>
     <string name="tap_to_install_version">点击安装版本 %1</string>
 

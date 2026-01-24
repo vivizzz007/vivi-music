@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -79,6 +80,7 @@ import kotlin.math.roundToInt
 fun LastFMSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    onBack: (() -> Unit)? = null,
 ) { 
     val (settingsShapeTertiary, _) = rememberPreference(SettingsShapeColorTertiaryKey, false)
     val (darkMode, _) = rememberEnumPreference(
@@ -115,10 +117,12 @@ fun LastFMSettings(
     var lastfmUsername by rememberPreference(LastFMUsernameKey, "")
     var lastfmSession by rememberPreference(LastFMSessionKey, "")
 
-    val isLoggedIn =
-        remember(lastfmSession) {
-            lastfmSession != ""
-        }
+    val integrationsViewModel: com.music.vivi.viewmodels.IntegrationsViewModel = androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel()
+    val lastFmState by integrationsViewModel.lastFmState.collectAsState()
+
+
+
+    val isLoggedIn = lastFmState.isLoggedIn
 
     val (useNowPlaying, onUseNowPlayingChange) = rememberPreference(
         key = LastFMUseNowPlaying,
@@ -560,7 +564,7 @@ fun LastFMSettings(
         title = { Text(stringResource(R.string.lastfm_integration)) },
         navigationIcon = {
             IconButton(
-                onClick = navController::navigateUp,
+                onClick = { onBack?.invoke() ?: navController.navigateUp() },
                 onLongClick = navController::backToMain,
             ) {
                 Icon(

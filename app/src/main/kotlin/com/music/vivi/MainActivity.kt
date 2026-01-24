@@ -53,6 +53,7 @@ import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -97,6 +98,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
@@ -141,11 +144,13 @@ import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.DefaultOpenTabKey
 import com.music.vivi.constants.DisableScreenshotKey
 import com.music.vivi.constants.AccentColorKey
+import com.music.vivi.constants.Material3ExpressiveKey
 import com.music.vivi.constants.DynamicThemeKey
 import com.music.vivi.constants.MiniPlayerHeight
 import com.music.vivi.constants.MiniPlayerBottomSpacing
 import com.music.vivi.constants.UseNewMiniPlayerDesignKey
 import com.music.vivi.constants.HighRefreshRateKey
+import com.music.vivi.constants.PowerSaverKey
 
 import com.music.vivi.constants.NavigationBarAnimationSpec
 import com.music.vivi.constants.NavigationBarHeight
@@ -227,6 +232,16 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.ui.platform.LocalContext
 
+/**
+ * The single Activity of the application.
+ *
+ * It is responsible for:
+ * - Setting up the Jetpack Compose content ([setContent]).
+ * - Providing global CompositionLocals (Theme, Database, PlayerConnection).
+ * - Initializing global singletons like [DownloadNotificationManager].
+ * - Implementing the main [NavHost] for screen navigation.
+ * - Binding to the [MusicService] to control playback.
+ */
 @Suppress("DEPRECATION", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -372,21 +387,22 @@ class MainActivity : ComponentActivity() {
             }
 
             val (checkForUpdatesPreference, _) = rememberPreference(CheckForUpdatesKey, true)
-            val highRefreshRate by rememberPreference(HighRefreshRateKey, defaultValue = false)
 
-            LaunchedEffect(highRefreshRate) {
-                setHighRefreshRate(highRefreshRate)
-            }
 
             LaunchedEffect(checkForUpdatesPreference) {
                 updateViewModel.refreshUpdateStatus()
             }
 
+            val (powerSaver, _) = rememberPreference(PowerSaverKey, false)
+            val (powerSaverPureBlack, _) = rememberPreference(com.music.vivi.constants.PowerSaverPureBlackKey, defaultValue = true)
+            val (powerSaverHighRefresh, _) = rememberPreference(com.music.vivi.constants.PowerSaverHighRefreshRateKey, defaultValue = true)
+
             val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)
             val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
             val isSystemInDarkTheme = isSystemInDarkTheme()
-            val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
-                if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
+            val useDarkTheme = remember(darkTheme, isSystemInDarkTheme, powerSaver, powerSaverPureBlack) {
+                if (powerSaver && powerSaverPureBlack) true
+                else if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
             }
 
             LaunchedEffect(useDarkTheme) {
@@ -394,12 +410,21 @@ class MainActivity : ComponentActivity() {
             }
 
             val pureBlackEnabled by rememberPreference(PureBlackKey, defaultValue = false)
-            val pureBlack = remember(pureBlackEnabled, useDarkTheme) {
-                pureBlackEnabled && useDarkTheme 
+            val pureBlack = remember(pureBlackEnabled, useDarkTheme, powerSaver, powerSaverPureBlack) {
+                (pureBlackEnabled || (powerSaver && powerSaverPureBlack)) && useDarkTheme
             }
+
+            val material3Expressive by rememberPreference(Material3ExpressiveKey, defaultValue = false)
 
             var themeColor by rememberSaveable(stateSaver = ColorSaver) {
                 mutableStateOf(DefaultThemeColor)
+            }
+
+
+            val highRefreshRate by rememberPreference(HighRefreshRateKey, false)
+
+            LaunchedEffect(highRefreshRate, powerSaver, powerSaverHighRefresh) {
+                setHighRefreshRate(highRefreshRate && !(powerSaver && powerSaverHighRefresh))
             }
 
             val accentColorInt by rememberPreference(AccentColorKey, defaultValue = DefaultThemeColor.toArgb())
@@ -474,6 +499,7 @@ class MainActivity : ComponentActivity() {
                 themeColor = themeColor,
                 enableDynamicTheme = enableDynamicTheme,
                 overrideColorScheme = generatedColorScheme,
+                expressive = material3Expressive,
             ) {
                 BoxWithConstraints(
                     modifier =
@@ -747,10 +773,14 @@ class MainActivity : ComponentActivity() {
                     }
 
                     var shouldShowTopBar by rememberSaveable { mutableStateOf(false) }
+                    val isDetailShown by navBackStackEntry?.savedStateHandle?.getStateFlow("is_detail_shown", false)?.collectAsState() ?: remember { mutableStateOf(false) }
 
-                    LaunchedEffect(navBackStackEntry) {
+                    LaunchedEffect(navBackStackEntry, isDetailShown) {
                         shouldShowTopBar =
-                            !active && navBackStackEntry?.destination?.route in topLevelScreens && navBackStackEntry?.destination?.route != "settings"
+                            !active && 
+                            navBackStackEntry?.destination?.route in topLevelScreens && 
+                            navBackStackEntry?.destination?.route != "settings" && 
+                            isDetailShown != true
                     }
 
                     val coroutineScope = rememberCoroutineScope()
@@ -878,9 +908,15 @@ class MainActivity : ComponentActivity() {
                                                     )
                                                 }
 
-                                                IconButton(onClick = { navController.navigate("settings") }) {
+                                                IconButton(
+                                                    onClick = { navController.navigate("settings") },
+                                                    modifier = Modifier.semantics {
+                                                        contentDescription = "Settings"
+                                                    }
+                                                ) {
                                                     if (accountImageUrl != null) {
-                                                        coil.compose.AsyncImage(
+                                                        // HIER GEÄNDERT: coil3.compose.AsyncImage statt coil.compose.AsyncImage
+                                                        coil3.compose.AsyncImage(
                                                             model = accountImageUrl,
                                                             contentDescription = stringResource(R.string.account),
                                                             modifier = Modifier
@@ -1367,8 +1403,7 @@ class MainActivity : ComponentActivity() {
                                 onDismiss = {
                                     showAccountDialog = false
                                     homeViewModel.refresh()
-                                },
-                                latestVersionName = latestVersionName
+                                }
                             )
                         }
 

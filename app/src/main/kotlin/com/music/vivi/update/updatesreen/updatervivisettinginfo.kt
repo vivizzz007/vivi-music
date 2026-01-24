@@ -61,9 +61,12 @@ import java.util.Locale
 fun ViviUpdatesScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
-    updateViewModel: UpdateViewModel = hiltViewModel()
+    updateViewModel: UpdateViewModel = hiltViewModel(),
+    onBack: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
+    val errorLoadingVersion = stringResource(R.string.error_loading_version)
+    val errorLoadingDate = stringResource(R.string.error_loading_date)
 
     // Theme-aware icon colors
     val (settingsShapeTertiary, _) = rememberPreference(SettingsShapeColorTertiaryKey, false)
@@ -140,8 +143,8 @@ fun ViviUpdatesScreen(
             lastUpdatedDate = dateFormat.format(Date(lastUpdate))
 
         } catch (e: Exception) {
-            buildVersion = context.getString(R.string.error_loading_version)
-            firstInstallDate = context.getString(R.string.error_loading_date)
+            buildVersion = errorLoadingVersion
+            firstInstallDate = errorLoadingDate
         }
     }
 
@@ -165,7 +168,7 @@ fun ViviUpdatesScreen(
                     title = {},
                     navigationIcon = {
                         IconButton(
-                            onClick = navController::navigateUp,
+                            onClick = { onBack?.invoke() ?: navController.navigateUp() },
                             onLongClick = navController::backToMain
                         ) {
                             Icon(
@@ -407,7 +410,7 @@ fun ViviUpdatesScreen(
                                         )
                                     },
                                     title = stringResource(R.string.build_version_title),
-                                    subtitle = buildVersion.ifEmpty { context.getString(R.string.loading_charts).removeSuffix("…") },
+                                    subtitle = buildVersion.ifEmpty { stringResource(R.string.loading_charts).removeSuffix("…") },
                                     onClick = { },
                                     showArrow = false,
                                     iconBackgroundColor = iconBgColor,
@@ -424,7 +427,7 @@ fun ViviUpdatesScreen(
                                         )
                                     },
                                     title = stringResource(R.string.installed_date_title),
-                                    subtitle = if (firstInstallDate.isNotEmpty()) stringResource(R.string.installed_on_format, firstInstallDate) else context.getString(R.string.loading_charts).removeSuffix("…"),
+                                    subtitle = if (firstInstallDate.isNotEmpty()) stringResource(R.string.installed_on_format, firstInstallDate) else stringResource(R.string.loading_charts).removeSuffix("…"),
                                     onClick = { },
                                     showArrow = false,
                                     iconBackgroundColor = iconBgColor,

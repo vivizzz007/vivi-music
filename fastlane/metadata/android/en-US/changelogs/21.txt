@@ -1,0 +1,17 @@
+New Features:
+
+Android tablet UI
+Battery optimization
+Redesigned lyrics interface
+"You might also like" in playlists
+Weekly listeners in artist view
+SimpMusic integration
+
+Fixes:
+
+Last.fm & Discord account issues
+Dynamic theme auto-enable bug
+Improved performance & loading speeds
+Various stability improvements
+
+⚠️ Warning: Don't use old backups if experiencing playlist issues

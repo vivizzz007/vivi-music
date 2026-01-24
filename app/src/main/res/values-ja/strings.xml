@@ -245,7 +245,10 @@
     <string name="right">右</string>
     <string name="player_slider_style">プレーヤースライダーのスタイル</string>
     <string name="default_">デフォルト</string>
+    <string name="wavy">波状</string>
     <string name="squiggly">波線</string>
+    <string name="slim">スリム</string>
+
     <string name="misc">その他</string>
     <string name="default_open_tab">デフォルトで開くタブ</string>
     <string name="grid_cell_size">グリッドセルのサイズ</string>
@@ -345,4 +348,5 @@
     <string name="lyrics_text_size">歌詞のテキストサイズ</string>
     <string name="lyrics_line_spacing">歌詞の行間</string>
     <string name="lyrics_style">歌詞のスタイル</string>
+    <string name="login_required_premium">超高音質にはYouTube Premiumが必要です</string>
 </resources>

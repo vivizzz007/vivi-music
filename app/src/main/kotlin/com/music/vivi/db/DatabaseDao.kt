@@ -927,13 +927,23 @@ interface DatabaseDao {
     fun addSongToPlaylist(playlist: Playlist, songIds: List<String>) {
         var position = playlist.songCount
         songIds.forEach { id ->
-            insert(
-                PlaylistSongMap(
-                    songId = id,
-                    playlistId = playlist.id,
-                    position = position++
+            // Wir prüfen vorher nicht aufwändig, sondern fangen den FK-Fehler ab.
+            // Das ist performant und sicher.
+            try {
+                // Optional: Sicherstellen, dass der Song existiert, falls er noch nicht gespeichert wurde.
+                // Das setzt voraus, dass 'insert' für den Song vorher anderswo aufgerufen wurde.
+                
+                insert(
+                    PlaylistSongMap(
+                        songId = id,
+                        playlistId = playlist.id,
+                        position = position++
+                    )
                 )
-            )
+            } catch (e: android.database.sqlite.SQLiteConstraintException) {
+                // Song oder Playlist existiert nicht -> Überspringen statt Absturz
+                android.util.Log.e("DatabaseDao", "Failed to add song $id to playlist ${playlist.id}: ${e.message}")
+            }
         }
     }
 

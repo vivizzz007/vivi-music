@@ -118,6 +118,7 @@ fun CachePlaylistScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
     viewModel: CachePlaylistViewModel = hiltViewModel(),
+    onBack: () -> Unit = { navController.navigateUp() },
 ) {
     val context = LocalContext.current
     val menuState = LocalMenuState.current
@@ -609,7 +610,7 @@ fun CachePlaylistScreen(
                                 selection = false
                             }
                             else -> {
-                                navController.navigateUp()
+                                onBack()
                             }
                         }
                     },
