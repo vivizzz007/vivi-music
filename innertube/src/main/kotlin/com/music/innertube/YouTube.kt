@@ -12,6 +12,7 @@ import com.music.innertube.models.MusicResponsiveListItemRenderer
 import com.music.innertube.models.MusicTwoRowItemRenderer
 import com.music.innertube.models.MusicCarouselShelfRenderer
 import com.music.innertube.models.MusicShelfRenderer
+import com.music.innertube.models.SectionListRenderer
 import com.music.innertube.models.PlaylistItem
 import com.music.innertube.models.SearchSuggestions
 import com.music.innertube.models.Run
@@ -414,10 +415,31 @@ object YouTube {
             browseId = "VL$playlistId",
             setLogin = true
         ).body<BrowseResponse>()
+
         val base = response.contents?.twoColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()
         val header = base?.musicResponsiveHeaderRenderer ?: base?.musicEditablePlaylistDetailHeaderRenderer?.header?.musicResponsiveHeaderRenderer
 
         val editable = base?.musicEditablePlaylistDetailHeaderRenderer != null
+        val secondarySectionList = response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer
+
+        var related = secondarySectionList?.contents?.let { parseRelatedItems(it.drop(1)) }
+
+        if (related.isNullOrEmpty()) {
+            secondarySectionList?.continuations?.getContinuation()?.let { continuationToken ->
+                val continuationResponse = innerTube.browse(
+                    client = WEB_REMIX,
+                    continuation = continuationToken,
+                    setLogin = true
+                ).body<BrowseResponse>()
+                
+                continuationResponse.continuationContents?.sectionListContinuation?.contents?.let {
+                    val parsed = parseRelatedItems(it)
+                    if (parsed.isNotEmpty()) {
+                        related = parsed
+                    }
+                }
+            }
+        }
 
         PlaylistPage(
             playlist = PlaylistItem(
@@ -446,13 +468,18 @@ object YouTube {
                 ?.contents?.firstOrNull()?.musicPlaylistShelfRenderer?.contents?.getContinuation(),
             continuation = response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer
                 ?.continuations?.getContinuation(),
-            related = response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer
-                ?.contents?.drop(1)?.mapNotNull { content ->
-                    content.musicCarouselShelfRenderer?.let { renderer ->
-                        renderer.contents.mapNotNull { it.musicTwoRowItemRenderer }.mapNotNull { RelatedPage.fromMusicTwoRowItemRenderer(it) }
-                    }
-                }?.flatten()?.ifEmpty { null }
+            related = related?.ifEmpty { null }
         )
+    }
+
+    private fun parseRelatedItems(contents: List<SectionListRenderer.Content>): List<YTItem> {
+        return contents.mapNotNull { content ->
+            content.musicCarouselShelfRenderer?.let { renderer ->
+                renderer.contents.mapNotNull { it.musicTwoRowItemRenderer }.mapNotNull { RelatedPage.fromMusicTwoRowItemRenderer(it) }
+            } ?: content.musicShelfRenderer?.let { renderer ->
+                renderer.contents?.getItems()?.mapNotNull { SearchSummaryPage.fromMusicResponsiveListItemRenderer(it) }
+            }
+        }.flatten()
     }
 
     suspend fun playlistContinuation(continuation: String): Result<PlaylistContinuationPage> = runCatching {

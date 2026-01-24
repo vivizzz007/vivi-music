@@ -104,7 +104,12 @@ data class RelatedPage(
                             renderer.title.runs
                                 ?.firstOrNull()
                                 ?.text ?: return null,
-                        author = null,
+                        author = renderer.subtitle?.runs?.firstOrNull()?.let {
+                            Artist(
+                                name = it.text,
+                                id = it.navigationEndpoint?.browseEndpoint?.browseId
+                            )
+                        },
                         songCountText = renderer.subtitle?.runs?.lastOrNull()?.text,
                         thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
                         playEndpoint =
