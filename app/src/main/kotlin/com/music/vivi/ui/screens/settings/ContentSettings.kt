@@ -96,6 +96,7 @@ import com.music.vivi.utils.rememberPreference
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.constants.SettingsShapeColorTertiaryKey
 import com.music.vivi.constants.DarkModeKey
+import com.music.vivi.constants.EnableSimpMusicKey
 import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.utils.reportException
 import com.music.vivi.utils.setAppLocale
@@ -156,21 +157,14 @@ fun ContentSettings(
     val (enableKugou, onEnableKugouChange) = rememberPreference(key = EnableKugouKey, defaultValue = true)
     val (enableLrclib, onEnableLrclibChange) = rememberPreference(key = EnableLrcLibKey, defaultValue = true)
     val (enableBetterLyrics, onEnableBetterLyricsChange) = rememberPreference(key = EnableBetterLyricsKey, defaultValue = true)
+    val (enableSimpMusic, onEnableSimpMusicChange) = rememberPreference(key = EnableSimpMusicKey, defaultValue = true)
     val (enableYouTubeLyrics, onEnableYouTubeLyricsChange) = rememberPreference(key = EnableYouTubeLyricsKey, defaultValue = true)
     val (enableYouTubeSubtitle, onEnableYouTubeSubtitleChange) = rememberPreference(key = EnableYouTubeSubtitleKey, defaultValue = true)
     val (hideVideoSongs, onHideVideoSongsChange) = rememberPreference(key = HideVideoSongsKey, defaultValue = false)
-    val (preferredProvider, onPreferredProviderChange) =
-        rememberEnumPreference(
-            key = PreferredLyricsProviderKey,
-            defaultValue = PreferredLyricsProvider.BETTERLYRICS,
-        )
+    val (preferredProvider, onPreferredProviderChange) = rememberEnumPreference(key = PreferredLyricsProviderKey, defaultValue = PreferredLyricsProvider.BETTERLYRICS,)
     val (lengthTop, onLengthTopChange) = rememberPreference(key = TopSize, defaultValue = "50")
     val (quickPicks, onQuickPicksChange) = rememberEnumPreference(key = QuickPicksKey, defaultValue = QuickPicks.QUICK_PICKS)
-
-    var showProxyConfigurationDialog by rememberSaveable {
-        mutableStateOf(false)
-    }
-
+    var showProxyConfigurationDialog by rememberSaveable { mutableStateOf(false) }
     var showContentLanguageDialog by rememberSaveable { mutableStateOf(false) }
     var showContentCountryDialog by rememberSaveable { mutableStateOf(false) }
     var showAppLanguageDialog by rememberSaveable { mutableStateOf(false) }
@@ -320,7 +314,12 @@ fun ContentSettings(
             onDismiss = { showPreferredProviderDialog = false },
             content = {
                 Column(modifier = Modifier.padding(horizontal = 18.dp)) {
-                    listOf(PreferredLyricsProvider.BETTERLYRICS, PreferredLyricsProvider.LRCLIB, PreferredLyricsProvider.KUGOU).forEach { value ->
+                    listOf(
+                        PreferredLyricsProvider.BETTERLYRICS, 
+                        PreferredLyricsProvider.SIMPMUSIC,
+                        PreferredLyricsProvider.LRCLIB, 
+                        PreferredLyricsProvider.KUGOU
+                    ).forEach { value ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -339,6 +338,7 @@ fun ContentSettings(
                             Text(
                                 when (value) {
                                     PreferredLyricsProvider.BETTERLYRICS -> "BetterLyrics"
+                                    PreferredLyricsProvider.SIMPMUSIC -> "SimpMusic"
                                     PreferredLyricsProvider.LRCLIB -> stringResource(R.string.lrclib_provider)
                                     PreferredLyricsProvider.KUGOU -> stringResource(R.string.kugou_provider)
                                 }
@@ -888,6 +888,27 @@ fun ContentSettings(
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
                                             icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
+                                            title = "SimpMusic",
+                                            subtitle = "Enable SimpMusic as a lyrics source",
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = enableSimpMusic,
+                                        onCheckedChange = onEnableSimpMusicChange,
+                                        modifier = Modifier.padding(end = 20.dp)
+                                    )
+                                }
+                            },
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
                                             title = stringResource(R.string.lrclib_lyrics),
                                             subtitle = stringResource(R.string.enable_lrclib_lyrics_source),
                                             iconBackgroundColor = iconBgColor,
@@ -970,6 +991,7 @@ fun ContentSettings(
                                     title = stringResource(R.string.lyrics),
                                     subtitle = when (preferredProvider) {
                                         PreferredLyricsProvider.BETTERLYRICS -> "BetterLyrics"
+                                        PreferredLyricsProvider.SIMPMUSIC -> "SimpMusic"
                                         PreferredLyricsProvider.LRCLIB -> stringResource(R.string.lrclib_provider)
                                         PreferredLyricsProvider.KUGOU -> stringResource(R.string.kugou_provider)
                                     },

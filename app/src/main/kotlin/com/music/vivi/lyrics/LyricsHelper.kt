@@ -34,6 +34,7 @@ constructor(
     private val lyricsProviders =
         listOf(
             BetterLyricsLyricsProvider,
+            SimpMusicLyricsProvider,
             LrcLibLyricsProvider,
             KuGouLyricsProvider,
             YouTubeSubtitleLyricsProvider,
@@ -50,6 +51,15 @@ constructor(
 
         val otherProviders = when (preferredProvider) {
             PreferredLyricsProvider.BETTERLYRICS -> listOf(
+                SimpMusicLyricsProvider,
+                LrcLibLyricsProvider,
+                KuGouLyricsProvider,
+                YouTubeSubtitleLyricsProvider,
+                YouTubeLyricsProvider
+            )
+            PreferredLyricsProvider.SIMPMUSIC -> listOf(
+                SimpMusicLyricsProvider,
+                BetterLyricsLyricsProvider,
                 LrcLibLyricsProvider,
                 KuGouLyricsProvider,
                 YouTubeSubtitleLyricsProvider,
@@ -57,12 +67,14 @@ constructor(
             )
             PreferredLyricsProvider.LRCLIB -> listOf(
                 LrcLibLyricsProvider,
+                SimpMusicLyricsProvider,
                 KuGouLyricsProvider,
                 YouTubeSubtitleLyricsProvider,
                 YouTubeLyricsProvider
             )
             PreferredLyricsProvider.KUGOU -> listOf(
                 KuGouLyricsProvider,
+                SimpMusicLyricsProvider,
                 LrcLibLyricsProvider,
                 YouTubeSubtitleLyricsProvider,
                 YouTubeLyricsProvider
@@ -93,8 +105,18 @@ constructor(
         val providers = getOrderedProviders()
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         
-        val deferreds = providers.filter { it.isEnabled(context) }.map { provider ->
-            scope.async {
+        // Concurrent fetching with "race" logic for synced lyrics
+        val lyricsChannel = kotlinx.coroutines.channels.Channel<String>(kotlinx.coroutines.channels.Channel.UNLIMITED)
+        val activeJobs = mutableListOf<Job>()
+        
+        val validProviders = providers.filter { it.isEnabled(context) }
+        
+        if (validProviders.isEmpty()) {
+            return LYRICS_NOT_FOUND
+        }
+
+        validProviders.forEach { provider ->
+            val job = scope.launch {
                 try {
                     val result = provider.getLyrics(
                         mediaMetadata.id,
@@ -103,29 +125,43 @@ constructor(
                         mediaMetadata.duration,
                     )
                     
-                    result.getOrNull()
+                    val lyrics = result.getOrNull()
+                    if (!lyrics.isNullOrBlank()) {
+                        lyricsChannel.send(lyrics)
+                    }
                 } catch (e: Exception) {
                     reportException(e)
-                    null
                 }
             }
+            activeJobs.add(job)
         }
 
-        // Wait for results and pick the best one
-        // Priority: 
-        // 1. Synced lyrics (starts with [)
-        // 2. Plain lyrics
+        // We launch a "closer" job to close the channel when all providers are done
+        scope.launch {
+            activeJobs.forEach { it.join() }
+            lyricsChannel.close()
+        }
+
+        var plainLyrics: String? = null
         
-        var bestLyrics: String? = null
-        
-        // Wait for all but we can optimize by returning early if we find high-quality synced lyrics
-        // However, with small number of providers, waiting for all is okay and simple.
-        val results = deferreds.mapNotNull { it.await() }
-        
-        bestLyrics = results.find { it.startsWith("[") } ?: results.firstOrNull() ?: LYRICS_NOT_FOUND
-        
+        try {
+            for (lyrics in lyricsChannel) {
+                // If we find synced lyrics, return immediately
+                if (lyrics.startsWith("[")) {
+                    scope.cancel()
+                    return lyrics
+                }
+                // Keep the first plain lyrics we find as fallback
+                if (plainLyrics == null) {
+                    plainLyrics = lyrics
+                }
+            }
+        } catch (e: Exception) {
+            // Ignore channel closed or other issues
+        }
+
         scope.cancel()
-        return bestLyrics
+        return plainLyrics ?: LYRICS_NOT_FOUND
     }
 
 
