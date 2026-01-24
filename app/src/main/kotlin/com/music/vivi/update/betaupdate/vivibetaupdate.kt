@@ -42,7 +42,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.InstallMobile
 import androidx.compose.material.icons.filled.MoreVert
@@ -52,7 +52,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -147,6 +147,12 @@ class DpiSettingsViewModel @Inject constructor(
     private val dataStore = application.dataStore
     private val DPI_ENABLED_KEY = booleanPreferencesKey("dpi_enabled")
     private val DOWNLOADED_TAG_KEY = stringPreferencesKey("downloaded_tag")
+
+    private val json = Json {
+        ignoreUnknownKeys = true
+        coerceInputValues = true
+        isLenient = true
+    }
 
     private val _isDpiEnabled = MutableStateFlow(false)
     val isDpiEnabled: StateFlow<Boolean> = _isDpiEnabled.asStateFlow()
@@ -309,11 +315,7 @@ class DpiSettingsViewModel @Inject constructor(
                         }
 
                         try {
-                            val releases = Json {
-                                ignoreUnknownKeys = true
-                                coerceInputValues = true
-                                isLenient = true
-                            }.decodeFromString<List<GitHubRelease>>(jsonString)
+                            val releases = json.decodeFromString<List<GitHubRelease>>(jsonString)
 
                             Log.d("DpiSettingsViewModel", "Total releases found: ${releases.size}")
 
@@ -433,7 +435,7 @@ fun ViviDpiSettings(
                 },
                 navigationIcon = {
                     IconButton(onClick = { onBackPressedDispatcher?.onBackPressed() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back))
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 actions = {
@@ -584,7 +586,7 @@ fun OxygenOSStyleCard(
             ) {
                 val path = Path().apply {
                     moveTo(0f, size.height)
-                    quadraticBezierTo(size.width / 2, 0f, size.width, size.height)
+                    quadraticTo(size.width / 2, 0f, size.width, size.height)
                 }
                 drawPath(
                     path = path,
@@ -758,7 +760,7 @@ fun DetailsSection(
                 value = formatUploadTime(uploadDateTime)
             )
 
-            Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
 
             Text(
                 text = stringResource(R.string.changelog),
