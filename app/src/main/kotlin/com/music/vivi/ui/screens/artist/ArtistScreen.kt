@@ -675,29 +675,37 @@ public fun ArtistScreen(
                                     items = filteredLibraryAlbums,
                                     key = { "local_album_${it.id}_${filteredLibraryAlbums.indexOf(it)}" }
                                 ) { album ->
-                                    AlbumGridItem(
-                                        album = album,
-                                        isActive = mediaMetadata?.album?.id == album.id,
-                                        isPlaying = isPlaying,
-                                        coroutineScope = coroutineScope,
-                                        modifier = Modifier
-                                            .combinedClickable(
-                                                onClick = {
-                                                    navController.navigate("album/${album.id}")
-                                                },
-                                                onLongClick = {
-                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                    menuState.show {
-                                                        AlbumMenu(
-                                                            originalAlbum = album,
-                                                            navController = navController,
-                                                            onDismiss = menuState::dismiss
-                                                        )
+                                        AlbumGridItem(
+                                            album = album,
+                                            isActive = mediaMetadata?.album?.id == album.id,
+                                            isPlaying = isPlaying,
+                                            onPlayClick = {
+                                                playerConnection.playQueue(
+                                                    ListQueue(
+                                                        title = album.album.title,
+                                                        items = album.songs.map { it.toMediaItem() },
+                                                        startIndex = 0
+                                                    )
+                                                )
+                                            },
+                                            modifier = Modifier
+                                                .combinedClickable(
+                                                    onClick = {
+                                                        navController.navigate("album/${album.id}")
+                                                    },
+                                                    onLongClick = {
+                                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                        menuState.show {
+                                                            AlbumMenu(
+                                                                originalAlbum = album,
+                                                                navController = navController,
+                                                                onDismiss = menuState::dismiss
+                                                            )
+                                                        }
                                                     }
-                                                }
-                                            )
-                                            .animateItem()
-                                    )
+                                                )
+                                                .animateItem()
+                                        )
                                 }
                             }
                         }

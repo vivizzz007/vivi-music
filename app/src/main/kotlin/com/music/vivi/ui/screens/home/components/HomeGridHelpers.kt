@@ -85,7 +85,15 @@ internal fun HomeLocalGridItem(
             album = item,
             isActive = item.id == activeAlbumId,
             isPlaying = isPlaying,
-            coroutineScope = scope,
+            onPlayClick = {
+                playerConnection.playQueue(
+                    com.music.vivi.playback.queues.ListQueue(
+                        title = item.album.title,
+                        items = item.songs.map { it.toMediaItem() },
+                        startIndex = 0
+                    )
+                )
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .combinedClickable(

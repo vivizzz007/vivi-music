@@ -1,4 +1,4 @@
-package com.music.vivi.ui.component.core
+package com.music.vivi.ui.component
 
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxWithConstraintsScope

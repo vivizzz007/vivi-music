@@ -27,13 +27,6 @@ import com.music.vivi.constants.ListItemHeight
 import com.music.vivi.extensions.toMediaMetadata
 import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.models.toMediaMetadata
-import com.music.vivi.playback.PlayerConnection
-import com.music.vivi.playback.queues.YouTubeQueue
-import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.component.MenuState
-import com.music.vivi.ui.component.NavigationTitle
-import com.music.vivi.ui.component.media.youtube.YouTubeListItem
-import com.music.vivi.ui.menu.YouTubeSongMenu
 
 @OptIn(ExperimentalFoundationApi::class)
 fun LazyListScope.remoteHistoryList(
@@ -145,14 +138,4 @@ fun LazyListScope.remoteHistoryList(
     }
 }
 
-private fun com.music.innertube.models.SongItem.toMediaMetadata(): MediaMetadata {
-    return MediaMetadata(
-        id = this.id,
-        title = this.title,
-        artist = this.artists.joinToString(", ") { it.name },
-        duration = this.duration?.toLong() ?: 0L,
-        thumbnailUrl = this.thumbnail,
-        album = this.album?.let { MediaMetadata.Album(id = it.id, title = it.name) },
-        isExplicit = this.explicit
-    )
-}
+

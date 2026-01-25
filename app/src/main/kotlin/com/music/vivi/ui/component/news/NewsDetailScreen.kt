@@ -39,19 +39,24 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.music.vivi.R
-import com.music.vivi.repositories.NewsItem
+import com.music.vivi.data.News
+import com.music.vivi.navigation.backToMain
 import com.music.vivi.ui.component.IconButton
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun NewsDetailScreen(
-    newsItem: NewsItem,
-    isRefreshing: Boolean,
-    onRefresh: () -> Unit,
-    onBack: () -> Unit
+    newsItem: News,
+    navController: NavController,
 ) {
+    val haptic = LocalHapticFeedback.current
+    val context = LocalContext.current
+    val clipboardManager = LocalClipboardManager.current
+    val uriHandler = LocalUriHandler.current
+
     val pullRefreshState = rememberPullToRefreshState()
 
     Scaffold(
@@ -59,7 +64,10 @@ fun NewsDetailScreen(
             TopAppBar(
                 title = { },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(
+                        onClick = { navController.navigateUp() },
+                        onLongClick = { navController.backToMain() }
+                    ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.back)
