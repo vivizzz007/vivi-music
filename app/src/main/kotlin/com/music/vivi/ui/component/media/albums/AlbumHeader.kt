@@ -1,7 +1,5 @@
 package com.music.vivi.ui.component.media.albums
 
-import androidx.compose.ui.util.fastForEachIndexed
-
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background

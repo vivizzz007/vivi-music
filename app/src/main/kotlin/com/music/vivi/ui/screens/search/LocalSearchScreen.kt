@@ -42,7 +42,6 @@ import com.music.vivi.viewmodels.LocalFilter
 import com.music.vivi.viewmodels.LocalSearchViewModel
 import kotlinx.coroutines.flow.drop
 import com.music.vivi.R
-import com.music.vivi.ui.component.media.songs.SongListItem
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LocalSearchScreen(

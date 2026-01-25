@@ -1,4 +1,4 @@
-package com.music.vivi.ui.screens.home.components
+package com.music.vivi.ui.component.home
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides

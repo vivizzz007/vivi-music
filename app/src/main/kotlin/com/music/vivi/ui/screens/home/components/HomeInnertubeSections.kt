@@ -1,4 +1,4 @@
-package com.music.vivi.ui.screens.home.components
+package com.music.vivi.ui.component.home
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
-import com.music.innertube.pages.HomePage.Section
+import com.music.innertube.models.YouTubeSection
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.constants.ListThumbnailSize
 import com.music.vivi.constants.ThumbnailCornerRadius
@@ -27,7 +27,7 @@ import kotlinx.coroutines.CoroutineScope
 import com.music.vivi.utils.ImmutableList
 
 internal fun LazyListScope.homeInnertubeSections(
-    sections: ImmutableList<Section>,
+    sections: ImmutableList<YouTubeSection>,
     activeId: String?,
     activeAlbumId: String?,
     isPlaying: Boolean,

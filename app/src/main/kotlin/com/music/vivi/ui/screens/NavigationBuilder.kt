@@ -1,7 +1,6 @@
 package com.music.vivi.ui.screens
 
 import com.music.vivi.ui.screens.settings.AccountSettings
-import com.music.vivi.ui.screens.home.HomeScreen
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut

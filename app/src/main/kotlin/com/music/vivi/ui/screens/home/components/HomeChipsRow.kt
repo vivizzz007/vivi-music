@@ -1,4 +1,4 @@
-package com.music.vivi.ui.screens.home.components
+package com.music.vivi.ui.component.home
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
@@ -23,7 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.music.innertube.pages.HomePage.Chip
+import com.music.innertube.models.Chip
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
