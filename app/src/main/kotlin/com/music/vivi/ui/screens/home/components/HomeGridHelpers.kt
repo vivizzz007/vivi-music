@@ -21,6 +21,7 @@ import com.music.vivi.db.entities.Playlist
 import com.music.vivi.db.entities.Song
 import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.extensions.togglePlayPause
+import com.music.vivi.extensions.toMediaItem
 import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.ui.component.MenuState
 import com.music.vivi.ui.component.media.albums.AlbumGridItem

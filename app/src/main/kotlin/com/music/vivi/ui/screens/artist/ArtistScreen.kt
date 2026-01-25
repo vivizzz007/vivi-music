@@ -585,7 +585,7 @@ public fun ArtistScreen(
                         item(key = "local_songs_title") {
                             NavigationTitle(
                                 title = stringResource(R.string.songs),
-                                    modifier = Modifier.animateItemPlacement(),
+                                    modifier = Modifier.animateItem(),
                                 onClick = {
                                     navController.navigate("artist/${viewModel.artistId}/songs")
                                 }
@@ -655,7 +655,7 @@ public fun ArtistScreen(
                         item(key = "local_albums_title") {
                             NavigationTitle(
                                 title = stringResource(R.string.albums),
-                                    modifier = Modifier.animateItemPlacement(),
+                                    modifier = Modifier.animateItem(),
                                 onClick = {
                                     navController.navigate("artist/${viewModel.artistId}/albums")
                                 }
@@ -716,7 +716,7 @@ public fun ArtistScreen(
                             item(key = "section_${section.title}") {
                                 NavigationTitle(
                                     title = section.title,
-                                        modifier = Modifier.animateItemPlacement(),
+                                        modifier = Modifier.animateItem(),
                                     onClick = section.moreEndpoint?.let {
                                         {
                                             navController.navigate(

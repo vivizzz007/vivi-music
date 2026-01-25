@@ -124,7 +124,7 @@ public fun ChartsScreen(
                                     "Trending" -> stringResource(R.string.trending)
                                     else -> section.title ?: stringResource(R.string.charts)
                                 },
-                                modifier = Modifier.animateItemPlacement(),
+                                            .then(with(this) { Modifier.animateItem() }),
                             )
                         }
                         item(key = "section_content_${section.title}") {
@@ -150,7 +150,7 @@ public fun ChartsScreen(
                                     contentPadding = WindowInsets.systemBars
                                         .only(WindowInsetsSides.Horizontal)
                                         .asPaddingValues(),
-                                    modifier = with(lazyItemScope) { Modifier.animateItemPlacement() }
+                                    modifier = with(lazyItemScope) { Modifier.animateItem() }
                                         .fillMaxWidth()
                                         .height(ListItemHeight * 4),
                                 ) {

@@ -251,7 +251,7 @@ public fun ExploreScreen(
                                             }
                                         },
                                     )
-                                    .animateItemPlacement(),
+                                    .animateItem(),
                             )
                         }
                     }
@@ -300,7 +300,7 @@ public fun ExploreScreen(
                                             }
                                         },
                                     )
-                                    .animateItemPlacement(),
+                                    .animateItem(),
                             )
                         }
                     }

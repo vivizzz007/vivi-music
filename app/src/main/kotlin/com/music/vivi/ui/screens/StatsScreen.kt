@@ -63,6 +63,7 @@ import com.music.vivi.db.entities.Album
 import com.music.vivi.db.entities.SongWithStats
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 public fun StatsScreen(
     navController: NavController,
