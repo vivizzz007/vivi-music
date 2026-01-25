@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.res.stringResource
-import androidx.media3.common.MediaMetadata
+import com.music.vivi.models.MediaMetadata
 import androidx.navigation.NavController
 import com.music.innertube.models.YTItem
 import com.music.vivi.R

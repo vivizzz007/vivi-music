@@ -1,5 +1,7 @@
 package com.music.vivi.ui.component.album
 
+import com.music.vivi.db.entities.Song
+
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedback
@@ -21,7 +23,7 @@ import com.music.vivi.extensions.togglePlayPause
 import androidx.compose.material3.Icon
 
 fun LazyListScope.albumTrackList(
-    wrappedSongs: List<ItemWrapper>,
+    wrappedSongs: List<ItemWrapper<Song>>,
     mediaMetadata: MediaMetadata?,
     isPlaying: Boolean,
     selection: Boolean,

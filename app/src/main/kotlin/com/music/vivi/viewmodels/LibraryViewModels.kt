@@ -135,13 +135,13 @@ constructor(
         viewModelScope.launch(Dispatchers.IO) {
             allArtists.collect { artists ->
                 artists
-                    .map { it.artist }
-                    .filter {
-                        it.thumbnailUrl == null || Duration.between(
-                            it.lastUpdateTime,
+                    .map { artist: Artist -> artist.artist }
+                    .filter { artistEntity: ArtistEntity ->
+                        artistEntity.thumbnailUrl == null || Duration.between(
+                            artistEntity.lastUpdateTime,
                             LocalDateTime.now()
                         ) > Duration.ofDays(10)
-                    }.forEach { artist ->
+                    }.forEach { artist: ArtistEntity ->
                         YouTube.artist(artist.id).onSuccess { artistPage ->
                             database.query {
                                 update(artist, artistPage)

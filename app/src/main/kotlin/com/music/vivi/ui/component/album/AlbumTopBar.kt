@@ -18,12 +18,13 @@ import com.music.vivi.ui.component.MenuState
 import com.music.vivi.ui.menu.SelectionSongMenu
 import com.music.vivi.ui.utils.ItemWrapper
 import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.db.entities.Song
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlbumTopBar(
     selection: Boolean,
-    wrappedSongs: List<ItemWrapper>,
+    wrappedSongs: List<ItemWrapper<Song>>,
     onSelectionChange: (Boolean) -> Unit,
     onSelectAll: () -> Unit,
     onDeselectAll: () -> Unit,
@@ -77,6 +78,7 @@ fun AlbumTopBar(
                             onSelectAll()
                         }
                     },
+                    onLongClick = {},
                 ) {
                     Icon(
                         painter = painterResource(
@@ -97,6 +99,7 @@ fun AlbumTopBar(
                             )
                         }
                     },
+                    onLongClick = {},
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.more_vert),
