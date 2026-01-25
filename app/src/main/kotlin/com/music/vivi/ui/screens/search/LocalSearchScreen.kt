@@ -45,6 +45,8 @@ import com.music.vivi.ui.menu.SongMenu
 import com.music.vivi.viewmodels.LocalFilter
 import com.music.vivi.viewmodels.LocalSearchViewModel
 import kotlinx.coroutines.flow.drop
+import com.music.vivi.LocalDatabase
+import com.music.vivi.LocalDownloadUtil
 import com.music.vivi.R
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -241,17 +243,27 @@ fun LocalSearchScreen(
                                 .animateItem(),
                         )
 
-                        is Album -> AlbumListItem(
-                            album = item,
-                            isActive = item.id == mediaMetadata?.album?.id,
-                            isPlaying = isPlaying,
-                            modifier = Modifier
-                                .clickable {
-                                    onDismiss()
-                                    navController.navigate("album/${item.id}")
-                                }
-                                .animateItem(),
-                        )
+                        is Album -> {
+                            val downloadUtil = LocalDownloadUtil.current
+                            val database = LocalDatabase.current
+                            val downloadState by downloadUtil.getDownload(item.id).collectAsState(initial = null)
+                            val albumState by database.album(item.id).collectAsState(initial = item)
+                            val isFavorite = albumState?.album?.bookmarkedAt != null
+
+                            AlbumListItem(
+                                album = item,
+                                isActive = item.id == mediaMetadata?.album?.id,
+                                isPlaying = isPlaying,
+                                isFavorite = isFavorite,
+                                downloadState = downloadState?.state,
+                                modifier = Modifier
+                                    .clickable {
+                                        onDismiss()
+                                        navController.navigate("album/${item.id}")
+                                    }
+                                    .animateItem(),
+                            )
+                        }
 
                         is Artist -> ArtistListItem(
                             artist = item,

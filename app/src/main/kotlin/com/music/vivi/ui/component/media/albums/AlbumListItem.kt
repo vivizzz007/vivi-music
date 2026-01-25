@@ -8,8 +8,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
-import com.music.vivi.LocalDatabase
-import com.music.vivi.LocalDownloadUtil
 import com.music.vivi.R
 import com.music.vivi.constants.ListThumbnailSize
 import com.music.vivi.constants.ThumbnailCornerRadius
@@ -23,25 +21,20 @@ import com.music.vivi.utils.joinByBullet
 fun AlbumListItem(
     album: Album,
     modifier: Modifier = Modifier,
+    isActive: Boolean = false,
+    isPlaying: Boolean = false,
+    isFavorite: Boolean = false,
+    downloadState: Int? = null,
+    trailingContent: @Composable RowScope.() -> Unit = {},
     badges: @Composable RowScope.() -> Unit = {
-        val downloadUtil = LocalDownloadUtil.current
-        val database = LocalDatabase.current
-        val downloadState by downloadUtil.getDownload(album.id)
-            .collectAsState(initial = null)
-        val albumState by database.album(album.id).collectAsState(initial = album)
-        val isFavorite = albumState?.album?.bookmarkedAt != null
-
         if (isFavorite) {
             MediaIcons.Favorite()
         }
         if (album.album.explicit) {
             MediaIcons.Explicit()
         }
-        MediaIcons.Download(downloadState?.state)
+        MediaIcons.Download(downloadState)
     },
-    isActive: Boolean = false,
-    isPlaying: Boolean = false,
-    trailingContent: @Composable RowScope.() -> Unit = {},
     drawHighlight: Boolean = true,
 ) = ListItem(
     title = album.album.title,

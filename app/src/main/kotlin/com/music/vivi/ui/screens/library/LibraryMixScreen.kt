@@ -38,6 +38,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.music.vivi.LocalDatabase
+import com.music.vivi.LocalDownloadUtil
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
@@ -64,6 +66,7 @@ import com.music.vivi.db.entities.PlaylistEntity
 import com.music.vivi.extensions.reversed
 import com.music.vivi.ui.component.media.albums.AlbumGridItem
 import com.music.vivi.ui.component.media.albums.AlbumListItem
+import com.music.vivi.ui.component.LibraryAlbumGridItem
 import com.music.vivi.ui.component.media.artists.ArtistGridItem
 import com.music.vivi.ui.component.media.artists.ArtistListItem
 import com.music.vivi.ui.component.LocalMenuState
@@ -528,10 +531,18 @@ fun LibraryMixScreen(
                             }
 
                             is Album -> {
+                                val downloadUtil = LocalDownloadUtil.current
+                                val database = LocalDatabase.current
+                                val downloadState by downloadUtil.getDownload(item.id).collectAsState(initial = null)
+                                val albumState by database.album(item.id).collectAsState(initial = item)
+                                val isFavorite = albumState?.album?.bookmarkedAt != null
+
                                 AlbumListItem(
                                     album = item,
                                     isActive = item.id == mediaMetadata?.album?.id,
                                     isPlaying = isPlaying,
+                                    isFavorite = isFavorite,
+                                    downloadState = downloadState?.state,
                                     trailingContent = {
                                         IconButton(
                                             onClick = {
@@ -776,32 +787,18 @@ fun LibraryMixScreen(
                             }
 
                             is Album -> {
-                                AlbumGridItem(
+                                LibraryAlbumGridItem(
                                     album = item,
                                     isActive = item.id == mediaMetadata?.album?.id,
                                     isPlaying = isPlaying,
                                     coroutineScope = coroutineScope,
-                                    fillMaxWidth = true,
-                                    modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .combinedClickable(
-                                            onClick = {
-                                                val route = "album/${item.id}"
-                                                if (onNavigate != null) onNavigate(route) else navController.navigate(route)
-                                            },
-                                            onLongClick = {
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                menuState.show {
-                                                    AlbumMenu(
-                                                        originalAlbum = item,
-                                                        navController = navController,
-                                                        onDismiss = menuState::dismiss,
-                                                    )
-                                                }
-                                            },
-                                        )
-                                        .animateItem(),
+                                    navController = navController,
+                                    menuState = menuState,
+                                    onItemClick = {
+                                        val route = "album/${item.id}"
+                                        if (onNavigate != null) onNavigate(route) else navController.navigate(route)
+                                    },
+                                    modifier = Modifier
                                 )
                             }
 

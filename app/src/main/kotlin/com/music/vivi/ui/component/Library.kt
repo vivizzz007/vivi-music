@@ -6,12 +6,19 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavController
 import com.music.innertube.models.PlaylistItem
 import com.music.innertube.models.WatchEndpoint
+import com.music.vivi.LocalDatabase
+import com.music.vivi.LocalDownloadUtil
 import com.music.vivi.R
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 import com.music.vivi.db.entities.Album
 import com.music.vivi.db.entities.Artist
 import com.music.vivi.db.entities.Playlist
@@ -71,38 +78,48 @@ fun LibraryAlbumListItem(
     isActive: Boolean = false,
     isPlaying: Boolean = false,
     onItemClick: (() -> Unit)? = null
-) = AlbumListItem(
-    album = album,
-    isActive = isActive,
-    isPlaying = isPlaying,
-    trailingContent = {
-        androidx.compose.material3.IconButton(
-            onClick = {
-                menuState.show {
-                    AlbumMenu(
-                        originalAlbum = album,
-                        navController = navController,
-                        onDismiss = menuState::dismiss
-                    )
+) {
+    val downloadUtil = LocalDownloadUtil.current
+    val database = LocalDatabase.current
+    val downloadState by downloadUtil.getDownload(album.id).collectAsState(initial = null)
+    val albumState by database.album(album.id).collectAsState(initial = album)
+    val isFavorite = albumState?.album?.bookmarkedAt != null
+
+    AlbumListItem(
+        album = album,
+        isActive = isActive,
+        isPlaying = isPlaying,
+        isFavorite = isFavorite,
+        downloadState = downloadState?.state,
+        trailingContent = {
+            androidx.compose.material3.IconButton(
+                onClick = {
+                    menuState.show {
+                        AlbumMenu(
+                            originalAlbum = album,
+                            navController = navController,
+                            onDismiss = menuState::dismiss
+                        )
+                    }
+                }
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.more_vert),
+                    contentDescription = null
+                )
+            }
+        },
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable {
+                if (onItemClick != null) {
+                    onItemClick()
+                } else {
+                    navController.navigate("album/${album.id}")
                 }
             }
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.more_vert),
-                contentDescription = null
-            )
-        }
-    },
-    modifier = modifier
-        .fillMaxWidth()
-        .clickable {
-            if (onItemClick != null) {
-                onItemClick()
-            } else {
-                navController.navigate("album/${album.id}")
-            }
-        }
-)
+    )
+}
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -115,33 +132,70 @@ fun LibraryAlbumGridItem(
     isActive: Boolean = false,
     isPlaying: Boolean = false,
     onItemClick: (() -> Unit)? = null
-) = AlbumGridItem(
-    album = album,
-    isActive = isActive,
-    isPlaying = isPlaying,
-    coroutineScope = coroutineScope,
-    fillMaxWidth = true,
-    modifier = modifier
-        .fillMaxWidth()
-        .combinedClickable(
-            onClick = {
-                if (onItemClick != null) {
-                    onItemClick()
-                } else {
-                    navController.navigate("album/${album.id}")
-                }
-            },
-            onLongClick = {
-                menuState.show {
-                    AlbumMenu(
-                        originalAlbum = album,
-                        navController = navController,
-                        onDismiss = menuState::dismiss
-                    )
+) {
+    val downloadUtil = LocalDownloadUtil.current
+    val database = LocalDatabase.current
+    val playerConnection = com.music.vivi.LocalPlayerConnection.current ?: return
+
+    val songs by androidx.compose.runtime.produceState<List<com.music.vivi.db.entities.Song>>(initialValue = emptyList(), album.id) {
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            value = database.albumSongs(album.id).first()
+        }
+    }
+    val allDownloads by downloadUtil.downloads.collectAsState()
+    val downloadState by androidx.compose.runtime.remember(songs, allDownloads) {
+        androidx.compose.runtime.mutableStateOf(
+            if (songs.isEmpty()) {
+                androidx.media3.exoplayer.offline.Download.STATE_STOPPED
+            } else {
+                when {
+                    songs.all { allDownloads[it.id]?.state == androidx.media3.exoplayer.offline.Download.STATE_COMPLETED } -> androidx.media3.exoplayer.offline.Download.STATE_COMPLETED
+                    songs.any { allDownloads[it.id]?.state in listOf(androidx.media3.exoplayer.offline.Download.STATE_QUEUED, androidx.media3.exoplayer.offline.Download.STATE_DOWNLOADING) } -> androidx.media3.exoplayer.offline.Download.STATE_DOWNLOADING
+                    else -> androidx.media3.exoplayer.offline.Download.STATE_STOPPED
                 }
             }
         )
-)
+    }
+    val isFavorite = album.album.bookmarkedAt != null
+
+    AlbumGridItem(
+        album = album,
+        isActive = isActive,
+        isPlaying = isPlaying,
+        isFavorite = isFavorite,
+        downloadState = downloadState,
+        onPlayClick = {
+            coroutineScope.launch {
+                val albumWithSongs = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    database.albumWithSongs(album.id).firstOrNull()
+                }
+                albumWithSongs?.let {
+                    playerConnection.playQueue(com.music.vivi.playback.queues.LocalAlbumRadio(it))
+                }
+            }
+        },
+        modifier = modifier
+            .fillMaxWidth()
+            .combinedClickable(
+                onClick = {
+                    if (onItemClick != null) {
+                        onItemClick()
+                    } else {
+                        navController.navigate("album/${album.id}")
+                    }
+                },
+                onLongClick = {
+                    menuState.show {
+                        AlbumMenu(
+                            originalAlbum = album,
+                            navController = navController,
+                            onDismiss = menuState::dismiss
+                        )
+                    }
+                }
+            )
+    )
+}
 
 @Composable
 fun LibraryPlaylistListItem(
