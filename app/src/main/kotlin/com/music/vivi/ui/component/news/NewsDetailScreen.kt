@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.music.vivi.ui.component.news
 
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -49,7 +51,7 @@ import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.music.vivi.R
 
-@file:OptIn(ExperimentalMaterial3Api::class)
+
 
 import com.music.vivi.repositories.NewsItem
 import com.music.vivi.ui.component.IconButton
