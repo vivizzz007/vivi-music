@@ -43,10 +43,10 @@ import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.ui.component.ChoiceChipsRow
 import com.music.vivi.ui.component.HideOnScrollFAB
 import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.component.LocalAlbumsGrid
-import com.music.vivi.ui.component.LocalArtistsGrid
+import com.music.vivi.ui.component.media.local.LocalAlbumsGrid
+import com.music.vivi.ui.component.media.local.LocalArtistsGrid
 import com.music.vivi.ui.component.LocalMenuState
-import com.music.vivi.ui.component.LocalSongsGrid
+import com.music.vivi.ui.component.media.local.LocalSongsGrid
 import com.music.vivi.ui.component.NavigationTitle
 import com.music.vivi.ui.menu.AlbumMenu
 import com.music.vivi.ui.menu.ArtistMenu

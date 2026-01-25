@@ -148,7 +148,7 @@ import com.music.vivi.ui.component.EmptyPlaceholder
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.OverlayEditButton
-import com.music.vivi.ui.component.SongListItem
+import com.music.vivi.ui.component.media.songs.SongListItem
 import com.music.vivi.ui.component.SortHeader
 import com.music.vivi.ui.component.TextFieldDialog
 import com.music.vivi.ui.menu.CustomThumbnailMenu

@@ -35,7 +35,7 @@ import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.SearchBarIconOffsetX
-import com.music.vivi.ui.component.YouTubeListItem
+import com.music.vivi.ui.component.media.youtube.YouTubeListItem
 import com.music.vivi.ui.menu.*
 import com.music.vivi.viewmodels.OnlineSearchSuggestionViewModel
 import kotlinx.coroutines.flow.drop

@@ -27,8 +27,8 @@ import androidx.compose.ui.Alignment
  import com.music.vivi.constants.GridThumbnailHeight
  import com.music.vivi.ui.component.IconButton
  import com.music.vivi.ui.component.LocalMenuState
- import com.music.vivi.ui.component.YouTubeGridItem
- import com.music.vivi.ui.component.shimmer.GridItemPlaceHolder
+ import com.music.vivi.ui.component.media.youtube.YouTubeGridItem
+import com.music.vivi.ui.component.shimmer.GridItemPlaceHolder
  import com.music.vivi.ui.component.shimmer.ShimmerHost
  import com.music.vivi.ui.menu.YouTubeAlbumMenu
  import com.music.vivi.ui.menu.YouTubeArtistMenu

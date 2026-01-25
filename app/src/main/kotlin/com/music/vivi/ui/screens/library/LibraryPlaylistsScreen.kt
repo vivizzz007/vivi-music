@@ -68,8 +68,8 @@ import com.music.vivi.ui.component.HideOnScrollFAB
 import com.music.vivi.ui.component.LibraryPlaylistGridItem
 import com.music.vivi.ui.component.LibraryPlaylistListItem
 import com.music.vivi.ui.component.LocalMenuState
-import com.music.vivi.ui.component.PlaylistGridItem
-import com.music.vivi.ui.component.PlaylistListItem
+import com.music.vivi.ui.component.media.playlists.PlaylistGridItem
+import com.music.vivi.ui.component.media.playlists.PlaylistListItem
 import com.music.vivi.ui.component.SortHeader
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference

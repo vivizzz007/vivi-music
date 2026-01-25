@@ -133,8 +133,8 @@ import com.music.vivi.ui.component.DraggableScrollbar
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.NavigationTitle
-import com.music.vivi.ui.component.YouTubeGridItem
-import com.music.vivi.ui.component.YouTubeListItem
+import com.music.vivi.ui.component.media.youtube.YouTubeListItem
+import com.music.vivi.ui.component.media.youtube.YouTubeGridItem
 import com.music.vivi.ui.component.shimmer.ListItemPlaceHolder
 import com.music.vivi.ui.component.shimmer.ShimmerHost
 import com.music.vivi.ui.component.shimmer.TextPlaceholder
