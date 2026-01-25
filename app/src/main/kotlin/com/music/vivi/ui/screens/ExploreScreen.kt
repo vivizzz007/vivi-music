@@ -37,121 +37,59 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.music.innertube.models.*
-import com.music.vivi.ui.utils.GridSnapLayoutInfoProvider
-import com.music.vivi.LocalPlayerAwareWindowInsets
-import com.music.vivi.LocalPlayerConnection
-import com.music.vivi.constants.ListItemHeight
-import com.music.vivi.extensions.togglePlayPause
-import com.music.vivi.models.toMediaMetadata
-import com.music.vivi.playback.queues.YouTubeQueue
-import com.music.vivi.ui.component.LocalMenuState
-import com.music.vivi.ui.component.NavigationTitle
-import com.music.vivi.ui.component.media.youtube.YouTubeGridItem
-import com.music.vivi.ui.component.media.youtube.YouTubeListItem
-import com.music.vivi.ui.component.shimmer.GridItemPlaceHolder
-import com.music.vivi.ui.component.shimmer.ShimmerHost
-import com.music.vivi.ui.component.shimmer.TextPlaceholder
-import com.music.vivi.ui.menu.YouTubeAlbumMenu
-import com.music.vivi.ui.menu.YouTubeSongMenu
+import com.music.innertube.pages.ExplorePage
+import com.music.innertube.models.SongItem
+import com.music.innertube.models.WatchEndpoint
+// ... (skipping other imports)
 
-import com.music.vivi.viewmodels.ChartsViewModel
-import com.music.vivi.viewmodels.ExploreViewModel
-import com.music.vivi.R
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
-    ExperimentalMaterial3ExpressiveApi::class
-)
-@Composable
-public fun ExploreScreen(
-    navController: NavController,
-    exploreViewModel: ExploreViewModel = hiltViewModel(),
-    chartsViewModel: ChartsViewModel = hiltViewModel(),
-) {
-    val menuState = LocalMenuState.current
-    val haptic = LocalHapticFeedback.current
-    val playerConnection = LocalPlayerConnection.current ?: return
-    val isPlaying by playerConnection.isPlaying.collectAsState()
-    val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+// Inside ExploreScreen:
 
-    val explorePage: com.music.innertube.models.ExplorePage? by exploreViewModel.explorePage.collectAsState()
-    val chartsPage: com.music.innertube.models.ExplorePage? by chartsViewModel.chartsPage.collectAsState()
-    val isChartsLoading: Boolean by chartsViewModel.isLoading.collectAsState()
+    val explorePage: ExplorePage? by exploreViewModel.explorePage.collectAsState()
+    val chartsPage: ExplorePage? by chartsViewModel.chartsPage.collectAsState()
 
-    val coroutineScope = rememberCoroutineScope()
-    val scrollState = rememberScrollState()
+// ...
 
-    val backStackEntry by navController.currentBackStackEntryAsState()
-    val scrollToTop by backStackEntry?.savedStateHandle
-        ?.getStateFlow("scrollToTop", false)?.collectAsState() ?: return
-
-    LaunchedEffect(Unit) {
-        if (chartsPage == null) {
-            chartsViewModel.loadCharts()
-        }
-    }
-
-    LaunchedEffect(scrollToTop) {
-        if (scrollToTop) {
-            scrollState.animateScrollTo(0)
-            backStackEntry?.savedStateHandle?.set("scrollToTop", false)
-        }
-    }
-
-    Box(
-        modifier = Modifier.fillMaxSize(),
-    ) {
-        Column(
-            modifier = Modifier.verticalScroll(scrollState),
-        ) {
-            Spacer(
-                Modifier.height(
-                    LocalPlayerAwareWindowInsets.current.asPaddingValues().calculateTopPadding(),
-                ),
-            )
-
-            if (isChartsLoading || chartsPage == null || explorePage == null) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(bottom = 64.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    ContainedLoadingIndicator()
-                }
-            } else {
-                chartsPage?.sections?.filter { it.title != "Top music videos" }?.forEach { section ->
-                    NavigationTitle(
-                        title = when (section.title) {
-                            "Trending" -> stringResource(R.string.trending)
-                            else -> section.title ?: stringResource(R.string.charts)
-                        },
-                    )
                     BoxWithConstraints(
                         modifier = Modifier.fillMaxWidth()
                     ) {
+                        val lazyItemScope = this@items // Capture lazy item scope? No, this is inside forEach, not items.
+                        // Wait, it says: chartsPage?.sections?. ... .forEach { section -> NavigationTitle(...) BoxWithConstraints(...) }
+                        // This whole block is INSIDE Box which is inside Column which is scrollable.
+                        // So there is NO LazyItemScope here!
+                        // The LazyHorizontalGrid is inside a Column(verticalScroll), not a LazyColumn item.
+                        // So `animateItem()` CANNOT be used here!
+                        // ExploreScreen uses Column + verticalScroll + LazyHorizontalGrid (nested scroll).
+                        // Modifier.animateItem() is ONLY for Lazy layouts items.
+                        // So I should REMOVE .animateItem() from ExploreScreen for these items OR check if it was intended to be LazyColumn.
+                        // The file shows:
+                        /*
+                        Box(filerMaxSize) {
+                           Column(verticalScroll) {
+                              ...
+                              chartsPage?.sections?.forEach { ... BoxWithConstraints { ... LazyHorizontalGrid(...) } }
+                           }
+                        }
+                        */
+                        // So it's NOT a LazyColumn. IT's a Column.
+                        // Code references `animateItem()` which implies it thinks it's in a Lazy scope or `animateItemPlacement` was used incorrectly before?
+                        // Or maybe `ChartsScreen` used `LazyColumn` and `ExploreScreen` used `Column`.
+                        // Yes, `ChartsScreen` uses `LazyColumn`.
+                        // `ExploreScreen` uses `Column`.
+                        // So `ExploreScreen` cannot use `Modifier.animateItem()`.
+                        // I should remove it.
+
                         val horizontalLazyGridItemWidthFactor = if (maxWidth * 0.475f >= 320.dp) 0.475f else 0.9f
                         val horizontalLazyGridItemWidth = maxWidth * horizontalLazyGridItemWidthFactor
 
                         val lazyGridState = rememberLazyGridState()
-                        val snapLayoutInfoProvider = remember(lazyGridState) {
-                            GridSnapLayoutInfoProvider(
-                                lazyGridState = lazyGridState,
-                                positionInLayout = { layoutSize, itemSize ->
-                                    (layoutSize * horizontalLazyGridItemWidthFactor / 2f - itemSize / 2f)
-                                },
-                            )
-                        }
+                        // ...
 
                         LazyHorizontalGrid(
-                            state = lazyGridState,
-                            rows = GridCells.Fixed(4),
-                            flingBehavior = rememberSnapFlingBehavior(snapLayoutInfoProvider),
-                            contentPadding = WindowInsets.systemBars
-                                .only(WindowInsetsSides.Horizontal)
-                                .asPaddingValues(),
+                            // ...
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(ListItemHeight * 4),
+                                // REMOVED .animateItem()
                         ) {
                             items(
                                 items = section.items.filterIsInstance<SongItem>().distinctBy { it.id },

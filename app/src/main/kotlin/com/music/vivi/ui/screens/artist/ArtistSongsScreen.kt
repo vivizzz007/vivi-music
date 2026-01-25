@@ -147,8 +147,8 @@ public fun ArtistSongsScreen(
                             )
                         }
                     },
-                    modifier =
-                    Modifier
+                    modifier = Modifier
+                        .animateItem()
                         .fillMaxWidth()
                         .combinedClickable(
                             onClick = {

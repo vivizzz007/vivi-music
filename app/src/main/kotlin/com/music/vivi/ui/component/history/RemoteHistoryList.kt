@@ -101,7 +101,8 @@ fun LazyListScope.remoteHistoryList(
                                             onHistoryRemoved = onHistoryRemoved
                                         )
                                     }
-                                }
+                                },
+                                onLongClick = {}
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.more_vert),
@@ -142,4 +143,16 @@ fun LazyListScope.remoteHistoryList(
             }
         }
     }
+}
+
+private fun com.music.innertube.models.SongItem.toMediaMetadata(): MediaMetadata {
+    return MediaMetadata(
+        id = this.id,
+        title = this.title,
+        artist = this.artists.joinToString(", ") { it.name },
+        duration = this.duration?.toLong() ?: 0L,
+        thumbnailUrl = this.thumbnail,
+        album = this.album?.let { MediaMetadata.Album(id = it.id, title = it.name) },
+        isExplicit = this.explicit
+    )
 }

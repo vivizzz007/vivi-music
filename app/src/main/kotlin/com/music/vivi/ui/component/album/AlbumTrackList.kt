@@ -22,6 +22,8 @@ import com.music.vivi.playback.queues.LocalAlbumRadio
 import com.music.vivi.extensions.togglePlayPause
 import androidx.compose.material3.Icon
 
+import com.music.vivi.db.entities.AlbumWithSongs
+
 fun LazyListScope.albumTrackList(
     wrappedSongs: List<ItemWrapper<Song>>,
     mediaMetadata: MediaMetadata?,
@@ -29,7 +31,7 @@ fun LazyListScope.albumTrackList(
     selection: Boolean,
     onSelectionStart: () -> Unit,
     playlistId: String?,
-    albumWithSongs: Album?,
+    albumWithSongs: AlbumWithSongs?,
     playerConnection: PlayerConnection,
     navController: NavController,
     menuState: MenuState,

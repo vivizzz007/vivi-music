@@ -242,7 +242,17 @@ fun NewsDetailScreen(
                                  Icon(
                                     imageVector = Icons.Default.CheckCircle,
                                     contentDescription = null,
-                                    modifier = Modifier.size(20.dp),
+                                    modifier = Modifier
+                                        .size(20.dp)
+                                        .combinedClickable(
+                                            onClick = {
+                                                // Assuming 'url' is defined somewhere or meant to be a placeholder
+                                                // For now, let's use a dummy URL or assume 'fix' itself is a URL if applicable
+                                                // val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                                // context.startActivity(intent)
+                                            },
+                                            onLongClick = {}
+                                        ),
                                     tint = MaterialTheme.colorScheme.tertiary
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
