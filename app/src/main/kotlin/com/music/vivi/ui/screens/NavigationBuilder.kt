@@ -31,6 +31,7 @@ import com.music.vivi.ui.screens.playlist.CachePlaylistScreen
 import com.music.vivi.ui.screens.search.OnlineSearchResult
 import com.music.vivi.ui.screens.settings.AboutScreen
 // NEW: Import
+import com.music.vivi.ui.screens.settings.AccountSettings
 import com.music.vivi.ui.screens.settings.AppearanceSettings
 import com.music.vivi.ui.screens.settings.AdaptiveSettingsScreen
 import com.music.vivi.ui.screens.settings.BackupAndRestore
@@ -306,10 +307,14 @@ fun NavGraphBuilder.navigationBuilder(
     composable("settings/discord/login") {
         DiscordLoginScreen(navController)
     }
-    
+
     // ADD NEW: Account Settings Route
     composable("settings/account_settings") {
-        AccountSettings(navController)
+        AccountSettings(
+            navController = navController,
+            onClose = { navController.popBackStack() },
+            latestVersionName = BuildConfig.VERSION_NAME
+        )
     }
 
     composable("settings/about") {

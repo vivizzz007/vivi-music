@@ -41,9 +41,9 @@ fun AdaptiveLibraryScreen(
 
     // Communicate detail pane visibility to MainActivity via savedStateHandle
     // We only hide the global top bar if the detail pane is active AND the list pane is hidden (single pane mode)
-    val isDetailShown = navigator.currentDestination != null && 
+    val isDetailShown = navigator.currentDestination != null &&
                        navigator.scaffoldValue[ListDetailPaneScaffoldRole.List] == PaneAdaptedValue.Hidden
-    
+
     LaunchedEffect(isDetailShown) {
         navController.currentBackStackEntry?.savedStateHandle?.set("is_detail_shown", isDetailShown)
     }

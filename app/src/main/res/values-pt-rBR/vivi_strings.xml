@@ -30,6 +30,7 @@
     <string name="download_album">Baixar álbum</string>
     <string name="download_playlist">Baixar playlist</string>
 
+    <string name="spotify_login">Login do Spotify</string>
     <string name="connect_with_discord">Conectar com Discord</string>
     
     <string name="about_subtitle">Informações do app e dev</string>

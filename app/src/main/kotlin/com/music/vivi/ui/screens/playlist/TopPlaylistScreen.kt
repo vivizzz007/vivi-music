@@ -111,8 +111,7 @@ import com.music.vivi.ui.utils.ItemWrapper
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.viewmodels.TopPlaylistViewModel
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class,
-    ExperimentalMaterial3ExpressiveApi::class
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class
 )
 @Composable
 fun TopPlaylistScreen(
@@ -143,9 +142,9 @@ fun TopPlaylistScreen(
     val likeLength = remember(songs) {
         songs.fastSumBy { it.song.duration }
     }
-    
+
     var topPeriod by remember { mutableStateOf(viewModel.topPeriod.value) }
-    
+
     LaunchedEffect(topPeriod) {
         viewModel.topPeriod.value = topPeriod
     }
@@ -181,7 +180,7 @@ fun TopPlaylistScreen(
 
     val downloadUtil = LocalDownloadUtil.current
     val downloads by downloadUtil.downloads.collectAsState(emptyMap())
-    
+
     val downloadState = remember(songs, downloads) {
         if (songs.isEmpty()) {
             Download.STATE_STOPPED
@@ -252,9 +251,11 @@ fun TopPlaylistScreen(
 
     val transparentAppBar by remember {
         derivedStateOf {
-            state.firstVisibleItemIndex == 0 && state.firstVisibleItemScrollOffset < 200
+            state.firstVisibleItemIndex == 0 && state.firstVisibleItemScrollOffset < 10
         }
     }
+
+    val playlistTitle = stringResource(R.string.my_top)
 
     val playlistTitle = stringResource(R.string.my_top)
 
@@ -264,15 +265,15 @@ fun TopPlaylistScreen(
             contentPadding = LocalPlayerAwareWindowInsets.current.union(WindowInsets.ime).asPaddingValues(),
         ) {
             if (songs.isEmpty()) {
-                item(key = "empty_placeholder") {
+                item {
                     EmptyPlaceholder(
                         icon = R.drawable.music_note,
                         text = stringResource(R.string.playlist_is_empty),
                     )
                 }
-            } else {
+            } else {item {
                 if (!isSearching) {
-                    item(key = "playlist_header") {
+
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
