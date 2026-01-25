@@ -1,4 +1,4 @@
-package com.music.vivi.ui.screens
+package com.music.vivi.ui.screens.home
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -13,7 +13,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import com.music.vivi.ui.component.home.*
+import com.music.vivi.ui.screens.home.components.*
+import com.music.innertube.pages.HomePage
+import com.music.innertube.pages.MoodAndGenres
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable

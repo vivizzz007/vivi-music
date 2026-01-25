@@ -1,4 +1,4 @@
-package com.music.vivi.ui.component.home
+package com.music.vivi.ui.screens.home.components
 
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.compose.foundation.background

@@ -1,4 +1,4 @@
-package com.music.vivi.ui.component.home
+package com.music.vivi.ui.screens.home.components
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.music.innertube.models.MoodAndGenres
+import com.music.innertube.pages.MoodAndGenres
 import com.music.vivi.R
 import com.music.vivi.constants.MoodAndGenresButtonHeight
 import com.music.vivi.ui.component.MoodAndGenresButton
