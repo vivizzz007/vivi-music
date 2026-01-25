@@ -103,7 +103,6 @@
     <string name="swipe_song_to_add">Şarkıyı sola kaydırarak sıraya ekleyin veya sağa kaydırarak bir sonraki şarkı olarak çalın.</string>
     <string name="lyrics_click_change">Dokununca sözleri değiştir</string>
     <string name="lyrics_auto_scroll">Sözleri otomatik kaydırma</string>
-    <string name="slim">İnce</string>
     <string name="slim_navbar">İnce alt navigasyon çubuğu</string>
     <string name="auto_playlists">Otomatik oynatma listeleri</string>
     <string name="show_liked_playlist">Beğenilen listesini göster</string>

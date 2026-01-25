@@ -135,8 +135,15 @@ enum class PlaylistType {
 fun AutoPlaylistScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    playlistId: String? = null,
     viewModel: AutoPlaylistViewModel = hiltViewModel(),
+    onBack: () -> Unit = { navController.navigateUp() },
 ) {
+    if (playlistId != null) {
+        LaunchedEffect(playlistId) {
+            viewModel.setPlaylist(playlistId)
+        }
+    }
     val context = LocalContext.current
     val menuState = LocalMenuState.current
     val haptic = LocalHapticFeedback.current
@@ -145,7 +152,10 @@ fun AutoPlaylistScreen(
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
-    val playlist = when (viewModel.playlist) {
+    // FIX: Collect the playlist ID from the ViewModel's StateFlow
+    val currentPlaylistId by viewModel.playlist.collectAsState()
+
+    val playlistTitle = when (currentPlaylistId) {
         "liked" -> stringResource(R.string.liked)
         "uploaded" -> stringResource(R.string.uploaded_playlist)
         else -> stringResource(R.string.offline)
@@ -174,8 +184,8 @@ fun AutoPlaylistScreen(
         songs?.fastSumBy { it.song.duration } ?: 0
     }
 
-    val playlistId = viewModel.playlist
-    val playlistType = when (playlistId) {
+    // FIX: Use the collected playlist ID
+    val playlistType = when (currentPlaylistId) {
         "liked" -> PlaylistType.LIKE
         "downloaded" -> PlaylistType.DOWNLOAD
         "uploaded" -> PlaylistType.UPLOADED
@@ -250,7 +260,7 @@ fun AutoPlaylistScreen(
             onDismiss = { showRemoveDownloadDialog = false },
             content = {
                 Text(
-                    text = stringResource(R.string.remove_download_playlist_confirm, playlist),
+                    text = stringResource(R.string.remove_download_playlist_confirm, playlistTitle),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = 18.dp),
                 )
@@ -355,7 +365,7 @@ fun AutoPlaylistScreen(
                                     )
                                     Spacer(Modifier.width(8.dp))
                                     Text(
-                                        text = playlist,
+                                        text = playlistTitle,
                                         style = MaterialTheme.typography.headlineMedium,
                                         fontWeight = FontWeight.Bold,
                                         textAlign = TextAlign.Center,
@@ -381,7 +391,7 @@ fun AutoPlaylistScreen(
                                         onClick = {
                                             playerConnection.playQueue(
                                                 ListQueue(
-                                                    title = playlist,
+                                                    title = playlistTitle,
                                                     items = songs!!.map { it.toMediaItem() },
                                                 ),
                                             )
@@ -415,7 +425,7 @@ fun AutoPlaylistScreen(
                                         onClick = {
                                             playerConnection.playQueue(
                                                 ListQueue(
-                                                    title = playlist,
+                                                    title = playlistTitle,
                                                     items = songs!!.shuffled()
                                                         .map { it.toMediaItem() },
                                                 ),
@@ -590,7 +600,7 @@ fun AutoPlaylistScreen(
                                         onCheckedChange = {
                                             menuState.show {
                                                 AutoPlaylistMenu(
-                                                    name = playlist,
+                                                    name = playlistTitle,
                                                     songs = songs ?: emptyList(),
                                                     downloadState = downloadState,
                                                     onDownload = {
@@ -736,7 +746,7 @@ fun AutoPlaylistScreen(
                                                     } else {
                                                         playerConnection.playQueue(
                                                             ListQueue(
-                                                                title = playlist,
+                                                                title = playlistTitle,
                                                                 items = songs!!.map { it.toMediaItem() },
                                                                 startIndex = songs!!.indexOfFirst { it.id == songWrapper.item.id }
                                                             ),
@@ -807,7 +817,7 @@ fun AutoPlaylistScreen(
                     }
                     else -> {
                         Text(
-                            text = playlist,
+                            text = playlistTitle,
                             style = MaterialTheme.typography.titleLarge
                         )
                     }
@@ -826,7 +836,7 @@ fun AutoPlaylistScreen(
                                 selection = false
                             }
                             else -> {
-                                navController.navigateUp()
+                                onBack()
                             }
                         }
                     },

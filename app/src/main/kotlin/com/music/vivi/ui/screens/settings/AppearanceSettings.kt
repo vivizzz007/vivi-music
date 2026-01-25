@@ -103,6 +103,7 @@ import com.music.vivi.constants.PlayerButtonsStyle
 import com.music.vivi.constants.PlayerButtonsStyleKey
 import com.music.vivi.constants.ShowNowPlayingAppleMusicKey
 import com.music.vivi.constants.PureBlackKey
+import com.music.vivi.constants.Material3ExpressiveKey
 import com.music.vivi.constants.RotatingThumbnailKey
 import com.music.vivi.constants.SettingsShapeColorTertiaryKey
 import com.music.vivi.constants.ShowCachedPlaylistKey
@@ -142,6 +143,7 @@ import kotlin.math.roundToInt
 fun AppearanceSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    onBack: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -229,6 +231,10 @@ fun AppearanceSettings(
         defaultValue = false
     )
     val (pureBlack, onPureBlackChange) = rememberPreference(PureBlackKey, defaultValue = false)
+    val (material3Expressive, onMaterial3ExpressiveChange) = rememberPreference(
+        Material3ExpressiveKey,
+        defaultValue = false
+    )
     val (defaultOpenTab, onDefaultOpenTabChange) = rememberEnumPreference(
         DefaultOpenTabKey,
         defaultValue = NavigationTab.HOME
@@ -795,7 +801,7 @@ fun AppearanceSettings(
                     title = {},
                     navigationIcon = {
                         IconButton(
-                            onClick = navController::navigateUp,
+                            onClick = { onBack?.invoke() ?: navController.navigateUp() },
                             onLongClick = navController::backToMain
                         ) {
                             Icon(
@@ -858,7 +864,7 @@ fun AppearanceSettings(
                 }
 
                 item {
-                    val themeItems = remember(useDarkTheme, dynamicTheme, darkMode, pureBlack, settingsShapeTertiary, iconBgColor, iconStyleColor, highRefreshRate) {
+                    val themeItems = remember(useDarkTheme, dynamicTheme, darkMode, pureBlack, material3Expressive, settingsShapeTertiary, iconBgColor, iconStyleColor, highRefreshRate) {
                         buildList<@Composable () -> Unit> {
                             add {
                                 Row(
@@ -876,7 +882,12 @@ fun AppearanceSettings(
                                     }
                                     ModernSwitch(
                                         checked = dynamicTheme,
-                                        onCheckedChange = onDynamicThemeChange,
+                                        onCheckedChange = { checked ->
+                                            onDynamicThemeChange(checked)
+                                            if (!checked) {
+                                                onAccentColorChange(Color(0xFF4285F4).toArgb())
+                                            }
+                                        },
                                         modifier = Modifier.padding(end = 20.dp)
                                     )
                                 }
@@ -1003,6 +1014,7 @@ fun AppearanceSettings(
                                     }
                                 }
                             }
+
                             if (useDarkTheme) {
                                 add {
                                     Row(
@@ -1024,6 +1036,27 @@ fun AppearanceSettings(
                                             modifier = Modifier.padding(end = 20.dp)
                                         )
                                     }
+                                }
+                            }
+                            add {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        ModernInfoItem(
+                                            icon = { Icon(painterResource(R.drawable.palette), null, modifier = Modifier.size(22.dp)) },
+                                            title = "Material 3 Expressive",
+                                            subtitle = "Use expressive shapes and layout",
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                    ModernSwitch(
+                                        checked = material3Expressive,
+                                        onCheckedChange = onMaterial3ExpressiveChange,
+                                        modifier = Modifier.padding(end = 20.dp)
+                                    )
                                 }
                             }
                             add {

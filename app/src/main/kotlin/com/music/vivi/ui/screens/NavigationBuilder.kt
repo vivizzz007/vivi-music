@@ -1,5 +1,6 @@
 package com.music.vivi.ui.screens
 
+import com.music.vivi.ui.screens.settings.AccountSettings
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -12,6 +13,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+// NEW: Import for BuildConfig and AccountSettings
+import com.music.vivi.BuildConfig
 import com.music.vivi.support.SupportScreen
 import com.music.vivi.support.ViviIssueScreen
 import com.music.vivi.ui.screens.artist.ArtistAlbumsScreen
@@ -19,6 +22,7 @@ import com.music.vivi.ui.screens.artist.ArtistItemsScreen
 import com.music.vivi.ui.screens.artist.ArtistScreen
 import com.music.vivi.ui.screens.artist.ArtistSongsScreen
 import com.music.vivi.ui.screens.library.LibraryScreen
+import com.music.vivi.ui.screens.library.AdaptiveLibraryScreen
 import com.music.vivi.ui.screens.playlist.AutoPlaylistScreen
 import com.music.vivi.ui.screens.playlist.LocalPlaylistScreen
 import com.music.vivi.ui.screens.playlist.OnlinePlaylistScreen
@@ -26,7 +30,9 @@ import com.music.vivi.ui.screens.playlist.TopPlaylistScreen
 import com.music.vivi.ui.screens.playlist.CachePlaylistScreen
 import com.music.vivi.ui.screens.search.OnlineSearchResult
 import com.music.vivi.ui.screens.settings.AboutScreen
+// NEW: Import
 import com.music.vivi.ui.screens.settings.AppearanceSettings
+import com.music.vivi.ui.screens.settings.AdaptiveSettingsScreen
 import com.music.vivi.ui.screens.settings.BackupAndRestore
 import com.music.vivi.ui.screens.settings.ContentSettings
 //import com.music.vivi.ui.screens.settings.integrations.DiscordLoginScreen
@@ -34,6 +40,7 @@ import com.music.vivi.ui.screens.settings.integrations.DiscordSettings
 import com.music.vivi.ui.screens.settings.integrations.IntegrationScreen
 import com.music.vivi.ui.screens.settings.integrations.LastFMSettings
 import com.music.vivi.ui.screens.settings.PlayerSettings
+import com.music.vivi.ui.screens.settings.PowerSaverSettings
 import com.music.vivi.ui.screens.settings.PrivacySettings
 import com.music.vivi.ui.screens.settings.RomanizationSettings
 import com.music.vivi.ui.screens.settings.SettingsScreen
@@ -62,7 +69,7 @@ fun NavGraphBuilder.navigationBuilder(
     composable(
         Screens.Library.route,
     ) {
-        LibraryScreen(navController)
+        AdaptiveLibraryScreen(navController)
     }
     composable("history") {
         HistoryScreen(navController)
@@ -261,7 +268,7 @@ fun NavGraphBuilder.navigationBuilder(
         YouTubeBrowseScreen(navController)
     }
     composable("settings") {
-        SettingsScreen(navController, scrollBehavior)
+        AdaptiveSettingsScreen(navController)
     }
     composable("settings/appearance") {
         AppearanceSettings(navController, scrollBehavior)
@@ -281,6 +288,9 @@ fun NavGraphBuilder.navigationBuilder(
     composable("settings/privacy") {
         PrivacySettings(navController, scrollBehavior)
     }
+    composable("settings/power_saver") {
+        PowerSaverSettings(navController, scrollBehavior)
+    }
     composable("settings/backup_restore") {
         BackupAndRestore(navController, scrollBehavior)
     }
@@ -295,6 +305,11 @@ fun NavGraphBuilder.navigationBuilder(
     }
     composable("settings/discord/login") {
         DiscordLoginScreen(navController)
+    }
+    
+    // ADD NEW: Account Settings Route
+    composable("settings/account_settings") {
+        AccountSettings(navController)
     }
 
     composable("settings/about") {

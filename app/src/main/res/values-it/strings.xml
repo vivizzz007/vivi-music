@@ -250,7 +250,10 @@
     <string name="right">Destra</string>
     <string name="player_slider_style">Stile cursore lettore</string>
     <string name="default_">Predefinito</string>
-    <string name="squiggly">Ondulato</string>
+    <string name="wavy">Ondulato</string>
+    <string name="squiggly">Tortuoso</string>
+    <string name="slim">Sottile</string>
+
     <string name="misc">Varie</string>
     <string name="default_open_tab">Scheda predefinita all\'apertura</string>
     <string name="grid_cell_size">Dimensione celle griglia</string>
@@ -350,4 +353,5 @@
     <string name="lyrics_text_size">Dimensione testo testo</string>
     <string name="lyrics_line_spacing">Spaziatura righe testo</string>
     <string name="lyrics_style">Stile testo</string>
+    <string name="login_required_premium">YouTube Premium richiesto per la qualità molto alta</string>
 </resources>

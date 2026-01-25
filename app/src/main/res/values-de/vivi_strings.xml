@@ -103,7 +103,6 @@
     <string name="swipe_song_to_add">Song nach links wischen für Warteschlange, nach rechts für \"Als nächstes\"</string>
     <string name="lyrics_click_change">Songtext durch Anklicken ändern</string>
     <string name="lyrics_auto_scroll">Automatisches Scrollen der Songtexte</string>
-    <string name="slim">Schmal</string>
     <string name="slim_navbar">Schmale Navigationsleiste</string>
     <string name="auto_playlists">Automatische Playlists</string>
     <string name="show_liked_playlist">\"Geliked\" Playlist anzeigen</string>
