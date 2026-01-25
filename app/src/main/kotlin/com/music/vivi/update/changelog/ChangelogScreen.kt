@@ -331,6 +331,8 @@ fun ChangelogScreen(
                                         }
                                         Row(modifier = Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                             Box(modifier = Modifier.padding(top = 8.dp).size(6.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
+                                            // TODO: Migrate to LinkAnnotation when stable
+                                            @Suppress("DEPRECATION")
                                             ClickableText(
                                                 text = annotatedText,
                                                 onClick = { offset ->

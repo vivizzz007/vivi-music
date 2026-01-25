@@ -131,7 +131,8 @@ class CrashLogHandler(
                     writer.println("Package: ${context.packageName}")
                     try {
                         val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-                        writer.println("Version: ${packageInfo.versionName} (${packageInfo.versionCode})")
+                        val versionCode = androidx.core.content.pm.PackageInfoCompat.getLongVersionCode(packageInfo)
+                        writer.println("Version: ${packageInfo.versionName} ($versionCode)")
                     } catch (e: Exception) {
                         writer.println("Version: Unknown")
                     }

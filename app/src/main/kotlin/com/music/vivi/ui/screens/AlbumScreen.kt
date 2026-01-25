@@ -228,7 +228,7 @@ public fun AlbumScreen(
 
 // Songs List with Quick Pick style
                 // Songs List with Quick Pick style
-                if (albumWithSongs != null) {
+                if (true) {
                     albumTrackList(
                         wrappedSongs = wrappedSongs,
                         mediaMetadata = mediaMetadata,
