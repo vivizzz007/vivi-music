@@ -100,9 +100,12 @@ open class DiscordWebSocket(
         heartbeatJob?.cancel()
         connected = false
         val close = websocket?.closeReason?.await()
-        Logger.getLogger("Kizzy").log(INFO, "Gateway: Closed with code: ${close?.code}, reason: ${close?.message},  can_reconnect: ${close?.code?.toInt() == 4000}")
-        if (close?.code?.toInt() == 4000) {
-            delay(200.milliseconds)
+        val code = close?.code?.toInt()
+        Logger.getLogger("Kizzy").log(INFO, "Gateway: Closed with code: $code, reason: ${close?.message},  can_reconnect: ${code == 4000 || code == 1000 || code == 1001 || code == 1006}")
+        
+        // Reconnect on 4000 (standard), 1000 (normal), 1001 (going away), 1006 (abnormal)
+        if (code == 4000 || code == 1000 || code == 1001 || code == 1006) {
+            delay(1000.milliseconds) // Slightly longer delay
             connect()
         } else
             close()

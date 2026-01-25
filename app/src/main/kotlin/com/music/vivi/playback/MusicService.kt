@@ -335,6 +335,13 @@ class MusicService :
             setListener(object : MediaSessionService.Listener {
                 override fun onForegroundServiceStartNotAllowedException() {
                     Log.e(TAG, "Foreground service start not allowed")
+                    // If the service cannot start in foreground, we must ensure we don't try to play
+                    // creating an indeterminate state.
+                    scope.launch {
+                        if (player.isPlaying) {
+                            player.pause()
+                        }
+                    }
                 }
             })
         }
@@ -510,49 +517,66 @@ class MusicService :
             format to normalizeAudio
         }.collectLatest(scope) { (format, normalizeAudio) -> setupLoudnessEnhancer()}
 
-        if (dataStore.get(PersistentQueueKey, true)) {
-            runCatching {
-                filesDir.resolve(PERSISTENT_QUEUE_FILE).inputStream().use { fis ->
-                    ObjectInputStream(fis).use { oos ->
-                        oos.readObject() as PersistQueue
+        // Load persistent queue and state asynchronously to prevent main thread freeze (Fix #1)
+        scope.launch(Dispatchers.IO) {
+            if (dataStore.get(PersistentQueueKey, true)) {
+                // Restore Queue
+                val queueRestored = runCatching {
+                    filesDir.resolve(PERSISTENT_QUEUE_FILE).inputStream().use { fis ->
+                        ObjectInputStream(fis).use { oos ->
+                            oos.readObject() as PersistQueue
+                        }
                     }
-                }
-            }.onSuccess { queue ->
-                // Convert back to proper queue type
-                val restoredQueue = queue.toQueue()
-                queueManager.playQueue(
-                    queue = restoredQueue,
-                    playWhenReady = false,
-                )
-            }
-            runCatching {
-                filesDir.resolve(PERSISTENT_AUTOMIX_FILE).inputStream().use { fis ->
-                    ObjectInputStream(fis).use { oos ->
-                        oos.readObject() as PersistQueue
-                    }
-                }
-            }.onSuccess { queue ->
-                automixItems.value = queue.items.map { it.toMediaItem() }
-            }
+                }.getOrNull()
 
-            // Restore player state
-            runCatching {
-                filesDir.resolve(PERSISTENT_PLAYER_STATE_FILE).inputStream().use { fis ->
-                    ObjectInputStream(fis).use { oos ->
-                        oos.readObject() as PersistPlayerState
+                if (queueRestored != null) {
+                    val restoredQueue = queueRestored.toQueue()
+                    withContext(Dispatchers.Main) {
+                        queueManager.playQueue(
+                            queue = restoredQueue,
+                            playWhenReady = false,
+                        )
                     }
                 }
-            }.onSuccess { playerState ->
-                // Restore player settings after queue is loaded
-                scope.launch {
-                    delay(1000) // Wait for queue to be loaded
-                    player.repeatMode = playerState.repeatMode
-                    player.shuffleModeEnabled = playerState.shuffleModeEnabled
-                    player.volume = playerState.volume
 
-                    // Restore position if it's still valid
-                    if (playerState.currentMediaItemIndex < player.mediaItemCount) {
-                        player.seekTo(playerState.currentMediaItemIndex, playerState.currentPosition)
+                // Restore Automix
+                val automixRestored = runCatching {
+                    filesDir.resolve(PERSISTENT_AUTOMIX_FILE).inputStream().use { fis ->
+                        ObjectInputStream(fis).use { oos ->
+                            oos.readObject() as PersistQueue
+                        }
+                    }
+                }.getOrNull()
+
+                if (automixRestored != null) {
+                    val automixList = automixRestored.items.map { it.toMediaItem() }
+                    withContext(Dispatchers.Main) {
+                        automixItems.value = automixList
+                    }
+                }
+
+                // Restore Player State
+                val stateRestored = runCatching {
+                    filesDir.resolve(PERSISTENT_PLAYER_STATE_FILE).inputStream().use { fis ->
+                        ObjectInputStream(fis).use { oos ->
+                            oos.readObject() as PersistPlayerState
+                        }
+                    }
+                }.getOrNull()
+
+                if (stateRestored != null) {
+                    // Restore player settings after queue is loaded
+                    withContext(Dispatchers.Main) {
+                        // Small delay to ensure items are set? queueManager.playQueue sets items immediately.
+                        // However, waiting a brief moments allows the Player to process the queue.
+                        delay(200) 
+                        player.repeatMode = stateRestored.repeatMode
+                        player.shuffleModeEnabled = stateRestored.shuffleModeEnabled
+                        player.volume = stateRestored.volume
+
+                        if (stateRestored.currentMediaItemIndex < player.mediaItemCount) {
+                            player.seekTo(stateRestored.currentMediaItemIndex, stateRestored.currentPosition)
+                        }
                     }
                 }
             }
@@ -563,7 +587,9 @@ class MusicService :
             while (isActive) {
                 delay(30.seconds)
                 if (dataStore.get(PersistentQueueKey, true)) {
-                    saveQueueToDisk()
+                    withContext(Dispatchers.IO) {
+                        saveQueueToDisk()
+                    }
                 }
             }
         }
@@ -573,7 +599,9 @@ class MusicService :
             while (isActive) {
                 delay(10.seconds)
                 if (dataStore.get(PersistentQueueKey, true) && player.isPlaying) {
-                    saveQueueToDisk()
+                    withContext(Dispatchers.IO) {
+                        saveQueueToDisk()
+                    }
                 }
             }
         }
@@ -1696,7 +1724,7 @@ class MusicService :
                         SonicAudioProcessor(),
                     ),
                 ).build()
-        }
+        }.setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
 
     override fun onPlaybackStatsReady(
         eventTime: AnalyticsListener.EventTime,
