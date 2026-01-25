@@ -95,6 +95,7 @@ import com.music.vivi.ui.component.HideOnScrollFAB
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.NavigationTitle
+import com.music.vivi.ui.component.media.songs.roundedSongItems
 import com.music.vivi.ui.component.media.songs.SongListItem
 import com.music.vivi.ui.component.media.youtube.YouTubeGridItem
 import com.music.vivi.ui.component.media.youtube.YouTubeListItem
@@ -134,7 +135,7 @@ import androidx.compose.ui.text.style.TextAlign
 import com.music.vivi.constants.ListItemHeight
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun ArtistScreen(
+internal fun ArtistScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
     artistId: String? = null,
@@ -586,103 +587,61 @@ fun ArtistScreen(
                             )
                         }
 
-                        if (librarySongs.isNotEmpty()) {
-                            val filteredLibrarySongs = if (hideExplicit) {
-                                librarySongs.filter { !it.song.explicit }
-                            } else {
-                                librarySongs
-                            }
-
-                            itemsIndexed(
+                        if (filteredLibrarySongs.isNotEmpty()) {
+                            roundedSongItems(
                                 items = filteredLibrarySongs,
-                                key = { _, song -> "local_song_${song.id}" },
-                                contentType = { _, _ -> "song_list_item" }
-                            ) { index, song ->
-                                val isFirst = index == 0
-                                val isLast = index == filteredLibrarySongs.size - 1
-                                val isActive = song.id == mediaMetadata?.id
-
-                                if (index == 0) {
-                                    Spacer(modifier = Modifier.height(16.dp))
-                                }
-
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp)
-                                        .height(ListItemHeight)
-                                        .clip(
-                                            RoundedCornerShape(
-                                                topStart = if (isFirst) 20.dp else 0.dp,
-                                                topEnd = if (isFirst) 20.dp else 0.dp,
-                                                bottomStart = if (isLast) 20.dp else 0.dp,
-                                                bottomEnd = if (isLast) 20.dp else 0.dp
+                                key = { "local_song_${it.id}" },
+                                isActive = { it.id == mediaMetadata?.id },
+                                onItemClick = { song ->
+                                    if (song.id == mediaMetadata?.id) {
+                                        playerConnection.player.togglePlayPause()
+                                    } else {
+                                        playerConnection.playQueue(
+                                            ListQueue(
+                                                title = libraryArtist?.artist?.name ?: context.getString(R.string.unknown_artist),
+                                                items = librarySongs.map { it.toMediaItem() },
+                                                startIndex = librarySongs.indexOf(song)
                                             )
                                         )
-                                        .background(
-                                            if (isActive) MaterialTheme.colorScheme.secondaryContainer
-                                            else MaterialTheme.colorScheme.surfaceContainer
+                                    }
+                                },
+                                onItemLongClick = { song ->
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    menuState.show {
+                                        SongMenu(
+                                            originalSong = song,
+                                            navController = navController,
+                                            onDismiss = menuState::dismiss,
                                         )
-                                        .animateItem()
-                                ) {
-                                    SongListItem(
-                                        song = song,
-                                        showInLibraryIcon = true,
-                                        isActive = isActive,
-                                        isPlaying = isPlaying,
-                                        isSwipeable = false,
-                                        trailingContent = {
-                                            IconButton(
-                                                onClick = {
-                                                    menuState.show {
-                                                        SongMenu(
-                                                            originalSong = song,
-                                                            navController = navController,
-                                                            onDismiss = menuState::dismiss,
-                                                        )
-                                                    }
-                                                },
-                                            ) {
-                                                Icon(
-                                                    painter = painterResource(R.drawable.more_vert),
-                                                    contentDescription = null,
-                                                )
-                                            }
-                                        },
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .combinedClickable(
-                                                onClick = {
-                                                    if (song.id == mediaMetadata?.id) {
-                                                        playerConnection.player.togglePlayPause()
-                                                    } else {
-                                                        playerConnection.playQueue(
-                                                            ListQueue(
-                                                                title = libraryArtist?.artist?.name ?: context.getString(R.string.unknown_artist),
-                                                                items = librarySongs.map { it.toMediaItem() },
-                                                                startIndex = index
-                                                            )
-                                                        )
-                                                    }
-                                                },
-                                                onLongClick = {
-                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                    menuState.show {
-                                                        SongMenu(
-                                                            originalSong = song,
-                                                            navController = navController,
-                                                            onDismiss = menuState::dismiss,
-                                                        )
-                                                    }
-                                                },
-                                            ),
-                                    )
+                                    }
                                 }
-
-                                // Add 3dp spacer between items (except after last)
-                                if (!isLast) {
-                                    Spacer(modifier = Modifier.height(3.dp))
-                                }
+                            ) { song, shape, modifier ->
+                                SongListItem(
+                                    song = song,
+                                    showInLibraryIcon = true,
+                                    isActive = song.id == mediaMetadata?.id,
+                                    isPlaying = isPlaying,
+                                    isSwipeable = false,
+                                    trailingContent = {
+                                        IconButton(
+                                            onClick = {
+                                                menuState.show {
+                                                    SongMenu(
+                                                        originalSong = song,
+                                                        navController = navController,
+                                                        onDismiss = menuState::dismiss,
+                                                    )
+                                                }
+                                            },
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.more_vert),
+                                                contentDescription = null,
+                                            )
+                                        }
+                                    },
+                                    modifier = modifier
+                                )
                             }
                         }
                     }

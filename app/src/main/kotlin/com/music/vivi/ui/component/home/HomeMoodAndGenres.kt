@@ -24,8 +24,10 @@ import com.music.vivi.ui.component.NavigationTitle
 import com.music.vivi.ui.component.shimmer.ShimmerHost
 import com.music.vivi.ui.component.shimmer.TextPlaceholder
 
-fun LazyListScope.homeMoodAndGenres(
-    moodAndGenres: List<MoodAndGenres>?,
+import com.music.vivi.utils.ImmutableList
+
+internal fun LazyListScope.homeMoodAndGenres(
+    moodAndGenres: ImmutableList<MoodAndGenres>?,
     isLoading: Boolean,
     navController: NavController
 ) {

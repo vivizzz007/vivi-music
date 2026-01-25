@@ -16,7 +16,7 @@ import com.music.vivi.ui.component.shimmer.GridItemPlaceHolder
 import com.music.vivi.ui.component.shimmer.ShimmerHost
 import com.music.vivi.ui.component.shimmer.TextPlaceholder
 
-fun LazyListScope.homeLoadingShimmer(
+internal fun LazyListScope.homeLoadingShimmer(
     isLoading: Boolean,
     homePage: HomePage?
 ) {

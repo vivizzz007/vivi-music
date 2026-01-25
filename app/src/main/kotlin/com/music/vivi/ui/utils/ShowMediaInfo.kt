@@ -73,14 +73,10 @@ fun ShowMediaInfo(videoId: String) {
     val context = LocalContext.current
     val sheetState = LocalBottomSheetPageState.current
 
-    LaunchedEffect(Unit, videoId) {
-        info = YouTube.getMediaInfo(videoId).getOrNull()
-    }
-    LaunchedEffect(Unit, videoId) {
-        database.song(videoId).collect { song = it }
-    }
-    LaunchedEffect(Unit, videoId) {
-        database.format(videoId).collect { currentFormat = it }
+    LaunchedEffect(videoId) {
+        launch { info = YouTube.getMediaInfo(videoId).getOrNull() }
+        launch { database.song(videoId).collect { song = it } }
+        launch { database.format(videoId).collect { currentFormat = it } }
     }
 
     // Shapes

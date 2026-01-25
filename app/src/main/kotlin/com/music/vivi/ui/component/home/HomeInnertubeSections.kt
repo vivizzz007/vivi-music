@@ -24,8 +24,10 @@ import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.NavigationTitle
 import kotlinx.coroutines.CoroutineScope
 
-fun LazyListScope.homeInnertubeSections(
-    sections: List<YouTubeSection>,
+import com.music.vivi.utils.ImmutableList
+
+internal fun LazyListScope.homeInnertubeSections(
+    sections: ImmutableList<YouTubeSection>,
     activeId: String?,
     activeAlbumId: String?,
     isPlaying: Boolean,

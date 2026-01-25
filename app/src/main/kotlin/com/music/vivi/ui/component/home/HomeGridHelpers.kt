@@ -37,7 +37,7 @@ import com.music.vivi.ui.menu.YouTubeSongMenu
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
-fun HomeLocalGridItem(
+internal fun HomeLocalGridItem(
     item: LocalItem,
     isPlaying: Boolean,
     activeId: String?,
@@ -133,7 +133,7 @@ fun HomeLocalGridItem(
 }
 
 @Composable
-fun HomeYTGridItem(
+internal fun HomeYTGridItem(
     item: YTItem,
     isPlaying: Boolean,
     activeId: String?,

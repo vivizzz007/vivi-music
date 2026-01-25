@@ -125,6 +125,7 @@ configure<com.android.build.api.dsl.ApplicationExtension> {
             )
             jvmTarget.set(JvmTarget.JVM_21)
         }
+        explicitApi()
     }
 
     buildFeatures {

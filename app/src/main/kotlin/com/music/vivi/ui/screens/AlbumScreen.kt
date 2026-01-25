@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import com.music.vivi.ui.component.media.songs.roundedSongItems
 import com.music.vivi.ui.component.media.albums.AlbumHeader
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.aspectRatio
@@ -124,7 +125,7 @@ import com.music.vivi.viewmodels.AlbumViewModel
 
 @OptIn(ExperimentalFoundationApi::class,ExperimentalMaterial3Api::class,ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun AlbumScreen(
+internal fun AlbumScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
     albumId: String? = null,
@@ -238,130 +239,67 @@ fun AlbumScreen(
                 // Replace the songs list section in your AlbumScreen with this modified version:
 
 // Songs List with Quick Pick style
-                if (!wrappedSongs.isNullOrEmpty()) {
-                    item(key = "songs_container") {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp)
-                        ) {
-                            wrappedSongs.forEachIndexed { index, songWrapper ->
-                                val isFirst = index == 0
-                                val isLast = index == wrappedSongs.size - 1
-                                val isActive = songWrapper.item.id == mediaMetadata?.id
-                                val isSingleSong = wrappedSongs.size == 1
-
-                                val cornerRadius = remember { 24.dp }
-
-                                val topShape = remember(cornerRadius) {
-                                    AbsoluteSmoothCornerShape(
-                                        cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
-                                        smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
-                                        cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+                // Songs List with Quick Pick style
+                if (wrappedSongs.isNotEmpty()) {
+                    roundedSongItems(
+                        items = wrappedSongs,
+                        key = { it.item.id },
+                        isActive = { it.item.id == mediaMetadata?.id },
+                        onItemClick = { songWrapper ->
+                            if (!selection) {
+                                if (songWrapper.item.id == mediaMetadata?.id) {
+                                    playerConnection.player.togglePlayPause()
+                                } else {
+                                    playerConnection.service.getAutomix(playlistId)
+                                    playerConnection.playQueue(
+                                        LocalAlbumRadio(albumWithSongs, startIndex = wrappedSongs.indexOf(songWrapper)),
                                     )
                                 }
-                                val middleShape = remember { RectangleShape }
-                                val bottomShape = remember(cornerRadius) {
-                                    AbsoluteSmoothCornerShape(
-                                        cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-                                        smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
-                                        cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
-                                    )
-                                }
-                                val singleShape = remember(cornerRadius) {
-                                    AbsoluteSmoothCornerShape(
-                                        cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-                                        smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-                                        cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
-                                    )
-                                }
-
-                                val shape = remember(isFirst, isLast, cornerRadius) {
-                                    when {
-                                        isFirst && isLast -> singleShape
-                                        isFirst -> topShape
-                                        isLast -> bottomShape
-                                        else -> middleShape
-                                    }
-                                }
-
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(ListItemHeight)
-                                        .clip(shape)
-                                        .background(
-                                            if (isActive) MaterialTheme.colorScheme.secondaryContainer
-                                            else MaterialTheme.colorScheme.surfaceContainer
-                                        )
-                                ) {
-                                    SongListItem(
-                                        song = songWrapper.item,
-                                        isActive = isActive,
-                                        isPlaying = isPlaying,
-                                        showInLibraryIcon = true,
-                                        isSwipeable = false,
-                                        drawHighlight = false,
-                                        trailingContent = {
-                                            IconButton(
-                                                onClick = {
-                                                    menuState.show {
-                                                        SongMenu(
-                                                            originalSong = songWrapper.item,
-                                                            navController = navController,
-                                                            onDismiss = menuState::dismiss,
-                                                        )
-                                                    }
-                                                },
-                                            ) {
-                                                Icon(
-                                                    painter = painterResource(R.drawable.more_vert),
-                                                    contentDescription = null,
-                                                )
-                                            }
-                                        },
-                                        isSelected = songWrapper.isSelected,
-                                        inSelectionMode = selection,
-                                        onSelectionChange = { songWrapper.isSelected = it },
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .combinedClickable(
-                                                onClick = {
-                                                    if (!selection) {
-                                                        if (songWrapper.item.id == mediaMetadata?.id) {
-                                                            playerConnection.player.togglePlayPause()
-                                                        } else {
-                                                            playerConnection.service.getAutomix(playlistId)
-                                                            playerConnection.playQueue(
-                                                                LocalAlbumRadio(albumWithSongs, startIndex = index),
-                                                            )
-                                                        }
-                                                    } else {
-                                                        songWrapper.isSelected = !songWrapper.isSelected
-                                                    }
-                                                },
-                                                onLongClick = {
-                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                    if (!selection) {
-                                                        selection = true
-                                                    }
-                                                    wrappedSongs.forEach {
-                                                        it.isSelected = false
-                                                    }
-                                                    songWrapper.isSelected = true
-                                                },
-                                            ),
-                                    )
-                                }
-
-                                // Add 3dp spacer between items (except after last)
-                                if (!isLast) {
-                                    Spacer(modifier = Modifier.height(3.dp))
-                                }
+                            } else {
+                                songWrapper.isSelected = !songWrapper.isSelected
                             }
-
-                            Spacer(modifier = Modifier.height(16.dp))
+                        },
+                        onItemLongClick = { songWrapper ->
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            if (!selection) {
+                                selection = true
+                            }
+                            wrappedSongs.forEach {
+                                it.isSelected = false
+                            }
+                            songWrapper.isSelected = true
                         }
+                    ) { songWrapper, shape, modifier ->
+                        SongListItem(
+                            song = songWrapper.item,
+                            isActive = songWrapper.item.id == mediaMetadata?.id,
+                            isPlaying = isPlaying,
+                            showInLibraryIcon = true,
+                            isSwipeable = false,
+                            drawHighlight = false,
+                            trailingContent = {
+                                IconButton(
+                                    onClick = {
+                                        menuState.show {
+                                            SongMenu(
+                                                originalSong = songWrapper.item,
+                                                navController = navController,
+                                                onDismiss = menuState::dismiss,
+                                            )
+                                        }
+                                    },
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.more_vert),
+                                        contentDescription = null,
+                                    )
+                                }
+                            },
+                            isSelected = songWrapper.isSelected,
+                            inSelectionMode = selection,
+                            onSelectionChange = { songWrapper.isSelected = it },
+                            modifier = modifier
+                        )
                     }
                 }
 

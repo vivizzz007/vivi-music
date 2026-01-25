@@ -27,7 +27,7 @@ import com.music.innertube.models.Chip
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeChipsRow(
+internal fun HomeChipsRow(
     chips: List<Chip>,
     selectedChip: Chip?,
     onChipClick: (Chip) -> Unit,

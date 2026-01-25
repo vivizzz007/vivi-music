@@ -25,9 +25,11 @@ import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.NavigationTitle
 import kotlinx.coroutines.CoroutineScope
 
+import com.music.vivi.utils.ImmutableList
+
 @Composable
-fun HomeKeepListening(
-    keepListening: List<LocalItem>,
+internal fun HomeKeepListening(
+    keepListening: ImmutableList<LocalItem>,
     isPlaying: Boolean,
     activeId: String?,
     activeAlbumId: String?,

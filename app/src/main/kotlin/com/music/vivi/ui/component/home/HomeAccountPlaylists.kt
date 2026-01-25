@@ -29,9 +29,11 @@ import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.NavigationTitle
 import kotlinx.coroutines.CoroutineScope
 
+import com.music.vivi.utils.ImmutableList
+
 @Composable
-fun HomeAccountPlaylists(
-    accountPlaylists: List<PlaylistItem>,
+internal fun HomeAccountPlaylists(
+    accountPlaylists: ImmutableList<PlaylistItem>,
     accountName: String,
     accountImageUrl: String?,
     activeId: String?,

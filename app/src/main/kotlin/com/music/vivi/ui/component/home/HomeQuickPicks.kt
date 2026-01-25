@@ -51,10 +51,12 @@ import com.music.vivi.ui.component.NavigationTitle
 import com.music.vivi.ui.component.media.songs.SongListItem
 import com.music.vivi.ui.menu.SongMenu
 
+import com.music.vivi.utils.ImmutableList
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeQuickPicks(
-    quickPicks: List<Song>,
+internal fun HomeQuickPicks(
+    quickPicks: ImmutableList<Song>,
     mediaMetadata: MediaMetadata?,
     isPlaying: Boolean,
     maxWidth: Dp,

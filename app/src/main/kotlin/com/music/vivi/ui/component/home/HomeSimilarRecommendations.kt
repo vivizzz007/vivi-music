@@ -29,8 +29,10 @@ import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.NavigationTitle
 import kotlinx.coroutines.CoroutineScope
 
-fun LazyListScope.homeSimilarRecommendations(
-    similarRecommendations: List<SimilarRecommendation>,
+import com.music.vivi.utils.ImmutableList
+
+internal fun LazyListScope.homeSimilarRecommendations(
+    similarRecommendations: ImmutableList<SimilarRecommendation>,
     activeId: String?,
     activeAlbumId: String?,
     isPlaying: Boolean,

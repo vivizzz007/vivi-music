@@ -48,10 +48,12 @@ import com.music.vivi.ui.component.media.songs.SongListItem
 import com.music.vivi.ui.menu.SongMenu
 import kotlin.math.min
 
+import com.music.vivi.utils.ImmutableList
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeForgottenFavorites(
-    forgottenFavorites: List<Song>,
+internal fun HomeForgottenFavorites(
+    forgottenFavorites: ImmutableList<Song>,
     mediaMetadataId: String?,
     isPlaying: Boolean,
     maxWidth: Dp,

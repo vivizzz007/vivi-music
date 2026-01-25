@@ -41,6 +41,8 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -48,34 +50,53 @@ import javax.inject.Inject
 
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(
-    @ApplicationContext val context: Context,
-    val database: MusicDatabase,
-    val syncUtils: SyncUtils,
+public class HomeViewModel @Inject constructor(
+    @ApplicationContext public val context: Context,
+    public val database: MusicDatabase,
+    public val syncUtils: SyncUtils,
 ) : ViewModel() {
-    val isRefreshing = MutableStateFlow(false)
-    val isLoading = MutableStateFlow(false)
+    public val isRefreshing: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    public val isLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     private val quickPicksEnum = context.dataStore.data.map {
         it[QuickPicksKey].toEnum(QuickPicks.QUICK_PICKS)
     }.distinctUntilChanged()
 
-    val quickPicks = MutableStateFlow<List<Song>?>(null)
-    val forgottenFavorites = MutableStateFlow<List<Song>?>(null)
-    val keepListening = MutableStateFlow<List<LocalItem>?>(null)
-    val similarRecommendations = MutableStateFlow<List<SimilarRecommendation>?>(null)
-    val accountPlaylists = MutableStateFlow<List<PlaylistItem>?>(null)
-    val homePage = MutableStateFlow<HomePage?>(null)
-    val explorePage = MutableStateFlow<ExplorePage?>(null)
-    val selectedChip = MutableStateFlow<HomePage.Chip?>(null)
+    private val _quickPicks = MutableStateFlow<List<Song>?>(null)
+    public val quickPicks: StateFlow<List<Song>?> = _quickPicks.asStateFlow()
+
+    private val _forgottenFavorites = MutableStateFlow<List<Song>?>(null)
+    public val forgottenFavorites: StateFlow<List<Song>?> = _forgottenFavorites.asStateFlow()
+
+    private val _keepListening = MutableStateFlow<List<LocalItem>?>(null)
+    public val keepListening: StateFlow<List<LocalItem>?> = _keepListening.asStateFlow()
+
+    private val _similarRecommendations = MutableStateFlow<List<SimilarRecommendation>?>(null)
+    public val similarRecommendations: StateFlow<List<SimilarRecommendation>?> = _similarRecommendations.asStateFlow()
+
+    private val _accountPlaylists = MutableStateFlow<List<PlaylistItem>?>(null)
+    public val accountPlaylists: StateFlow<List<PlaylistItem>?> = _accountPlaylists.asStateFlow()
+
+    private val _homePage = MutableStateFlow<HomePage?>(null)
+    public val homePage: StateFlow<HomePage?> = _homePage.asStateFlow()
+
+    private val _explorePage = MutableStateFlow<ExplorePage?>(null)
+    public val explorePage: StateFlow<ExplorePage?> = _explorePage.asStateFlow()
+
+    private val _selectedChip = MutableStateFlow<HomePage.Chip?>(null)
+    public val selectedChip: StateFlow<HomePage.Chip?> = _selectedChip.asStateFlow()
+
     private val previousHomePage = MutableStateFlow<HomePage?>(null)
 
-    val allLocalItems = MutableStateFlow<List<LocalItem>>(emptyList())
-    val allYtItems = MutableStateFlow<List<YTItem>>(emptyList())
+    private val _allLocalItems = MutableStateFlow<List<LocalItem>>(emptyList())
+    public val allLocalItems: StateFlow<List<LocalItem>> = _allLocalItems.asStateFlow()
 
-    val accountName = MutableStateFlow("Guest")
-    val accountImageUrl = MutableStateFlow<String?>(null)
-    val isLoggedIn = MutableStateFlow(false)
+    private val _allYtItems = MutableStateFlow<List<YTItem>>(emptyList())
+    public val allYtItems: StateFlow<List<YTItem>> = _allYtItems.asStateFlow()
+
+    public val accountName: MutableStateFlow<String> = MutableStateFlow("Guest")
+    public val accountImageUrl: MutableStateFlow<String?> = MutableStateFlow(null)
+    public val isLoggedIn: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     // Track last processed cookie to avoid unnecessary updates
     private var lastProcessedCookie: String? = null
@@ -84,11 +105,11 @@ class HomeViewModel @Inject constructor(
 
     private suspend fun getQuickPicks() {
         when (quickPicksEnum.first()) {
-            QuickPicks.QUICK_PICKS -> quickPicks.value = database.quickPicks().first().shuffled().take(20)
+            QuickPicks.QUICK_PICKS -> _quickPicks.value = database.quickPicks().first().shuffled().take(20)
             QuickPicks.LAST_LISTEN -> {
                 val song = database.events().first().firstOrNull()?.song
                 if (song != null && database.hasRelatedSongs(song.id)) {
-                    quickPicks.value = database.getRelatedSongs(song.id).first().shuffled().take(20)
+                    _quickPicks.value = database.getRelatedSongs(song.id).first().shuffled().take(20)
                 }
             }
         }
@@ -100,17 +121,17 @@ class HomeViewModel @Inject constructor(
         val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
 
         getQuickPicks()
-        forgottenFavorites.value = database.forgottenFavorites().first().shuffled().take(20)
+        _forgottenFavorites.value = database.forgottenFavorites().first().shuffled().take(20)
 
         val fromTimeStamp = System.currentTimeMillis() - 86400000 * 7 * 2
         val keepListeningSongs = database.mostPlayedSongs(fromTimeStamp, limit = 15, offset = 5).first().shuffled().take(10)
         val keepListeningAlbums = database.mostPlayedAlbums(fromTimeStamp, limit = 8, offset = 2).first().filter { it.album.thumbnailUrl != null }.shuffled().take(5)
         val keepListeningArtists = database.mostPlayedArtists(fromTimeStamp).first().filter { it.artist.isYouTubeArtist && it.artist.thumbnailUrl != null }.shuffled().take(5)
-        keepListening.value = (keepListeningSongs + keepListeningAlbums + keepListeningArtists).shuffled()
+        _keepListening.value = (keepListeningSongs + keepListeningAlbums + keepListeningArtists).shuffled()
 
         if (YouTube.cookie != null) {
             YouTube.library("FEmusic_liked_playlists").completed().onSuccess {
-                accountPlaylists.value = it.items.filterIsInstance<PlaylistItem>().filterNot { it.id == "SE" }
+                _accountPlaylists.value = it.items.filterIsInstance<PlaylistItem>().filterNot { it.id == "SE" }
             }.onFailure {
                 reportException(it)
             }
@@ -152,10 +173,10 @@ class HomeViewModel @Inject constructor(
                         .ifEmpty { return@mapNotNull null }
                 )
             }
-        similarRecommendations.value = (artistRecommendations + songRecommendations).shuffled()
+        _similarRecommendations.value = (artistRecommendations + songRecommendations).shuffled()
 
         YouTube.home().onSuccess { page ->
-            homePage.value = page.copy(
+            _homePage.value = page.copy(
                 sections = page.sections.map { section ->
                     section.copy(items = section.items.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs))
                 }
@@ -165,23 +186,23 @@ class HomeViewModel @Inject constructor(
         }
 
         YouTube.explore().onSuccess { page ->
-            explorePage.value = page.copy(
+            _explorePage.value = page.copy(
                 newReleaseAlbums = page.newReleaseAlbums.filterExplicit(hideExplicit)
             )
         }.onFailure {
             reportException(it)
         }
 
-        allLocalItems.value = (quickPicks.value.orEmpty() + forgottenFavorites.value.orEmpty() + keepListening.value.orEmpty())
+        _allLocalItems.value = (_quickPicks.value.orEmpty() + _forgottenFavorites.value.orEmpty() + _keepListening.value.orEmpty())
             .filter { it is Song || it is Album }
-        allYtItems.value = similarRecommendations.value?.flatMap { it.items }.orEmpty() +
-                homePage.value?.sections?.flatMap { it.items }.orEmpty()
+        _allYtItems.value = _similarRecommendations.value?.flatMap { it.items }.orEmpty() +
+                _homePage.value?.sections?.flatMap { it.items }.orEmpty()
 
         isLoading.value = false
     }
 
     private val _isLoadingMore = MutableStateFlow(false)
-    fun loadMoreYouTubeItems(continuation: String?) {
+    public fun loadMoreYouTubeItems(continuation: String?) {
         if (continuation == null || _isLoadingMore.value) return
         val hideExplicit = context.dataStore.get(HideExplicitKey, false)
         val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
@@ -193,9 +214,9 @@ class HomeViewModel @Inject constructor(
                 return@launch
             }
 
-            homePage.value = nextSections.copy(
-                chips = homePage.value?.chips,
-                sections = (homePage.value?.sections.orEmpty() + nextSections.sections).map { section ->
+            _homePage.value = nextSections.copy(
+                chips = _homePage.value?.chips,
+                sections = (_homePage.value?.sections.orEmpty() + nextSections.sections).map { section ->
                     section.copy(items = section.items.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs))
                 }
             )
@@ -203,16 +224,16 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun toggleChip(chip: HomePage.Chip?) {
-        if (chip == null || chip == selectedChip.value && previousHomePage.value != null) {
-            homePage.value = previousHomePage.value
+    public fun toggleChip(chip: HomePage.Chip?) {
+        if (chip == null || chip == _selectedChip.value && previousHomePage.value != null) {
+            _homePage.value = previousHomePage.value
             previousHomePage.value = null
-            selectedChip.value = null
+            _selectedChip.value = null
             return
         }
 
-        if (selectedChip.value == null) {
-            previousHomePage.value = homePage.value
+        if (_selectedChip.value == null) {
+            previousHomePage.value = _homePage.value
         }
 
         viewModelScope.launch(Dispatchers.IO) {
@@ -220,17 +241,17 @@ class HomeViewModel @Inject constructor(
             val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
             val nextSections = YouTube.home(params = chip?.endpoint?.params).getOrNull() ?: return@launch
 
-            homePage.value = nextSections.copy(
-                chips = homePage.value?.chips,
+            _homePage.value = nextSections.copy(
+                chips = _homePage.value?.chips,
                 sections = nextSections.sections.map { section ->
                     section.copy(items = section.items.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs))
                 }
             )
-            selectedChip.value = chip
+            _selectedChip.value = chip
         }
     }
 
-    fun refresh() {
+    public fun refresh() {
         if (isRefreshing.value) return
         viewModelScope.launch(Dispatchers.IO) {
             isRefreshing.value = true
@@ -289,7 +310,7 @@ class HomeViewModel @Inject constructor(
                         } else {
                             accountName.value = "Guest"
                             accountImageUrl.value = null
-                            accountPlaylists.value = null
+                            _accountPlaylists.value = null
                             isLoggedIn.value = false
                         }
                     } finally {

@@ -148,6 +148,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.LayoutDirection
+import com.music.vivi.utils.ImmutableList
 import com.music.vivi.update.networkmoniter.NetworkConnectivityObserver
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class,
@@ -166,7 +167,7 @@ import com.music.vivi.update.networkmoniter.NetworkConnectivityObserver
  * to ensure efficient recycling and minimizing recompositions during scrolling.
  */
 @Composable
-fun HomeScreen(
+internal fun HomeScreen(
     navController: NavController,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -315,7 +316,7 @@ fun HomeScreen(
             quickPicks?.takeIf { it.isNotEmpty() }?.let { quickPicks ->
                 item(key = "quick_picks") {
                     HomeQuickPicks(
-                        quickPicks = quickPicks,
+                        quickPicks = ImmutableList(quickPicks),
                         mediaMetadata = mediaMetadata,
                         isPlaying = isPlaying,
                         maxWidth = maxWidth,
@@ -328,7 +329,7 @@ fun HomeScreen(
             keepListening?.takeIf { it.isNotEmpty() }?.let { keepListening ->
                 item(key = "keep_listening") {
                     HomeKeepListening(
-                        keepListening = keepListening,
+                        keepListening = ImmutableList(keepListening),
                         isPlaying = isPlaying,
                         activeId = mediaMetadata?.id,
                         activeAlbumId = mediaMetadata?.album?.id,
@@ -342,7 +343,7 @@ fun HomeScreen(
             accountPlaylists?.takeIf { it.isNotEmpty() }?.let { accountPlaylists ->
                 item(key = "account_playlists") {
                     HomeAccountPlaylists(
-                        accountPlaylists = accountPlaylists,
+                        accountPlaylists = ImmutableList(accountPlaylists),
                         accountName = accountName,
                         accountImageUrl = url,
                         activeId = mediaMetadata?.id,
@@ -358,7 +359,7 @@ fun HomeScreen(
             forgottenFavorites?.takeIf { it.isNotEmpty() }?.let { forgottenFavorites ->
                 item(key = "forgotten_favorites") {
                     HomeForgottenFavorites(
-                        forgottenFavorites = forgottenFavorites,
+                        forgottenFavorites = ImmutableList(forgottenFavorites),
                         mediaMetadataId = mediaMetadata?.id,
                         isPlaying = isPlaying,
                         maxWidth = maxWidth,
@@ -370,7 +371,7 @@ fun HomeScreen(
 
             similarRecommendations?.let {
                 homeSimilarRecommendations(
-                    similarRecommendations = it,
+                    similarRecommendations = ImmutableList(it),
                     activeId = mediaMetadata?.id,
                     activeAlbumId = mediaMetadata?.album?.id,
                     isPlaying = isPlaying,
@@ -381,7 +382,7 @@ fun HomeScreen(
 
             homePage?.sections?.let {
                 homeInnertubeSections(
-                    sections = it,
+                    sections = ImmutableList(it),
                     activeId = mediaMetadata?.id,
                     activeAlbumId = mediaMetadata?.album?.id,
                     isPlaying = isPlaying,
@@ -397,7 +398,7 @@ fun HomeScreen(
 
             if (selectedChip == null) {
                 homeMoodAndGenres(
-                    moodAndGenres = explorePage?.moodAndGenres,
+                    moodAndGenres = explorePage?.moodAndGenres?.let { ImmutableList(it) },
                     isLoading = isMoodAndGenresLoading,
                     navController = navController
                 )
