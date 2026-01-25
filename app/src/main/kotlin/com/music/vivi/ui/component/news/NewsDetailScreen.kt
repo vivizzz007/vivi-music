@@ -4,7 +4,6 @@ package com.music.vivi.ui.component.news
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,23 +39,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.music.vivi.R
-
-
-
+import com.music.vivi.repositories.ContentBlock
 import com.music.vivi.repositories.NewsItem
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.utils.backToMain
 
+/**
+ * Displays the detailed view of a specific News Item.
+ *
+ * Designed as a Single File Component (SFC) adhering to Vivi Music Enterprise standards.
+ *
+ * @param newsItem The [NewsItem] data to display.
+ * @param navController Navigation controller for handling back navigation.
+ * @param isRefreshing State indicating if a refresh is in progress.
+ * @param onRefresh Callback invoked when the user triggers a pull-to-refresh.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun NewsDetailScreen(
@@ -65,11 +68,6 @@ fun NewsDetailScreen(
     isRefreshing: Boolean,
     onRefresh: () -> Unit
 ) {
-    val haptic = LocalHapticFeedback.current
-    val context = LocalContext.current
-    val clipboardManager = LocalClipboardManager.current
-    val uriHandler = LocalUriHandler.current
-
     val pullRefreshState = rememberPullToRefreshState()
 
     Scaffold(
@@ -99,7 +97,6 @@ fun NewsDetailScreen(
             isRefreshing = isRefreshing,
             onRefresh = onRefresh,
             indicator = {
-
                 PullToRefreshDefaults.LoadingIndicator(
                     state = pullRefreshState,
                     isRefreshing = isRefreshing,
@@ -202,7 +199,6 @@ fun NewsDetailScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Description (Intro Text)
                     Text(
                         text = newsItem.description,
                         style = MaterialTheme.typography.bodyLarge,
@@ -211,7 +207,6 @@ fun NewsDetailScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Main Image (Moved here)
                     if (newsItem.image != null) {
                         AsyncImage(
                             model = newsItem.image,
@@ -265,16 +260,7 @@ fun NewsDetailScreen(
                                     imageVector = Icons.Default.CheckCircle,
                                     contentDescription = null,
                                     modifier = Modifier
-                                        .size(20.dp)
-                                        .combinedClickable(
-                                            onClick = {
-                                                // Assuming 'url' is defined somewhere or meant to be a placeholder
-                                                // For now, let's use a dummy URL or assume 'fix' itself is a URL if applicable
-                                                // val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                                                // context.startActivity(intent)
-                                            },
-                                            onLongClick = {}
-                                        ),
+                                        .size(20.dp),
                                     tint = MaterialTheme.colorScheme.tertiary
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
@@ -286,49 +272,6 @@ fun NewsDetailScreen(
                             }
                         }
                         Spacer(modifier = Modifier.height(16.dp))
-                    }
-
-                    // 3. Main Content
-                    if (newsItem.content.isNotEmpty()) {
-                        Text(
-                            text = newsItem.content,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
-
-                    // 4. Content Blocks (Subtitle + Image + Content)
-                    newsItem.blocks.forEach { block ->
-                       if (!block.subtitle.isNullOrEmpty()) {
-                           Text(
-                                text = block.subtitle,
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.onSurface
-                           )
-                           Spacer(modifier = Modifier.height(8.dp))
-                       }
-
-                       if (!block.image.isNullOrEmpty()) {
-                            AsyncImage(
-                                model = block.image,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(12.dp)),
-                                contentScale = ContentScale.FillWidth
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                       }
-
-                       if (!block.content.isNullOrEmpty()) {
-                           Text(
-                                text = block.content,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface
-                           )
-                           Spacer(modifier = Modifier.height(16.dp))
-                       }
                     }
                 }
             }
