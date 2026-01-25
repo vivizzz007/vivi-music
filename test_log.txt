@@ -1,0 +1,35 @@
+Calculating task graph as no cached configuration is available for tasks: testDebugUnitTest
+
+> Configure project :app
+warning: Dokka Gradle plugin V2 migration helpers are enabled
+    
+    Thank you for migrating to Dokka Gradle plugin V2!
+    Migration is in progress, and helpers have been enabled.
+    To learn about migrating read the migration guide https://kotl.in/dokka-gradle-migration
+    
+    Once you have finished migrating disable the migration helpers by adding
+        org.jetbrains.dokka.experimental.gradle.pluginMode=V2Enabled
+    to your project's `gradle.properties` file.
+    
+    We would appreciate your feedback!
+     - Please report any feedback or problems https://kotl.in/dokka-issues
+     - Chat with the community visit #dokka in https://kotlinlang.slack.com/ (To sign up visit https://kotl.in/slack)
+    
+
+[Incubating] Problems report is available at: file:///D:/DEV/vivi/vivi-music/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Task 'testDebugUnitTest' is ambiguous in root project 'vivimusic' and its subprojects. Candidates are: 'testArmeabiFossDebugUnitTest', 'testArmeabiStandardDebugUnitTest', 'testUniversalFossDebugUnitTest', 'testUniversalStandardDebugUnitTest'.
+
+* Try:
+> Run gradlew tasks to get a list of available tasks.
+> For more on name expansion, please refer to https://docs.gradle.org/9.1.0/userguide/command_line_interface.html#sec:name_abbreviation in the Gradle documentation.
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 1s
+Configuration cache entry stored.

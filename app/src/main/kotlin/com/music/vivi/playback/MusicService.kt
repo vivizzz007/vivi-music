@@ -1829,20 +1829,38 @@ class MusicService :
 
     override fun onDestroy() {
         isRunning = false
+        // Persist queue before killing scope
         if (dataStore.get(PersistentQueueKey, true)) {
             saveQueueToDisk()
         }
+
+        // Cancel scope FIRST to stop new coroutines/updates
+        scope.cancel()
+        serviceJob.cancel()
 
         integrationManager.stop(player)
         connectivityObserver.unregister()
         abandonAudioFocus()
         releaseLoudnessEnhancer()
-        unregisterReceiver(volumeReceiver)
-        unregisterReceiver(becomingNoisyReceiver)
-        mediaSession.release()
-        player.removeListener(this)
-        player.removeListener(sleepTimer)
-        player.release()
+
+        if (isVolumeReceiverRegistered) {
+            unregisterReceiver(volumeReceiver)
+            isVolumeReceiverRegistered = false
+        }
+        if (isNoisyReceiverRegistered) {
+            unregisterReceiver(becomingNoisyReceiver)
+            isNoisyReceiverRegistered = false
+        }
+
+        if (this::mediaSession.isInitialized) {
+            mediaSession.release()
+        }
+
+        if (this::player.isInitialized) {
+            player.removeListener(this)
+            player.removeListener(sleepTimer)
+            player.release()
+        }
         super.onDestroy()
     }
     // better network handling
@@ -1916,32 +1934,6 @@ class MusicService :
         // Try to stay in foreground even when paused to avoid ForegroundServiceStartNotAllowedException
         // when resuming from background on Android 12+
         super.onUpdateNotification(session, true)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        isRunning = false
-        if (isVolumeReceiverRegistered) {
-            unregisterReceiver(volumeReceiver)
-            isVolumeReceiverRegistered = false
-        }
-        if (isNoisyReceiverRegistered) {
-            unregisterReceiver(becomingNoisyReceiver)
-            isNoisyReceiverRegistered = false
-        }
-
-        if (this::mediaSession.isInitialized) {
-            mediaSession.release()
-        }
-
-        if (this::player.isInitialized) {
-            player.removeListener(this)
-            player.release()
-        }
-
-        // Cancel all coroutines started by this service
-        scope.cancel()
-        serviceJob.cancel()
     }
 
     companion object {
