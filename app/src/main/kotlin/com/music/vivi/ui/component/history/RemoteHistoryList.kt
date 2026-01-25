@@ -1,5 +1,3 @@
-package com.music.vivi.ui.component.history
-
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -15,18 +13,25 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.music.vivi.models.MediaMetadata
 import androidx.navigation.NavController
 import com.music.innertube.pages.HistoryPage
 import com.music.vivi.R
 import com.music.vivi.constants.ListItemHeight
-import com.music.vivi.extensions.toMediaMetadata
 import com.music.vivi.extensions.togglePlayPause
+import com.music.vivi.models.MediaMetadata
 import com.music.vivi.models.toMediaMetadata
+import com.music.vivi.playback.PlayerConnection
+import com.music.vivi.playback.queues.YouTubeQueue
+import com.music.vivi.ui.component.IconButton
+import com.music.vivi.ui.component.MenuState
+import com.music.vivi.ui.component.NavigationTitle
+import com.music.vivi.ui.component.media.youtube.YouTubeListItem
+import com.music.vivi.ui.menu.YouTubeSongMenu
 
 @OptIn(ExperimentalFoundationApi::class)
 fun LazyListScope.remoteHistoryList(

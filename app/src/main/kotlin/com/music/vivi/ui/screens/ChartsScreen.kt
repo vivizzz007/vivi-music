@@ -64,7 +64,7 @@ public fun ChartsScreen(
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
-    val chartsPage: ExplorePage? by viewModel.chartsPage.collectAsState()
+    val chartsPage: ChartsPage? by viewModel.chartsPage.collectAsState()
     val isLoading: Boolean by viewModel.isLoading.collectAsState()
 
     val lazyListState = rememberLazyListState()
@@ -262,7 +262,7 @@ public fun ChartsScreen(
                                                     }
                                                 },
                                             )
-                                            .animateItem(),
+                                            .then(with(this) { Modifier.animateItem() }),
                                     )
                                 }
                             }

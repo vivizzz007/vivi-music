@@ -175,7 +175,6 @@ public fun ArtistSongsScreen(
                                 }
                             },
                         )
-                        )
                 )
             }
         }

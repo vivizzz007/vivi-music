@@ -74,7 +74,7 @@ public fun ExploreScreen(
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
-    val explorePage: ExplorePage? by exploreViewModel.explorePage.collectAsState()
+    val explorePage: ExplorePage? by viewModel.explorePage.collectAsState()
     val chartsPage: ExplorePage? by chartsViewModel.chartsPage.collectAsState()
     val isChartsLoading: Boolean by chartsViewModel.isLoading.collectAsState()
 

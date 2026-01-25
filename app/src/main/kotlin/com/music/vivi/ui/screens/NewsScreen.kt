@@ -71,9 +71,9 @@ public fun NewsScreen(
         if (title != null && selectedNewsItem != null) {
             NewsDetailScreen(
                 newsItem = selectedNewsItem,
+                navController = navController,
                 isRefreshing = isRefreshing,
-                onRefresh = { viewModel.fetchNews(isRefresh = true) },
-                onBack = { selectedNewsTitle = null }
+                onRefresh = { viewModel.fetchNews(isRefresh = true) }
             )
         } else {
             NewsListScreen(

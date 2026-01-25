@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import androidx.room.Embedded
 import androidx.room.Junction
 import androidx.room.Relation
+import com.music.vivi.db.entities.SongEntity
 
 @Immutable
 data class Album(
@@ -21,6 +22,11 @@ data class Album(
         ),
     )
     val artists: List<ArtistEntity> = emptyList(),
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "albumId"
+    )
+    val songs: List<SongEntity> = emptyList(),
     val songCountListened: Int? = 0,
     val timeListened: Long? = 0
 ) : LocalItem() {
