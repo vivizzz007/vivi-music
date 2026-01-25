@@ -253,7 +253,9 @@
     <string name="right">Droite</string>
     <string name="player_slider_style">Style de curseur du lecteur</string>
     <string name="default_">Défaut</string>
+    <string name="wavy">Ondulations</string>
     <string name="squiggly">Ondulations</string>
+    <string name="slim">Mince</string>
     <string name="misc">Divers</string>
     <string name="default_open_tab">Onglet ouvert par défaut</string>
     <string name="grid_cell_size">Taille des cellules de la grille</string>
