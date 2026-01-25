@@ -782,9 +782,9 @@ class MainActivity : ComponentActivity() {
 
                     LaunchedEffect(navBackStackEntry, isDetailShown) {
                         shouldShowTopBar =
-                            !active && 
-                            navBackStackEntry?.destination?.route in topLevelScreens && 
-                            navBackStackEntry?.destination?.route != "settings" && 
+                            !active &&
+                            navBackStackEntry?.destination?.route in topLevelScreens &&
+                            navBackStackEntry?.destination?.route != "settings" &&
                             isDetailShown != true
                     }
 

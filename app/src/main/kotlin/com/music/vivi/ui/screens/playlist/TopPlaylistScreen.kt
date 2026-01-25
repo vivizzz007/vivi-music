@@ -81,7 +81,7 @@ import androidx.compose.foundation.shape.CircleShape
 import coil3.compose.AsyncImage
 import android.content.Intent
 import androidx.core.net.toUri
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
@@ -142,7 +142,6 @@ fun TopPlaylistScreen(
     val likeLength = remember(songs) {
         songs.fastSumBy { it.song.duration }
     }
-
     var topPeriod by remember { mutableStateOf(viewModel.topPeriod.value) }
 
     LaunchedEffect(topPeriod) {
@@ -255,7 +254,7 @@ fun TopPlaylistScreen(
         }
     }
 
-
+    val playlistTitle = stringResource(R.string.my_top)
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(

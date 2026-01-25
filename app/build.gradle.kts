@@ -19,8 +19,8 @@ configure<com.android.build.api.dsl.ApplicationExtension> {
         applicationId = "com.vivi.vivimusic"
         minSdk = 26
         targetSdk = 36
-        versionCode = 21 //62 //21
-        versionName = "5.0.3"
+        versionCode = 22
+        versionName = "5.0.4 Alpha"
 
         testInstrumentationRunner = "com.music.vivi.CustomTestRunner"
         vectorDrawables.useSupportLibrary = true
@@ -90,6 +90,7 @@ configure<com.android.build.api.dsl.ApplicationExtension> {
         debug {
             applicationIdSuffix = ".debug"
             isDebuggable = true
+            resValue("string", "app_name", "VIVI Alpha")
         }
     }
 
