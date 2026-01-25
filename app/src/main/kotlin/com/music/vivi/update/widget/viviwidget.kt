@@ -16,20 +16,8 @@ class MusicPlayerWidgetReceiver : AppWidgetProvider() {
         appWidgetIds: IntArray
     ) {
         // Trigger update through MusicService if running
-        if (MusicService.isRunning) {
-            val intent = Intent(context, MusicService::class.java).apply {
-                action = ACTION_UPDATE_WIDGET
-            }
-            try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    context.startForegroundService(intent)
-                } else {
-                    context.startService(intent)
-                }
-            } catch (e: Exception) {
-                // Service might be restricted in background
-            }
-        }
+        // Avoid starting service from onUpdate to prevent ForegroundServiceStartNotAllowedException
+        // The service should update the widget when active.
     }
 
     override fun onReceive(context: Context, intent: Intent) {

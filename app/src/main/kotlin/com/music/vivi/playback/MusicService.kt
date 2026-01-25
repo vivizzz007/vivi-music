@@ -55,6 +55,7 @@ import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaController
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
+import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.MoreExecutors
 import com.music.innertube.YouTube
@@ -331,7 +332,7 @@ class MusicService :
         super.onCreate()
         isRunning = true
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            setListener(object : Listener {
+            setListener(object : MediaSessionService.Listener {
                 override fun onForegroundServiceStartNotAllowedException() {
                     Log.e(TAG, "Foreground service start not allowed")
                 }
