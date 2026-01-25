@@ -31,8 +31,11 @@ public val ThumbnailCornerRadius: Dp = 6.dp
 
 public val PlayerHorizontalPadding: Dp = 32.dp
 
-public val NavigationBarAnimationSpec: androidx.compose.animation.core.SpringSpec<Dp> = spring<Dp>(stiffness = Spring.StiffnessMediumLow)
-public val BottomSheetAnimationSpec: androidx.compose.animation.core.SpringSpec<Dp> = spring<Dp>(stiffness = Spring.StiffnessMediumLow)
-public val BottomSheetSoftAnimationSpec: androidx.compose.animation.core.SpringSpec<Dp> = spring<Dp>(stiffness = Spring.StiffnessLow)
+public val NavigationBarAnimationSpec: androidx.compose.animation.core.SpringSpec<Dp> =
+    spring<Dp>(stiffness = Spring.StiffnessMediumLow)
+public val BottomSheetAnimationSpec: androidx.compose.animation.core.SpringSpec<Dp> =
+    spring<Dp>(stiffness = Spring.StiffnessMediumLow)
+public val BottomSheetSoftAnimationSpec: androidx.compose.animation.core.SpringSpec<Dp> =
+    spring<Dp>(stiffness = Spring.StiffnessLow)
 
 public val MoodAndGenresButtonHeight: Dp = 48.dp

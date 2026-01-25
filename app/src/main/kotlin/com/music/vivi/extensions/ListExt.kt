@@ -1,14 +1,11 @@
 package com.music.vivi.extensions
 
-import com.music.vivi.db.entities.Song
 import com.music.vivi.db.entities.Album
+import com.music.vivi.db.entities.Song
 
 fun <T> List<T>.reversed(reversed: Boolean) = if (reversed) asReversed() else this
 
-fun <T> MutableList<T>.move(
-    fromIndex: Int,
-    toIndex: Int,
-): MutableList<T> {
+fun <T> MutableList<T>.move(fromIndex: Int, toIndex: Int): MutableList<T> {
     add(toIndex, removeAt(fromIndex))
     return this
 }
@@ -37,25 +34,22 @@ fun <T : Any> List<T>.mergeNearbyElements(
 }
 
 // Extension function to filter explicit content for local Song entities
-fun List<Song>.filterExplicit(enabled: Boolean = true) =
-    if (enabled) {
-        filter { !it.song.explicit }
-    } else {
-        this
-    }
+fun List<Song>.filterExplicit(enabled: Boolean = true) = if (enabled) {
+    filter { !it.song.explicit }
+} else {
+    this
+}
 
 // Extension function to filter video songs for local Song entities
-fun List<Song>.filterVideoSongs(enabled: Boolean = true) =
-    if (enabled) {
-        filter { !it.song.isVideo }
-    } else {
-        this
-    }
+fun List<Song>.filterVideoSongs(enabled: Boolean = true) = if (enabled) {
+    filter { !it.song.isVideo }
+} else {
+    this
+}
 
 // Extension function to filter explicit content for local Album entities
-fun List<Album>.filterExplicitAlbums(enabled: Boolean = true) =
-    if (enabled) {
-        filter { !it.album.explicit }
-    } else {
-        this
-    }
+fun List<Album>.filterExplicitAlbums(enabled: Boolean = true) = if (enabled) {
+    filter { !it.album.explicit }
+} else {
+    this
+}

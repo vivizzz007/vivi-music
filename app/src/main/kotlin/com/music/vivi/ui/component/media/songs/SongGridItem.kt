@@ -66,7 +66,7 @@ public fun SongGridItem(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.secondary,
             maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
+            overflow = TextOverflow.Ellipsis
         )
     },
     badges = badges,

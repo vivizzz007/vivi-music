@@ -10,8 +10,8 @@ import androidx.compose.ui.unit.dp
 import com.music.vivi.constants.ListThumbnailSize
 import com.music.vivi.constants.ThumbnailCornerRadius
 import com.music.vivi.models.MediaMetadata
-import com.music.vivi.ui.component.RoundedCheckbox
 import com.music.vivi.ui.component.ListItem
+import com.music.vivi.ui.component.RoundedCheckbox
 import com.music.vivi.utils.joinByBullet
 import com.music.vivi.utils.makeTimeString
 
@@ -53,7 +53,9 @@ public fun MediaMetadataListItem(
                     modifier = Modifier.padding(horizontal = 8.dp)
                 )
             }
-        } else trailingContent,
+        } else {
+            trailingContent
+        },
         modifier = modifier,
         isActive = isActive,
         drawHighlight = drawHighlight

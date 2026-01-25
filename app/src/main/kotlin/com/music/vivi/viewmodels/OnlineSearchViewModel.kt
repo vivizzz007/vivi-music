@@ -34,7 +34,8 @@ constructor(
     public val query: String = savedStateHandle.get<String>("query")!!
     public val filter: MutableStateFlow<YouTube.SearchFilter?> = MutableStateFlow(null)
     public var summaryPage: SearchSummaryPage? by mutableStateOf(null)
-    public val viewStateMap: androidx.compose.runtime.snapshots.SnapshotStateMap<String, ItemsPage?> = mutableStateMapOf()
+    public val viewStateMap: androidx.compose.runtime.snapshots.SnapshotStateMap<String, ItemsPage?> =
+        mutableStateMapOf()
 
     public var isLoading: Boolean by mutableStateOf(false)
     public var error: Throwable? by mutableStateOf(null)
@@ -64,7 +65,7 @@ constructor(
                             val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
                             summaryPage =
                                 it.filterExplicit(
-                                    hideExplicit,
+                                    hideExplicit
                                 ).filterVideoSongs(hideVideoSongs)
                             isLoading = false
                         }.onFailure {
@@ -87,10 +88,10 @@ constructor(
                                     result.items
                                         .distinctBy { it.id }
                                         .filterExplicit(
-                                            hideExplicit,
+                                            hideExplicit
                                         )
                                         .filterVideoSongs(hideVideoSongs),
-                                    result.continuation,
+                                    result.continuation
                                 )
                             isLoading = false
                         }.onFailure {
@@ -121,7 +122,6 @@ constructor(
                     (viewState.items + newItems).distinctBy { it.id },
                     searchResult.continuation
                 )
-
             }
         }
     }

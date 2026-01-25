@@ -30,7 +30,6 @@ fun formatFileSize(sizeBytes: Long): String {
     return "$prefix$result $suffix"
 }
 
-fun numberFormatter(n: Int) =
-    DecimalFormat("#,###")
-        .format(n)
-        .replace(",", ".")
+fun numberFormatter(n: Int) = DecimalFormat("#,###")
+    .format(n)
+    .replace(",", ".")

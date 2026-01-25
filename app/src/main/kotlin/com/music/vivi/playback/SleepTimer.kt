@@ -10,12 +10,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.minutes
 
-class SleepTimer(
-    private val scope: CoroutineScope,
-    val player: Player,
-) : Player.Listener {
+class SleepTimer(private val scope: CoroutineScope, val player: Player) : Player.Listener {
     private var sleepTimerJob: Job? = null
     var triggerTime by mutableLongStateOf(-1L)
         private set
@@ -47,19 +43,14 @@ class SleepTimer(
         triggerTime = -1L
     }
 
-    override fun onMediaItemTransition(
-        mediaItem: MediaItem?,
-        reason: Int,
-    ) {
+    override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
         if (pauseWhenSongEnd) {
             pauseWhenSongEnd = false
             player.pause()
         }
     }
 
-    override fun onPlaybackStateChanged(
-        @Player.State playbackState: Int,
-    ) {
+    override fun onPlaybackStateChanged(@Player.State playbackState: Int) {
         if (playbackState == Player.STATE_ENDED && pauseWhenSongEnd) {
             pauseWhenSongEnd = false
             player.pause()

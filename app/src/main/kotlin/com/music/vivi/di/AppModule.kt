@@ -30,35 +30,25 @@ object AppModule {
     @Provides
     @Singleton
     @ApplicationScope
-    fun provideApplicationScope(): CoroutineScope {
-        return CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    }
+    fun provideApplicationScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     @Singleton
     @Provides
-    fun provideDatabase(
-        @ApplicationContext context: Context,
-    ): MusicDatabase = InternalDatabase.newInstance(context)
+    fun provideDatabase(@ApplicationContext context: Context): MusicDatabase = InternalDatabase.newInstance(context)
 
     @Singleton
     @Provides
-    fun provideDatabaseProvider(
-        @ApplicationContext context: Context,
-    ): DatabaseProvider = StandaloneDatabaseProvider(context)
+    fun provideDatabaseProvider(@ApplicationContext context: Context): DatabaseProvider =
+        StandaloneDatabaseProvider(context)
 
     @Singleton
     @Provides
-    fun provideDataStore(
-        @ApplicationContext context: Context
-    ): DataStore<Preferences> = context.dataStore
+    fun provideDataStore(@ApplicationContext context: Context): DataStore<Preferences> = context.dataStore
 
     @Singleton
     @Provides
     @PlayerCache
-    fun providePlayerCache(
-        @ApplicationContext context: Context,
-        databaseProvider: DatabaseProvider,
-    ): SimpleCache {
+    fun providePlayerCache(@ApplicationContext context: Context, databaseProvider: DatabaseProvider): SimpleCache {
         val cacheSize = context.dataStore[MaxSongCacheSizeKey] ?: 1024
         return SimpleCache(
             context.filesDir.resolve("exoplayer"),
@@ -66,21 +56,17 @@ object AppModule {
                 -1 -> NoOpCacheEvictor()
                 else -> LeastRecentlyUsedCacheEvictor(cacheSize * 1024 * 1024L)
             },
-            databaseProvider,
+            databaseProvider
         )
     }
 
     @Singleton
     @Provides
     @DownloadCache
-    fun provideDownloadCache(
-        @ApplicationContext context: Context,
-        databaseProvider: DatabaseProvider,
-    ): SimpleCache {
-        return SimpleCache(
+    fun provideDownloadCache(@ApplicationContext context: Context, databaseProvider: DatabaseProvider): SimpleCache =
+        SimpleCache(
             context.filesDir.resolve("download"),
             NoOpCacheEvictor(),
             databaseProvider
         )
-    }
 }

@@ -48,13 +48,11 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import com.music.vivi.ui.utils.top
 
-public val LocalBottomSheetPageState: androidx.compose.runtime.ProvidableCompositionLocal<BottomSheetPageState> = compositionLocalOf { BottomSheetPageState() }
+public val LocalBottomSheetPageState: androidx.compose.runtime.ProvidableCompositionLocal<BottomSheetPageState> =
+    compositionLocalOf { BottomSheetPageState() }
 
 @Stable
-public class BottomSheetPageState(
-    isVisible: Boolean = false,
-    content: @Composable ColumnScope.() -> Unit = {},
-) {
+public class BottomSheetPageState(isVisible: Boolean = false, content: @Composable ColumnScope.() -> Unit = {}) {
     var isVisible by mutableStateOf(isVisible)
     var content by mutableStateOf(content)
 
@@ -81,7 +79,7 @@ public fun BottomSheetPage(
     AnimatedVisibility(
         visible = state.isVisible,
         enter = fadeIn(animationSpec = tween(300)),
-        exit = fadeOut(animationSpec = tween(300)),
+        exit = fadeOut(animationSpec = tween(300))
     ) {
         BackHandler {
             state.dismiss()
@@ -95,7 +93,7 @@ public fun BottomSheetPage(
                     }
                 }
                 .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.5f))
-                .fillMaxSize(),
+                .fillMaxSize()
         )
     }
 
@@ -109,7 +107,7 @@ public fun BottomSheetPage(
             targetOffsetY = { it },
             animationSpec = tween(300)
         ),
-        modifier = modifier,
+        modifier = modifier
     ) {
         Column(
             modifier = Modifier

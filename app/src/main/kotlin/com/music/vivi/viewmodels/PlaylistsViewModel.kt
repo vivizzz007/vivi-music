@@ -33,8 +33,10 @@ constructor(
     public val allPlaylists: StateFlow<List<com.music.vivi.db.entities.Playlist>> =
         context.dataStore.data
             .map {
-                it[AddToPlaylistSortTypeKey].toEnum(PlaylistSortType.CREATE_DATE) to (it[AddToPlaylistSortDescendingKey]
-                    ?: true)
+                it[AddToPlaylistSortTypeKey].toEnum(PlaylistSortType.CREATE_DATE) to (
+                    it[AddToPlaylistSortDescendingKey]
+                        ?: true
+                    )
             }.distinctUntilChanged()
             .flatMapLatest { (sortType, descending) ->
                 database.playlists(sortType, descending)

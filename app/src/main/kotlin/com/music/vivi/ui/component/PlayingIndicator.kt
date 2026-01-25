@@ -60,20 +60,20 @@ public fun PlayingIndicator(
     Row(
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.Bottom,
-        modifier = modifier,
+        modifier = modifier
     ) {
         animatables.forEach { animatable ->
             Canvas(
                 modifier =
                 Modifier
                     .fillMaxHeight()
-                    .width(barWidth),
+                    .width(barWidth)
             ) {
                 drawRoundRect(
                     color = color,
                     topLeft = Offset(x = 0f, y = size.height * (1 - animatable.value)),
                     size = size.copy(height = animatable.value * size.height),
-                    cornerRadius = CornerRadius(cornerRadius.toPx()),
+                    cornerRadius = CornerRadius(cornerRadius.toPx())
                 )
             }
         }
@@ -90,22 +90,22 @@ public fun PlayingIndicatorBox(
     AnimatedVisibility(
         visible = isActive,
         enter = fadeIn(tween(500)),
-        exit = fadeOut(tween(500)),
+        exit = fadeOut(tween(500))
     ) {
         Box(
             contentAlignment = Alignment.Center,
-            modifier = modifier,
+            modifier = modifier
         ) {
             if (playWhenReady) {
                 PlayingIndicator(
                     color = color,
-                    modifier = Modifier.height(24.dp),
+                    modifier = Modifier.height(24.dp)
                 )
             } else {
                 Icon(
                     painter = painterResource(R.drawable.play),
                     contentDescription = null,
-                    tint = color,
+                    tint = color
                 )
             }
         }

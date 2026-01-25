@@ -9,10 +9,7 @@ import com.music.vivi.models.MediaMetadata
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 
-class LocalAlbumRadio(
-    private val albumWithSongs: AlbumWithSongs,
-    private val startIndex: Int = 0,
-) : Queue {
+class LocalAlbumRadio(private val albumWithSongs: AlbumWithSongs, private val startIndex: Int = 0) : Queue {
     override val preloadItem: MediaMetadata? = null
 
     private lateinit var playlistId: String

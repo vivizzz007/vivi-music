@@ -59,7 +59,7 @@ constructor(
                                         }
                                     } ?: Int.MAX_VALUE
                                 firstArtistKey
-                            }.filterExplicit(context.dataStore.get(HideExplicitKey, false)),
+                            }.filterExplicit(context.dataStore.get(HideExplicitKey, false))
                     )
             }.onFailure {
                 reportException(it)

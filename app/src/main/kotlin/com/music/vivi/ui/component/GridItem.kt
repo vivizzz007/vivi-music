@@ -95,7 +95,7 @@ fun GridItem(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.secondary,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
+            overflow = TextOverflow.Ellipsis
         )
     },
     thumbnailContent = thumbnailContent,

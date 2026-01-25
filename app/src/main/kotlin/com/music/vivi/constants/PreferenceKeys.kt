@@ -25,14 +25,13 @@ val SlimNavBarKey = booleanPreferencesKey("slimNavBar")
 val GridItemsSizeKey = stringPreferencesKey("gridItemSize")
 val SliderStyleKey = stringPreferencesKey("sliderStyle")
 val SwipeToSongKey = booleanPreferencesKey("SwipeToSong")
-val UseNewPlayerDesignKey= booleanPreferencesKey("useNewPlayerDesign")
+val UseNewPlayerDesignKey = booleanPreferencesKey("useNewPlayerDesign")
 val UseNewMiniPlayerDesignKey = booleanPreferencesKey("useNewMiniPlayerDesign")
 val HidePlayerThumbnailKey = booleanPreferencesKey("hidePlayerThumbnail")
 val SeekExtraSeconds = booleanPreferencesKey("seekExtraSeconds")
 val ShowNowPlayingAppleMusicKey = booleanPreferencesKey("show_now_playing_apple_music")
 val HighRefreshRateKey = booleanPreferencesKey("high_refresh_rate")
 val ShowMonthlyListenersKey = booleanPreferencesKey("show_monthly_listeners")
-
 
 val HideVideoSongsKey = booleanPreferencesKey("hideVideoSongs")
 val AccentColorKey = intPreferencesKey("accentColor")
@@ -65,7 +64,7 @@ val YtmSyncKey = booleanPreferencesKey("ytmSync")
 const val SYNC_COOLDOWN = 3600L // 1 hour in seconds
 val LastFullSyncKey = longPreferencesKey("last_full_sync")
 
-//val CheckForUpdatesKey = booleanPreferencesKey("checkForUpdates")
+// val CheckForUpdatesKey = booleanPreferencesKey("checkForUpdates")
 const val KEY_SHOW_UPDATE_NOTIFICATION = "show_update_notification"
 val ShowUpdateNotificationKey = booleanPreferencesKey(KEY_SHOW_UPDATE_NOTIFICATION)
 
@@ -167,29 +166,28 @@ enum class LibraryViewType {
     GRID,
     ;
 
-    fun toggle() =
-        when (this) {
-            LIST -> GRID
-            GRID -> LIST
-        }
+    fun toggle() = when (this) {
+        LIST -> GRID
+        GRID -> LIST
+    }
 }
 
 enum class SongFilter {
     LIBRARY,
     LIKED,
     DOWNLOADED,
-    UPLOADED
+    UPLOADED,
 }
 
 enum class ArtistFilter {
     LIBRARY,
-    LIKED
+    LIKED,
 }
 
 enum class AlbumFilter {
     LIBRARY,
     LIKED,
-    UPLOADED
+    UPLOADED,
 }
 
 enum class SongSortType {
@@ -263,38 +261,37 @@ enum class MyTopFilter {
     YEAR,
     ;
 
-    fun toTimeMillis(): Long =
-        when (this) {
-            DAY ->
-                LocalDateTime
-                    .now()
-                    .minusDays(1)
-                    .toInstant(ZoneOffset.UTC)
-                    .toEpochMilli()
+    fun toTimeMillis(): Long = when (this) {
+        DAY ->
+            LocalDateTime
+                .now()
+                .minusDays(1)
+                .toInstant(ZoneOffset.UTC)
+                .toEpochMilli()
 
-            WEEK ->
-                LocalDateTime
-                    .now()
-                    .minusWeeks(1)
-                    .toInstant(ZoneOffset.UTC)
-                    .toEpochMilli()
+        WEEK ->
+            LocalDateTime
+                .now()
+                .minusWeeks(1)
+                .toInstant(ZoneOffset.UTC)
+                .toEpochMilli()
 
-            MONTH ->
-                LocalDateTime
-                    .now()
-                    .minusMonths(1)
-                    .toInstant(ZoneOffset.UTC)
-                    .toEpochMilli()
+        MONTH ->
+            LocalDateTime
+                .now()
+                .minusMonths(1)
+                .toInstant(ZoneOffset.UTC)
+                .toEpochMilli()
 
-            YEAR ->
-                LocalDateTime
-                    .now()
-                    .minusMonths(12)
-                    .toInstant(ZoneOffset.UTC)
-                    .toEpochMilli()
+        YEAR ->
+            LocalDateTime
+                .now()
+                .minusMonths(12)
+                .toInstant(ZoneOffset.UTC)
+                .toEpochMilli()
 
-            ALL_TIME -> 0
-        }
+        ALL_TIME -> 0
+    }
 }
 
 enum class QuickPicks {
@@ -321,21 +318,20 @@ enum class PlayerBackgroundStyle {
 
     DEFAULT,
 
-    BLUR, APPLE_MUSIC,
+    BLUR,
+    APPLE_MUSIC,
 }
 
 val MiniPlayerGradientKey = booleanPreferencesKey("mini_player_gradient")
 
 val SwipeGestureEnabledKey = booleanPreferencesKey("swipe_gesture_enabled")
 
-//new update notification
+// new update notification
 val CheckForUpdatesKey = booleanPreferencesKey("check_for_updates")
 val UpdateNotificationsEnabledKey = booleanPreferencesKey("update_notifications_enabled")
 val ShowNewsIconKey = booleanPreferencesKey("show_news_icon")
 
 val UpdateCheckIntervalKey = intPreferencesKey("update_check_interval")
-
-
 
 val TopSize = stringPreferencesKey("topSize")
 val HistoryDuration = floatPreferencesKey("historyDuration")
@@ -378,11 +374,10 @@ enum class SearchSource {
     ONLINE,
     ;
 
-    fun toggle() =
-        when (this) {
-            LOCAL -> ONLINE
-            ONLINE -> LOCAL
-        }
+    fun toggle() = when (this) {
+        LOCAL -> ONLINE
+        ONLINE -> LOCAL
+    }
 }
 
 val VisitorDataKey = stringPreferencesKey("visitorData")
@@ -471,7 +466,7 @@ val LanguageCodeToName =
         "zh-TW" to "中文 (繁體)",
         "zh-HK" to "中文 (香港)",
         "ja" to "日本語",
-        "ko" to "한국어",
+        "ko" to "한국어"
     )
 
 val CountryCodeToName =
@@ -584,5 +579,5 @@ val CountryCodeToName =
         "VE" to "Venezuela (Bolivarian Republic)",
         "VN" to "Vietnam",
         "YE" to "Yemen",
-        "ZW" to "Zimbabwe",
+        "ZW" to "Zimbabwe"
     )

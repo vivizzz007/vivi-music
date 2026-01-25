@@ -24,8 +24,7 @@ public fun md5(str: String): String {
     return BigInteger(1, md.digest(str.toByteArray())).toString(16).padStart(32, '0')
 }
 
-public fun joinByBullet(vararg str: String?): String =
-    str
-        .filterNot {
-            it.isNullOrEmpty()
-        }.joinToString(separator = " • ")
+public fun joinByBullet(vararg str: String?): String = str
+    .filterNot {
+        it.isNullOrEmpty()
+    }.joinToString(separator = " • ")

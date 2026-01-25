@@ -27,7 +27,7 @@ fun LibraryArtistListItem(
     artist: Artist,
     onArtistClick: () -> Unit,
     onMenuClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     ArtistListItem(
         artist = artist,

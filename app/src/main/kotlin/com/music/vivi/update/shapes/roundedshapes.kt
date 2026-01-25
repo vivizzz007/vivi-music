@@ -1,22 +1,22 @@
-//package com.music.vivi.update.shapes
+// package com.music.vivi.update.shapes
 //
-//import androidx.compose.foundation.shape.CircleShape
-//import androidx.compose.runtime.Composable
-//import androidx.compose.ui.geometry.Size
-//import androidx.compose.ui.graphics.Outline
-//import androidx.compose.ui.graphics.Path
-//import androidx.compose.ui.graphics.Shape
-//import androidx.compose.ui.unit.Density
-//import androidx.compose.ui.unit.Dp
-//import androidx.compose.ui.unit.LayoutDirection
-//import androidx.compose.ui.unit.dp
-//import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
-//import kotlin.math.PI
-//import kotlin.math.cos
-//import kotlin.math.min
-//import kotlin.math.sin
+// import androidx.compose.foundation.shape.CircleShape
+// import androidx.compose.runtime.Composable
+// import androidx.compose.ui.geometry.Size
+// import androidx.compose.ui.graphics.Outline
+// import androidx.compose.ui.graphics.Path
+// import androidx.compose.ui.graphics.Shape
+// import androidx.compose.ui.unit.Density
+// import androidx.compose.ui.unit.Dp
+// import androidx.compose.ui.unit.LayoutDirection
+// import androidx.compose.ui.unit.dp
+// import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
+// import kotlin.math.PI
+// import kotlin.math.cos
+// import kotlin.math.min
+// import kotlin.math.sin
 //
-//class RoundedStarShape(
+// class RoundedStarShape(
 //    private val sides: Int,
 //    private val curve: Double = 0.09,
 //    private val rotation: Float = 0f,
@@ -65,10 +65,10 @@
 //    private fun mapRange(a: Double, b: Double, c: Double, d: Double, x: Double): Double {
 //        return (x - a) / (b - a) * (d - c) + c
 //    }
-//}
+// }
 //
-//@Composable
-//fun threeShapeSwitch(index: Int, thirdShapeCornerRadius: Dp = 16.dp): Shape { // Ensure the function returns a Shape
+// @Composable
+// fun threeShapeSwitch(index: Int, thirdShapeCornerRadius: Dp = 16.dp): Shape { // Ensure the function returns a Shape
 //    return when (index) { // Return the result of the when expression
 //        0 -> RoundedStarShape(
 //            sides = 6,
@@ -87,4 +87,4 @@
 //        )
 //        else -> CircleShape // It's good practice to have a default case
 //    }
-//}
+// }

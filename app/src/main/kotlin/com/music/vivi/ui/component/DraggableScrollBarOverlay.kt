@@ -8,8 +8,8 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -47,7 +47,7 @@ public fun DraggableScrollbar(
     trackWidth: Dp = 24.dp,
     minItemCountForScroll: Int = 15,
     minScrollRangeForDrag: Int = 5,
-    headerItems: Int = 0
+    headerItems: Int = 0,
 ) {
     val density = LocalDensity.current
     val coroutineScope = rememberCoroutineScope()
@@ -172,7 +172,6 @@ public fun DraggableScrollbar(
                 val rawIndex = (scrollState.firstVisibleItemIndex - headerItems).coerceAtLeast(0)
 
                 val scrollProgress = if (totalContentItems < 30) {
-
                     val currentProgress = rawIndex.toFloat() / maxScrollIndex
                     val smoothingFactor = 0.2f
                     val previousProgress = lastThumbPosition / (viewportHeight - constThumbHeight)

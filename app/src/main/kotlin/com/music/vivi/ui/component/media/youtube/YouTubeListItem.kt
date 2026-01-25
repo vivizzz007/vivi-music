@@ -26,8 +26,8 @@ import com.music.vivi.constants.ThumbnailCornerRadius
 import com.music.vivi.db.entities.Album
 import com.music.vivi.db.entities.Song
 import com.music.vivi.extensions.toMediaItem
-import com.music.vivi.ui.component.RoundedCheckbox
 import com.music.vivi.ui.component.ListItem
+import com.music.vivi.ui.component.RoundedCheckbox
 import com.music.vivi.ui.component.media.common.ItemThumbnail
 import com.music.vivi.ui.component.media.common.MediaIcons
 import com.music.vivi.ui.component.media.common.SwipeToSongBox
@@ -81,7 +81,12 @@ public fun YouTubeListItem(
         ListItem(
             title = item.title,
             subtitle = when (item) {
-                is SongItem -> joinByBullet(item.artists.joinToString { it.name }, makeTimeString(item.duration?.times(1000L)))
+                is SongItem -> joinByBullet(
+                    item.artists.joinToString {
+                        it.name
+                    },
+                    makeTimeString(item.duration?.times(1000L))
+                )
                 is AlbumItem -> joinByBullet(item.artists?.joinToString { it.name }, item.year?.toString())
                 is ArtistItem -> null
                 is PlaylistItem -> joinByBullet(item.author?.name, item.songCountText)
@@ -107,7 +112,9 @@ public fun YouTubeListItem(
                         modifier = Modifier.padding(horizontal = 8.dp)
                     )
                 }
-            } else trailingContent,
+            } else {
+                trailingContent
+            },
             modifier = modifier,
             isActive = isActive,
             drawHighlight = drawHighlight
@@ -116,7 +123,7 @@ public fun YouTubeListItem(
 
     if (item is SongItem && isSwipeable && swipeEnabled) {
         SwipeToSongBox(
-            mediaItem = item.copy(thumbnail = item.thumbnail.resize(544,544)).toMediaItem(),
+            mediaItem = item.copy(thumbnail = item.thumbnail.resize(544, 544)).toMediaItem(),
             modifier = Modifier.fillMaxWidth()
         ) {
             content()

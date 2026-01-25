@@ -4,7 +4,4 @@ import com.music.innertube.models.Context
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class PlaylistDeleteBody(
-    val context: Context,
-    val playlistId: String
-)
+data class PlaylistDeleteBody(val context: Context, val playlistId: String)

@@ -21,24 +21,21 @@ class NetworkConnectivityObserver(context: Context) {
 
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
-           // We'll rely on onCapabilitiesChanged for validation updates
+            // We'll rely on onCapabilitiesChanged for validation updates
         }
 
         override fun onLost(network: Network) {
-             _networkStatus.trySend(false)
+            _networkStatus.trySend(false)
         }
 
-        override fun onCapabilitiesChanged(
-            network: Network,
-            networkCapabilities: NetworkCapabilities
-        ) {
+        override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
             val hasInternet = networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             val isValidated = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
                 networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
             } else {
                 hasInternet // Fallback for older APIs
             }
-            
+
             if (hasInternet && isValidated) {
                 _networkStatus.trySend(true)
             }
@@ -49,16 +46,16 @@ class NetworkConnectivityObserver(context: Context) {
         val request = NetworkRequest.Builder()
             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             .build()
-        
+
         try {
             connectivityManager.registerNetworkCallback(request, networkCallback)
         } catch (e: Exception) {
             // If registration fails, we can't monitor, so maybe assume connected or retry?
-            // For now, let's assume true to avoid blocking the app completely, 
+            // For now, let's assume true to avoid blocking the app completely,
             // but effectively we are flying blind.
-             _networkStatus.trySend(true)
+            _networkStatus.trySend(true)
         }
-        
+
         // Send initial state
         _networkStatus.trySend(isCurrentlyConnected())
     }
@@ -70,7 +67,7 @@ class NetworkConnectivityObserver(context: Context) {
             // Already unregistered or failed
         }
     }
-    
+
     /**
      * Check current connectivity state synchronously
      */
@@ -78,15 +75,15 @@ class NetworkConnectivityObserver(context: Context) {
         return try {
             val activeNetwork = connectivityManager.activeNetwork ?: return false
             val networkCapabilities = connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
-            
+
             val hasInternet = networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            
+
             val isValidated = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
                 networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
             } else {
                 hasInternet
             }
-            
+
             hasInternet && isValidated
         } catch (e: Exception) {
             false

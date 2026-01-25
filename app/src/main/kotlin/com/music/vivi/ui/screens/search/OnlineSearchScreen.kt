@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -13,10 +12,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -29,6 +28,7 @@ import androidx.navigation.NavController
 import com.music.innertube.models.*
 import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalPlayerConnection
+import com.music.vivi.R
 import com.music.vivi.constants.SuggestionItemHeight
 import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.models.toMediaMetadata
@@ -38,16 +38,17 @@ import com.music.vivi.ui.component.SearchBarIconOffsetX
 import com.music.vivi.ui.component.media.youtube.YouTubeListItem
 import com.music.vivi.ui.menu.*
 import com.music.vivi.viewmodels.OnlineSearchSuggestionViewModel
-import kotlinx.coroutines.flow.drop
-import androidx.compose.ui.graphics.Color
-import com.music.vivi.R
-import com.music.vivi.constants.ListItemHeight
-import androidx.compose.foundation.shape.RoundedCornerShape
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.drop
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class, FlowPreview::class)
+@OptIn(
+    ExperimentalFoundationApi::class,
+    ExperimentalComposeUiApi::class,
+    ExperimentalMaterial3Api::class,
+    FlowPreview::class
+)
 @Composable
 public fun OnlineSearchScreen(
     query: String,
@@ -277,7 +278,7 @@ public fun SuggestionItem(
     onClick: () -> Unit,
     onDelete: () -> Unit = {},
     onFillTextField: () -> Unit,
-    pureBlack: Boolean
+    pureBlack: Boolean,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -287,7 +288,7 @@ public fun SuggestionItem(
             .background(if (pureBlack) Color.Black else MaterialTheme.colorScheme.surface)
             .clickable(onClick = onClick)
             .padding(end = SearchBarIconOffsetX)
-            .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal)),
+            .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
     ) {
         Icon(
             painterResource(if (online) R.drawable.search else R.drawable.history),
@@ -299,28 +300,28 @@ public fun SuggestionItem(
             text = query,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f)
         )
 
         if (!online) {
             IconButton(
                 onClick = onDelete,
-                modifier = Modifier.alpha(0.5f),
+                modifier = Modifier.alpha(0.5f)
             ) {
                 Icon(
                     painter = painterResource(R.drawable.close),
-                    contentDescription = null,
+                    contentDescription = null
                 )
             }
         }
 
         IconButton(
             onClick = onFillTextField,
-            modifier = Modifier.alpha(0.5f),
+            modifier = Modifier.alpha(0.5f)
         ) {
             Icon(
                 painter = painterResource(R.drawable.arrow_top_left),
-                contentDescription = null,
+                contentDescription = null
             )
         }
     }

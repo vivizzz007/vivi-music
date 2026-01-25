@@ -8,7 +8,6 @@ import androidx.room.PrimaryKey
 import com.music.innertube.YouTube
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 
@@ -51,11 +50,11 @@ data class SongEntity(
     @ColumnInfo(name = "isUploaded", defaultValue = false.toString())
     val isUploaded: Boolean = false,
     @ColumnInfo(name = "isVideo", defaultValue = false.toString())
-    val isVideo: Boolean = false
+    val isVideo: Boolean = false,
 ) {
     fun localToggleLike() = copy(
         liked = !liked,
-        likedDate = if (!liked) LocalDateTime.now() else null,
+        likedDate = if (!liked) LocalDateTime.now() else null
     )
 
     fun toggleLike() = copy(

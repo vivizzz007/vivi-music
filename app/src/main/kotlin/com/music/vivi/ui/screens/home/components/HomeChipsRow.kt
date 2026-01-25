@@ -25,14 +25,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.music.innertube.pages.HomePage
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun HomeChipsRow(
-      chips: List<HomePage.Chip>,
-      selectedChip: HomePage.Chip?,
-      onChipClick: (HomePage.Chip) -> Unit,
-    modifier: Modifier = Modifier
+    chips: List<HomePage.Chip>,
+    selectedChip: HomePage.Chip?,
+    onChipClick: (HomePage.Chip) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier
@@ -65,7 +64,7 @@ internal fun HomeChipsRow(
                         Icon(
                             imageVector = Icons.Filled.Done,
                             contentDescription = null,
-                            modifier = Modifier.size(FilterChipDefaults.IconSize),
+                            modifier = Modifier.size(FilterChipDefaults.IconSize)
                         )
                     }
                 } else {

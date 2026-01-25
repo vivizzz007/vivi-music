@@ -39,7 +39,7 @@ internal fun <T> LazyListScope.roundedSongItems(
     bottomSpacerHeight: androidx.compose.ui.unit.Dp = 16.dp,
     onItemClick: (T) -> Unit,
     onItemLongClick: (T) -> Unit,
-    itemContent: @Composable (item: T, shape: Shape, modifier: Modifier) -> Unit
+    itemContent: @Composable (item: T, shape: Shape, modifier: Modifier) -> Unit,
 ) {
     itemsIndexed(
         items = items,
@@ -54,24 +54,39 @@ internal fun <T> LazyListScope.roundedSongItems(
 
         val topShape = remember(cornerRadius) {
             AbsoluteSmoothCornerShape(
-                cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
-                smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
-                cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+                cornerRadiusTR = cornerRadius,
+                smoothnessAsPercentBR = 0,
+                cornerRadiusBR = 0.dp,
+                smoothnessAsPercentTL = 60,
+                cornerRadiusTL = cornerRadius,
+                smoothnessAsPercentBL = 0,
+                cornerRadiusBL = 0.dp,
+                smoothnessAsPercentTR = 60
             )
         }
         val middleShape = remember { RectangleShape }
         val bottomShape = remember(cornerRadius) {
             AbsoluteSmoothCornerShape(
-                cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-                smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
-                cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
+                cornerRadiusTR = 0.dp,
+                smoothnessAsPercentBR = 60,
+                cornerRadiusBR = cornerRadius,
+                smoothnessAsPercentTL = 0,
+                cornerRadiusTL = 0.dp,
+                smoothnessAsPercentBL = 60,
+                cornerRadiusBL = cornerRadius,
+                smoothnessAsPercentTR = 0
             )
         }
         val singleShape = remember(cornerRadius) {
             AbsoluteSmoothCornerShape(
-                cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-                smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-                cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+                cornerRadiusTR = cornerRadius,
+                smoothnessAsPercentBR = 60,
+                cornerRadiusBR = cornerRadius,
+                smoothnessAsPercentTL = 60,
+                cornerRadiusTL = cornerRadius,
+                smoothnessAsPercentBL = 60,
+                cornerRadiusBL = cornerRadius,
+                smoothnessAsPercentTR = 60
             )
         }
 
@@ -91,23 +106,26 @@ internal fun <T> LazyListScope.roundedSongItems(
                 .height(ListItemHeight)
                 .clip(shape)
                 .background(
-                    if (itemIsActive) MaterialTheme.colorScheme.secondaryContainer
-                    else MaterialTheme.colorScheme.surfaceContainer
+                    if (itemIsActive) {
+                        MaterialTheme.colorScheme.secondaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.surfaceContainer
+                    }
                 )
         ) {
             // We pass the modifier to the content so it can handle clicks safely if needed,
             // OR we wrap it here. Standard Vivi pattern seems to be wrapping CombinedClickable on the content modifier.
             // Let's pass a modifier that the content MUST apply.
-            
+
             val contentModifier = Modifier
-               .fillMaxSize()
-               .combinedClickable(
+                .fillMaxSize()
+                .combinedClickable(
                     onClick = { onItemClick(item) },
                     onLongClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         onItemLongClick(item)
                     }
-               )
+                )
 
             itemContent(item, shape, contentModifier)
         }
@@ -115,7 +133,7 @@ internal fun <T> LazyListScope.roundedSongItems(
         if (!isLast) {
             Spacer(modifier = Modifier.height(3.dp))
         } else {
-             Spacer(modifier = Modifier.height(bottomSpacerHeight))
+            Spacer(modifier = Modifier.height(bottomSpacerHeight))
         }
     }
 }

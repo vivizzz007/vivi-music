@@ -4,8 +4,8 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,7 +38,7 @@ public fun Android16VolumeSlider(
     modifier: Modifier = Modifier,
     activeColor: Color = MaterialTheme.colorScheme.primary,
     inactiveColor: Color = MaterialTheme.colorScheme.surfaceVariant,
-    iconPainter: Painter = painterResource(R.drawable.volume_up)
+    iconPainter: Painter = painterResource(R.drawable.volume_up),
 ) {
     var width by remember { mutableFloatStateOf(0f) }
     val animatedVolume by animateFloatAsState(targetValue = volume, label = "volume_animation")

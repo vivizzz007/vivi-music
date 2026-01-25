@@ -40,8 +40,8 @@ constructor(
                 .artistItems(
                     BrowseEndpoint(
                         browseId = browseId,
-                        params = params,
-                    ),
+                        params = params
+                    )
                 ).onSuccess { artistItemsPage ->
                     val hideExplicit = context.dataStore.get(HideExplicitKey, false)
                     val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
@@ -52,7 +52,7 @@ constructor(
                                 .distinctBy { it.id }
                                 .filterExplicit(hideExplicit)
                                 .filterVideoSongs(hideVideoSongs),
-                            continuation = artistItemsPage.continuation,
+                            continuation = artistItemsPage.continuation
                         )
                 }.onFailure {
                     reportException(it)
@@ -76,7 +76,7 @@ constructor(
                                 .distinctBy { it.id }
                                 .filterExplicit(hideExplicit)
                                 .filterVideoSongs(hideVideoSongs),
-                            continuation = artistItemsContinuationPage.continuation,
+                            continuation = artistItemsContinuationPage.continuation
                         )
                     }
                 }.onFailure {

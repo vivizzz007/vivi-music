@@ -1,19 +1,15 @@
 package com.music.vivi.update.apple
 
-import androidx.compose.ui.Modifier
-
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
-
 import kotlin.math.abs
-
 
 fun Modifier.SwipeGesture(
     enabled: Boolean = true,
     onSwipeLeft: () -> Unit,
     onSwipeRight: () -> Unit,
-    swipeThreshold: Float = 100f
+    swipeThreshold: Float = 100f,
 ): Modifier = if (enabled) {
     this.pointerInput(Unit) {
         var totalDrag = 0f

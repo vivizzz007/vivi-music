@@ -13,10 +13,7 @@ import com.music.innertube.models.YTItem
 import com.music.innertube.models.oddElements
 import com.music.innertube.utils.parseTime
 
-data class LibraryPage(
-    val items: List<YTItem>,
-    val continuation: String?,
-) {
+data class LibraryPage(val items: List<YTItem>, val continuation: String?) {
     companion object {
         fun fromMusicTwoRowItemRenderer(renderer: MusicTwoRowItemRenderer): YTItem? {
             return when {
@@ -65,7 +62,7 @@ data class LibraryPage(
                     }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint ?: return null,
                     radioEndpoint = renderer.menu.menuRenderer.items.find {
                         it.menuNavigationItemRenderer?.icon?.iconType == "MIX"
-                    }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint ?: return null,
+                    }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint ?: return null
                 )
 
                 else -> null
@@ -79,14 +76,19 @@ data class LibraryPage(
                     title = renderer.flexColumns.firstOrNull()
                         ?.musicResponsiveListItemFlexColumnRenderer?.text
                         ?.runs?.firstOrNull()?.text ?: return null,
-                    artists = renderer.flexColumns.getOrNull(1)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.oddElements()
+                    artists =
+                    renderer.flexColumns.getOrNull(
+                        1
+                    )?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.oddElements()
                         ?.map {
                             Artist(
                                 name = it.text,
                                 id = it.navigationEndpoint?.browseEndpoint?.browseId ?: return null
                             )
                         } ?: emptyList(),
-                    album = renderer.flexColumns.getOrNull(2)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()
+                    album = renderer.flexColumns.getOrNull(
+                        2
+                    )?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()
                         ?.let {
                             Album(
                                 name = it.text,
@@ -102,17 +104,24 @@ data class LibraryPage(
                         it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                     } != null,
                     endpoint = renderer.overlay?.musicItemThumbnailOverlayRenderer?.content?.musicPlayButtonRenderer?.playNavigationEndpoint?.watchEndpoint,
-                    libraryAddToken = PageHelper.extractFeedbackToken(renderer.menu?.menuRenderer?.items?.find {
-                        it.toggleMenuServiceItemRenderer?.defaultIcon?.iconType?.startsWith("LIBRARY_") == true
-                    }?.toggleMenuServiceItemRenderer, "LIBRARY_ADD"),
-                    libraryRemoveToken = PageHelper.extractFeedbackToken(renderer.menu?.menuRenderer?.items?.find {
-                        it.toggleMenuServiceItemRenderer?.defaultIcon?.iconType?.startsWith("LIBRARY_") == true
-                    }?.toggleMenuServiceItemRenderer, "LIBRARY_SAVED")
+                    libraryAddToken = PageHelper.extractFeedbackToken(
+                        renderer.menu?.menuRenderer?.items?.find {
+                            it.toggleMenuServiceItemRenderer?.defaultIcon?.iconType?.startsWith("LIBRARY_") == true
+                        }?.toggleMenuServiceItemRenderer,
+                        "LIBRARY_ADD"
+                    ),
+                    libraryRemoveToken = PageHelper.extractFeedbackToken(
+                        renderer.menu?.menuRenderer?.items?.find {
+                            it.toggleMenuServiceItemRenderer?.defaultIcon?.iconType?.startsWith("LIBRARY_") == true
+                        }?.toggleMenuServiceItemRenderer,
+                        "LIBRARY_SAVED"
+                    )
                 )
 
                 renderer.isArtist -> ArtistItem(
                     id = renderer.navigationEndpoint?.browseEndpoint?.browseId ?: return null,
-                    title = renderer.flexColumns.firstOrNull()?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()?.text
+                    title =
+                    renderer.flexColumns.firstOrNull()?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()?.text
                         ?: return null,
                     thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl()
                         ?: return null,

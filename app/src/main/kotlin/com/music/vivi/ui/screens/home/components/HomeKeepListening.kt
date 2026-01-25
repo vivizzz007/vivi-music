@@ -23,9 +23,8 @@ import com.music.vivi.constants.GridThumbnailHeight
 import com.music.vivi.db.entities.LocalItem
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.NavigationTitle
-import kotlinx.coroutines.CoroutineScope
-
 import com.music.vivi.utils.ImmutableList
+import kotlinx.coroutines.CoroutineScope
 
 @Composable
 internal fun HomeKeepListening(
@@ -35,7 +34,7 @@ internal fun HomeKeepListening(
     activeAlbumId: String?,
     navController: NavController,
     scope: CoroutineScope,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     if (keepListening.isEmpty()) return
 
@@ -55,10 +54,14 @@ internal fun HomeKeepListening(
             .asPaddingValues(),
         modifier = modifier
             .fillMaxWidth()
-            .height((GridThumbnailHeight + with(LocalDensity.current) {
-                MaterialTheme.typography.bodyLarge.lineHeight.toDp() * 2 +
-                        MaterialTheme.typography.bodyMedium.lineHeight.toDp() * 2
-            }) * rows)
+            .height(
+                (
+                    GridThumbnailHeight + with(LocalDensity.current) {
+                        MaterialTheme.typography.bodyLarge.lineHeight.toDp() * 2 +
+                            MaterialTheme.typography.bodyMedium.lineHeight.toDp() * 2
+                    }
+                    ) * rows
+            )
     ) {
         items(keepListening) {
             HomeLocalGridItem(

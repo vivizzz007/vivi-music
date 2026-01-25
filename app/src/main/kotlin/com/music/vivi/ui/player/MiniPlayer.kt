@@ -1,5 +1,6 @@
 package com.music.vivi.ui.player
 
+import android.content.res.Configuration
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
@@ -42,7 +43,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -55,65 +55,42 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.BlurEffect
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.res.stringResource
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
-import androidx.palette.graphics.Palette
 import coil3.compose.AsyncImage
-import coil3.imageLoader
-import coil3.request.ImageRequest
-import coil3.request.allowHardware
-import coil3.toBitmap
 import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.bluetooth.AudioDeviceBottomSheet
 import com.music.vivi.bluetooth.isBluetoothHeadphoneConnected
-import com.music.vivi.constants.MiniPlayerGradientKey
 import com.music.vivi.constants.MiniPlayerHeight
-import com.music.vivi.constants.PlayerBackgroundStyle
-import com.music.vivi.constants.PlayerBackgroundStyleKey
 import com.music.vivi.constants.SwipeSensitivityKey
 import com.music.vivi.constants.ThumbnailCornerRadius
 import com.music.vivi.constants.UseNewMiniPlayerDesignKey
 import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.models.MediaMetadata
-import com.music.vivi.ui.theme.PlayerColorExtractor
-import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
-import android.content.res.Configuration
-import androidx.compose.ui.platform.LocalConfiguration
-import com.music.vivi.db.entities.ArtistEntity
 
 @Composable
-fun MiniPlayer(
-    position: Long,
-    duration: Long,
-    modifier: Modifier = Modifier,
-    pureBlack: Boolean,
-) {
+fun MiniPlayer(position: Long, duration: Long, modifier: Modifier = Modifier, pureBlack: Boolean) {
     val useNewMiniPlayerDesign by rememberPreference(UseNewMiniPlayerDesignKey, true)
 
     if (useNewMiniPlayerDesign) {
@@ -147,12 +124,7 @@ fun MiniPlayer(
 }
 
 @Composable
-private fun NewMiniPlayer(
-    position: Long,
-    duration: Long,
-    modifier: Modifier = Modifier,
-    pureBlack: Boolean,
-) {
+private fun NewMiniPlayer(position: Long, duration: Long, modifier: Modifier = Modifier, pureBlack: Boolean) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val database = LocalDatabase.current
     val isPlaying by playerConnection.isPlaying.collectAsState()
@@ -176,7 +148,7 @@ private fun NewMiniPlayer(
 
     val configuration = LocalConfiguration.current
     val isTabletLandscape = configuration.screenWidthDp >= 600 &&
-            configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     val offsetXAnimatable = remember { Animatable(0f) }
     var dragStartTime by remember { mutableLongStateOf(0L) }
@@ -204,9 +176,8 @@ private fun NewMiniPlayer(
      * @param swipeSensitivity The sensitivity value (typically between 0 and 1).
      * @return The calculated auto-swipe threshold in pixels.
      */
-    fun calculateAutoSwipeThreshold(swipeSensitivity: Float): Int {
-        return (600 / (1f + kotlin.math.exp(-(-11.44748 * swipeSensitivity + 9.04945)))).roundToInt()
-    }
+    fun calculateAutoSwipeThreshold(swipeSensitivity: Float): Int =
+        (600 / (1f + kotlin.math.exp(-(-11.44748 * swipeSensitivity + 9.04945)))).roundToInt()
     val autoSwipeThreshold = calculateAutoSwipeThreshold(swipeSensitivity)
 
     Box(
@@ -255,9 +226,10 @@ private fun NewMiniPlayer(
                                 val velocityThreshold = (swipeSensitivity * -8.25f) + 8.5f
 
                                 val shouldChangeSong = (
-                                        kotlin.math.abs(currentOffset) > minDistanceThreshold &&
-                                                velocity > velocityThreshold
-                                        ) || (kotlin.math.abs(currentOffset) > autoSwipeThreshold)
+                                    kotlin.math.abs(currentOffset) > minDistanceThreshold &&
+                                        velocity > velocityThreshold
+                                    ) ||
+                                    (kotlin.math.abs(currentOffset) > autoSwipeThreshold)
 
                                 if (shouldChangeSong) {
                                     val isRightSwipe = currentOffset > 0
@@ -306,7 +278,7 @@ private fun NewMiniPlayer(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                    .padding(horizontal = 8.dp, vertical = 8.dp)
             ) {
                 // Play/Pause button with circular progress indicator (left side)
                 Box(
@@ -398,7 +370,7 @@ private fun NewMiniPlayer(
                         AnimatedContent(
                             targetState = metadata.title,
                             transitionSpec = { fadeIn() togetherWith fadeOut() },
-                            label = "",
+                            label = ""
                         ) { title ->
                             Text(
                                 text = title,
@@ -407,7 +379,11 @@ private fun NewMiniPlayer(
                                 fontWeight = FontWeight.Medium,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.basicMarquee(iterations = 1, initialDelayMillis = 3000, velocity = 30.dp),
+                                modifier = Modifier.basicMarquee(
+                                    iterations = 1,
+                                    initialDelayMillis = 3000,
+                                    velocity = 30.dp
+                                )
                             )
                         }
 
@@ -415,7 +391,7 @@ private fun NewMiniPlayer(
                             AnimatedContent(
                                 targetState = metadata.artists.joinToString { it.name },
                                 transitionSpec = { fadeIn() togetherWith fadeOut() },
-                                label = "",
+                                label = ""
                             ) { artists ->
                                 Text(
                                     text = artists,
@@ -423,7 +399,11 @@ private fun NewMiniPlayer(
                                     fontSize = 12.sp,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier.basicMarquee(iterations = 1, initialDelayMillis = 3000, velocity = 30.dp),
+                                    modifier = Modifier.basicMarquee(
+                                        iterations = 1,
+                                        initialDelayMillis = 3000,
+                                        velocity = 30.dp
+                                    )
                                 )
                             }
                         }
@@ -432,14 +412,14 @@ private fun NewMiniPlayer(
                         androidx.compose.animation.AnimatedVisibility(
                             visible = error != null,
                             enter = fadeIn(),
-                            exit = fadeOut(),
+                            exit = fadeOut()
                         ) {
                             Text(
                                 text = stringResource(R.string.error_playing),
                                 color = MaterialTheme.colorScheme.error,
                                 fontSize = 10.sp,
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
@@ -448,7 +428,6 @@ private fun NewMiniPlayer(
                 Spacer(modifier = Modifier.width(12.dp))
 
 // Audio Device button (replaces Subscribe/Subscribed button)
-
 
                 Box(
                     contentAlignment = Alignment.Center,
@@ -498,17 +477,19 @@ private fun NewMiniPlayer(
                             .clip(CircleShape)
                             .border(
                                 width = 1.dp,
-                                color = if (isLiked)
+                                color = if (isLiked) {
                                     Color(0xFFFFC107).copy(alpha = 0.5f)
-                                else
-                                    MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                                } else {
+                                    MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                                },
                                 shape = CircleShape
                             )
                             .background(
-                                color = if (isLiked)
+                                color = if (isLiked) {
                                     Color(0xFFFFC107).copy(alpha = 0.1f)
-                                else
-                                    Color.Transparent,
+                                } else {
+                                    Color.Transparent
+                                },
                                 shape = CircleShape
                             )
                             .clickable {
@@ -520,10 +501,11 @@ private fun NewMiniPlayer(
                                 if (isLiked) R.drawable.star_shine_fav_filled else R.drawable.star_fav
                             ),
                             contentDescription = null,
-                            tint = if (isLiked)
+                            tint = if (isLiked) {
                                 Color(0xFFFFC107)
-                            else
-                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                            } else {
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            },
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -540,12 +522,7 @@ private fun NewMiniPlayer(
 }
 
 @Composable
-private fun LegacyMiniPlayer(
-    position: Long,
-    duration: Long,
-    modifier: Modifier = Modifier,
-    pureBlack: Boolean,
-) {
+private fun LegacyMiniPlayer(position: Long, duration: Long, modifier: Modifier = Modifier, pureBlack: Boolean) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val playbackState by playerConnection.playbackState.collectAsState()
@@ -562,7 +539,7 @@ private fun LegacyMiniPlayer(
 
     val configuration = LocalConfiguration.current
     val isTabletLandscape = configuration.screenWidthDp >= 600 &&
-            configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     val offsetXAnimatable = remember { Animatable(0f) }
     var dragStartTime by remember { mutableLongStateOf(0L) }
@@ -579,9 +556,8 @@ private fun LegacyMiniPlayer(
         stiffness = Spring.StiffnessLow
     )
 
-    fun calculateAutoSwipeThreshold(swipeSensitivity: Float): Int {
-        return (600 / (1f + kotlin.math.exp(-(-11.44748 * swipeSensitivity + 9.04945)))).roundToInt()
-    }
+    fun calculateAutoSwipeThreshold(swipeSensitivity: Float): Int =
+        (600 / (1f + kotlin.math.exp(-(-11.44748 * swipeSensitivity + 9.04945)))).roundToInt()
     val autoSwipeThreshold = calculateAutoSwipeThreshold(swipeSensitivity)
 
     Box(
@@ -597,10 +573,11 @@ private fun LegacyMiniPlayer(
             .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
             .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
             .background(
-                if (pureBlack)
+                if (pureBlack) {
                     Color.Black
-                else
+                } else {
                     MaterialTheme.colorScheme.surfaceContainer
+                }
             )
             .let { baseModifier ->
                 if (swipeThumbnail) {
@@ -641,9 +618,10 @@ private fun LegacyMiniPlayer(
                                 val velocityThreshold = (swipeSensitivity * -8.25f) + 8.5f
 
                                 val shouldChangeSong = (
-                                        kotlin.math.abs(currentOffset) > minDistanceThreshold &&
-                                                velocity > velocityThreshold
-                                        ) || (kotlin.math.abs(currentOffset) > autoSwipeThreshold)
+                                    kotlin.math.abs(currentOffset) > minDistanceThreshold &&
+                                        velocity > velocityThreshold
+                                    ) ||
+                                    (kotlin.math.abs(currentOffset) > autoSwipeThreshold)
 
                                 if (shouldChangeSong) {
                                     val isRightSwipe = currentOffset > 0
@@ -674,7 +652,7 @@ private fun LegacyMiniPlayer(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(2.dp)
-                .align(Alignment.BottomCenter),
+                .align(Alignment.BottomCenter)
         )
 
         Row(
@@ -682,7 +660,7 @@ private fun LegacyMiniPlayer(
             modifier = Modifier
                 .fillMaxSize()
                 .offset { IntOffset(offsetXAnimatable.value.roundToInt(), 0) }
-                .padding(end = 12.dp),
+                .padding(end = 12.dp)
         ) {
             Box(Modifier.weight(1f)) {
                 mediaMetadata?.let {
@@ -690,16 +668,15 @@ private fun LegacyMiniPlayer(
                         mediaMetadata = it,
                         error = error,
                         pureBlack = pureBlack,
-                        modifier = Modifier.padding(horizontal = 6.dp),
+                        modifier = Modifier.padding(horizontal = 6.dp)
                     )
                 }
             }
 
-
             IconButton(
                 onClick = {
                     showBottomSheet = true
-                },
+                }
             ) {
                 Icon(
                     imageVector = if (isBluetoothHeadphoneConnected) {
@@ -709,9 +686,9 @@ private fun LegacyMiniPlayer(
                     },
                     contentDescription = if (isBluetoothHeadphoneConnected) {
                         stringResource(R.string.bluetooth_headphones)
-                        } else {
+                    } else {
                         stringResource(R.string.audio_devices)
-                    },
+                    }
                 )
             }
 
@@ -723,7 +700,7 @@ private fun LegacyMiniPlayer(
                     } else {
                         playerConnection.player.togglePlayPause()
                     }
-                },
+                }
             ) {
                 Icon(
                     painter = painterResource(
@@ -735,17 +712,17 @@ private fun LegacyMiniPlayer(
                             R.drawable.play
                         }
                     ),
-                    contentDescription = null,
+                    contentDescription = null
                 )
             }
 
             IconButton(
                 enabled = canSkipNext,
-                onClick = playerConnection::seekToNext,
+                onClick = playerConnection::seekToNext
             ) {
                 Icon(
                     painter = painterResource(R.drawable.skip_next),
-                    contentDescription = null,
+                    contentDescription = null
                 )
             }
         }
@@ -777,6 +754,7 @@ private fun LegacyMiniPlayer(
         )
     }
 }
+
 @Composable
 private fun LegacyMiniMediaInfo(
     mediaMetadata: MediaMetadata,
@@ -786,7 +764,7 @@ private fun LegacyMiniMediaInfo(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier,
+        modifier = modifier
     ) {
         Box(
             modifier = Modifier
@@ -808,27 +786,27 @@ private fun LegacyMiniMediaInfo(
                 contentScale = ContentScale.Fit,
                 modifier = Modifier
                     .fillMaxSize()
-                    .clip(RoundedCornerShape(ThumbnailCornerRadius)),
+                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
             )
 
             androidx.compose.animation.AnimatedVisibility(
                 visible = error != null,
                 enter = fadeIn(),
-                exit = fadeOut(),
+                exit = fadeOut()
             ) {
                 Box(
                     Modifier
                         .fillMaxSize()
                         .background(
                             color = if (pureBlack) Color.Black else Color.Black.copy(alpha = 0.6f),
-                            shape = RoundedCornerShape(ThumbnailCornerRadius),
-                        ),
+                            shape = RoundedCornerShape(ThumbnailCornerRadius)
+                        )
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.info),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.align(Alignment.Center),
+                        modifier = Modifier.align(Alignment.Center)
                     )
                 }
             }
@@ -837,12 +815,12 @@ private fun LegacyMiniMediaInfo(
         Column(
             modifier = Modifier
                 .weight(1f)
-                .padding(horizontal = 6.dp),
+                .padding(horizontal = 6.dp)
         ) {
             AnimatedContent(
                 targetState = mediaMetadata.title,
                 transitionSpec = { fadeIn() togetherWith fadeOut() },
-                label = "",
+                label = ""
             ) { title ->
                 Text(
                     text = title,
@@ -851,7 +829,7 @@ private fun LegacyMiniMediaInfo(
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.basicMarquee(),
+                    modifier = Modifier.basicMarquee()
                 )
             }
 
@@ -859,14 +837,14 @@ private fun LegacyMiniMediaInfo(
                 AnimatedContent(
                     targetState = mediaMetadata.artists.joinToString { it.name },
                     transitionSpec = { fadeIn() togetherWith fadeOut() },
-                    label = "",
+                    label = ""
                 ) { artists ->
                     Text(
                         text = artists,
                         color = MaterialTheme.colorScheme.secondary,
                         fontSize = 12.sp,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }

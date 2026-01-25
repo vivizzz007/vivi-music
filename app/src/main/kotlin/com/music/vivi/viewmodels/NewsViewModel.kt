@@ -1,17 +1,14 @@
 package com.music.vivi.viewmodels
 
 import androidx.lifecycle.ViewModel
-import com.music.vivi.repositories.NewsRepository
 import com.music.vivi.repositories.NewsItem // Import from repository
-import com.music.vivi.repositories.ContentBlock // Import from repository
+import com.music.vivi.repositories.NewsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 @HiltViewModel
-public class NewsViewModel @Inject constructor(
-    private val repository: NewsRepository
-) : ViewModel() {
+public class NewsViewModel @Inject constructor(private val repository: NewsRepository) : ViewModel() {
 
     public val newsItems: StateFlow<List<NewsItem>> = repository.newsItems
     public val isLoading: StateFlow<Boolean> = repository.isLoading
@@ -28,8 +25,5 @@ public class NewsViewModel @Inject constructor(
         repository.markAsRead(item)
     }
 
-    public fun getItemId(item: NewsItem): String {
-        return repository.getItemId(item)
-    }
+    public fun getItemId(item: NewsItem): String = repository.getItemId(item)
 }
-

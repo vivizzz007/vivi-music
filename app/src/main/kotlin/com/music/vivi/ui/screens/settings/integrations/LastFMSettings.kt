@@ -1,16 +1,16 @@
 package com.music.vivi.ui.screens.settings.integrations
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -18,17 +18,17 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -44,35 +44,31 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.music.lastfm.LastFM
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
-import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.component.PreferenceEntry
-import com.music.vivi.ui.component.PreferenceGroupTitle
-import com.music.vivi.ui.utils.backToMain
-import com.music.vivi.utils.rememberPreference
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import com.music.lastfm.LastFM
+import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.EnableLastFMScrobblingKey
 import com.music.vivi.constants.LastFMSessionKey
 import com.music.vivi.constants.LastFMUseNowPlaying
 import com.music.vivi.constants.LastFMUsernameKey
-import com.music.vivi.constants.ScrobbleMinSongDurationKey
 import com.music.vivi.constants.ScrobbleDelayPercentKey
 import com.music.vivi.constants.ScrobbleDelaySecondsKey
-import com.music.vivi.ui.component.DefaultDialog
-import com.music.vivi.ui.component.SwitchPreference
-import com.music.vivi.utils.makeTimeString
-import com.music.vivi.utils.reportException
-import com.music.vivi.update.settingstyle.ModernInfoItem
-import com.music.vivi.update.mordernswitch.ModernSwitch
-import com.music.vivi.utils.rememberEnumPreference
+import com.music.vivi.constants.ScrobbleMinSongDurationKey
 import com.music.vivi.constants.SettingsShapeColorTertiaryKey
-import com.music.vivi.constants.DarkModeKey
+import com.music.vivi.ui.component.DefaultDialog
+import com.music.vivi.ui.component.IconButton
+import com.music.vivi.ui.component.PreferenceGroupTitle
 import com.music.vivi.ui.screens.settings.DarkMode
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.runtime.remember
+import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.update.mordernswitch.ModernSwitch
+import com.music.vivi.update.settingstyle.ModernInfoItem
+import com.music.vivi.utils.makeTimeString
+import com.music.vivi.utils.rememberEnumPreference
+import com.music.vivi.utils.rememberPreference
+import com.music.vivi.utils.reportException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -119,8 +115,6 @@ fun LastFMSettings(
 
     val integrationsViewModel: com.music.vivi.viewmodels.IntegrationsViewModel = androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel()
     val lastFmState: com.music.vivi.viewmodels.LastFMState by integrationsViewModel.lastFmState.collectAsState()
-
-
 
     val isLoggedIn = lastFmState.isLoggedIn
 
@@ -212,7 +206,11 @@ fun LastFMSettings(
 
     Column(
         Modifier
-            .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
+            .windowInsetsPadding(
+                LocalPlayerAwareWindowInsets.current.only(
+                    WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
+                )
+            )
             .verticalScroll(rememberScrollState())
     ) {
         Spacer(
@@ -224,7 +222,7 @@ fun LastFMSettings(
         )
 
         PreferenceGroupTitle(
-            title = stringResource(R.string.account),
+            title = stringResource(R.string.account)
         )
 
         Card(
@@ -241,13 +239,21 @@ fun LastFMSettings(
                 ModernInfoItem(
                     icon = { Icon(painterResource(R.drawable.music_note), null, modifier = Modifier.size(22.dp)) },
                     title = if (isLoggedIn) lastfmUsername else stringResource(R.string.not_logged_in),
-                    subtitle = if (isLoggedIn) stringResource(R.string.lastfm_account) else stringResource(R.string.not_logged_in_fallback),
-                    onClick = { if (isLoggedIn) {
-                        lastfmSession = ""
-                        lastfmUsername = ""
+                    subtitle = if (isLoggedIn) {
+                        stringResource(
+                            R.string.lastfm_account
+                        )
                     } else {
-                        showLoginDialog = true
-                    } },
+                        stringResource(R.string.not_logged_in_fallback)
+                    },
+                    onClick = {
+                        if (isLoggedIn) {
+                            lastfmSession = ""
+                            lastfmUsername = ""
+                        } else {
+                            showLoginDialog = true
+                        }
+                    },
                     showArrow = true,
                     iconBackgroundColor = iconBgColor,
                     iconContentColor = iconStyleColor
@@ -256,7 +262,7 @@ fun LastFMSettings(
         }
 
         PreferenceGroupTitle(
-            title = stringResource(R.string.options),
+            title = stringResource(R.string.options)
         )
 
         Card(
@@ -428,7 +434,10 @@ fun LastFMSettings(
                     )
 
                     Text(
-                        text = stringResource(R.string.sensitivity_percentage, (tempScrobbleDelayPercent * 100).roundToInt()),
+                        text = stringResource(
+                            R.string.sensitivity_percentage,
+                            (tempScrobbleDelayPercent * 100).roundToInt()
+                        ),
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
@@ -535,7 +544,10 @@ fun LastFMSettings(
                 ModernInfoItem(
                     icon = { Icon(painterResource(R.drawable.percent), null, modifier = Modifier.size(22.dp)) },
                     title = stringResource(R.string.scrobble_delay_percent),
-                    subtitle = stringResource(R.string.sensitivity_percentage, (scrobbleDelayPercent * 100).roundToInt()),
+                    subtitle = stringResource(
+                        R.string.sensitivity_percentage,
+                        (scrobbleDelayPercent * 100).roundToInt()
+                    ),
                     onClick = { showScrobbleDelayPercentDialog = true },
                     showArrow = true,
                     iconBackgroundColor = iconBgColor,
@@ -565,11 +577,11 @@ fun LastFMSettings(
         navigationIcon = {
             IconButton(
                 onClick = { onBack?.invoke() ?: navController.navigateUp() },
-                onLongClick = navController::backToMain,
+                onLongClick = navController::backToMain
             ) {
                 Icon(
                     painterResource(R.drawable.arrow_back),
-                    contentDescription = null,
+                    contentDescription = null
                 )
             }
         }

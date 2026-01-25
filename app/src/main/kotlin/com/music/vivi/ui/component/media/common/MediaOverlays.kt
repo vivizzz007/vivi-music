@@ -26,9 +26,7 @@ import com.music.vivi.R
 // Let's rely on package access.
 
 @Composable
-internal fun BoxScope.OverlayPlayButton(
-    visible: Boolean
-) {
+internal fun BoxScope.OverlayPlayButton(visible: Boolean) {
     AnimatedVisibility(
         visible = visible,
         enter = fadeIn(),
@@ -87,10 +85,7 @@ internal fun BoxScope.OverlayEditButton(
 }
 
 @Composable
-internal fun BoxScope.AlbumPlayButton(
-    visible: Boolean,
-    onClick: () -> Unit,
-) {
+internal fun BoxScope.AlbumPlayButton(visible: Boolean, onClick: () -> Unit) {
     AnimatedVisibility(
         visible = visible,
         enter = fadeIn(),

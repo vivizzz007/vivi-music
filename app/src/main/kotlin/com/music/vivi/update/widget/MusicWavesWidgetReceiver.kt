@@ -9,11 +9,7 @@ import com.music.vivi.playback.MusicService
 
 class MusicWavesWidgetReceiver : AppWidgetProvider() {
 
-    override fun onUpdate(
-        context: Context,
-        appWidgetManager: AppWidgetManager,
-        appWidgetIds: IntArray
-    ) {
+    override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         // Trigger update through MusicService if running
         if (MusicService.isRunning) {
             val intent = Intent(context, MusicService::class.java).apply {
@@ -35,10 +31,11 @@ class MusicWavesWidgetReceiver : AppWidgetProvider() {
         super.onReceive(context, intent)
 
         when (intent.action) {
-            MusicPlayerWidgetReceiver.ACTION_PLAY_PAUSE, 
-            MusicPlayerWidgetReceiver.ACTION_LIKE, 
-            MusicPlayerWidgetReceiver.ACTION_PLAY_SONG, 
-            MusicPlayerWidgetReceiver.ACTION_PLAY_QUEUE_ITEM -> {
+            MusicPlayerWidgetReceiver.ACTION_PLAY_PAUSE,
+            MusicPlayerWidgetReceiver.ACTION_LIKE,
+            MusicPlayerWidgetReceiver.ACTION_PLAY_SONG,
+            MusicPlayerWidgetReceiver.ACTION_PLAY_QUEUE_ITEM,
+            -> {
                 val serviceIntent = Intent(context, MusicService::class.java).apply {
                     action = intent.action
                     putExtras(intent)

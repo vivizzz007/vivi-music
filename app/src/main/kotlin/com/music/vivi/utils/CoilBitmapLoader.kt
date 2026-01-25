@@ -17,39 +17,34 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.guava.future
 
-class CoilBitmapLoader(
-    private val context: Context,
-    private val scope: CoroutineScope,
-) : BitmapLoader {
+class CoilBitmapLoader(private val context: Context, private val scope: CoroutineScope) : BitmapLoader {
     override fun supportsMimeType(mimeType: String): Boolean = mimeType.startsWith("image/")
 
-    override fun decodeBitmap(data: ByteArray): ListenableFuture<Bitmap> =
-        scope.future(Dispatchers.IO) {
-            BitmapFactory.decodeByteArray(data, 0, data.size)
-                ?: error("Could not decode image data")
-        }
+    override fun decodeBitmap(data: ByteArray): ListenableFuture<Bitmap> = scope.future(Dispatchers.IO) {
+        BitmapFactory.decodeByteArray(data, 0, data.size)
+            ?: error("Could not decode image data")
+    }
 
-    override fun loadBitmap(uri: Uri): ListenableFuture<Bitmap> =
-        scope.future(Dispatchers.IO) {
-            val request = ImageRequest.Builder(context)
-                .data(uri)
-                .allowHardware(false)
-                .build()
+    override fun loadBitmap(uri: Uri): ListenableFuture<Bitmap> = scope.future(Dispatchers.IO) {
+        val request = ImageRequest.Builder(context)
+            .data(uri)
+            .allowHardware(false)
+            .build()
 
-            val result = context.imageLoader.execute(request)
+        val result = context.imageLoader.execute(request)
 
-            // In case of error, returns an empty bitmap
-            when (result) {
-                is ErrorResult -> {
+        // In case of error, returns an empty bitmap
+        when (result) {
+            is ErrorResult -> {
+                createBitmap(64, 64)
+            }
+            is SuccessResult -> {
+                try {
+                    result.image.toBitmap()
+                } catch (e: Exception) {
                     createBitmap(64, 64)
-                }
-                is SuccessResult -> {
-                    try {
-                        result.image.toBitmap()
-                    } catch (e: Exception) {
-                        createBitmap(64, 64)
-                    }
                 }
             }
         }
+    }
 }

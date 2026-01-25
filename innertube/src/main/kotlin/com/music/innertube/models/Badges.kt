@@ -3,11 +3,7 @@ package com.music.innertube.models
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Badges(
-    val musicInlineBadgeRenderer: MusicInlineBadgeRenderer?,
-) {
+data class Badges(val musicInlineBadgeRenderer: MusicInlineBadgeRenderer?) {
     @Serializable
-    data class MusicInlineBadgeRenderer(
-        val icon: Icon,
-    )
+    data class MusicInlineBadgeRenderer(val icon: Icon)
 }

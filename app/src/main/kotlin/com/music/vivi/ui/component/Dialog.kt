@@ -129,10 +129,7 @@ public fun DefaultDialog(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-public fun AccountSettingsDialog(
-    navController: NavController,
-    onDismiss: () -> Unit
-) {
+public fun AccountSettingsDialog(navController: NavController, onDismiss: () -> Unit) {
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(
@@ -178,17 +175,17 @@ public fun ActionPromptDialog(
     onConfirm: () -> Unit,
     onReset: (() -> Unit)? = null,
     onCancel: (() -> Unit)? = null,
-    content: @Composable ColumnScope.() -> Unit = {}
+    content: @Composable ColumnScope.() -> Unit = {},
 ) {
     Dialog(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false),
+        properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
         Surface(
             modifier = Modifier.padding(24.dp),
             shape = AlertDialogDefaults.shape,
             color = AlertDialogDefaults.containerColor,
-            tonalElevation = AlertDialogDefaults.TonalElevation,
+            tonalElevation = AlertDialogDefaults.TonalElevation
         ) {
             Column(
                 modifier = Modifier.padding(24.dp)
@@ -204,7 +201,7 @@ public fun ActionPromptDialog(
                             text = title,
                             overflow = TextOverflow.Ellipsis,
                             maxLines = 1,
-                            style = MaterialTheme.typography.headlineSmall,
+                            style = MaterialTheme.typography.headlineSmall
                         )
                         Spacer(Modifier.height(16.dp))
                     }
@@ -219,7 +216,7 @@ public fun ActionPromptDialog(
                     if (onReset != null) {
                         Row(modifier = Modifier.weight(1f)) {
                             TextButton(
-                                onClick = { onReset() },
+                                onClick = { onReset() }
                             ) {
                                 Text(stringResource(R.string.reset))
                             }
@@ -246,24 +243,20 @@ public fun ActionPromptDialog(
 }
 
 @Composable
-public fun ListDialog(
-    onDismiss: () -> Unit,
-    modifier: Modifier = Modifier,
-    content: LazyListScope.() -> Unit,
-) {
+public fun ListDialog(onDismiss: () -> Unit, modifier: Modifier = Modifier, content: LazyListScope.() -> Unit) {
     Dialog(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false),
+        properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
         Surface(
             modifier = Modifier.padding(24.dp),
             shape = AlertDialogDefaults.shape,
             color = AlertDialogDefaults.containerColor,
-            tonalElevation = AlertDialogDefaults.TonalElevation,
+            tonalElevation = AlertDialogDefaults.TonalElevation
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = modifier.padding(vertical = 24.dp),
+                modifier = modifier.padding(vertical = 24.dp)
             ) {
                 LazyColumn(content = content)
             }
@@ -272,9 +265,7 @@ public fun ListDialog(
 }
 
 @Composable
-public fun InfoLabel(
-    text: String
-): Unit = Row(
+public fun InfoLabel(text: String): Unit = Row(
     verticalAlignment = Alignment.CenterVertically,
     modifier = Modifier.padding(horizontal = 8.dp)
 ) {

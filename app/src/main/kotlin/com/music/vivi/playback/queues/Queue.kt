@@ -20,36 +20,32 @@ interface Queue {
         val mediaItemIndex: Int,
         val position: Long = 0L,
     ) {
-        fun filterExplicit(enabled: Boolean = true) =
-            if (enabled) {
-                copy(
-                    items = items.filterExplicit(),
-                )
-            } else {
-                this
-            }
-        fun filterVideoSongs(disableVideos: Boolean = false) =
-            if (disableVideos) {
-                copy(
-                    items = items.filterVideoSongs(true),
-                )
-            } else {
-                this
-            }
+        fun filterExplicit(enabled: Boolean = true) = if (enabled) {
+            copy(
+                items = items.filterExplicit()
+            )
+        } else {
+            this
+        }
+        fun filterVideoSongs(disableVideos: Boolean = false) = if (disableVideos) {
+            copy(
+                items = items.filterVideoSongs(true)
+            )
+        } else {
+            this
+        }
     }
 }
 
-fun List<MediaItem>.filterExplicit(enabled: Boolean = true) =
-    if (enabled) {
-        filterNot {
-            it.metadata?.explicit == true
-        }
-    } else {
-        this
+fun List<MediaItem>.filterExplicit(enabled: Boolean = true) = if (enabled) {
+    filterNot {
+        it.metadata?.explicit == true
     }
-fun List<MediaItem>.filterVideoSongs(disableVideos: Boolean = false) =
-    if (disableVideos) {
-        filterNot { it.metadata?.isVideoSong == true }
-    } else {
-        this
-    }
+} else {
+    this
+}
+fun List<MediaItem>.filterVideoSongs(disableVideos: Boolean = false) = if (disableVideos) {
+    filterNot { it.metadata?.isVideoSong == true }
+} else {
+    this
+}

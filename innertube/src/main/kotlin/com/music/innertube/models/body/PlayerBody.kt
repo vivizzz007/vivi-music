@@ -14,17 +14,11 @@ data class PlayerBody(
     val racyCheckOk: Boolean = true,
 ) {
     @Serializable
-    data class PlaybackContext(
-        val contentPlaybackContext: ContentPlaybackContext
-    ) {
+    data class PlaybackContext(val contentPlaybackContext: ContentPlaybackContext) {
         @Serializable
-        data class ContentPlaybackContext(
-            val signatureTimestamp: Int
-        )
+        data class ContentPlaybackContext(val signatureTimestamp: Int)
     }
 
     @Serializable
-    data class ServiceIntegrityDimensions(
-        val poToken: String
-    )
+    data class ServiceIntegrityDimensions(val poToken: String)
 }

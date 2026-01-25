@@ -1,6 +1,5 @@
 package com.music.vivi.update.updatenotification
 
-
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -63,13 +62,13 @@ import com.music.vivi.update.viewmodelupdate.UpdateViewModel
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 
-//new view model to check update
+// new view model to check update
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UpdateInfoScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
-    updateViewModel: UpdateViewModel = hiltViewModel()
+    updateViewModel: UpdateViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
 
@@ -118,7 +117,7 @@ fun UpdateInfoScreen(
         sharedPrefs.edit().putBoolean(KEY_AUTO_UPDATE_CHECK, newValue).apply()
 
         updateViewModel.refreshUpdateStatus()
-        
+
         // Refresh background check schedule
         UpdateNotificationManager.schedulePeriodicUpdateCheck(context)
 
@@ -152,12 +151,12 @@ fun UpdateInfoScreen(
     fun onIntervalChange(newInterval: Int) {
         updateCheckInterval = newInterval
         saveUpdateCheckInterval(context, newInterval)
-        
+
         // Refresh background check schedule
         UpdateNotificationManager.schedulePeriodicUpdateCheck(context)
 
         val message = if (newInterval < 24) {
-             context.getString(R.string.interval_set_format_hours, newInterval)
+            context.getString(R.string.interval_set_format_hours, newInterval)
         } else {
             val days = newInterval / 24
             context.getString(R.string.interval_set_format_days, days)
@@ -265,57 +264,75 @@ fun UpdateInfoScreen(
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp)
             )
 
-            val notificationItems = remember(showUpdateNotification, checkForUpdates, updateCheckInterval, iconBgColor, iconStyleColor) {
-                buildList<@Composable () -> Unit> {
-                    add {
-                        ModernInfoItem(
-                            icon = {
-                                Icon(
-                                    painter = painterResource(R.drawable.notification),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(22.dp)
-                                )
-                            },
-                            title = stringResource(R.string.show_notification),
-                            subtitle = stringResource(R.string.show_notification_desc),
-                            onClick = { if (checkForUpdates) onNotificationToggle(!showUpdateNotification) },
-                            iconBackgroundColor = iconBgColor,
-                            iconContentColor = iconStyleColor,
-                            modifier = Modifier.alpha(if (checkForUpdates) 1f else 0.5f),
-                            trailingContent = {
-                                ModernSwitch(
-                                    checked = showUpdateNotification,
-                                    onCheckedChange = { onNotificationToggle(it) },
-                                    enabled = checkForUpdates
-                                )
-                            }
-                        )
-                    }
-                    add {
-                        ModernInfoItem(
-                            icon = {
-                                Icon(
-                                    painter = painterResource(R.drawable.history),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(22.dp)
-                                )
-                            },
-                            title = stringResource(R.string.update_check_interval),
-                            subtitle = if (updateCheckInterval < 24) {
-                                stringResource(if (updateCheckInterval == 1) R.string.interval_every_hour else R.string.interval_every_hours, updateCheckInterval)
-                            } else {
-                                val days = updateCheckInterval / 24
-                                stringResource(if (days == 1) R.string.interval_every_day else R.string.interval_every_days, days)
-                            },
-                            onClick = { if (checkForUpdates) showIntervalDialog = true },
-                            iconBackgroundColor = iconBgColor,
-                            iconContentColor = iconStyleColor,
-                            modifier = Modifier.alpha(if (checkForUpdates) 1f else 0.5f)
-                        )
+            val notificationItems =
+                remember(showUpdateNotification, checkForUpdates, updateCheckInterval, iconBgColor, iconStyleColor) {
+                    buildList<@Composable () -> Unit> {
+                        add {
+                            ModernInfoItem(
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.notification),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                },
+                                title = stringResource(R.string.show_notification),
+                                subtitle = stringResource(R.string.show_notification_desc),
+                                onClick = { if (checkForUpdates) onNotificationToggle(!showUpdateNotification) },
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor,
+                                modifier = Modifier.alpha(if (checkForUpdates) 1f else 0.5f),
+                                trailingContent = {
+                                    ModernSwitch(
+                                        checked = showUpdateNotification,
+                                        onCheckedChange = { onNotificationToggle(it) },
+                                        enabled = checkForUpdates
+                                    )
+                                }
+                            )
+                        }
+                        add {
+                            ModernInfoItem(
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.history),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                },
+                                title = stringResource(R.string.update_check_interval),
+                                subtitle = if (updateCheckInterval < 24) {
+                                    stringResource(
+                                        if (updateCheckInterval ==
+                                            1
+                                        ) {
+                                            R.string.interval_every_hour
+                                        } else {
+                                            R.string.interval_every_hours
+                                        },
+                                        updateCheckInterval
+                                    )
+                                } else {
+                                    val days = updateCheckInterval / 24
+                                    stringResource(
+                                        if (days ==
+                                            1
+                                        ) {
+                                            R.string.interval_every_day
+                                        } else {
+                                            R.string.interval_every_days
+                                        },
+                                        days
+                                    )
+                                },
+                                onClick = { if (checkForUpdates) showIntervalDialog = true },
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor,
+                                modifier = Modifier.alpha(if (checkForUpdates) 1f else 0.5f)
+                            )
+                        }
                     }
                 }
-            }
-
 
             Material3ExpressiveSettingsGroup(
                 modifier = Modifier.fillMaxWidth(),
@@ -324,7 +341,7 @@ fun UpdateInfoScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-             Text(
+            Text(
                 text = stringResource(R.string.home_screen).uppercase(),
                 style = MaterialTheme.typography.labelLarge.copy(
                     fontWeight = FontWeight.Bold,
@@ -334,10 +351,13 @@ fun UpdateInfoScreen(
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp)
             )
 
-            val (showNewsIcon, onShowNewsIconChange) = rememberPreference(com.music.vivi.constants.ShowNewsIconKey, true)
+            val (showNewsIcon, onShowNewsIconChange) = rememberPreference(
+                com.music.vivi.constants.ShowNewsIconKey,
+                true
+            )
 
             val appearanceItems = remember(showNewsIcon, iconBgColor, iconStyleColor) {
-               buildList<@Composable () -> Unit> {
+                buildList<@Composable () -> Unit> {
                     add {
                         ModernInfoItem(
                             icon = {
@@ -360,7 +380,7 @@ fun UpdateInfoScreen(
                             }
                         )
                     }
-               }
+                }
             }
 
             Material3ExpressiveSettingsGroup(
@@ -399,8 +419,8 @@ fun UpdateInfoScreen(
                     Slider(
                         value = updateCheckInterval.toFloat(),
                         onValueChange = { updateCheckInterval = it.toInt() },
-                        valueRange = 1f..168f,  // Changed: 1 hour to 7 days (168 hours)
-                        steps = 166,  // Changed: 167 values minus 1
+                        valueRange = 1f..168f, // Changed: 1 hour to 7 days (168 hours)
+                        steps = 166, // Changed: 167 values minus 1
                         modifier = Modifier.fillMaxWidth()
                     )
 
@@ -439,4 +459,3 @@ fun UpdateInfoScreen(
         )
     }
 }
-

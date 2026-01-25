@@ -7,7 +7,6 @@ package com.music.vivi.ui.component
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
@@ -47,7 +46,7 @@ public fun VolumeSlider(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     onValueChangeFinished: (() -> Unit)? = null,
-    accentColor: Color = MaterialTheme.colorScheme.primary
+    accentColor: Color = MaterialTheme.colorScheme.primary,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
 
@@ -140,7 +139,7 @@ private fun DrawScope.drawVolumeIcon(
     inactiveTrackWidth: Float,
     activeIconColor: Color,
     inactiveIconColor: Color,
-    volumeOffIcon: Painter
+    volumeOffIcon: Painter,
 ) {
     val iconSizePx = iconSize.toSize()
     val iconPaddingPx = iconPadding.toPx()

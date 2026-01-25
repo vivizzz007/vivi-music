@@ -5,13 +5,12 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import androidx.core.view.WindowCompat
 import android.net.Uri
 import android.os.Build
 import android.view.View
-import android.widget.Toast
 import android.view.WindowInsets
 import android.view.WindowInsetsController
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
@@ -47,6 +46,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 import com.music.vivi.MainActivity
 import com.music.vivi.R
 import com.music.vivi.ui.theme.DefaultThemeColor
@@ -57,9 +57,7 @@ import kotlin.system.exitProcess
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CrashPage(
-    errorText: String
-) {
+fun CrashPage(errorText: String) {
     val context = LocalContext.current
     val window = (context as? Activity)?.window
 
@@ -84,12 +82,12 @@ fun CrashPage(
             } else {
                 @Suppress("DEPRECATION")
                 window.decorView.systemUiVisibility = (
-                        View.SYSTEM_UI_FLAG_FULLSCREEN or
-                                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-                                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
-                                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-                                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        )
+                    View.SYSTEM_UI_FLAG_FULLSCREEN or
+                        View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                        View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
+                        View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                        View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    )
             }
         }
     }
@@ -99,7 +97,7 @@ fun CrashPage(
     MusicTheme(
         darkTheme = useDarkTheme,
         pureBlack = false,
-        themeColor = themeColor,
+        themeColor = themeColor
     ) {
         Box(
             modifier = Modifier
@@ -175,11 +173,14 @@ fun CrashPage(
                                 onClick = {
                                     val clipboard =
                                         context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                    val clip = ClipData.newPlainText(context.getString(R.string.short_vivi_crash_info), errorText)
+                                    val clip = ClipData.newPlainText(
+                                        context.getString(R.string.short_vivi_crash_info),
+                                        errorText
+                                    )
                                     clipboard.setPrimaryClip(clip)
                                 },
                                 showArrow = true,
-                                iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
+                                iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
                             )
 
                             HorizontalDivider(
@@ -202,10 +203,19 @@ fun CrashPage(
                                 subtitleColor = MaterialTheme.colorScheme.onSurfaceVariant,
                                 onClick = {
                                     // Copy to clipboard
-                                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                    val clip = ClipData.newPlainText(context.getString(R.string.vivi_crash_log), errorText)
+                                    val clipboard = context.getSystemService(
+                                        Context.CLIPBOARD_SERVICE
+                                    ) as ClipboardManager
+                                    val clip = ClipData.newPlainText(
+                                        context.getString(R.string.vivi_crash_log),
+                                        errorText
+                                    )
                                     clipboard.setPrimaryClip(clip)
-                                    Toast.makeText(context, context.getString(R.string.log_copied_to_clipboard), Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context,
+                                        context.getString(R.string.log_copied_to_clipboard),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
 
                                     // Send Email
                                     val deviceInfo = """
@@ -218,17 +228,27 @@ fun CrashPage(
                                     val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
                                         data = Uri.parse("mailto:")
                                         putExtra(Intent.EXTRA_EMAIL, arrayOf("mkmdevilmi@gmail.com"))
-                                        putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.vivi_music_crash_report))
-                                        putExtra(Intent.EXTRA_TEXT, context.getString(R.string.crash_log_email_body, errorText, deviceInfo))
+                                        putExtra(
+                                            Intent.EXTRA_SUBJECT,
+                                            context.getString(R.string.vivi_music_crash_report)
+                                        )
+                                        putExtra(
+                                            Intent.EXTRA_TEXT,
+                                            context.getString(R.string.crash_log_email_body, errorText, deviceInfo)
+                                        )
                                     }
                                     try {
                                         context.startActivity(Intent.createChooser(emailIntent, "Send email via..."))
                                     } catch (e: Exception) {
-                                        Toast.makeText(context, context.getString(R.string.no_email_app_found), Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(
+                                            context,
+                                            context.getString(R.string.no_email_app_found),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     }
                                 },
                                 showArrow = true,
-                                iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
+                                iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
                             )
 
                             HorizontalDivider(
@@ -251,12 +271,16 @@ fun CrashPage(
                                 subtitleColor = MaterialTheme.colorScheme.onSurfaceVariant,
                                 onClick = {
                                     context.startActivity(
-                                        Intent(Intent.ACTION_VIEW,
-                                            Uri.parse("https://github.com/vivizzz007/vivi-music/issues/new?template=bug_report.yml"))
+                                        Intent(
+                                            Intent.ACTION_VIEW,
+                                            Uri.parse(
+                                                "https://github.com/vivizzz007/vivi-music/issues/new?template=bug_report.yml"
+                                            )
+                                        )
                                     )
                                 },
                                 showArrow = true,
-                                iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
+                                iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
                             )
 
                             HorizontalDivider(
@@ -288,7 +312,7 @@ fun CrashPage(
                                     exitProcess(0)
                                 },
                                 showArrow = true,
-                                iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
+                                iconBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f)
                             )
                         }
                     }

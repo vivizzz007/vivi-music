@@ -1,14 +1,17 @@
 package com.music.vivi.ui.player
 
 import android.annotation.SuppressLint
+import android.app.SearchManager
+import android.content.Intent
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -30,28 +33,25 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TimeInput
-import androidx.compose.material3.TooltipAnchorPosition
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
-import androidx.compose.material3.ButtonGroupDefaults
-import androidx.compose.material3.ripple
-import androidx.compose.material3.rememberTooltipState
-import androidx.compose.foundation.interaction.MutableInteractionSource
-
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -60,6 +60,7 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,17 +70,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.Player.STATE_READY
@@ -87,7 +88,6 @@ import androidx.navigation.NavController
 import androidx.palette.graphics.Palette
 import coil3.compose.AsyncImage
 import coil3.imageLoader
-import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
 import coil3.toBitmap
@@ -97,50 +97,30 @@ import com.music.vivi.R
 import com.music.vivi.constants.AppleMusicLyricsBlurKey
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PlayerBackgroundStyleKey
+import com.music.vivi.constants.SwipeGestureEnabledKey
 import com.music.vivi.db.entities.LyricsEntity
 import com.music.vivi.extensions.toggleRepeatMode
+import com.music.vivi.lyrics.LyricsResult
 import com.music.vivi.models.MediaMetadata
-import com.music.vivi.ui.component.ActionPromptDialog
 import com.music.vivi.ui.component.BottomSheet
 import com.music.vivi.ui.component.BottomSheetState
+import com.music.vivi.ui.component.DefaultDialog
+import com.music.vivi.ui.component.ListDialog
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.Lyrics
 import com.music.vivi.ui.menu.LyricsMenu
 import com.music.vivi.ui.theme.PlayerColorExtractor
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.music.vivi.viewmodels.LyricsMenuViewModel
-import com.music.vivi.lyrics.LyricsResult
-import com.music.vivi.ui.component.DefaultDialog
-import com.music.vivi.ui.component.ListDialog
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.IconButton
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.ui.text.input.TextFieldValue
-import android.app.SearchManager
-import android.content.Intent
-import android.widget.Toast
-import com.music.vivi.utils.makeTimeString
-
+import com.music.vivi.update.apple.SwipeGesture
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
+import com.music.vivi.viewmodels.LyricsMenuViewModel
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import com.music.vivi.constants.SliderStyle
-import com.music.vivi.constants.SliderStyleKey
-import com.music.vivi.constants.SwipeGestureEnabledKey
-import com.music.vivi.update.apple.SwipeGesture
 import kotlinx.coroutines.withContext
-
 
 @SuppressLint("UnrememberedMutableState")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -158,7 +138,7 @@ fun LyricsBottomSheet(
     val database = LocalDatabase.current
     val coroutineScope = rememberCoroutineScope()
     val playerConnection = LocalPlayerConnection.current ?: return
-    
+
     val repeatMode by playerConnection.repeatMode.collectAsState()
     val shuffleModeEnabled by playerConnection.shuffleModeEnabled.collectAsState()
     val currentSong by playerConnection.currentSong.collectAsState(initial = null)
@@ -185,7 +165,7 @@ fun LyricsBottomSheet(
     }
 
     val isNetworkAvailable by viewModel.isNetworkAvailable.collectAsState(initial = false)
-    
+
     // Lyrics Fetching Logic
     var lyricsFetchJob by remember { mutableStateOf<Job?>(null) }
 
@@ -220,8 +200,6 @@ fun LyricsBottomSheet(
         }
     }
 
-
-
     // Preferences
     val playerBackground by rememberEnumPreference(PlayerBackgroundStyleKey, PlayerBackgroundStyle.GRADIENT)
     val appleMusicLyricsBlur by rememberPreference(AppleMusicLyricsBlurKey, defaultValue = true)
@@ -233,7 +211,9 @@ fun LyricsBottomSheet(
     val fallbackColor = MaterialTheme.colorScheme.surface.toArgb()
 
     LaunchedEffect(mediaMetadata.id, playerBackground) {
-        if ((playerBackground == PlayerBackgroundStyle.GRADIENT || playerBackground == PlayerBackgroundStyle.APPLE_MUSIC) && mediaMetadata.thumbnailUrl != null) {
+        if ((playerBackground == PlayerBackgroundStyle.GRADIENT || playerBackground == PlayerBackgroundStyle.APPLE_MUSIC) &&
+            mediaMetadata.thumbnailUrl != null
+        ) {
             val cachedColors = gradientColorsCache[mediaMetadata.id]
             if (cachedColors != null) {
                 gradientColors = cachedColors
@@ -275,22 +255,26 @@ fun LyricsBottomSheet(
 
     // Colors for buttons (mirrors Queue.kt style)
     val toggleButtonColors = ToggleButtonDefaults.toggleButtonColors(
-        containerColor = if (playerBackground == PlayerBackgroundStyle.DEFAULT) 
-            MaterialTheme.colorScheme.secondaryContainer 
-        else 
-            Color.White.copy(alpha = 0.1f),
-        contentColor = if (playerBackground == PlayerBackgroundStyle.DEFAULT) 
-            MaterialTheme.colorScheme.onSecondaryContainer 
-        else 
-            Color.White,
-        checkedContainerColor = if (playerBackground == PlayerBackgroundStyle.DEFAULT) 
-            MaterialTheme.colorScheme.primary 
-        else 
-            Color.White,
-        checkedContentColor = if (playerBackground == PlayerBackgroundStyle.DEFAULT) 
-            MaterialTheme.colorScheme.onPrimary 
-        else 
+        containerColor = if (playerBackground == PlayerBackgroundStyle.DEFAULT) {
+            MaterialTheme.colorScheme.secondaryContainer
+        } else {
+            Color.White.copy(alpha = 0.1f)
+        },
+        contentColor = if (playerBackground == PlayerBackgroundStyle.DEFAULT) {
+            MaterialTheme.colorScheme.onSecondaryContainer
+        } else {
+            Color.White
+        },
+        checkedContainerColor = if (playerBackground == PlayerBackgroundStyle.DEFAULT) {
             MaterialTheme.colorScheme.primary
+        } else {
+            Color.White
+        },
+        checkedContentColor = if (playerBackground == PlayerBackgroundStyle.DEFAULT) {
+            MaterialTheme.colorScheme.onPrimary
+        } else {
+            MaterialTheme.colorScheme.primary
+        }
     )
 
     BottomSheet(
@@ -325,14 +309,22 @@ fun LyricsBottomSheet(
                                     val gradientColorStops = if (colors.size >= 3) {
                                         arrayOf(0.0f to colors[0], 0.5f to colors[1], 1.0f to colors[2])
                                     } else {
-                                        arrayOf(0.0f to colors[0], 0.6f to colors[0].copy(alpha = 0.7f), 1.0f to Color.Black)
+                                        arrayOf(
+                                            0.0f to colors[0],
+                                            0.6f to colors[0].copy(alpha = 0.7f),
+                                            1.0f to Color.Black
+                                        )
                                     }
-                                    Box(modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(colorStops = gradientColorStops)))
+                                    Box(
+                                        modifier = Modifier.fillMaxSize().background(
+                                            Brush.verticalGradient(colorStops = gradientColorStops)
+                                        )
+                                    )
                                 }
                             }
                         }
                         PlayerBackgroundStyle.APPLE_MUSIC -> {
-                             AnimatedContent(
+                            AnimatedContent(
                                 targetState = gradientColors,
                                 transitionSpec = { fadeIn(tween(1200)).togetherWith(fadeOut(tween(1200))) },
                                 label = "appleMusicLyricsBackground"
@@ -341,17 +333,63 @@ fun LyricsBottomSheet(
                                     val color1 = colors[0]
                                     val color2 = colors.getOrElse(1) { colors[0].copy(alpha = 0.8f) }
                                     val color3 = colors.getOrElse(2) { colors[0].copy(alpha = 0.6f) }
-                                    Canvas(modifier = Modifier.fillMaxSize().then(if (appleMusicLyricsBlur) Modifier.blur(100.dp) else Modifier)) {
+                                    Canvas(
+                                        modifier = Modifier.fillMaxSize().then(
+                                            if (appleMusicLyricsBlur) Modifier.blur(100.dp) else Modifier
+                                        )
+                                    ) {
                                         drawRect(brush = Brush.verticalGradient(listOf(color1, color2, color3)))
-                                        drawCircle(brush = Brush.radialGradient(listOf(color1, Color.Transparent), center = Offset(size.width * 0.2f, size.height * 0.2f), radius = size.width * 0.8f), center = Offset(size.width * 0.2f, size.height * 0.2f), radius = size.width * 0.8f)
-                                        drawCircle(brush = Brush.radialGradient(listOf(color2, Color.Transparent), center = Offset(size.width * 0.8f, size.height * 0.5f), radius = size.width * 0.7f), center = Offset(size.width * 0.8f, size.height * 0.5f), radius = size.width * 0.7f)
-                                        drawCircle(brush = Brush.radialGradient(listOf(color3, Color.Transparent), center = Offset(size.width * 0.3f, size.height * 0.8f), radius = size.width * 0.9f), center = Offset(size.width * 0.3f, size.height * 0.8f), radius = size.width * 0.9f)
+                                        drawCircle(
+                                            brush = Brush.radialGradient(
+                                                listOf(color1, Color.Transparent),
+                                                center = Offset(
+                                                    size.width * 0.2f,
+                                                    size.height * 0.2f
+                                                ),
+                                                radius = size.width * 0.8f
+                                            ),
+                                            center = Offset(
+                                                size.width * 0.2f,
+                                                size.height * 0.2f
+                                            ),
+                                            radius = size.width * 0.8f
+                                        )
+                                        drawCircle(
+                                            brush = Brush.radialGradient(
+                                                listOf(color2, Color.Transparent),
+                                                center = Offset(
+                                                    size.width * 0.8f,
+                                                    size.height * 0.5f
+                                                ),
+                                                radius = size.width * 0.7f
+                                            ),
+                                            center = Offset(
+                                                size.width * 0.8f,
+                                                size.height * 0.5f
+                                            ),
+                                            radius = size.width * 0.7f
+                                        )
+                                        drawCircle(
+                                            brush = Brush.radialGradient(
+                                                listOf(color3, Color.Transparent),
+                                                center = Offset(
+                                                    size.width * 0.3f,
+                                                    size.height * 0.8f
+                                                ),
+                                                radius = size.width * 0.9f
+                                            ),
+                                            center = Offset(
+                                                size.width * 0.3f,
+                                                size.height * 0.8f
+                                            ),
+                                            radius = size.width * 0.9f
+                                        )
                                     }
                                 }
                             }
                         }
                         PlayerBackgroundStyle.DEFAULT -> {
-                             Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface))
+                            Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface))
                         }
                     }
                     if (playerBackground != PlayerBackgroundStyle.DEFAULT) {
@@ -493,14 +531,34 @@ fun LyricsBottomSheet(
                             onClick = playerConnection::toggleLike,
                             shapes = IconButtonDefaults.shapes(),
                             colors = IconButtonDefaults.filledTonalIconButtonColors(
-                                containerColor = if (playerBackground == PlayerBackgroundStyle.DEFAULT) MaterialTheme.colorScheme.secondaryContainer else Color.White.copy(
-                                    alpha = 0.1f
-                                ),
-                                contentColor = if (currentSong?.song?.liked == true) MaterialTheme.colorScheme.error else textBackgroundColor
+                                containerColor = if (playerBackground ==
+                                    PlayerBackgroundStyle.DEFAULT
+                                ) {
+                                    MaterialTheme.colorScheme.secondaryContainer
+                                } else {
+                                    Color.White.copy(
+                                        alpha = 0.1f
+                                    )
+                                },
+                                contentColor = if (currentSong?.song?.liked ==
+                                    true
+                                ) {
+                                    MaterialTheme.colorScheme.error
+                                } else {
+                                    textBackgroundColor
+                                }
                             )
                         ) {
                             Icon(
-                                painter = painterResource(if (currentSong?.song?.liked == true) R.drawable.favorite else R.drawable.favorite_border),
+                                painter = painterResource(
+                                    if (currentSong?.song?.liked ==
+                                        true
+                                    ) {
+                                        R.drawable.favorite
+                                    } else {
+                                        R.drawable.favorite_border
+                                    }
+                                ),
                                 contentDescription = null
                             )
                         }
@@ -517,9 +575,15 @@ fun LyricsBottomSheet(
                             },
                             shapes = IconButtonDefaults.shapes(),
                             colors = IconButtonDefaults.filledTonalIconButtonColors(
-                                containerColor = if (playerBackground == PlayerBackgroundStyle.DEFAULT) MaterialTheme.colorScheme.secondaryContainer else Color.White.copy(
-                                    alpha = 0.1f
-                                ),
+                                containerColor = if (playerBackground ==
+                                    PlayerBackgroundStyle.DEFAULT
+                                ) {
+                                    MaterialTheme.colorScheme.secondaryContainer
+                                } else {
+                                    Color.White.copy(
+                                        alpha = 0.1f
+                                    )
+                                },
                                 contentColor = textBackgroundColor
                             )
                         ) {
@@ -545,7 +609,7 @@ fun LyricsBottomSheet(
                     },
                     colors = toggleButtonColors,
                     modifier = Modifier.weight(1f).height(60.dp),
-                    shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
+                    shapes = ButtonGroupDefaults.connectedLeadingButtonShapes()
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
@@ -569,7 +633,7 @@ fun LyricsBottomSheet(
                     onCheckedChange = { playerConnection.player.toggleRepeatMode() },
                     colors = toggleButtonColors,
                     modifier = Modifier.weight(1f).height(60.dp),
-                    shapes = ButtonGroupDefaults.connectedMiddleButtonShapes(),
+                    shapes = ButtonGroupDefaults.connectedMiddleButtonShapes()
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
@@ -580,7 +644,8 @@ fun LyricsBottomSheet(
                                     else -> R.drawable.repeat
                                 }
                             ),
-                            contentDescription = null, modifier = Modifier.size(20.dp)
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
                         )
                         Text(
                             text = stringResource(R.string.repeat),
@@ -601,7 +666,7 @@ fun LyricsBottomSheet(
                     },
                     colors = toggleButtonColors,
                     modifier = Modifier.weight(1f).height(60.dp),
-                    shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
+                    shapes = ButtonGroupDefaults.connectedTrailingButtonShapes()
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
@@ -633,7 +698,7 @@ fun LyricsBottomSheet(
             }
         }
     }
-    
+
     if (showSearchDialog) {
         DefaultDialog(
             modifier = Modifier.verticalScroll(rememberScrollState()),
@@ -647,7 +712,7 @@ fun LyricsBottomSheet(
             title = { Text(stringResource(R.string.search_lyrics)) },
             buttons = {
                 TextButton(
-                    onClick = { showSearchDialog = false },
+                    onClick = { showSearchDialog = false }
                 ) {
                     Text(stringResource(android.R.string.cancel))
                 }
@@ -664,11 +729,11 @@ fun LyricsBottomSheet(
                                         SearchManager.QUERY,
                                         "${artistField.text} ${titleField.text} lyrics"
                                     )
-                                },
+                                }
                             )
                         } catch (_: Exception) {
                         }
-                    },
+                    }
                 ) {
                     Text(stringResource(R.string.search_online))
                 }
@@ -686,19 +751,23 @@ fun LyricsBottomSheet(
                         showSearchResultDialog = true
 
                         if (!isNetworkAvailable) {
-                            Toast.makeText(context, context.getString(R.string.error_no_internet), Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.error_no_internet),
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
-                    },
+                    }
                 ) {
                     Text(stringResource(android.R.string.ok))
                 }
-            },
+            }
         ) {
             OutlinedTextField(
                 value = titleField,
                 onValueChange = onTitleFieldChange,
                 singleLine = true,
-                label = { Text(stringResource(R.string.song_title)) },
+                label = { Text(stringResource(R.string.song_title)) }
             )
 
             Spacer(Modifier.height(12.dp))
@@ -707,7 +776,7 @@ fun LyricsBottomSheet(
                 value = artistField,
                 onValueChange = onArtistFieldChange,
                 singleLine = true,
-                label = { Text(stringResource(R.string.song_artists)) },
+                label = { Text(stringResource(R.string.song_artists)) }
             )
         }
     }
@@ -721,40 +790,40 @@ fun LyricsBottomSheet(
         }
 
         ListDialog(
-            onDismiss = { showSearchResultDialog = false },
+            onDismiss = { showSearchResultDialog = false }
         ) {
             itemsIndexed(results) { index, result ->
                 Row(
                     modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                showSearchResultDialog = false
-                                viewModel.cancelSearch()
-                                viewModel.updateLyrics(mediaMetadata.id, result.lyrics)
-                            }
-                            .padding(12.dp)
-                            .animateContentSize(),
+                    Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            showSearchResultDialog = false
+                            viewModel.cancelSearch()
+                            viewModel.updateLyrics(mediaMetadata.id, result.lyrics)
+                        }
+                        .padding(12.dp)
+                        .animateContentSize()
                 ) {
                     Column(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f)
                     ) {
                         Text(
                             text = result.lyrics,
                             style = MaterialTheme.typography.bodyMedium,
                             maxLines = if (index == expandedItemIndex) Int.MAX_VALUE else 2,
                             overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.padding(bottom = 4.dp),
+                            modifier = Modifier.padding(bottom = 4.dp)
                         )
 
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
                                 text = result.providerName,
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.secondary,
-                                maxLines = 1,
+                                maxLines = 1
                             )
                             if (result.lyrics.startsWith("[")) {
                                 Icon(
@@ -762,9 +831,9 @@ fun LyricsBottomSheet(
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.secondary,
                                     modifier =
-                                        Modifier
-                                            .padding(start = 4.dp)
-                                            .size(18.dp),
+                                    Modifier
+                                        .padding(start = 4.dp)
+                                        .size(18.dp)
                                 )
                             }
                         }
@@ -773,11 +842,19 @@ fun LyricsBottomSheet(
                     IconButton(
                         onClick = {
                             expandedItemIndex = if (expandedItemIndex == index) -1 else index
-                        },
+                        }
                     ) {
                         Icon(
-                            painter = painterResource(if (index == expandedItemIndex) R.drawable.expand_less else R.drawable.expand_more),
-                            contentDescription = null,
+                            painter = painterResource(
+                                if (index ==
+                                    expandedItemIndex
+                                ) {
+                                    R.drawable.expand_less
+                                } else {
+                                    R.drawable.expand_more
+                                }
+                            ),
+                            contentDescription = null
                         )
                     }
                 }
@@ -787,7 +864,7 @@ fun LyricsBottomSheet(
                 item {
                     Box(
                         contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         CircularProgressIndicator()
                     }
@@ -800,8 +877,8 @@ fun LyricsBottomSheet(
                         text = context.getString(R.string.lyrics_not_found),
                         textAlign = TextAlign.Center,
                         modifier =
-                            Modifier
-                                .fillMaxWidth(),
+                        Modifier
+                            .fillMaxWidth()
                     )
                 }
             }

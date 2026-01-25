@@ -19,35 +19,27 @@ import com.music.vivi.constants.QuickPicks
 import com.music.vivi.constants.QuickPicksKey
 import com.music.vivi.constants.YtmSyncKey
 import com.music.vivi.db.MusicDatabase
-import com.music.vivi.db.entities.Song
-import com.music.vivi.db.entities.LocalItem
 import com.music.vivi.db.entities.Album
-import com.music.vivi.db.entities.Playlist
+import com.music.vivi.db.entities.LocalItem
+import com.music.vivi.db.entities.Song
 import com.music.vivi.extensions.toEnum
 import com.music.vivi.models.SimilarRecommendation
+import com.music.vivi.utils.SyncUtils
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.get
-import com.music.vivi.utils.SyncUtils
 import com.music.vivi.utils.reportException
-import com.music.vivi.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
-
-
 
 @HiltViewModel
 public class HomeViewModel @Inject constructor(
@@ -100,6 +92,7 @@ public class HomeViewModel @Inject constructor(
 
     // Track last processed cookie to avoid unnecessary updates
     private var lastProcessedCookie: String? = null
+
     // Track if we're currently processing account data
     private var isProcessingAccountData = false
 
@@ -124,9 +117,19 @@ public class HomeViewModel @Inject constructor(
         _forgottenFavorites.value = database.forgottenFavorites().first().shuffled().take(20)
 
         val fromTimeStamp = System.currentTimeMillis() - 86400000 * 7 * 2
-        val keepListeningSongs = database.mostPlayedSongs(fromTimeStamp, limit = 15, offset = 5).first().shuffled().take(10)
-        val keepListeningAlbums = database.mostPlayedAlbums(fromTimeStamp, limit = 8, offset = 2).first().filter { it.album.thumbnailUrl != null }.shuffled().take(5)
-        val keepListeningArtists = database.mostPlayedArtists(fromTimeStamp).first().filter { it.artist.isYouTubeArtist && it.artist.thumbnailUrl != null }.shuffled().take(5)
+        val keepListeningSongs = database.mostPlayedSongs(
+            fromTimeStamp,
+            limit = 15,
+            offset = 5
+        ).first().shuffled().take(10)
+        val keepListeningAlbums = database.mostPlayedAlbums(fromTimeStamp, limit = 8, offset = 2).first().filter {
+            it.album.thumbnailUrl !=
+                null
+        }.shuffled().take(5)
+        val keepListeningArtists = database.mostPlayedArtists(fromTimeStamp).first().filter {
+            it.artist.isYouTubeArtist &&
+                it.artist.thumbnailUrl != null
+        }.shuffled().take(5)
         _keepListening.value = (keepListeningSongs + keepListeningAlbums + keepListeningArtists).shuffled()
 
         if (YouTube.cookie != null) {
@@ -160,14 +163,18 @@ public class HomeViewModel @Inject constructor(
             .filter { it.album != null }
             .shuffled().take(2)
             .mapNotNull { song ->
-                val endpoint = YouTube.next(WatchEndpoint(videoId = song.id)).getOrNull()?.relatedEndpoint ?: return@mapNotNull null
+                val endpoint =
+                    YouTube.next(WatchEndpoint(videoId = song.id)).getOrNull()?.relatedEndpoint
+                        ?: return@mapNotNull null
                 val page = YouTube.related(endpoint).getOrNull() ?: return@mapNotNull null
                 SimilarRecommendation(
                     title = song,
-                    items = (page.songs.shuffled().take(8) +
+                    items = (
+                        page.songs.shuffled().take(8) +
                             page.albums.shuffled().take(4) +
                             page.artists.shuffled().take(4) +
-                            page.playlists.shuffled().take(4))
+                            page.playlists.shuffled().take(4)
+                        )
                         .filterExplicit(hideExplicit)
                         .shuffled()
                         .ifEmpty { return@mapNotNull null }
@@ -193,10 +200,11 @@ public class HomeViewModel @Inject constructor(
             reportException(it)
         }
 
-        _allLocalItems.value = (_quickPicks.value.orEmpty() + _forgottenFavorites.value.orEmpty() + _keepListening.value.orEmpty())
-            .filter { it is Song || it is Album }
+        _allLocalItems.value =
+            (_quickPicks.value.orEmpty() + _forgottenFavorites.value.orEmpty() + _keepListening.value.orEmpty())
+                .filter { it is Song || it is Album }
         _allYtItems.value = _similarRecommendations.value?.flatMap { it.items }.orEmpty() +
-                _homePage.value?.sections?.flatMap { it.items }.orEmpty()
+            _homePage.value?.sections?.flatMap { it.items }.orEmpty()
 
         isLoading.value = false
     }
@@ -305,7 +313,7 @@ public class HomeViewModel @Inject constructor(
                                 // Keep generic logged in state if we have a valid cookie, even if info fetch fails?
                                 // Better to assume logged in if we have a cookie, but verified by info fetch is better.
                                 // For now, let's set true here if cookie was valid enough to try.
-                                isLoggedIn.value = true 
+                                isLoggedIn.value = true
                             }
                         } else {
                             accountName.value = "Guest"

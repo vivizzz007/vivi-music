@@ -43,7 +43,7 @@ public fun WavySlider(
     strokeWidth: Dp = 4.dp,
     thumbRadius: Dp = 8.dp,
     wavelength: Dp = WavyProgressIndicatorDefaults.LinearDeterminateWavelength,
-    waveSpeed: Dp = wavelength
+    waveSpeed: Dp = wavelength,
 ) {
     val density = LocalDensity.current
     val strokeWidthPx = with(density) { strokeWidth.toPx() }

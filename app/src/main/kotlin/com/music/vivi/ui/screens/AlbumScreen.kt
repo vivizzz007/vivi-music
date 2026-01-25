@@ -1,56 +1,16 @@
 package com.music.vivi.ui.screens
 
-
-import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import com.music.vivi.ui.component.media.albums.AlbumHeader
-import com.music.vivi.ui.component.album.albumTrackList
-import com.music.vivi.ui.component.album.albumRelatedContent
-import com.music.vivi.ui.component.album.AlbumTopBar
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.graphics.RectangleShape
-import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ButtonGroupDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -60,58 +20,32 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastForEachIndexed
-import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.media3.exoplayer.offline.Download
-import androidx.media3.exoplayer.offline.DownloadRequest
-import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
-import coil3.compose.AsyncImage
 import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalDownloadUtil
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.LocalPlayerConnection
-import com.music.vivi.R
 import com.music.vivi.constants.HideExplicitKey
-import com.music.vivi.constants.ListItemHeight
-import com.music.vivi.db.entities.Album
-import com.music.vivi.extensions.togglePlayPause
-import com.music.vivi.playback.ExoDownloadService
-import com.music.vivi.playback.queues.LocalAlbumRadio
-import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.utils.ItemWrapper
-import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.ui.component.LocalMenuState
+import com.music.vivi.ui.component.album.AlbumTopBar
+import com.music.vivi.ui.component.album.albumRelatedContent
+import com.music.vivi.ui.component.album.albumTrackList
+import com.music.vivi.ui.component.media.albums.AlbumHeader
+import com.music.vivi.ui.utils.ItemWrapper
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.AlbumViewModel
 
-@OptIn(ExperimentalFoundationApi::class,ExperimentalMaterial3Api::class,ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 public fun AlbumScreen(
     navController: NavController,
@@ -181,8 +115,8 @@ public fun AlbumScreen(
                     Download.STATE_COMPLETED
                 } else if (songs.all {
                         downloads[it]?.state == Download.STATE_QUEUED ||
-                                downloads[it]?.state == Download.STATE_DOWNLOADING ||
-                                downloads[it]?.state == Download.STATE_COMPLETED
+                            downloads[it]?.state == Download.STATE_DOWNLOADING ||
+                            downloads[it]?.state == Download.STATE_COMPLETED
                     }
                 ) {
                     Download.STATE_DOWNLOADING

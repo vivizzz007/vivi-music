@@ -45,21 +45,19 @@ import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import java.time.Duration
-import java.time.LocalDateTime
-import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.Duration
+import java.time.LocalDateTime
+import javax.inject.Inject
 
 @HiltViewModel
 public class LibrarySongsViewModel
@@ -77,7 +75,7 @@ constructor(
                     Triple(
                         it[SongFilterKey].toEnum(SongFilter.LIKED),
                         it[SongSortTypeKey].toEnum(SongSortType.CREATE_DATE),
-                        (it[SongSortDescendingKey] ?: true),
+                        (it[SongSortDescendingKey] ?: true)
                     ),
                     it[HideExplicitKey] ?: false
                 )
@@ -86,9 +84,15 @@ constructor(
                 val (filter, sortType, descending) = filterSort
                 when (filter) {
                     SongFilter.LIBRARY -> database.songs(sortType, descending).map { it.filterExplicit(hideExplicit) }
-                    SongFilter.LIKED -> database.likedSongs(sortType, descending).map { it.filterExplicit(hideExplicit) }
-                    SongFilter.DOWNLOADED -> database.downloadedSongs(sortType, descending).map { it.filterExplicit(hideExplicit) }
-                    SongFilter.UPLOADED -> database.uploadedSongs(sortType, descending).map { it.filterExplicit(hideExplicit) }
+                    SongFilter.LIKED -> database.likedSongs(sortType, descending).map {
+                        it.filterExplicit(hideExplicit)
+                    }
+                    SongFilter.DOWNLOADED -> database.downloadedSongs(sortType, descending).map {
+                        it.filterExplicit(hideExplicit)
+                    }
+                    SongFilter.UPLOADED -> database.uploadedSongs(sortType, descending).map {
+                        it.filterExplicit(hideExplicit)
+                    }
                 }
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
@@ -119,7 +123,7 @@ constructor(
                 Triple(
                     it[ArtistFilterKey].toEnum(ArtistFilter.LIKED),
                     it[ArtistSortTypeKey].toEnum(ArtistSortType.CREATE_DATE),
-                    it[ArtistSortDescendingKey] ?: true,
+                    it[ArtistSortDescendingKey] ?: true
                 )
             }.distinctUntilChanged()
             .flatMapLatest { (filter, sortType, descending) ->
@@ -139,10 +143,11 @@ constructor(
                 artists
                     .map { artist: Artist -> artist.artist }
                     .filter { artistEntity: ArtistEntity ->
-                        artistEntity.thumbnailUrl == null || Duration.between(
-                            artistEntity.lastUpdateTime,
-                            LocalDateTime.now()
-                        ) > Duration.ofDays(10)
+                        artistEntity.thumbnailUrl == null ||
+                            Duration.between(
+                                artistEntity.lastUpdateTime,
+                                LocalDateTime.now()
+                            ) > Duration.ofDays(10)
                     }.forEach { artist: ArtistEntity ->
                         YouTube.artist(artist.id).onSuccess { artistPage ->
                             database.query {
@@ -170,7 +175,7 @@ constructor(
                     Triple(
                         it[AlbumFilterKey].toEnum(AlbumFilter.LIKED),
                         it[AlbumSortTypeKey].toEnum(AlbumSortType.CREATE_DATE),
-                        it[AlbumSortDescendingKey] ?: true,
+                        it[AlbumSortDescendingKey] ?: true
                     ),
                     it[HideExplicitKey] ?: false
                 )
@@ -178,9 +183,15 @@ constructor(
             .flatMapLatest { (filterSort, hideExplicit) ->
                 val (filter, sortType, descending) = filterSort
                 when (filter) {
-                    AlbumFilter.LIBRARY -> database.albums(sortType, descending).map { it.filterExplicitAlbums(hideExplicit) }
-                    AlbumFilter.LIKED -> database.albumsLiked(sortType, descending).map { it.filterExplicitAlbums(hideExplicit) }
-                    AlbumFilter.UPLOADED -> database.albumsUploaded(sortType, descending).map { it.filterExplicitAlbums(hideExplicit) }
+                    AlbumFilter.LIBRARY -> database.albums(sortType, descending).map {
+                        it.filterExplicitAlbums(hideExplicit)
+                    }
+                    AlbumFilter.LIKED -> database.albumsLiked(sortType, descending).map {
+                        it.filterExplicitAlbums(hideExplicit)
+                    }
+                    AlbumFilter.UPLOADED -> database.albumsUploaded(sortType, descending).map {
+                        it.filterExplicitAlbums(hideExplicit)
+                    }
                 }
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
@@ -226,8 +237,10 @@ constructor(
     public val allPlaylists: StateFlow<List<com.music.vivi.db.entities.Playlist>> =
         context.dataStore.data
             .map {
-                it[PlaylistSortTypeKey].toEnum(PlaylistSortType.CREATE_DATE) to (it[PlaylistSortDescendingKey]
-                    ?: true)
+                it[PlaylistSortTypeKey].toEnum(PlaylistSortType.CREATE_DATE) to (
+                    it[PlaylistSortDescendingKey]
+                        ?: true
+                    )
             }.distinctUntilChanged()
             .flatMapLatest { (sortType, descending) ->
                 database.playlists(sortType, descending)
@@ -261,8 +274,10 @@ constructor(
         context.dataStore.data
             .map {
                 Pair(
-                    it[ArtistSongSortTypeKey].toEnum(ArtistSongSortType.CREATE_DATE) to (it[ArtistSongSortDescendingKey]
-                        ?: true),
+                    it[ArtistSongSortTypeKey].toEnum(ArtistSongSortType.CREATE_DATE) to (
+                        it[ArtistSongSortDescendingKey]
+                            ?: true
+                        ),
                     it[HideExplicitKey] ?: false
                 )
             }.distinctUntilChanged()
@@ -281,13 +296,13 @@ constructor(
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
     public val syncAllLibrary: () -> Unit = {
-         viewModelScope.launch(Dispatchers.IO) {
-             syncUtils.syncLikedSongs()
-             syncUtils.syncLibrarySongs()
-             syncUtils.syncArtistsSubscriptions()
-             syncUtils.syncLikedAlbums()
-             syncUtils.syncSavedPlaylists()
-         }
+        viewModelScope.launch(Dispatchers.IO) {
+            syncUtils.syncLikedSongs()
+            syncUtils.syncLibrarySongs()
+            syncUtils.syncArtistsSubscriptions()
+            syncUtils.syncLikedAlbums()
+            syncUtils.syncSavedPlaylists()
+        }
     }
     public val topValue: kotlinx.coroutines.flow.Flow<String> =
         context.dataStore.data
@@ -297,7 +312,7 @@ constructor(
         database
             .artistsBookmarked(
                 ArtistSortType.CREATE_DATE,
-                true,
+                true
             ).stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
     public var albums: StateFlow<List<com.music.vivi.db.entities.Album>> = context.dataStore.data
         .map { it[HideExplicitKey] ?: false }
@@ -305,7 +320,10 @@ constructor(
         .flatMapLatest { hideExplicit ->
             database.albumsLiked(AlbumSortType.CREATE_DATE, true).map { it.filterExplicitAlbums(hideExplicit) }
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-    public var playlists: StateFlow<List<com.music.vivi.db.entities.Playlist>> = database.playlists(PlaylistSortType.CREATE_DATE, true)
+    public var playlists: StateFlow<List<com.music.vivi.db.entities.Playlist>> = database.playlists(
+        PlaylistSortType.CREATE_DATE,
+        true
+    )
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     init {
@@ -338,10 +356,10 @@ constructor(
                     .map { it.artist }
                     .filter {
                         it.thumbnailUrl == null ||
-                                Duration.between(
-                                    it.lastUpdateTime,
-                                    LocalDateTime.now(),
-                                ) > Duration.ofDays(10)
+                            Duration.between(
+                                it.lastUpdateTime,
+                                LocalDateTime.now()
+                            ) > Duration.ofDays(10)
                     }.forEach { artist ->
                         YouTube.artist(artist.id).onSuccess { artistPage ->
                             database.query {

@@ -54,9 +54,6 @@ import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.media.youtube.YouTubeGridItem
 import com.music.vivi.ui.component.media.youtube.YouTubeListItem
-import com.music.vivi.ui.component.shimmer.GridItemPlaceHolder
-import com.music.vivi.ui.component.shimmer.ListItemPlaceHolder
-import com.music.vivi.ui.component.shimmer.ShimmerHost
 import com.music.vivi.ui.menu.YouTubeAlbumMenu
 import com.music.vivi.ui.menu.YouTubeArtistMenu
 import com.music.vivi.ui.menu.YouTubePlaylistMenu
@@ -64,15 +61,14 @@ import com.music.vivi.ui.menu.YouTubeSongMenu
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.viewmodels.ArtistItemsViewModel
 
-
-
-//this is more option in artist screen leading to here
-//artistscreen
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class,
+// this is more option in artist screen leading to here
+// artistscreen
+@OptIn(
+    ExperimentalFoundationApi::class,
+    ExperimentalMaterial3Api::class,
     ExperimentalMaterial3ExpressiveApi::class
 )
 @Composable
-
 public fun ArtistItemsScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
@@ -127,7 +123,7 @@ public fun ArtistItemsScreen(
 
         LazyColumn(
             state = lazyListState,
-            contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
+            contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
         ) {
             item(key = "top_spacer") {
                 Spacer(modifier = Modifier.height(16.dp))
@@ -161,8 +157,11 @@ public fun ArtistItemsScreen(
                                     )
                                 )
                                 .background(
-                                    if (isActive) MaterialTheme.colorScheme.secondaryContainer
-                                    else MaterialTheme.colorScheme.surfaceContainer
+                                    if (isActive) {
+                                        MaterialTheme.colorScheme.secondaryContainer
+                                    } else {
+                                        MaterialTheme.colorScheme.surfaceContainer
+                                    }
                                 )
                         ) {
                             YouTubeListItem(
@@ -178,35 +177,35 @@ public fun ArtistItemsScreen(
                                                         YouTubeSongMenu(
                                                             song = item,
                                                             navController = navController,
-                                                            onDismiss = menuState::dismiss,
+                                                            onDismiss = menuState::dismiss
                                                         )
 
                                                     is AlbumItem ->
                                                         YouTubeAlbumMenu(
                                                             albumItem = item,
                                                             navController = navController,
-                                                            onDismiss = menuState::dismiss,
+                                                            onDismiss = menuState::dismiss
                                                         )
 
                                                     is ArtistItem ->
                                                         YouTubeArtistMenu(
                                                             artist = item,
-                                                            onDismiss = menuState::dismiss,
+                                                            onDismiss = menuState::dismiss
                                                         )
 
                                                     is PlaylistItem ->
                                                         YouTubePlaylistMenu(
                                                             playlist = item,
                                                             coroutineScope = coroutineScope,
-                                                            onDismiss = menuState::dismiss,
+                                                            onDismiss = menuState::dismiss
                                                         )
                                                 }
                                             }
-                                        },
+                                        }
                                     ) {
                                         Icon(
                                             painter = painterResource(R.drawable.more_vert),
-                                            contentDescription = null,
+                                            contentDescription = null
                                         )
                                     }
                                 },
@@ -223,7 +222,7 @@ public fun ArtistItemsScreen(
                                                             YouTubeQueue(
                                                                 item.endpoint ?: WatchEndpoint(videoId = item.id),
                                                                 item.toMediaMetadata()
-                                                            ),
+                                                            )
                                                         )
                                                     }
                                                 }
@@ -241,32 +240,32 @@ public fun ArtistItemsScreen(
                                                         YouTubeSongMenu(
                                                             song = item,
                                                             navController = navController,
-                                                            onDismiss = menuState::dismiss,
+                                                            onDismiss = menuState::dismiss
                                                         )
 
                                                     is AlbumItem ->
                                                         YouTubeAlbumMenu(
                                                             albumItem = item,
                                                             navController = navController,
-                                                            onDismiss = menuState::dismiss,
+                                                            onDismiss = menuState::dismiss
                                                         )
 
                                                     is ArtistItem ->
                                                         YouTubeArtistMenu(
                                                             artist = item,
-                                                            onDismiss = menuState::dismiss,
+                                                            onDismiss = menuState::dismiss
                                                         )
 
                                                     is PlaylistItem ->
                                                         YouTubePlaylistMenu(
                                                             playlist = item,
                                                             coroutineScope = coroutineScope,
-                                                            onDismiss = menuState::dismiss,
+                                                            onDismiss = menuState::dismiss
                                                         )
                                                 }
                                             }
                                         }
-                                    ),
+                                    )
                             )
                         }
 
@@ -383,11 +382,11 @@ public fun ArtistItemsScreen(
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,
-                onLongClick = navController::backToMain,
+                onLongClick = navController::backToMain
             ) {
                 Icon(
                     painterResource(R.drawable.arrow_back),
-                    contentDescription = null,
+                    contentDescription = null
                 )
             }
         },

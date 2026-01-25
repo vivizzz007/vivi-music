@@ -22,13 +22,12 @@ fun appBarScrollBehavior(
     canScroll: () -> Boolean = { true },
     snapAnimationSpec: AnimationSpec<Float>? = spring(stiffness = Spring.StiffnessMediumLow),
     flingAnimationSpec: DecayAnimationSpec<Float>? = rememberSplineBasedDecay(),
-): TopAppBarScrollBehavior =
-    AppBarScrollBehavior(
-        state = state,
-        snapAnimationSpec = snapAnimationSpec,
-        flingAnimationSpec = flingAnimationSpec,
-        canScroll = canScroll,
-    )
+): TopAppBarScrollBehavior = AppBarScrollBehavior(
+    state = state,
+    snapAnimationSpec = snapAnimationSpec,
+    flingAnimationSpec = flingAnimationSpec,
+    canScroll = canScroll
+)
 
 @ExperimentalMaterial3Api
 class AppBarScrollBehavior(
@@ -40,11 +39,7 @@ class AppBarScrollBehavior(
     override val isPinned: Boolean = true
     override var nestedScrollConnection =
         object : NestedScrollConnection {
-            override fun onPostScroll(
-                consumed: Offset,
-                available: Offset,
-                source: NestedScrollSource,
-            ): Offset {
+            override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
                 if (!canScroll()) return Offset.Zero
                 state.contentOffset += consumed.y
                 if (state.heightOffset == 0f || state.heightOffset == state.heightOffsetLimit) {
@@ -65,7 +60,7 @@ suspend fun TopAppBarState.resetHeightOffset() {
     if (heightOffset != 0f) {
         animate(
             initialValue = heightOffset,
-            targetValue = 0f,
+            targetValue = 0f
         ) { value, _ ->
             heightOffset = value
         }

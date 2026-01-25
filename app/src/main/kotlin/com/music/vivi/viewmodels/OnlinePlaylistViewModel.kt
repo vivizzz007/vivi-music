@@ -34,7 +34,7 @@ import javax.inject.Inject
 public class OnlinePlaylistViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     savedStateHandle: SavedStateHandle,
-    database: MusicDatabase
+    database: MusicDatabase,
 ) : ViewModel() {
     private val _playlistId = MutableStateFlow(savedStateHandle.get<String>("playlistId"))
 
@@ -157,7 +157,6 @@ public class OnlinePlaylistViewModel @Inject constructor(
         proactiveLoadJob?.cancel()
         fetchInitialPlaylistData() // This will also restart proactive loading if applicable
     }
-
 
     private fun applySongFilters(songs: List<SongItem>): List<SongItem> {
         val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)

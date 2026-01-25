@@ -17,11 +17,7 @@ import com.music.innertube.models.YTItem
 import com.music.innertube.models.getItems
 import com.music.innertube.models.oddElements
 
-data class ArtistSection(
-    val title: String,
-    val items: List<YTItem>,
-    val moreEndpoint: BrowseEndpoint?,
-)
+data class ArtistSection(val title: String, val items: List<YTItem>, val moreEndpoint: BrowseEndpoint?)
 
 data class ArtistPage(
     val artist: ArtistItem,
@@ -31,12 +27,12 @@ data class ArtistPage(
     val descriptionRuns: List<Run>? = null,
 ) {
     companion object {
-        fun fromSectionListRendererContent(content: SectionListRenderer.Content): ArtistSection? {
-            return when {
-                content.musicShelfRenderer != null -> fromMusicShelfRenderer(content.musicShelfRenderer)
-                content.musicCarouselShelfRenderer != null -> fromMusicCarouselShelfRenderer(content.musicCarouselShelfRenderer)
-                else -> null
-            }
+        fun fromSectionListRendererContent(content: SectionListRenderer.Content): ArtistSection? = when {
+            content.musicShelfRenderer != null -> fromMusicShelfRenderer(content.musicShelfRenderer)
+            content.musicCarouselShelfRenderer != null -> fromMusicCarouselShelfRenderer(
+                content.musicCarouselShelfRenderer
+            )
+            else -> null
         }
 
         private fun fromMusicShelfRenderer(renderer: MusicShelfRenderer): ArtistSection? {
@@ -51,7 +47,9 @@ data class ArtistPage(
 
         private fun fromMusicCarouselShelfRenderer(renderer: MusicCarouselShelfRenderer): ArtistSection? {
             return ArtistSection(
-                title = renderer.header?.musicCarouselShelfBasicHeaderRenderer?.title?.runs?.firstOrNull()?.text ?: return null,
+                title =
+                renderer.header?.musicCarouselShelfBasicHeaderRenderer?.title?.runs?.firstOrNull()?.text
+                    ?: return null,
                 items = renderer.contents.mapNotNull {
                     it.musicTwoRowItemRenderer?.let { renderer ->
                         fromMusicTwoRowItemRenderer(renderer)
@@ -67,13 +65,18 @@ data class ArtistPage(
                 title = renderer.flexColumns.firstOrNull()
                     ?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()
                     ?.text ?: return null,
-                artists = PageHelper.extractRuns(renderer.flexColumns, "MUSIC_PAGE_TYPE_ARTIST").ifEmpty { renderer.flexColumns.getOrNull(1)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs }?.oddElements()?.map {
+                artists =
+                PageHelper.extractRuns(renderer.flexColumns, "MUSIC_PAGE_TYPE_ARTIST").ifEmpty {
+                    renderer.flexColumns.getOrNull(1)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs
+                }?.oddElements()?.map {
                     Artist(
                         name = it.text,
                         id = it.navigationEndpoint?.browseEndpoint?.browseId
                     )
                 } ?: return null,
-                album = PageHelper.extractRuns(renderer.flexColumns, "MUSIC_PAGE_TYPE_ALBUM").ifEmpty { renderer.flexColumns.getOrNull(3)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs }?.firstOrNull()?.let {
+                album = PageHelper.extractRuns(renderer.flexColumns, "MUSIC_PAGE_TYPE_ALBUM").ifEmpty {
+                    renderer.flexColumns.getOrNull(3)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs
+                }?.firstOrNull()?.let {
                     Album(
                         name = it.text,
                         id = it.navigationEndpoint?.browseEndpoint?.browseId ?: return@let null
@@ -87,12 +90,18 @@ data class ArtistPage(
                 } != null,
                 endpoint = renderer.overlay?.musicItemThumbnailOverlayRenderer?.content
                     ?.musicPlayButtonRenderer?.playNavigationEndpoint?.watchEndpoint,
-                libraryAddToken = PageHelper.extractFeedbackToken(renderer.menu?.menuRenderer?.items?.find {
-                    it.toggleMenuServiceItemRenderer?.defaultIcon?.iconType?.startsWith("LIBRARY_") == true
-                }?.toggleMenuServiceItemRenderer, "LIBRARY_ADD"),
-                libraryRemoveToken = PageHelper.extractFeedbackToken(renderer.menu?.menuRenderer?.items?.find {
-                    it.toggleMenuServiceItemRenderer?.defaultIcon?.iconType?.startsWith("LIBRARY_") == true
-                }?.toggleMenuServiceItemRenderer, "LIBRARY_SAVED")
+                libraryAddToken = PageHelper.extractFeedbackToken(
+                    renderer.menu?.menuRenderer?.items?.find {
+                        it.toggleMenuServiceItemRenderer?.defaultIcon?.iconType?.startsWith("LIBRARY_") == true
+                    }?.toggleMenuServiceItemRenderer,
+                    "LIBRARY_ADD"
+                ),
+                libraryRemoveToken = PageHelper.extractFeedbackToken(
+                    renderer.menu?.menuRenderer?.items?.find {
+                        it.toggleMenuServiceItemRenderer?.defaultIcon?.iconType?.startsWith("LIBRARY_") == true
+                    }?.toggleMenuServiceItemRenderer,
+                    "LIBRARY_SAVED"
+                )
             )
         }
 
@@ -102,12 +111,14 @@ data class ArtistPage(
                     SongItem(
                         id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
                         title = renderer.title.runs?.firstOrNull()?.text ?: return null,
-                        artists = listOfNotNull(renderer.subtitle?.runs?.firstOrNull()?.let {
-                            Artist(
-                                name = it.text,
-                                id = it.navigationEndpoint?.browseEndpoint?.browseId
-                            )
-                        }),
+                        artists = listOfNotNull(
+                            renderer.subtitle?.runs?.firstOrNull()?.let {
+                                Artist(
+                                    name = it.text,
+                                    id = it.navigationEndpoint?.browseEndpoint?.browseId
+                                )
+                            }
+                        ),
                         album = null,
                         duration = null,
                         musicVideoType = renderer.musicVideoType,
@@ -171,7 +182,7 @@ data class ArtistPage(
                         }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint ?: return null,
                         radioEndpoint = renderer.menu.menuRenderer.items.find {
                             it.menuNavigationItemRenderer?.icon?.iconType == "MIX"
-                        }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint ?: return null,
+                        }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint ?: return null
                     )
                 }
 

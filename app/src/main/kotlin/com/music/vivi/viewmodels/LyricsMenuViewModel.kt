@@ -1,33 +1,33 @@
 package com.music.vivi.viewmodels
 
+import android.content.Context
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.music.vivi.constants.SwipeGestureEnabledKey
 import com.music.vivi.db.MusicDatabase
 import com.music.vivi.db.entities.LyricsEntity
 import com.music.vivi.db.entities.Song
+import com.music.vivi.db.entities.SongEntity
 import com.music.vivi.lyrics.LyricsHelper
 import com.music.vivi.lyrics.LyricsResult
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.utils.NetworkConnectivityObserver
+import com.music.vivi.utils.dataStore
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import androidx.datastore.preferences.core.edit
-import com.music.vivi.constants.SwipeGestureEnabledKey
-import com.music.vivi.utils.dataStore
-import dagger.hilt.android.qualifiers.ApplicationContext
-import android.content.Context
-import com.music.vivi.db.entities.SongEntity
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -93,12 +93,7 @@ constructor(
         _currentSong.value = song
     }
 
-    public fun search(
-        mediaId: String,
-        title: String,
-        artist: String,
-        duration: Int,
-    ) {
+    public fun search(mediaId: String, title: String, artist: String, duration: Int) {
         isLoading.value = true
         results.value = emptyList()
         job?.cancel()
@@ -142,10 +137,7 @@ constructor(
         }
     }
 
-    public fun refetchLyrics(
-        mediaMetadata: MediaMetadata,
-        lyricsEntity: LyricsEntity?,
-    ) {
+    public fun refetchLyrics(mediaMetadata: MediaMetadata, lyricsEntity: LyricsEntity?) {
         viewModelScope.launch {
             val lyrics = withContext(Dispatchers.IO) {
                 lyricsHelper.getLyrics(mediaMetadata)

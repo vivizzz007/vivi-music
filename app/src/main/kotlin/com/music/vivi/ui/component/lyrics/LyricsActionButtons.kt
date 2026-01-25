@@ -28,7 +28,7 @@ fun LyricsActionButtons(
     selectedCount: Int,
     onClose: () -> Unit,
     onShare: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     if (isSelectionModeActive) {
         Box(
@@ -63,10 +63,11 @@ fun LyricsActionButtons(
                 Row(
                     modifier = Modifier
                         .background(
-                            color = if (selectedCount > 0)
+                            color = if (selectedCount > 0) {
                                 Color.White.copy(alpha = 0.9f) // White background when active
-                            else
-                                Color.White.copy(alpha = 0.5f), // Lighter white when inactive
+                            } else {
+                                Color.White.copy(alpha = 0.5f)
+                            }, // Lighter white when inactive
                             shape = RoundedCornerShape(24.dp)
                         )
                         .clickable(enabled = selectedCount > 0, onClick = onShare)

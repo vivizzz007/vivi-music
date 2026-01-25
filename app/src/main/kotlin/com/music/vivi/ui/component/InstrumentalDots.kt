@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 public fun InstrumentalDots(
     modifier: Modifier = Modifier,
     dotColor: Color = Color.White,
-    horizontalArrangement: Arrangement.Horizontal = Arrangement.Center
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.Center,
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "instrumental_dots")
 

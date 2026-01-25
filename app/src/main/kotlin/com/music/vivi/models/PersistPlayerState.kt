@@ -10,5 +10,5 @@ data class PersistPlayerState(
     val currentPosition: Long,
     val currentMediaItemIndex: Int,
     val playbackState: Int,
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long = System.currentTimeMillis(),
 ) : Serializable

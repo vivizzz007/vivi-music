@@ -58,9 +58,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
@@ -73,7 +70,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -83,6 +79,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
@@ -90,7 +87,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.res.stringResource
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.music.vivi.R
@@ -106,7 +102,7 @@ data class AudioDevice(
     val isConnected: Boolean,
     val isActive: Boolean = false,
     val batteryLevel: Int? = null,
-    val deviceId: Int? = null // Added for API 23+
+    val deviceId: Int? = null, // Added for API 23+
 )
 
 enum class AudioDeviceType {
@@ -115,16 +111,12 @@ enum class AudioDeviceType {
     PHONE_SPEAKER,
     EXTERNAL_SPEAKER,
     USB_HEADSET,
-    HDMI
+    HDMI,
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AudioDeviceBottomSheet(
-    onDismiss: () -> Unit,
-    modifier: Modifier = Modifier
-) {
+fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     var audioDevices by remember { mutableStateOf<List<AudioDevice>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
@@ -133,7 +125,9 @@ fun AudioDeviceBottomSheet(
     val audioManager = remember { context.getSystemService(Context.AUDIO_SERVICE) as AudioManager }
 
     // Volume state - MEDIA only (removed animation for smooth dragging)
-    var currentVolume by remember { mutableFloatStateOf(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC).toFloat()) }
+    var currentVolume by remember {
+        mutableFloatStateOf(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC).toFloat())
+    }
     var isUserDragging by remember { mutableStateOf(false) }
     var maxVolume by remember { mutableStateOf(audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)) }
 
@@ -466,7 +460,6 @@ fun AudioDeviceBottomSheet(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-
 fun VolumeControlRow(
     label: String,
     icon: ImageVector,
@@ -475,7 +468,7 @@ fun VolumeControlRow(
     onVolumeChange: (Float) -> Unit,
     onDragStart: () -> Unit = {},
     onDragEnd: () -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val sliderState = rememberSliderState(
@@ -514,7 +507,7 @@ fun VolumeControlRow(
             animate(
                 initialValue = sliderState.value,
                 targetValue = currentValue,
-                animationSpec = snapAnimationSpec,
+                animationSpec = snapAnimationSpec
             ) { value, _ ->
                 sliderState.value = value
             }
@@ -557,20 +550,19 @@ fun VolumeControlRow(
                 .progressSemantics(
                     currentValue,
                     sliderState.valueRange.start..sliderState.valueRange.endInclusive,
-                    0,
+                    0
                 ),
             interactionSource = interactionSource,
             track = {
                 SliderDefaults.Track(
                     sliderState = sliderState,
                     modifier = Modifier.height(36.dp),
-                    trackCornerSize = 12.dp,
+                    trackCornerSize = 12.dp
                 )
             }
         )
     }
 }
-
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -611,7 +603,7 @@ fun AudioQualitySelector(context: Context) {
                 .padding(horizontal = 16.dp)
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             options.forEachIndexed { index, label ->
                 ToggleButton(
@@ -633,7 +625,7 @@ fun AudioQualitySelector(context: Context) {
                     },
                     modifier = Modifier
                         .weight(1f)
-                        .semantics { role = Role.RadioButton },
+                        .semantics { role = Role.RadioButton }
                 ) {
                     Text(
                         text = label,
@@ -645,12 +637,7 @@ fun AudioQualitySelector(context: Context) {
     }
 }
 
-
-private fun loadDevices(
-    context: Context,
-    onSuccess: (List<AudioDevice>) -> Unit,
-    onError: (String) -> Unit
-) {
+private fun loadDevices(context: Context, onSuccess: (List<AudioDevice>) -> Unit, onError: (String) -> Unit) {
     try {
         val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         val devices = mutableListOf<AudioDevice>()
@@ -673,7 +660,9 @@ private fun loadDevices(
                                         Manifest.permission.BLUETOOTH_CONNECT
                                     ) == PackageManager.PERMISSION_GRANTED
                                 ) {
-                                    val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+                                    val bluetoothManager = context.getSystemService(
+                                        Context.BLUETOOTH_SERVICE
+                                    ) as BluetoothManager
                                     val bluetoothAdapter = bluetoothManager.adapter
                                     val pairedDevices = bluetoothAdapter?.bondedDevices
 
@@ -686,7 +675,9 @@ private fun loadDevices(
                                     val battery = btDevice?.let { device ->
                                         try {
                                             // Try to get battery using reflection
-                                            val method = android.bluetooth.BluetoothDevice::class.java.getMethod("getBatteryLevel")
+                                            val method = android.bluetooth.BluetoothDevice::class.java.getMethod(
+                                                "getBatteryLevel"
+                                            )
                                             val level = method.invoke(device) as? Int
                                             Log.d("BatteryDebug", "Device: ${device.name}, Battery: $level")
                                             level
@@ -774,7 +765,15 @@ private fun loadDevices(
             val finalDevices = if (!hasActiveDevice) {
                 val phoneSpeaker = updatedDevices.find { it.type == AudioDeviceType.PHONE_SPEAKER }
                 if (phoneSpeaker != null) {
-                    updatedDevices.map { if (it.type == AudioDeviceType.PHONE_SPEAKER) it.copy(isActive = true) else it }
+                    updatedDevices.map {
+                        if (it.type ==
+                            AudioDeviceType.PHONE_SPEAKER
+                        ) {
+                            it.copy(isActive = true)
+                        } else {
+                            it
+                        }
+                    }
                 } else {
                     updatedDevices
                 }
@@ -792,21 +791,23 @@ private fun loadDevices(
     }
 }
 
-
-private fun determineActiveDevice(
-    audioManager: AudioManager,
-    audioDevices: Array<AudioDeviceInfo>
-): AudioDeviceInfo? {
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+private fun determineActiveDevice(audioManager: AudioManager, audioDevices: Array<AudioDeviceInfo>): AudioDeviceInfo? =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
         // Check various audio manager states
         when {
-             // Check if any Bluetooth A2DP device is present in the list (assuming it is connected if present)
+            // Check if any Bluetooth A2DP device is present in the list (assuming it is connected if present)
             audioDevices.any { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP } ->
                 audioDevices.find { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP }
 
             // Check if any Wired Headset/Headphones are present
-            audioDevices.any { it.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES || it.type == AudioDeviceInfo.TYPE_WIRED_HEADSET } ->
-                audioDevices.find { it.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES || it.type == AudioDeviceInfo.TYPE_WIRED_HEADSET }
+            audioDevices.any {
+                it.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES ||
+                    it.type == AudioDeviceInfo.TYPE_WIRED_HEADSET
+            } ->
+                audioDevices.find {
+                    it.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES ||
+                        it.type == AudioDeviceInfo.TYPE_WIRED_HEADSET
+                }
 
             else ->
                 audioDevices.find { it.type == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER }
@@ -814,15 +815,9 @@ private fun determineActiveDevice(
     } else {
         null
     }
-}
-
 
 @Suppress("DEPRECATION")
-private fun loadDevicesLegacy(
-    context: Context,
-    onSuccess: (List<AudioDevice>) -> Unit,
-    onError: (String) -> Unit
-) {
+private fun loadDevicesLegacy(context: Context, onSuccess: (List<AudioDevice>) -> Unit, onError: (String) -> Unit) {
     // Your existing loadDevices implementation for older APIs
     val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     val devices = mutableListOf<AudioDevice>()
@@ -844,15 +839,11 @@ private fun loadDevicesLegacy(
     onSuccess(devices)
 }
 
-private fun checkBluetoothPermission(context: Context): Boolean {
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.BLUETOOTH_CONNECT
-        ) == PackageManager.PERMISSION_GRANTED
-    } else {
-        true
-    }
+private fun checkBluetoothPermission(context: Context): Boolean = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+    ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.BLUETOOTH_CONNECT
+    ) == PackageManager.PERMISSION_GRANTED
+} else {
+    true
 }
-
-

@@ -18,23 +18,15 @@ data class NextResponse(
         val twoColumnWatchNextResults: YouTubeDataPage.Contents.TwoColumnWatchNextResults?,
     ) {
         @Serializable
-        data class SingleColumnMusicWatchNextResultsRenderer(
-            val tabbedRenderer: TabbedRenderer?,
-        ) {
+        data class SingleColumnMusicWatchNextResultsRenderer(val tabbedRenderer: TabbedRenderer?) {
             @Serializable
-            data class TabbedRenderer(
-                val watchNextTabbedResultsRenderer: WatchNextTabbedResultsRenderer?,
-            ) {
+            data class TabbedRenderer(val watchNextTabbedResultsRenderer: WatchNextTabbedResultsRenderer?) {
                 @Serializable
-                data class WatchNextTabbedResultsRenderer(
-                    val tabs: List<Tabs.Tab>,
-                )
+                data class WatchNextTabbedResultsRenderer(val tabs: List<Tabs.Tab>)
             }
         }
     }
 
     @Serializable
-    data class ContinuationContents(
-        val playlistPanelContinuation: PlaylistPanelRenderer,
-    )
+    data class ContinuationContents(val playlistPanelContinuation: PlaylistPanelRenderer)
 }

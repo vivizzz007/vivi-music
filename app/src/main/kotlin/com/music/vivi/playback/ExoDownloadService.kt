@@ -17,15 +17,15 @@ import com.music.vivi.R
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
-
 @AndroidEntryPoint
-class ExoDownloadService : DownloadService(
-    NOTIFICATION_ID,
-    1000L,
-    CHANNEL_ID,
-    R.string.downloading,
-    0
-) {
+class ExoDownloadService :
+    DownloadService(
+        NOTIFICATION_ID,
+        1000L,
+        CHANNEL_ID,
+        R.string.downloading,
+        0
+    ) {
     @Inject
     lateinit var downloadUtil: DownloadUtil
 
@@ -42,17 +42,18 @@ class ExoDownloadService : DownloadService(
 
     override fun getScheduler(): Scheduler = PlatformScheduler(this, JOB_ID)
 
-    override fun getForegroundNotification(
-        downloads: MutableList<Download>,
-        notMetRequirements: Int
-    ): Notification =
+    override fun getForegroundNotification(downloads: MutableList<Download>, notMetRequirements: Int): Notification =
         Notification.Builder.recoverBuilder(
-            this, downloadUtil.downloadNotificationHelper.buildProgressNotification(
+            this,
+            downloadUtil.downloadNotificationHelper.buildProgressNotification(
                 this,
                 R.drawable.download,
                 null,
-                if (downloads.size == 1) Util.fromUtf8Bytes(downloads[0].request.data)
-                else resources.getQuantityString(R.plurals.n_song, downloads.size, downloads.size),
+                if (downloads.size == 1) {
+                    Util.fromUtf8Bytes(downloads[0].request.data)
+                } else {
+                    resources.getQuantityString(R.plurals.n_song, downloads.size, downloads.size)
+                },
                 downloads,
                 notMetRequirements
             )
@@ -70,7 +71,6 @@ class ExoDownloadService : DownloadService(
                 )
             ).build()
         ).build()
-
 
     /**
      * This helper will outlive the lifespan of a single instance of [ExoDownloadService]

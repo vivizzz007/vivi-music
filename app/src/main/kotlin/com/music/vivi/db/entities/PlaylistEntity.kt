@@ -7,7 +7,6 @@ import androidx.room.PrimaryKey
 import com.music.innertube.YouTube
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.apache.commons.lang3.RandomStringUtils
 import java.time.LocalDateTime
@@ -29,7 +28,7 @@ data class PlaylistEntity(
     val shuffleEndpointParams: String? = null,
     val radioEndpointParams: String? = null,
     @ColumnInfo(name = "isLocal", defaultValue = false.toString())
-    val isLocal: Boolean = false
+    val isLocal: Boolean = false,
 ) {
     companion object {
         const val LIKED_PLAYLIST_ID = "LP_LIKED"
@@ -40,9 +39,11 @@ data class PlaylistEntity(
 
     val shareLink: String?
         get() {
-            return if (browseId != null)
+            return if (browseId != null) {
                 "https://music.youtube.com/playlist?list=$browseId"
-            else null
+            } else {
+                null
+            }
         }
 
     fun localToggleLike() = copy(
@@ -51,8 +52,9 @@ data class PlaylistEntity(
 
     fun toggleLike() = localToggleLike().also {
         CoroutineScope(Dispatchers.IO).launch {
-            if (browseId != null)
+            if (browseId != null) {
                 YouTube.likePlaylist(browseId, bookmarkedAt == null)
+            }
         }
     }
 }

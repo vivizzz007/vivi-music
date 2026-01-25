@@ -48,9 +48,9 @@ public fun ResizableIconButton(
                 indication = indication ?: ripple(bounded = false),
                 interactionSource = remember { MutableInteractionSource() },
                 enabled = enabled,
-                onClick = onClick,
+                onClick = onClick
             )
-            .alpha(if (enabled) 1f else 0.5f),
+            .alpha(if (enabled) 1f else 0.5f)
     )
 }
 
@@ -80,9 +80,9 @@ public fun IconButton(
                 indication = ripple(
                     bounded = false,
                     radius = 24.dp
-                ),
+                )
             ),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         val contentColor = colors.contentColor
         CompositionLocalProvider(LocalContentColor provides contentColor, content = content)

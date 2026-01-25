@@ -27,9 +27,8 @@ import com.music.vivi.db.entities.Song
 import com.music.vivi.models.SimilarRecommendation
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.NavigationTitle
-import kotlinx.coroutines.CoroutineScope
-
 import com.music.vivi.utils.ImmutableList
+import kotlinx.coroutines.CoroutineScope
 
 internal fun LazyListScope.homeSimilarRecommendations(
     similarRecommendations: ImmutableList<SimilarRecommendation>,
@@ -37,7 +36,7 @@ internal fun LazyListScope.homeSimilarRecommendations(
     activeAlbumId: String?,
     isPlaying: Boolean,
     navController: NavController,
-    scope: CoroutineScope
+    scope: CoroutineScope,
 ) {
     similarRecommendations.forEachIndexed { index, recommendation ->
         item(key = "similar_to_title_$index") {
@@ -47,9 +46,13 @@ internal fun LazyListScope.homeSimilarRecommendations(
                 thumbnail = recommendation.title.thumbnailUrl?.let { thumbnailUrl ->
                     {
                         val shape =
-                            if (recommendation.title is Artist) CircleShape else RoundedCornerShape(
-                                ThumbnailCornerRadius
-                            )
+                            if (recommendation.title is Artist) {
+                                CircleShape
+                            } else {
+                                RoundedCornerShape(
+                                    ThumbnailCornerRadius
+                                )
+                            }
                         AsyncImage(
                             model = thumbnailUrl,
                             contentDescription = null,
@@ -77,12 +80,12 @@ internal fun LazyListScope.homeSimilarRecommendations(
             // But LazyListScope is not @Composable context?
             // "item" block IS @Composable context.
             // So we can access Locals inside item { }.
-            
+
             // However, arguments passed to function are evaluated at call site.
             // So we can pass dependencies.
             // I'll assume dependencies are passed or retrieved inside item.
             // BUT "item" block is unit-returning.
-            
+
             val playerConnection = LocalPlayerConnection.current ?: return@item
             val menuState = LocalMenuState.current
 

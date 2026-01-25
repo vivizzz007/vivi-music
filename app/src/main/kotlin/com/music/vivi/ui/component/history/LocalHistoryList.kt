@@ -21,13 +21,13 @@ import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.music.vivi.models.MediaMetadata
 import androidx.navigation.NavController
 import com.music.vivi.R
 import com.music.vivi.constants.ListItemHeight
 import com.music.vivi.db.entities.EventWithSong
 import com.music.vivi.extensions.toMediaItem
 import com.music.vivi.extensions.togglePlayPause
+import com.music.vivi.models.MediaMetadata
 import com.music.vivi.playback.PlayerConnection
 import com.music.vivi.playback.queues.ListQueue
 import com.music.vivi.ui.component.IconButton
@@ -36,9 +36,6 @@ import com.music.vivi.ui.component.MenuState
 import com.music.vivi.ui.component.NavigationTitle
 import com.music.vivi.ui.menu.SongMenu
 import com.music.vivi.viewmodels.DateAgo
-import com.music.vivi.viewmodels.HistoryViewModel
-import android.content.Context
-import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalFoundationApi::class)
 fun LazyListScope.localHistoryList(
@@ -52,7 +49,7 @@ fun LazyListScope.localHistoryList(
     navController: NavController,
     menuState: MenuState,
     haptic: HapticFeedback,
-    dateAgoToString: (DateAgo) -> String
+    dateAgoToString: (DateAgo) -> String,
 ) {
     filteredEvents.forEach { (dateAgo, events) ->
         stickyHeader {
@@ -92,8 +89,11 @@ fun LazyListScope.localHistoryList(
                             )
                         )
                         .background(
-                            if (isActive) MaterialTheme.colorScheme.secondaryContainer
-                            else MaterialTheme.colorScheme.surfaceContainer
+                            if (isActive) {
+                                MaterialTheme.colorScheme.secondaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.surfaceContainer
+                            }
                         )
                 ) {
                     LibrarySongListItem(

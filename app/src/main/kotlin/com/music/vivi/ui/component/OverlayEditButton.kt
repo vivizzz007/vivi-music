@@ -21,7 +21,7 @@ public fun BoxScope.OverlayEditButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     visible: Boolean = true,
-    alignment: Alignment = Alignment.BottomEnd
+    alignment: Alignment = Alignment.BottomEnd,
 ) {
     if (visible) {
         IconButton(

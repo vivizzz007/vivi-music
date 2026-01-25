@@ -13,15 +13,15 @@ import com.music.innertube.models.PlaylistItem
 import com.music.innertube.models.SongItem
 import com.music.innertube.models.WatchEndpoint
 import com.music.innertube.models.YTItem
-import com.music.vivi.playback.PlayerConnection
 import com.music.vivi.db.entities.Album
 import com.music.vivi.db.entities.Artist
 import com.music.vivi.db.entities.LocalItem
 import com.music.vivi.db.entities.Playlist
 import com.music.vivi.db.entities.Song
-import com.music.vivi.models.toMediaMetadata
-import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.extensions.toMediaItem
+import com.music.vivi.extensions.togglePlayPause
+import com.music.vivi.models.toMediaMetadata
+import com.music.vivi.playback.PlayerConnection
 import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.ui.component.MenuState
 import com.music.vivi.ui.component.media.albums.AlbumGridItem
@@ -46,7 +46,7 @@ internal fun HomeLocalGridItem(
     navController: NavController,
     menuState: MenuState,
     scope: CoroutineScope,
-    playerConnection: PlayerConnection
+    playerConnection: PlayerConnection,
 ) {
     val haptic = LocalHapticFeedback.current
 
@@ -61,25 +61,25 @@ internal fun HomeLocalGridItem(
                             playerConnection.player.togglePlayPause()
                         } else {
                             playerConnection.playQueue(
-                                YouTubeQueue.radio(item.toMediaMetadata()),
+                                YouTubeQueue.radio(item.toMediaMetadata())
                             )
                         }
                     },
                     onLongClick = {
                         haptic.performHapticFeedback(
-                            HapticFeedbackType.LongPress,
+                            HapticFeedbackType.LongPress
                         )
                         menuState.show {
                             SongMenu(
                                 originalSong = item,
                                 navController = navController,
-                                onDismiss = menuState::dismiss,
+                                onDismiss = menuState::dismiss
                             )
                         }
-                    },
+                    }
                 ),
             isActive = item.id == activeId,
-            isPlaying = isPlaying,
+            isPlaying = isPlaying
         )
 
         is Album -> AlbumGridItem(
@@ -124,17 +124,17 @@ internal fun HomeLocalGridItem(
                     },
                     onLongClick = {
                         haptic.performHapticFeedback(
-                            HapticFeedbackType.LongPress,
+                            HapticFeedbackType.LongPress
                         )
                         menuState.show {
                             ArtistMenu(
                                 originalArtist = item,
                                 coroutineScope = scope,
-                                onDismiss = menuState::dismiss,
+                                onDismiss = menuState::dismiss
                             )
                         }
-                    },
-                ),
+                    }
+                )
         )
 
         is Playlist -> {}
@@ -150,7 +150,7 @@ internal fun HomeYTGridItem(
     navController: NavController,
     menuState: MenuState,
     scope: CoroutineScope,
-    playerConnection: PlayerConnection
+    playerConnection: PlayerConnection,
 ) {
     val haptic = LocalHapticFeedback.current
 
@@ -168,7 +168,8 @@ internal fun HomeYTGridItem(
                             YouTubeQueue(
                                 item.endpoint ?: WatchEndpoint(
                                     videoId = item.id
-                                ), item.toMediaMetadata()
+                                ),
+                                item.toMediaMetadata()
                             )
                         )
 

@@ -26,50 +26,56 @@ object NextPage {
         return SongItem(
             id = renderer.videoId ?: return null,
             title =
-                renderer.title
-                    ?.runs
-                    ?.firstOrNull()
-                    ?.text ?: return null,
+            renderer.title
+                ?.runs
+                ?.firstOrNull()
+                ?.text ?: return null,
             artists =
-                longByLineRuns.firstOrNull()?.oddElements()?.map {
-                    Artist(
-                        name = it.text,
-                        id = it.navigationEndpoint?.browseEndpoint?.browseId,
-                    )
-                } ?: return null,
+            longByLineRuns.firstOrNull()?.oddElements()?.map {
+                Artist(
+                    name = it.text,
+                    id = it.navigationEndpoint?.browseEndpoint?.browseId
+                )
+            } ?: return null,
             album =
-                longByLineRuns
-                    .getOrNull(1)
-                    ?.firstOrNull()
-                    ?.takeIf {
-                        it.navigationEndpoint?.browseEndpoint != null
-                    }?.let {
-                        Album(
-                            name = it.text,
-                            id = it.navigationEndpoint?.browseEndpoint?.browseId!!,
-                        )
-                    },
+            longByLineRuns
+                .getOrNull(1)
+                ?.firstOrNull()
+                ?.takeIf {
+                    it.navigationEndpoint?.browseEndpoint != null
+                }?.let {
+                    Album(
+                        name = it.text,
+                        id = it.navigationEndpoint?.browseEndpoint?.browseId!!
+                    )
+                },
             duration =
-                renderer.lengthText
-                    ?.runs
-                    ?.firstOrNull()
-                    ?.text
-                    ?.parseTime() ?: return null,
+            renderer.lengthText
+                ?.runs
+                ?.firstOrNull()
+                ?.text
+                ?.parseTime() ?: return null,
             musicVideoType = renderer.navigationEndpoint.musicVideoType,
             thumbnail =
-                renderer.thumbnail.thumbnails
-                    .lastOrNull()
-                    ?.url ?: return null,
+            renderer.thumbnail.thumbnails
+                .lastOrNull()
+                ?.url ?: return null,
             explicit =
-                renderer.badges?.find {
-                    it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
-                } != null,
-            libraryAddToken = PageHelper.extractFeedbackToken(renderer.menu?.menuRenderer?.items?.find {
-                it.toggleMenuServiceItemRenderer?.defaultIcon?.iconType?.startsWith("LIBRARY_") == true
-            }?.toggleMenuServiceItemRenderer, "LIBRARY_ADD"),
-            libraryRemoveToken = PageHelper.extractFeedbackToken(renderer.menu?.menuRenderer?.items?.find {
-                it.toggleMenuServiceItemRenderer?.defaultIcon?.iconType?.startsWith("LIBRARY_") == true
-            }?.toggleMenuServiceItemRenderer, "LIBRARY_SAVED")
+            renderer.badges?.find {
+                it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
+            } != null,
+            libraryAddToken = PageHelper.extractFeedbackToken(
+                renderer.menu?.menuRenderer?.items?.find {
+                    it.toggleMenuServiceItemRenderer?.defaultIcon?.iconType?.startsWith("LIBRARY_") == true
+                }?.toggleMenuServiceItemRenderer,
+                "LIBRARY_ADD"
+            ),
+            libraryRemoveToken = PageHelper.extractFeedbackToken(
+                renderer.menu?.menuRenderer?.items?.find {
+                    it.toggleMenuServiceItemRenderer?.defaultIcon?.iconType?.startsWith("LIBRARY_") == true
+                }?.toggleMenuServiceItemRenderer,
+                "LIBRARY_SAVED"
+            )
         )
     }
 }

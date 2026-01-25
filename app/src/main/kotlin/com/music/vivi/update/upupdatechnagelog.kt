@@ -1,44 +1,44 @@
-//package com.music.vivi.update
+// package com.music.vivi.update
 //
-//import android.content.Intent
-//import android.net.Uri
-//import android.os.Environment
-//import androidx.compose.foundation.background
-//import androidx.compose.foundation.layout.*
-//import androidx.compose.foundation.rememberScrollState
-//import androidx.compose.foundation.shape.RoundedCornerShape
-//import androidx.compose.foundation.text.ClickableText
-//import androidx.compose.foundation.verticalScroll
-//import androidx.compose.material.icons.Icons
-//import androidx.compose.material.icons.filled.ArrowBack
-//import androidx.compose.material3.*
-//import androidx.compose.runtime.*
-//import androidx.compose.ui.Alignment
-//import androidx.compose.ui.Modifier
-//import androidx.compose.ui.draw.clip
-//import androidx.compose.ui.platform.LocalContext
-//import androidx.compose.ui.text.SpanStyle
-//import androidx.compose.ui.text.buildAnnotatedString
-//import androidx.compose.ui.text.font.FontWeight
-//import androidx.compose.ui.text.style.TextAlign
-//import androidx.compose.ui.text.style.TextDecoration
-//import androidx.compose.ui.unit.dp
-//import androidx.compose.ui.unit.sp
-//import androidx.core.content.ContextCompat
-//import androidx.core.content.FileProvider
-//import androidx.navigation.NavHostController
-//import com.music.vivi.BuildConfig
-//import com.music.vivi.ui.screens.checkForUpdate
-////import com.music.vivi.ui.screens.downloadApk
-//import com.music.vivi.ui.screens.extractUrls
-//import com.music.vivi.update.experiment.getBetaUpdaterSetting
-//import com.music.vivi.update.experiment.getSelectedApkVariant
-//import kotlinx.coroutines.launch
-//import java.io.File
+// import android.content.Intent
+// import android.net.Uri
+// import android.os.Environment
+// import androidx.compose.foundation.background
+// import androidx.compose.foundation.layout.*
+// import androidx.compose.foundation.rememberScrollState
+// import androidx.compose.foundation.shape.RoundedCornerShape
+// import androidx.compose.foundation.text.ClickableText
+// import androidx.compose.foundation.verticalScroll
+// import androidx.compose.material.icons.Icons
+// import androidx.compose.material.icons.filled.ArrowBack
+// import androidx.compose.material3.*
+// import androidx.compose.runtime.*
+// import androidx.compose.ui.Alignment
+// import androidx.compose.ui.Modifier
+// import androidx.compose.ui.draw.clip
+// import androidx.compose.ui.platform.LocalContext
+// import androidx.compose.ui.text.SpanStyle
+// import androidx.compose.ui.text.buildAnnotatedString
+// import androidx.compose.ui.text.font.FontWeight
+// import androidx.compose.ui.text.style.TextAlign
+// import androidx.compose.ui.text.style.TextDecoration
+// import androidx.compose.ui.unit.dp
+// import androidx.compose.ui.unit.sp
+// import androidx.core.content.ContextCompat
+// import androidx.core.content.FileProvider
+// import androidx.navigation.NavHostController
+// import com.music.vivi.BuildConfig
+// import com.music.vivi.ui.screens.checkForUpdate
+// //import com.music.vivi.ui.screens.downloadApk
+// import com.music.vivi.ui.screens.extractUrls
+// import com.music.vivi.update.experiment.getBetaUpdaterSetting
+// import com.music.vivi.update.experiment.getSelectedApkVariant
+// import kotlinx.coroutines.launch
+// import java.io.File
 //
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Composable
-//fun UpdateDetailsScreen(navController: NavHostController) {
+// @OptIn(ExperimentalMaterial3Api::class)
+// @Composable
+// fun UpdateDetailsScreen(navController: NavHostController) {
 //    var updateVersion by remember { mutableStateOf("") }
 //    var changelog by remember { mutableStateOf("") }
 //    var appSize by remember { mutableStateOf("") }
@@ -53,23 +53,23 @@
 //    val coroutineScope = rememberCoroutineScope()
 //
 //    // Fetch update data when screen loads
-////    LaunchedEffect(Unit) {
-////        coroutineScope.launch {
-////            checkForUpdate(
-////                isBetaEnabled = betaUpdaterEnabled,
-////                onSuccess = { latestVersion, latestChangelog, latestSize, latestReleaseDate ->
-////                    updateVersion = latestVersion
-////                    changelog = latestChangelog
-////                    appSize = latestSize
-////                    releaseDate = latestReleaseDate
-////                    isLoading = false
-////                },
-////                onError = {
-////                    isLoading = false
-////                }
-////            )
-////        }
-////    }
+// //    LaunchedEffect(Unit) {
+// //        coroutineScope.launch {
+// //            checkForUpdate(
+// //                isBetaEnabled = betaUpdaterEnabled,
+// //                onSuccess = { latestVersion, latestChangelog, latestSize, latestReleaseDate ->
+// //                    updateVersion = latestVersion
+// //                    changelog = latestChangelog
+// //                    appSize = latestSize
+// //                    releaseDate = latestReleaseDate
+// //                    isLoading = false
+// //                },
+// //                onError = {
+// //                    isLoading = false
+// //                }
+// //            )
+// //        }
+// //    }
 //
 //    Scaffold(
 //        topBar = {
@@ -111,7 +111,7 @@
 //                        .padding(horizontal = 24.dp)
 //                ) {
 //                    Spacer(modifier = Modifier.height(32.dp))
-//// VIVI MUSIC title - styled like "Xiaomi HyperOS"
+// // VIVI MUSIC title - styled like "Xiaomi HyperOS"
 //                    Row(
 //                        modifier = Modifier.fillMaxWidth(),
 //                        horizontalArrangement = Arrangement.Center,
@@ -342,4 +342,4 @@
 //            }
 //        }
 //    }
-//}
+// }

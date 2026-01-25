@@ -2,13 +2,9 @@ package com.music.vivi.ui.utils
 
 import android.content.ClipData
 import android.content.ClipboardManager
-import android.text.format.Formatter
 import android.widget.Toast
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,11 +19,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -38,7 +34,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -53,11 +48,7 @@ import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.db.entities.FormatEntity
 import com.music.vivi.db.entities.Song
-import com.music.vivi.ui.component.shimmer.ShimmerHost
-import androidx.compose.material3.TextButton
 import com.music.vivi.ui.component.LocalBottomSheetPageState
-import com.music.vivi.ui.component.shimmer.TextPlaceholder
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.launch
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
@@ -84,9 +75,14 @@ fun ShowMediaInfo(videoId: String) {
     // Shapes
     val cornerRadius = 24.dp
     val albumArtShape = AbsoluteSmoothCornerShape(
-        cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-        smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-        cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+        cornerRadiusTR = cornerRadius,
+        smoothnessAsPercentBR = 60,
+        cornerRadiusBR = cornerRadius,
+        smoothnessAsPercentTL = 60,
+        cornerRadiusTL = cornerRadius,
+        smoothnessAsPercentBL = 60,
+        cornerRadiusBL = cornerRadius,
+        smoothnessAsPercentTR = 60
     )
 
     LazyColumn(
@@ -158,7 +154,9 @@ fun ShowMediaInfo(videoId: String) {
                         // Registration (Format info)
                         val formatText = buildString {
                             if (currentFormat != null) {
-                                append(currentFormat?.mimeType?.substringBefore(";") ?: stringResource(R.string.unknown))
+                                append(
+                                    currentFormat?.mimeType?.substringBefore(";") ?: stringResource(R.string.unknown)
+                                )
                                 currentFormat?.bitrate?.let { append(" • ${it / 1000}kbps") }
                             } else {
                                 append(stringResource(R.string.standard))
@@ -181,7 +179,7 @@ fun ShowMediaInfo(videoId: String) {
                             val minutes = totalSeconds / 60
                             val seconds = totalSeconds % 60
                             "%d:%02d".format(minutes, seconds)
-                        }                             ?: stringResource(R.string.unknown)
+                        } ?: stringResource(R.string.unknown)
 
                         InfoItem(
                             label = stringResource(R.string.duration),
@@ -192,7 +190,9 @@ fun ShowMediaInfo(videoId: String) {
                         // Hosted By (Artist)
                         InfoItem(
                             label = stringResource(R.string.artist),
-                            value = song?.artists?.joinToString { it.name } ?: info?.author ?: stringResource(R.string.unknown),
+                            value =
+                            song?.artists?.joinToString { it.name } ?: info?.author
+                                ?: stringResource(R.string.unknown),
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -202,7 +202,7 @@ fun ShowMediaInfo(videoId: String) {
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                       // Guests (Views)
+                        // Guests (Views)
                         val viewCount = info?.viewCount?.toInt()?.let { shortNumberFormatter(it) } ?: "N/A"
                         InfoItem(
                             label = stringResource(R.string.views),
@@ -210,7 +210,7 @@ fun ShowMediaInfo(videoId: String) {
                             modifier = Modifier.weight(1f)
                         )
 
-                         // Likes
+                        // Likes
                         val likeCount = info?.like?.toInt()?.let { shortNumberFormatter(it) } ?: "N/A"
                         InfoItem(
                             label = stringResource(R.string.likes),
@@ -219,20 +219,20 @@ fun ShowMediaInfo(videoId: String) {
                         )
                     }
 
-                     // Row 4 (Extra details)
+                    // Row 4 (Extra details)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                       InfoItem(
+                        InfoItem(
                             label = stringResource(R.string.itag),
                             value = currentFormat?.itag?.toString() ?: "N/A",
                             modifier = Modifier.weight(1f)
                         )
 
-                         InfoItem(
+                        InfoItem(
                             label = stringResource(R.string.loudness),
-                             value = currentFormat?.loudnessDb?.let { "$it dB" } ?: "N/A",
+                            value = currentFormat?.loudnessDb?.let { "$it dB" } ?: "N/A",
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -240,7 +240,7 @@ fun ShowMediaInfo(videoId: String) {
             }
 
             // Description (Full width at bottom)
-             item {
+            item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         text = stringResource(R.string.description),
@@ -250,32 +250,31 @@ fun ShowMediaInfo(videoId: String) {
                         ),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                     if (info == null) {
-                         Box(
-                             modifier = Modifier.fillMaxWidth().height(100.dp),
-                             contentAlignment = Alignment.Center
-                         ) {
-                             LoadingIndicator()
-                         }
-                     } else {
-                         Text(
-                             text = info?.description ?: stringResource(R.string.no_description_available),
-                             style = MaterialTheme.typography.bodyMedium,
-                             color = MaterialTheme.colorScheme.onBackground
-                         )
-                     }
+                    if (info == null) {
+                        Box(
+                            modifier = Modifier.fillMaxWidth().height(100.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            LoadingIndicator()
+                        }
+                    } else {
+                        Text(
+                            text = info?.description ?: stringResource(R.string.no_description_available),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
                 }
             }
-
         } else {
-             item {
-                 Box(
-                     modifier = Modifier.fillMaxWidth().height(150.dp),
-                     contentAlignment = Alignment.Center
-                 ) {
-                     LoadingIndicator()
-                 }
-             }
+            item {
+                Box(
+                    modifier = Modifier.fillMaxWidth().height(150.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    LoadingIndicator()
+                }
+            }
         }
 
         item {
@@ -285,19 +284,15 @@ fun ShowMediaInfo(videoId: String) {
 }
 
 @Composable
-fun InfoItem(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier
-) {
+fun InfoItem(label: String, value: String, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     Column(
         modifier = modifier
             .padding(end = 8.dp)
             .clickable {
-                 val cm = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as ClipboardManager
-                 cm.setPrimaryClip(ClipData.newPlainText(label, value))
-                 Toast.makeText(context, "$label copied", Toast.LENGTH_SHORT).show()
+                val cm = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as ClipboardManager
+                cm.setPrimaryClip(ClipData.newPlainText(label, value))
+                Toast.makeText(context, "$label copied", Toast.LENGTH_SHORT).show()
             },
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
@@ -321,10 +316,8 @@ fun InfoItem(
 }
 
 // Helper formatter (simplified version of what was likely used before or inline)
-fun shortNumberFormatter(count: Int): String {
-    return when {
-        count < 1000 -> count.toString()
-        count < 1000000 -> String.format("%.1fk", count / 1000.0)
-        else -> String.format("%.1fM", count / 1000000.0)
-    }
+fun shortNumberFormatter(count: Int): String = when {
+    count < 1000 -> count.toString()
+    count < 1000000 -> String.format("%.1fk", count / 1000.0)
+    else -> String.format("%.1fM", count / 1000000.0)
 }

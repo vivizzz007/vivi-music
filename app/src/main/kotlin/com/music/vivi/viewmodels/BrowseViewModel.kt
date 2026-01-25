@@ -3,18 +3,16 @@ package com.music.vivi.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.music.vivi.utils.reportException
 import com.music.innertube.YouTube
 import com.music.innertube.models.YTItem
+import com.music.vivi.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-public class BrowseViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle
-) : ViewModel() {
+public class BrowseViewModel @Inject constructor(savedStateHandle: SavedStateHandle) : ViewModel() {
     private val browseId: String? = savedStateHandle.get<String>("browseId")
 
     public val items: MutableStateFlow<List<YTItem>?> = MutableStateFlow(emptyList())

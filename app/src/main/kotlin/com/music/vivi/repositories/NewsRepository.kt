@@ -5,11 +5,12 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
@@ -18,13 +19,9 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.collections.emptyList
 import kotlin.collections.firstOrNull
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.stateIn
 
 @Singleton
-public class NewsRepository @Inject constructor(
-    @ApplicationContext private val context: Context
-) {
+public class NewsRepository @Inject constructor(@ApplicationContext private val context: Context) {
     private val scope = CoroutineScope(Dispatchers.IO)
 
     private val _newsItems = MutableStateFlow<List<NewsItem>>(emptyList())
@@ -67,9 +64,7 @@ public class NewsRepository @Inject constructor(
         }
     }
 
-    public fun getItemId(item: NewsItem): String {
-        return "${item.date}_${item.title}"
-    }
+    public fun getItemId(item: NewsItem): String = "${item.date}_${item.title}"
 
     public fun fetchNews(isRefresh: Boolean = false, silent: Boolean = false) {
         scope.launch {
@@ -108,17 +103,16 @@ public class NewsRepository @Inject constructor(
                 }
 
                 // Sort by date descending
-                 items.sortByDescending { it.date }
+                items.sortByDescending { it.date }
 
-                 _newsItems.value = items
-
+                _newsItems.value = items
             } catch (e: Exception) {
                 e.printStackTrace()
                 _error.value = "${e.message} (Check internet or try again later)"
             } finally {
-               if (!silent) {
-                   if (isRefresh) _isRefreshing.value = false else _isLoading.value = false
-               }
+                if (!silent) {
+                    if (isRefresh) _isRefreshing.value = false else _isLoading.value = false
+                }
             }
         }
     }
@@ -164,11 +158,11 @@ public class NewsRepository @Inject constructor(
             }
 
             if (responseCode == 403) {
-                 throw Exception("GitHub wants money but doesn't get any; this is the error for it!")
+                throw Exception("GitHub wants money but doesn't get any; this is the error for it!")
             }
 
             if (responseCode !in 200..299) {
-                 throw Exception("HTTP $responseCode: $responseMessage")
+                throw Exception("HTTP $responseCode: $responseMessage")
             }
 
             val content = inputStream.bufferedReader().use { it.readText() }
@@ -195,12 +189,16 @@ public class NewsRepository @Inject constructor(
         val reportedBugs = if (obj.has("reported_bugs")) {
             val arr = obj.getJSONArray("reported_bugs")
             List(arr.length()) { arr.getString(it) }
-        } else null
+        } else {
+            null
+        }
 
         val fixedBugs = if (obj.has("fixed_bugs")) {
             val arr = obj.getJSONArray("fixed_bugs")
             List(arr.length()) { arr.getString(it) }
-        } else null
+        } else {
+            null
+        }
 
         val blocks = if (obj.has("blocks")) {
             val arr = obj.getJSONArray("blocks")
@@ -212,7 +210,9 @@ public class NewsRepository @Inject constructor(
                     image = blockObj.optString("image", "").takeIf { img -> img.isNotEmpty() }
                 )
             }
-        } else emptyList()
+        } else {
+            emptyList()
+        }
 
         return NewsItem(
             title = obj.optString("title", "No Title"),
@@ -241,11 +241,7 @@ public data class NewsItem(
     val content: String,
     val reportedBugs: List<String>?,
     val fixedBugs: List<String>?,
-    val blocks: List<ContentBlock>
+    val blocks: List<ContentBlock>,
 )
 
-public data class ContentBlock(
-    val subtitle: String?,
-    val content: String?,
-    val image: String?
-)
+public data class ContentBlock(val subtitle: String?, val content: String?, val image: String?)

@@ -45,7 +45,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.music.vivi.R
-import com.music.vivi.repositories.ContentBlock
 import com.music.vivi.repositories.NewsItem
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.utils.backToMain
@@ -63,12 +62,7 @@ import com.music.vivi.ui.utils.backToMain
 @Suppress("OPT_IN_USAGE_ERROR")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun NewsDetailScreen(
-    newsItem: NewsItem,
-    navController: NavController,
-    isRefreshing: Boolean,
-    onRefresh: () -> Unit
-) {
+fun NewsDetailScreen(newsItem: NewsItem, navController: NavController, isRefreshing: Boolean, onRefresh: () -> Unit) {
     val pullRefreshState = rememberPullToRefreshState()
 
     Scaffold(
@@ -113,13 +107,12 @@ fun NewsDetailScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(bottom = 100.dp)
             ) {
-                 Spacer(modifier = Modifier.height(paddingValues.calculateTopPadding()))
+                Spacer(modifier = Modifier.height(paddingValues.calculateTopPadding()))
 
                 Column(modifier = Modifier.padding(16.dp)) {
-
-                     Row(
-                       verticalAlignment = Alignment.CenterVertically,
-                       horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         if (!newsItem.version.isNullOrEmpty()) {
                             Text(
@@ -130,21 +123,21 @@ fun NewsDetailScreen(
                         }
 
                         // Badges for Type
-                         val typeLabel = when(newsItem.type.lowercase()) {
+                        val typeLabel = when (newsItem.type.lowercase()) {
                             "bug_report" -> stringResource(R.string.type_bug_report)
                             "fix" -> stringResource(R.string.type_fix)
                             "feature" -> stringResource(R.string.type_feature)
                             else -> stringResource(R.string.type_news)
                         }
 
-                        val typeContainerColor = when(newsItem.type.lowercase()) {
+                        val typeContainerColor = when (newsItem.type.lowercase()) {
                             "bug_report" -> MaterialTheme.colorScheme.errorContainer
                             "fix" -> MaterialTheme.colorScheme.tertiaryContainer
                             "feature" -> MaterialTheme.colorScheme.secondaryContainer
                             else -> MaterialTheme.colorScheme.surfaceContainerHigh
                         }
 
-                         val typeContentColor = when(newsItem.type.lowercase()) {
+                        val typeContentColor = when (newsItem.type.lowercase()) {
                             "bug_report" -> MaterialTheme.colorScheme.onErrorContainer
                             "fix" -> MaterialTheme.colorScheme.onTertiaryContainer
                             "feature" -> MaterialTheme.colorScheme.onSecondaryContainer
@@ -159,7 +152,7 @@ fun NewsDetailScreen(
                                 )
                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                         ) {
-                             Text(
+                            Text(
                                 text = typeLabel,
                                 style = MaterialTheme.typography.labelSmall,
                                 color = typeContentColor
@@ -174,8 +167,8 @@ fun NewsDetailScreen(
                         fontWeight = FontWeight.Bold
                     )
                     if (!newsItem.subtitle.isNullOrEmpty()) {
-                         Spacer(modifier = Modifier.height(4.dp))
-                         Text(
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
                             text = newsItem.subtitle,
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.primary
@@ -183,7 +176,7 @@ fun NewsDetailScreen(
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
-                     Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.DateRange,
                             contentDescription = null,
@@ -230,7 +223,7 @@ fun NewsDetailScreen(
                         Spacer(modifier = Modifier.height(8.dp))
                         newsItem.reportedBugs.forEach { bug ->
                             Row(modifier = Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.Top) {
-                                 Icon(
+                                Icon(
                                     imageVector = Icons.Default.BugReport,
                                     contentDescription = null,
                                     modifier = Modifier.size(20.dp),
@@ -257,7 +250,7 @@ fun NewsDetailScreen(
                         Spacer(modifier = Modifier.height(8.dp))
                         newsItem.fixedBugs.forEach { fix ->
                             Row(modifier = Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.Top) {
-                                 Icon(
+                                Icon(
                                     imageVector = Icons.Default.CheckCircle,
                                     contentDescription = null,
                                     modifier = Modifier

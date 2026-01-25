@@ -21,10 +21,10 @@ data class AlbumPage(
     companion object {
         fun getPlaylistId(response: BrowseResponse): String? {
             var playlistId = response.microformat?.microformatDataRenderer?.urlCanonical?.substringAfterLast('=')
-            if (playlistId == null)
-            {
-                playlistId = response.header?.musicDetailHeaderRenderer?.menu?.menuRenderer?.topLevelButtons?.firstOrNull()
-                    ?.buttonRenderer?.navigationEndpoint?.watchPlaylistEndpoint?.playlistId
+            if (playlistId == null) {
+                playlistId =
+                    response.header?.musicDetailHeaderRenderer?.menu?.menuRenderer?.topLevelButtons?.firstOrNull()
+                        ?.buttonRenderer?.navigationEndpoint?.watchPlaylistEndpoint?.playlistId
             }
             return playlistId
         }
@@ -39,10 +39,10 @@ data class AlbumPage(
             return title?.runs?.lastOrNull()?.text?.toIntOrNull()
         }
 
-        fun getThumbnail(response: BrowseResponse): String? {
-            return response.background?.musicThumbnailRenderer?.getThumbnailUrl() ?: response.header?.musicDetailHeaderRenderer?.thumbnail
-                ?.croppedSquareThumbnailRenderer?.getThumbnailUrl()
-        }
+        fun getThumbnail(response: BrowseResponse): String? =
+            response.background?.musicThumbnailRenderer?.getThumbnailUrl()
+                ?: response.header?.musicDetailHeaderRenderer?.thumbnail
+                    ?.croppedSquareThumbnailRenderer?.getThumbnailUrl()
 
         fun getArtists(response: BrowseResponse): List<Artist> {
             val artists = getHeader(response)?.straplineTextOne?.runs?.oddElements()?.map {
@@ -50,12 +50,15 @@ data class AlbumPage(
                     name = it.text,
                     id = it.navigationEndpoint?.browseEndpoint?.browseId
                 )
-            } ?: response.header?.musicDetailHeaderRenderer?.subtitle?.runs?.splitBySeparator()?.getOrNull(1)?.oddElements()?.map {
-                Artist(
-                    name = it.text,
-                    id = it.navigationEndpoint?.browseEndpoint?.browseId
-                )
-            } ?: emptyList()
+            }
+                ?: response.header?.musicDetailHeaderRenderer?.subtitle?.runs?.splitBySeparator()?.getOrNull(
+                    1
+                )?.oddElements()?.map {
+                    Artist(
+                        name = it.text,
+                        id = it.navigationEndpoint?.browseEndpoint?.browseId
+                    )
+                } ?: emptyList()
 
             return artists
         }
@@ -70,9 +73,12 @@ data class AlbumPage(
         }
 
         fun getSongs(response: BrowseResponse, album: AlbumItem): List<SongItem> {
-            val tabs = response.contents?.singleColumnBrowseResultsRenderer?.tabs ?: response.contents?.twoColumnBrowseResultsRenderer?.tabs
-            val shelfRenderer = tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.musicShelfRenderer ?:
-                response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer?.contents?.firstOrNull()?.musicShelfRenderer
+            val tabs =
+                response.contents?.singleColumnBrowseResultsRenderer?.tabs
+                    ?: response.contents?.twoColumnBrowseResultsRenderer?.tabs
+            val shelfRenderer =
+                tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.musicShelfRenderer
+                    ?: response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer?.contents?.firstOrNull()?.musicShelfRenderer
 
             val songs = shelfRenderer?.contents?.getItems()?.mapNotNull {
                 getSong(it, album)
@@ -84,7 +90,7 @@ data class AlbumPage(
             return SongItem(
                 id = renderer.playlistItemData?.videoId ?: return null,
                 title = PageHelper.extractRuns(renderer.flexColumns, "MUSIC_VIDEO").firstOrNull()?.text ?: return null,
-                artists = PageHelper.extractRuns(renderer.flexColumns, "MUSIC_PAGE_TYPE_ARTIST").map{
+                artists = PageHelper.extractRuns(renderer.flexColumns, "MUSIC_PAGE_TYPE_ARTIST").map {
                     Artist(
                         name = it.text,
                         id = it.navigationEndpoint?.browseEndpoint?.browseId
@@ -95,12 +101,15 @@ data class AlbumPage(
                 },
                 album = album?.let {
                     Album(it.title, it.browseId)
-                } ?: renderer.flexColumns.getOrNull(2)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()?.let {
-                    Album(
-                        name = it.text,
-                        id = it.navigationEndpoint?.browseEndpoint?.browseId!!
-                    )
-                }!!,
+                }
+                    ?: renderer.flexColumns.getOrNull(
+                        2
+                    )?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()?.let {
+                        Album(
+                            name = it.text,
+                            id = it.navigationEndpoint?.browseEndpoint?.browseId!!
+                        )
+                    }!!,
                 duration = renderer.fixedColumns?.firstOrNull()
                     ?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()
                     ?.text?.parseTime() ?: return null,
@@ -109,12 +118,18 @@ data class AlbumPage(
                 explicit = renderer.badges?.find {
                     it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                 } != null,
-                libraryAddToken = PageHelper.extractFeedbackToken(renderer.menu?.menuRenderer?.items?.find {
-                    it.toggleMenuServiceItemRenderer?.defaultIcon?.iconType?.startsWith("LIBRARY_") == true
-                }?.toggleMenuServiceItemRenderer, "LIBRARY_ADD"),
-                libraryRemoveToken = PageHelper.extractFeedbackToken(renderer.menu?.menuRenderer?.items?.find {
-                    it.toggleMenuServiceItemRenderer?.defaultIcon?.iconType?.startsWith("LIBRARY_") == true
-                }?.toggleMenuServiceItemRenderer, "LIBRARY_SAVED")
+                libraryAddToken = PageHelper.extractFeedbackToken(
+                    renderer.menu?.menuRenderer?.items?.find {
+                        it.toggleMenuServiceItemRenderer?.defaultIcon?.iconType?.startsWith("LIBRARY_") == true
+                    }?.toggleMenuServiceItemRenderer,
+                    "LIBRARY_ADD"
+                ),
+                libraryRemoveToken = PageHelper.extractFeedbackToken(
+                    renderer.menu?.menuRenderer?.items?.find {
+                        it.toggleMenuServiceItemRenderer?.defaultIcon?.iconType?.startsWith("LIBRARY_") == true
+                    }?.toggleMenuServiceItemRenderer,
+                    "LIBRARY_SAVED"
+                )
             )
         }
     }

@@ -21,7 +21,6 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
-import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.Player.EVENT_POSITION_DISCONTINUITY
 import androidx.media3.common.Player.EVENT_TIMELINE_CHANGED
@@ -61,7 +60,6 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.music.innertube.YouTube
 import com.music.innertube.models.SongItem
 import com.music.innertube.models.WatchEndpoint
-import com.music.lastfm.LastFM
 import com.music.vivi.MainActivity
 import com.music.vivi.R
 import com.music.vivi.constants.AudioNormalizationKey
@@ -71,16 +69,9 @@ import com.music.vivi.constants.AutoDownloadOnLikeKey
 import com.music.vivi.constants.AutoLoadMoreKey
 import com.music.vivi.constants.AutoSkipNextOnErrorKey
 import com.music.vivi.constants.DisableLoadMoreWhenRepeatAllKey
-import com.music.vivi.constants.DiscordTokenKey
 import com.music.vivi.constants.DiscordUseDetailsKey
-import com.music.vivi.constants.EnableDiscordRPCKey
-import com.music.vivi.constants.EnableLastFMScrobblingKey
 import com.music.vivi.constants.HideExplicitKey
 import com.music.vivi.constants.HistoryDuration
-import com.music.vivi.constants.LastFMUseNowPlaying
-import com.music.vivi.constants.ScrobbleDelayPercentKey
-import com.music.vivi.constants.ScrobbleMinSongDurationKey
-import com.music.vivi.constants.ScrobbleDelaySecondsKey
 import com.music.vivi.constants.MediaSessionConstants.CommandToggleLike
 import com.music.vivi.constants.MediaSessionConstants.CommandToggleRepeatMode
 import com.music.vivi.constants.MediaSessionConstants.CommandToggleShuffle
@@ -118,7 +109,6 @@ import com.music.vivi.lyrics.LyricsHelper
 import com.music.vivi.models.PersistPlayerState
 import com.music.vivi.models.PersistQueue
 import com.music.vivi.models.toMediaMetadata
-import com.music.vivi.playback.queues.EmptyQueue
 import com.music.vivi.playback.queues.Queue
 import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.playback.queues.filterExplicit
@@ -129,7 +119,6 @@ import com.music.vivi.utils.ScrobbleManager
 import com.music.vivi.utils.SyncUtils
 import com.music.vivi.utils.YTPlayerUtils
 import com.music.vivi.utils.dataStore
-import com.music.vivi.utils.enumPreference
 import com.music.vivi.utils.get
 import com.music.vivi.utils.reportException
 import com.music.vivi.playback.managers.QueueManager
@@ -156,6 +145,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import okhttp3.OkHttpClient
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
@@ -163,9 +154,8 @@ import java.time.LocalDateTime
 import java.util.*
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.seconds
-//under testing
+// under testing
 import android.content.Intent
-import android.content.pm.ServiceInfo
 import android.database.SQLException
 import android.os.Build
 import com.music.vivi.constants.HideVideoSongsKey
@@ -177,7 +167,6 @@ import com.music.vivi.playback.queues.filterVideoSongs
 import com.music.vivi.extensions.toEnum
 import com.music.vivi.update.widget.ViviWidgetManager
 import com.music.vivi.update.widget.MusicPlayerWidgetReceiver
-
 
 /**
  * The core Service responsible for handling media playback, notification management,
@@ -198,6 +187,10 @@ class MusicService :
     MediaLibraryService(),
     Player.Listener,
     PlaybackStatsListener.Callback {
+
+    private var isVolumeReceiverRegistered = false
+    private var isNoisyReceiverRegistered = false
+
     @Inject
     lateinit var database: MusicDatabase
 
@@ -227,10 +220,12 @@ class MusicService :
     private var hasAudioFocus = false
     private var reentrantFocusGain = false
 
-    private var scope = CoroutineScope(Dispatchers.Main) + Job()
+    private val serviceJob = SupervisorJob()
+    private val scope = CoroutineScope(Dispatchers.Main + serviceJob)
     private val binder = MusicBinder()
 
     private lateinit var connectivityManager: ConnectivityManager
+
     @Inject
     lateinit var connectivityObserver: NetworkConnectivityObserver
     val waitingForNetworkConnection = MutableStateFlow(false)
@@ -247,7 +242,7 @@ class MusicService :
                     scope.launch {
                         val powerSaver = dataStore.get(PowerSaverKey, false)
                         val powerSaverPause = dataStore.get(PowerSaverPauseOnZeroVolumeKey, true)
-                        
+
                         // "Pause on Zero Volume" preference OR (PowerSaver AND PowerSaverPauseOnZeroVolume)
                         if (dataStore.get(PauseOnZeroVolumeKey, false) || (powerSaver && powerSaverPause)) {
                             if (volume == 0) {
@@ -354,7 +349,7 @@ class MusicService :
             )
                 .apply {
                     setSmallIcon(R.drawable.library_music)
-                },
+                }
         )
         player =
             ExoPlayer
@@ -369,7 +364,7 @@ class MusicService :
                         .setUsage(C.USAGE_MEDIA)
                         .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
                         .build(),
-                    false,
+                    false
                 ).setSeekBackIncrementMs(5000)
                 .setSeekForwardIncrementMs(5000)
                 .build()
@@ -403,8 +398,8 @@ class MusicService :
                         this,
                         0,
                         Intent(this, MainActivity::class.java),
-                        PendingIntent.FLAG_IMMUTABLE,
-                    ),
+                        PendingIntent.FLAG_IMMUTABLE
+                    )
                 ).setBitmapLoader(CoilBitmapLoader(this, scope))
                 .build()
         player.repeatMode = dataStore.get(RepeatModeKey, REPEAT_MODE_OFF)
@@ -417,8 +412,15 @@ class MusicService :
         connectivityManager = getSystemService()!!
 //        connectivityObserver = NetworkConnectivityObserver(this)
 
-        registerReceiver(volumeReceiver, IntentFilter("android.media.VOLUME_CHANGED_ACTION"))
-        registerReceiver(becomingNoisyReceiver, IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY))
+        if (!isVolumeReceiverRegistered) {
+            registerReceiver(volumeReceiver, IntentFilter("android.media.VOLUME_CHANGED_ACTION"))
+            isVolumeReceiverRegistered = true
+        }
+
+        if (!isNoisyReceiverRegistered) {
+            registerReceiver(becomingNoisyReceiver, IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY))
+            isNoisyReceiverRegistered = true
+        }
 
         audioQuality = dataStore.get(AudioQualityKey).toEnum(com.music.vivi.constants.AudioQuality.AUTO)
         playerVolume = MutableStateFlow(dataStore.get(PlayerVolumeKey, 1f).coerceIn(0f, 1f))
@@ -434,9 +436,12 @@ class MusicService :
                         Log.d(TAG, "Network restored, clearing waiting state")
                         waitingForNetworkConnection.value = false
                     }
-                    
+
                     // Trigger retry if player is idle and was previously in a network error state
-                    if (player.playbackState == Player.STATE_IDLE && player.playerError != null && isNetworkError(player.playerError!!)) {
+                    if (player.playbackState == Player.STATE_IDLE &&
+                        player.playerError != null &&
+                        isNetworkError(player.playerError!!)
+                    ) {
                         Log.d(TAG, "Network restored, retrying playback from IDLE")
                         if (player.currentMediaItem != null) {
                             delay(500)
@@ -463,7 +468,12 @@ class MusicService :
         currentSong.debounce(1000).collect(scope) { song ->
             updateNotification()
             if (song != null && player.playWhenReady && player.playbackState == Player.STATE_READY) {
-                discordRpc?.updateSong(song, player.currentPosition, player.playbackParameters.speed, dataStore.get(DiscordUseDetailsKey, false))
+                discordRpc?.updateSong(
+                    song,
+                    player.currentPosition,
+                    player.playbackParameters.speed,
+                    dataStore.get(DiscordUseDetailsKey, false)
+                )
             } else {
                 discordRpc?.closeRPC()
             }
@@ -471,11 +481,13 @@ class MusicService :
 
         combine(
             currentMediaMetadata.distinctUntilChangedBy { it?.id },
-            dataStore.data.map { it[ShowLyricsKey] ?: false }.distinctUntilChanged(),
+            dataStore.data.map { it[ShowLyricsKey] ?: false }.distinctUntilChanged()
         ) { mediaMetadata, showLyrics ->
             mediaMetadata to showLyrics
         }.collectLatest(scope) { (mediaMetadata, showLyrics) ->
-            if (showLyrics && mediaMetadata != null && database.lyrics(mediaMetadata.id)
+            if (showLyrics &&
+                mediaMetadata != null &&
+                database.lyrics(mediaMetadata.id)
                     .first() == null
             ) {
                 val lyrics = lyricsHelper.getLyrics(mediaMetadata)
@@ -483,8 +495,8 @@ class MusicService :
                     upsert(
                         LyricsEntity(
                             id = mediaMetadata.id,
-                            lyrics = lyrics,
-                        ),
+                            lyrics = lyrics
+                        )
                     )
                 }
             }
@@ -512,10 +524,10 @@ class MusicService :
             currentFormat,
             dataStore.data
                 .map { it[AudioNormalizationKey] ?: true }
-                .distinctUntilChanged(),
+                .distinctUntilChanged()
         ) { format, normalizeAudio ->
             format to normalizeAudio
-        }.collectLatest(scope) { (format, normalizeAudio) -> setupLoudnessEnhancer()}
+        }.collectLatest(scope) { (format, normalizeAudio) -> setupLoudnessEnhancer() }
 
         // Load persistent queue and state asynchronously to prevent main thread freeze (Fix #1)
         scope.launch(Dispatchers.IO) {
@@ -534,7 +546,7 @@ class MusicService :
                     withContext(Dispatchers.Main) {
                         queueManager.playQueue(
                             queue = restoredQueue,
-                            playWhenReady = false,
+                            playWhenReady = false
                         )
                     }
                 }
@@ -569,7 +581,7 @@ class MusicService :
                     withContext(Dispatchers.Main) {
                         // Small delay to ensure items are set? queueManager.playQueue sets items immediately.
                         // However, waiting a brief moments allows the Player to process the queue.
-                        delay(200) 
+                        delay(200)
                         player.repeatMode = stateRestored.repeatMode
                         player.shuffleModeEnabled = stateRestored.shuffleModeEnabled
                         player.volume = stateRestored.volume
@@ -606,8 +618,6 @@ class MusicService :
             }
         }
     }
-
-    
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
@@ -674,9 +684,9 @@ class MusicService :
 
     private fun handleAudioFocusChange(focusChange: Int) {
         when (focusChange) {
-
             AudioManager.AUDIOFOCUS_GAIN,
-            AudioManager.AUDIOFOCUS_GAIN_TRANSIENT -> {
+            AudioManager.AUDIOFOCUS_GAIN_TRANSIENT,
+            -> {
                 hasAudioFocus = true
 
                 if (wasPlayingBeforeAudioFocusLoss && !player.isPlaying) {
@@ -759,9 +769,7 @@ class MusicService :
         }
     }
 
-    fun hasAudioFocusForPlayback(): Boolean {
-        return hasAudioFocus
-    }
+    fun hasAudioFocusForPlayback(): Boolean = hasAudioFocus
 
     private fun waitOnNetworkError() {
         if (waitingForNetworkConnection.value) return
@@ -777,7 +785,7 @@ class MusicService :
         if (!isNetworkConnected.value) {
             waitingForNetworkConnection.value = true
         }
-        
+
         // Start a retry timer with exponential backoff
         retryJob?.cancel()
         retryJob = scope.launch {
@@ -785,7 +793,7 @@ class MusicService :
             val delayMs = minOf(3000L * (1 shl globalRetryCount), 30000L)
             Log.d(TAG, "Waiting ${delayMs}ms before retry attempt ${globalRetryCount + 1}/$MAX_RETRY_COUNT")
             delay(delayMs)
-            
+
             if (isNetworkConnected.value && waitingForNetworkConnection.value) {
                 globalRetryCount++
                 triggerRetry()
@@ -796,7 +804,7 @@ class MusicService :
     private fun triggerRetry() {
         waitingForNetworkConnection.value = false
         retryJob?.cancel()
-        
+
         if (player.currentMediaItem != null) {
             // After 3+ failed retries, try to refresh the stream URL by seeking to current position
             // This forces ExoPlayer to re-resolve the data source and get a fresh URL
@@ -851,10 +859,18 @@ class MusicService :
                                 R.string.action_remove_like
                             } else {
                                 R.string.action_like
-                            },
-                        ),
+                            }
+                        )
                     )
-                    .setIconResId(if (currentSong.value?.song?.liked == true) R.drawable.favorite else R.drawable.favorite_border)
+                    .setIconResId(
+                        if (currentSong.value?.song?.liked ==
+                            true
+                        ) {
+                            R.drawable.favorite
+                        } else {
+                            R.drawable.favorite_border
+                        }
+                    )
                     .setSessionCommand(CommandToggleLike)
                     .setEnabled(currentSong.value != null)
                     .build(),
@@ -867,20 +883,24 @@ class MusicService :
                                 REPEAT_MODE_ONE -> R.string.repeat_mode_one
                                 REPEAT_MODE_ALL -> R.string.repeat_mode_all
                                 else -> throw IllegalStateException()
-                            },
-                        ),
+                            }
+                        )
                     ).setIconResId(
                         when (player.repeatMode) {
                             REPEAT_MODE_OFF -> R.drawable.repeat
                             REPEAT_MODE_ONE -> R.drawable.repeat_one_on
                             REPEAT_MODE_ALL -> R.drawable.repeat_on
                             else -> throw IllegalStateException()
-                        },
+                        }
                     ).setSessionCommand(CommandToggleRepeatMode)
                     .build(),
                 CommandButton
                     .Builder()
-                    .setDisplayName(getString(if (player.shuffleModeEnabled) R.string.action_shuffle_off else R.string.action_shuffle_on))
+                    .setDisplayName(
+                        getString(
+                            if (player.shuffleModeEnabled) R.string.action_shuffle_off else R.string.action_shuffle_on
+                        )
+                    )
                     .setIconResId(if (player.shuffleModeEnabled) R.drawable.shuffle_on else R.drawable.shuffle)
                     .setSessionCommand(CommandToggleShuffle)
                     .build(),
@@ -889,27 +909,29 @@ class MusicService :
                     .setIconResId(R.drawable.radio)
                     .setSessionCommand(CommandToggleStartRadio)
                     .setEnabled(currentSong.value != null)
-                    .build(),
-            ),
+                    .build()
+            )
         )
     }
 
-    private suspend fun recoverSong(
-        mediaId: String,
-        playbackData: YTPlayerUtils.PlaybackData? = null
-    ) {
+    private suspend fun recoverSong(mediaId: String, playbackData: YTPlayerUtils.PlaybackData? = null) {
         val song = database.song(mediaId).first()
         val mediaMetadata = withContext(Dispatchers.Main) {
             player.findNextMediaItemById(mediaId)?.metadata
         } ?: return
         val duration = song?.song?.duration?.takeIf { it != -1 }
             ?: mediaMetadata.duration.takeIf { it != -1 }
-            ?: (playbackData?.videoDetails ?: YTPlayerUtils.playerResponseForMetadata(mediaId)
-                .getOrNull()?.videoDetails)?.lengthSeconds?.toInt()
+            ?: (
+                playbackData?.videoDetails ?: YTPlayerUtils.playerResponseForMetadata(mediaId)
+                    .getOrNull()?.videoDetails
+                )?.lengthSeconds?.toInt()
             ?: -1
         database.query {
-            if (song == null) insert(mediaMetadata.copy(duration = duration))
-            else if (song.song.duration == -1) update(song.song.copy(duration = duration))
+            if (song == null) {
+                insert(mediaMetadata.copy(duration = duration))
+            } else if (song.song.duration == -1) {
+                update(song.song.copy(duration = duration))
+            }
         }
         if (!database.hasRelatedSongs(mediaId)) {
             val relatedEndpoint =
@@ -931,10 +953,7 @@ class MusicService :
         }
     }
 
-    fun playQueue(
-        queue: Queue,
-        playWhenReady: Boolean = true,
-    ) {
+    fun playQueue(queue: Queue, playWhenReady: Boolean = true) {
         queueManager.playQueue(queue, playWhenReady)
     }
 
@@ -996,8 +1015,10 @@ class MusicService :
                 scope.launch(SilentHandler) {
                     YouTube.next(WatchEndpoint(videoId = currentMediaId))
                         .onSuccess { nextResult ->
-                            val currentMediaIds = (0 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId }.toSet()
-                            
+                            val currentMediaIds = (0 until player.mediaItemCount).map {
+                                player.getMediaItemAt(it).mediaId
+                            }.toSet()
+
                             val suggestions = nextResult.items
                                 .map { it.toMediaItem() }
                                 .filterExplicit(dataStore.get(HideExplicitKey, false))
@@ -1052,7 +1073,8 @@ class MusicService :
 
     fun getAutomix(playlistId: String) {
         if (dataStore[SimilarContent] == true &&
-            !(dataStore.get(DisableLoadMoreWhenRepeatAllKey, false) && player.repeatMode == REPEAT_MODE_ALL)) {
+            !(dataStore.get(DisableLoadMoreWhenRepeatAllKey, false) && player.repeatMode == REPEAT_MODE_ALL)
+        ) {
             scope.launch(SilentHandler) {
                 YouTube
                     .next(WatchEndpoint(playlistId = playlistId))
@@ -1070,10 +1092,7 @@ class MusicService :
         }
     }
 
-    fun addToQueueAutomix(
-        item: MediaItem,
-        position: Int,
-    ) {
+    fun addToQueueAutomix(item: MediaItem, position: Int) {
         automixItems.value =
             automixItems.value.toMutableList().apply {
                 removeAt(position)
@@ -1082,10 +1101,7 @@ class MusicService :
         addedSuggestionIds.add(item.mediaId)
     }
 
-    fun playNextAutomix(
-        item: MediaItem,
-        position: Int,
-    ) {
+    fun playNextAutomix(item: MediaItem, position: Int) {
         automixItems.value =
             automixItems.value.toMutableList().apply {
                 removeAt(position)
@@ -1283,7 +1299,6 @@ class MusicService :
         }
     }
 
-
     private fun releaseLoudnessEnhancer() {
         try {
             loudnessEnhancer?.release()
@@ -1305,7 +1320,7 @@ class MusicService :
                 putExtra(AudioEffect.EXTRA_AUDIO_SESSION, player.audioSessionId)
                 putExtra(AudioEffect.EXTRA_PACKAGE_NAME, packageName)
                 putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
-            },
+            }
         )
     }
 
@@ -1317,14 +1332,11 @@ class MusicService :
             Intent(AudioEffect.ACTION_CLOSE_AUDIO_EFFECT_CONTROL_SESSION).apply {
                 putExtra(AudioEffect.EXTRA_AUDIO_SESSION, player.audioSessionId)
                 putExtra(AudioEffect.EXTRA_PACKAGE_NAME, packageName)
-            },
+            }
         )
     }
 
-    override fun onMediaItemTransition(
-        mediaItem: MediaItem?,
-        reason: Int,
-    ) {
+    override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
         lastPlaybackSpeed = -1.0f // force update song
 
         setupLoudnessEnhancer()
@@ -1345,9 +1357,7 @@ class MusicService :
         retryCount.remove(mediaItem?.mediaId)
     }
 
-    override fun onPlaybackStateChanged(
-        @Player.State playbackState: Int,
-    ) {
+    override fun onPlaybackStateChanged(@Player.State playbackState: Int) {
         // Save state when playback state changes
         if (dataStore.get(PersistentQueueKey, true)) {
             saveQueueToDisk()
@@ -1373,10 +1383,7 @@ class MusicService :
         updateWidget()
     }
 
-    override fun onEvents(
-        player: Player,
-        events: Player.Events,
-    ) {
+    override fun onEvents(player: Player, events: Player.Events) {
         if (events.containsAny(
                 Player.EVENT_PLAYBACK_STATE_CHANGED,
                 Player.EVENT_PLAY_WHEN_READY_CHANGED
@@ -1406,7 +1413,6 @@ class MusicService :
                 updateWidget() // Ensure one last update to show paused state (straight line)
             }
         }
-
     }
 
     override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
@@ -1430,16 +1436,16 @@ class MusicService :
         if (preserveHistory && player.shuffleModeEnabled) {
             val currentSequence = getShuffleSequence()
             val currentIndexInSequence = currentSequence.indexOf(player.currentMediaItemIndex)
-            
+
             if (currentIndexInSequence != -1) {
                 val pastAndCurrent = currentSequence.subList(0, currentIndexInSequence + 1)
                 val future = currentSequence.subList(currentIndexInSequence + 1, currentSequence.size).toMutableList()
-                
+
                 // Identify indices not in the current sequence (newly added items)
                 val allIndices = (0 until player.mediaItemCount).toSet()
                 val missingIndices = allIndices - currentSequence.toSet()
                 future.addAll(missingIndices)
-                
+
                 future.shuffle()
                 shuffledIndices = (pastAndCurrent + future).toIntArray()
                 offset = pastAndCurrent.size
@@ -1471,20 +1477,21 @@ class MusicService :
             for (i in offset until shuffledIndices.size - 1) {
                 val currentMediaItem = player.getMediaItemAt(shuffledIndices[i])
                 val previousMediaItem = player.getMediaItemAt(shuffledIndices[i - 1])
-                
+
                 val currentArtist = currentMediaItem.mediaMetadata.artist?.toString()
                 val previousArtist = previousMediaItem.mediaMetadata.artist?.toString()
                 val currentAlbum = currentMediaItem.mediaMetadata.albumTitle?.toString()
                 val previousAlbum = previousMediaItem.mediaMetadata.albumTitle?.toString()
 
-                if ((currentArtist != null && currentArtist == previousArtist) || 
-                    (currentAlbum != null && currentAlbum == previousAlbum)) {
+                if ((currentArtist != null && currentArtist == previousArtist) ||
+                    (currentAlbum != null && currentAlbum == previousAlbum)
+                ) {
                     // Try to find a different artist/album further down the list to swap
                     for (j in i + 1 until shuffledIndices.size) {
                         val nextMediaItem = player.getMediaItemAt(shuffledIndices[j])
                         val nextArtist = nextMediaItem.mediaMetadata.artist?.toString()
                         val nextAlbum = nextMediaItem.mediaMetadata.albumTitle?.toString()
-                        
+
                         if (nextArtist != currentArtist && nextAlbum != currentAlbum) {
                             val temp = shuffledIndices[i]
                             shuffledIndices[i] = shuffledIndices[j]
@@ -1546,8 +1553,6 @@ class MusicService :
         }
     }
 
-
-
     override fun onPlayerError(error: PlaybackException) {
         super.onPlayerError(error)
         Log.e(TAG, "onPlayerError: ${error.errorCodeName} (${error.errorCode})", error)
@@ -1582,33 +1587,32 @@ class MusicService :
         }
     }
 
-    private fun createCacheDataSource(): CacheDataSource.Factory =
-        CacheDataSource
-            .Factory()
-            .setCache(downloadCache)
-            .setUpstreamDataSourceFactory(
-                CacheDataSource
-                    .Factory()
-                    .setCache(playerCache)
-                    .setUpstreamDataSourceFactory(
-                        DefaultDataSource.Factory(
-                            this,
+    private fun createCacheDataSource(): CacheDataSource.Factory = CacheDataSource
+        .Factory()
+        .setCache(downloadCache)
+        .setUpstreamDataSourceFactory(
+            CacheDataSource
+                .Factory()
+                .setCache(playerCache)
+                .setUpstreamDataSourceFactory(
+                    DefaultDataSource.Factory(
+                        this,
                         OkHttpDataSource.Factory(
-                                okHttpClient.newBuilder()
-                                    .proxy(YouTube.proxy)
-                                    .proxyAuthenticator { _, response ->
-                                        YouTube.proxyAuth?.let { auth ->
-                                            response.request.newBuilder()
-                                                .header("Proxy-Authorization", auth)
-                                                .build()
-                                        } ?: response.request
-                                    }
-                                    .build(),
-                            ),
-                        ),
-                    ),
-            ).setCacheWriteDataSinkFactory(null)
-            .setFlags(FLAG_IGNORE_CACHE_ON_ERROR)
+                            okHttpClient.newBuilder()
+                                .proxy(YouTube.proxy)
+                                .proxyAuthenticator { _, response ->
+                                    YouTube.proxyAuth?.let { auth ->
+                                        response.request.newBuilder()
+                                            .header("Proxy-Authorization", auth)
+                                            .build()
+                                    } ?: response.request
+                                }
+                                .build()
+                        )
+                    )
+                )
+        ).setCacheWriteDataSinkFactory(null)
+        .setFlags(FLAG_IGNORE_CACHE_ON_ERROR)
 
     private fun createDataSourceFactory(): DataSource.Factory {
         return ResolvingDataSource.Factory(createCacheDataSource()) { dataSpec ->
@@ -1632,7 +1636,9 @@ class MusicService :
 
             val playbackData = runBlocking(Dispatchers.IO) {
                 // Read audio quality from settings every time to respect user changes
-                val currentAudioQuality = dataStore.get(AudioQualityKey).toEnum(com.music.vivi.constants.AudioQuality.AUTO)
+                val currentAudioQuality = dataStore.get(
+                    AudioQualityKey
+                ).toEnum(com.music.vivi.constants.AudioQuality.AUTO)
                 YTPlayerUtils.playerResponseForPlayback(
                     mediaId,
                     audioQuality = currentAudioQuality,
@@ -1699,43 +1705,38 @@ class MusicService :
         }
     }
 
-    private fun createMediaSourceFactory() =
-        DefaultMediaSourceFactory(
-            createDataSourceFactory(),
-            ExtractorsFactory {
-                arrayOf(MatroskaExtractor(), FragmentedMp4Extractor())
-            },
-        )
+    private fun createMediaSourceFactory() = DefaultMediaSourceFactory(
+        createDataSourceFactory(),
+        ExtractorsFactory {
+            arrayOf(MatroskaExtractor(), FragmentedMp4Extractor())
+        }
+    )
 
-    private fun createRenderersFactory() =
-        object : DefaultRenderersFactory(this) {
-            override fun buildAudioSink(
-                context: Context,
-                enableFloatOutput: Boolean,
-                enableAudioTrackPlaybackParams: Boolean,
-            ) = DefaultAudioSink
-                .Builder(this@MusicService)
-                .setEnableFloatOutput(enableFloatOutput)
-                .setEnableAudioTrackPlaybackParams(enableAudioTrackPlaybackParams)
-                .setAudioProcessorChain(
-                    DefaultAudioSink.DefaultAudioProcessorChain(
-                        emptyArray(),
-                        SilenceSkippingAudioProcessor(2_000_000, 20_000, 256),
-                        SonicAudioProcessor(),
-                    ),
-                ).build()
-        }.setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
+    private fun createRenderersFactory() = object : DefaultRenderersFactory(this) {
+        override fun buildAudioSink(
+            context: Context,
+            enableFloatOutput: Boolean,
+            enableAudioTrackPlaybackParams: Boolean,
+        ) = DefaultAudioSink
+            .Builder(this@MusicService)
+            .setEnableFloatOutput(enableFloatOutput)
+            .setEnableAudioTrackPlaybackParams(enableAudioTrackPlaybackParams)
+            .setAudioProcessorChain(
+                DefaultAudioSink.DefaultAudioProcessorChain(
+                    emptyArray(),
+                    SilenceSkippingAudioProcessor(2_000_000, 20_000, 256),
+                    SonicAudioProcessor()
+                )
+            ).build()
+    }.setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
 
-    override fun onPlaybackStatsReady(
-        eventTime: AnalyticsListener.EventTime,
-        playbackStats: PlaybackStats,
-    ) {
+    override fun onPlaybackStatsReady(eventTime: AnalyticsListener.EventTime, playbackStats: PlaybackStats) {
         val mediaItem = eventTime.timeline.getWindow(eventTime.windowIndex, Timeline.Window()).mediaItem
 
         if (playbackStats.totalPlayTimeMs >= (
-                    dataStore[HistoryDuration]?.times(1000f)
-                        ?: 30000f
-                    ) &&
+                dataStore[HistoryDuration]?.times(1000f)
+                    ?: 30000f
+                ) &&
             !dataStore.get(PauseListenHistoryKey, false)
         ) {
             database.query {
@@ -1745,8 +1746,8 @@ class MusicService :
                         Event(
                             songId = mediaItem.mediaId,
                             timestamp = LocalDateTime.now(),
-                            playTime = playbackStats.totalPlayTimeMs,
-                        ),
+                            playTime = playbackStats.totalPlayTimeMs
+                        )
                     )
                 } catch (_: SQLException) {
                 }
@@ -1783,7 +1784,7 @@ class MusicService :
                 title = getString(R.string.automix),
                 items = automixItems.value.mapNotNull { it.metadata },
                 mediaItemIndex = 0,
-                position = 0,
+                position = 0
             )
 
         // Save player state
@@ -1831,7 +1832,7 @@ class MusicService :
         if (dataStore.get(PersistentQueueKey, true)) {
             saveQueueToDisk()
         }
-        
+
         integrationManager.stop(player)
         connectivityObserver.unregister()
         abandonAudioFocus()
@@ -1844,19 +1845,19 @@ class MusicService :
         player.release()
         super.onDestroy()
     }
-    //better network handling
+    // better network handling
 
-    private fun isNetworkError(error: PlaybackException): Boolean {
-        return error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED ||
-                error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT ||
-                error.errorCode == PlaybackException.ERROR_CODE_IO_INVALID_HTTP_CONTENT_TYPE ||
-                error.errorCode == PlaybackException.ERROR_CODE_IO_UNSPECIFIED ||
-                error.cause is java.io.IOException ||
-                (error.cause as? java.net.ConnectException) != null ||
-                (error.cause as? java.net.UnknownHostException) != null ||
-                (error.cause as? java.net.SocketTimeoutException) != null ||
-                (error.cause as? PlaybackException)?.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED
-    }
+    private fun isNetworkError(error: PlaybackException): Boolean =
+        error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED ||
+            error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT ||
+            error.errorCode == PlaybackException.ERROR_CODE_IO_INVALID_HTTP_CONTENT_TYPE ||
+            error.errorCode == PlaybackException.ERROR_CODE_IO_UNSPECIFIED ||
+            error.cause is java.io.IOException ||
+            (error.cause as? java.net.ConnectException) != null ||
+            (error.cause as? java.net.UnknownHostException) != null ||
+            (error.cause as? java.net.SocketTimeoutException) != null ||
+            (error.cause as? PlaybackException)?.errorCode ==
+            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED
 
     override fun onBind(intent: Intent?) = super.onBind(intent) ?: binder
 
@@ -1875,7 +1876,7 @@ class MusicService :
             get() = this@MusicService
     }
 
-//added widget updating
+// added widget updating
 
     private fun updateWidget() {
         scope.launch {
@@ -1911,11 +1912,36 @@ class MusicService :
         widgetUpdateJob = null
     }
 
-
     override fun onUpdateNotification(session: MediaSession, startInForeground: Boolean) {
         // Try to stay in foreground even when paused to avoid ForegroundServiceStartNotAllowedException
         // when resuming from background on Android 12+
         super.onUpdateNotification(session, true)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        isRunning = false
+        if (isVolumeReceiverRegistered) {
+            unregisterReceiver(volumeReceiver)
+            isVolumeReceiverRegistered = false
+        }
+        if (isNoisyReceiverRegistered) {
+            unregisterReceiver(becomingNoisyReceiver)
+            isNoisyReceiverRegistered = false
+        }
+
+        if (this::mediaSession.isInitialized) {
+            mediaSession.release()
+        }
+
+        if (this::player.isInitialized) {
+            player.removeListener(this)
+            player.release()
+        }
+
+        // Cancel all coroutines started by this service
+        scope.cancel()
+        serviceJob.cancel()
     }
 
     companion object {
@@ -1936,6 +1962,7 @@ class MusicService :
         const val PERSISTENT_PLAYER_STATE_FILE = "persistent_player_state.data"
         const val MAX_CONSECUTIVE_ERR = 5
         const val MAX_RETRY_COUNT = 5
+
         // Constants for audio normalization
         private const val MAX_GAIN_MB = 1000 // Maximum gain in millibels (8 dB)
         private const val MIN_GAIN_MB = -1000 // Minimum gain in millibels (-8 dB)

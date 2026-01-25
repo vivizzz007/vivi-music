@@ -11,10 +11,6 @@ object YouTubeSubtitleLyricsProvider : LyricsProvider {
 
     override fun isEnabled(context: Context): Boolean = context.dataStore[EnableYouTubeSubtitleKey] ?: true
 
-    override suspend fun getLyrics(
-        id: String,
-        title: String,
-        artist: String,
-        duration: Int,
-    ): Result<String> = YouTube.transcript(id)
+    override suspend fun getLyrics(id: String, title: String, artist: String, duration: Int): Result<String> =
+        YouTube.transcript(id)
 }

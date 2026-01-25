@@ -51,7 +51,7 @@ fun NewsListScreen(
     readNewsIds: Set<String>,
     getItemId: (NewsItem) -> String,
     onItemClick: (NewsItem) -> Unit,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
 ) {
     val pullRefreshState = rememberPullToRefreshState()
 
@@ -112,7 +112,7 @@ fun NewsListScreen(
                         .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                Text(text = stringResource(R.string.error_message, error), color = MaterialTheme.colorScheme.error)
+                    Text(text = stringResource(R.string.error_message, error), color = MaterialTheme.colorScheme.error)
                     Spacer(modifier = Modifier.height(16.dp))
                     androidx.compose.material3.Button(onClick = onRefresh) {
                         Text(stringResource(R.string.retry))

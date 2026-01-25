@@ -17,14 +17,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import com.music.vivi.LocalPlayerAwareWindowInsets
+import com.music.vivi.R
 import com.music.vivi.constants.DiscordTokenKey
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import timber.log.Timber
-import com.music.vivi.R
 @SuppressLint("SetJavaScriptEnabled")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,19 +57,22 @@ fun DiscordLoginScreen(navController: NavController) {
 
                 WebStorage.getInstance().deleteAllData()
 
-                addJavascriptInterface(object {
-                    @JavascriptInterface
+                addJavascriptInterface(
+                    object {
+                        @JavascriptInterface
                         fun onRetrieveToken(token: String) {
                             // Timber.d("Token: %s", token) // REMOVED FOR SECURITY
-                        if (token != "null" && token != "error") {
-                            discordToken = token
-                            scope.launch(Dispatchers.Main) {
-                                webView?.loadUrl("about:blank")
-                                navController.navigateUp()
+                            if (token != "null" && token != "error") {
+                                discordToken = token
+                                scope.launch(Dispatchers.Main) {
+                                    webView?.loadUrl("about:blank")
+                                    navController.navigateUp()
+                                }
                             }
                         }
-                    }
-                }, "Android")
+                    },
+                    "Android"
+                )
 
                 webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView, url: String) {
@@ -114,24 +116,17 @@ fun DiscordLoginScreen(navController: NavController) {
                                         }, 1000);
                                     } catch(e) {}
                                 })();
-                                """.trimIndent(), null
+                                """.trimIndent(),
+                                null
                             )
                         }
                     }
 
-                    override fun shouldOverrideUrlLoading(
-                        view: WebView,
-                        request: WebResourceRequest
-                    ): Boolean = false
+                    override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = false
                 }
 
                 webChromeClient = object : WebChromeClient() {
-                    override fun onJsAlert(
-                        view: WebView,
-                        url: String,
-                        message: String,
-                        result: JsResult
-                    ): Boolean {
+                    override fun onJsAlert(view: WebView, url: String, message: String, result: JsResult): Boolean {
                         if (message != "null" && message != "error") {
                             discordToken = message
                             scope.launch(Dispatchers.Main) {

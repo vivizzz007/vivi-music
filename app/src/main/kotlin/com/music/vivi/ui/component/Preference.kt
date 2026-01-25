@@ -57,13 +57,13 @@ public fun PreferenceEntry(
             .fillMaxWidth()
             .clickable(
                 enabled = isEnabled && onClick != null,
-                onClick = onClick ?: {},
+                onClick = onClick ?: {}
             ).alpha(if (isEnabled) 1f else 0.5f)
-            .padding(horizontal = 16.dp, vertical = 16.dp),
+            .padding(horizontal = 16.dp, vertical = 16.dp)
     ) {
         if (icon != null) {
             Box(
-                modifier = Modifier.padding(horizontal = 4.dp),
+                modifier = Modifier.padding(horizontal = 4.dp)
             ) {
                 icon()
             }
@@ -73,7 +73,7 @@ public fun PreferenceEntry(
 
         Column(
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f)
         ) {
             ProvideTextStyle(MaterialTheme.typography.titleMedium) {
                 title()
@@ -83,7 +83,7 @@ public fun PreferenceEntry(
                 Text(
                     text = description,
                     style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.secondary,
+                    color = MaterialTheme.colorScheme.secondary
                 )
             }
 
@@ -114,7 +114,7 @@ public fun <T> ListPreference(
     }
     if (showDialog) {
         ListDialog(
-            onDismiss = { showDialog = false },
+            onDismiss = { showDialog = false }
         ) {
             items(values) { value ->
                 Row(
@@ -125,17 +125,17 @@ public fun <T> ListPreference(
                         .clickable {
                             showDialog = false
                             onValueSelected(value)
-                        }.padding(horizontal = 16.dp, vertical = 12.dp),
+                        }.padding(horizontal = 16.dp, vertical = 12.dp)
                 ) {
                     RoundedCheckbox(
                         checked = value == selectedValue,
-                        onCheckedChange = null,
+                        onCheckedChange = null
                     )
 
                     Text(
                         text = valueText(value),
                         style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(start = 16.dp),
+                        modifier = Modifier.padding(start = 16.dp)
                     )
                 }
             }
@@ -148,7 +148,7 @@ public fun <T> ListPreference(
         description = valueText(selectedValue),
         icon = icon,
         onClick = { showDialog = true },
-        isEnabled = isEnabled,
+        isEnabled = isEnabled
     )
 }
 
@@ -170,7 +170,7 @@ public inline fun <reified T : Enum<T>> EnumListPreference(
         values = enumValues<T>().toList(),
         valueText = valueText,
         onValueSelected = onValueSelected,
-        isEnabled = isEnabled,
+        isEnabled = isEnabled
     )
 }
 
@@ -200,7 +200,7 @@ public fun SwitchPreference(
                             id = if (checked) R.drawable.check else R.drawable.close
                         ),
                         contentDescription = null,
-                        modifier = Modifier.size(SwitchDefaults.IconSize),
+                        modifier = Modifier.size(SwitchDefaults.IconSize)
                     )
                 }
             )
@@ -230,12 +230,12 @@ public fun EditTextPreference(
             initialTextFieldValue =
             TextFieldValue(
                 text = value,
-                selection = TextRange(value.length),
+                selection = TextRange(value.length)
             ),
             singleLine = singleLine,
             isInputValid = isInputValid,
             onDone = onValueChange,
-            onDismiss = { showDialog = false },
+            onDismiss = { showDialog = false }
         )
     }
 
@@ -245,7 +245,7 @@ public fun EditTextPreference(
         description = value,
         icon = icon,
         onClick = { showDialog = true },
-        isEnabled = isEnabled,
+        isEnabled = isEnabled
     )
 }
 
@@ -278,7 +278,7 @@ public fun SliderPreference(
                         text = stringResource(R.string.history_duration),
                         overflow = TextOverflow.Ellipsis,
                         maxLines = 1,
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.headlineSmall
                     )
                 }
             },
@@ -302,7 +302,7 @@ public fun SliderPreference(
                             sliderValue.roundToInt(),
                             sliderValue.roundToInt()
                         ),
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.bodyLarge
                     )
 
                     Spacer(Modifier.height(16.dp))
@@ -324,19 +324,16 @@ public fun SliderPreference(
         description = value.roundToInt().toString(),
         icon = icon,
         onClick = { showDialog = true },
-        isEnabled = isEnabled,
+        isEnabled = isEnabled
     )
 }
 
 @Composable
-public fun PreferenceGroupTitle(
-    title: String,
-    modifier: Modifier = Modifier,
-) {
+public fun PreferenceGroupTitle(title: String, modifier: Modifier = Modifier) {
     Text(
         text = title.uppercase(),
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.primary,
-        modifier = modifier.padding(16.dp),
+        modifier = modifier.padding(16.dp)
     )
 }

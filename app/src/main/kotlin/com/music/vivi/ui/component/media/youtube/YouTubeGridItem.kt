@@ -58,8 +58,10 @@ public fun YouTubeGridItem(
             if (item is AlbumItem) value = database.album(item.id).firstOrNull()
         }
 
-        if (item is SongItem && song?.song?.liked == true ||
-            item is AlbumItem && album?.album?.bookmarkedAt != null
+        if (item is SongItem &&
+            song?.song?.liked == true ||
+            item is AlbumItem &&
+            album?.album?.bookmarkedAt != null
         ) {
             MediaIcons.Favorite()
         }
@@ -88,7 +90,12 @@ public fun YouTubeGridItem(
     },
     subtitle = {
         val subtitle = when (item) {
-            is SongItem -> joinByBullet(item.artists.joinToString { it.name }, makeTimeString(item.duration?.times(1000L)))
+            is SongItem -> joinByBullet(
+                item.artists.joinToString {
+                    it.name
+                },
+                makeTimeString(item.duration?.times(1000L))
+            )
             is AlbumItem -> joinByBullet(item.artists?.joinToString { it.name }, item.year?.toString())
             is ArtistItem -> null
             is PlaylistItem -> joinByBullet(item.author?.name, item.songCountText)
@@ -99,7 +106,7 @@ public fun YouTubeGridItem(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.secondary,
                 maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
+                overflow = TextOverflow.Ellipsis
             )
         }
     },
@@ -113,7 +120,7 @@ public fun YouTubeGridItem(
             thumbnailUrl = item.thumbnail,
             isActive = isActive,
             isPlaying = isPlaying,
-            shape = if (item is ArtistItem) CircleShape else RoundedCornerShape(ThumbnailCornerRadius),
+            shape = if (item is ArtistItem) CircleShape else RoundedCornerShape(ThumbnailCornerRadius)
         )
 
         if (item is SongItem && !isActive) {

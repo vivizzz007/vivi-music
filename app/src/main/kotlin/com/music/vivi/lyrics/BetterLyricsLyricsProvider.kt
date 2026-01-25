@@ -9,14 +9,10 @@ import com.music.vivi.utils.get
 object BetterLyricsLyricsProvider : LyricsProvider {
     override val name = "BetterLyrics"
 
-    override fun isEnabled(context: Context): Boolean = context.dataStore[EnableBetterLyricsKey] ?: true 
+    override fun isEnabled(context: Context): Boolean = context.dataStore[EnableBetterLyricsKey] ?: true
 
-    override suspend fun getLyrics(
-        id: String,
-        title: String,
-        artist: String,
-        duration: Int,
-    ): Result<String> = BetterLyrics.getLyrics(title, artist, duration)
+    override suspend fun getLyrics(id: String, title: String, artist: String, duration: Int): Result<String> =
+        BetterLyrics.getLyrics(title, artist, duration)
 
     override suspend fun getAllLyrics(
         id: String,
@@ -26,4 +22,3 @@ object BetterLyricsLyricsProvider : LyricsProvider {
         callback: (String) -> Unit,
     ) = BetterLyrics.getAllLyrics(title, artist, duration, callback)
 }
-

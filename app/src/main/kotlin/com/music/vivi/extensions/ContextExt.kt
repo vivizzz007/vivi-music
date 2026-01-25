@@ -3,24 +3,20 @@ package com.music.vivi.extensions
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import com.music.innertube.utils.parseCookieString
 import com.music.vivi.constants.InnerTubeCookieKey
 import com.music.vivi.constants.YtmSyncKey
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.get
-import com.music.innertube.utils.parseCookieString
 import kotlinx.coroutines.runBlocking
 
-fun Context.isSyncEnabled(): Boolean {
-    return runBlocking {
-        dataStore.get(YtmSyncKey, true) && isUserLoggedIn()
-    }
+fun Context.isSyncEnabled(): Boolean = runBlocking {
+    dataStore.get(YtmSyncKey, true) && isUserLoggedIn()
 }
 
-fun Context.isUserLoggedIn(): Boolean {
-    return runBlocking {
-        val cookie = dataStore[InnerTubeCookieKey] ?: ""
-        "SAPISID" in parseCookieString(cookie) && isInternetConnected()
-    }
+fun Context.isUserLoggedIn(): Boolean = runBlocking {
+    val cookie = dataStore[InnerTubeCookieKey] ?: ""
+    "SAPISID" in parseCookieString(cookie) && isInternetConnected()
 }
 
 fun Context.isInternetConnected(): Boolean {

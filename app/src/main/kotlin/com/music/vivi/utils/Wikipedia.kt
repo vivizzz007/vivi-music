@@ -16,10 +16,12 @@ object Wikipedia {
     private val client by lazy {
         HttpClient(OkHttp) {
             install(ContentNegotiation) {
-                json(Json { 
-                    isLenient = true
-                    ignoreUnknownKeys = true 
-                })
+                json(
+                    Json {
+                        isLenient = true
+                        ignoreUnknownKeys = true
+                    }
+                )
             }
             defaultRequest { url("https://en.wikipedia.org/api/rest_v1/") }
             expectSuccess = true
@@ -27,16 +29,13 @@ object Wikipedia {
     }
 
     @Serializable
-    private data class WikiSummary(
-        val extract: String? = null,
-        val type: String? = null
-    )
+    private data class WikiSummary(val extract: String? = null, val type: String? = null)
 
     private suspend fun fetchPageSummary(title: String): String? = runCatching {
         client.get("page/summary/${title.replace(" ", "_").encodeURLParameter()}")
             .body<WikiSummary>()
             .extract
-    }.onFailure { 
+    }.onFailure {
         Timber.e(it, "Failed to fetch Wikipedia summary for: $title")
     }.getOrNull()
 
@@ -79,7 +78,5 @@ object Wikipedia {
         return null
     }
 
-    suspend fun fetchPlaylistInfo(playlistTitle: String): String? {
-        return fetchPageSummary(playlistTitle)
-    }
+    suspend fun fetchPlaylistInfo(playlistTitle: String): String? = fetchPageSummary(playlistTitle)
 }

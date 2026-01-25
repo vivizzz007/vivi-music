@@ -25,7 +25,6 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -49,11 +48,8 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import com.music.vivi.constants.HighRefreshRateKey
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -185,8 +181,6 @@ import com.music.vivi.ui.component.shimmer.ShimmerTheme
 import com.music.vivi.ui.menu.YouTubeSongMenu
 import com.music.vivi.ui.player.BottomSheetPlayer
 import com.music.vivi.ui.screens.Screens
-import com.music.vivi.ui.screens.checkForUpdate
-import com.music.vivi.ui.screens.isNewerVersion
 import com.music.vivi.ui.screens.navigationBuilder
 import com.music.vivi.ui.screens.search.LocalSearchScreen
 import com.music.vivi.ui.screens.search.OnlineSearchScreen
@@ -202,9 +196,8 @@ import com.music.vivi.ui.utils.resetHeightOffset
 import com.music.vivi.update.changelog.ChangelogBottomSheet
 import com.music.vivi.update.downloadmanager.DownloadNotificationManager
 import com.music.vivi.update.experiment.CrashLogHandler
-import com.music.vivi.update.experiment.getUpdateCheckInterval
 import com.music.vivi.update.updatenotification.UpdateNotificationManager
-//import com.music.vivi.update.updatenotification.UpdateNotificationManager
+// import com.music.vivi.update.updatenotification.UpdateNotificationManager
 import com.music.vivi.updatesreen.UpdateStatus
 import com.music.vivi.utils.SyncUtils
 import com.music.vivi.utils.dataStore
@@ -265,10 +258,7 @@ class MainActivity : ComponentActivity() {
 
     private val serviceConnection =
         object : ServiceConnection {
-            override fun onServiceConnected(
-                name: ComponentName?,
-                service: IBinder?,
-            ) {
+            override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
                 if (service is MusicBinder) {
                     playerConnection =
                         PlayerConnection(this@MainActivity, service, database, lifecycleScope)
@@ -288,7 +278,9 @@ class MainActivity : ComponentActivity() {
 
         // Request notification permission on Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
+                PackageManager.PERMISSION_GRANTED
+            ) {
                 ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1000)
             }
         }
@@ -316,7 +308,9 @@ class MainActivity : ComponentActivity() {
         if (dataStore.get(
                 StopMusicOnTaskClearKey,
                 false
-            ) && playerConnection?.isPlaying?.value == true && isFinishing
+            ) &&
+            playerConnection?.isPlaying?.value == true &&
+            isFinishing
         ) {
             stopService(Intent(this, MusicService::class.java))
             if (isServiceBound) {
@@ -342,12 +336,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         window.decorView.layoutDirection = View.LAYOUT_DIRECTION_LTR
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        //download notification
+        // download notification
         DownloadNotificationManager.initialize(this)
-        //new download manager and update manager
+        // new download manager and update manager
         UpdateNotificationManager.initialize(this)
         // Check for updates on app start (pass VERSION_NAME, not VERSION_CODE)
-//crash log when appp crash
+// crash log when appp crash
         if (savedInstanceState == null) {
             CrashLogHandler.initialize(applicationContext)
         }
@@ -368,7 +362,7 @@ class MainActivity : ComponentActivity() {
                     if (it) {
                         window.setFlags(
                             WindowManager.LayoutParams.FLAG_SECURE,
-                            WindowManager.LayoutParams.FLAG_SECURE,
+                            WindowManager.LayoutParams.FLAG_SECURE
                         )
                     } else {
                         window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
@@ -377,8 +371,7 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-
-//new viewmodel for update checking less stress more effect result
+// new viewmodel for update checking less stress more effect result
             val updateViewModel: UpdateViewModel = hiltViewModel()
             val updateStatus by updateViewModel.updateStatus.collectAsState()
 
@@ -390,14 +383,19 @@ class MainActivity : ComponentActivity() {
 
             val (checkForUpdatesPreference, _) = rememberPreference(CheckForUpdatesKey, true)
 
-
             LaunchedEffect(checkForUpdatesPreference) {
                 updateViewModel.refreshUpdateStatus()
             }
 
             val (powerSaver, _) = rememberPreference(PowerSaverKey, false)
-            val (powerSaverPureBlack, _) = rememberPreference(com.music.vivi.constants.PowerSaverPureBlackKey, defaultValue = true)
-            val (powerSaverHighRefresh, _) = rememberPreference(com.music.vivi.constants.PowerSaverHighRefreshRateKey, defaultValue = true)
+            val (powerSaverPureBlack, _) = rememberPreference(
+                com.music.vivi.constants.PowerSaverPureBlackKey,
+                defaultValue = true
+            )
+            val (powerSaverHighRefresh, _) = rememberPreference(
+                com.music.vivi.constants.PowerSaverHighRefreshRateKey,
+                defaultValue = true
+            )
             val (powerSaverAnimations, _) = rememberPreference(PowerSaverAnimationsKey, defaultValue = true)
 
             val disableAnimations = powerSaver && powerSaverAnimations
@@ -406,8 +404,13 @@ class MainActivity : ComponentActivity() {
             val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
             val isSystemInDarkTheme = isSystemInDarkTheme()
             val useDarkTheme = remember(darkTheme, isSystemInDarkTheme, powerSaver, powerSaverPureBlack) {
-                if (powerSaver && powerSaverPureBlack) true
-                else if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
+                if (powerSaver && powerSaverPureBlack) {
+                    true
+                } else if (darkTheme == DarkMode.AUTO) {
+                    isSystemInDarkTheme
+                } else {
+                    darkTheme == DarkMode.ON
+                }
             }
 
             LaunchedEffect(useDarkTheme) {
@@ -425,7 +428,6 @@ class MainActivity : ComponentActivity() {
                 mutableStateOf(DefaultThemeColor)
             }
 
-
             val highRefreshRate by rememberPreference(HighRefreshRateKey, false)
 
             LaunchedEffect(highRefreshRate, powerSaver, powerSaverHighRefresh) {
@@ -440,9 +442,13 @@ class MainActivity : ComponentActivity() {
             val context = LocalContext.current
 
             LaunchedEffect(themeColor, useDarkTheme, enableDynamicTheme) {
-                if (enableDynamicTheme && themeColor == DefaultThemeColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                     // System colors are fast, can be done on main (context required)
-                     generatedColorScheme = if (useDarkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+                if (enableDynamicTheme &&
+                    themeColor == DefaultThemeColor &&
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                ) {
+                    // System colors are fast, can be done on main (context required)
+                    generatedColorScheme =
+                        if (useDarkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
                 } else if (!enableDynamicTheme || themeColor != DefaultThemeColor) {
                     // MaterialKolor generation is expensive, offload to background
                     withContext(Dispatchers.Default) {
@@ -504,7 +510,7 @@ class MainActivity : ComponentActivity() {
                 themeColor = themeColor,
                 enableDynamicTheme = enableDynamicTheme,
                 overrideColorScheme = generatedColorScheme,
-                expressive = material3Expressive,
+                expressive = material3Expressive
             ) {
                 BoxWithConstraints(
                     modifier =
@@ -521,7 +527,6 @@ class MainActivity : ComponentActivity() {
                     val windowsInsets = WindowInsets.systemBars
                     val bottomInset = with(density) { windowsInsets.getBottom(density).toDp() }
                     val bottomInsetDp = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
-
 
                     var showChangelogBottomSheet by remember { mutableStateOf(false) }
 
@@ -550,7 +555,7 @@ class MainActivity : ComponentActivity() {
                             Screens.Home.route,
                             Screens.Search.route,
                             Screens.Library.route,
-                            "settings",
+                            "settings"
                         )
                     }
 
@@ -604,14 +609,14 @@ class MainActivity : ComponentActivity() {
 
                     val shouldShowSearchBar = remember(active, navBackStackEntry) {
                         active ||
-                                navigationItems.fastAny { it.route == navBackStackEntry?.destination?.route } ||
-                                inSearchScreen
+                            navigationItems.fastAny { it.route == navBackStackEntry?.destination?.route } ||
+                            inSearchScreen
                     }
 
                     val shouldShowNavigationBar = remember(navBackStackEntry, active) {
                         navBackStackEntry?.destination?.route == null ||
-                                navigationItems.fastAny { it.route == navBackStackEntry?.destination?.route } &&
-                                !active
+                            navigationItems.fastAny { it.route == navBackStackEntry?.destination?.route } &&
+                            !active
                     }
 
                     val isLandscape = remember(configuration) {
@@ -632,7 +637,7 @@ class MainActivity : ComponentActivity() {
                     val navigationBarHeight by animateDpAsState(
                         targetValue = if (shouldShowNavigationBar && !showRail) NavigationBarHeight else 0.dp,
                         animationSpec = if (disableAnimations) snap() else NavigationBarAnimationSpec,
-                        label = "",
+                        label = ""
                     )
 
                     val playerBottomSheetState =
@@ -642,14 +647,14 @@ class MainActivity : ComponentActivity() {
                                 (if (!showRail && shouldShowNavigationBar) getNavPadding() else 0.dp) +
                                 (if (useNewMiniPlayerDesign) MiniPlayerBottomSpacing else 0.dp) +
                                 MiniPlayerHeight,
-                            expandedBound = maxHeight,
+                            expandedBound = maxHeight
                         )
 
                     val playerAwareWindowInsets = remember(
                         bottomInset,
                         shouldShowNavigationBar,
                         playerBottomSheetState.isDismissed,
-                        showRail,
+                        showRail
                     ) {
                         var bottom = bottomInset
                         if (shouldShowNavigationBar && !showRail) {
@@ -664,7 +669,7 @@ class MainActivity : ComponentActivity() {
                     appBarScrollBehavior(
                         canScroll = {
                             !inSearchScreen &&
-                                    (playerBottomSheetState.isCollapsed || playerBottomSheetState.isDismissed)
+                                (playerBottomSheetState.isCollapsed || playerBottomSheetState.isDismissed)
                         }
                     )
 
@@ -672,15 +677,15 @@ class MainActivity : ComponentActivity() {
                         appBarScrollBehavior(
                             canScroll = {
                                 !inSearchScreen &&
-                                        (playerBottomSheetState.isCollapsed || playerBottomSheetState.isDismissed)
-                            },
+                                    (playerBottomSheetState.isCollapsed || playerBottomSheetState.isDismissed)
+                            }
                         )
                     val topAppBarScrollBehavior =
                         appBarScrollBehavior(
                             canScroll = {
                                 !inSearchScreen &&
-                                        (playerBottomSheetState.isCollapsed || playerBottomSheetState.isDismissed)
-                            },
+                                    (playerBottomSheetState.isCollapsed || playerBottomSheetState.isDismissed)
+                            }
                         )
 
                     // Navigation tracking
@@ -691,14 +696,14 @@ class MainActivity : ComponentActivity() {
                                     if (navBackStackEntry
                                             ?.arguments
                                             ?.getString(
-                                                "query",
+                                                "query"
                                             )!!
                                             .contains(
-                                                "%",
+                                                "%"
                                             )
                                     ) {
                                         navBackStackEntry?.arguments?.getString(
-                                            "query",
+                                            "query"
                                         )!!
                                     } else {
                                         URLDecoder.decode(
@@ -759,10 +764,7 @@ class MainActivity : ComponentActivity() {
                             playerConnection?.player ?: return@DisposableEffect onDispose { }
                         val listener =
                             object : Player.Listener {
-                                override fun onMediaItemTransition(
-                                    mediaItem: MediaItem?,
-                                    reason: Int,
-                                ) {
+                                override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                                     if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED &&
                                         mediaItem != null &&
                                         playerBottomSheetState.isDismissed
@@ -778,7 +780,11 @@ class MainActivity : ComponentActivity() {
                     }
 
                     var shouldShowTopBar by rememberSaveable { mutableStateOf(false) }
-                    val isDetailShown by navBackStackEntry?.savedStateHandle?.getStateFlow("is_detail_shown", false)?.collectAsState() ?: remember { mutableStateOf(false) }
+                    val isDetailShown by navBackStackEntry?.savedStateHandle?.getStateFlow(
+                        "is_detail_shown",
+                        false
+                    )?.collectAsState()
+                        ?: remember { mutableStateOf(false) }
 
                     LaunchedEffect(navBackStackEntry, isDetailShown) {
                         shouldShowTopBar =
@@ -824,19 +830,20 @@ class MainActivity : ComponentActivity() {
 
                     val baseBg = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer
                     val insetBg by remember(baseBg) {
-    derivedStateOf {
-        if (playerBottomSheetState.progress > 0f) Color.Transparent else baseBg
-    }
-}
+                        derivedStateOf {
+                            if (playerBottomSheetState.progress > 0f) Color.Transparent else baseBg
+                        }
+                    }
 
                     CompositionLocalProvider(
                         LocalDatabase provides database,
-                        LocalContentColor provides if (pureBlack) Color.White else contentColorFor(MaterialTheme.colorScheme.surface),
+                        LocalContentColor provides
+                            if (pureBlack) Color.White else contentColorFor(MaterialTheme.colorScheme.surface),
                         LocalPlayerConnection provides playerConnection,
                         LocalPlayerAwareWindowInsets provides playerAwareWindowInsets,
                         LocalDownloadUtil provides downloadUtil,
                         LocalShimmerTheme provides ShimmerTheme,
-                        LocalSyncUtils provides syncUtils,
+                        LocalSyncUtils provides syncUtils
                     ) {
                         Scaffold(
                             topBar = {
@@ -856,49 +863,63 @@ class MainActivity : ComponentActivity() {
                                             title = {
                                                 Text(
                                                     text = currentTitleRes?.let { stringResource(it) } ?: "",
-                                                    style = MaterialTheme.typography.titleLarge,
+                                                    style = MaterialTheme.typography.titleLarge
                                                 )
                                             },
                                             actions = {
-                                                val newsViewModel: com.music.vivi.viewmodels.NewsViewModel = hiltViewModel()
-                                                val hasUnreadNews by newsViewModel.hasUnreadNews.collectAsState(initial = false)
-                                                val (showNewsIcon) = rememberPreference(com.music.vivi.constants.ShowNewsIconKey, true)
-                                            val isUpdateAvailable = updateStatus is UpdateStatus.UpdateAvailable
+                                                val newsViewModel: com.music.vivi.viewmodels.NewsViewModel =
+                                                    hiltViewModel()
+                                                val hasUnreadNews by newsViewModel.hasUnreadNews.collectAsState(
+                                                    initial = false
+                                                )
+                                                val (showNewsIcon) = rememberPreference(
+                                                    com.music.vivi.constants.ShowNewsIconKey,
+                                                    true
+                                                )
+                                                val isUpdateAvailable = updateStatus is UpdateStatus.UpdateAvailable
 
-                                            if (isUpdateAvailable || showNewsIcon) {
-                                                IconButton(onClick = {
-                                                    if (isUpdateAvailable) {
-                                                        navController.navigate("settings/update")
-                                                    } else {
-                                                        navController.navigate("news")
-                                                    }
-                                                }) {
-                                                    Crossfade(
-                                                        targetState = isUpdateAvailable,
-                                                        animationSpec = tween(300),
-                                                        label = "icon_crossfade"
-                                                    ) { updateAvailable ->
-                                                        if (updateAvailable) {
-                                                            Icon(
-                                                                painter = painterResource(id = R.drawable.rocket_new_update),
-                                                                contentDescription = stringResource(R.string.update_available),
-                                                                tint = Color.Red,
-                                                                modifier = Modifier.size(24.dp)
-                                                            )
+                                                if (isUpdateAvailable || showNewsIcon) {
+                                                    IconButton(onClick = {
+                                                        if (isUpdateAvailable) {
+                                                            navController.navigate("settings/update")
                                                         } else {
-                                                            BadgedBox(badge = {
-                                                                if (hasUnreadNews) Badge()
-                                                            }) {
+                                                            navController.navigate("news")
+                                                        }
+                                                    }) {
+                                                        Crossfade(
+                                                            targetState = isUpdateAvailable,
+                                                            animationSpec = tween(300),
+                                                            label = "icon_crossfade"
+                                                        ) { updateAvailable ->
+                                                            if (updateAvailable) {
                                                                 Icon(
-                                                                    painter = painterResource(R.drawable.newspaper_vivi),
-                                                                    contentDescription = stringResource(R.string.changelog_title),
+                                                                    painter = painterResource(
+                                                                        id = R.drawable.rocket_new_update
+                                                                    ),
+                                                                    contentDescription = stringResource(
+                                                                        R.string.update_available
+                                                                    ),
+                                                                    tint = Color.Red,
                                                                     modifier = Modifier.size(24.dp)
                                                                 )
+                                                            } else {
+                                                                BadgedBox(badge = {
+                                                                    if (hasUnreadNews) Badge()
+                                                                }) {
+                                                                    Icon(
+                                                                        painter = painterResource(
+                                                                            R.drawable.newspaper_vivi
+                                                                        ),
+                                                                        contentDescription = stringResource(
+                                                                            R.string.changelog_title
+                                                                        ),
+                                                                        modifier = Modifier.size(24.dp)
+                                                                    )
+                                                                }
                                                             }
                                                         }
                                                     }
                                                 }
-                                            }
 
                                                 IconButton(onClick = { navController.navigate("history") }) {
                                                     Icon(
@@ -971,8 +992,7 @@ class MainActivity : ComponentActivity() {
                                     visible = active || inSearchScreen,
                                     enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(tween(150)),
                                     exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(tween(100))
-                                )
-                                 {
+                                ) {
                                     TopSearch(
                                         query = query,
                                         onQueryChange = onQueryChange,
@@ -986,7 +1006,7 @@ class MainActivity : ComponentActivity() {
                                                         SearchSource.LOCAL -> R.string.search_library
                                                         SearchSource.ONLINE -> R.string.search_yt_music
                                                     }
-                                                ),
+                                                )
                                             )
                                         },
                                         leadingIcon = {
@@ -994,7 +1014,10 @@ class MainActivity : ComponentActivity() {
                                                 onClick = {
                                                     when {
                                                         active -> onActiveChange(false)
-                                                        !navigationItems.fastAny { it.route == navBackStackEntry?.destination?.route } -> {
+                                                        !navigationItems.fastAny {
+                                                            it.route ==
+                                                                navBackStackEntry?.destination?.route
+                                                        } -> {
                                                             navController.navigateUp()
                                                         }
 
@@ -1004,24 +1027,30 @@ class MainActivity : ComponentActivity() {
                                                 onLongClick = {
                                                     when {
                                                         active -> {}
-                                                        !navigationItems.fastAny { it.route == navBackStackEntry?.destination?.route } -> {
+                                                        !navigationItems.fastAny {
+                                                            it.route ==
+                                                                navBackStackEntry?.destination?.route
+                                                        } -> {
                                                             navController.backToMain()
                                                         }
                                                         else -> {}
                                                     }
-                                                },
+                                                }
                                             ) {
                                                 Icon(
                                                     painterResource(
                                                         if (active ||
-                                                            !navigationItems.fastAny { it.route == navBackStackEntry?.destination?.route }
+                                                            !navigationItems.fastAny {
+                                                                it.route ==
+                                                                    navBackStackEntry?.destination?.route
+                                                            }
                                                         ) {
                                                             R.drawable.arrow_back
                                                         } else {
                                                             R.drawable.search
-                                                        },
+                                                        }
                                                     ),
-                                                    contentDescription = null,
+                                                    contentDescription = null
                                                 )
                                             }
                                         },
@@ -1035,29 +1064,35 @@ class MainActivity : ComponentActivity() {
                                                                     TextFieldValue(
                                                                         ""
                                                                     )
-                                                               )
-                                                            },
+                                                                )
+                                                            }
                                                         ) {
                                                             Icon(
                                                                 painter = painterResource(R.drawable.close),
-                                                                contentDescription = null,
+                                                                contentDescription = null
                                                             )
                                                         }
                                                     }
                                                     IconButton(
                                                         onClick = {
                                                             searchSource =
-                                                                if (searchSource == SearchSource.ONLINE) SearchSource.LOCAL else SearchSource.ONLINE
-                                                        },
+                                                                if (searchSource ==
+                                                                    SearchSource.ONLINE
+                                                                ) {
+                                                                    SearchSource.LOCAL
+                                                                } else {
+                                                                    SearchSource.ONLINE
+                                                                }
+                                                        }
                                                     ) {
                                                         Icon(
                                                             painter = painterResource(
                                                                 when (searchSource) {
                                                                     SearchSource.LOCAL -> R.drawable.library_music
                                                                     SearchSource.ONLINE -> R.drawable.language
-                                                                },
+                                                                }
                                                             ),
-                                                            contentDescription = null,
+                                                            contentDescription = null
                                                         )
                                                     }
                                                 }
@@ -1084,7 +1119,7 @@ class MainActivity : ComponentActivity() {
                                                     unfocusedContainerColor = Color.Transparent,
                                                     cursorColor = Color.White,
                                                     focusedIndicatorColor = Color.Transparent,
-                                                    unfocusedIndicatorColor = Color.Transparent,
+                                                    unfocusedIndicatorColor = Color.Transparent
                                                 )
                                             )
                                         } else {
@@ -1100,8 +1135,10 @@ class MainActivity : ComponentActivity() {
                                             modifier =
                                             Modifier
                                                 .fillMaxSize()
-                                                .padding(bottom = if (!playerBottomSheetState.isDismissed) MiniPlayerHeight else 0.dp)
-                                                .navigationBarsPadding(),
+                                                .padding(
+                                                    bottom = if (!playerBottomSheetState.isDismissed) MiniPlayerHeight else 0.dp
+                                                )
+                                                .navigationBarsPadding()
                                         ) { searchSource ->
                                             when (searchSource) {
                                                 SearchSource.LOCAL ->
@@ -1109,7 +1146,7 @@ class MainActivity : ComponentActivity() {
                                                         query = query.text,
                                                         navController = navController,
                                                         onDismiss = { onActiveChange(false) },
-                                                        pureBlack = pureBlack,
+                                                        pureBlack = pureBlack
                                                     )
 
                                                 SearchSource.ONLINE ->
@@ -1138,10 +1175,8 @@ class MainActivity : ComponentActivity() {
                                 }
                             },
 
-
                             bottomBar = {
-
-                                //now miniplayer wont show in updatescreen
+                                // now miniplayer wont show in updatescreen
                                 val shouldShowMiniPlayer = remember(navBackStackEntry) {
                                     val route = navBackStackEntry?.destination?.route
                                     route != "settings/update"
@@ -1149,8 +1184,7 @@ class MainActivity : ComponentActivity() {
 
                                 if (!showRail) {
                                     Box {
-
-                                        //now miniplayer wont show in updatescreen
+                                        // now miniplayer wont show in updatescreen
                                         if (shouldShowMiniPlayer) {
                                             BottomSheetPlayer(
                                                 state = playerBottomSheetState,
@@ -1166,20 +1200,21 @@ class MainActivity : ComponentActivity() {
                                                     if (navigationBarHeight == 0.dp) {
                                                         IntOffset(
                                                             x = 0,
-                                                            y = (bottomInset + NavigationBarHeight).roundToPx(),
+                                                            y = (bottomInset + NavigationBarHeight).roundToPx()
                                                         )
                                                     } else {
                                                         val slideOffset =
                                                             (bottomInset + NavigationBarHeight) *
-                                                                    playerBottomSheetState.progress.coerceIn(
-                                                                        0f,
-                                                                        1f,
-                                                                    )
+                                                                playerBottomSheetState.progress.coerceIn(
+                                                                    0f,
+                                                                    1f
+                                                                )
                                                         val hideOffset =
-                                                            (bottomInset + NavigationBarHeight) * (1 - navigationBarHeight / NavigationBarHeight)
+                                                            (bottomInset + NavigationBarHeight) *
+                                                                (1 - navigationBarHeight / NavigationBarHeight)
                                                         IntOffset(
                                                             x = 0,
-                                                            y = (slideOffset + hideOffset).roundToPx(),
+                                                            y = (slideOffset + hideOffset).roundToPx()
                                                         )
                                                     }
                                                 },
@@ -1188,7 +1223,11 @@ class MainActivity : ComponentActivity() {
                                         ) {
                                             navigationItems.fastForEach { screen ->
                                                 val isSelected =
-                                                    navBackStackEntry?.destination?.hierarchy?.any { it.route == screen.route } == true
+                                                    navBackStackEntry?.destination?.hierarchy?.any {
+                                                        it.route ==
+                                                            screen.route
+                                                    } ==
+                                                        true
 
                                                 NavigationBarItem(
                                                     selected = isSelected,
@@ -1197,7 +1236,7 @@ class MainActivity : ComponentActivity() {
                                                             painter = painterResource(
                                                                 id = if (isSelected) screen.iconIdActive else screen.iconIdInactive
                                                             ),
-                                                            contentDescription = null,
+                                                            contentDescription = null
                                                         )
                                                     },
                                                     label = {
@@ -1213,7 +1252,10 @@ class MainActivity : ComponentActivity() {
                                                         if (screen.route == Screens.Search.route) {
                                                             onActiveChange(true)
                                                         } else if (isSelected) {
-                                                            navController.currentBackStackEntry?.savedStateHandle?.set("scrollToTop", true)
+                                                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                                                "scrollToTop",
+                                                                true
+                                                            )
                                                             coroutineScope.launch {
                                                                 searchBarScrollBehavior.state.resetHeightOffset()
                                                             }
@@ -1226,7 +1268,7 @@ class MainActivity : ComponentActivity() {
                                                                 restoreState = true
                                                             }
                                                         }
-                                                    },
+                                                    }
                                                 )
                                             }
                                         }
@@ -1240,7 +1282,7 @@ class MainActivity : ComponentActivity() {
                                         )
                                     }
                                 } else {
-                                    //now miniplayer wont show in updatescreen
+                                    // now miniplayer wont show in updatescreen
 
                                     if (shouldShowMiniPlayer) {
                                         BottomSheetPlayer(
@@ -1272,14 +1314,21 @@ class MainActivity : ComponentActivity() {
 
                                         navigationItems.fastForEach { screen ->
                                             val isSelected =
-                                                navBackStackEntry?.destination?.hierarchy?.any { it.route == screen.route } == true
+                                                navBackStackEntry?.destination?.hierarchy?.any {
+                                                    it.route ==
+                                                        screen.route
+                                                } ==
+                                                    true
                                             NavigationRailItem(
                                                 selected = isSelected,
                                                 onClick = {
                                                     if (screen.route == Screens.Search.route) {
                                                         onActiveChange(true)
                                                     } else if (isSelected) {
-                                                        navController.currentBackStackEntry?.savedStateHandle?.set("scrollToTop", true)
+                                                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                                                            "scrollToTop",
+                                                            true
+                                                        )
                                                         coroutineScope.launch {
                                                             searchBarScrollBehavior.state.resetHeightOffset()
                                                         }
@@ -1289,7 +1338,7 @@ class MainActivity : ComponentActivity() {
                                                                 inclusive = false
                                                             }
                                                             launchSingleTop = true
-                                                            restoreState = true  // ✅ CHANGE TO true
+                                                            restoreState = true // ✅ CHANGE TO true
                                                         }
                                                     }
                                                 },
@@ -1298,9 +1347,9 @@ class MainActivity : ComponentActivity() {
                                                         painter = painterResource(
                                                             id = if (isSelected) screen.iconIdActive else screen.iconIdInactive
                                                         ),
-                                                        contentDescription = null,
+                                                        contentDescription = null
                                                     )
-                                                },
+                                                }
                                             )
                                         }
 
@@ -1325,10 +1374,11 @@ class MainActivity : ComponentActivity() {
                                                 it.route == initialState.destination.route
                                             }
 
-                                            if (currentRouteIndex == -1 || currentRouteIndex > previousRouteIndex)
+                                            if (currentRouteIndex == -1 || currentRouteIndex > previousRouteIndex) {
                                                 slideInHorizontally { it / 4 } + fadeIn(tween(150))
-                                            else
+                                            } else {
                                                 slideInHorizontally { -it / 4 } + fadeIn(tween(150))
+                                            }
                                         },
                                         // Exit Transition
                                         exitTransition = {
@@ -1339,10 +1389,11 @@ class MainActivity : ComponentActivity() {
                                                 it.route == targetState.destination.route
                                             }
 
-                                            if (targetRouteIndex == -1 || targetRouteIndex > currentRouteIndex)
+                                            if (targetRouteIndex == -1 || targetRouteIndex > currentRouteIndex) {
                                                 slideOutHorizontally { -it / 4 } + fadeOut(tween(100))
-                                            else
+                                            } else {
                                                 slideOutHorizontally { it / 4 } + fadeOut(tween(100))
+                                            }
                                         },
                                         // Pop Enter Transition
                                         popEnterTransition = {
@@ -1353,10 +1404,11 @@ class MainActivity : ComponentActivity() {
                                                 it.route == initialState.destination.route
                                             }
 
-                                            if (previousRouteIndex != -1 && previousRouteIndex < currentRouteIndex)
+                                            if (previousRouteIndex != -1 && previousRouteIndex < currentRouteIndex) {
                                                 slideInHorizontally { it / 4 } + fadeIn(tween(150))
-                                            else
+                                            } else {
                                                 slideInHorizontally { -it / 4 } + fadeIn(tween(150))
+                                            }
                                         },
                                         // Pop Exit Transition
                                         popExitTransition = {
@@ -1367,13 +1419,17 @@ class MainActivity : ComponentActivity() {
                                                 it.route == targetState.destination.route
                                             }
 
-                                            if (currentRouteIndex != -1 && currentRouteIndex < targetRouteIndex)
+                                            if (currentRouteIndex != -1 && currentRouteIndex < targetRouteIndex) {
                                                 slideOutHorizontally { -it / 4 } + fadeOut(tween(100))
-                                            else
+                                            } else {
                                                 slideOutHorizontally { it / 4 } + fadeOut(tween(100))
+                                            }
                                         },
                                         modifier = Modifier.nestedScroll(
-                                            if (navigationItems.fastAny { it.route == navBackStackEntry?.destination?.route } ||
+                                            if (navigationItems.fastAny {
+                                                    it.route ==
+                                                        navBackStackEntry?.destination?.route
+                                                } ||
                                                 inSearchScreen
                                             ) {
                                                 searchBarScrollBehavior.nestedScrollConnection
@@ -1416,21 +1472,21 @@ class MainActivity : ComponentActivity() {
                             playerConnection?.let {
                                 Dialog(
                                     onDismissRequest = { sharedSong = null },
-                                    properties = DialogProperties(usePlatformDefaultWidth = false),
+                                    properties = DialogProperties(usePlatformDefaultWidth = false)
                                 ) {
                                     Surface(
                                         modifier = Modifier.padding(24.dp),
                                         shape = RoundedCornerShape(16.dp),
                                         color = AlertDialogDefaults.containerColor,
-                                        tonalElevation = AlertDialogDefaults.TonalElevation,
+                                        tonalElevation = AlertDialogDefaults.TonalElevation
                                     ) {
                                         Column(
-                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            horizontalAlignment = Alignment.CenterHorizontally
                                         ) {
                                             YouTubeSongMenu(
                                                 song = song,
                                                 navController = navController,
-                                                onDismiss = { sharedSong = null },
+                                                onDismiss = { sharedSong = null }
                                             )
                                         }
                                     }

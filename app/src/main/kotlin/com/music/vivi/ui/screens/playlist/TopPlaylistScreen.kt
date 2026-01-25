@@ -1,5 +1,6 @@
 package com.music.vivi.ui.screens.playlist
 
+import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -9,19 +10,27 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -30,6 +39,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -38,7 +49,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,41 +61,30 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastSumBy
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.ButtonGroupDefaults
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.union
-import androidx.compose.foundation.shape.CircleShape
-import coil3.compose.AsyncImage
-import android.content.Intent
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
 import com.music.vivi.LocalDownloadUtil
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.LocalPlayerConnection
@@ -100,9 +99,9 @@ import com.music.vivi.playback.queues.ListQueue
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.EmptyPlaceholder
 import com.music.vivi.ui.component.IconButton
+import com.music.vivi.ui.component.LibrarySongListItem
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.RoundedCheckbox
-import com.music.vivi.ui.component.LibrarySongListItem
 import com.music.vivi.ui.component.SortHeader
 import com.music.vivi.ui.menu.AutoPlaylistMenu
 import com.music.vivi.ui.menu.SelectionSongMenu
@@ -111,7 +110,10 @@ import com.music.vivi.ui.utils.ItemWrapper
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.viewmodels.TopPlaylistViewModel
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class
+@OptIn(
+    ExperimentalFoundationApi::class,
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class
 )
 @Composable
 fun TopPlaylistScreen(
@@ -184,12 +186,12 @@ fun TopPlaylistScreen(
         if (songs.isEmpty()) {
             Download.STATE_STOPPED
         } else {
-             if (songs.all { downloads[it.song.id]?.state == Download.STATE_COMPLETED }) {
+            if (songs.all { downloads[it.song.id]?.state == Download.STATE_COMPLETED }) {
                 Download.STATE_COMPLETED
             } else if (songs.all {
                     downloads[it.song.id]?.state == Download.STATE_QUEUED ||
-                            downloads[it.song.id]?.state == Download.STATE_DOWNLOADING ||
-                            downloads[it.song.id]?.state == Download.STATE_COMPLETED
+                        downloads[it.song.id]?.state == Download.STATE_DOWNLOADING ||
+                        downloads[it.song.id]?.state == Download.STATE_COMPLETED
                 }
             ) {
                 Download.STATE_DOWNLOADING
@@ -208,12 +210,12 @@ fun TopPlaylistScreen(
                 Text(
                     text = stringResource(R.string.remove_download_playlist_confirm, stringResource(R.string.my_top)),
                     style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(horizontal = 18.dp),
+                    modifier = Modifier.padding(horizontal = 18.dp)
                 )
             },
             buttons = {
                 TextButton(
-                    onClick = { showRemoveDownloadDialog = false },
+                    onClick = { showRemoveDownloadDialog = false }
                 ) {
                     Text(text = stringResource(android.R.string.cancel))
                 }
@@ -226,23 +228,26 @@ fun TopPlaylistScreen(
                                 context,
                                 ExoDownloadService::class.java,
                                 song.song.id,
-                                false,
+                                false
                             )
                         }
-                    },
+                    }
                 ) {
                     Text(text = stringResource(android.R.string.ok))
                 }
-            },
+            }
         )
     }
 
     val filteredSongs = remember(wrappedSongs, query) {
-        if (query.text.isEmpty()) wrappedSongs
-        else wrappedSongs.filter { wrapper ->
-            val song = wrapper.item
-            song.song.title.contains(query.text, true) ||
+        if (query.text.isEmpty()) {
+            wrappedSongs
+        } else {
+            wrappedSongs.filter { wrapper ->
+                val song = wrapper.item
+                song.song.title.contains(query.text, true) ||
                     song.artists.any { it.name.contains(query.text, true) }
+            }
         }
     }
 
@@ -259,18 +264,18 @@ fun TopPlaylistScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             state = state,
-            contentPadding = LocalPlayerAwareWindowInsets.current.union(WindowInsets.ime).asPaddingValues(),
+            contentPadding = LocalPlayerAwareWindowInsets.current.union(WindowInsets.ime).asPaddingValues()
         ) {
             if (songs.isEmpty()) {
                 item {
                     EmptyPlaceholder(
                         icon = R.drawable.music_note,
-                        text = stringResource(R.string.playlist_is_empty),
+                        text = stringResource(R.string.playlist_is_empty)
                     )
                 }
-            } else {item {
-                if (!isSearching) {
-
+            } else {
+                item {
+                    if (!isSearching) {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -336,7 +341,7 @@ fun TopPlaylistScreen(
                                 Surface(
                                     onClick = {
                                         playerConnection.addToQueue(
-                                            items = songs.map { it.toMediaItem() },
+                                            items = songs.map { it.toMediaItem() }
                                         )
                                     },
                                     shape = RoundedCornerShape(24.dp),
@@ -369,8 +374,8 @@ fun TopPlaylistScreen(
                                         playerConnection.playQueue(
                                             ListQueue(
                                                 title = "$playlistTitle $maxSize",
-                                                items = songs.map { it.toMediaItem() },
-                                            ),
+                                                items = songs.map { it.toMediaItem() }
+                                            )
                                         )
                                     },
                                     shape = RoundedCornerShape(24.dp),
@@ -453,7 +458,9 @@ fun TopPlaylistScreen(
                                     val minutes = (likeLength % 3600) / 60
 
                                     if (hours > 0 && minutes > 0) {
-                                        append(" • $hours hour${if (hours > 1) "s" else ""} $minutes minute${if (minutes > 1) "s" else ""}")
+                                        append(
+                                            " • $hours hour${if (hours > 1) "s" else ""} $minutes minute${if (minutes > 1) "s" else ""}"
+                                        )
                                     } else if (hours > 0) {
                                         append(" • $hours hour${if (hours > 1) "s" else ""}")
                                     } else {
@@ -486,11 +493,13 @@ fun TopPlaylistScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 32.dp),
-                                horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+                                horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
                             ) {
                                 // Download Button
                                 ToggleButton(
-                                    checked = downloadState == Download.STATE_COMPLETED || downloadState == Download.STATE_DOWNLOADING,
+                                    checked =
+                                    downloadState == Download.STATE_COMPLETED ||
+                                        downloadState == Download.STATE_DOWNLOADING,
                                     onCheckedChange = {
                                         when (downloadState) {
                                             Download.STATE_COMPLETED -> {
@@ -502,7 +511,7 @@ fun TopPlaylistScreen(
                                                         context,
                                                         ExoDownloadService::class.java,
                                                         song.song.id,
-                                                        false,
+                                                        false
                                                     )
                                                 }
                                             }
@@ -521,14 +530,14 @@ fun TopPlaylistScreen(
                                                         context,
                                                         ExoDownloadService::class.java,
                                                         downloadRequest,
-                                                        false,
+                                                        false
                                                     )
                                                 }
                                             }
                                         }
                                     },
                                     modifier = Modifier.weight(1f).semantics { role = Role.Button },
-                                    shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
+                                    shapes = ButtonGroupDefaults.connectedLeadingButtonShapes()
                                 ) {
                                     when (downloadState) {
                                         Download.STATE_COMPLETED -> {
@@ -571,12 +580,12 @@ fun TopPlaylistScreen(
                                         playerConnection.playQueue(
                                             ListQueue(
                                                 title = "$playlistTitle $maxSize",
-                                                items = songs.shuffled().map { it.toMediaItem() },
-                                            ),
+                                                items = songs.shuffled().map { it.toMediaItem() }
+                                            )
                                         )
                                     },
                                     modifier = Modifier.weight(1f).semantics { role = Role.Button },
-                                    shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
+                                    shapes = ButtonGroupDefaults.connectedTrailingButtonShapes()
                                 ) {
                                     Icon(
                                         painter = painterResource(R.drawable.shuffle),
@@ -587,7 +596,6 @@ fun TopPlaylistScreen(
                                     Text("Shuffle", style = MaterialTheme.typography.labelMedium)
                                 }
                             }
-
                         }
                     }
                 }
@@ -595,7 +603,7 @@ fun TopPlaylistScreen(
                 item(key = "songs_header") {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp),
+                        modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp)
                     ) {
                         SortHeader(
                             sortType = topPeriod,
@@ -617,7 +625,7 @@ fun TopPlaylistScreen(
 
                 itemsIndexed(
                     items = filteredSongs,
-                    key = { _, song -> song.item.song.id },
+                    key = { _, song -> song.item.song.id }
                 ) { index, songWrapper ->
                     val isFirst = index == 0
                     val isLast = index == filteredSongs.size - 1
@@ -642,8 +650,11 @@ fun TopPlaylistScreen(
                                     )
                                 )
                                 .background(
-                                    if (isActive) MaterialTheme.colorScheme.secondaryContainer
-                                    else MaterialTheme.colorScheme.surfaceContainer
+                                    if (isActive) {
+                                        MaterialTheme.colorScheme.secondaryContainer
+                                    } else {
+                                        MaterialTheme.colorScheme.surfaceContainer
+                                    }
                                 )
                         ) {
                             LibrarySongListItem(
@@ -659,14 +670,14 @@ fun TopPlaylistScreen(
                                                 SongMenu(
                                                     originalSong = songWrapper.item,
                                                     navController = navController,
-                                                    onDismiss = menuState::dismiss,
+                                                    onDismiss = menuState::dismiss
                                                 )
                                             }
-                                        },
+                                        }
                                     ) {
                                         Icon(
                                             painter = painterResource(R.drawable.more_vert),
-                                            contentDescription = null,
+                                            contentDescription = null
                                         )
                                     }
                                 },
@@ -685,8 +696,11 @@ fun TopPlaylistScreen(
                                                         ListQueue(
                                                             title = "$playlistTitle $maxSize",
                                                             items = songs.map { it.toMediaItem() },
-                                                            startIndex = songs.indexOfFirst { it.id == songWrapper.item.id }
-                                                        ),
+                                                            startIndex = songs.indexOfFirst {
+                                                                it.id ==
+                                                                    songWrapper.item.id
+                                                            }
+                                                        )
                                                     )
                                                 }
                                             } else {
@@ -700,8 +714,8 @@ fun TopPlaylistScreen(
                                             }
                                             wrappedSongs.forEach { it.isSelected = false }
                                             songWrapper.isSelected = true
-                                        },
-                                    ),
+                                        }
+                                    )
                             )
                         }
 
@@ -744,7 +758,7 @@ fun TopPlaylistScreen(
                                 unfocusedContainerColor = Color.Transparent,
                                 focusedIndicatorColor = Color.Transparent,
                                 unfocusedIndicatorColor = Color.Transparent,
-                                disabledIndicatorColor = Color.Transparent,
+                                disabledIndicatorColor = Color.Transparent
                             ),
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -812,10 +826,10 @@ fun TopPlaylistScreen(
                                     songSelection = wrappedSongs.filter { it.isSelected }
                                         .map { it.item },
                                     onDismiss = menuState::dismiss,
-                                    clearAction = { selection = false },
+                                    clearAction = { selection = false }
                                 )
                             }
-                        },
+                        }
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.more_vert),
@@ -851,7 +865,7 @@ fun TopPlaylistScreen(
                                                         context,
                                                         ExoDownloadService::class.java,
                                                         downloadRequest,
-                                                        false,
+                                                        false
                                                     )
                                                 }
                                             }
@@ -878,7 +892,14 @@ fun TopPlaylistScreen(
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = if (transparentAppBar && !selection && !isSearching) Color.Transparent else MaterialTheme.colorScheme.surface,
+                containerColor = if (transparentAppBar &&
+                    !selection &&
+                    !isSearching
+                ) {
+                    Color.Transparent
+                } else {
+                    MaterialTheme.colorScheme.surface
+                }
             ),
             scrollBehavior = scrollBehavior
         )

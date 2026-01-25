@@ -33,14 +33,10 @@ public object LyricsParser {
         val kyrgyz: Boolean = true,
         val macedonian: Boolean = true,
         val devanagari: Boolean = true,
-        val cyrillicByLine: Boolean = false
+        val cyrillicByLine: Boolean = false,
     )
 
-    public fun parse(
-        lyrics: String?,
-        scope: CoroutineScope,
-        options: RomanizationOptions
-    ): List<LyricsEntry> {
+    public fun parse(lyrics: String?, scope: CoroutineScope, options: RomanizationOptions): List<LyricsEntry> {
         if (lyrics == null || lyrics == LYRICS_NOT_FOUND) {
             return emptyList()
         }

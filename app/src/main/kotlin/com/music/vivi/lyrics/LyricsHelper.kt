@@ -9,20 +9,18 @@ import com.music.vivi.constants.PreferredLyricsProviderKey
 import com.music.vivi.db.entities.LyricsEntity.Companion.LYRICS_NOT_FOUND
 import com.music.vivi.extensions.toEnum
 import com.music.vivi.models.MediaMetadata
+import com.music.vivi.utils.NetworkConnectivityObserver
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.reportException
-import com.music.vivi.utils.NetworkConnectivityObserver
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 
 class LyricsHelper
@@ -97,20 +95,20 @@ constructor(
         } catch (e: Exception) {
             true
         }
-        
+
         if (!isNetworkAvailable) {
             return LYRICS_NOT_FOUND
         }
 
         val providers = getOrderedProviders()
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-        
+
         // Concurrent fetching with "race" logic for synced lyrics
         val lyricsChannel = kotlinx.coroutines.channels.Channel<String>(kotlinx.coroutines.channels.Channel.UNLIMITED)
         val activeJobs = mutableListOf<Job>()
-        
+
         val validProviders = providers.filter { it.isEnabled(context) }
-        
+
         if (validProviders.isEmpty()) {
             return LYRICS_NOT_FOUND
         }
@@ -122,9 +120,9 @@ constructor(
                         mediaMetadata.id,
                         mediaMetadata.title,
                         mediaMetadata.artists.joinToString { it.name },
-                        mediaMetadata.duration,
+                        mediaMetadata.duration
                     )
-                    
+
                     val lyrics = result.getOrNull()
                     if (!lyrics.isNullOrBlank()) {
                         lyricsChannel.send(lyrics)
@@ -143,7 +141,7 @@ constructor(
         }
 
         var plainLyrics: String? = null
-        
+
         try {
             for (lyrics in lyricsChannel) {
                 // If we find synced lyrics, return immediately
@@ -163,7 +161,6 @@ constructor(
         scope.cancel()
         return plainLyrics ?: LYRICS_NOT_FOUND
     }
-
 
     suspend fun getAllLyrics(
         mediaId: String,
@@ -199,7 +196,7 @@ constructor(
             // If network check fails, try to proceed anyway
             true
         }
-        
+
         if (!isNetworkAvailable) {
             // Still try to proceed in case of false negative
             return
@@ -238,7 +235,4 @@ constructor(
     }
 }
 
-data class LyricsResult(
-    val providerName: String,
-    val lyrics: String,
-)
+data class LyricsResult(val providerName: String, val lyrics: String)

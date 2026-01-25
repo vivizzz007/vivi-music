@@ -5,8 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.music.innertube.YouTube
 import com.music.innertube.pages.HistoryPage
 import com.music.vivi.constants.HistorySource
-import com.music.vivi.utils.reportException
 import com.music.vivi.db.MusicDatabase
+import com.music.vivi.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,9 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 public class HistoryViewModel
 @Inject
-constructor(
-    public val database: MusicDatabase,
-) : ViewModel() {
+constructor(public val database: MusicDatabase) : ViewModel() {
     public var historySource: MutableStateFlow<HistorySource> = MutableStateFlow(HistorySource.LOCAL)
 
     private val today = LocalDate.now()
@@ -58,7 +56,7 @@ constructor(
                                 DateAgo.LastWeek -> 3L
                                 is DateAgo.Other -> ChronoUnit.DAYS.between(dateAgo.date, today)
                             }
-                        },
+                        }
                     ).mapValues { entry ->
                         entry.value.distinctBy { it.song.id }
                     }
@@ -88,9 +86,7 @@ public sealed class DateAgo {
 
     public data object LastWeek : DateAgo()
 
-    public class Other(
-        public val date: LocalDate,
-    ) : DateAgo() {
+    public class Other(public val date: LocalDate) : DateAgo() {
         override fun equals(other: Any?): Boolean {
             if (other is Other) return date == other.date
             return super.equals(other)

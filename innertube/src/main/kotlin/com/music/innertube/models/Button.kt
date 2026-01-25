@@ -3,9 +3,7 @@ package com.music.innertube.models
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Button(
-    val buttonRenderer: ButtonRenderer,
-) {
+data class Button(val buttonRenderer: ButtonRenderer) {
     @Serializable
     data class ButtonRenderer(
         val text: Runs,

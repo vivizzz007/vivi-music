@@ -14,16 +14,11 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -31,7 +26,6 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -41,12 +35,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BasicAlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -73,10 +63,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -86,9 +74,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
@@ -99,12 +85,12 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.palette.graphics.Palette
 import coil3.ImageLoader
 import coil3.request.ImageRequest
-import coil3.request.allowHardware
 import coil3.toBitmap
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.LyricsClickKey
+import com.music.vivi.constants.LyricsLineSpacingKey
 import com.music.vivi.constants.LyricsRomanizeBelarusianKey
 import com.music.vivi.constants.LyricsRomanizeBulgarianKey
 import com.music.vivi.constants.LyricsRomanizeCyrillicByLineKey
@@ -112,21 +98,19 @@ import com.music.vivi.constants.LyricsRomanizeDevanagariKey
 import com.music.vivi.constants.LyricsRomanizeJapaneseKey
 import com.music.vivi.constants.LyricsRomanizeKoreanKey
 import com.music.vivi.constants.LyricsRomanizeKyrgyzKey
+import com.music.vivi.constants.LyricsRomanizeMacedonianKey
 import com.music.vivi.constants.LyricsRomanizeRussianKey
 import com.music.vivi.constants.LyricsRomanizeSerbianKey
 import com.music.vivi.constants.LyricsRomanizeUkrainianKey
-import com.music.vivi.constants.LyricsRomanizeMacedonianKey
 import com.music.vivi.constants.LyricsScrollKey
 import com.music.vivi.constants.LyricsTextPositionKey
 import com.music.vivi.constants.LyricsTextSizeKey
-import com.music.vivi.constants.LyricsLineSpacingKey
 import com.music.vivi.constants.LyricsWordForWordKey
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PlayerBackgroundStyleKey
 import com.music.vivi.db.entities.LyricsEntity.Companion.LYRICS_NOT_FOUND
-import com.music.vivi.lyrics.LyricsEntry
-import com.music.vivi.lyrics.LyricsUtils.findCurrentLineIndex
 import com.music.vivi.lyrics.LyricsParser
+import com.music.vivi.lyrics.LyricsUtils.findCurrentLineIndex
 import com.music.vivi.ui.component.lyrics.LyricsActionButtons
 import com.music.vivi.ui.component.lyrics.LyricsColorPickerDialog
 import com.music.vivi.ui.component.lyrics.LyricsShareDialog
@@ -154,7 +138,7 @@ public fun Lyrics(
     playingPosition: Long? = null,
     showResyncButton: Boolean = true,
     resyncTrigger: Int = 0,
-    onAutoScrollChange: (Boolean) -> Unit = {}
+    onAutoScrollChange: (Boolean) -> Unit = {},
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val menuState = LocalMenuState.current
@@ -246,10 +230,11 @@ public fun Lyrics(
     val textColor = when (playerBackground) {
         PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.secondary
         else ->
-            if (useDarkTheme)
+            if (useDarkTheme) {
                 MaterialTheme.colorScheme.onSurface
-            else
+            } else {
                 MaterialTheme.colorScheme.onPrimary
+            }
     }
 
     var currentLineIndex by remember {
@@ -318,7 +303,8 @@ public fun Lyrics(
         isAnimating = true
         try {
             val itemInfo = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
-            val viewportHeight = lazyListState.layoutInfo.viewportEndOffset - lazyListState.layoutInfo.viewportStartOffset
+            val viewportHeight =
+                lazyListState.layoutInfo.viewportEndOffset - lazyListState.layoutInfo.viewportStartOffset
 
             if (itemInfo != null) {
                 val targetTopPosition = if (lyricsVerticalPosition == LyricsVerticalPosition.CENTER) {
@@ -375,7 +361,6 @@ public fun Lyrics(
         }
     }
 
-
     // Handle back button press - close selection mode instead of exiting screen
     BackHandler(enabled = isSelectionModeActive) {
         isSelectionModeActive = false
@@ -408,7 +393,7 @@ public fun Lyrics(
                     initialScrollDone = false
                 }
                 isAppMinimized = true
-            } else if(event == Lifecycle.Event.ON_START) {
+            } else if (event == Lifecycle.Event.ON_START) {
                 isAppMinimized = false
             }
         }
@@ -424,8 +409,6 @@ public fun Lyrics(
         selectedIndices.clear()
         isAutoScrollActive = true
     }
-
-
 
     // Use rememberUpdatedState to ensure the latest playingPosition is used inside the loop
     val currentPlayingPosition by androidx.compose.runtime.rememberUpdatedState(playingPosition)
@@ -457,8 +440,6 @@ public fun Lyrics(
         }
     }
 
-
-
     LaunchedEffect(currentLineIndex, lastPreviewTime, initialScrollDone, isAutoScrollActive) {
         if (!isSynced) return@LaunchedEffect
 
@@ -483,7 +464,7 @@ public fun Lyrics(
                 }
             }
         }
-        if(currentLineIndex > 0) {
+        if (currentLineIndex > 0) {
             shouldScrollToFirstLine = true
         }
         previousLineIndex = currentLineIndex
@@ -495,7 +476,6 @@ public fun Lyrics(
             .fillMaxSize()
             .padding(bottom = 12.dp)
     ) {
-
         if (lyrics == LYRICS_NOT_FOUND) {
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -519,31 +499,33 @@ public fun Lyrics(
                     .asPaddingValues(),
                 modifier = Modifier
                     .fadingEdge(vertical = 64.dp)
-                    .nestedScroll(remember {
-                        object : NestedScrollConnection {
-                            override fun onPostScroll(
-                                consumed: Offset,
-                                available: Offset,
-                                source: NestedScrollSource
-                            ): Offset {
-                                if (source == NestedScrollSource.UserInput && !isSelectionModeActive && (consumed.y != 0f || available.y != 0f)) {
-                                    isAutoScrollActive = false
+                    .nestedScroll(
+                        remember {
+                            object : NestedScrollConnection {
+                                override fun onPostScroll(
+                                    consumed: Offset,
+                                    available: Offset,
+                                    source: NestedScrollSource,
+                                ): Offset {
+                                    if (source == NestedScrollSource.UserInput &&
+                                        !isSelectionModeActive &&
+                                        (consumed.y != 0f || available.y != 0f)
+                                    ) {
+                                        isAutoScrollActive = false
+                                    }
+                                    return super.onPostScroll(consumed, available, source)
                                 }
-                                return super.onPostScroll(consumed, available, source)
-                            }
 
-                            override suspend fun onPostFling(
-                                consumed: Velocity,
-                                available: Velocity
-                            ): Velocity {
-                                // Fling is always user input initiated in this context
-                                if (!isSelectionModeActive) {
-                                    isAutoScrollActive = false
+                                override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+                                    // Fling is always user input initiated in this context
+                                    if (!isSelectionModeActive) {
+                                        isAutoScrollActive = false
+                                    }
+                                    return super.onPostFling(consumed, available)
                                 }
-                                return super.onPostFling(consumed, available)
                             }
                         }
-                    })
+                    )
             ) {
                 val displayedCurrentLineIndex =
                     if (isSeeking || isSelectionModeActive) deferredCurrentLineIndex else currentLineIndex
@@ -575,16 +557,18 @@ public fun Lyrics(
                             distanceFromCurrent = kotlin.math.abs(index - displayedCurrentLineIndex),
                             lyricsTextPosition = lyricsTextPosition,
                             textColor = textColor,
-                            showRomanized = currentSong?.romanizeLyrics == true && (
+                            showRomanized = currentSong?.romanizeLyrics == true &&
+                                (
                                     romanizeJapaneseLyrics ||
-                                            romanizeKoreanLyrics ||
-                                            romanizeRussianLyrics ||
-                                            romanizeUkrainianLyrics ||
-                                            romanizeSerbianLyrics ||
-                                            romanizeBulgarianLyrics ||
-                                            romanizeBelarusianLyrics ||
-                                            romanizeKyrgyzLyrics ||
-                                            romanizeMacedonianLyrics),
+                                        romanizeKoreanLyrics ||
+                                        romanizeRussianLyrics ||
+                                        romanizeUkrainianLyrics ||
+                                        romanizeSerbianLyrics ||
+                                        romanizeBulgarianLyrics ||
+                                        romanizeBelarusianLyrics ||
+                                        romanizeKyrgyzLyrics ||
+                                        romanizeMacedonianLyrics
+                                    ),
                             textSize = lyricsTextSize,
                             lineSpacing = lyricsLineSpacing,
                             isWordForWord = lyricsWordForWord,
@@ -608,10 +592,16 @@ public fun Lyrics(
                                     playerConnection.player.seekTo(item.time)
                                     scope.launch {
                                         lazyListState.scrollToItem(index = index)
-                                        val itemInfo = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == index }
+                                        val itemInfo = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull {
+                                            it.index ==
+                                                index
+                                        }
                                         if (itemInfo != null) {
-                                            val viewportHeight = lazyListState.layoutInfo.viewportEndOffset - lazyListState.layoutInfo.viewportStartOffset
-                                            val center = lazyListState.layoutInfo.viewportStartOffset + (viewportHeight / 2)
+                                            val viewportHeight =
+                                                lazyListState.layoutInfo.viewportEndOffset -
+                                                    lazyListState.layoutInfo.viewportStartOffset
+                                            val center =
+                                                lazyListState.layoutInfo.viewportStartOffset + (viewportHeight / 2)
                                             val itemCenter = itemInfo.offset + itemInfo.size / 2
                                             val offset = itemCenter - center
                                             if (kotlin.math.abs(offset) > 10) {
@@ -642,8 +632,6 @@ public fun Lyrics(
                 }
             }
 
-
-
             // Action buttons: Close and Share buttons grouped together
             if (isSelectionModeActive) {
                 mediaMetadata?.let { metadata ->
@@ -655,7 +643,7 @@ public fun Lyrics(
                             selectedIndices.clear()
                         },
                         onShare = {
-                             if (selectedIndices.isNotEmpty()) {
+                            if (selectedIndices.isNotEmpty()) {
                                 val sortedIndices = selectedIndices.sorted()
                                 val selectedLyricsText = sortedIndices
                                     .mapNotNull { lines.getOrNull(it)?.text }
@@ -682,7 +670,6 @@ public fun Lyrics(
             // Removed the more button from bottom - it's now in the top header
         }
 
-
         if (showProgressDialog) {
             BasicAlertDialog(onDismissRequest = { /* Don't dismiss */ }) {
                 Card( // Use Card for better styling
@@ -692,7 +679,8 @@ public fun Lyrics(
                 ) {
                     Box(modifier = Modifier.padding(32.dp)) {
                         Text(
-                            text = stringResource(R.string.generating_image) + "\n" + stringResource(R.string.please_wait),
+                            text =
+                            stringResource(R.string.generating_image) + "\n" + stringResource(R.string.please_wait),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -766,9 +754,9 @@ public fun Lyrics(
                     showShareDialog = false
                 },
                 onShareAsImage = {
-                     shareDialogData = Triple(lyricsText, songTitle, artists)
-                     showColorPickerDialog = true
-                     showShareDialog = false
+                    shareDialogData = Triple(lyricsText, songTitle, artists)
+                    showColorPickerDialog = true
+                    showShareDialog = false
                 }
             )
         }
@@ -834,7 +822,7 @@ public fun Lyrics(
                                 height = (screenHeight * density.density).toInt(),
                                 backgroundColor = previewBackgroundColor.toArgb(),
                                 textColor = previewTextColor.toArgb(),
-                                secondaryTextColor = previewSecondaryTextColor.toArgb(),
+                                secondaryTextColor = previewSecondaryTextColor.toArgb()
                             )
                             val timestamp = System.currentTimeMillis()
                             val filename = "lyrics_$timestamp"
@@ -844,9 +832,15 @@ public fun Lyrics(
                                 putExtra(Intent.EXTRA_STREAM, uri)
                                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                             }
-                            context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.share_lyrics)))
+                            context.startActivity(
+                                Intent.createChooser(shareIntent, context.getString(R.string.share_lyrics))
+                            )
                         } catch (e: Exception) {
-                            Toast.makeText(context, context.getString(R.string.failed_to_create_image, e.message ?: ""), Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.failed_to_create_image, e.message ?: ""),
+                                Toast.LENGTH_SHORT
+                            ).show()
                         } finally {
                             showProgressDialog = false
                         }

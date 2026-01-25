@@ -1,19 +1,18 @@
 package com.music.vivi.di
 
+import android.content.Context
 import com.music.vivi.utils.NetworkConnectivityObserver
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import android.content.Context
-import javax.inject.Singleton
 import okhttp3.OkHttpClient
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
-
 
     @Provides
     @Singleton
@@ -26,29 +25,28 @@ object NetworkModule {
             .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
             .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
             .writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
-            .addInterceptor(okhttp3.logging.HttpLoggingInterceptor().apply {
-                level = if (com.music.vivi.BuildConfig.DEBUG) {
-                    okhttp3.logging.HttpLoggingInterceptor.Level.BODY
-                } else {
-                    okhttp3.logging.HttpLoggingInterceptor.Level.NONE
+            .addInterceptor(
+                okhttp3.logging.HttpLoggingInterceptor().apply {
+                    level = if (com.music.vivi.BuildConfig.DEBUG) {
+                        okhttp3.logging.HttpLoggingInterceptor.Level.BODY
+                    } else {
+                        okhttp3.logging.HttpLoggingInterceptor.Level.NONE
+                    }
                 }
-            })
+            )
             .build()
     }
 
     @Provides
     @Singleton
-    fun provideRetrofit(okHttpClient: OkHttpClient): retrofit2.Retrofit {
-        return retrofit2.Retrofit.Builder()
-            .baseUrl("https://api.github.com/") // Base URL can be generic or specific, using GitHub for Updater
-            .client(okHttpClient)
-            .addConverterFactory(retrofit2.converter.gson.GsonConverterFactory.create())
-            .build()
-    }
+    fun provideRetrofit(okHttpClient: OkHttpClient): retrofit2.Retrofit = retrofit2.Retrofit.Builder()
+        .baseUrl("https://api.github.com/") // Base URL can be generic or specific, using GitHub for Updater
+        .client(okHttpClient)
+        .addConverterFactory(retrofit2.converter.gson.GsonConverterFactory.create())
+        .build()
 
     @Provides
     @Singleton
-    fun provideNetworkConnectivityObserver(@ApplicationContext context: Context): NetworkConnectivityObserver {
-        return NetworkConnectivityObserver(context)
-    }
+    fun provideNetworkConnectivityObserver(@ApplicationContext context: Context): NetworkConnectivityObserver =
+        NetworkConnectivityObserver(context)
 }

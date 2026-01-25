@@ -17,7 +17,7 @@ fun ModernSwitch(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     enabled: Boolean = true,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Switch(
         checked = checked,
@@ -38,17 +38,59 @@ fun ModernSwitch(
                     imageVector = Icons.Default.Close,
                     contentDescription = null,
                     modifier = Modifier.size(16.dp),
-                    tint = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                    tint = if (enabled) {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                            alpha = 0.38f
+                        )
+                    }
                 )
             }
         },
         colors = SwitchDefaults.colors(
-            checkedThumbColor = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f),
-            checkedTrackColor = if (enabled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.12f),
-            uncheckedThumbColor = if (enabled) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f),
-            uncheckedTrackColor = if (enabled) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.12f),
-            checkedIconColor = if (enabled) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f),
-            uncheckedIconColor = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+            checkedThumbColor = if (enabled) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                    alpha = 0.38f
+                )
+            },
+            checkedTrackColor = if (enabled) {
+                MaterialTheme.colorScheme.primaryContainer
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                    alpha = 0.12f
+                )
+            },
+            uncheckedThumbColor = if (enabled) {
+                MaterialTheme.colorScheme.surface
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                    alpha = 0.38f
+                )
+            },
+            uncheckedTrackColor = if (enabled) {
+                MaterialTheme.colorScheme.surfaceVariant
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                    alpha = 0.12f
+                )
+            },
+            checkedIconColor = if (enabled) {
+                MaterialTheme.colorScheme.onPrimary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                    alpha = 0.38f
+                )
+            },
+            uncheckedIconColor = if (enabled) {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                    alpha = 0.38f
+                )
+            }
         )
     )
 }

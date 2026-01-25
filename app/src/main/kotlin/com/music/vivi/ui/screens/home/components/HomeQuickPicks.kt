@@ -37,19 +37,17 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.music.vivi.LocalPlayerConnection
-import com.music.vivi.playback.PlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.ListItemHeight
 import com.music.vivi.db.entities.Song
-import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.models.MediaMetadata
+import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.playback.queues.YouTubeQueue
+import com.music.vivi.ui.component.LibrarySongListItem
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.NavigationTitle
-import com.music.vivi.ui.component.LibrarySongListItem
 import com.music.vivi.ui.menu.SongMenu
-
 import com.music.vivi.utils.ImmutableList
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,7 +58,7 @@ internal fun HomeQuickPicks(
     isPlaying: Boolean,
     maxWidth: Dp,
     navController: NavController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val menuState = LocalMenuState.current
     val haptic = LocalHapticFeedback.current
@@ -121,8 +119,11 @@ internal fun HomeQuickPicks(
                                 .height(ListItemHeight)
                                 .clip(shape)
                                 .background(
-                                    if (isActive) MaterialTheme.colorScheme.secondaryContainer
-                                    else MaterialTheme.colorScheme.surfaceContainer
+                                    if (isActive) {
+                                        MaterialTheme.colorScheme.secondaryContainer
+                                    } else {
+                                        MaterialTheme.colorScheme.surfaceContainer
+                                    }
                                 )
                         ) {
                             LibrarySongListItem(

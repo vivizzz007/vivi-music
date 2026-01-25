@@ -8,8 +8,8 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -19,28 +19,24 @@ import com.music.vivi.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CustomThumbnailMenu(
-    onEdit: () -> Unit,
-    onRemove: () -> Unit,
-    onDismiss: () -> Unit,
-) {
+fun CustomThumbnailMenu(onEdit: () -> Unit, onRemove: () -> Unit, onDismiss: () -> Unit) {
     LazyColumn(
         contentPadding = PaddingValues(
             start = 8.dp,
             top = 8.dp,
             end = 8.dp,
-            bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding(),
-        ),
+            bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
+        )
     ) {
         item {
             ListItem(
-                headlineContent = { 
-                    Text(text = stringResource(R.string.choose_from_library)) 
+                headlineContent = {
+                    Text(text = stringResource(R.string.choose_from_library))
                 },
                 leadingContent = {
                     Icon(
                         painter = painterResource(R.drawable.insert_photo),
-                        contentDescription = null,
+                        contentDescription = null
                     )
                 },
                 modifier = Modifier.clickable {
@@ -51,13 +47,13 @@ fun CustomThumbnailMenu(
         }
         item {
             ListItem(
-                headlineContent = { 
-                    Text(text = stringResource(R.string.remove_custom_image)) 
+                headlineContent = {
+                    Text(text = stringResource(R.string.remove_custom_image))
                 },
                 leadingContent = {
                     Icon(
                         painter = painterResource(R.drawable.delete),
-                        contentDescription = null,
+                        contentDescription = null
                     )
                 },
                 modifier = Modifier.clickable {

@@ -7,7 +7,6 @@ import androidx.room.PrimaryKey
 import com.music.innertube.YouTube
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 
@@ -32,7 +31,7 @@ data class AlbumEntity(
     val isLocal: Boolean = false,
     @ColumnInfo(name = "isUploaded", defaultValue = false.toString())
     val isUploaded: Boolean = false,
-    val description: String? = null
+    val description: String? = null,
 ) {
     fun localToggleLike() = copy(
         bookmarkedAt = if (bookmarkedAt != null) null else LocalDateTime.now()
@@ -44,8 +43,9 @@ data class AlbumEntity(
 
     fun toggleLike() = localToggleLike().also {
         CoroutineScope(Dispatchers.IO).launch {
-            if (playlistId != null)
+            if (playlistId != null) {
                 YouTube.likePlaylist(playlistId, bookmarkedAt == null)
+            }
         }
     }
 }

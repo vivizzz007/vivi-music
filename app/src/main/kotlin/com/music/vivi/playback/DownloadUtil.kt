@@ -61,11 +61,11 @@ constructor(
     private val client = okHttpClient.newBuilder()
         .proxy(YouTube.proxy)
         .proxyAuthenticator { _, response ->
-             YouTube.proxyAuth?.let { auth ->
-                 response.request.newBuilder()
-                     .header("Proxy-Authorization", auth)
-                     .build()
-             } ?: response.request
+            YouTube.proxyAuth?.let { auth ->
+                response.request.newBuilder()
+                    .header("Proxy-Authorization", auth)
+                    .build()
+            } ?: response.request
         }
         .build()
 
@@ -80,9 +80,9 @@ constructor(
                 .setCache(playerCache)
                 .setUpstreamDataSourceFactory(
                     OkHttpDataSource.Factory(
-                        client,
-                    ),
-                ),
+                        client
+                    )
+                )
         ) { dataSpec ->
             val mediaId = dataSpec.key ?: error("No media id")
             val length = if (dataSpec.length >= 0) dataSpec.length else 1
@@ -100,7 +100,7 @@ constructor(
                     mediaId,
                     audioQuality = audioQuality,
                     connectivityManager = connectivityManager,
-                    httpClient = client,
+                    httpClient = client
                 )
             }.getOrThrow()
             val format = playbackData.format
@@ -117,7 +117,7 @@ constructor(
                         contentLength = format.contentLength!!,
                         loudnessDb = playbackData.audioConfig?.loudnessDb,
                         playbackUrl = playbackData.playbackTracking?.videostatsPlaybackUrl?.baseUrl
-                    ),
+                    )
                 )
 
                 val now = LocalDateTime.now()
@@ -144,7 +144,7 @@ constructor(
             }
 
             val streamUrl = playbackData.streamUrl.let {
-                "${it}&range=0-${format.contentLength ?: 10000000}"
+                "$it&range=0-${format.contentLength ?: 10000000}"
             }
 
             songUrlCache[mediaId] = streamUrl to playbackData.streamExpiresInSeconds * 1000L
@@ -184,7 +184,8 @@ constructor(
                                 }
                                 Download.STATE_FAILED,
                                 Download.STATE_STOPPED,
-                                Download.STATE_REMOVING -> {
+                                Download.STATE_REMOVING,
+                                -> {
                                     database.updateDownloadedInfo(download.request.id, false, null)
                                 }
                                 else -> {

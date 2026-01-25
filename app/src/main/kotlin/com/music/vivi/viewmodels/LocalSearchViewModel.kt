@@ -11,8 +11,8 @@ import com.music.vivi.db.entities.Song
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -24,9 +24,7 @@ import javax.inject.Inject
 @HiltViewModel
 public class LocalSearchViewModel
 @Inject
-constructor(
-    database: MusicDatabase,
-) : ViewModel() {
+constructor(database: MusicDatabase) : ViewModel() {
     public val query: MutableStateFlow<String> = MutableStateFlow("")
     public val filter: MutableStateFlow<LocalFilter> = MutableStateFlow(LocalFilter.ALL)
 
@@ -43,7 +41,7 @@ constructor(
                             database.searchSongs(query, PREVIEW_SIZE),
                             database.searchAlbums(query, PREVIEW_SIZE),
                             database.searchArtists(query, PREVIEW_SIZE),
-                            database.searchPlaylists(query, PREVIEW_SIZE),
+                            database.searchPlaylists(query, PREVIEW_SIZE)
                         ) { songs, albums, artists, playlists ->
                             songs + albums + artists + playlists
                         }
@@ -64,7 +62,7 @@ constructor(
                                 is Artist -> LocalFilter.ARTIST
                                 is Playlist -> LocalFilter.PLAYLIST
                             }
-                        },
+                        }
                     )
                 }
             }

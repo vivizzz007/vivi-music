@@ -48,12 +48,8 @@ import org.json.JSONArray
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 import java.net.URL
 
-
-
 @Composable
-fun ChangelogBottomSheet(
-    modifier: Modifier = Modifier
-) {
+fun ChangelogBottomSheet(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val changelogUrl = "https://github.com/vivizzz007/vivi-music"
     val currentVersion = BuildConfig.VERSION_NAME // e.g., "4.0.1"
@@ -215,9 +211,6 @@ fun ChangelogBottomSheet(
     }
 }
 
-
-
-
 @Composable
 fun ChangelogCategory(section: ChangelogSection) {
     Surface(
@@ -299,27 +292,26 @@ fun ChangelogVersionItemvivi(version: ChangelogVersion) {
 
 // Modified VersionBadge with current version highlighting
 @Composable
-fun VersionBadgevivi(
-    versionNumber: String,
-    isCurrentVersion: Boolean = false
-) {
+fun VersionBadgevivi(versionNumber: String, isCurrentVersion: Boolean = false) {
     Box(
         modifier = Modifier
             .background(
-                color = if (isCurrentVersion)
+                color = if (isCurrentVersion) {
                     MaterialTheme.colorScheme.primaryContainer
-                else
-                    MaterialTheme.colorScheme.errorContainer,
+                } else {
+                    MaterialTheme.colorScheme.errorContainer
+                },
                 shape = CircleShape
             )
     ) {
         Text(
             modifier = Modifier.padding(vertical = 6.dp, horizontal = 12.dp),
             text = versionNumber,
-            color = if (isCurrentVersion)
+            color = if (isCurrentVersion) {
                 MaterialTheme.colorScheme.onPrimaryContainer
-            else
-                MaterialTheme.colorScheme.onErrorContainer,
+            } else {
+                MaterialTheme.colorScheme.onErrorContainer
+            },
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold
         )
@@ -327,7 +319,11 @@ fun VersionBadgevivi(
 }
 
 private fun openUrl(context: Context, url: String) {
-    val uri = try { url.toUri() } catch (_: Throwable) { url.toUri() }
+    val uri = try {
+        url.toUri()
+    } catch (_: Throwable) {
+        url.toUri()
+    }
     val intent = Intent(Intent.ACTION_VIEW, uri)
     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     try {
@@ -336,20 +332,10 @@ private fun openUrl(context: Context, url: String) {
     }
 }
 
-
-data class ChangelogSection(
-    val title: String,
-    val items: List<String>
-)
+data class ChangelogSection(val title: String, val items: List<String>)
 
 // Data class for a single changelog version
-data class ChangelogVersion(
-    val version: String,
-    val date: String,
-    val sections: List<ChangelogSection>
-)
-
-
+data class ChangelogVersion(val version: String, val date: String, val sections: List<ChangelogSection>)
 
 // State for changelog
 sealed class ChangelogState {
@@ -359,45 +345,47 @@ sealed class ChangelogState {
 }
 
 // Function to fetch changelog from GitHub
-suspend fun fetchChangelogFromGitHub(currentVersion: String, context: Context, defaultSectionTitle: String = context.getString(R.string.changes_default)): ChangelogState {
-    return withContext(Dispatchers.IO) {
-        try {
-            val url = URL("https://api.github.com/repos/vivizzz007/vivi-music/releases")
-            val connection = url.openConnection()
-            connection.setRequestProperty("Accept", "application/vnd.github.v3+json")
+suspend fun fetchChangelogFromGitHub(
+    currentVersion: String,
+    context: Context,
+    defaultSectionTitle: String = context.getString(R.string.changes_default),
+): ChangelogState = withContext(Dispatchers.IO) {
+    try {
+        val url = URL("https://api.github.com/repos/vivizzz007/vivi-music/releases")
+        val connection = url.openConnection()
+        connection.setRequestProperty("Accept", "application/vnd.github.v3+json")
 
-            val response = connection.getInputStream().bufferedReader().use { it.readText() }
-            val releases = JSONArray(response)
+        val response = connection.getInputStream().bufferedReader().use { it.readText() }
+        val releases = JSONArray(response)
 
-            val changelogList = mutableListOf<ChangelogVersion>()
+        val changelogList = mutableListOf<ChangelogVersion>()
 
-            // Find the release matching current version
-            for (i in 0 until releases.length()) {
-                val release = releases.getJSONObject(i)
-                val tagName = release.getString("tag_name") // Keep as is: v4.0.6
-                val versionWithoutV = tagName.removePrefix("v") // For comparison: 4.0.6
+        // Find the release matching current version
+        for (i in 0 until releases.length()) {
+            val release = releases.getJSONObject(i)
+            val tagName = release.getString("tag_name") // Keep as is: v4.0.6
+            val versionWithoutV = tagName.removePrefix("v") // For comparison: 4.0.6
 
-                // Only include releases up to current version
-                if (compareVersions(versionWithoutV, currentVersion) <= 0) {
-                    val body = release.getString("body")
-                    val publishedAt = release.getString("published_at").take(10) // Get date only
+            // Only include releases up to current version
+            if (compareVersions(versionWithoutV, currentVersion) <= 0) {
+                val body = release.getString("body")
+                val publishedAt = release.getString("published_at").take(10) // Get date only
 
-                    val sections = parseChangelogBody(body, defaultSectionTitle)
+                val sections = parseChangelogBody(body, defaultSectionTitle)
 
-                    changelogList.add(
-                        ChangelogVersion(
-                            version = tagName,
-                            date = publishedAt,
-                            sections = sections
-                        )
+                changelogList.add(
+                    ChangelogVersion(
+                        version = tagName,
+                        date = publishedAt,
+                        sections = sections
                     )
-                }
+                )
             }
-
-            ChangelogState.Success(changelogList.sortedByDescending { it.version })
-        } catch (e: Exception) {
-            ChangelogState.Error(e.message ?: context.getString(R.string.failed_to_fetch_changelog))
         }
+
+        ChangelogState.Success(changelogList.sortedByDescending { it.version })
+    } catch (e: Exception) {
+        ChangelogState.Error(e.message ?: context.getString(R.string.failed_to_fetch_changelog))
     }
 }
 
@@ -449,6 +437,7 @@ fun parseChangelogBody(body: String, defaultSectionTitle: String): List<Changelo
 
     return sections
 }
+
 // Compare version numbers (e.g., "4.0.1" vs "4.0.0")
 fun compareVersions(v1: String, v2: String): Int {
     val parts1 = v1.split(".").mapNotNull { it.toIntOrNull() }

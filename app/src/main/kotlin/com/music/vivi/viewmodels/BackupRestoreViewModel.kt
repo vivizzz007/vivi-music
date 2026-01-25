@@ -28,12 +28,8 @@ import java.util.zip.ZipEntry
 import javax.inject.Inject
 import kotlin.system.exitProcess
 
-
-
 @HiltViewModel
-public class BackupRestoreViewModel @Inject constructor(
-    public val database: MusicDatabase,
-) : ViewModel() {
+public class BackupRestoreViewModel @Inject constructor(public val database: MusicDatabase) : ViewModel() {
     public fun backup(context: Context, uri: Uri) {
         var backupSuccessful = false
         var tempBackupCreated = false
@@ -141,7 +137,6 @@ public class BackupRestoreViewModel @Inject constructor(
             } ?: throw IllegalStateException("Cannot verify backup file")
 
             backupSuccessful = true
-
         }.onSuccess {
             Toast.makeText(context, R.string.backup_create_success, Toast.LENGTH_SHORT).show()
         }.onFailure { error ->
@@ -291,7 +286,9 @@ public class BackupRestoreViewModel @Inject constructor(
             }
 
             if (!restoredDatabase) {
-                throw IllegalStateException("Backup file is missing required data. This app cannot restore from this file")
+                throw IllegalStateException(
+                    "Backup file is missing required data. This app cannot restore from this file"
+                )
             }
 
             // Show success message
@@ -356,14 +353,15 @@ public class BackupRestoreViewModel @Inject constructor(
                         }
 
                         val title = parts.getOrNull(0)?.takeIf { it.isNotBlank() } ?: return@forEachIndexed
-                        val artistStr = parts.getOrNull(1)?.takeIf { it.isNotBlank() } ?: context.getString(R.string.unknown_artist)
+                        val artistStr =
+                            parts.getOrNull(1)?.takeIf { it.isNotBlank() } ?: context.getString(R.string.unknown_artist)
 
                         val artists = artistStr.split(";").map { it.trim() }
                             .filter { it.isNotBlank() }
                             .map {
                                 ArtistEntity(
                                     id = "",
-                                    name = it,
+                                    name = it
                                 )
                             }
 
@@ -377,9 +375,9 @@ public class BackupRestoreViewModel @Inject constructor(
                         val mockSong = Song(
                             song = SongEntity(
                                 id = "",
-                                title = title,
+                                title = title
                             ),
-                            artists = finalArtists,
+                            artists = finalArtists
                         )
                         songs.add(mockSong)
                     } catch (e: Exception) {
@@ -407,10 +405,7 @@ public class BackupRestoreViewModel @Inject constructor(
         return songs
     }
 
-    public fun loadM3UOnline(
-        context: Context,
-        uri: Uri,
-    ): ArrayList<Song> {
+    public fun loadM3UOnline(context: Context, uri: Uri): ArrayList<Song> {
         val songs = ArrayList<Song>()
 
         runCatching {
@@ -455,9 +450,9 @@ public class BackupRestoreViewModel @Inject constructor(
                                 val mockSong = Song(
                                     song = SongEntity(
                                         id = "",
-                                        title = info.trim(),
+                                        title = info.trim()
                                     ),
-                                    artists = listOf(ArtistEntity("", "Unknown Artist")),
+                                    artists = listOf(ArtistEntity("", "Unknown Artist"))
                                 )
                                 songs.add(mockSong)
                                 return@forEachIndexed
@@ -489,9 +484,9 @@ public class BackupRestoreViewModel @Inject constructor(
                             val mockSong = Song(
                                 song = SongEntity(
                                     id = "",
-                                    title = title,
+                                    title = title
                                 ),
-                                artists = finalArtists,
+                                artists = finalArtists
                             )
                             songs.add(mockSong)
                         } catch (e: Exception) {

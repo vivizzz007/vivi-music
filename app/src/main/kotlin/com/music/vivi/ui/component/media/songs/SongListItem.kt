@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -14,8 +13,8 @@ import com.music.vivi.constants.ListThumbnailSize
 import com.music.vivi.constants.ThumbnailCornerRadius
 import com.music.vivi.db.entities.Song
 import com.music.vivi.extensions.toMediaItem
-import com.music.vivi.ui.component.RoundedCheckbox
 import com.music.vivi.ui.component.ListItem
+import com.music.vivi.ui.component.RoundedCheckbox
 import com.music.vivi.ui.component.media.common.ItemThumbnail
 import com.music.vivi.ui.component.media.common.MediaIcons
 import com.music.vivi.ui.component.media.common.SwipeToSongBox
@@ -83,7 +82,9 @@ public fun SongListItem(
                         modifier = Modifier.padding(horizontal = 8.dp)
                     )
                 }
-            } else trailingContent,
+            } else {
+                trailingContent
+            },
             modifier = modifier,
             isActive = isActive,
             drawHighlight = drawHighlight

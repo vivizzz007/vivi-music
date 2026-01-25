@@ -30,11 +30,7 @@ import com.music.vivi.R
 import com.music.vivi.repositories.NewsItem
 
 @Composable
-fun NewsCard(
-    item: NewsItem,
-    isUnread: Boolean,
-    onClick: () -> Unit
-) {
+fun NewsCard(item: NewsItem, isUnread: Boolean, onClick: () -> Unit) {
     Card(
         onClick = onClick,
         colors = CardDefaults.cardColors(
@@ -47,8 +43,8 @@ fun NewsCard(
             // Removed AsyncImage as per original file structure (it was commented out/not present in list view)
 
             Row(
-               verticalAlignment = Alignment.CenterVertically,
-               horizontalArrangement = Arrangement.spacedBy(8.dp)
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 if (isUnread) {
                     Box(
@@ -76,21 +72,21 @@ fun NewsCard(
                 }
 
                 // Badges for Type
-                val typeLabel = when(item.type.lowercase()) {
+                val typeLabel = when (item.type.lowercase()) {
                     "bug_report" -> stringResource(R.string.type_bug_report)
                     "fix" -> stringResource(R.string.type_fix)
                     "feature" -> stringResource(R.string.type_feature)
                     else -> stringResource(R.string.type_news)
                 }
 
-                val typeContainerColor = when(item.type.lowercase()) {
+                val typeContainerColor = when (item.type.lowercase()) {
                     "bug_report" -> MaterialTheme.colorScheme.errorContainer
                     "fix" -> MaterialTheme.colorScheme.tertiaryContainer
                     "feature" -> MaterialTheme.colorScheme.secondaryContainer
                     else -> MaterialTheme.colorScheme.surfaceContainerHigh
                 }
 
-                 val typeContentColor = when(item.type.lowercase()) {
+                val typeContentColor = when (item.type.lowercase()) {
                     "bug_report" -> MaterialTheme.colorScheme.onErrorContainer
                     "fix" -> MaterialTheme.colorScheme.onTertiaryContainer
                     "feature" -> MaterialTheme.colorScheme.onSecondaryContainer
@@ -105,7 +101,7 @@ fun NewsCard(
                         )
                         .padding(horizontal = 6.dp, vertical = 2.dp)
                 ) {
-                     Text(
+                    Text(
                         text = typeLabel,
                         style = MaterialTheme.typography.labelSmall,
                         color = typeContentColor
@@ -131,7 +127,7 @@ fun NewsCard(
             Spacer(modifier = Modifier.height(4.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                 Icon(
+                Icon(
                     imageVector = Icons.Default.DateRange,
                     contentDescription = null,
                     modifier = Modifier.size(14.dp),

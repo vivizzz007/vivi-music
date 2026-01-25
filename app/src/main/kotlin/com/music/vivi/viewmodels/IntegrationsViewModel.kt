@@ -22,19 +22,13 @@ public data class DiscordState(
     val token: String = "",
     val username: String = "",
     val name: String = "",
-    val isLoggedIn: Boolean = false
+    val isLoggedIn: Boolean = false,
 )
 
-public data class LastFMState(
-    val sessionKey: String = "",
-    val username: String = "",
-    val isLoggedIn: Boolean = false
-)
+public data class LastFMState(val sessionKey: String = "", val username: String = "", val isLoggedIn: Boolean = false)
 
 @HiltViewModel
-public class IntegrationsViewModel @Inject constructor(
-    private val dataStore: DataStore<Preferences>
-) : ViewModel() {
+public class IntegrationsViewModel @Inject constructor(private val dataStore: DataStore<Preferences>) : ViewModel() {
 
     private val _discordState = MutableStateFlow(DiscordState())
     public val discordState: StateFlow<DiscordState> = _discordState.asStateFlow()

@@ -1,7 +1,7 @@
 package com.music.vivi.utils
 
-import com.music.vivi.models.MediaMetadata
 import com.music.lastfm.LastFM
+import com.music.vivi.models.MediaMetadata
 import kotlinx.coroutines.*
 import kotlin.math.min
 
@@ -9,7 +9,7 @@ class ScrobbleManager(
     private val scope: CoroutineScope,
     var minSongDuration: Int = 30,
     var scrobbleDelayPercent: Float = 0.5f,
-    var scrobbleDelaySeconds: Int = 50
+    var scrobbleDelaySeconds: Int = 50,
 ) {
     private var scrobbleJob: Job? = null
     private var scrobbleRemainingMillis: Long = 0L
@@ -105,7 +105,7 @@ class ScrobbleManager(
                 track = metadata.title,
                 duration = metadata.duration,
                 timestamp = songStartedAt,
-                album = metadata.album?.title,
+                album = metadata.album?.title
             )
         }
     }

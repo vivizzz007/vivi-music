@@ -1,11 +1,8 @@
 package com.music.vivi.ui.screens
 
-
-import android.app.DownloadManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Environment
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -21,7 +18,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,14 +30,13 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -68,6 +63,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -75,18 +71,17 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.navigation.NavHostController
-import com.music.vivi.R
-import coil3.compose.AsyncImage
-import com.music.vivi.BuildConfig
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.workDataOf
+import coil3.compose.AsyncImage
+import com.music.vivi.BuildConfig
+import com.music.vivi.R
 import com.music.vivi.update.downloadmanager.CustomDownloadManager
 import com.music.vivi.update.downloadmanager.DownloadNotificationManager
 import com.music.vivi.update.downloadmanager.UpdateDownloadWorker
@@ -97,8 +92,6 @@ import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
-import java.io.FileOutputStream
-import java.net.HttpURLConnection
 import java.net.URL
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -111,14 +104,14 @@ fun UpdateScreen(navController: NavHostController) {
     var updateAvailable by remember { mutableStateOf(false) }
     var updateMessage by remember { mutableStateOf("") }
     var updateMessageVersion by remember { mutableStateOf("") }
-    //changelog
+    // changelog
     var changelog by remember { mutableStateOf("") }
     var updateDescription by remember { mutableStateOf<String?>(null) } // Add this new state
-    var updateImage by remember { mutableStateOf<String?>(null) } //display image
+    var updateImage by remember { mutableStateOf<String?>(null) } // display image
 
     var isChecking by remember { mutableStateOf(true) }
     var fetchError by remember { mutableStateOf(false) }
-    //new downloadmanager
+    // new downloadmanager
     val downloadManager = remember { CustomDownloadManager() }
     var downloadError by remember { mutableStateOf<String?>(null) }
     var downloadedFile by remember { mutableStateOf<File?>(null) }
@@ -142,7 +135,6 @@ fun UpdateScreen(navController: NavHostController) {
 
     var checkingProgress by remember { mutableFloatStateOf(0f) }
 
-
     LaunchedEffect(Unit) {
         DownloadNotificationManager.initialize(context)
     }
@@ -154,7 +146,7 @@ fun UpdateScreen(navController: NavHostController) {
                 .getWorkInfosForUniqueWorkLiveData("update_download")
                 .observeForever { workInfos ->
                     val workInfo = workInfos?.firstOrNull() ?: return@observeForever
-                    
+
                     when (workInfo.state) {
                         WorkInfo.State.RUNNING -> {
                             isDownloading = true
@@ -181,7 +173,6 @@ fun UpdateScreen(navController: NavHostController) {
                 }
         }
     }
-
 
     LaunchedEffect(isChecking) {
         if (isChecking) {
@@ -214,7 +205,14 @@ fun UpdateScreen(navController: NavHostController) {
             delay(6500L)
             checkForUpdate(
                 context = context,
-                onSuccess = { latestVersion, latestChangelog, latestSize, latestReleaseDate, latestDescription, latestImage ->
+                onSuccess = {
+                        latestVersion,
+                        latestChangelog,
+                        latestSize,
+                        latestReleaseDate,
+                        latestDescription,
+                        latestImage,
+                    ->
                     isChecking = false
                     lastCheckedTime = getCurrentTimestamp()
                     saveLastCheckedTime(context, lastCheckedTime)
@@ -404,7 +402,6 @@ fun UpdateScreen(navController: NavHostController) {
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
-
                 if (changelog.isNotEmpty()) {
                     val changelogItems = changelog.split("\n").filter { it.isNotBlank() }
                     changelogItems.forEach { item ->
@@ -467,8 +464,6 @@ fun UpdateScreen(navController: NavHostController) {
                         }
                     }
                 }
-
-
 
                 Spacer(modifier = Modifier.height(40.dp))
                 // Pause button at bottom - improved styling
@@ -563,81 +558,81 @@ fun UpdateScreen(navController: NavHostController) {
                         Spacer(modifier = Modifier.height(20.dp))
                         // Content based on state
                         when {
-                                updateAvailable -> {
+                            updateAvailable -> {
+                                Text(
+                                    text = stringResource(R.string.version, updateMessageVersion),
+                                    style = MaterialTheme.typography.headlineSmall.copy(
+                                        fontWeight = FontWeight.Bold
+                                    ),
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(modifier = Modifier.height(10.dp))
+                                if (releaseDate.isNotEmpty()) {
+                                    Spacer(modifier = Modifier.height(4.dp))
                                     Text(
-                                        text = stringResource(R.string.version, updateMessageVersion),
-                                        style = MaterialTheme.typography.headlineSmall.copy(
-                                            fontWeight = FontWeight.Bold
-                                        ),
-                                        color = MaterialTheme.colorScheme.onSurface
+                                        text = stringResource(R.string.released, releaseDate),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
-                                    Spacer(modifier = Modifier.height(10.dp))
-                                    if (releaseDate.isNotEmpty()) {
-                                        Spacer(modifier = Modifier.height(4.dp))
-                                        Text(
-                                            text = stringResource(R.string.released, releaseDate),
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                    Spacer(modifier = Modifier.height(10.dp))
+                                }
+                                Spacer(modifier = Modifier.height(10.dp))
 
+                                // sync with the image
+                                updateImage?.let { imageUrl ->
+                                    AsyncImage(
+                                        model = imageUrl,
+                                        contentDescription = stringResource(R.string.update_preview),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(RoundedCornerShape(12.dp)),
+                                        contentScale = ContentScale.FillWidth
+                                    )
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                }
 
-                                      //sync with the image
-                                    updateImage?.let { imageUrl ->
-                                        AsyncImage(
-                                            model = imageUrl,
-                                            contentDescription = stringResource(R.string.update_preview),
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .clip(RoundedCornerShape(12.dp)),
-                                            contentScale = ContentScale.FillWidth
-                                        )
-                                        Spacer(modifier = Modifier.height(16.dp))
-                                    }
+                                // downloading
 
-                                    //downloading
+                                if (isDownloading) {
+                                    Spacer(modifier = Modifier.height(15.dp))
 
-                                    if (isDownloading) {
-                                        Spacer(modifier = Modifier.height(15.dp))
-
-                                        val thickStrokeWidth = with(LocalDensity.current) { 8.dp.toPx() }
-                                        val thickStroke = remember(thickStrokeWidth) {
-                                            Stroke(width = thickStrokeWidth, cap = StrokeCap.Round)
-                                        }
-
-                                        LinearWavyProgressIndicator(
-                                            progress = { downloadProgress },
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(22.dp),
-                                            stroke = thickStroke,
-                                            trackStroke = thickStroke,
-                                            color = MaterialTheme.colorScheme.primary,
-                                            trackColor = MaterialTheme.colorScheme.surfaceVariant
-                                        )
-
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                        Text(
-                                            text = stringResource(R.string.downloading_percent, (downloadProgress * 100).toInt()),
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        Spacer(modifier = Modifier.height(16.dp))
+                                    val thickStrokeWidth = with(LocalDensity.current) { 8.dp.toPx() }
+                                    val thickStroke = remember(thickStrokeWidth) {
+                                        Stroke(width = thickStrokeWidth, cap = StrokeCap.Round)
                                     }
 
-                                    // ADD DESCRIPTION HERE (if available)
-                                    updateDescription?.let { desc ->
-                                        Text(
-                                            text = desc,
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            lineHeight = 24.sp
-                                        )
-                                        Spacer(modifier = Modifier.height(16.dp))
-                                    }
+                                    LinearWavyProgressIndicator(
+                                        progress = { downloadProgress },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(22.dp),
+                                        stroke = thickStroke,
+                                        trackStroke = thickStroke,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        trackColor = MaterialTheme.colorScheme.surfaceVariant
+                                    )
 
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = stringResource(
+                                            R.string.downloading_percent,
+                                            (downloadProgress * 100).toInt()
+                                        ),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                }
 
+                                // ADD DESCRIPTION HERE (if available)
+                                updateDescription?.let { desc ->
+                                    Text(
+                                        text = desc,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        lineHeight = 24.sp
+                                    )
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                }
 
 //                                    val annotatedString = buildAnnotatedString {
 //                                        append("Your app will update to ${updateMessageVersion}.\nLearn more ")
@@ -669,42 +664,42 @@ fun UpdateScreen(navController: NavHostController) {
 //                                        )
 //                                    )
 
-                                    // Progress bar for downloading
-                                    // Progress bar for downloading
-                                    downloadError?.let { error ->
-                                        Spacer(modifier = Modifier.height(16.dp))
-                                        Row(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .background(
-                                                    MaterialTheme.colorScheme.errorContainer,
-                                                    RoundedCornerShape(12.dp)
-                                                )
-                                                .padding(16.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.Error,
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.error,
-                                                modifier = Modifier.size(24.dp)
+                                // Progress bar for downloading
+                                // Progress bar for downloading
+                                downloadError?.let { error ->
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .background(
+                                                MaterialTheme.colorScheme.errorContainer,
+                                                RoundedCornerShape(12.dp)
                                             )
-                                            Spacer(modifier = Modifier.width(12.dp))
-                                            Column {
-                                                Text(
-                                                    text = stringResource(R.string.download_failed),
-                                                    style = MaterialTheme.typography.titleSmall,
-                                                    color = MaterialTheme.colorScheme.onErrorContainer,
-                                                    fontWeight = FontWeight.Bold
-                                                )
-                                                Text(
-                                                    text = error,
-                                                    style = MaterialTheme.typography.bodyMedium,
-                                                    color = MaterialTheme.colorScheme.onErrorContainer
-                                                )
-                                            }
+                                            .padding(16.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Error,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.error,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Column {
+                                            Text(
+                                                text = stringResource(R.string.download_failed),
+                                                style = MaterialTheme.typography.titleSmall,
+                                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Text(
+                                                text = error,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = MaterialTheme.colorScheme.onErrorContainer
+                                            )
                                         }
                                     }
+                                }
 //                                Spacer(modifier = Modifier.height(15.dp))
 //                                Divider(
 //                                    modifier = Modifier.padding(vertical = 8.dp),
@@ -718,7 +713,7 @@ fun UpdateScreen(navController: NavHostController) {
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Spacer(modifier = Modifier.height(12.dp))
-                                ////
+                                // //
 
                                 // For the "Update Available" screen changelog section (around line 470):
                                 if (changelog.isNotEmpty()) {
@@ -784,9 +779,7 @@ fun UpdateScreen(navController: NavHostController) {
                                     }
                                 }
 
-
-
-                                ////
+                                // //
                                 Spacer(modifier = Modifier.height(15.dp))
                                 HorizontalDivider(
                                     modifier = Modifier.padding(vertical = 8.dp),
@@ -806,7 +799,6 @@ fun UpdateScreen(navController: NavHostController) {
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
-
                             }
                             isChecking -> {
                                 val thickStrokeWidth = with(LocalDensity.current) { 8.dp.toPx() }
@@ -876,13 +868,15 @@ fun UpdateScreen(navController: NavHostController) {
                                     updateAvailable && !isDownloading && !isDownloadComplete -> {
                                         // Start download with WorkManager
                                         val apkUrl = "https://github.com/vivizzz007/vivi-music/releases/download/v$updateMessageVersion/vivi.apk"
-                                        
+
                                         val downloadRequest = OneTimeWorkRequestBuilder<UpdateDownloadWorker>()
-                                            .setInputData(workDataOf(
-                                                "apk_url" to apkUrl,
-                                                "version" to updateMessageVersion,
-                                                "file_size" to appSize
-                                            ))
+                                            .setInputData(
+                                                workDataOf(
+                                                    "apk_url" to apkUrl,
+                                                    "version" to updateMessageVersion,
+                                                    "file_size" to appSize
+                                                )
+                                            )
                                             .addTag("update_download")
                                             .build()
 
@@ -891,7 +885,7 @@ fun UpdateScreen(navController: NavHostController) {
                                             ExistingWorkPolicy.REPLACE,
                                             downloadRequest
                                         )
-                                        
+
                                         isDownloading = true
                                         downloadProgress = 0f
                                         downloadError = null
@@ -909,7 +903,9 @@ fun UpdateScreen(navController: NavHostController) {
                                             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                                                 if (!context.packageManager.canRequestPackageInstalls()) {
                                                     // Need to request permission
-                                                    val intent = Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                                                    val intent = Intent(
+                                                        android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES
+                                                    ).apply {
                                                         data = Uri.parse("package:${context.packageName}")
                                                     }
                                                     context.startActivity(intent)
@@ -960,7 +956,9 @@ fun UpdateScreen(navController: NavHostController) {
                         ) {
                             Text(
                                 text = when {
-                                    updateAvailable && !isDownloading && !isDownloadComplete -> stringResource(R.string.action_download)
+                                    updateAvailable && !isDownloading && !isDownloadComplete -> stringResource(
+                                        R.string.action_download
+                                    )
                                     isDownloading -> stringResource(R.string.pause)
                                     isDownloadComplete -> stringResource(R.string.install)
                                     else -> stringResource(R.string.check_for_update)
@@ -997,15 +995,13 @@ fun getLastCheckedTime(context: Context): String {
     return sharedPrefs.getString(KEY_LAST_CHECKED_TIME, "") ?: ""
 }
 
-private fun formatGitHubDate(githubDate: String): String {
-    return try {
-        val githubFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
-        val displayFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy, h:mm a")
-        val dateTime = LocalDateTime.parse(githubDate, githubFormatter)
-        dateTime.format(displayFormatter)
-    } catch (e: Exception) {
-        githubDate
-    }
+private fun formatGitHubDate(githubDate: String): String = try {
+    val githubFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
+    val displayFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy, h:mm a")
+    val dateTime = LocalDateTime.parse(githubDate, githubFormatter)
+    dateTime.format(displayFormatter)
+} catch (e: Exception) {
+    githubDate
 }
 
 // Robust version comparison: returns true if latestVersion > currentVersion
@@ -1027,7 +1023,7 @@ fun isNewerVersion(latestVersion: String, currentVersion: String): Boolean {
 suspend fun checkForUpdate(
     context: Context,
     onSuccess: (String, String, String, String, String?, String?) -> Unit,
-    onError: () -> Unit
+    onError: () -> Unit,
 ) {
     withContext(Dispatchers.IO) {
         try {
@@ -1043,7 +1039,9 @@ suspend fun checkForUpdate(
                 val tag = release.getString("tag_name").removePrefix("v")
                 if (!tag.matches(Regex("""\d+(\.\d+){1,2}"""))) continue
                 if (isNewerVersion(tag, currentVersion)) {
-                    if (foundRelease == null || isNewerVersion(tag, foundRelease.getString("tag_name").removePrefix("v"))) {
+                    if (foundRelease == null ||
+                        isNewerVersion(tag, foundRelease.getString("tag_name").removePrefix("v"))
+                    ) {
                         foundRelease = release
                     }
                 }
@@ -1058,7 +1056,8 @@ suspend fun checkForUpdate(
                 var description: String? = null
                 var imageUrl: String? = null
                 try {
-                    val changelogUrl = URL("https://github.com/vivizzz007/vivi-music/releases/download/$tagWithV/changelog.json")
+                    val changelogUrl =
+                        URL("https://github.com/vivizzz007/vivi-music/releases/download/$tagWithV/changelog.json")
                     Log.d("UpdateCheck", "Fetching changelog from: $changelogUrl")
                     val changelogJson = changelogUrl.openStream().bufferedReader().use { it.readText() }
                     val changelogData = JSONObject(changelogJson)
@@ -1079,7 +1078,7 @@ suspend fun checkForUpdate(
                         // Add warning if it exists (as a separate line)
                         val warning = changelogData.optString("warning").takeIf { it.isNotEmpty() }
                         if (!warning.isNullOrBlank()) {
-                            appendLine("")  // Empty line for spacing
+                            appendLine("") // Empty line for spacing
                             appendLine(warning)
                         }
                     }.trim()

@@ -11,20 +11,19 @@ import com.music.vivi.constants.DiscordUseDetailsKey
 import com.music.vivi.constants.EnableDiscordRPCKey
 import com.music.vivi.constants.EnableLastFMScrobblingKey
 import com.music.vivi.constants.LastFMUseNowPlaying
-import com.music.vivi.constants.PowerSaverKey
 import com.music.vivi.constants.PowerSaverDiscordKey
+import com.music.vivi.constants.PowerSaverKey
 import com.music.vivi.constants.PowerSaverLastFMKey
 import com.music.vivi.constants.ScrobbleDelayPercentKey
 import com.music.vivi.constants.ScrobbleDelaySecondsKey
 import com.music.vivi.constants.ScrobbleMinSongDurationKey
 import com.music.vivi.db.MusicDatabase
+import com.music.vivi.extensions.currentMetadata
+import com.music.vivi.extensions.metadata
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.utils.DiscordRPC
 import com.music.vivi.utils.ScrobbleManager
 import com.music.vivi.utils.get
-import com.music.vivi.extensions.metadata
-import com.music.vivi.extensions.toMediaItem
-import com.music.vivi.extensions.currentMetadata
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -35,7 +34,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -71,13 +69,13 @@ class IntegrationManager @Inject constructor(
     private var lastPlaybackSpeed = 1.0f
 
     private val currentMediaMetadata = MutableStateFlow<MediaMetadata?>(null)
-    
+
     private var currentSongFlow: kotlinx.coroutines.flow.StateFlow<com.music.vivi.db.entities.Song?>? = null
 
     fun start(scope: CoroutineScope, player: ExoPlayer) {
         this.scope = scope
         this.player = player
-        
+
         // Initialize currentSong flow
         currentSongFlow = currentMediaMetadata
             .flatMapLatest { mediaMetadata ->
@@ -87,10 +85,10 @@ class IntegrationManager @Inject constructor(
         setupDiscord(player)
         setupScrobble(player)
         setupSongUpdates(player)
-        
+
         // Initial metadata
         currentMediaMetadata.value = player.currentMetadata
-        
+
         player.addListener(this)
     }
 
@@ -103,12 +101,12 @@ class IntegrationManager @Inject constructor(
     private fun setupDiscord(player: ExoPlayer) {
         scope?.launch {
             dataStore.data
-                .map { 
+                .map {
                     Triple(
-                        it[DiscordTokenKey], 
-                        it[EnableDiscordRPCKey] ?: true, 
+                        it[DiscordTokenKey],
+                        it[EnableDiscordRPCKey] ?: true,
                         (it[PowerSaverKey] ?: false) && (it[PowerSaverDiscordKey] ?: true)
-                    ) 
+                    )
                 }
                 .debounce(300)
                 .distinctUntilChanged()
@@ -124,13 +122,18 @@ class IntegrationManager @Inject constructor(
                         discordRpc = DiscordRPC(context, key)
                         if (player.playbackState == Player.STATE_READY && player.playWhenReady) {
                             currentSongFlow?.value?.let {
-                                discordRpc?.updateSong(it, player.currentPosition, player.playbackParameters.speed, dataStore.get(DiscordUseDetailsKey, false))
+                                discordRpc?.updateSong(
+                                    it,
+                                    player.currentPosition,
+                                    player.playbackParameters.speed,
+                                    dataStore.get(DiscordUseDetailsKey, false)
+                                )
                             }
                         }
                     }
                 }
         }
-    // ...
+        // ...
     }
 
     private fun setupSongUpdates(player: ExoPlayer) {
@@ -149,17 +152,26 @@ class IntegrationManager @Inject constructor(
     }
 
     private fun setupScrobble(player: ExoPlayer) {
-         scope?.launch {
-             dataStore.data
-                .map { (it[EnableLastFMScrobblingKey] ?: false) to ((it[PowerSaverKey] ?: false) && (it[PowerSaverLastFMKey] ?: true)) }
+        scope?.launch {
+            dataStore.data
+                .map {
+                    (it[EnableLastFMScrobblingKey] ?: false) to
+                        ((it[PowerSaverKey] ?: false) && (it[PowerSaverLastFMKey] ?: true))
+                }
                 .debounce(300)
                 .distinctUntilChanged()
                 .collect { (enabled, powerSaver) ->
                     val shouldEnable = enabled && !powerSaver
                     if (shouldEnable && scrobbleManager == null) {
                         // FIX: Explicitly cast default values to match the Key types (Float and Int)
-                        val delayPercent = dataStore.get(ScrobbleDelayPercentKey, LastFM.DEFAULT_SCROBBLE_DELAY_PERCENT.toFloat())
-                        val minSongDuration = dataStore.get(ScrobbleMinSongDurationKey, LastFM.DEFAULT_SCROBBLE_MIN_SONG_DURATION.toInt())
+                        val delayPercent = dataStore.get(
+                            ScrobbleDelayPercentKey,
+                            LastFM.DEFAULT_SCROBBLE_DELAY_PERCENT.toFloat()
+                        )
+                        val minSongDuration = dataStore.get(
+                            ScrobbleMinSongDurationKey,
+                            LastFM.DEFAULT_SCROBBLE_MIN_SONG_DURATION.toInt()
+                        )
                         val delaySeconds = dataStore.get(ScrobbleDelaySecondsKey, LastFM.DEFAULT_SCROBBLE_DELAY_SECONDS)
                         scrobbleManager = ScrobbleManager(
                             scope!!,
@@ -173,18 +185,18 @@ class IntegrationManager @Inject constructor(
                         scrobbleManager = null
                     }
                 }
-         }
-         
-         scope?.launch {
+        }
+
+        scope?.launch {
             dataStore.data
                 .map { it[LastFMUseNowPlaying] ?: false }
                 .distinctUntilChanged()
                 .collectLatest {
                     scrobbleManager?.useNowPlaying = it
                 }
-         }
-         
-         scope?.launch {
+        }
+
+        scope?.launch {
             dataStore.data
                 .map { prefs ->
                     // FIX: Explicitly cast the constants to match preference key types
@@ -202,7 +214,7 @@ class IntegrationManager @Inject constructor(
                         it.scrobbleDelaySeconds = delaySeconds
                     }
                 }
-         }
+        }
     }
 
     override fun onMediaItemTransition(mediaItem: androidx.media3.common.MediaItem?, reason: Int) {
@@ -210,16 +222,21 @@ class IntegrationManager @Inject constructor(
         discordUpdateJob?.cancel()
         currentMediaMetadata.value = mediaItem?.metadata
     }
-    
+
     override fun onPlaybackStateChanged(playbackState: Int) {
         if (playbackState == Player.STATE_IDLE || playbackState == Player.STATE_ENDED) {
             scrobbleManager?.onSongStop()
         }
     }
-    
+
     override fun onEvents(player: Player, events: Player.Events) {
-        if (events.containsAny(Player.EVENT_TIMELINE_CHANGED, Player.EVENT_POSITION_DISCONTINUITY, Player.EVENT_MEDIA_ITEM_TRANSITION)) {
-             currentMediaMetadata.value = player.currentMetadata
+        if (events.containsAny(
+                Player.EVENT_TIMELINE_CHANGED,
+                Player.EVENT_POSITION_DISCONTINUITY,
+                Player.EVENT_MEDIA_ITEM_TRANSITION
+            )
+        ) {
+            currentMediaMetadata.value = player.currentMetadata
         }
 
         // Discord RPC updates
@@ -227,10 +244,15 @@ class IntegrationManager @Inject constructor(
             if (player.isPlaying) {
                 currentSongFlow?.value?.let { song ->
                     scope?.launch {
-                        discordRpc?.updateSong(song, player.currentPosition, player.playbackParameters.speed, dataStore.get(DiscordUseDetailsKey, false))
+                        discordRpc?.updateSong(
+                            song,
+                            player.currentPosition,
+                            player.playbackParameters.speed,
+                            dataStore.get(DiscordUseDetailsKey, false)
+                        )
                     }
                 }
-            } else if (!events.containsAny(Player.EVENT_POSITION_DISCONTINUITY, Player.EVENT_MEDIA_ITEM_TRANSITION)){
+            } else if (!events.containsAny(Player.EVENT_POSITION_DISCONTINUITY, Player.EVENT_MEDIA_ITEM_TRANSITION)) {
                 scope?.launch {
                     discordRpc?.stopActivity()
                 }
@@ -239,10 +261,10 @@ class IntegrationManager @Inject constructor(
 
         // Scrobbling
         if (events.containsAny(Player.EVENT_IS_PLAYING_CHANGED)) {
-             scrobbleManager?.onPlayerStateChanged(player.isPlaying, player.currentMetadata, duration = player.duration)
+            scrobbleManager?.onPlayerStateChanged(player.isPlaying, player.currentMetadata, duration = player.duration)
         }
     }
-    
+
     override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters) {
         if (playbackParameters.speed != lastPlaybackSpeed) {
             lastPlaybackSpeed = playbackParameters.speed
@@ -253,7 +275,12 @@ class IntegrationManager @Inject constructor(
                 delay(1000)
                 if (player?.playWhenReady == true && player?.playbackState == Player.STATE_READY) {
                     currentSongFlow?.value?.let { song ->
-                         discordRpc?.updateSong(song, player?.currentPosition ?: 0L, playbackParameters.speed, dataStore.get(DiscordUseDetailsKey, false))
+                        discordRpc?.updateSong(
+                            song,
+                            player?.currentPosition ?: 0L,
+                            playbackParameters.speed,
+                            dataStore.get(DiscordUseDetailsKey, false)
+                        )
                     }
                 }
             }
@@ -269,4 +296,3 @@ class IntegrationManager @Inject constructor(
         this.player = null
     }
 }
-

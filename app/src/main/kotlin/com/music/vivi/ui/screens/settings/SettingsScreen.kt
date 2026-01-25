@@ -1,6 +1,5 @@
 package com.music.vivi.ui.screens.settings
 
-import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
@@ -176,7 +175,17 @@ fun SettingsScreen(
             SettingsListContent(
                 updateStatus = updateStatus,
                 currentVersion = currentVersion,
-                accountName = if (isLoggedIn && accountName.isNotBlank()) accountName else if (isLoggedIn && accountNamePref.isNotBlank()) accountNamePref else stringResource(R.string.account),
+                accountName = if (isLoggedIn &&
+                    accountName.isNotBlank()
+                ) {
+                    accountName
+                } else if (isLoggedIn &&
+                    accountNamePref.isNotBlank()
+                ) {
+                    accountNamePref
+                } else {
+                    stringResource(R.string.account)
+                },
                 accountEmail = accountEmail,
                 accountImageUrl = accountImageUrl,
                 isLoggedIn = isLoggedIn,
@@ -200,7 +209,7 @@ private fun SettingsListContent(
     isLoggedIn: Boolean,
     iconBgColor: Color,
     iconStyleColor: Color,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit,
 ) {
     Material3ExpressiveSettingsGroup(
         modifier = Modifier.fillMaxWidth(),
@@ -216,7 +225,9 @@ private fun SettingsListContent(
                             tint = when (updateStatus) {
                                 is UpdateStatus.UpdateAvailable -> MaterialTheme.colorScheme.error
                                 is UpdateStatus.Loading -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                                is UpdateStatus.Disabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                is UpdateStatus.Disabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                                    alpha = 0.6f
+                                )
                                 else -> LocalContentColor.current
                             }
                         )

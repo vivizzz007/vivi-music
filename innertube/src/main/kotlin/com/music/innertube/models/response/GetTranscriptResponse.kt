@@ -3,45 +3,25 @@ package com.music.innertube.models.response
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class GetTranscriptResponse(
-    val actions: List<Action>?,
-) {
+data class GetTranscriptResponse(val actions: List<Action>?) {
     @Serializable
-    data class Action(
-        val updateEngagementPanelAction: UpdateEngagementPanelAction,
-    ) {
+    data class Action(val updateEngagementPanelAction: UpdateEngagementPanelAction) {
         @Serializable
-        data class UpdateEngagementPanelAction(
-            val content: Content,
-        ) {
+        data class UpdateEngagementPanelAction(val content: Content) {
             @Serializable
-            data class Content(
-                val transcriptRenderer: TranscriptRenderer,
-            ) {
+            data class Content(val transcriptRenderer: TranscriptRenderer) {
                 @Serializable
-                data class TranscriptRenderer(
-                    val body: Body,
-                ) {
+                data class TranscriptRenderer(val body: Body) {
                     @Serializable
-                    data class Body(
-                        val transcriptBodyRenderer: TranscriptBodyRenderer,
-                    ) {
+                    data class Body(val transcriptBodyRenderer: TranscriptBodyRenderer) {
                         @Serializable
-                        data class TranscriptBodyRenderer(
-                            val cueGroups: List<CueGroup>,
-                        ) {
+                        data class TranscriptBodyRenderer(val cueGroups: List<CueGroup>) {
                             @Serializable
-                            data class CueGroup(
-                                val transcriptCueGroupRenderer: TranscriptCueGroupRenderer,
-                            ) {
+                            data class CueGroup(val transcriptCueGroupRenderer: TranscriptCueGroupRenderer) {
                                 @Serializable
-                                data class TranscriptCueGroupRenderer(
-                                    val cues: List<Cue>,
-                                ) {
+                                data class TranscriptCueGroupRenderer(val cues: List<Cue>) {
                                     @Serializable
-                                    data class Cue(
-                                        val transcriptCueRenderer: TranscriptCueRenderer,
-                                    ) {
+                                    data class Cue(val transcriptCueRenderer: TranscriptCueRenderer) {
                                         @Serializable
                                         data class TranscriptCueRenderer(
                                             val cue: SimpleText,
@@ -49,9 +29,7 @@ data class GetTranscriptResponse(
                                             val durationMs: Long,
                                         ) {
                                             @Serializable
-                                            data class SimpleText(
-                                                val simpleText: String,
-                                            )
+                                            data class SimpleText(val simpleText: String)
                                         }
                                     }
                                 }

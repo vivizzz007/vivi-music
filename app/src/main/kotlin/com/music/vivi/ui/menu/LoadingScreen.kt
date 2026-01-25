@@ -12,25 +12,20 @@ import androidx.compose.ui.window.Dialog
 import com.music.vivi.R
 
 @Composable
-fun LoadingScreen(
-    isVisible: Boolean,
-    value: Int,
-) {
+fun LoadingScreen(isVisible: Boolean, value: Int) {
     if (isVisible) {
-        Dialog (
+        Dialog(
             onDismissRequest = {}
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-
                 Text(
                     text = stringResource(R.string.progress_percentage, value.toString()),
                     color = Color.White,
-                    fontSize = 26.sp,
+                    fontSize = 26.sp
                 )
-
             }
         }
     }

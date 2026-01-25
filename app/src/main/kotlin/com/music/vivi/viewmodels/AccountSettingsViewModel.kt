@@ -11,9 +11,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-public class AccountSettingsViewModel @Inject constructor(
-    private val syncUtils: SyncUtils,
-) : ViewModel() {
+public class AccountSettingsViewModel @Inject constructor(private val syncUtils: SyncUtils) : ViewModel() {
 
     /**
      * Logout user and clear all synced content to prevent data mixing between accounts

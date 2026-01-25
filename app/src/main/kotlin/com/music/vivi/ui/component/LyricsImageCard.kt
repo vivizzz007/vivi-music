@@ -26,8 +26,8 @@ import androidx.compose.ui.unit.*
 import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.music.vivi.models.MediaMetadata
 import com.music.vivi.R
+import com.music.vivi.models.MediaMetadata
 
 @Composable
 public fun rememberAdjustedFontSize(
@@ -38,7 +38,7 @@ public fun rememberAdjustedFontSize(
     initialFontSize: TextUnit = 20.sp,
     minFontSize: TextUnit = 14.sp,
     style: TextStyle = TextStyle.Default,
-    textMeasurer: androidx.compose.ui.text.TextMeasurer? = null
+    textMeasurer: androidx.compose.ui.text.TextMeasurer? = null,
 ): TextUnit {
     val measurer = textMeasurer ?: rememberTextMeasurer()
 
@@ -119,7 +119,7 @@ public fun LyricsImageCard(
     darkBackground: Boolean = true,
     backgroundColor: Color? = null,
     textColor: Color? = null,
-    secondaryTextColor: Color? = null
+    secondaryTextColor: Color? = null,
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
@@ -134,7 +134,8 @@ public fun LyricsImageCard(
 
     val backgroundGradient = backgroundColor ?: if (darkBackground) Color(0xFF121212) else Color(0xFFF5F5F5)
     val mainTextColor = textColor ?: if (darkBackground) Color.White else Color.Black
-    val secondaryColor = secondaryTextColor ?: if (darkBackground) Color.White.copy(alpha = 0.7f) else Color.Black.copy(alpha = 0.7f)
+    val secondaryColor =
+        secondaryTextColor ?: if (darkBackground) Color.White.copy(alpha = 0.7f) else Color.Black.copy(alpha = 0.7f)
 
     val painter = rememberAsyncImagePainter(
         ImageRequest.Builder(context)
@@ -217,7 +218,7 @@ public fun LyricsImageCard(
                         color = mainTextColor,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
-                        letterSpacing = 0.005.em,
+                        letterSpacing = 0.005.em
                     )
 
                     val textMeasurer = rememberTextMeasurer()
@@ -270,7 +271,6 @@ public fun LyricsImageCard(
                                 .size(16.dp),
                             colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(backgroundGradient)
                         )
-
                     }
 
                     Spacer(modifier = Modifier.width(8.dp))

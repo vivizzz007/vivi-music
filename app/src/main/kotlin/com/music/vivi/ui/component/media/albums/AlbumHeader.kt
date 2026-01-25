@@ -1,7 +1,6 @@
 package com.music.vivi.ui.component.media.albums
 
 import android.content.Intent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +24,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
@@ -50,7 +50,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -71,9 +70,6 @@ import com.music.vivi.db.entities.AlbumWithSongs
 import com.music.vivi.playback.ExoDownloadService
 import com.music.vivi.playback.queues.LocalAlbumRadio
 import com.music.vivi.ui.menu.AlbumMenu
-import androidx.compose.ui.util.fastForEachIndexed
-
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -193,7 +189,13 @@ fun AlbumHeader(
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = if (albumWithSongs.album.bookmarkedAt != null) stringResource(R.string.saved) else stringResource(R.string.save),
+                        text = if (albumWithSongs.album.bookmarkedAt !=
+                            null
+                        ) {
+                            stringResource(R.string.saved)
+                        } else {
+                            stringResource(R.string.save)
+                        },
                         style = MaterialTheme.typography.labelLarge
                     )
                 }
@@ -209,7 +211,7 @@ fun AlbumHeader(
                     } else {
                         playerConnection.service.getAutomix(playlistId ?: "")
                         playerConnection.playQueue(
-                            LocalAlbumRadio(albumWithSongs),
+                            LocalAlbumRadio(albumWithSongs)
                         )
                     }
                 },
@@ -227,10 +229,11 @@ fun AlbumHeader(
                 ) {
                     Icon(
                         painter = painterResource(
-                            if (isPlaying && mediaMetadata?.album?.id == albumWithSongs.album.id)
+                            if (isPlaying && mediaMetadata?.album?.id == albumWithSongs.album.id) {
                                 R.drawable.pause
-                            else
+                            } else {
                                 R.drawable.play
+                            }
                         ),
                         contentDescription = null,
                         modifier = Modifier.size(20.dp),
@@ -238,8 +241,11 @@ fun AlbumHeader(
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = if (isPlaying && mediaMetadata?.album?.id == albumWithSongs.album.id)
-                            stringResource(R.string.pause) else stringResource(R.string.play),
+                        text = if (isPlaying && mediaMetadata?.album?.id == albumWithSongs.album.id) {
+                            stringResource(R.string.pause)
+                        } else {
+                            stringResource(R.string.play)
+                        },
                         style = MaterialTheme.typography.labelLarge
                     )
                 }
@@ -250,7 +256,17 @@ fun AlbumHeader(
                     val intent = Intent().apply {
                         action = Intent.ACTION_SEND
                         type = "text/plain"
-                        putExtra(Intent.EXTRA_TEXT, context.getString(R.string.check_out_album_share, albumWithSongs.album.title, albumWithSongs.artists.joinToString { it.name }, "https://music.youtube.com/playlist?list=${albumWithSongs.album.playlistId}"))
+                        putExtra(
+                            Intent.EXTRA_TEXT,
+                            context.getString(
+                                R.string.check_out_album_share,
+                                albumWithSongs.album.title,
+                                albumWithSongs.artists.joinToString {
+                                    it.name
+                                },
+                                "https://music.youtube.com/playlist?list=${albumWithSongs.album.playlistId}"
+                            )
+                        )
                     }
                     context.startActivity(Intent.createChooser(intent, null))
                 },
@@ -320,7 +336,9 @@ fun AlbumHeader(
         // Album Description
         var showDescriptionDialog by rememberSaveable { mutableStateOf(false) }
         var isDescriptionTruncated by remember { mutableStateOf(false) }
-        val staticDescription = "${albumWithSongs.album.title} is an album by ${albumWithSongs.artists.joinToString { it.name }}${
+        val staticDescription = "${albumWithSongs.album.title} is an album by ${albumWithSongs.artists.joinToString {
+            it.name
+        }}${
             if (albumWithSongs.album.year != null) ", released in ${albumWithSongs.album.year}" else ""
         }. This collection features ${albumWithSongs.songs.size} tracks showcasing their musical artistry."
         val description = albumDescription ?: staticDescription
@@ -397,7 +415,7 @@ fun AlbumHeader(
                     ) {
                         Text(stringResource(android.R.string.ok))
                     }
-                },
+                }
             )
         }
 
@@ -435,9 +453,8 @@ fun AlbumHeader(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 32.dp),
-            horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+            horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
         ) {
-
             ToggleButton(
                 checked = downloadState == Download.STATE_COMPLETED || downloadState == Download.STATE_DOWNLOADING,
                 onCheckedChange = {
@@ -448,7 +465,7 @@ fun AlbumHeader(
                                     context,
                                     ExoDownloadService::class.java,
                                     song.id,
-                                    false,
+                                    false
                                 )
                             }
                         }
@@ -464,14 +481,14 @@ fun AlbumHeader(
                                     context,
                                     ExoDownloadService::class.java,
                                     downloadRequest,
-                                    false,
+                                    false
                                 )
                             }
                         }
                     }
                 },
                 modifier = Modifier.weight(1f).semantics { role = Role.Button },
-                shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
+                shapes = ButtonGroupDefaults.connectedLeadingButtonShapes()
             ) {
                 when (downloadState) {
                     Download.STATE_COMPLETED -> {
@@ -513,11 +530,11 @@ fun AlbumHeader(
                 onCheckedChange = {
                     playerConnection.service.getAutomix(playlistId ?: "")
                     playerConnection.playQueue(
-                        LocalAlbumRadio(albumWithSongs.copy(songs = albumWithSongs.songs.shuffled())),
+                        LocalAlbumRadio(albumWithSongs.copy(songs = albumWithSongs.songs.shuffled()))
                     )
                 },
                 modifier = Modifier.weight(1f).semantics { role = Role.Button },
-                shapes = ButtonGroupDefaults.connectedMiddleButtonShapes(),
+                shapes = ButtonGroupDefaults.connectedMiddleButtonShapes()
             ) {
                 Icon(
                     painter = painterResource(R.drawable.shuffle),
@@ -539,12 +556,12 @@ fun AlbumHeader(
                                 albumWithSongs.artists
                             ),
                             navController = navController,
-                            onDismiss = menuState::dismiss,
+                            onDismiss = menuState::dismiss
                         )
                     }
                 },
                 modifier = Modifier.weight(1f).semantics { role = Role.Button },
-                shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
+                shapes = ButtonGroupDefaults.connectedTrailingButtonShapes()
             ) {
                 Icon(
                     painter = painterResource(R.drawable.more_vert),

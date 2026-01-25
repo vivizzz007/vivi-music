@@ -39,7 +39,7 @@ import kotlin.math.roundToInt
 public fun SwipeToSongBox(
     modifier: Modifier = Modifier,
     mediaItem: MediaItem,
-    content: @Composable BoxScope.() -> Unit
+    content: @Composable BoxScope.() -> Unit,
 ) {
     val ctx = LocalContext.current
     val player = LocalPlayerConnection.current
@@ -77,19 +77,21 @@ public fun SwipeToSongBox(
             )
     ) {
         if (offset.value != 0f) {
-            val (iconRes, bg, tint, align) = if (offset.value > 0)
+            val (iconRes, bg, tint, align) = if (offset.value > 0) {
                 Quadruple(
                     R.drawable.playlist_play,
                     MaterialTheme.colorScheme.secondary,
                     MaterialTheme.colorScheme.onSecondary,
                     Alignment.CenterStart
-                ) else
+                )
+            } else {
                 Quadruple(
                     R.drawable.queue_music,
                     MaterialTheme.colorScheme.primary,
                     MaterialTheme.colorScheme.onPrimary,
                     Alignment.CenterEnd
                 )
+            }
 
             Box(
                 modifier = Modifier
@@ -133,9 +135,4 @@ private fun reset(offset: MutableState<Float>, scope: CoroutineScope) {
 }
 
 // Data holder for swipe visuals
-public data class Quadruple<A, B, C, D>(
-    val first: A,
-    val second: B,
-    val third: C,
-    val fourth: D
-)
+public data class Quadruple<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)

@@ -16,24 +16,22 @@ import com.music.innertube.models.WatchEndpoint
 import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalDownloadUtil
 import com.music.vivi.R
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.launch
 import com.music.vivi.db.entities.Album
 import com.music.vivi.db.entities.Artist
 import com.music.vivi.db.entities.Playlist
+import com.music.vivi.ui.component.media.albums.AlbumGridItem
+import com.music.vivi.ui.component.media.albums.AlbumListItem
+import com.music.vivi.ui.component.media.artists.ArtistGridItem
+import com.music.vivi.ui.component.media.playlists.PlaylistGridItem
+import com.music.vivi.ui.component.media.playlists.PlaylistListItem
 import com.music.vivi.ui.menu.AlbumMenu
 import com.music.vivi.ui.menu.ArtistMenu
 import com.music.vivi.ui.menu.PlaylistMenu
 import com.music.vivi.ui.menu.YouTubePlaylistMenu
-import com.music.vivi.ui.component.media.artists.ArtistGridItem
-import com.music.vivi.ui.component.media.albums.AlbumListItem
-import com.music.vivi.ui.component.media.albums.AlbumGridItem
-import com.music.vivi.ui.component.media.playlists.PlaylistListItem
-import com.music.vivi.ui.component.media.playlists.PlaylistGridItem
 import kotlinx.coroutines.CoroutineScope
-
-
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -43,7 +41,7 @@ public fun LibraryArtistGridItem(
     coroutineScope: CoroutineScope,
     artist: Artist,
     modifier: Modifier = Modifier,
-    onItemClick: (() -> Unit)? = null
+    onItemClick: (() -> Unit)? = null,
 ): Unit = ArtistGridItem(
     artist = artist,
     fillMaxWidth = true,
@@ -77,7 +75,7 @@ public fun LibraryAlbumListItem(
     album: Album,
     isActive: Boolean = false,
     isPlaying: Boolean = false,
-    onItemClick: (() -> Unit)? = null
+    onItemClick: (() -> Unit)? = null,
 ) {
     val downloadUtil = LocalDownloadUtil.current
     val database = LocalDatabase.current
@@ -131,13 +129,16 @@ public fun LibraryAlbumGridItem(
     album: Album,
     isActive: Boolean = false,
     isPlaying: Boolean = false,
-    onItemClick: (() -> Unit)? = null
+    onItemClick: (() -> Unit)? = null,
 ) {
     val downloadUtil = LocalDownloadUtil.current
     val database = LocalDatabase.current
     val playerConnection = com.music.vivi.LocalPlayerConnection.current ?: return
 
-    val songs by androidx.compose.runtime.produceState<List<com.music.vivi.db.entities.Song>>(initialValue = emptyList(), album.id) {
+    val songs by androidx.compose.runtime.produceState<List<com.music.vivi.db.entities.Song>>(
+        initialValue = emptyList(),
+        album.id
+    ) {
         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
             value = database.albumSongs(album.id).first()
         }
@@ -149,8 +150,16 @@ public fun LibraryAlbumGridItem(
                 androidx.media3.exoplayer.offline.Download.STATE_STOPPED
             } else {
                 when {
-                    songs.all { allDownloads[it.id]?.state == androidx.media3.exoplayer.offline.Download.STATE_COMPLETED } -> androidx.media3.exoplayer.offline.Download.STATE_COMPLETED
-                    songs.any { allDownloads[it.id]?.state in listOf(androidx.media3.exoplayer.offline.Download.STATE_QUEUED, androidx.media3.exoplayer.offline.Download.STATE_DOWNLOADING) } -> androidx.media3.exoplayer.offline.Download.STATE_DOWNLOADING
+                    songs.all {
+                        allDownloads[it.id]?.state == androidx.media3.exoplayer.offline.Download.STATE_COMPLETED
+                    } -> androidx.media3.exoplayer.offline.Download.STATE_COMPLETED
+                    songs.any {
+                        allDownloads[it.id]?.state in
+                            listOf(
+                                androidx.media3.exoplayer.offline.Download.STATE_QUEUED,
+                                androidx.media3.exoplayer.offline.Download.STATE_DOWNLOADING
+                            )
+                    } -> androidx.media3.exoplayer.offline.Download.STATE_DOWNLOADING
                     else -> androidx.media3.exoplayer.offline.Download.STATE_STOPPED
                 }
             }
@@ -204,7 +213,7 @@ public fun LibraryPlaylistListItem(
     coroutineScope: CoroutineScope,
     playlist: Playlist,
     modifier: Modifier = Modifier,
-    onItemClick: (() -> Unit)? = null
+    onItemClick: (() -> Unit)? = null,
 ): Unit = PlaylistListItem(
     playlist = playlist,
     trailingContent = {
@@ -260,10 +269,14 @@ public fun LibraryPlaylistListItem(
             if (onItemClick != null) {
                 onItemClick()
             } else {
-                if (!playlist.playlist.isEditable && playlist.songCount == 0 && playlist.playlist.remoteSongCount != 0)
+                if (!playlist.playlist.isEditable &&
+                    playlist.songCount == 0 &&
+                    playlist.playlist.remoteSongCount != 0
+                ) {
                     navController.navigate("online_playlist/${playlist.playlist.browseId}")
-                else
+                } else {
                     navController.navigate("local_playlist/${playlist.id}")
+                }
             }
         }
 )
@@ -276,7 +289,7 @@ public fun LibraryPlaylistGridItem(
     coroutineScope: CoroutineScope,
     playlist: Playlist,
     modifier: Modifier = Modifier,
-    onItemClick: (() -> Unit)? = null
+    onItemClick: (() -> Unit)? = null,
 ): Unit = PlaylistGridItem(
     playlist = playlist,
     fillMaxWidth = true,
@@ -287,10 +300,14 @@ public fun LibraryPlaylistGridItem(
                 if (onItemClick != null) {
                     onItemClick()
                 } else {
-                    if (!playlist.playlist.isEditable && playlist.songCount == 0 && playlist.playlist.remoteSongCount != 0)
+                    if (!playlist.playlist.isEditable &&
+                        playlist.songCount == 0 &&
+                        playlist.playlist.remoteSongCount != 0
+                    ) {
                         navController.navigate("online_playlist/${playlist.playlist.browseId}")
-                    else
+                    } else {
                         navController.navigate("local_playlist/${playlist.id}")
+                    }
                 }
             },
             onLongClick = {
@@ -353,7 +370,10 @@ public fun LibrarySongListItem(
 ) {
     val downloadUtil = LocalDownloadUtil.current
     val downloadState by downloadUtil.getDownload(song.id).collectAsState(initial = null)
-    val swipeEnabled by com.music.vivi.utils.rememberPreference(com.music.vivi.constants.SwipeToSongKey, defaultValue = false)
+    val swipeEnabled by com.music.vivi.utils.rememberPreference(
+        com.music.vivi.constants.SwipeToSongKey,
+        defaultValue = false
+    )
 
     com.music.vivi.ui.component.media.songs.SongListItem(
         song = song,

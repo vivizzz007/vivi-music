@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyRow
@@ -20,18 +21,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
-import androidx.compose.foundation.layout.only
-import coil3.request.crossfade
 import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.music.innertube.models.PlaylistItem
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.ListThumbnailSize
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.NavigationTitle
-import kotlinx.coroutines.CoroutineScope
-
 import com.music.vivi.utils.ImmutableList
+import kotlinx.coroutines.CoroutineScope
 
 @Composable
 internal fun HomeAccountPlaylists(
@@ -43,7 +42,7 @@ internal fun HomeAccountPlaylists(
     isPlaying: Boolean,
     navController: NavController,
     scope: CoroutineScope,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     if (accountPlaylists.isEmpty()) return
 
@@ -93,7 +92,7 @@ internal fun HomeAccountPlaylists(
     ) {
         items(
             items = accountPlaylists.distinctBy { it.id },
-            key = { it.id },
+            key = { it.id }
         ) { item ->
             HomeYTGridItem(
                 item = item,

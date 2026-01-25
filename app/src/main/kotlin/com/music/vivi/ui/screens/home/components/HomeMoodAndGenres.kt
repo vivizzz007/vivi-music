@@ -10,8 +10,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -23,13 +21,12 @@ import com.music.vivi.ui.component.MoodAndGenresButton
 import com.music.vivi.ui.component.NavigationTitle
 import com.music.vivi.ui.component.shimmer.ShimmerHost
 import com.music.vivi.ui.component.shimmer.TextPlaceholder
-
 import com.music.vivi.utils.ImmutableList
 
 internal fun LazyListScope.homeMoodAndGenres(
     moodAndGenres: ImmutableList<MoodAndGenres.Item>?,
     isLoading: Boolean,
-    navController: NavController
+    navController: NavController,
 ) {
     moodAndGenres?.let { list ->
         item(key = "mood_and_genres_title") {
@@ -52,7 +49,9 @@ internal fun LazyListScope.homeMoodAndGenres(
                     MoodAndGenresButton(
                         title = it.title,
                         onClick = {
-                            navController.navigate("youtube_browse/${it.endpoint.browseId}?params=${it.endpoint.params}")
+                            navController.navigate(
+                                "youtube_browse/${it.endpoint.browseId}?params=${it.endpoint.params}"
+                            )
                         },
                         modifier = Modifier
                             .padding(6.dp)
@@ -72,7 +71,7 @@ internal fun LazyListScope.homeMoodAndGenres(
                     height = 36.dp,
                     modifier = Modifier
                         .padding(vertical = 12.dp, horizontal = 12.dp)
-                        .width(250.dp),
+                        .width(250.dp)
                 )
 
                 repeat(4) {

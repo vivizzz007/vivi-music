@@ -45,8 +45,8 @@ import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.playback.queues.ListQueue
 import com.music.vivi.ui.component.HideOnScrollFAB
 import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.LibrarySongListItem
+import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.SortHeader
 import com.music.vivi.ui.menu.SongMenu
 import com.music.vivi.ui.utils.backToMain
@@ -82,19 +82,19 @@ public fun ArtistSongsScreen(
     val lazyListState = rememberLazyListState()
 
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
     ) {
         LazyColumn(
             state = lazyListState,
-            contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
+            contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
         ) {
             item(
                 key = "header",
-                contentType = CONTENT_TYPE_HEADER,
+                contentType = CONTENT_TYPE_HEADER
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 ) {
                     SortHeader(
                         sortType = sortType,
@@ -107,7 +107,7 @@ public fun ArtistSongsScreen(
                                 ArtistSongSortType.NAME -> R.string.sort_by_name
                                 ArtistSongSortType.PLAY_TIME -> R.string.sort_by_play_time
                             }
-                        },
+                        }
                     )
 
                     Spacer(Modifier.weight(1f))
@@ -115,14 +115,14 @@ public fun ArtistSongsScreen(
                     Text(
                         text = pluralStringResource(R.plurals.n_song, songs.size, songs.size),
                         style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.secondary,
+                        color = MaterialTheme.colorScheme.secondary
                     )
                 }
             }
 
             itemsIndexed(
                 items = songs,
-                key = { _, item -> item.id },
+                key = { _, item -> item.id }
             ) { index, song ->
                 LibrarySongListItem(
                     song = song,
@@ -136,14 +136,14 @@ public fun ArtistSongsScreen(
                                     SongMenu(
                                         originalSong = song,
                                         navController = navController,
-                                        onDismiss = menuState::dismiss,
+                                        onDismiss = menuState::dismiss
                                     )
                                 }
-                            },
+                            }
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.more_vert),
-                                contentDescription = null,
+                                contentDescription = null
                             )
                         }
                     },
@@ -159,8 +159,8 @@ public fun ArtistSongsScreen(
                                         ListQueue(
                                             title = context.getString(R.string.queue_all_songs),
                                             items = songs.map { it.toMediaItem() },
-                                            startIndex = index,
-                                        ),
+                                            startIndex = index
+                                        )
                                     )
                                 }
                             },
@@ -170,10 +170,10 @@ public fun ArtistSongsScreen(
                                     SongMenu(
                                         originalSong = song,
                                         navController = navController,
-                                        onDismiss = menuState::dismiss,
+                                        onDismiss = menuState::dismiss
                                     )
                                 }
-                            },
+                            }
                         )
                 )
             }
@@ -184,14 +184,14 @@ public fun ArtistSongsScreen(
             navigationIcon = {
                 IconButton(
                     onClick = navController::navigateUp,
-                    onLongClick = navController::backToMain,
+                    onLongClick = navController::backToMain
                 ) {
                     Icon(
                         painterResource(R.drawable.arrow_back),
-                        contentDescription = null,
+                        contentDescription = null
                     )
                 }
-            },
+            }
         )
 
         HideOnScrollFAB(
@@ -201,10 +201,10 @@ public fun ArtistSongsScreen(
                 playerConnection.playQueue(
                     ListQueue(
                         title = artist?.artist?.name,
-                        items = songs.shuffled().map { it.toMediaItem() },
-                    ),
+                        items = songs.shuffled().map { it.toMediaItem() }
+                    )
                 )
-            },
+            }
         )
     }
 }

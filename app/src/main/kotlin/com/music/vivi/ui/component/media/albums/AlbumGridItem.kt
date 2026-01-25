@@ -7,16 +7,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-
 import com.music.vivi.constants.ThumbnailCornerRadius
 import com.music.vivi.db.entities.Album
 import com.music.vivi.ui.component.GridItem
@@ -69,7 +63,7 @@ fun AlbumGridItem(
             thumbnailUrl = album.album.thumbnailUrl,
             isActive = isActive,
             isPlaying = isPlaying,
-            shape = RoundedCornerShape(ThumbnailCornerRadius),
+            shape = RoundedCornerShape(ThumbnailCornerRadius)
         )
 
         AlbumPlayButton(

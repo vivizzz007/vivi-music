@@ -17,8 +17,8 @@ data class AlbumWithSongs(
         Junction(
             value = AlbumArtistMap::class,
             parentColumn = "albumId",
-            entityColumn = "artistId",
-        ),
+            entityColumn = "artistId"
+        )
     )
     val artists: List<ArtistEntity>,
     @Relation(
@@ -29,8 +29,8 @@ data class AlbumWithSongs(
         Junction(
             value = SortedSongAlbumMap::class,
             parentColumn = "albumId",
-            entityColumn = "songId",
-        ),
+            entityColumn = "songId"
+        )
     )
     val songs: List<Song>,
 )

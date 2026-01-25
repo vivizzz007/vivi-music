@@ -32,10 +32,7 @@ import com.music.vivi.update.contribution.Contributor
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun Materialcard(
-    contributors: List<Contributor>,
-    onGitHubClick: (String) -> Unit
-) {
+fun Materialcard(contributors: List<Contributor>, onGitHubClick: (String) -> Unit) {
     val cornerRadius = 16.dp
     val connectionRadius = 5.dp
 

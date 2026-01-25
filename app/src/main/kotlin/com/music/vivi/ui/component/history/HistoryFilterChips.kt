@@ -33,7 +33,7 @@ fun HistoryFilterChips(
     historySource: HistorySource,
     isLoggedIn: Boolean,
     onSourceSelected: (HistorySource) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val selectedChip = historySource
 
@@ -44,10 +44,12 @@ fun HistoryFilterChips(
             .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        val chips = if (isLoggedIn) listOf(
-            HistorySource.LOCAL to stringResource(R.string.local_history),
-            HistorySource.REMOTE to stringResource(R.string.remote_history),
-        ) else {
+        val chips = if (isLoggedIn) {
+            listOf(
+                HistorySource.LOCAL to stringResource(R.string.local_history),
+                HistorySource.REMOTE to stringResource(R.string.remote_history)
+            )
+        } else {
             listOf(HistorySource.LOCAL to stringResource(R.string.local_history))
         }
 
@@ -73,7 +75,7 @@ fun HistoryFilterChips(
                         Icon(
                             imageVector = Icons.Filled.Done,
                             contentDescription = null,
-                            modifier = Modifier.size(FilterChipDefaults.IconSize),
+                            modifier = Modifier.size(FilterChipDefaults.IconSize)
                         )
                     }
                 } else {

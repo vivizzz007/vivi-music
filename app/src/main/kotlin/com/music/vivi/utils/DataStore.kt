@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -24,36 +23,22 @@ import kotlin.properties.ReadOnlyProperty
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
-operator fun <T> DataStore<Preferences>.get(key: Preferences.Key<T>): T? =
-    runBlocking(Dispatchers.IO) {
-        data.first()[key]
-    }
+operator fun <T> DataStore<Preferences>.get(key: Preferences.Key<T>): T? = runBlocking(Dispatchers.IO) {
+    data.first()[key]
+}
 
-fun <T> DataStore<Preferences>.get(
-    key: Preferences.Key<T>,
-    defaultValue: T,
-): T =
-    runBlocking(Dispatchers.IO) {
-        data.first()[key] ?: defaultValue
-    }
+fun <T> DataStore<Preferences>.get(key: Preferences.Key<T>, defaultValue: T): T = runBlocking(Dispatchers.IO) {
+    data.first()[key] ?: defaultValue
+}
 
-fun <T> preference(
-    context: Context,
-    key: Preferences.Key<T>,
-    defaultValue: T,
-) = ReadOnlyProperty<Any?, T> { _, _ -> context.dataStore[key] ?: defaultValue }
+fun <T> preference(context: Context, key: Preferences.Key<T>, defaultValue: T) =
+    ReadOnlyProperty<Any?, T> { _, _ -> context.dataStore[key] ?: defaultValue }
 
-inline fun <reified T : Enum<T>> enumPreference(
-    context: Context,
-    key: Preferences.Key<String>,
-    defaultValue: T,
-) = ReadOnlyProperty<Any?, T> { _, _ -> context.dataStore[key].toEnum(defaultValue) }
+inline fun <reified T : Enum<T>> enumPreference(context: Context, key: Preferences.Key<String>, defaultValue: T) =
+    ReadOnlyProperty<Any?, T> { _, _ -> context.dataStore[key].toEnum(defaultValue) }
 
 @Composable
-fun <T> rememberPreference(
-    key: Preferences.Key<T>,
-    defaultValue: T,
-): MutableState<T> {
+fun <T> rememberPreference(key: Preferences.Key<T>, defaultValue: T): MutableState<T> {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val state = remember { mutableStateOf(defaultValue) }

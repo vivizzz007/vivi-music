@@ -11,10 +11,7 @@ data class Continuation(
     val nextContinuationData: NextContinuationData?,
 ) {
     @Serializable
-    data class NextContinuationData(
-        val continuation: String,
-    )
+    data class NextContinuationData(val continuation: String)
 }
 
-fun List<Continuation>.getContinuation() =
-    firstOrNull()?.nextContinuationData?.continuation
+fun List<Continuation>.getContinuation() = firstOrNull()?.nextContinuationData?.continuation

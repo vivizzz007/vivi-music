@@ -3,7 +3,6 @@
 
 package com.music.vivi.update.account
 
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -76,10 +75,7 @@ import com.music.vivi.viewmodels.HomeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FunAccountViviSetting(
-    navController: NavController,
-    scrollBehavior: TopAppBarScrollBehavior,
-) {
+fun FunAccountViviSetting(navController: NavController, scrollBehavior: TopAppBarScrollBehavior) {
     val topAppBarState = rememberTopAppBarState()
     val scrollBehaviorLocal = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
     val context = LocalContext.current
@@ -118,11 +114,11 @@ fun FunAccountViviSetting(
             navigationIcon = {
                 IconButton(
                     onClick = navController::navigateUp,
-                    onLongClick = navController::backToMain,
+                    onLongClick = navController::backToMain
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.arrow_back),
-                        contentDescription = null,
+                        contentDescription = null
                     )
                 }
             },
@@ -191,8 +187,11 @@ fun FunAccountViviSetting(
                                 .size(64.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    if (isLoggedIn) MaterialTheme.colorScheme.primary
-                                    else MaterialTheme.colorScheme.surface
+                                    if (isLoggedIn) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.surface
+                                    }
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
@@ -208,13 +207,19 @@ fun FunAccountViviSetting(
                             } else {
                                 Icon(
                                     painter = painterResource(
-                                        if (isLoggedIn) R.drawable.account
-                                        else R.drawable.login
+                                        if (isLoggedIn) {
+                                            R.drawable.account
+                                        } else {
+                                            R.drawable.login
+                                        }
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(32.dp),
-                                    tint = if (isLoggedIn) MaterialTheme.colorScheme.onPrimary
-                                    else MaterialTheme.colorScheme.onSurface
+                                    tint = if (isLoggedIn) {
+                                        MaterialTheme.colorScheme.onPrimary
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurface
+                                    }
                                 )
                             }
                         }
@@ -223,19 +228,31 @@ fun FunAccountViviSetting(
 
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = if (isLoggedIn) stringResource(R.string.signed_in) else stringResource(R.string.not_signed_in),
+                                text = if (isLoggedIn) {
+                                    stringResource(
+                                        R.string.signed_in
+                                    )
+                                } else {
+                                    stringResource(R.string.not_signed_in)
+                                },
                                 style = MaterialTheme.typography.headlineSmall,
                                 fontWeight = FontWeight.Medium,
-                                color = if (isLoggedIn) MaterialTheme.colorScheme.onPrimaryContainer
-                                else MaterialTheme.colorScheme.onSurface,
+                                color = if (isLoggedIn) {
+                                    MaterialTheme.colorScheme.onPrimaryContainer
+                                } else {
+                                    MaterialTheme.colorScheme.onSurface
+                                },
                                 fontSize = 22.sp
                             )
 
                             Text(
                                 text = if (isLoggedIn) accountName else stringResource(R.string.tap_to_sign_in),
                                 style = MaterialTheme.typography.bodyLarge,
-                                color = if (isLoggedIn) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                                color = if (isLoggedIn) {
+                                    MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                                } else {
+                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                },
                                 fontWeight = FontWeight.Medium,
                                 modifier = Modifier.padding(top = 4.dp)
                             )
@@ -287,11 +304,21 @@ fun FunAccountViviSetting(
                                 showToken -> stringResource(R.string.token_shown_title)
                                 else -> stringResource(R.string.token_hidden_title)
                             },
-                            subtitle = if (isLoggedIn) stringResource(R.string.tap_to_manage_token) else stringResource(R.string.sign_in_with_cookies),
+                            subtitle = if (isLoggedIn) {
+                                stringResource(
+                                    R.string.tap_to_manage_token
+                                )
+                            } else {
+                                stringResource(R.string.sign_in_with_cookies)
+                            },
                             onClick = {
-                                if (!isLoggedIn) showTokenEditor = true
-                                else if (!showToken) showToken = true
-                                else showTokenEditor = true
+                                if (!isLoggedIn) {
+                                    showTokenEditor = true
+                                } else if (!showToken) {
+                                    showToken = true
+                                } else {
+                                    showTokenEditor = true
+                                }
                             },
                             showArrow = true,
                             showSettingsIcon = true
@@ -310,7 +337,13 @@ fun FunAccountViviSetting(
                                     )
                                 },
                                 title = stringResource(R.string.more_content),
-                                subtitle = if (useLoginForBrowse) stringResource(R.string.enabled) else stringResource(R.string.disabled),
+                                subtitle = if (useLoginForBrowse) {
+                                    stringResource(
+                                        R.string.enabled
+                                    )
+                                } else {
+                                    stringResource(R.string.disabled)
+                                },
                                 onClick = {
                                     YouTube.useLoginForBrowse = !useLoginForBrowse
                                     onUseLoginForBrowseChange(!useLoginForBrowse)
@@ -338,7 +371,13 @@ fun FunAccountViviSetting(
                                     )
                                 },
                                 title = stringResource(R.string.youtube_sync),
-                                subtitle = if (ytmSync) stringResource(R.string.enabled) else stringResource(R.string.disabled),
+                                subtitle = if (ytmSync) {
+                                    stringResource(
+                                        R.string.enabled
+                                    )
+                                } else {
+                                    stringResource(R.string.disabled)
+                                },
                                 onClick = {
                                     onYtmSyncChange(!ytmSync)
                                 },
@@ -465,7 +504,7 @@ fun FunAccountViviSetting(
                                 tint = MaterialTheme.colorScheme.onSecondaryContainer
                             )
                         }
-                        
+
                         Spacer(modifier = Modifier.width(16.dp))
 
                         Column {
@@ -531,7 +570,9 @@ fun FunAccountViviSetting(
                         it.startsWith("***DATASYNC ID*** =") -> onDataSyncIdChange(it.substringAfter("="))
                         it.startsWith("***ACCOUNT NAME*** =") -> onAccountNameChange(it.substringAfter("="))
                         it.startsWith("***ACCOUNT EMAIL*** =") -> onAccountEmailChange(it.substringAfter("="))
-                        it.startsWith("***ACCOUNT CHANNEL HANDLE*** =") -> onAccountChannelHandleChange(it.substringAfter("="))
+                        it.startsWith(
+                            "***ACCOUNT CHANNEL HANDLE*** ="
+                        ) -> onAccountChannelHandleChange(it.substringAfter("="))
                     }
                 }
             },

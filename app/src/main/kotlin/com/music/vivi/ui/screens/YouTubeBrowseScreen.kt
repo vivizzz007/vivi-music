@@ -62,26 +62,21 @@ import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.NavigationTitle
 import com.music.vivi.ui.component.media.youtube.YouTubeGridItem
 import com.music.vivi.ui.component.media.youtube.YouTubeListItem
-import com.music.vivi.ui.component.shimmer.GridItemPlaceHolder
-import com.music.vivi.ui.component.shimmer.ShimmerHost
-import com.music.vivi.ui.component.shimmer.TextPlaceholder
 import com.music.vivi.ui.menu.YouTubeAlbumMenu
 import com.music.vivi.ui.menu.YouTubeArtistMenu
 import com.music.vivi.ui.menu.YouTubePlaylistMenu
 import com.music.vivi.ui.menu.YouTubeSongMenu
-
-import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.ui.utils.GridSnapLayoutInfoProvider
+import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.viewmodels.YouTubeBrowseViewModel
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalFoundationApi::class,
     ExperimentalMaterial3ExpressiveApi::class
 )
 @Composable
-public fun YouTubeBrowseScreen(
-    navController: NavController,
-    viewModel: YouTubeBrowseViewModel = hiltViewModel(),
-) {
+public fun YouTubeBrowseScreen(navController: NavController, viewModel: YouTubeBrowseViewModel = hiltViewModel()) {
     val menuState = LocalMenuState.current
     val haptic = LocalHapticFeedback.current
     val playerConnection = LocalPlayerConnection.current ?: return
@@ -93,7 +88,7 @@ public fun YouTubeBrowseScreen(
     val coroutineScope = rememberCoroutineScope()
 
     BoxWithConstraints(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
     ) {
         val horizontalLazyGridItemWidthFactor = if (maxWidth * 0.475f >= 320.dp) 0.475f else 0.9f
         val lazyGridState = rememberLazyGridState()
@@ -106,7 +101,7 @@ public fun YouTubeBrowseScreen(
             )
         }
         LazyColumn(
-            contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
+            contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
         ) {
             if (browseResult == null) {
                 item(key = "loading_indicator") {
@@ -142,7 +137,7 @@ public fun YouTubeBrowseScreen(
                                     .height(ListItemHeight * 4)
                             ) {
                                 items(
-                                    items = it.items,
+                                    items = it.items
                                 ) { song ->
                                     Box(Modifier.width(350.dp)) {
                                         YouTubeListItem(
@@ -157,14 +152,14 @@ public fun YouTubeBrowseScreen(
                                                             YouTubeSongMenu(
                                                                 song = song,
                                                                 navController = navController,
-                                                                onDismiss = menuState::dismiss,
+                                                                onDismiss = menuState::dismiss
                                                             )
                                                         }
                                                     }
                                                 ) {
                                                     Icon(
                                                         painter = painterResource(R.drawable.more_vert),
-                                                        contentDescription = null,
+                                                        contentDescription = null
                                                     )
                                                 }
                                             },
@@ -189,10 +184,12 @@ public fun YouTubeBrowseScreen(
                     } else {
                         item(key = "section_items_${it.title?.hashCode() ?: it.hashCode()}") {
                             LazyRow(
-                                contentPadding = WindowInsets.systemBars.only(WindowInsetsSides.Horizontal).asPaddingValues(),
+                                contentPadding = WindowInsets.systemBars.only(
+                                    WindowInsetsSides.Horizontal
+                                ).asPaddingValues()
                             ) {
                                 items(
-                                    items = it.items,
+                                    items = it.items
                                 ) { item ->
                                     YouTubeGridItem(
                                         item = item,
@@ -210,7 +207,9 @@ public fun YouTubeBrowseScreen(
                                                     when (item) {
                                                         is AlbumItem -> navController.navigate("album/${item.id}")
                                                         is ArtistItem -> navController.navigate("artist/${item.id}")
-                                                        is PlaylistItem -> navController.navigate("online_playlist/${item.id}")
+                                                        is PlaylistItem -> navController.navigate(
+                                                            "online_playlist/${item.id}"
+                                                        )
                                                         else -> item
                                                     }
                                                 },
@@ -222,27 +221,27 @@ public fun YouTubeBrowseScreen(
                                                                 YouTubeSongMenu(
                                                                     song = item,
                                                                     navController = navController,
-                                                                    onDismiss = menuState::dismiss,
+                                                                    onDismiss = menuState::dismiss
                                                                 )
 
                                                             is AlbumItem ->
                                                                 YouTubeAlbumMenu(
                                                                     albumItem = item,
                                                                     navController = navController,
-                                                                    onDismiss = menuState::dismiss,
+                                                                    onDismiss = menuState::dismiss
                                                                 )
 
                                                             is ArtistItem ->
                                                                 YouTubeArtistMenu(
                                                                     artist = item,
-                                                                    onDismiss = menuState::dismiss,
+                                                                    onDismiss = menuState::dismiss
                                                                 )
 
                                                             is PlaylistItem ->
                                                                 YouTubePlaylistMenu(
                                                                     playlist = item,
                                                                     coroutineScope = coroutineScope,
-                                                                    onDismiss = menuState::dismiss,
+                                                                    onDismiss = menuState::dismiss
                                                                 )
                                                         }
                                                     }

@@ -68,7 +68,6 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
@@ -97,7 +96,7 @@ import java.util.Locale
 fun ChangelogScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
-    versionTag: String = "v${BuildConfig.VERSION_NAME}"
+    versionTag: String = "v${BuildConfig.VERSION_NAME}",
 ) {
     val context = LocalContext.current
     var changelog by remember { mutableStateOf("") }
@@ -134,7 +133,8 @@ fun ChangelogScreen(
                         showingCached = true
                     }
                 } else {
-                    val changelogUrl = URL("https://github.com/vivizzz007/vivi-music/releases/download/$tag/changelog.json")
+                    val changelogUrl =
+                        URL("https://github.com/vivizzz007/vivi-music/releases/download/$tag/changelog.json")
                     val changelogJson = changelogUrl.openStream().bufferedReader().use { it.readText() }
                     val changelogData = JSONObject(changelogJson)
 
@@ -190,7 +190,9 @@ fun ChangelogScreen(
                     val publishedAt = obj.getString("published_at")
                     val formattedDate = try {
                         ZonedDateTime.parse(publishedAt).format(outputFormatter)
-                    } catch (e: Exception) { publishedAt }
+                    } catch (e: Exception) {
+                        publishedAt
+                    }
 
                     val assets = obj.getJSONArray("assets")
                     var changelogUrl: String? = null
@@ -306,10 +308,7 @@ fun ChangelogScreen(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun ChangelogTypeSelector(
-    selectedIndex: Int,
-    onOptionSelected: (Int) -> Unit
-) {
+private fun ChangelogTypeSelector(selectedIndex: Int, onOptionSelected: (Int) -> Unit) {
     SingleChoiceSegmentedButtonRow(
         modifier = Modifier
             .fillMaxWidth()
@@ -321,7 +320,7 @@ private fun ChangelogTypeSelector(
             SegmentedButton(
                 shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
                 onClick = { onOptionSelected(index) },
-                selected = index == selectedIndex,
+                selected = index == selectedIndex
             ) { Text(label) }
         }
     }
@@ -337,7 +336,7 @@ private fun CurrentChangelogView(
     updateDescription: String?,
     updateWarning: String?,
     changelog: String,
-    onUrlClick: (String) -> Unit
+    onUrlClick: (String) -> Unit,
 ) {
     if (hasError && !isLoading) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -358,18 +357,35 @@ private fun CurrentChangelogView(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
-                        Text(stringResource(R.string.changelog_title), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                        Text(versionTag, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            stringResource(R.string.changelog_title),
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            versionTag,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                     if (showingCached) {
                         Surface(color = MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(8.dp)) {
-                            Text(stringResource(R.string.cached), style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+                            Text(
+                                stringResource(R.string.cached),
+                                style = MaterialTheme.typography.labelSmall,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
                         }
                     }
                 }
                 updateImage?.let { imageUrl ->
                     Spacer(modifier = Modifier.height(16.dp))
-                    AsyncImage(model = imageUrl, contentDescription = null, modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)), contentScale = ContentScale.FillWidth)
+                    AsyncImage(
+                        model = imageUrl,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)),
+                        contentScale = ContentScale.FillWidth
+                    )
                 }
             }
 
@@ -385,10 +401,22 @@ private fun CurrentChangelogView(
                 }
                 updateWarning?.let { warning ->
                     Spacer(Modifier.height(16.dp))
-                    Surface(color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f), shape = RoundedCornerShape(12.dp)) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
                         Row(modifier = Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Icon(Icons.Default.Error, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
-                            Text(warning, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onErrorContainer)
+                            Icon(
+                                Icons.Default.Error,
+                                null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Text(
+                                warning,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onErrorContainer
+                            )
                         }
                     }
                 }
@@ -404,11 +432,23 @@ private fun ChangelogItem(item: String, onUrlClick: (String) -> Unit) {
         append(item.trim())
         urls.forEach { (range, url) ->
             addStringAnnotation("URL", url, range.first, range.last + 1)
-            addStyle(SpanStyle(color = MaterialTheme.colorScheme.primary, textDecoration = TextDecoration.Underline), range.first, range.last + 1)
+            addStyle(
+                SpanStyle(color = MaterialTheme.colorScheme.primary, textDecoration = TextDecoration.Underline),
+                range.first,
+                range.last + 1
+            )
         }
     }
-    Row(modifier = Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        Box(modifier = Modifier.padding(top = 8.dp).size(6.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
+    Row(
+        modifier = Modifier.padding(vertical = 4.dp),
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Box(
+            modifier = Modifier.padding(
+                top = 8.dp
+            ).size(6.dp).background(MaterialTheme.colorScheme.primary, CircleShape)
+        )
         @Suppress("DEPRECATION")
         ClickableText(
             text = annotatedText,
@@ -423,18 +463,17 @@ private fun ChangelogItem(item: String, onUrlClick: (String) -> Unit) {
 }
 
 @Composable
-private fun OldReleasesView(
-    oldReleases: List<ReleaseMetadata>,
-    isFetching: Boolean,
-    onReleaseClick: (String) -> Unit
-) {
+private fun OldReleasesView(oldReleases: List<ReleaseMetadata>, isFetching: Boolean, onReleaseClick: (String) -> Unit) {
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         if (oldReleases.isEmpty() && !isFetching) {
             Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                Text(stringResource(R.string.no_old_releases_with_changelog), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    stringResource(R.string.no_old_releases_with_changelog),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         } else {
             oldReleases.forEach { release ->
@@ -452,17 +491,42 @@ private fun ReleaseCard(release: ReleaseMetadata, onClick: (String) -> Unit) {
     ) {
         Column {
             release.imageUrl?.let { imageUrl ->
-                AsyncImage(model = imageUrl, contentDescription = null, modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)), contentScale = ContentScale.Crop)
+                AsyncImage(
+                    model = imageUrl,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxWidth().height(
+                        180.dp
+                    ).clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+                    contentScale = ContentScale.Crop
+                )
             }
             Column(modifier = Modifier.padding(16.dp)) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = release.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = release.name,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f)
+                    )
                     Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = RoundedCornerShape(8.dp)) {
-                        Text(text = release.tagName, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSecondaryContainer, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+                        Text(
+                            text = release.tagName,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
                     }
                 }
                 Spacer(Modifier.height(4.dp))
-                Text(text = release.date, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    text = release.date,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
@@ -470,15 +534,24 @@ private fun ReleaseCard(release: ReleaseMetadata, onClick: (String) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PullIndicator(modifier: Modifier = Modifier, state: androidx.compose.material3.pulltorefresh.PullToRefreshState, isRefreshing: Boolean) {
+private fun PullIndicator(
+    modifier: Modifier = Modifier,
+    state: androidx.compose.material3.pulltorefresh.PullToRefreshState,
+    isRefreshing: Boolean,
+) {
     val scaleFraction = {
-        if (isRefreshing) 1f
-        else LinearOutSlowInEasing.transform(state.distanceFraction).coerceIn(0f, 1f)
+        if (isRefreshing) {
+            1f
+        } else {
+            LinearOutSlowInEasing.transform(state.distanceFraction).coerceIn(0f, 1f)
+        }
     }
-    Box(modifier.graphicsLayer {
-        scaleX = scaleFraction()
-        scaleY = scaleFraction()
-    }) {
+    Box(
+        modifier.graphicsLayer {
+            scaleX = scaleFraction()
+            scaleY = scaleFraction()
+        }
+    ) {
         PullToRefreshDefaults.LoadingIndicator(state = state, isRefreshing = isRefreshing)
     }
 }
@@ -488,17 +561,33 @@ private fun PullIndicator(modifier: Modifier = Modifier, state: androidx.compose
 // -----------------------------------------------------------------------------
 
 data class ReleaseMetadata(val tagName: String, val name: String, val date: String, val imageUrl: String?)
-data class CachedChangelogData(val changelog: String, val image: String?, val description: String?, val warning: String?)
+data class CachedChangelogData(
+    val changelog: String,
+    val image: String?,
+    val description: String?,
+    val warning: String?,
+)
 
 private fun cleanupOldChangelogCache(context: Context, currentVersionTag: String) {
     try {
-        context.filesDir.listFiles { file -> file.name.startsWith("changelog_cache_") && file.name.endsWith(".json") }?.forEach { file ->
+        context.filesDir.listFiles { file ->
+            file.name.startsWith("changelog_cache_") && file.name.endsWith(".json")
+        }?.forEach { file ->
             if (file.name != "changelog_cache_$currentVersionTag.json") file.delete()
         }
-    } catch (e: Exception) { Log.e("ChangelogCache", "Error cleaning up cache", e) }
+    } catch (e: Exception) {
+        Log.e("ChangelogCache", "Error cleaning up cache", e)
+    }
 }
 
-private fun saveChangelogToCache(context: Context, versionTag: String, changelog: String, image: String?, description: String?, warning: String?) {
+private fun saveChangelogToCache(
+    context: Context,
+    versionTag: String,
+    changelog: String,
+    image: String?,
+    description: String?,
+    warning: String?,
+) {
     try {
         val cacheData = JSONObject().apply {
             put("changelog", changelog)
@@ -506,20 +595,27 @@ private fun saveChangelogToCache(context: Context, versionTag: String, changelog
             put("description", description ?: "")
             put("warning", warning ?: "")
         }
-        context.openFileOutput("changelog_cache_$versionTag.json", Context.MODE_PRIVATE).use { it.write(cacheData.toString().toByteArray()) }
-    } catch (e: Exception) { Log.e("ChangelogCache", "Error saving cache", e) }
+        context.openFileOutput("changelog_cache_$versionTag.json", Context.MODE_PRIVATE).use {
+            it.write(cacheData.toString().toByteArray())
+        }
+    } catch (e: Exception) {
+        Log.e("ChangelogCache", "Error saving cache", e)
+    }
 }
 
 private fun loadChangelogFromCache(context: Context, versionTag: String): CachedChangelogData? {
     return try {
         val cacheFile = File(context.filesDir, "changelog_cache_$versionTag.json")
         if (!cacheFile.exists()) return null
-        val cacheData = JSONObject(context.openFileInput("changelog_cache_$versionTag.json").use { it.bufferedReader().readText() })
+        val cacheData =
+            JSONObject(context.openFileInput("changelog_cache_$versionTag.json").use { it.bufferedReader().readText() })
         CachedChangelogData(
             changelog = cacheData.getString("changelog"),
             image = cacheData.optString("image").takeIf { !it.isNullOrBlank() },
             description = cacheData.optString("description").takeIf { !it.isNullOrBlank() },
             warning = cacheData.optString("warning").takeIf { !it.isNullOrBlank() }
         )
-    } catch (e: Exception) { null }
+    } catch (e: Exception) {
+        null
+    }
 }

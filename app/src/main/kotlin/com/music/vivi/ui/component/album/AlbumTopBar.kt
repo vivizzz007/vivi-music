@@ -13,12 +13,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.navigation.NavController
 import com.music.vivi.R
+import com.music.vivi.db.entities.Song
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.MenuState
 import com.music.vivi.ui.menu.SelectionSongMenu
 import com.music.vivi.ui.utils.ItemWrapper
 import com.music.vivi.ui.utils.backToMain
-import com.music.vivi.db.entities.Song
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,7 +32,7 @@ fun AlbumTopBar(
     navController: NavController,
     menuState: MenuState,
     transparentAppBar: Boolean,
-    scrollBehavior: TopAppBarScrollBehavior
+    scrollBehavior: TopAppBarScrollBehavior,
 ) {
     TopAppBar(
         title = {
@@ -78,7 +78,7 @@ fun AlbumTopBar(
                             onSelectAll()
                         }
                     },
-                    onLongClick = {},
+                    onLongClick = {}
                 ) {
                     Icon(
                         painter = painterResource(
@@ -99,7 +99,7 @@ fun AlbumTopBar(
                             )
                         }
                     },
-                    onLongClick = {},
+                    onLongClick = {}
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.more_vert),

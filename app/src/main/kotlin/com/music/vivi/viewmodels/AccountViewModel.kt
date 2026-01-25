@@ -7,15 +7,17 @@ import com.music.innertube.models.AlbumItem
 import com.music.innertube.models.ArtistItem
 import com.music.innertube.models.PlaylistItem
 import com.music.innertube.utils.completed
-import com.music.vivi.utils.reportException
 import com.music.vivi.ui.utils.resize
+import com.music.vivi.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 public enum class AccountContentType {
-    PLAYLISTS, ALBUMS, ARTISTS
+    PLAYLISTS,
+    ALBUMS,
+    ARTISTS,
 }
 
 @HiltViewModel
@@ -25,7 +27,8 @@ public class AccountViewModel @Inject constructor() : ViewModel() {
     public val artists: MutableStateFlow<List<ArtistItem>?> = MutableStateFlow(null)
 
     // Selected content type for chips
-    public val selectedContentType: MutableStateFlow<AccountContentType> = MutableStateFlow(AccountContentType.PLAYLISTS)
+    public val selectedContentType: MutableStateFlow<AccountContentType> =
+        MutableStateFlow(AccountContentType.PLAYLISTS)
 
     init {
         viewModelScope.launch {

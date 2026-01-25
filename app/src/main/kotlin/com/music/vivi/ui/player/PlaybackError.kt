@@ -17,24 +17,21 @@ import androidx.media3.common.PlaybackException
 import com.music.vivi.R
 
 @Composable
-fun PlaybackError(
-    error: PlaybackException,
-    retry: () -> Unit,
-) {
+fun PlaybackError(error: PlaybackException, retry: () -> Unit) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
         modifier =
         Modifier.pointerInput(Unit) {
             detectTapGestures(
-                onTap = { retry() },
+                onTap = { retry() }
             )
-        },
+        }
     ) {
         Icon(
             painter = painterResource(R.drawable.info),
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.error,
+            tint = MaterialTheme.colorScheme.error
         )
 
         var currentError: Throwable? = error
@@ -46,7 +43,7 @@ fun PlaybackError(
 
         Text(
             text = errorMessage ?: stringResource(R.string.error_unknown),
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodyMedium
         )
     }
 }

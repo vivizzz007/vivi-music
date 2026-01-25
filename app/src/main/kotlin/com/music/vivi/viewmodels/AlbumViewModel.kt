@@ -10,6 +10,7 @@ import com.music.vivi.utils.Wikipedia
 import com.music.vivi.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +20,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import javax.inject.Inject
 
 @HiltViewModel
@@ -33,10 +33,11 @@ constructor(
     public val albumId: StateFlow<String?> = _albumId.asStateFlow()
 
     public val playlistId: MutableStateFlow<String> = MutableStateFlow("")
+
     @OptIn(ExperimentalCoroutinesApi::class)
     public val albumWithSongs: StateFlow<com.music.vivi.db.entities.AlbumWithSongs?> = _albumId.filterNotNull().flatMapLatest { id ->
-            database.albumWithSongs(id)
-        }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+        database.albumWithSongs(id)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
     public var otherVersions: MutableStateFlow<List<AlbumItem>> = MutableStateFlow(emptyList())
     public var releasesForYou: MutableStateFlow<List<AlbumItem>> = MutableStateFlow(emptyList())
 

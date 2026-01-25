@@ -1,6 +1,5 @@
 package com.music.vivi.ui.screens
 
-
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
@@ -10,7 +9,6 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -20,7 +18,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.music.vivi.repositories.ContentBlock
 import com.music.vivi.ui.component.news.NewsDetailScreen
 import com.music.vivi.ui.component.news.NewsListScreen
 import com.music.vivi.viewmodels.NewsViewModel
@@ -30,7 +27,7 @@ import com.music.vivi.viewmodels.NewsViewModel
 public fun NewsScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
-    viewModel: NewsViewModel = hiltViewModel()
+    viewModel: NewsViewModel = hiltViewModel(),
 ) {
     val newsItems by viewModel.newsItems.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -96,5 +93,3 @@ public fun NewsScreen(
 }
 
 // NewsListScreen and NewsDetailScreen extracted to ui/component/news/
-
-

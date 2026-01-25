@@ -5,10 +5,9 @@ import com.music.innertube.models.Artist
 import com.music.innertube.models.MusicResponsiveListItemRenderer
 import com.music.innertube.models.PlaylistItem
 import com.music.innertube.models.SongItem
+import com.music.innertube.models.YTItem
 import com.music.innertube.models.oddElements
 import com.music.innertube.utils.parseTime
-
-import com.music.innertube.models.YTItem
 
 data class PlaylistPage(
     val playlist: PlaylistItem,
@@ -24,13 +23,17 @@ data class PlaylistPage(
                 title = renderer.flexColumns.firstOrNull()
                     ?.musicResponsiveListItemFlexColumnRenderer?.text
                     ?.runs?.firstOrNull()?.text ?: return null,
-                artists = renderer.flexColumns.getOrNull(1)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.oddElements()?.map {
+                artists = renderer.flexColumns.getOrNull(
+                    1
+                )?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.oddElements()?.map {
                     Artist(
                         name = it.text,
-                        id = it.navigationEndpoint?.browseEndpoint?.browseId,
+                        id = it.navigationEndpoint?.browseEndpoint?.browseId
                     )
                 }.orEmpty(),
-                album = renderer.flexColumns.getOrNull(2)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()?.let {
+                album = renderer.flexColumns.getOrNull(
+                    2
+                )?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()?.let {
                     Album(
                         name = it.text,
                         id = it.navigationEndpoint?.browseEndpoint?.browseId ?: return@let null
@@ -44,12 +47,18 @@ data class PlaylistPage(
                 } != null,
                 endpoint = renderer.overlay?.musicItemThumbnailOverlayRenderer?.content?.musicPlayButtonRenderer?.playNavigationEndpoint?.watchEndpoint,
                 setVideoId = renderer.playlistItemData.playlistSetVideoId ?: return null,
-                libraryAddToken = PageHelper.extractFeedbackToken(renderer.menu?.menuRenderer?.items?.find {
-                    it.toggleMenuServiceItemRenderer?.defaultIcon?.iconType?.startsWith("LIBRARY_") == true
-                }?.toggleMenuServiceItemRenderer, "LIBRARY_ADD"),
-                libraryRemoveToken = PageHelper.extractFeedbackToken(renderer.menu?.menuRenderer?.items?.find {
-                    it.toggleMenuServiceItemRenderer?.defaultIcon?.iconType?.startsWith("LIBRARY_") == true
-                }?.toggleMenuServiceItemRenderer, "LIBRARY_SAVED")
+                libraryAddToken = PageHelper.extractFeedbackToken(
+                    renderer.menu?.menuRenderer?.items?.find {
+                        it.toggleMenuServiceItemRenderer?.defaultIcon?.iconType?.startsWith("LIBRARY_") == true
+                    }?.toggleMenuServiceItemRenderer,
+                    "LIBRARY_ADD"
+                ),
+                libraryRemoveToken = PageHelper.extractFeedbackToken(
+                    renderer.menu?.menuRenderer?.items?.find {
+                        it.toggleMenuServiceItemRenderer?.defaultIcon?.iconType?.startsWith("LIBRARY_") == true
+                    }?.toggleMenuServiceItemRenderer,
+                    "LIBRARY_SAVED"
+                )
             )
         }
     }

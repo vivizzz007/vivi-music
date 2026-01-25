@@ -14,14 +14,12 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 // NEW: Import for BuildConfig and AccountSettings
-import com.music.vivi.BuildConfig
 import com.music.vivi.support.SupportScreen
 import com.music.vivi.support.ViviIssueScreen
 import com.music.vivi.ui.screens.artist.ArtistAlbumsScreen
 import com.music.vivi.ui.screens.artist.ArtistItemsScreen
 import com.music.vivi.ui.screens.artist.ArtistScreen
 import com.music.vivi.ui.screens.artist.ArtistSongsScreen
-import com.music.vivi.ui.screens.library.LibraryScreen
 import com.music.vivi.ui.screens.library.AdaptiveLibraryScreen
 import com.music.vivi.ui.screens.playlist.AutoPlaylistScreen
 import com.music.vivi.ui.screens.playlist.LocalPlaylistScreen
@@ -31,12 +29,11 @@ import com.music.vivi.ui.screens.playlist.CachePlaylistScreen
 import com.music.vivi.ui.screens.search.OnlineSearchResult
 import com.music.vivi.ui.screens.settings.AboutScreen
 // NEW: Import
-import com.music.vivi.ui.screens.settings.AccountSettings
 import com.music.vivi.ui.screens.settings.AppearanceSettings
 import com.music.vivi.ui.screens.settings.AdaptiveSettingsScreen
 import com.music.vivi.ui.screens.settings.BackupAndRestore
 import com.music.vivi.ui.screens.settings.ContentSettings
-//import com.music.vivi.ui.screens.settings.integrations.DiscordLoginScreen
+// import com.music.vivi.ui.screens.settings.integrations.DiscordLoginScreen
 import com.music.vivi.ui.screens.settings.integrations.DiscordSettings
 import com.music.vivi.ui.screens.settings.integrations.IntegrationScreen
 import com.music.vivi.ui.screens.settings.integrations.LastFMSettings
@@ -44,7 +41,6 @@ import com.music.vivi.ui.screens.settings.PlayerSettings
 import com.music.vivi.ui.screens.settings.PowerSaverSettings
 import com.music.vivi.ui.screens.settings.PrivacySettings
 import com.music.vivi.ui.screens.settings.RomanizationSettings
-import com.music.vivi.ui.screens.settings.SettingsScreen
 import com.music.vivi.ui.screens.settings.StorageSettings
 import com.music.vivi.update.account.FunAccountViviSetting
 import com.music.vivi.update.betaupdate.ViviDpiSettings
@@ -57,7 +53,6 @@ import com.music.vivi.update.updatenotification.UpdateInfoScreen
 import com.music.vivi.updatesreen.UpdateStatus
 import com.music.vivi.updatesreen.ViviUpdatesScreen
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 public fun NavGraphBuilder.navigationBuilder(
     navController: NavHostController,
@@ -68,7 +63,7 @@ public fun NavGraphBuilder.navigationBuilder(
         HomeScreen(navController)
     }
     composable(
-        Screens.Library.route,
+        Screens.Library.route
     ) {
         AdaptiveLibraryScreen(navController)
     }
@@ -88,7 +83,7 @@ public fun NavGraphBuilder.navigationBuilder(
         NewReleaseScreen(navController, scrollBehavior)
     }
     composable("charts_screen") {
-       ChartsScreen(navController)
+        ChartsScreen(navController)
     }
     composable(
         route = "browse/{browseId}",
@@ -110,7 +105,7 @@ public fun NavGraphBuilder.navigationBuilder(
         listOf(
             navArgument("query") {
                 type = NavType.StringType
-            },
+            }
         ),
         enterTransition = {
             fadeIn(tween(250))
@@ -131,7 +126,7 @@ public fun NavGraphBuilder.navigationBuilder(
         },
         popExitTransition = {
             fadeOut(tween(200))
-        },
+        }
     ) {
         OnlineSearchResult(navController)
     }
@@ -141,8 +136,8 @@ public fun NavGraphBuilder.navigationBuilder(
         listOf(
             navArgument("albumId") {
                 type = NavType.StringType
-            },
-        ),
+            }
+        )
     ) {
         AlbumScreen(navController, scrollBehavior)
     }
@@ -152,8 +147,8 @@ public fun NavGraphBuilder.navigationBuilder(
         listOf(
             navArgument("artistId") {
                 type = NavType.StringType
-            },
-        ),
+            }
+        )
     ) {
         ArtistScreen(navController, scrollBehavior)
     }
@@ -163,8 +158,8 @@ public fun NavGraphBuilder.navigationBuilder(
         listOf(
             navArgument("artistId") {
                 type = NavType.StringType
-            },
-        ),
+            }
+        )
     ) {
         ArtistSongsScreen(navController, scrollBehavior)
     }
@@ -192,8 +187,8 @@ public fun NavGraphBuilder.navigationBuilder(
             navArgument("params") {
                 type = NavType.StringType
                 nullable = true
-            },
-        ),
+            }
+        )
     ) {
         ArtistItemsScreen(navController, scrollBehavior)
     }
@@ -203,8 +198,8 @@ public fun NavGraphBuilder.navigationBuilder(
         listOf(
             navArgument("playlistId") {
                 type = NavType.StringType
-            },
-        ),
+            }
+        )
     ) {
         OnlinePlaylistScreen(navController, scrollBehavior)
     }
@@ -214,8 +209,8 @@ public fun NavGraphBuilder.navigationBuilder(
         listOf(
             navArgument("playlistId") {
                 type = NavType.StringType
-            },
-        ),
+            }
+        )
     ) {
         LocalPlaylistScreen(navController, scrollBehavior)
     }
@@ -225,19 +220,19 @@ public fun NavGraphBuilder.navigationBuilder(
         listOf(
             navArgument("playlist") {
                 type = NavType.StringType
-            },
-        ),
+            }
+        )
     ) {
         AutoPlaylistScreen(navController, scrollBehavior)
     }
     composable(
         route = "cache_playlist/{playlist}",
         arguments =
-            listOf(
-                navArgument("playlist") {
-                    type = NavType.StringType
-            },
-        ),
+        listOf(
+            navArgument("playlist") {
+                type = NavType.StringType
+            }
+        )
     ) {
         CachePlaylistScreen(navController, scrollBehavior)
     }
@@ -247,8 +242,8 @@ public fun NavGraphBuilder.navigationBuilder(
         listOf(
             navArgument("top") {
                 type = NavType.StringType
-            },
-        ),
+            }
+        )
     ) {
         TopPlaylistScreen(navController, scrollBehavior)
     }
@@ -263,8 +258,8 @@ public fun NavGraphBuilder.navigationBuilder(
             navArgument("params") {
                 type = NavType.StringType
                 nullable = true
-            },
-        ),
+            }
+        )
     ) {
         YouTubeBrowseScreen(navController)
     }
@@ -338,7 +333,7 @@ public fun NavGraphBuilder.navigationBuilder(
         ViviDpiSettings(navController, scrollBehavior)
     }
     composable("settings/changelog") {
-        ChangelogScreen(navController,scrollBehavior)
+        ChangelogScreen(navController, scrollBehavior)
     }
     composable("news") {
         NewsScreen(navController, scrollBehavior)

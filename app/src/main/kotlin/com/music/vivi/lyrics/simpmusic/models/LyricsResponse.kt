@@ -23,10 +23,7 @@ data class LyricsData(
 )
 
 @Serializable
-data class SimpMusicApiResponse(
-    val type: String? = null,
-    val data: List<LyricsData> = emptyList(),
-) {
+data class SimpMusicApiResponse(val type: String? = null, val data: List<LyricsData> = emptyList()) {
     val success: Boolean
         get() = type == "success"
 }

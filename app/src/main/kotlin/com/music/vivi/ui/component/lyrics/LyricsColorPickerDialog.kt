@@ -28,8 +28,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.music.vivi.models.MediaMetadata
 import com.music.vivi.R
+import com.music.vivi.models.MediaMetadata
 import com.music.vivi.ui.component.LyricsImageCard
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,7 +46,7 @@ fun LyricsColorPickerDialog(
     onPreviewTextColorChange: (Color) -> Unit,
     previewSecondaryTextColor: Color,
     onPreviewSecondaryTextColorChange: (Color) -> Unit,
-    onShare: () -> Unit
+    onShare: () -> Unit,
 ) {
     if (showDialog) {
         BasicAlertDialog(onDismissRequest = onDismiss) {
@@ -99,13 +99,15 @@ fun LyricsColorPickerDialog(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.padding(vertical = 8.dp)
                     ) {
-                        (paletteColors + listOf(
-                            Color(0xFF242424),
-                            Color(0xFF121212),
-                            Color.White,
-                            Color.Black,
-                            Color(0xFFF5F5F5)
-                        )).distinct().take(8).forEach { color ->
+                        (
+                            paletteColors + listOf(
+                                Color(0xFF242424),
+                                Color(0xFF121212),
+                                Color.White,
+                                Color.Black,
+                                Color(0xFFF5F5F5)
+                            )
+                            ).distinct().take(8).forEach { color ->
                             ColorSwatch(
                                 color = color,
                                 isSelected = previewBackgroundColor == color,
@@ -123,11 +125,13 @@ fun LyricsColorPickerDialog(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.padding(vertical = 8.dp)
                     ) {
-                        (paletteColors + listOf(
-                            Color.White,
-                            Color.Black,
-                            Color(0xFF1DB954)
-                        )).distinct().take(8).forEach { color ->
+                        (
+                            paletteColors + listOf(
+                                Color.White,
+                                Color.Black,
+                                Color(0xFF1DB954)
+                            )
+                            ).distinct().take(8).forEach { color ->
                             ColorSwatch(
                                 color = color,
                                 isSelected = previewTextColor == color,
@@ -145,11 +149,13 @@ fun LyricsColorPickerDialog(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.padding(vertical = 8.dp)
                     ) {
-                        (paletteColors.map { it.copy(alpha = 0.7f) } + listOf(
-                            Color.White.copy(alpha = 0.7f),
-                            Color.Black.copy(alpha = 0.7f),
-                            Color(0xFF1DB954)
-                        )).distinct().take(8).forEach { color ->
+                        (
+                            paletteColors.map { it.copy(alpha = 0.7f) } + listOf(
+                                Color.White.copy(alpha = 0.7f),
+                                Color.Black.copy(alpha = 0.7f),
+                                Color(0xFF1DB954)
+                            )
+                            ).distinct().take(8).forEach { color ->
                             ColorSwatch(
                                 color = color,
                                 isSelected = previewSecondaryTextColor == color,
@@ -173,11 +179,7 @@ fun LyricsColorPickerDialog(
 }
 
 @Composable
-private fun ColorSwatch(
-    color: Color,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
+private fun ColorSwatch(color: Color, isSelected: Boolean, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .size(32.dp)

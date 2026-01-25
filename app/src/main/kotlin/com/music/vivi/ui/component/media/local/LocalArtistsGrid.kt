@@ -17,7 +17,7 @@ public fun LocalArtistsGrid(
     isActive: Boolean = false,
     isPlaying: Boolean = false,
     fillMaxWidth: Boolean = false,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) = GridItem(
     title = title,
     subtitle = subtitle,

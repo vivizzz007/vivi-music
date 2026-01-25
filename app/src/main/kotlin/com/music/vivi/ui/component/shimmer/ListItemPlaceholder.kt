@@ -29,7 +29,7 @@ public fun ListItemPlaceHolder(
         modifier =
         modifier
             .height(ListItemHeight)
-            .padding(horizontal = 6.dp),
+            .padding(horizontal = 6.dp)
     ) {
         Spacer(
             modifier =
@@ -37,14 +37,14 @@ public fun ListItemPlaceHolder(
                 .padding(6.dp)
                 .size(ListThumbnailSize)
                 .clip(thumbnailShape)
-                .background(MaterialTheme.colorScheme.onSurface),
+                .background(MaterialTheme.colorScheme.onSurface)
         )
 
         Column(
             modifier =
             Modifier
                 .weight(1f)
-                .padding(horizontal = 6.dp),
+                .padding(horizontal = 6.dp)
         ) {
             TextPlaceholder()
             TextPlaceholder()

@@ -22,9 +22,8 @@ import com.music.vivi.constants.ListThumbnailSize
 import com.music.vivi.constants.ThumbnailCornerRadius
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.NavigationTitle
-import kotlinx.coroutines.CoroutineScope
-
 import com.music.vivi.utils.ImmutableList
+import kotlinx.coroutines.CoroutineScope
 
 internal fun LazyListScope.homeInnertubeSections(
     sections: ImmutableList<HomePage.Section>,
@@ -32,7 +31,7 @@ internal fun LazyListScope.homeInnertubeSections(
     activeAlbumId: String?,
     isPlaying: Boolean,
     navController: NavController,
-    scope: CoroutineScope
+    scope: CoroutineScope,
 ) {
     sections.forEachIndexed { index, section ->
         item(key = "home_section_title_$index") {
@@ -42,9 +41,13 @@ internal fun LazyListScope.homeInnertubeSections(
                 thumbnail = section.thumbnail?.let { thumbnailUrl ->
                     {
                         val shape =
-                            if (section.endpoint?.isArtistEndpoint == true) CircleShape else RoundedCornerShape(
-                                ThumbnailCornerRadius
-                            )
+                            if (section.endpoint?.isArtistEndpoint == true) {
+                                CircleShape
+                            } else {
+                                RoundedCornerShape(
+                                    ThumbnailCornerRadius
+                                )
+                            }
                         AsyncImage(
                             model = thumbnailUrl,
                             contentDescription = null,
@@ -56,10 +59,11 @@ internal fun LazyListScope.homeInnertubeSections(
                 },
                 onClick = section.endpoint?.browseId?.let { browseId ->
                     {
-                        if (browseId == "FEmusic_moods_and_genres")
+                        if (browseId == "FEmusic_moods_and_genres") {
                             navController.navigate("mood_and_genres")
-                        else
+                        } else {
                             navController.navigate("browse/$browseId")
+                        }
                     }
                 },
                 modifier = Modifier

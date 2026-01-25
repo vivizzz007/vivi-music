@@ -105,14 +105,15 @@ public fun LazyGridScope.GridMenuItem(
                 maxLines = 2,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(with(LocalDensity.current) {
-                        MaterialTheme.typography.labelLarge.lineHeight.toDp() * 2
-                    })
+                    .height(
+                        with(LocalDensity.current) {
+                            MaterialTheme.typography.labelLarge.lineHeight.toDp() * 2
+                        }
+                    )
             )
         }
     }
 }
-
 
 public fun LazyGridScope.DownloadGridMenu(
     @Download.State state: Int?,
@@ -155,7 +156,7 @@ public fun LazyGridScope.SleepTimerGridMenu(
     modifier: Modifier = Modifier,
     sleepTimerTimeLeft: Long,
     enabled: Boolean = true,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     item {
         Column(
@@ -181,9 +182,13 @@ public fun LazyGridScope.SleepTimerGridMenu(
                 }
             )
             Text(
-                text = if (enabled) makeTimeString(sleepTimerTimeLeft) else stringResource(
-                    id = R.string.sleep_timer
-                ),
+                text = if (enabled) {
+                    makeTimeString(sleepTimerTimeLeft)
+                } else {
+                    stringResource(
+                        id = R.string.sleep_timer
+                    )
+                },
                 style = MaterialTheme.typography.labelLarge,
                 textAlign = TextAlign.Center,
                 maxLines = 2,

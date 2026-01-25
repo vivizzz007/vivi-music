@@ -62,7 +62,7 @@ fun ViviUpdatesScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
     updateViewModel: UpdateViewModel = hiltViewModel(),
-    onBack: (() -> Unit)? = null
+    onBack: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val errorLoadingVersion = stringResource(R.string.error_loading_version)
@@ -141,7 +141,6 @@ fun ViviUpdatesScreen(
 
             val lastUpdate = packageInfo.lastUpdateTime
             lastUpdatedDate = dateFormat.format(Date(lastUpdate))
-
         } catch (e: Exception) {
             buildVersion = errorLoadingVersion
             firstInstallDate = errorLoadingDate
@@ -217,8 +216,6 @@ fun ViviUpdatesScreen(
                     Spacer(modifier = Modifier.height(10.dp))
                 }
 
-
-
                 // Navigation Section
                 item {
                     Text(
@@ -247,7 +244,10 @@ fun ViviUpdatesScreen(
                                                 )
                                             },
                                             title = stringResource(R.string.system_update),
-                                            subtitle = stringResource(R.string.update_available_subtitle, status.latestVersion),
+                                            subtitle = stringResource(
+                                                R.string.update_available_subtitle,
+                                                status.latestVersion
+                                            ),
                                             onClick = {
                                                 navController.navigate("settings/update")
                                             },
@@ -328,7 +328,9 @@ fun ViviUpdatesScreen(
                                             modifier = Modifier.size(22.dp)
                                         )
                                     },
-                                    title = stringResource(R.string.update_settings_subtitle).replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() },
+                                    title = stringResource(R.string.update_settings_subtitle).replaceFirstChar {
+                                        if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+                                    },
                                     subtitle = stringResource(R.string.update_settings_subtitle),
                                     onClick = { navController.navigate("settings/updateinfo") },
                                     showArrow = true,
@@ -410,7 +412,9 @@ fun ViviUpdatesScreen(
                                         )
                                     },
                                     title = stringResource(R.string.build_version_title),
-                                    subtitle = buildVersion.ifEmpty { stringResource(R.string.loading_charts).removeSuffix("…") },
+                                    subtitle = buildVersion.ifEmpty {
+                                        stringResource(R.string.loading_charts).removeSuffix("…")
+                                    },
                                     onClick = { },
                                     showArrow = false,
                                     iconBackgroundColor = iconBgColor,
@@ -427,7 +431,14 @@ fun ViviUpdatesScreen(
                                         )
                                     },
                                     title = stringResource(R.string.installed_date_title),
-                                    subtitle = if (firstInstallDate.isNotEmpty()) stringResource(R.string.installed_on_format, firstInstallDate) else stringResource(R.string.loading_charts).removeSuffix("…"),
+                                    subtitle = if (firstInstallDate.isNotEmpty()) {
+                                        stringResource(
+                                            R.string.installed_on_format,
+                                            firstInstallDate
+                                        )
+                                    } else {
+                                        stringResource(R.string.loading_charts).removeSuffix("…")
+                                    },
                                     onClick = { },
                                     showArrow = false,
                                     iconBackgroundColor = iconBgColor,
@@ -452,7 +463,6 @@ fun ViviUpdatesScreen(
     }
 }
 
-
 // Data classes remain the same
 sealed class UpdateStatus {
     object Loading : UpdateStatus()
@@ -468,12 +478,7 @@ data class UpdateInfo(
     val apkSize: String,
     val releaseDate: String,
     val description: String? = null,
-    val imageUrl: String? = null
+    val imageUrl: String? = null,
 )
 
-data class Quadruple<A, B, C, D>(
-    val first: A,
-    val second: B,
-    val third: C,
-    val fourth: D
-)
+data class Quadruple<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)

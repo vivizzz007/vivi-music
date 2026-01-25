@@ -54,7 +54,9 @@ class ChangelogViewModel : ViewModel() {
 
             if (connection.responseCode != HttpURLConnection.HTTP_OK) {
                 // Throwing an IOException when the tag isn't found will be caught by the ViewModel
-                throw IOException("HTTP error: ${connection.responseCode}. Release tag '$versionTag' might not exist on GitHub.")
+                throw IOException(
+                    "HTTP error: ${connection.responseCode}. Release tag '$versionTag' might not exist on GitHub."
+                )
             }
 
             val response = connection.inputStream.bufferedReader().use { it.readText() }
@@ -65,8 +67,4 @@ class ChangelogViewModel : ViewModel() {
 }
 
 // Changelog State
-data class ChangelogState(
-    val changes: String = "",
-    val isLoading: Boolean = true,
-    val error: String? = null
-)
+data class ChangelogState(val changes: String = "", val isLoading: Boolean = true, val error: String? = null)

@@ -33,7 +33,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -266,11 +265,7 @@ public class BottomSheetState(
                 }
             }
 
-            override fun onPostScroll(
-                consumed: Offset,
-                available: Offset,
-                source: NestedScrollSource,
-            ): Offset {
+            override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
                 if (!isTopReached) {
                     isTopReached = consumed.y == 0f && available.y > 0
                 }
@@ -283,15 +278,13 @@ public class BottomSheetState(
                 }
             }
 
-            override suspend fun onPreFling(available: Velocity): Velocity {
-                return if (isTopReached) {
-                    val velocity = -available.y
-                    performFling(velocity, null)
+            override suspend fun onPreFling(available: Velocity): Velocity = if (isTopReached) {
+                val velocity = -available.y
+                performFling(velocity, null)
 
-                    available
-                } else {
-                    Velocity.Zero
-                }
+                available
+            } else {
+                Velocity.Zero
             }
 
             override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {

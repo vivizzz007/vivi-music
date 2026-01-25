@@ -29,7 +29,7 @@ inline fun ListItem(
     thumbnailContent: @Composable () -> Unit = {},
     trailingContent: @Composable RowScope.() -> Unit = {},
     isActive: Boolean = false,
-    drawHighlight: Boolean = true
+    drawHighlight: Boolean = true,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -37,10 +37,13 @@ inline fun ListItem(
             .height(ListItemHeight)
             .padding(horizontal = 8.dp)
             .then(
-                if (isActive && drawHighlight) Modifier
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.secondaryContainer)
-                else Modifier
+                if (isActive && drawHighlight) {
+                    Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.secondaryContainer)
+                } else {
+                    Modifier
+                }
             )
     ) {
         if (leadingContent != null) {
@@ -49,8 +52,11 @@ inline fun ListItem(
         Box(Modifier.padding(6.dp), contentAlignment = Alignment.Center) { thumbnailContent() }
         Column(Modifier.weight(1f).padding(horizontal = 6.dp)) {
             Text(
-                text = title, fontSize = 14.sp, fontWeight = FontWeight.Bold,
-                maxLines = 1, overflow = TextOverflow.Ellipsis
+                text = title,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             if (subtitle != null) Row(verticalAlignment = Alignment.CenterVertically) { subtitle() }
         }
@@ -68,7 +74,7 @@ fun ListItem(
     thumbnailContent: @Composable () -> Unit,
     trailingContent: @Composable RowScope.() -> Unit = {},
     isActive: Boolean = false,
-    drawHighlight: Boolean = true
+    drawHighlight: Boolean = true,
 ) = ListItem(
     title = title,
     modifier = modifier,
@@ -78,7 +84,13 @@ fun ListItem(
     subtitle = {
         badges()
         if (!subtitle.isNullOrEmpty()) {
-            Text(text = subtitle, color = MaterialTheme.colorScheme.secondary, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(
+                text = subtitle,
+                color = MaterialTheme.colorScheme.secondary,
+                fontSize = 12.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     },
     thumbnailContent = thumbnailContent,

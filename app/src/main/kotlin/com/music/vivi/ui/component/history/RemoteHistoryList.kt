@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
@@ -43,7 +42,7 @@ fun LazyListScope.remoteHistoryList(
     playerConnection: PlayerConnection,
     navController: NavController,
     menuState: MenuState,
-    onHistoryRemoved: () -> Unit
+    onHistoryRemoved: () -> Unit,
 ) {
     filteredRemoteContent?.forEach { section ->
         stickyHeader {
@@ -82,8 +81,11 @@ fun LazyListScope.remoteHistoryList(
                             )
                         )
                         .background(
-                            if (song.id == mediaMetadata?.id) MaterialTheme.colorScheme.secondaryContainer
-                            else MaterialTheme.colorScheme.surfaceContainer
+                            if (song.id == mediaMetadata?.id) {
+                                MaterialTheme.colorScheme.secondaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.surfaceContainer
+                            }
                         )
                 ) {
                     YouTubeListItem(

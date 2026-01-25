@@ -11,12 +11,8 @@ object LrcLibLyricsProvider : LyricsProvider {
 
     override fun isEnabled(context: Context): Boolean = context.dataStore[EnableLrcLibKey] ?: true
 
-    override suspend fun getLyrics(
-        id: String,
-        title: String,
-        artist: String,
-        duration: Int,
-    ): Result<String> = LrcLib.getLyrics(title, artist, duration)
+    override suspend fun getLyrics(id: String, title: String, artist: String, duration: Int): Result<String> =
+        LrcLib.getLyrics(title, artist, duration)
 
     override suspend fun getAllLyrics(
         id: String,

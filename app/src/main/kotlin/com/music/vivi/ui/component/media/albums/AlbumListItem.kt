@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
@@ -56,5 +55,5 @@ fun AlbumListItem(
     trailingContent = trailingContent,
     modifier = modifier,
     drawHighlight = drawHighlight,
-    isActive = isActive,
+    isActive = isActive
 )

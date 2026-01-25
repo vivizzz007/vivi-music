@@ -47,7 +47,7 @@ internal fun ItemThumbnail(
     modifier: Modifier = Modifier,
     albumIndex: Int? = null,
     isSelected: Boolean = false,
-    thumbnailRatio: Float = 1f
+    thumbnailRatio: Float = 1f,
 ) {
     Box(
         contentAlignment = Alignment.Center,
@@ -91,10 +91,11 @@ internal fun ItemThumbnail(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
-                    color = if (albumIndex != null)
+                    color = if (albumIndex != null) {
                         Color.Transparent
-                    else
-                        Color.Black.copy(alpha = ActiveBoxAlpha),
+                    } else {
+                        Color.Black.copy(alpha = ActiveBoxAlpha)
+                    },
                     shape = shape
                 )
         )
@@ -107,7 +108,7 @@ internal fun PlaylistThumbnail(
     size: Dp,
     placeHolder: @Composable () -> Unit,
     shape: Shape,
-    cacheKey: String? = null
+    cacheKey: String? = null,
 ) {
     when (thumbnails.size) {
         0 -> Box(
@@ -174,7 +175,7 @@ internal fun LocalThumbnail(
     modifier: Modifier = Modifier,
     showCenterPlay: Boolean = false,
     playButtonVisible: Boolean = false,
-    thumbnailRatio: Float = 1f
+    thumbnailRatio: Float = 1f,
 ) {
     Box(
         contentAlignment = Alignment.Center,

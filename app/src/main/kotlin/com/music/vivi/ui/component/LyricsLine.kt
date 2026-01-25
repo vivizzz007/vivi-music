@@ -8,9 +8,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,9 +25,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
@@ -35,9 +33,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.music.vivi.lyrics.LyricsEntry
-import com.music.vivi.constants.LyricsLetterByLetterAnimationKey
 import com.music.vivi.constants.AppleMusicLyricsBlurKey
+import com.music.vivi.constants.LyricsLetterByLetterAnimationKey
+import com.music.vivi.lyrics.LyricsEntry
 import com.music.vivi.ui.screens.settings.LyricsPosition
 import com.music.vivi.utils.rememberPreference
 
@@ -62,7 +60,7 @@ public fun LyricsLine(
     isWordForWord: Boolean,
     isScrolling: Boolean,
     isAutoScrollActive: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val (isLetterByLetter, _) = rememberPreference(LyricsLetterByLetterAnimationKey, false)
 
@@ -102,7 +100,13 @@ public fun LyricsLine(
                 val charCount = if (includeSpace) wordLength + 1 else wordLength
 
                 val wordStart = accumulatedTime
-                val wordDuration = if (totalChars > 0) (activeDuration * charCount.toFloat() / totalChars).toLong() else activeDuration
+                val wordDuration = if (totalChars >
+                    0
+                ) {
+                    (activeDuration * charCount.toFloat() / totalChars).toLong()
+                } else {
+                    activeDuration
+                }
                 val wordEnd = wordStart + wordDuration
 
                 accumulatedTime += wordDuration
@@ -116,8 +120,18 @@ public fun LyricsLine(
     // Apple Music Style: Blur inactive lines
     val (appleMusicLyricsBlur) = rememberPreference(AppleMusicLyricsBlurKey, true)
     val blurRadius by animateFloatAsState(
-        targetValue = if (!appleMusicLyricsBlur || !isAutoScrollActive || isActive || !isSynced || isSelectionModeActive) 0f else 6f,
-        animationSpec = tween(durationMillis = 600), label = "blur"
+        targetValue = if (!appleMusicLyricsBlur ||
+            !isAutoScrollActive ||
+            isActive ||
+            !isSynced ||
+            isSelectionModeActive
+        ) {
+            0f
+        } else {
+            6f
+        },
+        animationSpec = tween(durationMillis = 600),
+        label = "blur"
     )
 
     val itemModifier = modifier
@@ -129,9 +143,11 @@ public fun LyricsLine(
             onLongClick = onLongClick
         )
         .background(
-            if (isSelected && isSelectionModeActive)
+            if (isSelected && isSelectionModeActive) {
                 MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-            else Color.Transparent
+            } else {
+                Color.Transparent
+            }
         )
         .padding(horizontal = 24.dp, vertical = (lineSpacing + 4).dp) // Slightly more breathing room
         .graphicsLayer {
@@ -195,8 +211,11 @@ public fun LyricsLine(
                                     lineRelTime < startRelative -> 0f
                                     else -> {
                                         val wordDur = endRelative - startRelative
-                                        if (wordDur <= 0L) 1f
-                                        else (lineRelTime - startRelative).toFloat() / wordDur
+                                        if (wordDur <= 0L) {
+                                            1f
+                                        } else {
+                                            (lineRelTime - startRelative).toFloat() / wordDur
+                                        }
                                     }
                                 }
                             }
@@ -210,7 +229,9 @@ public fun LyricsLine(
                             } else {
                                 // In progress: scale gradient to the word width
                                 object : androidx.compose.ui.graphics.ShaderBrush() {
-                                    override fun createShader(size: androidx.compose.ui.geometry.Size): androidx.compose.ui.graphics.Shader {
+                                    override fun createShader(
+                                        size: androidx.compose.ui.geometry.Size,
+                                    ): androidx.compose.ui.graphics.Shader {
                                         val width = size.width
                                         val p = wordProgress.coerceIn(0f, 1f)
                                         // Create a hard-ish edge gradient for the fill effect
@@ -218,7 +239,12 @@ public fun LyricsLine(
                                         return androidx.compose.ui.graphics.LinearGradientShader(
                                             from = Offset.Zero,
                                             to = Offset(width, 0f),
-                                            colors = listOf(textColor, textColor, textColor.copy(alpha = 0.3f), textColor.copy(alpha = 0.3f)),
+                                            colors = listOf(
+                                                textColor,
+                                                textColor,
+                                                textColor.copy(alpha = 0.3f),
+                                                textColor.copy(alpha = 0.3f)
+                                            ),
                                             colorStops = listOf(0f, p, (p + 0.15f).coerceAtMost(1f), 1f)
                                         )
                                     }
@@ -229,8 +255,24 @@ public fun LyricsLine(
                         Text(
                             text = if (index != wordData.lastIndex) "$word " else word,
                             fontSize = textSize.sp,
-                            style = if (shaderStyle != null) TextStyle(brush = shaderStyle) else androidx.compose.material3.LocalTextStyle.current,
-                            color = if (shaderStyle != null) Color.Unspecified else if (wordProgress >= 1f) textColor else textColor.copy(alpha = 0.3f),
+                            style = if (shaderStyle !=
+                                null
+                            ) {
+                                TextStyle(brush = shaderStyle)
+                            } else {
+                                androidx.compose.material3.LocalTextStyle.current
+                            },
+                            color = if (shaderStyle !=
+                                null
+                            ) {
+                                Color.Unspecified
+                            } else if (wordProgress >=
+                                1f
+                            ) {
+                                textColor
+                            } else {
+                                textColor.copy(alpha = 0.3f)
+                            },
                             fontWeight = FontWeight.Bold,
                             letterSpacing = (-0.5).sp
                         )
@@ -252,7 +294,13 @@ public fun LyricsLine(
 
                         Row {
                             word.forEachIndexed { charIndex, char ->
-                                val charProgress by remember(lineRelTime, startRelative, endRelative, charIndex, word.length) {
+                                val charProgress by remember(
+                                    lineRelTime,
+                                    startRelative,
+                                    endRelative,
+                                    charIndex,
+                                    word.length
+                                ) {
                                     derivedStateOf {
                                         val charDuration = if (word.isNotEmpty()) wordDuration / word.length else 0L
                                         val charStart = startRelative + (charIndex * charDuration)
@@ -262,8 +310,11 @@ public fun LyricsLine(
                                             lineRelTime >= charEnd -> 1f
                                             lineRelTime < charStart -> 0f
                                             else -> {
-                                                if (charDuration <= 0L) 1f
-                                                else (lineRelTime - charStart).toFloat() / charDuration
+                                                if (charDuration <= 0L) {
+                                                    1f
+                                                } else {
+                                                    (lineRelTime - charStart).toFloat() / charDuration
+                                                }
                                             }
                                         }
                                     }
@@ -272,7 +323,15 @@ public fun LyricsLine(
                                 Text(
                                     text = char.toString(),
                                     fontSize = textSize.sp,
-                                    color = textColor.copy(alpha = if (charProgress >= 1f) 1f else 0.3f + (0.7f * charProgress)),
+                                    color = textColor.copy(
+                                        alpha = if (charProgress >=
+                                            1f
+                                        ) {
+                                            1f
+                                        } else {
+                                            0.3f + (0.7f * charProgress)
+                                        }
+                                    ),
                                     fontWeight = FontWeight.Bold,
                                     letterSpacing = (-0.5).sp
                                 )

@@ -1,15 +1,12 @@
 package com.music.vivi.ui.component.home
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
-import com.music.vivi.ui.utils.GridSnapLayoutInfoProvider
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
@@ -19,16 +16,13 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
@@ -40,18 +34,16 @@ import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.ListItemHeight
 import com.music.vivi.db.entities.Song
-import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.extensions.togglePlayPause
+import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.playback.queues.YouTubeQueue
+import com.music.vivi.ui.component.LibrarySongListItem
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.NavigationTitle
-import com.music.vivi.ui.component.LibrarySongListItem
 import com.music.vivi.ui.menu.SongMenu
-import kotlin.math.min
-
+import com.music.vivi.ui.utils.GridSnapLayoutInfoProvider
 import com.music.vivi.utils.ImmutableList
-
-import androidx.compose.foundation.ExperimentalFoundationApi
+import kotlin.math.min
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -61,7 +53,7 @@ internal fun HomeForgottenFavorites(
     isPlaying: Boolean,
     maxWidth: Dp,
     navController: NavController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     if (forgottenFavorites.isEmpty()) return
 
@@ -117,7 +109,7 @@ internal fun HomeForgottenFavorites(
             // But wait, GridItem has width set to horizontalLazyGridItemWidth.
 
             Box(
-                 modifier = Modifier
+                modifier = Modifier
                     .width(horizontalLazyGridItemWidth)
             ) {
                 LibrarySongListItem(

@@ -18,8 +18,8 @@ data class Album(
         Junction(
             value = AlbumArtistMap::class,
             parentColumn = "albumId",
-            entityColumn = "artistId",
-        ),
+            entityColumn = "artistId"
+        )
     )
     val artists: List<ArtistEntity> = emptyList(),
     @Relation(
@@ -28,7 +28,7 @@ data class Album(
     )
     val songs: List<SongEntity> = emptyList(),
     val songCountListened: Int? = 0,
-    val timeListened: Long? = 0
+    val timeListened: Long? = 0,
 ) : LocalItem() {
     override val id: String
         get() = album.id

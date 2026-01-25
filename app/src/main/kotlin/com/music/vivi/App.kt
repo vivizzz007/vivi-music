@@ -34,7 +34,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.Credentials
@@ -46,7 +45,9 @@ import java.util.Locale
 import javax.inject.Inject
 
 @HiltAndroidApp
-class App : Application(), SingletonImageLoader.Factory {
+class App :
+    Application(),
+    SingletonImageLoader.Factory {
 
     @Inject
     @ApplicationScope
@@ -55,7 +56,6 @@ class App : Application(), SingletonImageLoader.Factory {
     override fun onCreate() {
         super.onCreate()
         Timber.plant(Timber.DebugTree())
-
 
         applicationScope.launch {
             initializeSettings()
@@ -130,8 +130,6 @@ class App : Application(), SingletonImageLoader.Factory {
                 setShowBadge(false)
             }
             nm.createNotificationChannel(musicChannel)
-
-
         }
     }
 

@@ -35,7 +35,11 @@ fun MusicTheme(
 ) {
     val context = LocalContext.current
     // Determine if system dynamic colors should be used (Android S+ and default theme color)
-    val useSystemDynamicColor = (enableDynamicTheme && themeColor == DefaultThemeColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+    val useSystemDynamicColor = (
+        enableDynamicTheme &&
+            themeColor == DefaultThemeColor &&
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+        )
 
     // Select the appropriate color scheme generation method
     val baseColorScheme = if (overrideColorScheme != null) {
@@ -91,17 +95,21 @@ fun Bitmap.extractGradientColors(): List<Color> {
     val orderedColors = Score.score(extractedColors, 2, 0xff4285f4.toInt(), true)
         .sortedByDescending { Color(it).luminance() }
 
-    return if (orderedColors.size >= 2)
+    return if (orderedColors.size >= 2) {
         listOf(Color(orderedColors[0]), Color(orderedColors[1]))
-    else
+    } else {
         listOf(Color(0xFF595959), Color(0xFF0D0D0D))
+    }
 }
 
-fun ColorScheme.pureBlack(apply: Boolean) =
-    if (apply) copy(
+fun ColorScheme.pureBlack(apply: Boolean) = if (apply) {
+    copy(
         surface = Color.Black,
         background = Color.Black
-    ) else this
+    )
+} else {
+    this
+}
 
 val ColorSaver = object : Saver<Color, Int> {
     override fun restore(value: Int): Color = Color(value)

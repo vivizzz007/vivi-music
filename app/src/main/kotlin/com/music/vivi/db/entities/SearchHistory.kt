@@ -9,11 +9,8 @@ import androidx.room.PrimaryKey
     indices = [
         Index(
             value = ["query"],
-            unique = true,
-        ),
-    ],
+            unique = true
+        )
+    ]
 )
-data class SearchHistory(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val query: String,
-)
+data class SearchHistory(@PrimaryKey(autoGenerate = true) val id: Long = 0, val query: String)

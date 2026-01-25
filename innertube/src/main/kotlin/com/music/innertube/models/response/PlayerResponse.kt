@@ -19,20 +19,12 @@ data class PlayerResponse(
     val playbackTracking: PlaybackTracking?,
 ) {
     @Serializable
-    data class PlayabilityStatus(
-        val status: String,
-        val reason: String?,
-    )
+    data class PlayabilityStatus(val status: String, val reason: String?)
 
     @Serializable
-    data class PlayerConfig(
-        val audioConfig: AudioConfig,
-    ) {
+    data class PlayerConfig(val audioConfig: AudioConfig) {
         @Serializable
-        data class AudioConfig(
-            val loudnessDb: Double?,
-            val perceptualLoudnessDb: Double?,
-        )
+        data class AudioConfig(val loudnessDb: Double?, val perceptualLoudnessDb: Double?)
     }
 
     @Serializable
@@ -61,7 +53,7 @@ data class PlayerResponse(
             val loudnessDb: Double?,
             val lastModified: Long?,
             val signatureCipher: String?,
-            val audioTrack: AudioTrack?
+            val audioTrack: AudioTrack?,
         ) {
             val isAudio: Boolean
                 get() = width == null
@@ -69,11 +61,7 @@ data class PlayerResponse(
                 get() = audioTrack?.isAutoDubbed == null
 
             @Serializable
-            data class AudioTrack(
-                val displayName: String?,
-                val id: String?,
-                val isAutoDubbed: Boolean?,
-            )
+            data class AudioTrack(val displayName: String?, val id: String?, val isAutoDubbed: Boolean?)
         }
     }
 
@@ -103,11 +91,13 @@ data class PlayerResponse(
             @SerialName("baseUrl")
             val baseUrl: String?,
         )
+
         @Serializable
         data class VideostatsWatchtimeUrl(
             @SerialName("baseUrl")
             val baseUrl: String?,
         )
+
         @Serializable
         data class AtrUrl(
             @SerialName("baseUrl")

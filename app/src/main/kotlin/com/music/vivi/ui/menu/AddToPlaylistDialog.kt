@@ -50,8 +50,8 @@ import com.music.vivi.db.entities.Playlist
 import com.music.vivi.ui.component.CreatePlaylistDialog
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.ListDialog
-import com.music.vivi.ui.component.media.playlists.PlaylistListItem
 import com.music.vivi.ui.component.SortHeader
+import com.music.vivi.ui.component.media.playlists.PlaylistListItem
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.PlaylistsViewModel
@@ -68,7 +68,7 @@ fun AddToPlaylistDialog(
     songsToCheck: List<String>? = null,
     onGetSong: suspend (Playlist) -> List<String>, // list of song ids. Songs should be inserted to database in this function.
     onDismiss: () -> Unit,
-    viewModel: PlaylistsViewModel = hiltViewModel()
+    viewModel: PlaylistsViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current
@@ -120,7 +120,7 @@ fun AddToPlaylistDialog(
 
     if (isVisible) {
         ListDialog(
-            onDismiss = onDismiss,
+            onDismiss = onDismiss
         ) {
             item {
                 Row(
@@ -158,7 +158,10 @@ fun AddToPlaylistDialog(
             }
 
             item {
-                val (sortType, onSortTypeChange) = rememberEnumPreference(AddToPlaylistSortTypeKey, PlaylistSortType.CREATE_DATE)
+                val (sortType, onSortTypeChange) = rememberEnumPreference(
+                    AddToPlaylistSortTypeKey,
+                    PlaylistSortType.CREATE_DATE
+                )
                 val (sortDescending, onSortDescendingChange) = rememberPreference(AddToPlaylistSortDescendingKey, true)
 
                 SortHeader(

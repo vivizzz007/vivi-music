@@ -1,47 +1,32 @@
 package com.music.vivi.utils
 
-import android.content.Context
 import com.music.innertube.YouTube
 import com.music.innertube.models.AlbumItem
 import com.music.innertube.models.ArtistItem
 import com.music.innertube.models.PlaylistItem
 import com.music.innertube.models.SongItem
 import com.music.innertube.utils.completed
-import com.music.vivi.constants.LastFullSyncKey
-import com.music.vivi.constants.SYNC_COOLDOWN
 import com.music.vivi.db.MusicDatabase
 import com.music.vivi.db.entities.ArtistEntity
 import com.music.vivi.db.entities.PlaylistEntity
 import com.music.vivi.db.entities.PlaylistSongMap
 import com.music.vivi.db.entities.SongEntity
-import com.music.vivi.extensions.isInternetConnected
-import com.music.vivi.extensions.isSyncEnabled
 import com.music.vivi.models.toMediaMetadata
-import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.yield
-import java.time.LocalDateTime
-import java.time.ZoneOffset
-import javax.inject.Inject
-import javax.inject.Singleton
-import kotlinx.coroutines.flow.MutableStateFlow
-import androidx.datastore.preferences.core.edit
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.get
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import java.time.LocalDateTime
+import javax.inject.Inject
+import javax.inject.Singleton
 
 @Singleton
-public class SyncUtils @Inject constructor(
-    private val database: MusicDatabase,
-) {
+public class SyncUtils @Inject constructor(private val database: MusicDatabase) {
     private val syncScope = CoroutineScope(Dispatchers.IO)
 
     private val isSyncingLikedSongs = MutableStateFlow(false)
@@ -82,7 +67,9 @@ public class SyncUtils @Inject constructor(
                 localSongs.filterNot { it.id in remoteIds }.forEach {
                     try {
                         database.transaction { update(it.song.localToggleLike()) }
-                    } catch (e: Exception) { e.printStackTrace() }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
 
                 remoteSongs.forEachIndexed { index, song ->
@@ -92,12 +79,19 @@ public class SyncUtils @Inject constructor(
                         val isVideoSong = song.isVideoSong
                         database.transaction {
                             if (dbSong == null) {
-                                insert(song.toMediaMetadata()) { it.copy(liked = true, likedDate = timestamp, isVideo = isVideoSong) }
-                            } else if (!dbSong.song.liked || dbSong.song.likedDate != timestamp || dbSong.song.isVideo != isVideoSong) {
+                                insert(song.toMediaMetadata()) {
+                                    it.copy(liked = true, likedDate = timestamp, isVideo = isVideoSong)
+                                }
+                            } else if (!dbSong.song.liked ||
+                                dbSong.song.likedDate != timestamp ||
+                                dbSong.song.isVideo != isVideoSong
+                            ) {
                                 update(dbSong.song.copy(liked = true, likedDate = timestamp, isVideo = isVideoSong))
                             }
                         }
-                    } catch (e: Exception) { e.printStackTrace() }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
             }
         } catch (e: Exception) {
@@ -123,7 +117,9 @@ public class SyncUtils @Inject constructor(
                     } else {
                         try {
                             database.transaction { update(it.song.toggleLibrary()) }
-                        } catch (e: Exception) { e.printStackTrace() }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
                     }
                 }
                 feedbackTokens.chunked(20).forEach { YouTube.feedback(it) }
@@ -141,7 +137,9 @@ public class SyncUtils @Inject constructor(
                                 addLibraryTokens(song.id, song.libraryAddToken, song.libraryRemoveToken)
                             }
                         }
-                    } catch (e: Exception) { e.printStackTrace() }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
             }
         } catch (e: Exception) {
@@ -286,11 +284,16 @@ public class SyncUtils @Inject constructor(
         isSyncingPlaylists.value = true
         try {
             YouTube.library("FEmusic_liked_playlists").completed().onSuccess { page ->
-                val remotePlaylists = page.items.filterIsInstance<PlaylistItem>().filterNot { it.id == "LM" || it.id == "SE" }.reversed()
+                val remotePlaylists = page.items.filterIsInstance<PlaylistItem>().filterNot {
+                    it.id == "LM" ||
+                        it.id == "SE"
+                }.reversed()
                 val remoteIds = remotePlaylists.map { it.id }.toSet()
                 val localPlaylists = database.playlistsByNameAsc().first()
 
-                localPlaylists.filterNot { it.playlist.browseId in remoteIds }.filterNot { it.playlist.browseId == null }.forEach { database.update(it.playlist.localToggleLike()) }
+                localPlaylists.filterNot {
+                    it.playlist.browseId in remoteIds
+                }.filterNot { it.playlist.browseId == null }.forEach { database.update(it.playlist.localToggleLike()) }
 
                 remotePlaylists.forEach { playlist ->
                     var playlistEntity = localPlaylists.find { it.playlist.browseId == playlist.id }?.playlist
@@ -327,7 +330,9 @@ public class SyncUtils @Inject constructor(
             YouTube.playlist(browseId).completed().onSuccess { page ->
                 val songs = page.songs.map(SongItem::toMediaMetadata)
                 val remoteIds = songs.map { it.id }
-                val localIds = database.playlistSongs(playlistId).first().sortedBy { it.map.position }.map { it.song.id }
+                val localIds = database.playlistSongs(playlistId).first().sortedBy {
+                    it.map.position
+                }.map { it.song.id }
 
                 if (remoteIds == localIds) return@onSuccess
                 if (database.playlist(playlistId).firstOrNull() == null) return@onSuccess
@@ -340,7 +345,12 @@ public class SyncUtils @Inject constructor(
                         }
                     }
                     val playlistSongMaps = songEntities.mapIndexed { position, song ->
-                        PlaylistSongMap(songId = song.id, playlistId = playlistId, position = position, setVideoId = song.setVideoId)
+                        PlaylistSongMap(
+                            songId = song.id,
+                            playlistId = playlistId,
+                            position = position,
+                            setVideoId = song.setVideoId
+                        )
                     }
                     playlistSongMaps.forEach { insert(it) }
                 }
@@ -359,22 +369,50 @@ public class SyncUtils @Inject constructor(
             val savedPlaylists = database.playlistsByNameAsc().first()
 
             likedSongs.forEach {
-                try { database.transaction { update(it.song.copy(liked = false, likedDate = null)) } } catch (e: Exception) { e.printStackTrace() }
+                try {
+                    database.transaction { update(it.song.copy(liked = false, likedDate = null)) }
+                } catch (
+                    e: Exception,
+                ) {
+                    e.printStackTrace()
+                }
             }
             librarySongs.forEach {
                 if (it.song.inLibrary != null) {
-                    try { database.transaction { update(it.song.copy(inLibrary = null)) } } catch (e: Exception) { e.printStackTrace() }
+                    try {
+                        database.transaction { update(it.song.copy(inLibrary = null)) }
+                    } catch (
+                        e: Exception,
+                    ) {
+                        e.printStackTrace()
+                    }
                 }
             }
             likedAlbums.forEach {
-                try { database.transaction { update(it.album.copy(bookmarkedAt = null)) } } catch (e: Exception) { e.printStackTrace() }
+                try {
+                    database.transaction { update(it.album.copy(bookmarkedAt = null)) }
+                } catch (
+                    e: Exception,
+                ) {
+                    e.printStackTrace()
+                }
             }
             subscribedArtists.forEach {
-                try { database.transaction { update(it.artist.copy(bookmarkedAt = null)) } } catch (e: Exception) { e.printStackTrace() }
+                try {
+                    database.transaction { update(it.artist.copy(bookmarkedAt = null)) }
+                } catch (
+                    e: Exception,
+                ) {
+                    e.printStackTrace()
+                }
             }
             savedPlaylists.forEach {
                 if (it.playlist.browseId != null) {
-                    try { database.transaction { delete(it.playlist) } } catch (e: Exception) { e.printStackTrace() }
+                    try {
+                        database.transaction { delete(it.playlist) }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
             }
         } catch (e: Exception) {

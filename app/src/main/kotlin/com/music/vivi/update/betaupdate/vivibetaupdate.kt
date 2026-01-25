@@ -52,8 +52,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -79,23 +79,24 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.res.stringResource
 import androidx.core.content.FileProvider
-import com.music.vivi.R
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.music.vivi.R
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -107,7 +108,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
@@ -117,13 +117,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
-import java.util.concurrent.TimeUnit
-import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "dpi_settings")
-
 
 @Serializable
 data class GitHubRelease(
@@ -131,21 +127,15 @@ data class GitHubRelease(
     val prerelease: Boolean = false,
     val assets: List<GitHubAsset> = emptyList(),
     val body: String = "",
-    val published_at: String = ""
+    val published_at: String = "",
 )
 
 @Serializable
-data class GitHubAsset(
-    val name: String,
-    val browser_download_url: String,
-    val size: Long = 0L
-)
+data class GitHubAsset(val name: String, val browser_download_url: String, val size: Long = 0L)
 
 @HiltViewModel
-class DpiSettingsViewModel @Inject constructor(
-    application: Application,
-    private val okHttpClient: OkHttpClient
-) : ViewModel() {
+class DpiSettingsViewModel @Inject constructor(application: Application, private val okHttpClient: OkHttpClient) :
+    ViewModel() {
     private val dataStore = application.dataStore
     private val DPI_ENABLED_KEY = booleanPreferencesKey("dpi_enabled")
     private val DOWNLOADED_TAG_KEY = stringPreferencesKey("downloaded_tag")
@@ -317,21 +307,29 @@ class DpiSettingsViewModel @Inject constructor(
                         }
 
                         try {
-                            val releases = this@DpiSettingsViewModel.json.decodeFromString<List<GitHubRelease>>(jsonString)
+                            val releases = this@DpiSettingsViewModel.json.decodeFromString<List<GitHubRelease>>(
+                                jsonString
+                            )
 
                             Log.d("DpiSettingsViewModel", "Total releases found: ${releases.size}")
 
                             releases.forEachIndexed { index, release ->
-                                Log.d("DpiSettingsViewModel", "Release $index: tag=${release.tag_name}, prerelease=${release.prerelease}")
+                                Log.d(
+                                    "DpiSettingsViewModel",
+                                    "Release $index: tag=${release.tag_name}, prerelease=${release.prerelease}"
+                                )
                             }
 
                             val latestPreRelease = releases.firstOrNull { it.prerelease }
-                            Log.d("DpiSettingsViewModel", "Latest pre-release: ${latestPreRelease?.tag_name ?: "None found"}")
+                            Log.d(
+                                "DpiSettingsViewModel",
+                                "Latest pre-release: ${latestPreRelease?.tag_name ?: "None found"}"
+                            )
 
                             // Check if this is a new update
                             val isNewUpdate = latestPreRelease != null &&
-                                    latestPreRelease.tag_name != _downloadedTag.value &&
-                                    _latestPreRelease.value?.tag_name != latestPreRelease.tag_name
+                                latestPreRelease.tag_name != _downloadedTag.value &&
+                                _latestPreRelease.value?.tag_name != latestPreRelease.tag_name
 
                             _latestPreRelease.value = latestPreRelease
                             _fetchState.value = FetchState.Success
@@ -347,7 +345,8 @@ class DpiSettingsViewModel @Inject constructor(
                         } catch (jsonException: Exception) {
                             Log.e("DpiSettingsViewModel", "JSON parsing error: ${jsonException.message}", jsonException)
                             Log.e("DpiSettingsViewModel", "JSON content preview: ${jsonString.take(1000)}")
-                            _fetchState.value = FetchState.Error("Failed to parse releases data: ${jsonException.message}")
+                            _fetchState.value =
+                                FetchState.Error("Failed to parse releases data: ${jsonException.message}")
                         }
                     } ?: run {
                         Log.e("DpiSettingsViewModel", "Response body is null")
@@ -389,15 +388,9 @@ class DpiSettingsViewModel @Inject constructor(
     }
 }
 
-
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ViviDpiSettings(
-    navController: NavController,
-    scrollBehavior: TopAppBarScrollBehavior? = null
-) {
+fun ViviDpiSettings(navController: NavController, scrollBehavior: TopAppBarScrollBehavior? = null) {
     val context = LocalContext.current
     val viewModel: DpiSettingsViewModel = hiltViewModel()
 
@@ -524,8 +517,6 @@ fun ViviDpiSettings(
     }
 }
 
-
-
 @Composable
 fun OxygenOSStyleCard(
     isApkDownloaded: Boolean,
@@ -538,7 +529,7 @@ fun OxygenOSStyleCard(
     onRecheckClick: () -> Unit,
     fetchState: DpiSettingsViewModel.FetchState,
     hasPreRelease: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Log.d("OxygenOSStyleCard", "Recomposition - isApkDownloaded: $isApkDownloaded, isDownloading: $isDownloading")
     Card(
@@ -707,7 +698,13 @@ fun OxygenOSStyleCard(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = if (isApkDownloaded) stringResource(R.string.install) else stringResource(R.string.action_download),
+                            text = if (isApkDownloaded) {
+                                stringResource(
+                                    R.string.install
+                                )
+                            } else {
+                                stringResource(R.string.action_download)
+                            },
                             fontWeight = FontWeight.Medium
                         )
                     }
@@ -723,7 +720,7 @@ fun DetailsSection(
     changelog: String,
     version: String,
     apkSize: Long,
-    uploadDateTime: String
+    uploadDateTime: String,
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -794,10 +791,7 @@ fun DetailsSection(
 }
 
 @Composable
-fun DetailItem(
-    label: String,
-    value: String
-) {
+fun DetailItem(label: String, value: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
@@ -864,7 +858,7 @@ private fun startProgressTracking(
     downloadManager: DownloadManager,
     downloadId: Long,
     viewModel: DpiSettingsViewModel,
-    tag: String
+    tag: String,
 ) {
     val progressHandler = Handler(Looper.getMainLooper())
     var isTracking = true
@@ -892,7 +886,9 @@ private fun startProgressTracking(
                         when (status) {
                             DownloadManager.STATUS_RUNNING -> {
                                 val totalIndex = cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
-                                val downloadedIndex = cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
+                                val downloadedIndex = cursor.getColumnIndex(
+                                    DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR
+                                )
 
                                 if (totalIndex != -1 && downloadedIndex != -1) {
                                     val total = cursor.getLong(totalIndex)
@@ -915,20 +911,35 @@ private fun startProgressTracking(
                                     val apkUri = Uri.parse(uriString)
                                     val apkFile = getFileFromUri(context, apkUri)
                                     if (apkFile != null && apkFile.exists()) {
-                                        Log.d("DownloadAPK", "Download completed: $uriString, file exists: ${apkFile.exists()}")
+                                        Log.d(
+                                            "DownloadAPK",
+                                            "Download completed: $uriString, file exists: ${apkFile.exists()}"
+                                        )
                                         viewModel.setApkDownloaded(true, apkUri, tag)
-                                        Toast.makeText(context, context.getString(R.string.download_completed), Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(
+                                            context,
+                                            context.getString(R.string.download_completed),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     } else {
                                         Log.e("DownloadAPK", "APK file not found at: $uriString")
                                         viewModel.setApkDownloaded(false, null)
                                         viewModel.setDownloading(false)
-                                        Toast.makeText(context, context.getString(R.string.download_completed_file_not_found), Toast.LENGTH_LONG).show()
+                                        Toast.makeText(
+                                            context,
+                                            context.getString(R.string.download_completed_file_not_found),
+                                            Toast.LENGTH_LONG
+                                        ).show()
                                     }
                                 } else {
                                     Log.e("DownloadAPK", "URI column not found")
                                     viewModel.setApkDownloaded(false, null)
                                     viewModel.setDownloading(false)
-                                    Toast.makeText(context, context.getString(R.string.download_completed_uri_not_found), Toast.LENGTH_LONG).show()
+                                    Toast.makeText(
+                                        context,
+                                        context.getString(R.string.download_completed_uri_not_found),
+                                        Toast.LENGTH_LONG
+                                    ).show()
                                 }
                             }
 
@@ -939,7 +950,11 @@ private fun startProgressTracking(
                                 Log.e("DownloadAPK", "Download failed with reason: $reason ($errorMessage)")
                                 viewModel.setApkDownloaded(false, null)
                                 viewModel.setDownloading(false)
-                                Toast.makeText(context, context.getString(R.string.download_failed_error, errorMessage), Toast.LENGTH_LONG).show()
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.download_failed_error, errorMessage),
+                                    Toast.LENGTH_LONG
+                                ).show()
                             }
 
                             DownloadManager.STATUS_PAUSED -> {
@@ -957,7 +972,11 @@ private fun startProgressTracking(
                         Log.e("DownloadAPK", "Download entry not found")
                         viewModel.setApkDownloaded(false, null)
                         viewModel.setDownloading(false)
-                        Toast.makeText(context, context.getString(R.string.download_tracking_failed), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.download_tracking_failed),
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
             } catch (e: Exception) {
@@ -965,7 +984,11 @@ private fun startProgressTracking(
                 Log.e("DownloadAPK", "Error tracking download progress", e)
                 viewModel.setApkDownloaded(false, null)
                 viewModel.setDownloading(false)
-                Toast.makeText(context, context.getString(R.string.download_tracking_error, e.message ?: ""), Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.download_tracking_error, e.message ?: ""),
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }
@@ -993,7 +1016,11 @@ private fun startProgressTracking(
                                 viewModel.setApkDownloaded(true, apkUri, tag)
                             } else {
                                 viewModel.setApkDownloaded(false, null)
-                                Toast.makeText(safeContext, safeContext.getString(R.string.downloaded_file_not_found), Toast.LENGTH_LONG).show()
+                                Toast.makeText(
+                                    safeContext,
+                                    safeContext.getString(R.string.downloaded_file_not_found),
+                                    Toast.LENGTH_LONG
+                                ).show()
                             }
                         } else {
                             viewModel.setApkDownloaded(false, null)
@@ -1021,19 +1048,17 @@ private fun startProgressTracking(
     }
 }
 
-private fun getDownloadErrorMessage(context: Context, reason: Int): String {
-    return when (reason) {
-        DownloadManager.ERROR_CANNOT_RESUME -> context.getString(R.string.cannot_resume_download)
-        DownloadManager.ERROR_DEVICE_NOT_FOUND -> context.getString(R.string.external_storage_not_found)
-        DownloadManager.ERROR_FILE_ALREADY_EXISTS -> context.getString(R.string.file_already_exists)
-        DownloadManager.ERROR_FILE_ERROR -> context.getString(R.string.file_error)
-        DownloadManager.ERROR_HTTP_DATA_ERROR -> context.getString(R.string.http_data_error)
-        DownloadManager.ERROR_INSUFFICIENT_SPACE -> context.getString(R.string.insufficient_storage_space)
-        DownloadManager.ERROR_TOO_MANY_REDIRECTS -> context.getString(R.string.too_many_redirects)
-        DownloadManager.ERROR_UNHANDLED_HTTP_CODE -> context.getString(R.string.unhandled_http_code)
-        DownloadManager.ERROR_UNKNOWN -> context.getString(R.string.unknown_error)
-        else -> context.getString(R.string.error_message, "Error code: $reason")
-    }
+private fun getDownloadErrorMessage(context: Context, reason: Int): String = when (reason) {
+    DownloadManager.ERROR_CANNOT_RESUME -> context.getString(R.string.cannot_resume_download)
+    DownloadManager.ERROR_DEVICE_NOT_FOUND -> context.getString(R.string.external_storage_not_found)
+    DownloadManager.ERROR_FILE_ALREADY_EXISTS -> context.getString(R.string.file_already_exists)
+    DownloadManager.ERROR_FILE_ERROR -> context.getString(R.string.file_error)
+    DownloadManager.ERROR_HTTP_DATA_ERROR -> context.getString(R.string.http_data_error)
+    DownloadManager.ERROR_INSUFFICIENT_SPACE -> context.getString(R.string.insufficient_storage_space)
+    DownloadManager.ERROR_TOO_MANY_REDIRECTS -> context.getString(R.string.too_many_redirects)
+    DownloadManager.ERROR_UNHANDLED_HTTP_CODE -> context.getString(R.string.unhandled_http_code)
+    DownloadManager.ERROR_UNKNOWN -> context.getString(R.string.unknown_error)
+    else -> context.getString(R.string.error_message, "Error code: $reason")
 }
 
 fun installApk(context: Context, uri: Uri) {
@@ -1066,7 +1091,11 @@ fun installApk(context: Context, uri: Uri) {
         }
     } catch (e: Exception) {
         Log.e("InstallAPK", "Error installing APK: ${e.message}", e)
-        Toast.makeText(context, context.getString(R.string.installation_error, e.message ?: ""), Toast.LENGTH_SHORT).show()
+        Toast.makeText(
+            context,
+            context.getString(R.string.installation_error, e.message ?: ""),
+            Toast.LENGTH_SHORT
+        ).show()
     }
 }
 
@@ -1085,30 +1114,25 @@ private fun getFileFromUri(context: Context, uri: Uri): File? {
     }
 }
 
-
-private fun formatUploadDate(dateTime: String): String {
-    return try {
-        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply{
-            timeZone = TimeZone.getTimeZone("UTC")
-        }
-        val outputFormat = SimpleDateFormat("MMM dd, yyyy", Locale.US)
-        val date = inputFormat.parse(dateTime)
-        outputFormat.format(date ?: Date())
-    } catch (e: Exception) {
-        Log.e("FormatUploadDate", "Error formatting date: $dateTime", e)
-        dateTime.substringBefore('T')
+private fun formatUploadDate(dateTime: String): String = try {
+    val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
+        timeZone = TimeZone.getTimeZone("UTC")
     }
+    val outputFormat = SimpleDateFormat("MMM dd, yyyy", Locale.US)
+    val date = inputFormat.parse(dateTime)
+    outputFormat.format(date ?: Date())
+} catch (e: Exception) {
+    Log.e("FormatUploadDate", "Error formatting date: $dateTime", e)
+    dateTime.substringBefore('T')
 }
-private fun formatUploadTime(dateTime: String): String {
-    return try {
-        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
-            timeZone = TimeZone.getTimeZone("UTC")
-        }
-        val outputFormat = SimpleDateFormat("HH:mm:ss UTC", Locale.US)
-        val date = inputFormat.parse(dateTime)
-        outputFormat.format(date ?: Date())
-    } catch (e: Exception) {
-        Log.e("FormatUploadTime", "Error formatting time: $dateTime", e)
-        dateTime.substringAfter('T').substringBefore('Z') + " UTC"
+private fun formatUploadTime(dateTime: String): String = try {
+    val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
+        timeZone = TimeZone.getTimeZone("UTC")
     }
+    val outputFormat = SimpleDateFormat("HH:mm:ss UTC", Locale.US)
+    val date = inputFormat.parse(dateTime)
+    outputFormat.format(date ?: Date())
+} catch (e: Exception) {
+    Log.e("FormatUploadTime", "Error formatting time: $dateTime", e)
+    dateTime.substringAfter('T').substringBefore('Z') + " UTC"
 }

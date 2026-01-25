@@ -28,7 +28,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 public class OnlineSearchSuggestionViewModel
@@ -50,7 +49,7 @@ constructor(
                     if (query.isEmpty()) {
                         database.searchHistory().map { history ->
                             SearchSuggestionViewState(
-                                history = history,
+                                history = history
                             )
                         }
                     } else {
@@ -63,24 +62,28 @@ constructor(
 
                             YouTube.searchSuggestions(query)
                                 .onSuccess { result ->
-                                    emit(SearchSuggestionViewState(
-                                        history = history,
-                                        suggestions = result.queries.filter { sug ->
-                                            history.none { it.query == sug }
-                                        },
-                                        items = result.recommendedItems
-                                            .distinctBy { it.id }
-                                            .filterExplicit(hideExplicit)
-                                            .filterVideoSongs(hideVideoSongs),
-                                        isLoading = false,
-                                        error = null
-                                    ))
+                                    emit(
+                                        SearchSuggestionViewState(
+                                            history = history,
+                                            suggestions = result.queries.filter { sug ->
+                                                history.none { it.query == sug }
+                                            },
+                                            items = result.recommendedItems
+                                                .distinctBy { it.id }
+                                                .filterExplicit(hideExplicit)
+                                                .filterVideoSongs(hideVideoSongs),
+                                            isLoading = false,
+                                            error = null
+                                        )
+                                    )
                                 }.onFailure { error ->
-                                    emit(SearchSuggestionViewState(
-                                        history = history,
-                                        isLoading = false,
-                                        error = error
-                                    ))
+                                    emit(
+                                        SearchSuggestionViewState(
+                                            history = history,
+                                            isLoading = false,
+                                            error = error
+                                        )
+                                    )
                                 }
                         }
                     }
@@ -96,5 +99,5 @@ public data class SearchSuggestionViewState(
     val suggestions: List<String> = emptyList(),
     val items: List<YTItem> = emptyList(),
     val isLoading: Boolean = false,
-    val error: Throwable? = null
+    val error: Throwable? = null,
 )

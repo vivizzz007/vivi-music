@@ -7,7 +7,7 @@ data class Context(
     val client: Client,
     val thirdParty: ThirdParty? = null,
     private val request: Request = Request(),
-    private val user: User = User()
+    private val user: User = User(),
 ) {
     @Serializable
     data class Client(
@@ -24,19 +24,11 @@ data class Context(
     )
 
     @Serializable
-    data class ThirdParty(
-        val embedUrl: String,
-    )
+    data class ThirdParty(val embedUrl: String)
 
     @Serializable
-    data class Request(
-        val internalExperimentFlags: Array<String> = emptyArray(),
-        val useSsl: Boolean = true,
-    )
+    data class Request(val internalExperimentFlags: Array<String> = emptyArray(), val useSsl: Boolean = true)
 
     @Serializable
-    data class User(
-        val lockedSafetyMode: Boolean = false,
-        val onBehalfOfUser: String? = null,
-    )
+    data class User(val lockedSafetyMode: Boolean = false, val onBehalfOfUser: String? = null)
 }

@@ -27,12 +27,8 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class PlayerConnection(
-    context: Context,
-    binder: MusicBinder,
-    val database: MusicDatabase,
-    scope: CoroutineScope,
-) : Player.Listener {
+class PlayerConnection(context: Context, binder: MusicBinder, val database: MusicDatabase, scope: CoroutineScope) :
+    Player.Listener {
     val service = binder.service
     val player = service.player
 
@@ -71,7 +67,6 @@ class PlayerConnection(
     val canSkipNext = MutableStateFlow(true)
 
     val error = MutableStateFlow<PlaybackException?>(null)
-
 
     init {
         player.addListener(this)
@@ -129,27 +124,18 @@ class PlayerConnection(
         error.value = player.playerError
     }
 
-    override fun onPlayWhenReadyChanged(
-        newPlayWhenReady: Boolean,
-        reason: Int,
-    ) {
+    override fun onPlayWhenReadyChanged(newPlayWhenReady: Boolean, reason: Int) {
         playWhenReady.value = newPlayWhenReady
     }
 
-    override fun onMediaItemTransition(
-        mediaItem: MediaItem?,
-        reason: Int,
-    ) {
+    override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
         mediaMetadata.value = mediaItem?.metadata
         currentMediaItemIndex.value = player.currentMediaItemIndex
         currentWindowIndex.value = player.getCurrentQueueIndex()
         updateCanSkipPreviousAndNext()
     }
 
-    override fun onTimelineChanged(
-        timeline: Timeline,
-        reason: Int,
-    ) {
+    override fun onTimelineChanged(timeline: Timeline, reason: Int) {
         queueWindows.value = player.getQueueWindows()
         // CORRECTION: Access via queueManager
         queueTitle.value = service.queueManager.queueTitle
@@ -182,11 +168,11 @@ class PlayerConnection(
             val window =
                 player.currentTimeline.getWindow(player.currentMediaItemIndex, Timeline.Window())
             canSkipPrevious.value = player.isCommandAvailable(COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM) ||
-                    !window.isLive ||
-                    player.isCommandAvailable(COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM)
+                !window.isLive ||
+                player.isCommandAvailable(COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM)
             canSkipNext.value = window.isLive &&
-                    window.isDynamic ||
-                    player.isCommandAvailable(COMMAND_SEEK_TO_NEXT_MEDIA_ITEM)
+                window.isDynamic ||
+                player.isCommandAvailable(COMMAND_SEEK_TO_NEXT_MEDIA_ITEM)
         } else {
             canSkipPrevious.value = false
             canSkipNext.value = false
