@@ -4,6 +4,7 @@ package com.music.vivi.viewmodels
 
 import android.content.Context
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -376,6 +377,10 @@ constructor(
 public class LibraryViewModel
 @Inject
 constructor() : ViewModel() {
-    private val curScreen = mutableStateOf(LibraryFilter.LIBRARY)
-    public val filter: MutableState<LibraryFilter> = curScreen
+    private val _filter = mutableStateOf(LibraryFilter.LIBRARY)
+    public val filter: State<LibraryFilter> = _filter
+
+    public fun updateFilter(newFilter: LibraryFilter) {
+        _filter.value = newFilter
+    }
 }
