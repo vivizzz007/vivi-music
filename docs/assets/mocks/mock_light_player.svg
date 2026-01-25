@@ -1,0 +1,16 @@
+<svg width="360" height="800" xmlns="http://www.w3.org/2000/svg">
+        <rect width="100%" height="100%" fill="#FFFFFF" />
+        <rect x="0" y="0" width="360" height="24" fill="#F5F5F5" />
+                <text x="16" y="16" font-family="Arial" font-size="12" fill="#000000">12:30</text>
+                <circle cx="340" cy="12" r="6" fill="#000000" /><rect x="0" y="744" width="360" height="56" fill="#F5F5F5" />
+                <rect x="156" y="752" width="48" height="40" rx="20" fill="#6200EE33" /><rect x="40" y="80" width="280" height="280" rx="16" fill="#F5F5F5" />
+            <text x="40" y="400" font-family="Arial" font-size="24" font-weight="bold" fill="#000000">Song Title</text>
+            <text x="40" y="430" font-family="Arial" font-size="18" fill="#666666">Artist Name</text>
+
+            <rect x="40" y="480" width="280" height="4" rx="2" fill="#F5F5F5" />
+            <rect x="40" y="480" width="100" height="4" rx="2" fill="#6200EE" />
+
+            <circle cx="180" cy="550" r="32" fill="#6200EE" />
+            <path d="M175,540 L175,560 L190,550 Z" fill="#FFFFFF" />
+        <text x="10" y="790" font-family="Arial" font-size="10" fill="#666666">Mock: Player (light)</text>
+    </svg>

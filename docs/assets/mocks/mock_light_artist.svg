@@ -1,0 +1,18 @@
+<svg width="360" height="800" xmlns="http://www.w3.org/2000/svg">
+        <rect width="100%" height="100%" fill="#FFFFFF" />
+        <rect x="0" y="0" width="360" height="24" fill="#F5F5F5" />
+                <text x="16" y="16" font-family="Arial" font-size="12" fill="#000000">12:30</text>
+                <circle cx="340" cy="12" r="6" fill="#000000" /><rect x="0" y="744" width="360" height="56" fill="#F5F5F5" />
+                <rect x="156" y="752" width="48" height="40" rx="20" fill="#6200EE33" /><rect x="0" y="0" width="360" height="250" fill="#F5F5F5" />
+            <text x="20" y="220" font-family="Arial" font-size="32" font-weight="bold" fill="#000000">Artist Name</text>
+            <text x="20" y="240" font-family="Arial" font-size="14" fill="#666666">1.2M Subscribers</text>
+
+            <text x="20" y="290" font-family="Arial" font-size="20" fill="#000000">Popular</text>
+            <rect x="20" y="310" width="48" height="48" rx="4" fill="#F5F5F5" />
+            <text x="80" y="330" font-family="Arial" font-size="16" fill="#000000">Top Hit 1</text>
+            <text x="80" y="350" font-family="Arial" font-size="14" fill="#666666">3:45</text>
+            <rect x="20" y="380" width="48" height="48" rx="4" fill="#F5F5F5" />
+            <text x="80" y="400" font-family="Arial" font-size="16" fill="#000000">Top Hit 2</text>
+            <text x="80" y="420" font-family="Arial" font-size="14" fill="#666666">2:30</text>
+        <text x="10" y="790" font-family="Arial" font-size="10" fill="#666666">Mock: Artist (light)</text>
+    </svg>

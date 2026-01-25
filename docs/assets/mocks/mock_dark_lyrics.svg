@@ -1,0 +1,11 @@
+<svg width="360" height="800" xmlns="http://www.w3.org/2000/svg">
+        <rect width="100%" height="100%" fill="#121212" />
+        <rect x="0" y="0" width="360" height="24" fill="#1E1E1E" />
+                <text x="16" y="16" font-family="Arial" font-size="12" fill="#FFFFFF">12:30</text>
+                <circle cx="340" cy="12" r="6" fill="#FFFFFF" /><rect x="0" y="744" width="360" height="56" fill="#1E1E1E" />
+                <rect x="156" y="752" width="48" height="40" rx="20" fill="#BB86FC33" /><text x="20" y="100" font-family="Arial" font-size="24" fill="#B3B3B3" opacity="0.5">Previous line...</text>
+            <text x="20" y="150" font-family="Arial" font-size="28" font-weight="bold" fill="#FFFFFF">This is the active</text>
+            <text x="20" y="190" font-family="Arial" font-size="28" font-weight="bold" fill="#FFFFFF">Lyrics line singing</text>
+            <text x="20" y="240" font-family="Arial" font-size="24" fill="#B3B3B3" opacity="0.5">Next line coming up...</text>
+        <text x="10" y="790" font-family="Arial" font-size="10" fill="#B3B3B3">Mock: Lyrics (dark)</text>
+    </svg>

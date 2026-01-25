@@ -1,0 +1,18 @@
+<svg width="360" height="800" xmlns="http://www.w3.org/2000/svg">
+        <rect width="100%" height="100%" fill="#121212" />
+        <rect x="0" y="0" width="360" height="24" fill="#1E1E1E" />
+                <text x="16" y="16" font-family="Arial" font-size="12" fill="#FFFFFF">12:30</text>
+                <circle cx="340" cy="12" r="6" fill="#FFFFFF" /><rect x="0" y="744" width="360" height="56" fill="#1E1E1E" />
+                <rect x="156" y="752" width="48" height="40" rx="20" fill="#BB86FC33" /><rect x="20" y="80" width="140" height="140" rx="8" fill="#1E1E1E" />
+             <text x="180" y="100" font-family="Arial" font-size="20" font-weight="bold" fill="#FFFFFF">Album Name</text>
+             <text x="180" y="130" font-family="Arial" font-size="14" fill="#B3B3B3">Artist</text>
+             <text x="180" y="150" font-family="Arial" font-size="12" fill="#B3B3B3">2024 • 12 Songs</text>
+
+             <rect x="20" y="240" width="48" height="48" rx="4" fill="#1E1E1E" />
+            <text x="80" y="260" font-family="Arial" font-size="16" fill="#FFFFFF">1. Intro</text>
+            <text x="80" y="280" font-family="Arial" font-size="14" fill="#B3B3B3">1:20</text>
+             <rect x="20" y="310" width="48" height="48" rx="4" fill="#1E1E1E" />
+            <text x="80" y="330" font-family="Arial" font-size="16" fill="#FFFFFF">2. Main Track</text>
+            <text x="80" y="350" font-family="Arial" font-size="14" fill="#B3B3B3">4:12</text>
+        <text x="10" y="790" font-family="Arial" font-size="10" fill="#B3B3B3">Mock: Album (dark)</text>
+    </svg>

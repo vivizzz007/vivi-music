@@ -1,0 +1,17 @@
+<svg width="360" height="800" xmlns="http://www.w3.org/2000/svg">
+        <rect width="100%" height="100%" fill="#121212" />
+        <rect x="0" y="0" width="360" height="24" fill="#1E1E1E" />
+                <text x="16" y="16" font-family="Arial" font-size="12" fill="#FFFFFF">12:30</text>
+                <circle cx="340" cy="12" r="6" fill="#FFFFFF" /><rect x="0" y="744" width="360" height="56" fill="#1E1E1E" />
+                <rect x="156" y="752" width="48" height="40" rx="20" fill="#BB86FC33" /><text x="20" y="80" font-family="Arial" font-size="24" font-weight="bold" fill="#FFFFFF">Settings</text>
+            <rect x="20" y="120" width="48" height="48" rx="4" fill="#1E1E1E" />
+            <text x="80" y="140" font-family="Arial" font-size="16" fill="#FFFFFF">Appearance</text>
+            <text x="80" y="160" font-family="Arial" font-size="14" fill="#B3B3B3">Dark Mode, Accents</text>
+            <rect x="20" y="190" width="48" height="48" rx="4" fill="#1E1E1E" />
+            <text x="80" y="210" font-family="Arial" font-size="16" fill="#FFFFFF">Playback</text>
+            <text x="80" y="230" font-family="Arial" font-size="14" fill="#B3B3B3">Crossfade, Quality</text>
+            <rect x="20" y="260" width="48" height="48" rx="4" fill="#1E1E1E" />
+            <text x="80" y="280" font-family="Arial" font-size="16" fill="#FFFFFF">Data & Storage</text>
+            <text x="80" y="300" font-family="Arial" font-size="14" fill="#B3B3B3">Cache, Proxy</text>
+        <text x="10" y="790" font-family="Arial" font-size="10" fill="#B3B3B3">Mock: Settings (dark)</text>
+    </svg>
