@@ -178,8 +178,13 @@ class App :
         val cacheSize = dataStore.get(MaxImageCacheSizeKey, 512)
 
         return ImageLoader.Builder(this).apply {
-            crossfade(false)
+            crossfade(true)
             allowHardware(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+            memoryCache {
+                coil3.memory.MemoryCache.Builder()
+                    .maxSizePercent(context, 0.25)
+                    .build()
+            }
             if (cacheSize == 0) {
                 diskCachePolicy(CachePolicy.DISABLED)
             } else {
