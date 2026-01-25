@@ -636,8 +636,8 @@
 
     <!-- Download Notifications -->
     <string name="update_failed">アップデート失敗</string>
-    <string name="failed_to_download_version">バージョン %1 のダウンロードに失敗しました</string>
-    <string name="failed_to_download_version_error">バージョン %1 のダウンロードに失敗しました\n%2</string>
+    <string name="failed_to_download_version">バージョン %1$s のダウンロードに失敗しました</string>
+    <string name="failed_to_download_version_error">バージョン %1$s のダウンロードに失敗しました\n%2$s</string>
     <string name="server_error">サーバーエラー: %1</string>
 
     <!-- Media Info -->
@@ -838,10 +838,10 @@
     <string name="playlist_separator"> • </string>
 
     <!-- Share and Email Messages -->
-    <string name="check_out_playlist_share">%1 をYouTube Musicでチェック: %2</string>
-    <string name="check_out_album_share">%2 の %1 をYouTube Musicでチェック: %3</string>
+    <string name="check_out_playlist_share">%1$s をYouTube Musicでチェック: %2$s</string>
+    <string name="check_out_album_share">%2$s の %1$s をYouTube Musicでチェック: %3$s</string>
     <string name="vivi_music_crash_report">ViVi Musicクラッシュレポート</string>
-    <string name="crash_log_email_body">クラッシュログ（クリップボードにもコピーされました）:\n\n%1\n\nデバイス情報:\n%2</string>
+    <string name="crash_log_email_body">クラッシュログ（クリップボードにもコピーされました）:\n\n%1$s\n\nデバイス情報:\n%2$s</string>
     <string name="feedback_for_vivi_music_app">Vivi Musicアプリへのフィードバック</string>
     <string name="please_write_feedback">ここにフィードバックをお書きください...</string>
     <string name="crash_log_subject">クラッシュログ: %1</string>
@@ -894,8 +894,8 @@
 
     <!-- Download Notifications -->
     <string name="downloading_update">アップデートをダウンロード中</string>
-    <string name="version_file_size">バージョン %1 • %2</string>
-    <string name="version_progress">バージョン %1 • %2%%</string>
+    <string name="version_file_size">バージョン %1$s • %2$s</string>
+    <string name="version_progress">バージョン %1$s • %2$d%%</string>
     <string name="update_ready">アップデート準備完了</string>
     <string name="tap_to_install_version">タップしてバージョン %1 をインストール</string>
 
