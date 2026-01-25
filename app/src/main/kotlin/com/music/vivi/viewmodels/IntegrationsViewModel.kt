@@ -1,23 +1,20 @@
 package com.music.vivi.viewmodels
 
-import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.music.lastfm.LastFM
 import com.music.vivi.constants.DiscordTokenKey
 import com.music.vivi.constants.LastFMSessionKey
 import com.music.vivi.constants.LastFMUsernameKey
-import com.music.vivi.utils.dataStore
+import com.music.vivi.utils.get
 import com.my.kizzy.rpc.KizzyRPC
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -36,7 +33,7 @@ public data class LastFMState(
 
 @HiltViewModel
 public class IntegrationsViewModel @Inject constructor(
-    @ApplicationContext private val context: Context
+    private val dataStore: DataStore<Preferences>
 ) : ViewModel() {
 
     private val _discordState = MutableStateFlow(DiscordState())
@@ -48,7 +45,7 @@ public class IntegrationsViewModel @Inject constructor(
     init {
         // Observe Discord
         viewModelScope.launch {
-            context.dataStore.data
+            dataStore.data
                 .map { it[DiscordTokenKey] ?: "" }
                 .distinctUntilChanged()
                 .collect { token ->
@@ -74,7 +71,7 @@ public class IntegrationsViewModel @Inject constructor(
 
         // Observe LastFM
         viewModelScope.launch {
-            context.dataStore.data
+            dataStore.data
                 .map { (it[LastFMSessionKey] ?: "") to (it[LastFMUsernameKey] ?: "") }
                 .distinctUntilChanged()
                 .collect { (session, username) ->
