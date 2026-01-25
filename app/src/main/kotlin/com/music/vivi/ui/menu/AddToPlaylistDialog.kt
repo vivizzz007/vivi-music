@@ -74,7 +74,7 @@ fun AddToPlaylistDialog(
     val database = LocalDatabase.current
     val coroutineScope = rememberCoroutineScope()
 
-    val playlists by viewModel.allPlaylists.collectAsState()
+    val playlists: List<Playlist> by viewModel.allPlaylists.collectAsState()
 
     val (innerTubeCookie) = rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn = remember(innerTubeCookie) {

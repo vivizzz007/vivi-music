@@ -104,7 +104,7 @@ fun LibraryPlaylistsScreen(
     )
     val gridItemSize by rememberEnumPreference(GridItemsSizeKey, GridItemSize.BIG)
 
-    val playlists by viewModel.allPlaylists.collectAsState()
+    val playlists: List<com.music.vivi.db.entities.Playlist> by viewModel.allPlaylists.collectAsState()
 
     val topSize by viewModel.topValue.collectAsState(initial = 50)
 
@@ -147,7 +147,7 @@ fun LibraryPlaylistsScreen(
             songCount = 0,
             songThumbnails = emptyList(),
         )
-        
+
     val uploadedPlaylist =
         Playlist(
             playlist = PlaylistEntity(
@@ -292,7 +292,7 @@ fun LibraryPlaylistsScreen(
                                 modifier =
                                 Modifier
                                     .fillMaxWidth()
-                                    
+
                                     .clickable {
                                         val route = "auto_playlist/liked"
                                         if (onNavigate != null) onNavigate(route) else navController.navigate(route)
@@ -357,7 +357,7 @@ fun LibraryPlaylistsScreen(
                             )
                         }
                     }
-                    
+
                     if (showUploaded) {
                         item(
                             key = "uploadedPlaylist",

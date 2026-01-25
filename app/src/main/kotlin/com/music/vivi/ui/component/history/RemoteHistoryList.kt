@@ -19,9 +19,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.media3.common.MediaMetadata
+import com.music.vivi.models.MediaMetadata
 import androidx.navigation.NavController
-import com.music.innertube.models.YTItemSection
+import com.music.innertube.pages.HistoryPage
 import com.music.vivi.R
 import com.music.vivi.constants.ListItemHeight
 import com.music.vivi.extensions.toMediaMetadata
@@ -37,7 +37,7 @@ import com.music.vivi.ui.menu.YouTubeSongMenu
 
 @OptIn(ExperimentalFoundationApi::class)
 fun LazyListScope.remoteHistoryList(
-    filteredRemoteContent: List<YTItemSection>?,
+    filteredRemoteContent: List<HistoryPage.HistorySection>?,
     mediaMetadata: MediaMetadata?,
     isPlaying: Boolean,
     playerConnection: PlayerConnection,

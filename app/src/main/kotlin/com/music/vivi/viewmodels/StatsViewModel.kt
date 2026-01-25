@@ -31,7 +31,7 @@ constructor(
     public val selectedOption: MutableStateFlow<OptionStats> = MutableStateFlow(OptionStats.CONTINUOUS)
     public val indexChips: MutableStateFlow<Int> = MutableStateFlow(0)
 
-    public val mostPlayedSongsStats: StateFlow<List<com.music.vivi.db.entities.MostPlayedStats>> =
+    public val mostPlayedSongsStats: StateFlow<List<com.music.vivi.db.entities.SongWithStats>> =
         combine(
             selectedOption,
             indexChips,
@@ -47,14 +47,16 @@ constructor(
                                 .now()
                                 .toInstant(
                                     ZoneOffset.UTC,
-                                ).toEpochMilli()
+                                )
+                                .toEpochMilli()
                         } else {
                             statToPeriod(selection, t - 1)
                         },
                     )
-            }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+            }
+            .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    public val mostPlayedSongs: StateFlow<List<com.music.vivi.db.entities.EventWithSong>> =
+    public val mostPlayedSongs: StateFlow<List<com.music.vivi.db.entities.Song>> =
         combine(
             selectedOption,
             indexChips,
@@ -70,39 +72,42 @@ constructor(
                                 .now()
                                 .toInstant(
                                     ZoneOffset.UTC,
-                                ).toEpochMilli()
+                                )
+                                .toEpochMilli()
                         } else {
                             statToPeriod(selection, t - 1)
                         },
                     )
-            }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+            }
+            .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    public val mostPlayedArtists: StateFlow<List<com.music.vivi.db.entities.EventWithArtist>> =
+    public val mostPlayedArtists: StateFlow<List<com.music.vivi.db.entities.Artist>> =
         combine(
             selectedOption,
             indexChips,
         ) { first, second -> Pair(first, second) }
             .flatMapLatest { (selection, t) ->
-                database
-                    .mostPlayedArtists(
-                        statToPeriod(selection, t),
-                        limit = -1,
-                        toTimeStamp =
-                        if (selection == OptionStats.CONTINUOUS || t == 0) {
-                            LocalDateTime
-                                .now()
-                                .toInstant(
-                                    ZoneOffset.UTC,
-                                ).toEpochMilli()
-                        } else {
-                            statToPeriod(selection, t - 1)
-                        },
-                    ).map { artists ->
-                        artists.filter { it.artist.isYouTubeArtist }
-                    }
-            }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+                database.mostPlayedArtists(
+                    statToPeriod(selection, t),
+                    limit = -1,
+                    toTimeStamp =
+                    if (selection == OptionStats.CONTINUOUS || t == 0) {
+                        LocalDateTime
+                            .now()
+                            .toInstant(
+                                ZoneOffset.UTC,
+                            )
+                            .toEpochMilli()
+                    } else {
+                        statToPeriod(selection, t - 1)
+                    },
+                ).map { artists ->
+                    artists.filter { it.artist.isYouTubeArtist }
+                }
+            }
+            .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    public val mostPlayedAlbums: StateFlow<List<com.music.vivi.db.entities.EventWithAlbum>> =
+    public val mostPlayedAlbums: StateFlow<List<com.music.vivi.db.entities.Album>> =
         combine(
             selectedOption,
             indexChips,
@@ -117,17 +122,17 @@ constructor(
                             .now()
                             .toInstant(
                                 ZoneOffset.UTC,
-                            ).toEpochMilli()
+                            )
+                            .toEpochMilli()
                     } else {
                         statToPeriod(selection, t - 1)
                     },
                 )
-            }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+            }
+            .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     public val firstEvent: StateFlow<com.music.vivi.db.entities.Event?> =
-        database
-            .firstEvent()
-            .stateIn(viewModelScope, SharingStarted.Lazily, null)
+        database.firstEvent().stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     init {
         viewModelScope.launch {

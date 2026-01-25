@@ -152,7 +152,7 @@ fun LibraryArtistsScreen(
         }
     }
 
-    val artists by viewModel.allArtists.collectAsState()
+    val artists: List<com.music.vivi.db.entities.Artist> by viewModel.allArtists.collectAsState()
     val coroutineScope = rememberCoroutineScope()
 
     val lazyListState = rememberLazyListState()

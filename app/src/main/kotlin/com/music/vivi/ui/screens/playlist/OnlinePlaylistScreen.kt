@@ -176,8 +176,8 @@ fun OnlinePlaylistScreen(
 
     val relatedItems by viewModel.relatedItems.collectAsStateWithLifecycle()
     val playlist by viewModel.playlist.collectAsState()
-    val songs by viewModel.playlistSongs.collectAsState()
-    val dbPlaylist by viewModel.dbPlaylist.collectAsState()
+    val songs: List<com.music.innertube.models.SongItem> by viewModel.playlistSongs.collectAsState()
+    val dbPlaylist: com.music.vivi.db.entities.Playlist? by viewModel.dbPlaylist.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val isLoadingMore by viewModel.isLoadingMore.collectAsState()
     val error by viewModel.error.collectAsState()

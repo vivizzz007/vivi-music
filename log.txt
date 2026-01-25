@@ -1,167 +1,77 @@
 Reusing configuration cache.
-> Task :innertube:checkKotlinGradlePluginConfigurationErrors SKIPPED
-> Task :kizzy:checkKotlinGradlePluginConfigurationErrors SKIPPED
-> Task :kugou:checkKotlinGradlePluginConfigurationErrors SKIPPED
-> Task :lrclib:checkKotlinGradlePluginConfigurationErrors SKIPPED
-> Task :lastfm:checkKotlinGradlePluginConfigurationErrors SKIPPED
-> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
-> Task :app:preBuild UP-TO-DATE
 > Task :betterlyrics:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :lastfm:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:preBuild UP-TO-DATE
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :lrclib:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :kugou:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :kizzy:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :innertube:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :kugou:processResources NO-SOURCE
+> Task :lrclib:processResources NO-SOURCE
 > Task :lastfm:processResources NO-SOURCE
 > Task :kizzy:processResources NO-SOURCE
 > Task :betterlyrics:processResources NO-SOURCE
-> Task :kugou:processResources NO-SOURCE
 > Task :innertube:processResources NO-SOURCE
-> Task :lrclib:processResources NO-SOURCE
 > Task :app:preUniversalStandardDebugBuild UP-TO-DATE
-> Task :app:generateUniversalStandardDebugResValues UP-TO-DATE
-> Task :app:generateUniversalStandardDebugBuildConfig UP-TO-DATE
 > Task :app:createUniversalStandardDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:generateUniversalStandardDebugBuildConfig UP-TO-DATE
+> Task :app:generateUniversalStandardDebugResValues UP-TO-DATE
 > Task :app:javaPreCompileUniversalStandardDebug UP-TO-DATE
-> Task :app:generateUniversalStandardDebugResources UP-TO-DATE
 > Task :app:extractUniversalStandardDebugSupportedLocales UP-TO-DATE
+> Task :app:generateUniversalStandardDebugResources UP-TO-DATE
 > Task :app:extractDeepLinksUniversalStandardDebug UP-TO-DATE
-> Task :lrclib:compileKotlin UP-TO-DATE
-> Task :betterlyrics:compileKotlin UP-TO-DATE
-> Task :kizzy:compileKotlin UP-TO-DATE
 > Task :kugou:compileKotlin UP-TO-DATE
 > Task :lastfm:compileKotlin UP-TO-DATE
-> Task :lrclib:compileJava NO-SOURCE
-> Task :kugou:compileJava NO-SOURCE
-> Task :betterlyrics:compileJava NO-SOURCE
-> Task :betterlyrics:classes UP-TO-DATE
-> Task :kizzy:compileJava NO-SOURCE
-> Task :lrclib:classes UP-TO-DATE
-> Task :kugou:classes UP-TO-DATE
+> Task :betterlyrics:compileKotlin UP-TO-DATE
+> Task :lrclib:compileKotlin UP-TO-DATE
+> Task :innertube:compileKotlin UP-TO-DATE
+> Task :kizzy:compileKotlin UP-TO-DATE
 > Task :lastfm:compileJava NO-SOURCE
+> Task :betterlyrics:compileJava NO-SOURCE
+> Task :lrclib:compileJava NO-SOURCE
+> Task :betterlyrics:classes UP-TO-DATE
+> Task :lrclib:classes UP-TO-DATE
+> Task :innertube:compileJava NO-SOURCE
+> Task :kugou:compileJava NO-SOURCE
+> Task :kugou:classes UP-TO-DATE
+> Task :kizzy:compileJava NO-SOURCE
 > Task :lastfm:classes UP-TO-DATE
 > Task :kizzy:classes UP-TO-DATE
-> Task :innertube:compileKotlin UP-TO-DATE
+> Task :innertube:classes UP-TO-DATE
+> Task :kizzy:jar UP-TO-DATE
+> Task :lrclib:jar UP-TO-DATE
+> Task :innertube:jar UP-TO-DATE
 > Task :app:checkUniversalStandardDebugAarMetadata UP-TO-DATE
 > Task :app:processUniversalStandardDebugNavigationResources UP-TO-DATE
 > Task :app:mapUniversalStandardDebugSourceSetPaths UP-TO-DATE
-> Task :innertube:compileJava NO-SOURCE
-> Task :betterlyrics:jar UP-TO-DATE
 > Task :kugou:jar UP-TO-DATE
-> Task :kizzy:jar UP-TO-DATE
-> Task :app:compileUniversalStandardDebugNavigationResources UP-TO-DATE
-> Task :innertube:classes UP-TO-DATE
-> Task :lrclib:jar UP-TO-DATE
+> Task :betterlyrics:jar UP-TO-DATE
 > Task :lastfm:jar UP-TO-DATE
-> Task :innertube:jar UP-TO-DATE
+> Task :app:compileUniversalStandardDebugNavigationResources UP-TO-DATE
 > Task :app:processUniversalStandardDebugMainManifest UP-TO-DATE
 > Task :app:generateUniversalStandardDebugLocaleConfig UP-TO-DATE
 > Task :app:processUniversalStandardDebugManifest UP-TO-DATE
 > Task :app:packageUniversalStandardDebugResources UP-TO-DATE
 > Task :app:processUniversalStandardDebugManifestForPackage UP-TO-DATE
-> Task :app:mergeUniversalStandardDebugResources UP-TO-DATE
 > Task :app:parseUniversalStandardDebugLocalResources UP-TO-DATE
+> Task :app:mergeUniversalStandardDebugResources UP-TO-DATE
 > Task :app:processUniversalStandardDebugResources UP-TO-DATE
-> Task :app:kspUniversalStandardDebugKotlin UP-TO-DATE
+> Task :app:kspUniversalStandardDebugKotlin
 
-> Task :app:compileUniversalStandardDebugKotlin FAILED
+> Task :app:compileUniversalStandardDebugKotlin
 e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/Lyrics.kt:811:33 Argument type mismatch: actual type is 'com.music.vivi.models.MediaMetadata?', but 'androidx.media3.common.MediaMetadata?' was expected.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumRelatedContent.kt:56:51 Unresolved reference 'album'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumRelatedContent.kt:66:57 Argument type mismatch: actual type is 'YTItem', but 'AlbumItem' was expected.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumRelatedContent.kt:98:51 Unresolved reference 'album'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumRelatedContent.kt:108:57 Argument type mismatch: actual type is 'YTItem', but 'AlbumItem' was expected.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTopBar.kt:26:24 One type argument expected for class ItemWrapper<T> : Any.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTopBar.kt:39:50 Unresolved reference 'it'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTopBar.kt:71:50 Unresolved reference 'it'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTopBar.kt:73:21 No value passed for parameter 'onLongClick'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTopBar.kt:90:21 No value passed for parameter 'onLongClick'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTopBar.kt:93:62 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTopBar.kt:93:62 Unresolved reference. None of the following candidates is applicable because of a receiver type mismatch:
-fun <T> Iterable<T>.filter(predicate: (T) -> Boolean): List<T>
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTopBar.kt:93:69 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTopBar.kt:93:74 Unresolved reference 'isSelected'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTopBar.kt:94:38 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTopBar.kt:94:38 Not enough information to infer type argument for 'T'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTopBar.kt:94:42 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTopBar.kt:94:47 Unresolved reference 'item'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:24:24 One type argument expected for class ItemWrapper<T> : Any.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:36:22 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:36:22 Unresolved reference. None of the following candidates is applicable because of a receiver type mismatch:
-fun <T> Collection<T>.isNotEmpty(): Boolean
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:37:9 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:38:22 Argument type mismatch: actual type is 'List<ERROR CLASS: Wrong number of type arguments>', but 'List<uninferred T (of fun <T> LazyListScope.roundedSongItems)>' was expected.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:39:20 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:39:25 Unresolved reference 'item'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:40:25 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:40:30 Unresolved reference 'item'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:40:56 Unresolved reference 'id'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:41:30 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:43:38 Unresolved reference 'item'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:43:64 Unresolved reference 'id'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:46:62 Argument type mismatch: actual type is 'String?', but 'String' was expected.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:48:46 Argument type mismatch: actual type is 'Album', but 'AlbumWithSongs' was expected.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:52:34 Unresolved reference 'isSelected'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:52:60 Unresolved reference 'isSelected'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:55:34 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:61:25 Unresolved reference 'isSelected'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:63:30 Unresolved reference 'isSelected'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:65:14 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:67:37 Unresolved reference 'item'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:68:41 Unresolved reference 'item'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:68:67 Unresolved reference 'id'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:75:26 No value passed for parameter 'onLongClick'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:78:65 Unresolved reference 'item'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:91:43 Unresolved reference 'isSelected'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:93:52 Unresolved reference 'isSelected'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/history/LocalHistoryList.kt:78:64 Unresolved reference 'id'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/history/LocalHistoryList.kt:115:33 No value passed for parameter 'onLongClick'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/history/LocalHistoryList.kt:139:77 Unresolved reference 'id'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/history/RemoteHistoryList.kt:24:35 Unresolved reference 'YTItemSection'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:42:56 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:45:64 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:48:62 Argument type mismatch: actual type is 'String?', but 'String' was expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:50:46 Argument type mismatch: actual type is 'Album', but 'AlbumWithSongs' was expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:70:67 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:77:26 No value passed for parameter 'onLongClick'.
 e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/history/RemoteHistoryList.kt:27:34 Unresolved reference 'toMediaMetadata'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/history/RemoteHistoryList.kt:40:33 Unresolved reference 'YTItemSection'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/history/RemoteHistoryList.kt:48:38 Unresolved reference 'YTItemSection'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/history/RemoteHistoryList.kt:51:33 Unresolved reference 'title'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/history/RemoteHistoryList.kt:59:29 Unresolved reference 'songs'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/history/RemoteHistoryList.kt:60:32 Unresolved reference 'title'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/history/RemoteHistoryList.kt:60:41 Unresolved reference 'it'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/history/RemoteHistoryList.kt:60:58 Unresolved reference 'songs'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/history/RemoteHistoryList.kt:60:72 Unresolved reference 'it'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/history/RemoteHistoryList.kt:61:13 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/history/RemoteHistoryList.kt:62:13 @Composable invocations can only happen from the context of a @Composable function
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/history/RemoteHistoryList.kt:67:37 Unresolved reference 'songs'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/history/RemoteHistoryList.kt:69:47 Unresolved reference 'songs'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/history/RemoteHistoryList.kt:70:44 Unresolved reference 'songs'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/history/RemoteHistoryList.kt:85:38 Unresolved reference 'id'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/history/RemoteHistoryList.kt:85:59 Unresolved reference 'id'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/history/RemoteHistoryList.kt:91:41 Unresolved reference 'id'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/history/RemoteHistoryList.kt:91:62 Unresolved reference 'id'.
 e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/history/RemoteHistoryList.kt:95:33 No value passed for parameter 'onLongClick'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/history/RemoteHistoryList.kt:116:46 Unresolved reference 'id'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/history/RemoteHistoryList.kt:116:67 Unresolved reference 'id'.
 e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/lyrics/LyricsColorPickerDialog.kt:83:49 Argument type mismatch: actual type is 'androidx.media3.common.MediaMetadata', but 'com.music.vivi.models.MediaMetadata' was expected.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumGridItem.kt:16:28 Conflicting import: imported name 'Modifier' is ambiguous.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumGridItem.kt:17:38 Conflicting import: imported name 'FontWeight' is ambiguous.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumGridItem.kt:18:39 Conflicting import: imported name 'TextOverflow' is ambiguous.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumGridItem.kt:19:28 Conflicting import: imported name 'Modifier' is ambiguous.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumGridItem.kt:20:38 Conflicting import: imported name 'FontWeight' is ambiguous.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumGridItem.kt:21:39 Conflicting import: imported name 'TextOverflow' is ambiguous.
 e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/news/NewsDetailScreen.kt:62:32 No value passed for parameter 'onLongClick'.
 e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/news/NewsDetailScreen.kt:81:39 This material3 API is experimental and is likely to change or to be removed in the future.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialog.kt:77:19 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
-fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialog.kt:77:22 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialog.kt:77:22 Not enough information to infer type argument for 'T'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialog.kt:77:45 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialog.kt:77:45 Not enough information to infer type argument for 'T'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialog.kt:110:37 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialog.kt:111:70 Unresolved reference 'id'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialog.kt:113:46 Unresolved reference 'id'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialog.kt:181:76 Unresolved reference 'id'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialog.kt:184:32 Argument type mismatch: actual type is 'Int', but 'Playlist' was expected.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialog.kt:186:44 Assignment type mismatch: actual type is 'Int', but 'Playlist?' was expected.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialog.kt:189:53 Argument type mismatch: actual type is 'Int', but 'Playlist' was expected.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialog.kt:191:79 Unresolved reference 'id'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialog.kt:192:58 Argument type mismatch: actual type is 'Unit', but 'K (of fun <K> WHEN_CALL)' was expected.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialog.kt:196:60 Argument type mismatch: actual type is 'Int', but 'Playlist' was expected.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialog.kt:198:33 Argument type mismatch: actual type is 'R? (of fun <T, R> T.let)', but 'K (of fun <K> WHEN_CALL)' was expected.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialog.kt:198:42 Unresolved reference 'playlist'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialog.kt:198:61 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialog.kt:198:67 Cannot infer type for this parameter. Specify it explicitly.
 e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialogOnline.kt:94:19 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
 fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
 e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialogOnline.kt:94:22 Cannot infer type for this parameter. Specify it explicitly.
@@ -204,7 +114,6 @@ e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/
 e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:217:58 Unresolved reference 'songs'.
 e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:220:42 Argument type mismatch: actual type is 'Album', but 'AlbumWithSongs' was expected.
 e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:236:41 Argument type mismatch: actual type is 'com.music.vivi.models.MediaMetadata?', but 'androidx.media3.common.MediaMetadata?' was expected.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:253:37 Argument type mismatch: actual type is 'com.music.vivi.models.MediaMetadata?', but 'androidx.media3.common.MediaMetadata?' was expected.
 e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:280:52 Unresolved reference 'it'.
 e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:281:54 Unresolved reference 'it'.
 e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:68:20 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
@@ -301,41 +210,23 @@ e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/
 e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:279:55 Unresolved reference 'id'.
 e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:284:98 Unresolved reference 'id'.
 e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:301:38 Unresolved reference 'animateItem'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:153:16 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:154:16 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
 fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:153:19 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:153:19 Not enough information to infer type argument for 'T'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:153:36 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:153:36 Not enough information to infer type argument for 'T'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:171:26 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:171:26 Not enough information to infer type argument for 'T'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:172:9 Not enough information to infer type argument for 'K'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:175:20 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:175:20 Not enough information to infer type argument for 'K'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:175:20 Not enough information to infer type argument for 'V'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:175:33 Not enough information to infer type argument for 'K'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:175:33 Not enough information to infer type argument for 'V'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:175:36 Not enough information to infer type argument for 'K'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:175:36 Not enough information to infer type argument for 'V'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:176:32 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:177:27 Unresolved reference 'song'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:178:35 Unresolved reference 'song'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:179:33 Unresolved reference 'it'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:185:15 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:185:15 Not enough information to infer type argument for 'K'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:185:15 Not enough information to infer type argument for 'V'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:185:28 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:235:37 Argument type mismatch: actual type is 'com.music.vivi.models.MediaMetadata?', but 'androidx.media3.common.MediaMetadata?' was expected.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:245:37 Argument type mismatch: actual type is 'com.music.vivi.models.MediaMetadata?', but 'androidx.media3.common.MediaMetadata?' was expected.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:282:52 Unresolved reference 'values'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:282:75 Unresolved reference 'it'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:364:49 Unresolved reference 'values'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:364:64 Unresolved reference 'it'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:370:68 Unresolved reference 'values'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:370:91 Unresolved reference 'it'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:381:64 Unresolved reference 'values'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:382:73 Unresolved reference 'it'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:383:44 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:154:19 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:154:19 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:154:36 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:154:36 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:176:20 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:176:20 Not enough information to infer type argument for 'K'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:176:20 Not enough information to infer type argument for 'V'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:176:33 Not enough information to infer type argument for 'K'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:176:33 Not enough information to infer type argument for 'V'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:176:36 Not enough information to infer type argument for 'K'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:176:36 Not enough information to infer type argument for 'V'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:177:32 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:178:27 Unresolved reference 'song'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:179:35 Unresolved reference 'song'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:180:33 Unresolved reference 'it'.
 e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewReleaseScreen.kt:55:26 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
 fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
 e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewReleaseScreen.kt:55:29 Cannot infer type for this parameter. Specify it explicitly.
@@ -348,40 +239,6 @@ e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/
 e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewReleaseScreen.kt:67:13 @Composable invocations can only happen from the context of a @Composable function
 e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewReleaseScreen.kt:69:62 Unresolved reference 'id'.
 e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewReleaseScreen.kt:77:67 Unresolved reference 'id'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewsScreen.kt:32:16 Unresolved reference 'NewsViewModel'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewsScreen.kt:32:32 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewsScreen.kt:34:19 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
-fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewsScreen.kt:34:22 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewsScreen.kt:34:32 Unresolved reference 'newsItems'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewsScreen.kt:34:42 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewsScreen.kt:35:19 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
-fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewsScreen.kt:35:22 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewsScreen.kt:35:32 Unresolved reference 'isLoading'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewsScreen.kt:35:42 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewsScreen.kt:36:22 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
-fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewsScreen.kt:36:25 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewsScreen.kt:36:35 Unresolved reference 'isRefreshing'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewsScreen.kt:36:48 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewsScreen.kt:37:15 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
-fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewsScreen.kt:37:18 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewsScreen.kt:37:28 Unresolved reference 'error'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewsScreen.kt:37:34 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewsScreen.kt:38:21 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
-fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewsScreen.kt:38:24 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewsScreen.kt:38:34 Unresolved reference 'readNewsIds'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewsScreen.kt:38:46 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewsScreen.kt:44:23 Unresolved reference 'fetchNews'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewsScreen.kt:52:45 Unresolved reference 'it'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewsScreen.kt:72:28 Argument type mismatch: actual type is 'Any', but 'NewsItem' was expected.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewsScreen.kt:74:41 Unresolved reference 'fetchNews'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewsScreen.kt:86:41 Unresolved reference 'getItemId'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewsScreen.kt:88:31 Unresolved reference 'markAsRead'.
-e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewsScreen.kt:91:41 Unresolved reference 'fetchNews'.
 e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:75:25 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
 fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
 e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:75:28 Cannot infer type for this parameter. Specify it explicitly.
@@ -1523,6 +1380,8 @@ e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/
 e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:167:54 Unresolved reference 'album'.
 e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/TopPlaylistViewModel.kt:37:9 Type mismatch: inferred type is 'List<Song>', but 'List<PlaylistSong>' was expected.
 
+> Task :app:compileUniversalStandardDebugKotlin FAILED
+
 FAILURE: Build failed with an exception.
 
 * What went wrong:
@@ -1536,6 +1395,6 @@ Execution failed for task ':app:compileUniversalStandardDebugKotlin'.
 > Run with --scan to generate a Build Scan (Powered by Develocity).
 > Get more help at https://help.gradle.org.
 
-BUILD FAILED in 8s
-33 actionable tasks: 1 executed, 32 up-to-date
+BUILD FAILED in 16s
+33 actionable tasks: 2 executed, 31 up-to-date
 Configuration cache entry reused.

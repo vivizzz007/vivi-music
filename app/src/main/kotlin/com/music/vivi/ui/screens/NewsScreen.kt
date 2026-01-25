@@ -23,6 +23,7 @@ import androidx.navigation.NavController
 import com.music.vivi.repositories.ContentBlock
 import com.music.vivi.ui.component.news.NewsDetailScreen
 import com.music.vivi.ui.component.news.NewsListScreen
+import com.music.vivi.viewmodels.NewsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

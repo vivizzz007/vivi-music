@@ -64,8 +64,8 @@ public fun ArtistAlbumsScreen(
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
-    val artist by viewModel.artist.collectAsState()
-    val albums by viewModel.albums.collectAsState()
+    val artist: com.music.vivi.db.entities.Artist? by viewModel.artist.collectAsState()
+    val albums: List<com.music.vivi.db.entities.Album> by viewModel.albums.collectAsState()
 
     val coroutineScope = rememberCoroutineScope()
     val lazyGridState = rememberLazyGridState()
@@ -126,7 +126,7 @@ public fun ArtistAlbumsScreen(
                     album = album,
                     isActive = album.id == mediaMetadata?.album?.id,
                     isPlaying = isPlaying,
-                    modifier = Modifier.animateItem()
+                    modifier = Modifier.animateItemPlacement()
                 )
             }
         }

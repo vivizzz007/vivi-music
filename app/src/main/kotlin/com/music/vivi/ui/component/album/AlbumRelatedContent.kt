@@ -15,7 +15,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.res.stringResource
 import com.music.vivi.models.MediaMetadata
 import androidx.navigation.NavController
-import com.music.innertube.models.YTItem
+import com.music.innertube.models.AlbumItem
 import com.music.vivi.R
 import com.music.vivi.ui.component.MenuState
 import com.music.vivi.ui.component.NavigationTitle
@@ -26,8 +26,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 
 @OptIn(ExperimentalMaterial3Api::class)
 fun LazyListScope.albumRelatedContent(
-    otherVersions: List<YTItem>,
-    releasesForYou: List<YTItem>,
+    otherVersions: List<AlbumItem>,
+    releasesForYou: List<AlbumItem>,
     mediaMetadata: MediaMetadata?,
     isPlaying: Boolean,
     scope: CoroutineScope,

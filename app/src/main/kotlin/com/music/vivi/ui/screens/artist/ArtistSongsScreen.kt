@@ -77,8 +77,8 @@ public fun ArtistSongsScreen(
         true
     )
     val hideExplicit by rememberPreference(key = HideExplicitKey, defaultValue = false)
-    val artist by viewModel.artist.collectAsState()
-    val songs by viewModel.songs.collectAsState()
+    val artist: com.music.vivi.db.entities.Artist? by viewModel.artist.collectAsState()
+    val songs: List<com.music.vivi.db.entities.Song> by viewModel.songs.collectAsState()
     val lazyListState = rememberLazyListState()
 
     Box(
@@ -175,7 +175,7 @@ public fun ArtistSongsScreen(
                                 }
                             },
                         )
-                        .animateItem(),
+                        .animateItemPlacement(),
                 )
             }
         }

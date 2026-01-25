@@ -21,7 +21,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.media3.common.MediaMetadata
+import com.music.vivi.models.MediaMetadata
 import androidx.navigation.NavController
 import com.music.vivi.R
 import com.music.vivi.constants.ListItemHeight
@@ -123,7 +123,8 @@ fun LazyListScope.localHistoryList(
                                             )
                                         }
                                     }
-                                }
+                                },
+                                onLongClick = {}
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.more_vert),

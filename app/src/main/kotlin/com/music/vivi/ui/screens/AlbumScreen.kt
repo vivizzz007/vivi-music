@@ -13,9 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import com.music.vivi.ui.component.media.albums.AlbumHeader
-import com.music.vivi.ui.component.album.AlbumTrackList
 import com.music.vivi.ui.component.album.albumTrackList
-import com.music.vivi.ui.component.album.AlbumRelatedContent
 import com.music.vivi.ui.component.album.albumRelatedContent
 import com.music.vivi.ui.component.album.AlbumTopBar
 import androidx.compose.foundation.layout.asPaddingValues

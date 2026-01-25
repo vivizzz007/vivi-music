@@ -7,7 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.res.painterResource
-import androidx.media3.common.MediaMetadata
+import com.music.vivi.models.MediaMetadata
 import androidx.navigation.NavController
 import com.music.vivi.R
 import com.music.vivi.ui.component.IconButton
@@ -73,17 +73,18 @@ fun LazyListScope.albumTrackList(
                  isSwipeable = false,
                  drawHighlight = false,
                  trailingContent = {
-                     IconButton(
-                         onClick = {
-                             menuState.show {
-                                 SongMenu(
-                                     originalSong = songWrapper.item,
-                                     navController = navController,
-                                     onDismiss = menuState::dismiss,
-                                 )
-                             }
-                         },
-                     ) {
+                         IconButton(
+                             onClick = {
+                                 menuState.show {
+                                     SongMenu(
+                                         originalSong = songWrapper.item,
+                                         navController = navController,
+                                         onDismiss = menuState::dismiss,
+                                     )
+                                 }
+                             },
+                             onLongClick = {}
+                         ) {
                          Icon(
                              painter = painterResource(R.drawable.more_vert),
                              contentDescription = null,

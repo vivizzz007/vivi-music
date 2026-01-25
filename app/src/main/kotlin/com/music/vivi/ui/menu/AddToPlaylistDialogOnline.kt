@@ -91,7 +91,7 @@ fun AddToPlaylistDialogOnline(
     val coroutineScope = rememberCoroutineScope()
     val viewStateMap = remember { mutableStateMapOf<String, ItemsPage?>() }
 
-    val playlists by viewModel.allPlaylists.collectAsState()
+    val playlists: List<Playlist> by viewModel.allPlaylists.collectAsState()
 
 
     var showCreatePlaylistDialog by rememberSaveable {

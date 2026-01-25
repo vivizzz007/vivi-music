@@ -59,6 +59,12 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+import com.music.vivi.db.entities.Song
+import com.music.vivi.db.entities.Artist
+import com.music.vivi.db.entities.Album
+import com.music.vivi.db.entities.SongWithStats
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 public fun StatsScreen(
     navController: NavController,
@@ -72,10 +78,10 @@ public fun StatsScreen(
     val context = LocalContext.current
 
     val indexChips by viewModel.indexChips.collectAsState()
-    val mostPlayedSongs by viewModel.mostPlayedSongs.collectAsState()
-    val mostPlayedSongsStats by viewModel.mostPlayedSongsStats.collectAsState()
-    val mostPlayedArtists by viewModel.mostPlayedArtists.collectAsState()
-    val mostPlayedAlbums by viewModel.mostPlayedAlbums.collectAsState()
+    val mostPlayedSongs: List<Song> by viewModel.mostPlayedSongs.collectAsState()
+    val mostPlayedSongsStats: List<SongWithStats> by viewModel.mostPlayedSongsStats.collectAsState()
+    val mostPlayedArtists: List<Artist> by viewModel.mostPlayedArtists.collectAsState()
+    val mostPlayedAlbums: List<Album> by viewModel.mostPlayedAlbums.collectAsState()
     val firstEvent by viewModel.firstEvent.collectAsState()
     val currentDate = LocalDateTime.now()
 
@@ -227,11 +233,11 @@ public fun StatsScreen(
             item(key = "mostPlayedSongs") {
                 NavigationTitle(
                     title = "${mostPlayedSongsStats.size} ${stringResource(id = R.string.songs)}",
-                    modifier = Modifier.animateItem(),
+                    modifier = Modifier.animateItemPlacement(),
                 )
 
                 LazyRow(
-                    modifier = Modifier.animateItem(),
+                    modifier = Modifier.animateItemPlacement(),
                 ) {
                     itemsIndexed(
                         items = mostPlayedSongsStats,
@@ -278,7 +284,7 @@ public fun StatsScreen(
                                         }
                                     },
                                 )
-                                .animateItem(),
+                                .animateItemPlacement(),
                         )
                     }
                 }
@@ -287,11 +293,11 @@ public fun StatsScreen(
             item(key = "mostPlayedArtists") {
                 NavigationTitle(
                     title = "${mostPlayedArtists.size} ${stringResource(id = R.string.artists)}",
-                    modifier = Modifier.animateItem(),
+                    modifier = Modifier.animateItemPlacement(),
                 )
 
                 LazyRow(
-                    modifier = Modifier.animateItem(),
+                    modifier = Modifier.animateItemPlacement(),
                 ) {
                     itemsIndexed(
                         items = mostPlayedArtists,
@@ -326,7 +332,7 @@ public fun StatsScreen(
                                         }
                                     },
                                 )
-                                .animateItem(),
+                                .animateItemPlacement(),
                         )
                     }
                 }

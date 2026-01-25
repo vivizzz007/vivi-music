@@ -161,7 +161,7 @@ fun AutoPlaylistScreen(
         else -> stringResource(R.string.offline)
     }
 
-    val songs by viewModel.likedSongs.collectAsState(null)
+    val songs: List<com.music.vivi.db.entities.Song>? by viewModel.likedSongs.collectAsState(null)
     val mutableSongs = remember { mutableStateListOf<Song>() }
 
     var isSearching by remember { mutableStateOf(false) }

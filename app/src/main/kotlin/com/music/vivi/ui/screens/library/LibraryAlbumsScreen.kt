@@ -155,7 +155,7 @@ fun LibraryAlbumsScreen(
         }
     }
 
-    val albums by viewModel.allAlbums.collectAsState()
+    val albums: List<com.music.vivi.db.entities.Album> by viewModel.allAlbums.collectAsState()
 
     val coroutineScope = rememberCoroutineScope()
 

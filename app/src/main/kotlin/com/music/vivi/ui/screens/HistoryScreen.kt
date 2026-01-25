@@ -83,6 +83,7 @@ import com.music.vivi.db.entities.EventWithSong
 import com.music.vivi.extensions.metadata
 import com.music.vivi.extensions.toMediaItem
 import com.music.vivi.extensions.togglePlayPause
+import com.music.vivi.db.entities.Song
 import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.playback.queues.ListQueue
 import com.music.vivi.playback.queues.YouTubeQueue
@@ -168,7 +169,7 @@ public fun HistoryScreen(
     }
 
 
-    val filteredEvents = remember(events, query) {
+    val filteredEvents: Map<DateAgo, List<EventWithSong>> = remember(events, query) {
         if (query.text.isEmpty()) {
             events
         } else {

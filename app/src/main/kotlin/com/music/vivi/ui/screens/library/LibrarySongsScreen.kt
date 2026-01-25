@@ -103,7 +103,7 @@ fun LibrarySongsScreen(
     val (ytmSync) = rememberPreference(YtmSyncKey, true)
     val hideExplicit by rememberPreference(key = HideExplicitKey, defaultValue = false)
 
-    val songs by viewModel.allSongs.collectAsState()
+    val songs: List<com.music.vivi.db.entities.Song> by viewModel.allSongs.collectAsState()
 
     var filter by rememberEnumPreference(SongFilterKey, SongFilter.LIKED)
 

@@ -16,9 +16,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+
 import com.music.vivi.constants.ThumbnailCornerRadius
 import com.music.vivi.db.entities.Album
 import com.music.vivi.ui.component.core.GridItem
