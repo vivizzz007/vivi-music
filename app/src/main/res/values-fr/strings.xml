@@ -286,6 +286,7 @@
     <string name="audio_quality">Qualité audio</string>
     <string name="audio_quality_auto">Automatique</string>
     <string name="audio_quality_high">Haute</string>
+    <string name="audio_quality_very_high">Ultra</string>
     <string name="audio_quality_low">Basse</string>
     <string name="queue">File d\’attente</string>
     <string name="persistent_queue">File d\’attente persistante</string>
@@ -360,4 +361,13 @@
     <string name="lyrics_text_size">Taille du texte des paroles</string>
     <string name="lyrics_line_spacing">Espacement des lignes des paroles</string>
     <string name="lyrics_style">Style des paroles</string>
+    <string name="login_required_premium">YouTube Premium requis pour une qualité très élevée</string>
+    <string name="power_saver_pure_black">Force Noir intense / Mode sombre</string>
+    <string name="power_saver_high_refresh">Désactiver le taux de rafraîchissement élevé</string>
+    <string name="power_saver_discord">Désactiver Discord RPC</string>
+    <string name="power_saver_lastfm">Désactiver le scrobbling Last.fm</string>
+    <string name="power_saver_lyrics">Désactiver la récupération des paroles</string>
+    <string name="power_saver_pause_on_zero_volume">Pause sur volume zéro</string>
+    <string name="lastfm_scrobbling">Scrobbling Last.fm</string>
+    <string name="actions">Actions</string>
 </resources>
