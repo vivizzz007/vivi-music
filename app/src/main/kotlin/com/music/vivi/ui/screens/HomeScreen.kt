@@ -390,27 +390,10 @@ fun HomeScreen(
                 )
             }
 
-            if (isLoading || homePage?.continuation != null && homePage?.sections?.isNotEmpty() == true) {
-                item(key = "loading_shimmer") {
-                    ShimmerHost(
-                        modifier = Modifier
-                    ) {
-                        TextPlaceholder(
-                            height = 36.dp,
-                            modifier = Modifier
-                                .padding(12.dp)
-                                .width(250.dp),
-                        )
-                        LazyRow(
-                            contentPadding = WindowInsets.systemBars.only(WindowInsetsSides.Horizontal).asPaddingValues(),
-                        ) {
-                            items(4) {
-                                GridItemPlaceHolder()
-                            }
-                        }
-                    }
-                }
-            }
+            homeLoadingShimmer(
+                isLoading = isLoading,
+                homePage = homePage
+            )
 
             if (selectedChip == null) {
                 homeMoodAndGenres(

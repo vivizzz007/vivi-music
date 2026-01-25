@@ -50,6 +50,7 @@ import com.music.vivi.ui.menu.YouTubePlaylistMenu
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.viewmodels.AccountViewModel
 import com.music.vivi.viewmodels.AccountContentType
+import com.music.vivi.ui.component.account.accountLoadingShimmer
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -133,13 +134,7 @@ fun AccountScreen(
                     )
                 }
 
-                if (playlists == null) {
-                    items(8) {
-                        ShimmerHost {
-                            GridItemPlaceHolder(fillMaxWidth = true)
-                        }
-                    }
-                }
+                accountLoadingShimmer(playlists == null)
             }
 
             AccountContentType.ALBUMS -> {
@@ -169,13 +164,7 @@ fun AccountScreen(
                     )
                 }
 
-                if (albums == null) {
-                    items(8) {
-                        ShimmerHost {
-                            GridItemPlaceHolder(fillMaxWidth = true)
-                        }
-                    }
-                }
+                accountLoadingShimmer(albums == null)
             }
 
             AccountContentType.ARTISTS -> {
@@ -204,13 +193,7 @@ fun AccountScreen(
                     )
                 }
 
-                if (artists == null) {
-                    items(8) {
-                        ShimmerHost {
-                            GridItemPlaceHolder(fillMaxWidth = true)
-                        }
-                    }
-                }
+                accountLoadingShimmer(artists == null)
             }
         }
     }
