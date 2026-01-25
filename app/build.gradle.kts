@@ -9,8 +9,8 @@ plugins {
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
-    // alias(libs.plugins.kover) - Disabled for debugging
-    // alias(libs.plugins.dokka)
+    alias(libs.plugins.kover)
+    alias(libs.plugins.dokka)
 }
 
 configure<com.android.build.api.dsl.ApplicationExtension> {
@@ -289,7 +289,6 @@ dependencies {
     testImplementation(libs.turbine)
 }
 
-/*
 kover {
     reports {
         verify {
@@ -299,4 +298,3 @@ kover {
         }
     }
 }
-*/
