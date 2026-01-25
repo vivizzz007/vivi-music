@@ -54,7 +54,7 @@ import com.music.vivi.R
     ExperimentalMaterial3ExpressiveApi::class
 )
 @Composable
-fun ChartsScreen(
+public fun ChartsScreen(
     navController: NavController,
     viewModel: ChartsViewModel = hiltViewModel(),
 ) {

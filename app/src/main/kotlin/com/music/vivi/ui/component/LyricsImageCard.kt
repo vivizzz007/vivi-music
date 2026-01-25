@@ -30,7 +30,7 @@ import com.music.vivi.models.MediaMetadata
 import com.music.vivi.R
 
 @Composable
-fun rememberAdjustedFontSize(
+public fun rememberAdjustedFontSize(
     text: String,
     maxWidth: Dp,
     maxHeight: Dp,
@@ -113,7 +113,7 @@ fun rememberAdjustedFontSize(
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
-fun LyricsImageCard(
+public fun LyricsImageCard(
     lyricText: String,
     mediaMetadata: MediaMetadata,
     darkBackground: Boolean = true,

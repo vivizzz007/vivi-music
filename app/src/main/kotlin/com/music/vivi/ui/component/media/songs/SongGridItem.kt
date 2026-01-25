@@ -25,7 +25,7 @@ import com.music.vivi.utils.joinByBullet
 import com.music.vivi.utils.makeTimeString
 
 @Composable
-fun SongGridItem(
+public fun SongGridItem(
     song: Song,
     modifier: Modifier = Modifier,
     showLikedIcon: Boolean = true,

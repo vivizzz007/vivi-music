@@ -21,7 +21,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun NavigationTile(
+public fun NavigationTile(
     title: String,
     @DrawableRes icon: Int,
     onClick: () -> Unit,

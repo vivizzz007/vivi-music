@@ -20,14 +20,14 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class NewReleaseViewModel
+public class NewReleaseViewModel
 @Inject
 constructor(
     @ApplicationContext val context: Context,
     database: MusicDatabase,
 ) : ViewModel() {
     private val _newReleaseAlbums = MutableStateFlow<List<AlbumItem>>(emptyList())
-    val newReleaseAlbums = _newReleaseAlbums.asStateFlow()
+    public val newReleaseAlbums: StateFlow<List<AlbumItem>> = _newReleaseAlbums.asStateFlow()
 
     init {
         viewModelScope.launch {

@@ -20,7 +20,7 @@ import com.music.vivi.constants.ListThumbnailSize
 import com.music.vivi.constants.ThumbnailCornerRadius
 
 @Composable
-fun ListItemPlaceHolder(
+public fun ListItemPlaceHolder(
     modifier: Modifier = Modifier,
     thumbnailShape: Shape = RoundedCornerShape(ThumbnailCornerRadius),
 ) {

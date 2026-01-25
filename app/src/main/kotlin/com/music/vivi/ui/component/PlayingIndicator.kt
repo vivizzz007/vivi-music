@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 @Composable
-fun PlayingIndicator(
+public fun PlayingIndicator(
     color: Color,
     modifier: Modifier = Modifier,
     bars: Int = 3,
@@ -81,7 +81,7 @@ fun PlayingIndicator(
 }
 
 @Composable
-fun PlayingIndicatorBox(
+public fun PlayingIndicatorBox(
     modifier: Modifier = Modifier,
     isActive: Boolean,
     playWhenReady: Boolean,

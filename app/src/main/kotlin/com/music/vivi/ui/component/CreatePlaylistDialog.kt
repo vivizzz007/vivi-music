@@ -35,7 +35,7 @@ import java.time.LocalDateTime
 import java.util.logging.Logger
 
 @Composable
-fun CreatePlaylistDialog(
+public fun CreatePlaylistDialog(
     onDismiss: () -> Unit,
     initialTextFieldValue: String? = null,
     allowSyncing: Boolean = true,

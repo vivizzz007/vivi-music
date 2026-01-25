@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class YouTubeBrowseViewModel
+public class YouTubeBrowseViewModel
 @Inject
 constructor(
     @ApplicationContext val context: Context,
@@ -27,7 +27,7 @@ constructor(
     private val browseId = savedStateHandle.get<String>("browseId")!!
     private val params = savedStateHandle.get<String>("params")
 
-    val result = MutableStateFlow<BrowseResult?>(null)
+    public val result: MutableStateFlow<BrowseResult?> = MutableStateFlow(null)
 
     init {
         viewModelScope.launch {

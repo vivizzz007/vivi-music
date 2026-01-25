@@ -12,7 +12,7 @@ import androidx.compose.ui.platform.LocalDensity
 import kotlin.math.floor
 
 @Composable
-fun RoundedCheckbox(
+public fun RoundedCheckbox(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
     modifier: Modifier = Modifier

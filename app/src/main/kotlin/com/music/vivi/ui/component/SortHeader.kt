@@ -33,7 +33,7 @@ import com.music.vivi.constants.PlaylistSongSortType
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-inline fun <reified T : Enum<T>> SortHeader(
+public inline fun <reified T : Enum<T>> SortHeader(
     sortType: T,
     sortDescending: Boolean,
     crossinline onSortTypeChange: (T) -> Unit,

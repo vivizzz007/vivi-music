@@ -51,7 +51,7 @@ import com.music.vivi.R
 import com.music.vivi.ui.screens.OptionStats
 
 @Composable
-fun <E> ChipsRow(
+public fun <E> ChipsRow(
     chips: List<Pair<E, String>>,
     currentValue: E,
     onValueUpdate: (E) -> Unit,
@@ -86,7 +86,7 @@ fun <E> ChipsRow(
 
 @SuppressLint("UnusedContentLambdaTargetStateParameter")
 @Composable
-fun <Int> ChoiceChipsRow(
+public fun <Int> ChoiceChipsRow(
     chips: List<Pair<Int, String>>,
     options: List<Pair<OptionStats, String>>,
     selectedOption: OptionStats,

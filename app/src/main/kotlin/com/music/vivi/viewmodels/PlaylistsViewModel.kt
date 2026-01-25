@@ -22,14 +22,14 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class PlaylistsViewModel
+public class PlaylistsViewModel
 @Inject
 constructor(
     @ApplicationContext context: Context,
     database: MusicDatabase,
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
-    val allPlaylists =
+    public val allPlaylists: StateFlow<List<com.music.vivi.db.entities.Playlist>> =
         context.dataStore.data
             .map {
                 it[AddToPlaylistSortTypeKey].toEnum(PlaylistSortType.CREATE_DATE) to (it[AddToPlaylistSortDescendingKey]
@@ -40,7 +40,7 @@ constructor(
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     // Suspend function that waits for sync to complete
-    suspend fun sync() {
+    public suspend fun sync() {
         syncUtils.syncSavedPlaylists()
     }
 }

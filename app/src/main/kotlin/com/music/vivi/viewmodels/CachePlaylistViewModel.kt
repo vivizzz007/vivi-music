@@ -21,7 +21,7 @@ import androidx.media3.datasource.cache.SimpleCache
 import java.time.LocalDateTime
 
 @HiltViewModel
-class CachePlaylistViewModel @Inject constructor(
+public class CachePlaylistViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val database: MusicDatabase,
     @PlayerCache private val playerCache: SimpleCache,
@@ -29,7 +29,7 @@ class CachePlaylistViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _cachedSongs = MutableStateFlow<List<Song>>(emptyList())
-    val cachedSongs: StateFlow<List<Song>> = _cachedSongs
+    public val cachedSongs: StateFlow<List<Song>> = _cachedSongs
 
     init {
         viewModelScope.launch {
@@ -70,7 +70,7 @@ class CachePlaylistViewModel @Inject constructor(
         }
     }
 
-    fun removeSongFromCache(songId: String) {
+    public fun removeSongFromCache(songId: String): Unit {
         playerCache.removeResource(songId)
     }
 }

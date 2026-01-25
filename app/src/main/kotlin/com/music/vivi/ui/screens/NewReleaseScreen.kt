@@ -41,7 +41,7 @@ import com.music.vivi.viewmodels.NewReleaseViewModel
     ExperimentalMaterial3ExpressiveApi::class
 )
 @Composable
-fun NewReleaseScreen(
+public fun NewReleaseScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
     viewModel: NewReleaseViewModel = hiltViewModel(),

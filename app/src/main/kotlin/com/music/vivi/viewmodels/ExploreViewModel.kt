@@ -20,13 +20,13 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class ExploreViewModel
+public class ExploreViewModel
 @Inject
 constructor(
-    @ApplicationContext val context: Context,
-    val database: MusicDatabase,
+    @ApplicationContext public val context: Context,
+    public val database: MusicDatabase,
 ) : ViewModel() {
-    val explorePage = MutableStateFlow<ExplorePage?>(null)
+    public val explorePage: MutableStateFlow<ExplorePage?> = MutableStateFlow(null)
 
     private suspend fun load() {
         YouTube

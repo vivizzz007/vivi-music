@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import com.music.vivi.R
 
 @Composable
-fun BoxScope.OverlayEditButton(
+public fun BoxScope.OverlayEditButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     visible: Boolean = true,

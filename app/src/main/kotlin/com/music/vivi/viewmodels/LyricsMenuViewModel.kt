@@ -32,25 +32,25 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class LyricsMenuViewModel
+public class LyricsMenuViewModel
 @Inject
 constructor(
     private val lyricsHelper: LyricsHelper,
-    val database: MusicDatabase,
+    public val database: MusicDatabase,
     private val networkConnectivity: NetworkConnectivityObserver,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
     private var job: Job? = null
-    val results = MutableStateFlow(emptyList<LyricsResult>())
-    val isLoading = MutableStateFlow(false)
+    public val results: MutableStateFlow<List<LyricsResult>> = MutableStateFlow(emptyList<LyricsResult>())
+    public val isLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     private val _isNetworkAvailable = MutableStateFlow(false)
-    val isNetworkAvailable: StateFlow<Boolean> = _isNetworkAvailable.asStateFlow()
+    public val isNetworkAvailable: StateFlow<Boolean> = _isNetworkAvailable.asStateFlow()
 
     private val _currentSong = mutableStateOf<Song?>(null)
-    val currentSong: State<Song?> = _currentSong
+    public val currentSong: State<Song?> = _currentSong
 
-    val swipeGestureEnabled: StateFlow<Boolean> = context.dataStore.data
+    public val swipeGestureEnabled: StateFlow<Boolean> = context.dataStore.data
         .map { it[SwipeGestureEnabledKey] ?: true }
         .stateIn(
             scope = viewModelScope,
@@ -58,7 +58,7 @@ constructor(
             initialValue = true
         )
 
-    fun toggleSwipeGesture() {
+    public fun toggleSwipeGesture() {
         viewModelScope.launch {
             context.dataStore.edit { settings ->
                 val current = settings[SwipeGestureEnabledKey] ?: true
@@ -67,7 +67,7 @@ constructor(
         }
     }
 
-    fun setSwipeGesture(enabled: Boolean) {
+    public fun setSwipeGesture(enabled: Boolean) {
         viewModelScope.launch {
             context.dataStore.edit { settings ->
                 settings[SwipeGestureEnabledKey] = enabled
@@ -89,11 +89,11 @@ constructor(
         }
     }
 
-    fun setCurrentSong(song: Song) {
+    public fun setCurrentSong(song: Song) {
         _currentSong.value = song
     }
 
-    fun search(
+    public fun search(
         mediaId: String,
         title: String,
         artist: String,
@@ -113,12 +113,12 @@ constructor(
             }
     }
 
-    fun cancelSearch() {
+    public fun cancelSearch() {
         job?.cancel()
         job = null
     }
 
-    fun toggleRomanization(song: SongEntity) {
+    public fun toggleRomanization(song: SongEntity) {
         viewModelScope.launch {
             database.query {
                 upsert(song.copy(romanizeLyrics = !song.romanizeLyrics))
@@ -126,7 +126,7 @@ constructor(
         }
     }
 
-    fun setRomanization(song: SongEntity, enabled: Boolean) {
+    public fun setRomanization(song: SongEntity, enabled: Boolean) {
         viewModelScope.launch {
             database.query {
                 upsert(song.copy(romanizeLyrics = enabled))
@@ -134,7 +134,7 @@ constructor(
         }
     }
 
-    fun updateLyrics(mediaId: String, lyrics: String) {
+    public fun updateLyrics(mediaId: String, lyrics: String) {
         viewModelScope.launch {
             database.query {
                 upsert(LyricsEntity(id = mediaId, lyrics = lyrics))
@@ -142,7 +142,7 @@ constructor(
         }
     }
 
-    fun refetchLyrics(
+    public fun refetchLyrics(
         mediaMetadata: MediaMetadata,
         lyricsEntity: LyricsEntity?,
     ) {

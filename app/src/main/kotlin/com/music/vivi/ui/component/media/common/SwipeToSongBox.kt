@@ -36,7 +36,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 @Composable
-fun SwipeToSongBox(
+public fun SwipeToSongBox(
     modifier: Modifier = Modifier,
     mediaItem: MediaItem,
     content: @Composable BoxScope.() -> Unit
@@ -133,7 +133,7 @@ private fun reset(offset: MutableState<Float>, scope: CoroutineScope) {
 }
 
 // Data holder for swipe visuals
-data class Quadruple<A, B, C, D>(
+public data class Quadruple<A, B, C, D>(
     val first: A,
     val second: B,
     val third: C,

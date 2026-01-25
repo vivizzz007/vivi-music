@@ -10,7 +10,7 @@ import com.music.vivi.ui.component.core.GridItem
 import com.music.vivi.ui.component.media.common.LocalThumbnail
 
 @Composable
-fun LocalAlbumsGrid(
+public fun LocalAlbumsGrid(
     title: String,
     subtitle: String,
     badges: @Composable RowScope.() -> Unit = {},

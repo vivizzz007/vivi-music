@@ -3,7 +3,7 @@ package com.music.vivi.utils
 import java.math.BigInteger
 import java.security.MessageDigest
 
-fun makeTimeString(duration: Long?): String {
+public fun makeTimeString(duration: Long?): String {
     if (duration == null || duration < 0) return ""
     var sec = duration / 1000
     val day = sec / 86400
@@ -19,12 +19,12 @@ fun makeTimeString(duration: Long?): String {
     }
 }
 
-fun md5(str: String): String {
+public fun md5(str: String): String {
     val md = MessageDigest.getInstance("MD5")
     return BigInteger(1, md.digest(str.toByteArray())).toString(16).padStart(32, '0')
 }
 
-fun joinByBullet(vararg str: String?) =
+public fun joinByBullet(vararg str: String?): String =
     str
         .filterNot {
             it.isNullOrEmpty()

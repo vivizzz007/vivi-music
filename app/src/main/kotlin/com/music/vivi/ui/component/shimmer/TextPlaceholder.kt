@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import kotlin.random.Random
 
 @Composable
-fun TextPlaceholder(
+public fun TextPlaceholder(
     modifier: Modifier = Modifier,
     height: Dp = 16.dp,
     shape: CornerBasedShape = RoundedCornerShape(0.dp)

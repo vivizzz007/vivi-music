@@ -59,7 +59,7 @@ import com.music.vivi.updatesreen.ViviUpdatesScreen
 
 
 @OptIn(ExperimentalMaterial3Api::class)
-fun NavGraphBuilder.navigationBuilder(
+public fun NavGraphBuilder.navigationBuilder(
     navController: NavHostController,
     scrollBehavior: TopAppBarScrollBehavior,
     updateStatus: UpdateStatus,

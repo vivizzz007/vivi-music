@@ -36,7 +36,7 @@ import kotlin.math.abs
 import kotlin.math.max
 
 @Composable
-fun DraggableScrollbar(
+public fun DraggableScrollbar(
     scrollState: LazyListState,
     modifier: Modifier = Modifier,
     thumbColor: Color = LocalContentColor.current.copy(alpha = 0.8f),
@@ -90,12 +90,12 @@ fun DraggableScrollbar(
                         val maxThumbY = viewportHeight - constThumbHeight
                         smoothedThumbY = (offset.y - constThumbHeight / 2).coerceIn(0f, maxThumbY)
                     },
-                    onDragEnd = { 
+                    onDragEnd = {
                         isDragging = false
                         lastScrollTime = 0L
                     },
-                    onDragCancel = { 
-                        isDragging = false 
+                    onDragCancel = {
+                        isDragging = false
                         lastScrollTime = 0L
                     }
                 ) { change, _ ->
@@ -103,20 +103,20 @@ fun DraggableScrollbar(
                     val viewportHeight = size.height.toFloat()
                     val constThumbHeight = with(density) { thumbHeight.toPx() }
                     val maxThumbY = viewportHeight - constThumbHeight
-                    
+
                     val targetThumbY = (change.position.y - constThumbHeight / 2).coerceIn(0f, maxThumbY)
-                    
+
                     val layoutInfo = scrollState.layoutInfo
                     val totalContentItems = layoutInfo.totalItemsCount - headerItems
-                    
+
                     val thumbSmoothingFactor = when {
                         totalContentItems < 20 -> 0.1f
                         totalContentItems < 50 -> 0.3f
                         else -> 0.7f
                     }
-                    
+
                     smoothedThumbY = smoothedThumbY * (1f - thumbSmoothingFactor) + targetThumbY * thumbSmoothingFactor
-                    
+
                     if (currentTime - lastScrollTime < 40) return@detectDragGestures
                     lastScrollTime = currentTime
 
@@ -127,15 +127,15 @@ fun DraggableScrollbar(
 
                     if (maxScrollIndex > minScrollRangeForDrag) {
                         val touchProgress = (change.position.y / size.height).coerceIn(0f, 1f)
-                        
+
                         val listSmoothingFactor = when {
                             totalContentItems < 20 -> 0.15f
                             totalContentItems < 50 -> 0.4f
                             else -> 0.8f
                         }
-                        
+
                         smoothedY = smoothedY * (1f - listSmoothingFactor) + touchProgress * listSmoothingFactor
-                        
+
                         val targetFractionalIndex = smoothedY * maxScrollIndex
                         val targetIndex = (headerItems + targetFractionalIndex.toInt())
                             .coerceIn(headerItems, layoutInfo.totalItemsCount - 1)
@@ -192,7 +192,7 @@ fun DraggableScrollbar(
         LaunchedEffect(targetThumbY, isDragging, isUserScrolling, smoothedThumbY) {
             val layoutInfo = scrollState.layoutInfo
             val totalContentItems = layoutInfo.totalItemsCount - headerItems
-            
+
             when {
                 isDragging -> {
                     animatedThumbY.snapTo(smoothedThumbY)

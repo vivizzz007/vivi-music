@@ -41,7 +41,7 @@ private object VolumeSliderDefaults {
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun VolumeSlider(
+public fun VolumeSlider(
     value: Float,
     onValueChange: (Float) -> Unit,
     modifier: Modifier = Modifier,
@@ -70,7 +70,7 @@ fun VolumeSlider(
         inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant,
         inactiveTickColor = MaterialTheme.colorScheme.onSurfaceVariant
     )
-    
+
     val stopIndicatorColor = MaterialTheme.colorScheme.onSurfaceVariant
 
     Slider(

@@ -43,7 +43,7 @@ import com.music.vivi.utils.rememberPreference
 
 @OptIn(ExperimentalTextApi::class, ExperimentalLayoutApi::class)
 @Composable
-fun LyricsLine(
+public fun LyricsLine(
     entry: LyricsEntry,
     nextEntryTime: Long?,
     currentTime: Long,

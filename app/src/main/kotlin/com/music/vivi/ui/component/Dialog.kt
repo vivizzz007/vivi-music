@@ -55,7 +55,7 @@ import com.music.vivi.ui.screens.settings.AccountSettings
 import kotlinx.coroutines.delay
 
 @Composable
-fun DefaultDialog(
+public fun DefaultDialog(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
     icon: (@Composable () -> Unit)? = null,
@@ -129,7 +129,7 @@ fun DefaultDialog(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AccountSettingsDialog(
+public fun AccountSettingsDialog(
     navController: NavController,
     onDismiss: () -> Unit
 ) {
@@ -171,7 +171,7 @@ fun AccountSettingsDialog(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ActionPromptDialog(
+public fun ActionPromptDialog(
     title: String? = null,
     titleBar: @Composable (RowScope.() -> Unit)? = null,
     onDismiss: () -> Unit,
@@ -246,7 +246,7 @@ fun ActionPromptDialog(
 }
 
 @Composable
-fun ListDialog(
+public fun ListDialog(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
     content: LazyListScope.() -> Unit,
@@ -272,9 +272,9 @@ fun ListDialog(
 }
 
 @Composable
-fun InfoLabel(
+public fun InfoLabel(
     text: String
-) = Row(
+): Unit = Row(
     verticalAlignment = Alignment.CenterVertically,
     modifier = Modifier.padding(horizontal = 8.dp)
 ) {
@@ -292,7 +292,7 @@ fun InfoLabel(
 }
 
 @Composable
-fun TextFieldDialog(
+public fun TextFieldDialog(
     modifier: Modifier = Modifier,
     icon: (@Composable () -> Unit)? = null,
     title: (@Composable () -> Unit)? = null,

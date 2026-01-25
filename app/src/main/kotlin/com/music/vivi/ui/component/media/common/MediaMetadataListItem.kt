@@ -16,7 +16,7 @@ import com.music.vivi.utils.joinByBullet
 import com.music.vivi.utils.makeTimeString
 
 @Composable
-fun MediaMetadataListItem(
+public fun MediaMetadataListItem(
     mediaMetadata: MediaMetadata,
     modifier: Modifier = Modifier,
     isActive: Boolean = false,

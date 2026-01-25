@@ -40,7 +40,7 @@ import com.music.vivi.R
 import kotlin.math.roundToInt
 
 @Composable
-fun PreferenceEntry(
+public fun PreferenceEntry(
     modifier: Modifier = Modifier,
     title: @Composable () -> Unit,
     description: String? = null,
@@ -99,7 +99,7 @@ fun PreferenceEntry(
 }
 
 @Composable
-fun <T> ListPreference(
+public fun <T> ListPreference(
     modifier: Modifier = Modifier,
     title: @Composable () -> Unit,
     icon: (@Composable () -> Unit)? = null,
@@ -153,7 +153,7 @@ fun <T> ListPreference(
 }
 
 @Composable
-inline fun <reified T : Enum<T>> EnumListPreference(
+public inline fun <reified T : Enum<T>> EnumListPreference(
     modifier: Modifier = Modifier,
     noinline title: @Composable () -> Unit,
     noinline icon: (@Composable () -> Unit)?,
@@ -175,7 +175,7 @@ inline fun <reified T : Enum<T>> EnumListPreference(
 }
 
 @Composable
-fun SwitchPreference(
+public fun SwitchPreference(
     modifier: Modifier = Modifier,
     title: @Composable () -> Unit,
     description: String? = null,
@@ -211,7 +211,7 @@ fun SwitchPreference(
 }
 
 @Composable
-fun EditTextPreference(
+public fun EditTextPreference(
     modifier: Modifier = Modifier,
     title: @Composable () -> Unit,
     icon: (@Composable () -> Unit)? = null,
@@ -251,7 +251,7 @@ fun EditTextPreference(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SliderPreference(
+public fun SliderPreference(
     modifier: Modifier = Modifier,
     title: @Composable () -> Unit,
     icon: (@Composable () -> Unit)? = null,
@@ -329,7 +329,7 @@ fun SliderPreference(
 }
 
 @Composable
-fun PreferenceGroupTitle(
+public fun PreferenceGroupTitle(
     title: String,
     modifier: Modifier = Modifier,
 ) {

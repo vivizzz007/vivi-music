@@ -39,7 +39,7 @@ import com.music.vivi.viewmodels.MoodAndGenresViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun MoodAndGenresScreen(
+public fun MoodAndGenresScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
     viewModel: MoodAndGenresViewModel = hiltViewModel(),
@@ -117,7 +117,7 @@ fun MoodAndGenresScreen(
 }
 
 @Composable
-fun MoodAndGenresButton(
+public fun MoodAndGenresButton(
     title: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,

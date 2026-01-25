@@ -37,14 +37,14 @@ import kotlinx.coroutines.CoroutineScope
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun LibraryArtistGridItem(
+public fun LibraryArtistGridItem(
     navController: NavController,
     menuState: MenuState,
     coroutineScope: CoroutineScope,
     artist: Artist,
     modifier: Modifier = Modifier,
     onItemClick: (() -> Unit)? = null
-) = ArtistGridItem(
+): Unit = ArtistGridItem(
     artist = artist,
     fillMaxWidth = true,
     modifier = modifier
@@ -70,7 +70,7 @@ fun LibraryArtistGridItem(
 )
 
 @Composable
-fun LibraryAlbumListItem(
+public fun LibraryAlbumListItem(
     modifier: Modifier = Modifier,
     navController: NavController,
     menuState: MenuState,
@@ -123,7 +123,7 @@ fun LibraryAlbumListItem(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun LibraryAlbumGridItem(
+public fun LibraryAlbumGridItem(
     modifier: Modifier = Modifier,
     navController: NavController,
     menuState: MenuState,
@@ -198,14 +198,14 @@ fun LibraryAlbumGridItem(
 }
 
 @Composable
-fun LibraryPlaylistListItem(
+public fun LibraryPlaylistListItem(
     navController: NavController,
     menuState: MenuState,
     coroutineScope: CoroutineScope,
     playlist: Playlist,
     modifier: Modifier = Modifier,
     onItemClick: (() -> Unit)? = null
-) = PlaylistListItem(
+): Unit = PlaylistListItem(
     playlist = playlist,
     trailingContent = {
         androidx.compose.material3.IconButton(
@@ -270,14 +270,14 @@ fun LibraryPlaylistListItem(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun LibraryPlaylistGridItem(
+public fun LibraryPlaylistGridItem(
     navController: NavController,
     menuState: MenuState,
     coroutineScope: CoroutineScope,
     playlist: Playlist,
     modifier: Modifier = Modifier,
     onItemClick: (() -> Unit)? = null
-) = PlaylistGridItem(
+): Unit = PlaylistGridItem(
     playlist = playlist,
     fillMaxWidth = true,
     modifier = modifier
@@ -335,7 +335,7 @@ fun LibraryPlaylistGridItem(
 )
 
 @Composable
-fun LibrarySongListItem(
+public fun LibrarySongListItem(
     song: com.music.vivi.db.entities.Song,
     modifier: Modifier = Modifier,
     albumIndex: Int? = null,

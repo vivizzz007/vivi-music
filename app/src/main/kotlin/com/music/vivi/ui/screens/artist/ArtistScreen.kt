@@ -135,7 +135,7 @@ import androidx.compose.ui.text.style.TextAlign
 import com.music.vivi.constants.ListItemHeight
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-internal fun ArtistScreen(
+public fun ArtistScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
     artistId: String? = null,

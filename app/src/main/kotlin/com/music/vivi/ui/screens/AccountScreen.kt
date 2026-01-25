@@ -54,7 +54,7 @@ import com.music.vivi.ui.component.account.accountLoadingShimmer
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-internal fun AccountScreen(
+public fun AccountScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
     viewModel: AccountViewModel = hiltViewModel(),

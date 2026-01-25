@@ -11,10 +11,10 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class MoodAndGenresViewModel
+public class MoodAndGenresViewModel
 @Inject
 constructor() : ViewModel() {
-    val moodAndGenres = MutableStateFlow<List<MoodAndGenres>?>(null)
+    public val moodAndGenres: MutableStateFlow<List<MoodAndGenres>?> = MutableStateFlow(null)
 
     init {
         viewModelScope.launch {

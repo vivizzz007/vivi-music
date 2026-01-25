@@ -48,10 +48,10 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import com.music.vivi.ui.utils.top
 
-val LocalBottomSheetPageState = compositionLocalOf { BottomSheetPageState() }
+public val LocalBottomSheetPageState: androidx.compose.runtime.ProvidableCompositionLocal<BottomSheetPageState> = compositionLocalOf { BottomSheetPageState() }
 
 @Stable
-class BottomSheetPageState(
+public class BottomSheetPageState(
     isVisible: Boolean = false,
     content: @Composable ColumnScope.() -> Unit = {},
 ) {
@@ -69,7 +69,7 @@ class BottomSheetPageState(
 }
 
 @Composable
-fun BottomSheetPage(
+public fun BottomSheetPage(
     modifier: Modifier = Modifier,
     state: BottomSheetPageState,
     background: Color = MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation),
@@ -143,7 +143,7 @@ fun BottomSheetPage(
                         shape = RoundedCornerShape(2.dp)
                     )
             )
-            
+
             // Content with proper spacing
             Column(
                 modifier = Modifier

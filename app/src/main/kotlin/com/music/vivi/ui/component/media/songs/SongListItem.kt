@@ -23,7 +23,7 @@ import com.music.vivi.utils.joinByBullet
 import com.music.vivi.utils.makeTimeString
 
 @Composable
-fun SongListItem(
+public fun SongListItem(
     song: Song,
     modifier: Modifier = Modifier,
     albumIndex: Int? = null,

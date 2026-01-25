@@ -54,7 +54,7 @@ import com.music.vivi.viewmodels.ArtistAlbumsViewModel
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun ArtistAlbumsScreen(
+public fun ArtistAlbumsScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
     viewModel: ArtistAlbumsViewModel = hiltViewModel(),

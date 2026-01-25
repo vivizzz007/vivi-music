@@ -11,21 +11,21 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class AccountSettingsViewModel @Inject constructor(
+public class AccountSettingsViewModel @Inject constructor(
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
 
     /**
      * Logout user and clear all synced content to prevent data mixing between accounts
      */
-    fun logoutAndClearSyncedContent(context: Context, onCookieChange: (String) -> Unit) {
+    public fun logoutAndClearSyncedContent(context: Context, onCookieChange: (String) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             // Clear all YouTube Music synced content first
             syncUtils.clearAllSyncedContent()
-            
+
             // Then clear account preferences
             App.forgetAccount(context)
-            
+
             // Clear cookie in UI
             onCookieChange("")
         }

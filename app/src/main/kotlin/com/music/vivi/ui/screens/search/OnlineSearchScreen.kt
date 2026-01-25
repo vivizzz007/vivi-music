@@ -49,7 +49,7 @@ import kotlinx.coroutines.flow.debounce
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class, FlowPreview::class)
 @Composable
-fun OnlineSearchScreen(
+public fun OnlineSearchScreen(
     query: String,
     onQueryChange: (TextFieldValue) -> Unit,
     navController: NavController,
@@ -270,7 +270,7 @@ fun OnlineSearchScreen(
 }
 
 @Composable
-fun SuggestionItem(
+public fun SuggestionItem(
     modifier: Modifier = Modifier,
     query: String,
     online: Boolean,

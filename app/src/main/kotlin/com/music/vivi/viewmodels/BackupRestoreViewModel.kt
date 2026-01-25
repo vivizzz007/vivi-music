@@ -31,10 +31,10 @@ import kotlin.system.exitProcess
 
 
 @HiltViewModel
-class BackupRestoreViewModel @Inject constructor(
-    val database: MusicDatabase,
+public class BackupRestoreViewModel @Inject constructor(
+    public val database: MusicDatabase,
 ) : ViewModel() {
-    fun backup(context: Context, uri: Uri) {
+    public fun backup(context: Context, uri: Uri) {
         var backupSuccessful = false
         var tempBackupCreated = false
 
@@ -171,7 +171,7 @@ class BackupRestoreViewModel @Inject constructor(
         }
     }
 
-    fun restore(context: Context, uri: Uri) {
+    public fun restore(context: Context, uri: Uri) {
         runCatching {
             // Validate input stream can be opened
             val inputStream = context.applicationContext.contentResolver.openInputStream(uri)
@@ -326,7 +326,7 @@ class BackupRestoreViewModel @Inject constructor(
         }
     }
 
-    fun importPlaylistFromCsv(context: Context, uri: Uri): ArrayList<Song> {
+    public fun importPlaylistFromCsv(context: Context, uri: Uri): ArrayList<Song> {
         val songs = arrayListOf<Song>()
         runCatching {
             context.contentResolver.openInputStream(uri)?.use { stream ->
@@ -407,7 +407,7 @@ class BackupRestoreViewModel @Inject constructor(
         return songs
     }
 
-    fun loadM3UOnline(
+    public fun loadM3UOnline(
         context: Context,
         uri: Uri,
     ): ArrayList<Song> {
@@ -520,7 +520,7 @@ class BackupRestoreViewModel @Inject constructor(
         return songs
     }
 
-    companion object {
-        const val SETTINGS_FILENAME = "settings.preferences_pb"
+    public companion object {
+        public const val SETTINGS_FILENAME: String = "settings.preferences_pb"
     }
 }

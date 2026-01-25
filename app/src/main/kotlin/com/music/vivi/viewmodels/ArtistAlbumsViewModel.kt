@@ -10,14 +10,14 @@ import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
-class ArtistAlbumsViewModel @Inject constructor(
+public class ArtistAlbumsViewModel @Inject constructor(
     database: MusicDatabase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val artistId = savedStateHandle.get<String>("artistId")!!
-    val artist = database.artist(artistId)
+    public val artist: StateFlow<com.music.vivi.db.entities.Artist?> = database.artist(artistId)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    val albums = database.artistAlbumsPreview(artistId)
+    public val albums: StateFlow<List<com.music.vivi.db.entities.Album>> = database.artistAlbumsPreview(artistId)
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 }

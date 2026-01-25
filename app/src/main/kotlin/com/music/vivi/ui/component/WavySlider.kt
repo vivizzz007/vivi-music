@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun WavySlider(
+public fun WavySlider(
     value: Float,
     onValueChange: (Float) -> Unit,
     modifier: Modifier = Modifier,
@@ -48,31 +48,31 @@ fun WavySlider(
     val density = LocalDensity.current
     val strokeWidthPx = with(density) { strokeWidth.toPx() }
     val thumbRadiusPx = with(density) { thumbRadius.toPx() }
-    val stroke = remember(strokeWidthPx) { 
-        Stroke(width = strokeWidthPx, cap = StrokeCap.Round) 
+    val stroke = remember(strokeWidthPx) {
+        Stroke(width = strokeWidthPx, cap = StrokeCap.Round)
     }
-    
+
     val normalizedValue = ((value - valueRange.start) / (valueRange.endInclusive - valueRange.start))
         .coerceIn(0f, 1f)
-    
+
     var isDragging by remember { mutableStateOf(false) }
     var dragValue by remember { mutableFloatStateOf(normalizedValue) }
-    
+
     val displayValue = if (isDragging) dragValue else normalizedValue
-    
+
     val animatedAmplitude by animateFloatAsState(
         targetValue = if (isPlaying) 1f else 0f,
         animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
         label = "amplitude"
     )
-    
+
     val activeColor = colors.activeTrackColor
     val inactiveColor = colors.inactiveTrackColor
     val thumbColor = colors.thumbColor
-    
+
     // Calculate container height to accommodate thumb
     val containerHeight = maxOf(WavyProgressIndicatorDefaults.LinearContainerHeight, thumbRadius * 2)
-    
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -122,12 +122,12 @@ fun WavySlider(
             wavelength = wavelength,
             waveSpeed = waveSpeed
         )
-        
+
         // Draw circular thumb - synced with progress indicator position
         Canvas(modifier = Modifier.fillMaxSize()) {
             val thumbX = size.width * displayValue
             val thumbY = size.height / 2
-            
+
             drawCircle(
                 color = thumbColor,
                 radius = thumbRadiusPx,

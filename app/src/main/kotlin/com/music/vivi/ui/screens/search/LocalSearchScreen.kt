@@ -50,7 +50,7 @@ import com.music.vivi.LocalDownloadUtil
 import com.music.vivi.R
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun LocalSearchScreen(
+public fun LocalSearchScreen(
     query: String,
     navController: NavController,
     onDismiss: () -> Unit,

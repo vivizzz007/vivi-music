@@ -30,7 +30,7 @@ import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
-class LocalPlaylistViewModel
+public class LocalPlaylistViewModel
 @Inject
 constructor(
     @ApplicationContext context: Context,
@@ -38,15 +38,15 @@ constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val _playlistId = MutableStateFlow(savedStateHandle.get<String>("playlistId"))
-    val playlistId = _playlistId.asStateFlow()
+    public val playlistId: StateFlow<String?> = _playlistId.asStateFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val playlist = _playlistId.filterNotNull().flatMapLatest { id ->
+    public val playlist: StateFlow<com.music.vivi.db.entities.Playlist?> = _playlistId.filterNotNull().flatMapLatest { id ->
         database.playlist(id)
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val playlistSongs: StateFlow<List<PlaylistSong>> =
+    public val playlistSongs: StateFlow<List<PlaylistSong>> =
         combine(
             _playlistId.filterNotNull(),
             context.dataStore.data
@@ -89,7 +89,7 @@ constructor(
         }.reversed(sortDescending && sortType != PlaylistSongSortType.CUSTOM)
     }
 
-    fun setPlaylistId(id: String) {
+    public fun setPlaylistId(id: String) {
         if (_playlistId.value != id) {
              _playlistId.value = id
         }

@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.music.vivi.constants.MoodAndGenresButtonHeight
 
 @Composable
-fun MoodAndGenresButton(
+public fun MoodAndGenresButton(
     title: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier

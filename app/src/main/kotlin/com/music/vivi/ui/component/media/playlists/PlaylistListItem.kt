@@ -18,7 +18,7 @@ import com.music.vivi.ui.component.core.ListItem
 import com.music.vivi.ui.component.media.common.PlaylistThumbnail
 
 @Composable
-fun PlaylistListItem(
+public fun PlaylistListItem(
     playlist: Playlist,
     modifier: Modifier = Modifier,
     autoPlaylist: Boolean = false,

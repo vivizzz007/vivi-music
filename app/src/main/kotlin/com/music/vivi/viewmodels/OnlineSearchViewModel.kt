@@ -25,19 +25,19 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class OnlineSearchViewModel
+public class OnlineSearchViewModel
 @Inject
 constructor(
     @ApplicationContext val context: Context,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    val query = savedStateHandle.get<String>("query")!!
-    val filter = MutableStateFlow<YouTube.SearchFilter?>(null)
-    var summaryPage by mutableStateOf<SearchSummaryPage?>(null)
-    val viewStateMap = mutableStateMapOf<String, ItemsPage?>()
+    public val query: String = savedStateHandle.get<String>("query")!!
+    public val filter: MutableStateFlow<YouTube.SearchFilter?> = MutableStateFlow(null)
+    public var summaryPage: SearchSummaryPage? by mutableStateOf(null)
+    public val viewStateMap: androidx.compose.runtime.snapshots.SnapshotStateMap<String, ItemsPage?> = mutableStateMapOf()
 
-    var isLoading by mutableStateOf(false)
-    var error by mutableStateOf<Throwable?>(null)
+    public var isLoading: Boolean by mutableStateOf(false)
+    public var error: Throwable? by mutableStateOf(null)
 
     init {
         viewModelScope.launch {
@@ -47,7 +47,7 @@ constructor(
         }
     }
 
-    fun retry() {
+    public fun retry() {
         fetchSearchResults(filter.value)
     }
 
@@ -103,7 +103,7 @@ constructor(
         }
     }
 
-    fun loadMore() {
+    public fun loadMore() {
         val filter = filter.value?.value
         viewModelScope.launch {
             if (filter == null) return@launch

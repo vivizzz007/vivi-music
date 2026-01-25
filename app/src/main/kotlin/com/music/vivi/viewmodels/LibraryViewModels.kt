@@ -34,6 +34,8 @@ import com.music.vivi.constants.SongSortType
 import com.music.vivi.constants.SongSortTypeKey
 import com.music.vivi.constants.TopSize
 import com.music.vivi.db.MusicDatabase
+import com.music.vivi.db.entities.Artist
+import com.music.vivi.db.entities.ArtistEntity
 import com.music.vivi.extensions.filterExplicit
 import com.music.vivi.extensions.filterExplicitAlbums
 import com.music.vivi.extensions.toEnum
@@ -47,7 +49,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -56,7 +60,7 @@ import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
-class LibrarySongsViewModel
+public class LibrarySongsViewModel
 @Inject
 constructor(
     @ApplicationContext context: Context,
@@ -64,7 +68,7 @@ constructor(
     downloadUtil: DownloadUtil,
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
-    val allSongs =
+    public val allSongs: StateFlow<List<com.music.vivi.db.entities.Song>> =
         context.dataStore.data
             .map {
                 Pair(
@@ -86,28 +90,28 @@ constructor(
                 }
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    fun syncLikedSongs() {
+    public fun syncLikedSongs() {
         viewModelScope.launch(Dispatchers.IO) { syncUtils.syncLikedSongs() }
     }
 
-    fun syncLibrarySongs() {
+    public fun syncLibrarySongs() {
         viewModelScope.launch(Dispatchers.IO) { syncUtils.syncLibrarySongs() }
     }
 
-    fun syncUploadedSongs() {
+    public fun syncUploadedSongs() {
         viewModelScope.launch(Dispatchers.IO) { syncUtils.syncUploadedSongs() }
     }
 }
 
 @HiltViewModel
-class LibraryArtistsViewModel
+public class LibraryArtistsViewModel
 @Inject
 constructor(
     @ApplicationContext context: Context,
     database: MusicDatabase,
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
-    val allArtists =
+    public val allArtists: StateFlow<List<com.music.vivi.db.entities.Artist>> =
         context.dataStore.data
             .map {
                 Triple(
@@ -123,7 +127,7 @@ constructor(
                 }
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    fun sync() {
+    public fun sync() {
         viewModelScope.launch(Dispatchers.IO) { syncUtils.syncArtistsSubscriptions() }
     }
 
@@ -150,14 +154,14 @@ constructor(
 }
 
 @HiltViewModel
-class LibraryAlbumsViewModel
+public class LibraryAlbumsViewModel
 @Inject
 constructor(
     @ApplicationContext context: Context,
     database: MusicDatabase,
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
-    val allAlbums =
+    public val allAlbums: StateFlow<List<com.music.vivi.db.entities.Album>> =
         context.dataStore.data
             .map {
                 Pair(
@@ -178,7 +182,7 @@ constructor(
                 }
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    fun sync() {
+    public fun sync() {
         viewModelScope.launch(Dispatchers.IO) { syncUtils.syncLikedAlbums() }
     }
 
@@ -210,14 +214,14 @@ constructor(
 }
 
 @HiltViewModel
-class LibraryPlaylistsViewModel
+public class LibraryPlaylistsViewModel
 @Inject
 constructor(
     @ApplicationContext context: Context,
     database: MusicDatabase,
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
-    val allPlaylists =
+    public val allPlaylists: StateFlow<List<com.music.vivi.db.entities.Playlist>> =
         context.dataStore.data
             .map {
                 it[PlaylistSortTypeKey].toEnum(PlaylistSortType.CREATE_DATE) to (it[PlaylistSortDescendingKey]
@@ -227,18 +231,18 @@ constructor(
                 database.playlists(sortType, descending)
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    fun sync() {
+    public fun sync() {
         viewModelScope.launch(Dispatchers.IO) { syncUtils.syncSavedPlaylists() }
     }
 
-    val topValue =
+    public val topValue: kotlinx.coroutines.flow.Flow<String> =
         context.dataStore.data
             .map { it[TopSize] ?: "50" }
             .distinctUntilChanged()
 }
 
 @HiltViewModel
-class ArtistSongsViewModel
+public class ArtistSongsViewModel
 @Inject
 constructor(
     @ApplicationContext context: Context,
@@ -246,12 +250,12 @@ constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val artistId = savedStateHandle.get<String>("artistId")!!
-    val artist =
+    public val artist: StateFlow<com.music.vivi.db.entities.Artist?> =
         database
             .artist(artistId)
             .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    val songs =
+    public val songs: StateFlow<List<com.music.vivi.db.entities.Song>> =
         context.dataStore.data
             .map {
                 Pair(
@@ -267,14 +271,14 @@ constructor(
 }
 
 @HiltViewModel
-class LibraryMixViewModel
+public class LibraryMixViewModel
 @Inject
 constructor(
     @ApplicationContext context: Context,
     database: MusicDatabase,
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
-    val syncAllLibrary = {
+    public val syncAllLibrary: () -> Unit = {
          viewModelScope.launch(Dispatchers.IO) {
              syncUtils.syncLikedSongs()
              syncUtils.syncLibrarySongs()
@@ -283,23 +287,23 @@ constructor(
              syncUtils.syncSavedPlaylists()
          }
     }
-    val topValue =
+    public val topValue: kotlinx.coroutines.flow.Flow<String> =
         context.dataStore.data
             .map { it[TopSize] ?: "50" }
             .distinctUntilChanged()
-    var artists =
+    public var artists: StateFlow<List<com.music.vivi.db.entities.Artist>> =
         database
             .artistsBookmarked(
                 ArtistSortType.CREATE_DATE,
                 true,
             ).stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-    var albums = context.dataStore.data
+    public var albums: StateFlow<List<com.music.vivi.db.entities.Album>> = context.dataStore.data
         .map { it[HideExplicitKey] ?: false }
         .distinctUntilChanged()
         .flatMapLatest { hideExplicit ->
             database.albumsLiked(AlbumSortType.CREATE_DATE, true).map { it.filterExplicitAlbums(hideExplicit) }
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-    var playlists = database.playlists(PlaylistSortType.CREATE_DATE, true)
+    public var playlists: StateFlow<List<com.music.vivi.db.entities.Playlist>> = database.playlists(PlaylistSortType.CREATE_DATE, true)
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     init {
@@ -349,9 +353,9 @@ constructor(
 }
 
 @HiltViewModel
-class LibraryViewModel
+public class LibraryViewModel
 @Inject
 constructor() : ViewModel() {
     private val curScreen = mutableStateOf(LibraryFilter.LIBRARY)
-    val filter: MutableState<LibraryFilter> = curScreen
+    public val filter: MutableState<LibraryFilter> = curScreen
 }

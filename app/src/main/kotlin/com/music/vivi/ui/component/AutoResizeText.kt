@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.sp
  * From https://stackoverflow.com/a/69780826
  */
 @Composable
-fun AutoResizeText(
+public fun AutoResizeText(
     text: String,
     fontSizeRange: FontSizeRange,
     modifier: Modifier = Modifier,
@@ -81,7 +81,7 @@ fun AutoResizeText(
     )
 }
 
-data class FontSizeRange(
+public data class FontSizeRange(
     val min: TextUnit,
     val max: TextUnit,
     val step: TextUnit = DEFAULT_TEXT_STEP,

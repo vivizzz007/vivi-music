@@ -35,10 +35,10 @@ import androidx.media3.exoplayer.offline.Download
 import com.music.vivi.R
 import com.music.vivi.utils.makeTimeString
 
-val GridMenuItemHeight = 108.dp
+public val GridMenuItemHeight: androidx.compose.ui.unit.Dp = 108.dp
 
 @Composable
-fun GridMenu(
+public fun GridMenu(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     content: LazyGridScope.() -> Unit,
@@ -51,7 +51,7 @@ fun GridMenu(
     )
 }
 
-fun LazyGridScope.GridMenuItem(
+public fun LazyGridScope.GridMenuItem(
     modifier: Modifier = Modifier,
     @DrawableRes icon: Int,
     tint: @Composable () -> Color = { LocalContentColor.current },
@@ -72,7 +72,7 @@ fun LazyGridScope.GridMenuItem(
     onClick = onClick
 )
 
-fun LazyGridScope.GridMenuItem(
+public fun LazyGridScope.GridMenuItem(
     modifier: Modifier = Modifier,
     icon: @Composable BoxScope.() -> Unit,
     @StringRes title: Int,
@@ -114,7 +114,7 @@ fun LazyGridScope.GridMenuItem(
 }
 
 
-fun LazyGridScope.DownloadGridMenu(
+public fun LazyGridScope.DownloadGridMenu(
     @Download.State state: Int?,
     onRemoveDownload: () -> Unit,
     onDownload: () -> Unit,
@@ -151,7 +151,7 @@ fun LazyGridScope.DownloadGridMenu(
     }
 }
 
-fun LazyGridScope.SleepTimerGridMenu(
+public fun LazyGridScope.SleepTimerGridMenu(
     modifier: Modifier = Modifier,
     sleepTimerTimeLeft: Long,
     enabled: Boolean = true,

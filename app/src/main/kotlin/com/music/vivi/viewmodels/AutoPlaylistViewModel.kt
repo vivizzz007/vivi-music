@@ -30,7 +30,7 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class AutoPlaylistViewModel
+public class AutoPlaylistViewModel
 @Inject
 constructor(
     @ApplicationContext context: Context,
@@ -39,10 +39,10 @@ constructor(
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
     private val _playlist = MutableStateFlow(savedStateHandle.get<String>("playlist"))
-    val playlist = _playlist.asStateFlow()
+    public val playlist: StateFlow<String?> = _playlist.asStateFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val likedSongs =
+    public val likedSongs: StateFlow<List<com.music.vivi.db.entities.Song>> =
         context.dataStore.data
             .map {
                 Pair(
@@ -54,7 +54,7 @@ constructor(
             .distinctUntilChanged()
             .flatMapLatest { (sortDesc, hideExplicit) ->
                 val (sortType, descending) = sortDesc
-                
+
                 _playlist.filterNotNull().flatMapLatest { playlistName ->
                      when (playlistName) {
                         "liked" -> database.likedSongs(sortType, descending)
@@ -72,17 +72,17 @@ constructor(
             }
             .stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.Lazily, emptyList())
 
-    fun setPlaylist(playlistParam: String) {
+    public fun setPlaylist(playlistParam: String) {
         if (_playlist.value != playlistParam) {
             _playlist.value = playlistParam
         }
     }
 
-    fun syncLikedSongs() {
+    public fun syncLikedSongs() {
         viewModelScope.launch(Dispatchers.IO) { syncUtils.syncLikedSongs() }
     }
 
-    fun syncUploadedSongs() {
+    public fun syncUploadedSongs() {
         viewModelScope.launch(Dispatchers.IO) { syncUtils.syncUploadedSongs() }
     }
 }

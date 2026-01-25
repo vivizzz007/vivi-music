@@ -40,21 +40,21 @@ import kotlinx.coroutines.flow.map
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class ArtistViewModel @Inject constructor(
+public class ArtistViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     database: MusicDatabase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val _artistId = MutableStateFlow(savedStateHandle.get<String>("artistId"))
-    val artistId: StateFlow<String?> = _artistId.asStateFlow()
+    public val artistId: StateFlow<String?> = _artistId.asStateFlow()
 
-    var artistPage by mutableStateOf<ArtistPage?>(null)
-    
-    val libraryArtist = _artistId.filterNotNull().flatMapLatest { id ->
+    public var artistPage: ArtistPage? by mutableStateOf(null)
+
+    public val libraryArtist: StateFlow<com.music.vivi.db.entities.Artist?> = _artistId.filterNotNull().flatMapLatest { id ->
         database.artist(id)
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    val librarySongs = combine(
+    public val librarySongs: StateFlow<List<com.music.vivi.db.entities.Song>> = combine(
         context.dataStore.data.map { it[HideExplicitKey] ?: false }.distinctUntilChanged(),
         _artistId.filterNotNull()
     ) { hideExplicit, id ->
@@ -63,7 +63,7 @@ class ArtistViewModel @Inject constructor(
         database.artistSongs(id, ArtistSongSortType.CREATE_DATE, true).map { it.filterExplicit(hideExplicit) }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    val libraryAlbums = combine(
+    public val libraryAlbums: StateFlow<List<com.music.vivi.db.entities.Album>> = combine(
         context.dataStore.data.map { it[HideExplicitKey] ?: false }.distinctUntilChanged(),
         _artistId.filterNotNull()
     ) { hideExplicit, id ->
@@ -84,14 +84,14 @@ class ArtistViewModel @Inject constructor(
         }
     }
 
-    fun setArtistId(id: String) {
+    public fun setArtistId(id: String) {
         if (_artistId.value != id) {
             _artistId.value = id
             fetchArtistsFromYTM()
         }
     }
 
-    fun fetchArtistsFromYTM() {
+    public fun fetchArtistsFromYTM() {
         viewModelScope.launch {
             val id = _artistId.value ?: return@launch
             val hideExplicit = context.dataStore.get(HideExplicitKey, false)

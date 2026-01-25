@@ -23,28 +23,28 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import javax.inject.Inject
 
 @HiltViewModel
-class AlbumViewModel
+public class AlbumViewModel
 @Inject
 constructor(
     private val database: MusicDatabase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val _albumId = MutableStateFlow(savedStateHandle.get<String>("albumId"))
-    val albumId: StateFlow<String?> = _albumId.asStateFlow()
-    
-    val playlistId = MutableStateFlow("")
+    public val albumId: StateFlow<String?> = _albumId.asStateFlow()
+
+    public val playlistId: MutableStateFlow<String> = MutableStateFlow("")
     @OptIn(ExperimentalCoroutinesApi::class)
-    val albumWithSongs = _albumId.filterNotNull().flatMapLatest { id ->
+    public val albumWithSongs: StateFlow<com.music.vivi.db.entities.Album?> = _albumId.filterNotNull().flatMapLatest { id ->
             database.albumWithSongs(id)
         }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
-    var otherVersions = MutableStateFlow<List<AlbumItem>>(emptyList())
-    var releasesForYou = MutableStateFlow<List<AlbumItem>>(emptyList())
+    public var otherVersions: MutableStateFlow<List<AlbumItem>> = MutableStateFlow(emptyList())
+    public var releasesForYou: MutableStateFlow<List<AlbumItem>> = MutableStateFlow(emptyList())
 
     private val _albumDescription = MutableStateFlow<String?>(null)
-    val albumDescription = _albumDescription.asStateFlow()
+    public val albumDescription: StateFlow<String?> = _albumDescription.asStateFlow()
 
     private val _isDescriptionLoading = MutableStateFlow(false)
-    val isDescriptionLoading = _isDescriptionLoading.asStateFlow()
+    public val isDescriptionLoading: StateFlow<Boolean> = _isDescriptionLoading.asStateFlow()
 
     init {
         // Reactive Wikipedia Fetching
@@ -97,7 +97,7 @@ constructor(
         }
     }
 
-    fun setAlbumId(id: String) {
+    public fun setAlbumId(id: String) {
         if (_albumId.value != id) {
             _albumId.value = id
         }

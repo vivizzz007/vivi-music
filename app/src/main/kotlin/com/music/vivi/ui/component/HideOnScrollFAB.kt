@@ -23,7 +23,7 @@ import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.ui.utils.isScrollingUp
 
 @Composable
-fun BoxScope.HideOnScrollFAB(
+public fun BoxScope.HideOnScrollFAB(
     visible: Boolean = true,
     lazyListState: LazyListState,
     @DrawableRes icon: Int,
@@ -54,7 +54,7 @@ fun BoxScope.HideOnScrollFAB(
 }
 
 @Composable
-fun BoxScope.HideOnScrollFAB(
+public fun BoxScope.HideOnScrollFAB(
     visible: Boolean = true,
     lazyListState: LazyGridState,
     @DrawableRes icon: Int,
@@ -85,7 +85,7 @@ fun BoxScope.HideOnScrollFAB(
 }
 
 @Composable
-fun BoxScope.HideOnScrollFAB(
+public fun BoxScope.HideOnScrollFAB(
     visible: Boolean = true,
     scrollState: ScrollState,
     @DrawableRes icon: Int,

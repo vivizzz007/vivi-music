@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.music.vivi.R
 
 @Composable
-fun NavigationTitle(
+public fun NavigationTitle(
     title: String,
     modifier: Modifier = Modifier,
     label: String? = null,

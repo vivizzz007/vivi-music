@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 import com.music.vivi.R
 
 @Composable
-fun Android16VolumeSlider(
+public fun Android16VolumeSlider(
     volume: Float,
     onVolumeChange: (Float) -> Unit,
     modifier: Modifier = Modifier,
@@ -89,7 +89,7 @@ fun Android16VolumeSlider(
                 targetValue = if (animatedVolume > 0.15f) iconOnColor else iconOffColor,
                 label = "icon_tint"
             )
-            
+
             Icon(
                 painter = iconPainter,
                 contentDescription = null,

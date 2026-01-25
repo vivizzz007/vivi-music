@@ -40,7 +40,7 @@ import kotlinx.coroutines.launch
 @SuppressLint("SetJavaScriptEnabled")
 @OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
 @Composable
-fun LoginScreen(
+public fun LoginScreen(
     navController: NavController,
 ) {
     val coroutineScope = rememberCoroutineScope()

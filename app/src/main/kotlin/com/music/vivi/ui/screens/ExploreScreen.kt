@@ -62,7 +62,7 @@ import com.music.vivi.R
     ExperimentalMaterial3ExpressiveApi::class
 )
 @Composable
-fun ExploreScreen(
+public fun ExploreScreen(
     navController: NavController,
     exploreViewModel: ExploreViewModel = hiltViewModel(),
     chartsViewModel: ChartsViewModel = hiltViewModel(),

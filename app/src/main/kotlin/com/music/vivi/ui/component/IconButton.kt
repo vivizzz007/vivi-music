@@ -31,7 +31,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun ResizableIconButton(
+public fun ResizableIconButton(
     @DrawableRes icon: Int,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.onSurface,
@@ -56,7 +56,7 @@ fun ResizableIconButton(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun IconButton(
+public fun IconButton(
     onClick: () -> Unit,
     onLongClick: () -> Unit,
     modifier: Modifier = Modifier,

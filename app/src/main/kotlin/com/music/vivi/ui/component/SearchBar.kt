@@ -83,7 +83,7 @@ import kotlin.math.max
 
 @ExperimentalMaterial3Api
 @Composable
-fun TopSearch(
+public fun TopSearch(
     query: TextFieldValue,
     onQueryChange: (TextFieldValue) -> Unit,
     onSearch: (String) -> Unit,

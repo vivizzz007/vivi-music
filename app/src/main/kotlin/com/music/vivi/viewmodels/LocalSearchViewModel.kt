@@ -21,15 +21,15 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class LocalSearchViewModel
+public class LocalSearchViewModel
 @Inject
 constructor(
     database: MusicDatabase,
 ) : ViewModel() {
-    val query = MutableStateFlow("")
-    val filter = MutableStateFlow(LocalFilter.ALL)
+    public val query: MutableStateFlow<String> = MutableStateFlow("")
+    public val filter: MutableStateFlow<LocalFilter> = MutableStateFlow(LocalFilter.ALL)
 
-    val result =
+    public val result: StateFlow<LocalSearchResult> =
         combine(query, filter) { query, filter ->
             query to filter
         }.flatMapLatest { (query, filter) ->
@@ -73,12 +73,12 @@ constructor(
             LocalSearchResult("", filter.value, emptyMap())
         )
 
-    companion object {
-        const val PREVIEW_SIZE = 3
+    public companion object {
+        public const val PREVIEW_SIZE: Int = 3
     }
 }
 
-enum class LocalFilter {
+public enum class LocalFilter {
     ALL,
     SONG,
     ALBUM,
@@ -86,7 +86,7 @@ enum class LocalFilter {
     PLAYLIST,
 }
 
-data class LocalSearchResult(
+public data class LocalSearchResult(
     val query: String,
     val filter: LocalFilter,
     val map: Map<LocalFilter, List<LocalItem>>,

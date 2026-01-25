@@ -19,7 +19,7 @@ import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun BigSeekBar(
+public fun BigSeekBar(
     progressProvider: () -> Float,
     onProgressChange: (Float) -> Unit,
     modifier: Modifier = Modifier,

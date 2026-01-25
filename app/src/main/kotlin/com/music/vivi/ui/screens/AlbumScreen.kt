@@ -9,12 +9,15 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import com.music.vivi.ui.component.media.songs.roundedSongItems
 import com.music.vivi.ui.component.media.albums.AlbumHeader
+import com.music.vivi.ui.component.album.AlbumTrackList
+import com.music.vivi.ui.component.album.albumTrackList
+import com.music.vivi.ui.component.album.AlbumRelatedContent
+import com.music.vivi.ui.component.album.albumRelatedContent
+import com.music.vivi.ui.component.album.AlbumTopBar
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -43,10 +46,7 @@ import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
@@ -107,25 +107,15 @@ import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.playback.ExoDownloadService
 import com.music.vivi.playback.queues.LocalAlbumRadio
 import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.component.LocalMenuState
-import com.music.vivi.ui.component.NavigationTitle
-import com.music.vivi.ui.component.LibrarySongListItem
-import com.music.vivi.ui.component.media.youtube.YouTubeGridItem
-import com.music.vivi.ui.component.shimmer.ListItemPlaceHolder
-import com.music.vivi.ui.component.shimmer.ShimmerHost
-import com.music.vivi.ui.component.shimmer.TextPlaceholder
-import com.music.vivi.ui.menu.AlbumMenu
-import com.music.vivi.ui.menu.SelectionSongMenu
-import com.music.vivi.ui.menu.SongMenu
-import com.music.vivi.ui.menu.YouTubeAlbumMenu
 import com.music.vivi.ui.utils.ItemWrapper
 import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.AlbumViewModel
 
 @OptIn(ExperimentalFoundationApi::class,ExperimentalMaterial3Api::class,ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-internal fun AlbumScreen(
+public fun AlbumScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
     albumId: String? = null,
@@ -240,152 +230,33 @@ internal fun AlbumScreen(
 
 // Songs List with Quick Pick style
                 // Songs List with Quick Pick style
-                if (wrappedSongs.isNotEmpty()) {
-                    roundedSongItems(
-                        items = wrappedSongs,
-                        key = { it.item.id },
-                        isActive = { it.item.id == mediaMetadata?.id },
-                        onItemClick = { songWrapper ->
-                            if (!selection) {
-                                if (songWrapper.item.id == mediaMetadata?.id) {
-                                    playerConnection.player.togglePlayPause()
-                                } else {
-                                    playerConnection.service.getAutomix(playlistId)
-                                    playerConnection.playQueue(
-                                        LocalAlbumRadio(albumWithSongs, startIndex = wrappedSongs.indexOf(songWrapper)),
-                                    )
-                                }
-                            } else {
-                                songWrapper.isSelected = !songWrapper.isSelected
-                            }
-                        },
-                        onItemLongClick = { songWrapper ->
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            if (!selection) {
-                                selection = true
-                            }
-                            wrappedSongs.forEach {
-                                it.isSelected = false
-                            }
-                            songWrapper.isSelected = true
-                        }
-                    ) { songWrapper, shape, modifier ->
-                        LibrarySongListItem(
-                            song = songWrapper.item,
-                            isActive = songWrapper.item.id == mediaMetadata?.id,
-                            isPlaying = isPlaying,
-                            showInLibraryIcon = true,
-                            isSwipeable = false,
-                            drawHighlight = false,
-                            trailingContent = {
-                                IconButton(
-                                    onClick = {
-                                        menuState.show {
-                                            SongMenu(
-                                                originalSong = songWrapper.item,
-                                                navController = navController,
-                                                onDismiss = menuState::dismiss,
-                                            )
-                                        }
-                                    },
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.more_vert),
-                                        contentDescription = null,
-                                    )
-                                }
-                            },
-                            isSelected = songWrapper.isSelected,
-                            inSelectionMode = selection,
-                            onSelectionChange = { songWrapper.isSelected = it },
-                            modifier = modifier
-                        )
-                    }
+                if (albumWithSongs != null) {
+                    albumTrackList(
+                        wrappedSongs = wrappedSongs,
+                        mediaMetadata = mediaMetadata,
+                        isPlaying = isPlaying,
+                        selection = selection,
+                        onSelectionStart = { selection = true },
+                        playlistId = playlistId,
+                        albumWithSongs = albumWithSongs,
+                        playerConnection = playerConnection,
+                        navController = navController,
+                        menuState = menuState,
+                        haptic = haptic
+                    )
                 }
 
                 // Other Versions Section
-                if (otherVersions.isNotEmpty()) {
-                    item(key = "other_versions_title") {
-                        NavigationTitle(
-                            title = stringResource(R.string.other_versions),
-                            modifier = Modifier.animateItem()
-                        )
-                    }
-                    item(key = "other_versions_list") {
-                        LazyRow(
-                            contentPadding = WindowInsets.systemBars.only(WindowInsetsSides.Horizontal).asPaddingValues(),
-                        ) {
-                            items(
-                                items = otherVersions.distinctBy { it.id },
-                                key = { it.id },
-                            ) { item ->
-                                YouTubeGridItem(
-                                    item = item,
-                                    isActive = mediaMetadata?.album?.id == item.id,
-                                    isPlaying = isPlaying,
-                                    coroutineScope = scope,
-                                    modifier = Modifier
-                                        .combinedClickable(
-                                            onClick = { navController.navigate("album/${item.id}") },
-                                            onLongClick = {
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                menuState.show {
-                                                    YouTubeAlbumMenu(
-                                                        albumItem = item,
-                                                        navController = navController,
-                                                        onDismiss = menuState::dismiss,
-                                                    )
-                                                }
-                                            },
-                                        )
-                                        .animateItem(),
-                                )
-                            }
-                        }
-                    }
-                }
-
-                // Releases For You Section
-                if (releasesForYou.isNotEmpty()) {
-                    item(key = "releases_for_you_title") {
-                        NavigationTitle(
-                            title = stringResource(R.string.releases_for_you),
-                            modifier = Modifier.animateItem()
-                        )
-                    }
-                    item(key = "releases_for_you_list") {
-                        LazyRow(
-                            contentPadding = WindowInsets.systemBars.only(WindowInsetsSides.Horizontal).asPaddingValues(),
-                        ) {
-                            items(
-                                items = releasesForYou.distinctBy { it.id },
-                                key = { it.id },
-                            ) { item ->
-                                YouTubeGridItem(
-                                    item = item,
-                                    isActive = mediaMetadata?.album?.id == item.id,
-                                    isPlaying = isPlaying,
-                                    coroutineScope = scope,
-                                    modifier = Modifier
-                                        .combinedClickable(
-                                            onClick = { navController.navigate("album/${item.id}") },
-                                            onLongClick = {
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                menuState.show {
-                                                    YouTubeAlbumMenu(
-                                                        albumItem = item,
-                                                        navController = navController,
-                                                        onDismiss = menuState::dismiss,
-                                                    )
-                                                }
-                                            },
-                                        )
-                                        .animateItem(),
-                                )
-                            }
-                        }
-                    }
-                }
+                albumRelatedContent(
+                    otherVersions = otherVersions,
+                    releasesForYou = releasesForYou,
+                    mediaMetadata = mediaMetadata,
+                    isPlaying = isPlaying,
+                    scope = scope,
+                    navController = navController,
+                    menuState = menuState,
+                    haptic = haptic
+                )
             } else {
                 // Loading indicator
                 item(key = "loading_indicator") {
@@ -402,95 +273,16 @@ internal fun AlbumScreen(
         }
 
         // Top App Bar
-        TopAppBar(
-            title = {
-                if (selection) {
-                    val count = wrappedSongs?.count { it.isSelected } ?: 0
-                    Text(
-                        text = pluralStringResource(R.plurals.n_song, count, count),
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                }
-            },
-            navigationIcon = {
-                IconButton(
-                    onClick = {
-                        if (selection) {
-                            selection = false
-                        } else {
-                            onBack()
-                        }
-                    },
-                    onLongClick = {
-                        if (!selection) {
-                            navController.backToMain()
-                        }
-                    }
-                ) {
-                    Icon(
-                        painter = painterResource(
-                            if (selection) R.drawable.close else R.drawable.arrow_back
-                        ),
-                        contentDescription = null
-                    )
-                }
-            },
-            actions = {
-                if (selection) {
-                    val count = wrappedSongs?.count { it.isSelected } ?: 0
-                    IconButton(
-                        onClick = {
-                            if (count == wrappedSongs?.size) {
-                                wrappedSongs.forEach { it.isSelected = false }
-                            } else {
-                                wrappedSongs?.forEach { it.isSelected = true }
-                            }
-                        },
-                    ) {
-                        Icon(
-                            painter = painterResource(
-                                if (count == wrappedSongs?.size) R.drawable.deselect else R.drawable.select_all
-                            ),
-                            contentDescription = null
-                        )
-                    }
-
-                    IconButton(
-                        onClick = {
-                            menuState.show {
-                                SelectionSongMenu(
-                                    songSelection = wrappedSongs?.filter { it.isSelected }!!
-                                        .map { it.item },
-                                    onDismiss = menuState::dismiss,
-                                    clearAction = { selection = false }
-                                )
-                            }
-                        },
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.more_vert),
-                            contentDescription = null
-                        )
-                    }
-                } else {
-//                    // Search button in normal mode
-//                    IconButton(
-//                        onClick = {
-//                            // Add search functionality
-//                        },
-//                    ) {
-//                        Icon(
-//                            painter = painterResource(R.drawable.search),
-//                            contentDescription = null
-//                        )
-//                    }
-                }
-            },
-            colors = if (transparentAppBar && !selection) {
-                TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-            } else {
-                TopAppBarDefaults.topAppBarColors()
-            },
+        AlbumTopBar(
+            selection = selection,
+            wrappedSongs = wrappedSongs,
+            onSelectionChange = { selection = it },
+            onSelectAll = { wrappedSongs.forEach { it.isSelected = true } },
+            onDeselectAll = { wrappedSongs.forEach { it.isSelected = false } },
+            onBack = onBack,
+            navController = navController,
+            menuState = menuState,
+            transparentAppBar = transparentAppBar,
             scrollBehavior = scrollBehavior
         )
     }

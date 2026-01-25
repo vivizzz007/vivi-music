@@ -98,7 +98,7 @@ import androidx.compose.ui.Alignment
     ExperimentalMaterial3ExpressiveApi::class
 )
 @Composable
-fun OnlineSearchResult(
+public fun OnlineSearchResult(
     navController: NavController,
     viewModel: OnlineSearchViewModel = hiltViewModel(),
 ) {

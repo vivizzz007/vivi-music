@@ -20,29 +20,29 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class DiscordState(
+public data class DiscordState(
     val token: String = "",
     val username: String = "",
     val name: String = "",
     val isLoggedIn: Boolean = false
 )
 
-data class LastFMState(
+public data class LastFMState(
     val sessionKey: String = "",
     val username: String = "",
     val isLoggedIn: Boolean = false
 )
 
 @HiltViewModel
-class IntegrationsViewModel @Inject constructor(
+public class IntegrationsViewModel @Inject constructor(
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _discordState = MutableStateFlow(DiscordState())
-    val discordState = _discordState.asStateFlow()
+    public val discordState: StateFlow<DiscordState> = _discordState.asStateFlow()
 
     private val _lastFmState = MutableStateFlow(LastFMState())
-    val lastFmState = _lastFmState.asStateFlow()
+    public val lastFmState: StateFlow<LastFMState> = _lastFmState.asStateFlow()
 
     init {
         // Observe Discord

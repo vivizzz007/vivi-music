@@ -23,15 +23,15 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class StatsViewModel
+public class StatsViewModel
 @Inject
 constructor(
-    val database: MusicDatabase,
+    public val database: MusicDatabase,
 ) : ViewModel() {
-    val selectedOption = MutableStateFlow(OptionStats.CONTINUOUS)
-    val indexChips = MutableStateFlow(0)
+    public val selectedOption: MutableStateFlow<OptionStats> = MutableStateFlow(OptionStats.CONTINUOUS)
+    public val indexChips: MutableStateFlow<Int> = MutableStateFlow(0)
 
-    val mostPlayedSongsStats =
+    public val mostPlayedSongsStats: StateFlow<List<com.music.vivi.db.entities.MostPlayedStats>> =
         combine(
             selectedOption,
             indexChips,
@@ -54,7 +54,7 @@ constructor(
                     )
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    val mostPlayedSongs =
+    public val mostPlayedSongs: StateFlow<List<com.music.vivi.db.entities.EventWithSong>> =
         combine(
             selectedOption,
             indexChips,
@@ -77,7 +77,7 @@ constructor(
                     )
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    val mostPlayedArtists =
+    public val mostPlayedArtists: StateFlow<List<com.music.vivi.db.entities.EventWithArtist>> =
         combine(
             selectedOption,
             indexChips,
@@ -102,7 +102,7 @@ constructor(
                     }
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    val mostPlayedAlbums =
+    public val mostPlayedAlbums: StateFlow<List<com.music.vivi.db.entities.EventWithAlbum>> =
         combine(
             selectedOption,
             indexChips,
@@ -124,7 +124,7 @@ constructor(
                 )
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    val firstEvent =
+    public val firstEvent: StateFlow<com.music.vivi.db.entities.Event?> =
         database
             .firstEvent()
             .stateIn(viewModelScope, SharingStarted.Lazily, null)

@@ -24,10 +24,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 
-val LocalMenuState = compositionLocalOf { MenuState() }
+public val LocalMenuState: androidx.compose.runtime.ProvidableCompositionLocal<MenuState> = compositionLocalOf { MenuState() }
 
 @Stable
-class MenuState(
+public class MenuState(
     isVisible: Boolean = false,
     content: @Composable ColumnScope.() -> Unit = {},
 ) {
@@ -48,7 +48,7 @@ class MenuState(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BottomSheetMenu(
+public fun BottomSheetMenu(
     modifier: Modifier = Modifier,
     state: MenuState,
     background: Color = MaterialTheme.colorScheme.surface,

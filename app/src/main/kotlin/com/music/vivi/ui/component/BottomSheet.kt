@@ -55,7 +55,7 @@ import kotlin.math.pow
  * Modified from [ViMusic](https://github.com/vfsfitvnm/ViMusic)
  */
 @Composable
-fun BottomSheet(
+public fun BottomSheet(
     state: BottomSheetState,
     modifier: Modifier = Modifier,
     background: @Composable (BoxScope.() -> Unit) = { },
@@ -142,12 +142,12 @@ fun BottomSheet(
 }
 
 @Stable
-class BottomSheetState(
+public class BottomSheetState(
     draggableState: DraggableState,
     private val coroutineScope: CoroutineScope,
     private val animatable: Animatable<Dp, AnimationVector1D>,
     private val onAnchorChanged: (Int) -> Unit,
-    val collapsedBound: Dp,
+    public val collapsedBound: Dp,
 ) : DraggableState by draggableState {
     val dismissedBound: Dp
         get() = animatable.lowerBound!!
@@ -301,12 +301,12 @@ class BottomSheetState(
         }
 }
 
-const val expandedAnchor = 2
-const val collapsedAnchor = 1
-const val dismissedAnchor = 0
+public const val expandedAnchor: Int = 2
+public const val collapsedAnchor: Int = 1
+public const val dismissedAnchor: Int = 0
 
 @Composable
-fun rememberBottomSheetState(
+public fun rememberBottomSheetState(
     dismissedBound: Dp,
     expandedBound: Dp,
     collapsedBound: Dp = dismissedBound,

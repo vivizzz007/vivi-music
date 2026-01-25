@@ -78,7 +78,7 @@ import com.music.vivi.viewmodels.YouTubeBrowseViewModel
     ExperimentalMaterial3ExpressiveApi::class
 )
 @Composable
-fun YouTubeBrowseScreen(
+public fun YouTubeBrowseScreen(
     navController: NavController,
     viewModel: YouTubeBrowseViewModel = hiltViewModel(),
 ) {

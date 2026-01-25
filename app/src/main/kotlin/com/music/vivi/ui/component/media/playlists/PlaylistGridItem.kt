@@ -23,7 +23,7 @@ import com.music.vivi.ui.component.core.GridItem
 import com.music.vivi.ui.component.media.common.PlaylistThumbnail
 
 @Composable
-fun PlaylistGridItem(
+public fun PlaylistGridItem(
     playlist: Playlist,
     modifier: Modifier = Modifier,
     autoPlaylist: Boolean = false,

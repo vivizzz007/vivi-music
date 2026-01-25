@@ -30,15 +30,15 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class OnlineSearchSuggestionViewModel
+public class OnlineSearchSuggestionViewModel
 @Inject
 constructor(
     @ApplicationContext val context: Context,
     database: MusicDatabase,
 ) : ViewModel() {
-    val query = MutableStateFlow("")
+    public val query: MutableStateFlow<String> = MutableStateFlow("")
     private val _viewState = MutableStateFlow(SearchSuggestionViewState())
-    val viewState = _viewState.asStateFlow()
+    public val viewState: StateFlow<SearchSuggestionViewState> = _viewState.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -55,7 +55,7 @@ constructor(
                     } else {
                         flow {
                             emit(_viewState.value.copy(isLoading = true, error = null))
-                            
+
                             val history = database.searchHistory(query).first().take(3)
                             val hideExplicit = context.dataStore.get(HideExplicitKey, false)
                             val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
@@ -90,7 +90,7 @@ constructor(
     }
 }
 
-data class SearchSuggestionViewState(
+public data class SearchSuggestionViewState(
     val history: List<SearchHistory> = emptyList(),
     val suggestions: List<String> = emptyList(),
     val items: List<YTItem> = emptyList(),

@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class ArtistItemsViewModel
+public class ArtistItemsViewModel
 @Inject
 constructor(
     @ApplicationContext val context: Context,
@@ -31,8 +31,8 @@ constructor(
     private val browseId = savedStateHandle.get<String>("browseId")!!
     private val params = savedStateHandle.get<String>("params")
 
-    val title = MutableStateFlow("")
-    val itemsPage = MutableStateFlow<ItemsPage?>(null)
+    public val title: MutableStateFlow<String> = MutableStateFlow("")
+    public val itemsPage: MutableStateFlow<ItemsPage?> = MutableStateFlow(null)
 
     init {
         viewModelScope.launch {
@@ -60,7 +60,7 @@ constructor(
         }
     }
 
-    fun loadMore() {
+    public fun loadMore() {
         viewModelScope.launch {
             val oldItemsPage = itemsPage.value ?: return@launch
             val continuation = oldItemsPage.continuation ?: return@launch

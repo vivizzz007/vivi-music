@@ -73,7 +73,7 @@ import com.music.vivi.viewmodels.ArtistItemsViewModel
 )
 @Composable
 
-fun ArtistItemsScreen(
+public fun ArtistItemsScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
     viewModel: ArtistItemsViewModel = hiltViewModel(),

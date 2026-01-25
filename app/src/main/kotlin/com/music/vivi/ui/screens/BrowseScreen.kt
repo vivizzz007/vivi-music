@@ -1,5 +1,5 @@
 package com.music.vivi.ui.screens
- 
+
  import androidx.compose.foundation.ExperimentalFoundationApi
  import androidx.compose.foundation.combinedClickable
  import androidx.compose.foundation.layout.asPaddingValues
@@ -38,12 +38,12 @@ import com.music.vivi.ui.component.shimmer.GridItemPlaceHolder
  import com.music.innertube.models.AlbumItem
  import com.music.innertube.models.ArtistItem
  import com.music.innertube.models.PlaylistItem
- 
+
  @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class,
      ExperimentalMaterial3ExpressiveApi::class
  )
  @Composable
- fun BrowseScreen(
+ public fun BrowseScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
     browseId: String?,
@@ -53,12 +53,12 @@ import com.music.vivi.ui.component.shimmer.GridItemPlaceHolder
      val playerConnection = LocalPlayerConnection.current ?: return
      val isPlaying by playerConnection.isPlaying.collectAsState()
      val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
- 
+
      val title by viewModel.title.collectAsState()
      val items by viewModel.items.collectAsState()
- 
+
      val coroutineScope = rememberCoroutineScope()
- 
+
      LazyVerticalGrid(
          columns = GridCells.Adaptive(minSize = GridThumbnailHeight + 24.dp),
          contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
@@ -94,7 +94,7 @@ import com.music.vivi.ui.component.shimmer.GridItemPlaceHolder
                                                  navController = navController,
                                                  onDismiss = menuState::dismiss
                                              )
- 
+
                                          is PlaylistItem -> {
                                              YouTubePlaylistMenu(
                                                  playlist = item,
@@ -102,14 +102,14 @@ import com.music.vivi.ui.component.shimmer.GridItemPlaceHolder
                                                  onDismiss = menuState::dismiss
                                              )
                                          }
- 
+
                                          is ArtistItem -> {
                                              YouTubeArtistMenu(
                                                  artist = item,
                                                  onDismiss = menuState::dismiss
                                              )
                                          }
- 
+
                                          else -> {
                                              // Do nothing
                                          }
@@ -119,7 +119,7 @@ import com.music.vivi.ui.component.shimmer.GridItemPlaceHolder
                          )
                  )
              }
- 
+
             if (items.isEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     Box(
@@ -134,7 +134,7 @@ import com.music.vivi.ui.component.shimmer.GridItemPlaceHolder
             }
          }
      }
- 
+
      TopAppBar(
          title = { Text(title ?: "") },
          navigationIcon = {

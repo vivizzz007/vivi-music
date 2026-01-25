@@ -20,20 +20,20 @@ import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 
 @HiltViewModel
-class HistoryViewModel
+public class HistoryViewModel
 @Inject
 constructor(
-    val database: MusicDatabase,
+    public val database: MusicDatabase,
 ) : ViewModel() {
-    var historySource = MutableStateFlow(HistorySource.LOCAL)
+    public var historySource: MutableStateFlow<HistorySource> = MutableStateFlow(HistorySource.LOCAL)
 
     private val today = LocalDate.now()
     private val thisMonday = today.with(DayOfWeek.MONDAY)
     private val lastMonday = thisMonday.minusDays(7)
 
-    val historyPage = MutableStateFlow<HistoryPage?>(null)
+    public val historyPage: MutableStateFlow<HistoryPage?> = MutableStateFlow(null)
 
-    val events =
+    public val events: StateFlow<Map<DateAgo, List<com.music.vivi.db.entities.EventWithSong>>> =
         database
             .events()
             .map { events ->
@@ -67,7 +67,7 @@ constructor(
         fetchRemoteHistory()
     }
 
-    fun fetchRemoteHistory() {
+    public fun fetchRemoteHistory() {
         viewModelScope.launch(Dispatchers.IO) {
             YouTube.musicHistory().onSuccess {
                 historyPage.value = it
@@ -78,17 +78,17 @@ constructor(
     }
 }
 
-sealed class DateAgo {
-    data object Today : DateAgo()
+public sealed class DateAgo {
+    public data object Today : DateAgo()
 
-    data object Yesterday : DateAgo()
+    public data object Yesterday : DateAgo()
 
-    data object ThisWeek : DateAgo()
+    public data object ThisWeek : DateAgo()
 
-    data object LastWeek : DateAgo()
+    public data object LastWeek : DateAgo()
 
-    class Other(
-        val date: LocalDate,
+    public class Other(
+        public val date: LocalDate,
     ) : DateAgo() {
         override fun equals(other: Any?): Boolean {
             if (other is Other) return date == other.date

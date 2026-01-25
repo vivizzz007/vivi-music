@@ -39,7 +39,7 @@ import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.get
 
 @Singleton
-class SyncUtils @Inject constructor(
+public class SyncUtils @Inject constructor(
     private val database: MusicDatabase,
 ) {
     private val syncScope = CoroutineScope(Dispatchers.IO)
@@ -52,7 +52,7 @@ class SyncUtils @Inject constructor(
     private val isSyncingArtists = MutableStateFlow(false)
     private val isSyncingPlaylists = MutableStateFlow(false)
 
-    fun runAllSyncs() {
+    public fun runAllSyncs() {
         syncScope.launch {
             syncLikedSongs()
             syncLibrarySongs()
@@ -64,13 +64,13 @@ class SyncUtils @Inject constructor(
         }
     }
 
-    fun likeSong(s: SongEntity) {
+    public fun likeSong(s: SongEntity) {
         syncScope.launch {
             YouTube.likeVideo(s.id, s.liked)
         }
     }
 
-    suspend fun syncLikedSongs() {
+    public suspend fun syncLikedSongs() {
         if (isSyncingLikedSongs.value) return
         isSyncingLikedSongs.value = true
         try {
@@ -107,7 +107,7 @@ class SyncUtils @Inject constructor(
         }
     }
 
-    suspend fun syncLibrarySongs() {
+    public suspend fun syncLibrarySongs() {
         if (isSyncingLibrarySongs.value) return
         isSyncingLibrarySongs.value = true
         try {
@@ -151,7 +151,7 @@ class SyncUtils @Inject constructor(
         }
     }
 
-    suspend fun syncUploadedSongs() {
+    public suspend fun syncUploadedSongs() {
         if (isSyncingUploadedSongs.value) return
         isSyncingUploadedSongs.value = true
         try {
@@ -180,7 +180,7 @@ class SyncUtils @Inject constructor(
         }
     }
 
-    suspend fun syncLikedAlbums() {
+    public suspend fun syncLikedAlbums() {
         if (isSyncingLikedAlbums.value) return
         isSyncingLikedAlbums.value = true
         try {
@@ -212,7 +212,7 @@ class SyncUtils @Inject constructor(
         }
     }
 
-    suspend fun syncUploadedAlbums() {
+    public suspend fun syncUploadedAlbums() {
         if (isSyncingUploadedAlbums.value) return
         isSyncingUploadedAlbums.value = true
         try {
@@ -244,7 +244,7 @@ class SyncUtils @Inject constructor(
         }
     }
 
-    suspend fun syncArtistsSubscriptions() {
+    public suspend fun syncArtistsSubscriptions() {
         if (isSyncingArtists.value) return
         isSyncingArtists.value = true
         try {
@@ -281,7 +281,7 @@ class SyncUtils @Inject constructor(
         }
     }
 
-    suspend fun syncSavedPlaylists() {
+    public suspend fun syncSavedPlaylists() {
         if (isSyncingPlaylists.value) return
         isSyncingPlaylists.value = true
         try {
@@ -350,7 +350,7 @@ class SyncUtils @Inject constructor(
         }
     }
 
-    suspend fun clearAllSyncedContent() {
+    public suspend fun clearAllSyncedContent() {
         try {
             val likedSongs = database.likedSongsByNameAsc().first()
             val librarySongs = database.songsByNameAsc().first()
@@ -382,7 +382,7 @@ class SyncUtils @Inject constructor(
         }
     }
 
-    suspend fun tryAutoSync() {
+    public suspend fun tryAutoSync() {
         runAllSyncs()
     }
 }
