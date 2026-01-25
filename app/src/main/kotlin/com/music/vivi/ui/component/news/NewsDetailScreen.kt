@@ -60,6 +60,7 @@ import com.music.vivi.ui.utils.backToMain
  * @param isRefreshing State indicating if a refresh is in progress.
  * @param onRefresh Callback invoked when the user triggers a pull-to-refresh.
  */
+@Suppress("OPT_IN_USAGE_ERROR")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun NewsDetailScreen(
