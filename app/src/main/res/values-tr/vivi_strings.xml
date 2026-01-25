@@ -1132,7 +1132,7 @@
     <string name="accessibility_permission_needed">Erişilebilirlik İzni Gerekli</string>
     <string name="accessibility_permission_desc">Bu uygulama, Hızlı Ayarları algılamak için Erişilebilirlik Erişimine ihtiyaç duyar.</string>
     <string name="live_media_compatibility_title">Uyumluluk Uyarısı</string>
-    <string name="live_media_compatibility_message">Live Media, Android 16 ve üzeri için tasarlanmıştır. Android'in mevcut sürümünde standart bir bildirim olarak çalışacaktır ve tam Dinamik Medya deneyimini (Durum Çubuğu Hapı gibi) sağlamayabilir.</string>
+    <string name="live_media_compatibility_message">Live Media, Android 16 ve üzeri için tasarlanmıştır. Android\'in mevcut sürümünde standart bir bildirim olarak çalışacaktır ve tam Dinamik Medya deneyimini (Durum Çubuğu Hapı gibi) sağlamayabilir.</string>
     <string name="permissions">İzinler</string>
     <string name="granted">İzin Verildi</string>
     <string name="confirm">Onayla</string>
