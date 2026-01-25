@@ -48,14 +48,14 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.music.vivi.R
-import com.music.vivi.data.News
-import com.music.vivi.navigation.backToMain
+import com.music.vivi.repositories.NewsItem
 import com.music.vivi.ui.component.IconButton
+import com.music.vivi.ui.utils.backToMain
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun NewsDetailScreen(
-    newsItem: News,
+    newsItem: NewsItem,
     navController: NavController,
     isRefreshing: Boolean,
     onRefresh: () -> Unit
