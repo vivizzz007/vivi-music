@@ -111,7 +111,7 @@ import com.music.vivi.ui.utils.ItemWrapper
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.viewmodels.TopPlaylistViewModel
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class
 )
 @Composable
 fun TopPlaylistScreen(
@@ -255,9 +255,7 @@ fun TopPlaylistScreen(
         }
     }
 
-    val playlistTitle = stringResource(R.string.my_top)
 
-    val playlistTitle = stringResource(R.string.my_top)
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(

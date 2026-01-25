@@ -312,8 +312,7 @@ fun NavGraphBuilder.navigationBuilder(
     composable("settings/account_settings") {
         AccountSettings(
             navController = navController,
-            onClose = { navController.popBackStack() },
-            latestVersionName = BuildConfig.VERSION_NAME
+            onBack = { navController.popBackStack() }
         )
     }
 
