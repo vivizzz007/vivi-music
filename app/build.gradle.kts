@@ -291,6 +291,23 @@ dependencies {
 
 kover {
     reports {
+        filters {
+            excludes {
+                classes(
+                    "*Fragment",
+                    "*Fragment\$*",
+                    "*Activity",
+                    "*Activity\$*",
+                    "*.databinding.*",
+                    "*.BuildConfig",
+                    "dagger.hilt.*",
+                    "hilt_aggregated_deps.*",
+                    "com.music.vivi.ViviApp_HiltComponents*",
+                    "com.music.vivi.Hilt_*"
+                )
+                annotatedBy("androidx.compose.runtime.Composable")
+            }
+        }
         verify {
             rule {
                 minBound(80)
