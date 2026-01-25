@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vivi Music - Determine Your Vibe</title>
+    <style>
+      :root {
+        --primary: #9c27b0;
+        --primary-dark: #7b1fa2;
+        --background: #121212;
+        --surface: #1e1e1e;
+        --text-primary: #ffffff;
+        --text-secondary: #b0b0b0;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family:
+          "Segoe UI",
+          system-ui,
+          -apple-system,
+          sans-serif;
+      }
+
+      body {
+        background-color: var(--background);
+        color: var(--text-primary);
+        line-height: 1.6;
+        overflow-x: hidden;
+      }
+
+      header {
+        padding: 2rem 5%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: fixed;
+        width: 100%;
+        background: rgba(18, 18, 18, 0.95);
+        backdrop-filter: blur(10px);
+        z-index: 1000;
+      }
+
+      .logo {
+        font-size: 1.5rem;
+        font-weight: 800;
+        background: linear-gradient(45deg, #9c27b0, #e91e63);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .nav-links a {
+        color: var(--text-primary);
+        text-decoration: none;
+        margin-left: 2rem;
+        font-weight: 500;
+        transition: color 0.3s;
+      }
+
+      .nav-links a:hover {
+        color: var(--primary);
+      }
+
+      .cta-button {
+        background: var(--primary);
+        color: white;
+        padding: 0.8rem 1.5rem;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        transition:
+          transform 0.2s,
+          background 0.2s;
+        display: inline-block;
+      }
+
+      .cta-button:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+      }
+
+      section {
+        padding: 5rem 5%;
+      }
+
+      .hero {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        background: radial-gradient(circle at center, #2a1a2e 0%, #121212 70%);
+      }
+
+      .hero-content h1 {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        line-height: 1.1;
+      }
+
+      .hero-content p {
+        font-size: 1.2rem;
+        color: var(--text-secondary);
+        margin-bottom: 2rem;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .features {
+        background: var(--surface);
+      }
+
+      .features h2,
+      .screenshots h2,
+      .docs h2 {
+        text-align: center;
+        font-size: 2.5rem;
+        margin-bottom: 3rem;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .card {
+        background: var(--background);
+        padding: 2rem;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: transform 0.3s;
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+        border-color: var(--primary);
+      }
+
+      .card h3 {
+        margin-bottom: 1rem;
+        color: var(--primary);
+      }
+
+      .screenshots {
+        text-align: center;
+      }
+
+      .placeholder-image {
+        width: 100%;
+        height: 200px;
+        background: #2a2a2a;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #555;
+        margin-bottom: 1rem;
+      }
+
+      .tech-docs {
+        text-align: center;
+      }
+
+      footer {
+        text-align: center;
+        padding: 4rem 5%;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      @media (max-width: 768px) {
+        .hero-content h1 {
+          font-size: 2.5rem;
+        }
+        header {
+          padding: 1.5rem;
+        }
+        .nav-links {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo">Vivi Music</div>
+      <nav class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#docs">Documentation</a>
+        <a href="#download" class="cta-button">Download App</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <div class="hero-content">
+        <h1>Determine Your Vibe</h1>
+        <p>
+          Experience music like never before with Vivi Music. Material 3 design,
+          seamless cloud sync, and powerful audio features.
+        </p>
+        <a href="#download" class="cta-button">Get Started</a>
+      </div>
+    </section>
+
+    <section id="features" class="features">
+      <h2>Features</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Material Design 3</h3>
+          <p>
+            Beautiful, modern UI that adapts to your wallpaper and system theme
+            settings.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Cloud Sync</h3>
+          <p>
+            Seamlessly sync your playlists and favorites across devices with
+            your account.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Lyrics Support</h3>
+          <p>
+            Real-time synced lyrics for your favorite tracks so you never miss a
+            beat.
+          </p>
+        </div>
+        <div class="card">
+          <h3>OLED Dark Mode</h3>
+          <p>
+            True black mode optimized for OLED screens to save battery and
+            reduce eye strain.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="screenshots" class="screenshots">
+      <h2>Screenshots</h2>
+      <div class="grid">
+        <div class="card">
+          <div class="placeholder-image">Screenshots Coming Soon</div>
+          <p>Home Screen</p>
+        </div>
+        <div class="card">
+          <div class="placeholder-image">Screenshots Coming Soon</div>
+          <p>Player Interface</p>
+        </div>
+        <div class="card">
+          <div class="placeholder-image">Screenshots Coming Soon</div>
+          <p>Settings & Themes</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="docs" class="tech-docs">
+      <h2>Technical Documentation</h2>
+      <p>
+        For developers and contributors, view our detailed architectural
+        analysis and guides.
+      </p>
+      <br />
+      <a
+        href="technical/architecture_analysis.md"
+        class="cta-button"
+        style="background: transparent; border: 1px solid var(--primary)"
+        >View Architecture Report</a
+      >
+    </section>
+
+    <footer>
+      <p>&copy; 2026 Vivi Music. All rights reserved.</p>
+    </footer>
+  </body>
+</html>
