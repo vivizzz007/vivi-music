@@ -261,6 +261,11 @@
     <string name="grid_cell_size">Taille des cellules de la grille</string>
     <string name="small">Petite</string>
     <string name="big">Grosse</string> 
+    
+    <string name="power_saver">Économiseur d\'énergie</string>
+    <string name="power_saver_description">Activez le mode Économie d'énergie pour prolonger l\'autonomie de la batterie en réduisant les performances et en désactivant les fonctionnalités en arrière-plan.</string>
+    <string name="enable_power_saver">Activer le mode économie d'énergie</string>
+    <string name="power_saver_subtitle">Réduit les effets visuels et l\'activité en arrière-plan</string>
 
     <string name="content">Contenu</string>
     <string name="action_logout">Déconnexion</string>
