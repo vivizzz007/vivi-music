@@ -124,7 +124,7 @@ public fun ChartsScreen(
                                     "Trending" -> stringResource(R.string.trending)
                                     else -> section.title ?: stringResource(R.string.charts)
                                 },
-                                            .then(with(this) { Modifier.animateItem() }),
+                                modifier = Modifier.animateItem(),
                             )
                         }
                         item(key = "section_content_${section.title}") {
@@ -262,7 +262,7 @@ public fun ChartsScreen(
                                                     }
                                                 },
                                             )
-                                            .then(with(this) { Modifier.animateItemPlacement() }),
+                                            .animateItem(),
                                     )
                                 }
                             }

@@ -94,6 +94,7 @@ fun NewsDetailScreen(
             isRefreshing = isRefreshing,
             onRefresh = onRefresh,
             indicator = {
+                @OptIn(ExperimentalMaterial3Api::class)
                 PullToRefreshDefaults.LoadingIndicator(
                     state = pullRefreshState,
                     isRefreshing = isRefreshing,

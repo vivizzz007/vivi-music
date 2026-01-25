@@ -704,7 +704,7 @@ public fun ArtistScreen(
                                                         }
                                                     }
                                                 )
-                                                .animateItemPlacement()
+                                                .animateItem()
                                         )
                                 }
                             }
