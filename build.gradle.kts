@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.hilt) apply (false)
     alias(libs.plugins.kotlin.ksp) apply (false)
+    alias(libs.plugins.kover) apply (false)
+    alias(libs.plugins.dokka) apply (false)
 }
 
 buildscript {

@@ -97,3 +97,12 @@ core
 core.*
 *.so
 *.bin
+
+# Hardening / Enterprise Standards
+.idea/shelf/
+.idea/changesets/
+.idea/codeStyles/
+*.iws
+.DS_Store
+Thumbs.db
+

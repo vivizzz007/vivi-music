@@ -21,44 +21,7 @@ import com.music.vivi.ui.menu.PlaylistMenu
 import com.music.vivi.ui.menu.YouTubePlaylistMenu
 import kotlinx.coroutines.CoroutineScope
 
-@Composable
-fun LibraryArtistListItem(
-    navController: NavController,
-    menuState: MenuState,
-    coroutineScope: CoroutineScope,
-    artist: Artist,
-    modifier: Modifier = Modifier,
-    onItemClick: (() -> Unit)? = null
-) = ArtistListItem(
-    artist = artist,
-    trailingContent = {
-        androidx.compose.material3.IconButton(
-            onClick = {
-                menuState.show {
-                    ArtistMenu(
-                        originalArtist = artist,
-                        coroutineScope = coroutineScope,
-                        onDismiss = menuState::dismiss
-                    )
-                }
-            }
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.more_vert),
-                contentDescription = null
-            )
-        }
-    },
-    modifier = modifier
-        .fillMaxWidth()
-        .clickable {
-            if (onItemClick != null) {
-                onItemClick()
-            } else {
-                navController.navigate("artist/${artist.id}")
-            }
-        }
-)
+
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

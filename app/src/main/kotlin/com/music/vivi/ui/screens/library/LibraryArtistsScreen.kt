@@ -69,9 +69,11 @@ import com.music.vivi.constants.YtmSyncKey
 import com.music.vivi.ui.component.ChipsRow
 import com.music.vivi.ui.component.EmptyPlaceholder
 import com.music.vivi.ui.component.LibraryArtistGridItem
-import com.music.vivi.ui.component.LibraryArtistListItem
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.SortHeader
+import com.music.vivi.ui.component.library.LibraryArtistListItem
+import com.music.vivi.ui.menu.ArtistMenu
+
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.LibraryArtistsViewModel
@@ -286,12 +288,24 @@ fun LibraryArtistsScreen(
                                             .background(MaterialTheme.colorScheme.surfaceContainer)
                                     ) {
                                         LibraryArtistListItem(
-                                            navController = navController,
-                                            menuState = menuState,
-                                            coroutineScope = coroutineScope,
-                                            modifier = Modifier.fillMaxSize(),
                                             artist = artist,
-                                            onItemClick = onNavigate?.let { navigate -> { navigate("artist/${artist.id}") } }
+                                            onArtistClick = {
+                                                if (onNavigate != null) {
+                                                    onNavigate("artist/${artist.id}")
+                                                } else {
+                                                    navController.navigate("artist/${artist.id}")
+                                                }
+                                            },
+                                            onMenuClick = {
+                                                menuState.show {
+                                                    ArtistMenu(
+                                                        originalArtist = artist,
+                                                        coroutineScope = coroutineScope,
+                                                        onDismiss = menuState::dismiss
+                                                    )
+                                                }
+                                            },
+                                            modifier = Modifier.fillMaxSize()
                                         )
                                     }
 
