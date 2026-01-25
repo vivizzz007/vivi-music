@@ -78,11 +78,11 @@ public class IntegrationsViewModel @Inject constructor(
                 .map { (it[LastFMSessionKey] ?: "") to (it[LastFMUsernameKey] ?: "") }
                 .distinctUntilChanged()
                 .collect { (session, username) ->
-                     _lastFmState.value = LastFMState(
-                         sessionKey = session,
-                         username = username,
-                         isLoggedIn = session.isNotEmpty()
-                     )
+                    _lastFmState.value = LastFMState(
+                        sessionKey = session,
+                        username = username,
+                        isLoggedIn = session.isNotEmpty()
+                    )
                 }
         }
     }

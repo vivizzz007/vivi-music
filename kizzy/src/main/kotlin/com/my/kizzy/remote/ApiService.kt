@@ -12,7 +12,6 @@
 package com.my.kizzy.remote
 
 import io.ktor.client.HttpClient
-import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
@@ -27,10 +26,12 @@ import kotlinx.serialization.json.Json
 class ApiService {
     private val client = HttpClient {
         install(ContentNegotiation) {
-            json(Json {
-                ignoreUnknownKeys = true
-                encodeDefaults = true
-            })
+            json(
+                Json {
+                    ignoreUnknownKeys = true
+                    encodeDefaults = true
+                }
+            )
         }
 //        install(HttpTimeout) {
 //            connectTimeoutMillis = 30_000
@@ -41,10 +42,10 @@ class ApiService {
     }
 
     suspend fun getImage(url: String) = runCatching {
-         client.get {
-             url("$BASE_URL/image")
-             parameter("url", url)
-         }
+        client.get {
+            url("$BASE_URL/image")
+            parameter("url", url)
+        }
     }
 
     companion object {

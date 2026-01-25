@@ -21,14 +21,10 @@ sealed class RpcImage {
     abstract suspend fun resolveImage(repository: KizzyRepository): String?
 
     class DiscordImage(val image: String) : RpcImage() {
-        override suspend fun resolveImage(repository: KizzyRepository): String {
-            return "mp:${image}"
-        }
+        override suspend fun resolveImage(repository: KizzyRepository): String = "mp:$image"
     }
 
     class ExternalImage(val image: String) : RpcImage() {
-        override suspend fun resolveImage(repository: KizzyRepository): String? {
-            return repository.getImage(image)
-        }
+        override suspend fun resolveImage(repository: KizzyRepository): String? = repository.getImage(image)
     }
 }

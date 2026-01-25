@@ -22,26 +22,17 @@ object BetterLyrics {
                     Json {
                         isLenient = true
                         ignoreUnknownKeys = true
-                    },
+                    }
                 )
             }
         }
     }
 
-    suspend fun getLyrics(
-        title: String,
-        artist: String,
-        duration: Int?,
-    ): Result<String> = runCatching {
+    suspend fun getLyrics(title: String, artist: String, duration: Int?): Result<String> = runCatching {
         fetchLyrics(title, artist, duration)
     }
 
-    suspend fun getAllLyrics(
-        title: String,
-        artist: String,
-        duration: Int,
-        callback: (String) -> Unit,
-    ) {
+    suspend fun getAllLyrics(title: String, artist: String, duration: Int, callback: (String) -> Unit) {
         // Try exact match first
         runCatching {
             callback(fetchLyrics(title, artist, duration))
@@ -53,11 +44,7 @@ object BetterLyrics {
         }
     }
 
-    private suspend fun fetchLyrics(
-        title: String,
-        artist: String,
-        duration: Int?,
-    ): String {
+    private suspend fun fetchLyrics(title: String, artist: String, duration: Int?): String {
         val url = "https://lyrics-api.boidu.dev/getLyrics"
         val response = client.get(url) {
             parameter("s", title)
@@ -82,11 +69,11 @@ object BetterLyrics {
         for (p in paragraphs) {
             val begin = p.attr("begin")
             val text = p.text()
-            
+
             if (begin.isNotEmpty() && text.isNotEmpty()) {
                 val lineStartMillis = ttmlTimeToMillis(begin)
                 val lrcTime = formatLrcTime(lineStartMillis)
-                
+
                 val spans = p.select("span")
                 if (spans.isNotEmpty()) {
                     val sbLine = StringBuilder()
@@ -94,11 +81,11 @@ object BetterLyrics {
                         val spanBegin = span.attr("begin")
                         val spanEnd = span.attr("end")
                         val spanText = span.text()
-                        
+
                         if (spanBegin.isNotEmpty()) {
                             val spanStartMillis = ttmlTimeToMillis(spanBegin)
                             val spanStartTime = formatLrcTime(spanStartMillis)
-                            
+
                             var durationStr = ""
                             if (spanEnd.isNotEmpty()) {
                                 val spanEndMillis = ttmlTimeToMillis(spanEnd)
@@ -107,7 +94,7 @@ object BetterLyrics {
                                     durationStr = ",$duration"
                                 }
                             }
-                            
+
                             sbLine.append(" <$spanStartTime$durationStr> $spanText")
                         } else {
                             sbLine.append(" $spanText")
@@ -119,14 +106,14 @@ object BetterLyrics {
                 }
             }
         }
-        
+
         return sb.toString().trim()
     }
 
     private fun ttmlTimeToMillis(ttmlTime: String): Long {
         val parts = ttmlTime.split(":")
         var seconds = 0.0
-        
+
         if (parts.size == 3) {
             seconds += parts[0].toDouble() * 3600
             seconds += parts[1].toDouble() * 60
@@ -137,10 +124,10 @@ object BetterLyrics {
         } else {
             seconds = ttmlTime.toDoubleOrNull() ?: 0.0
         }
-        
+
         return (seconds * 1000).toLong()
     }
-    
+
     private fun formatLrcTime(millis: Long): String {
         val totalSeconds = millis / 1000
         val minutes = totalSeconds / 60

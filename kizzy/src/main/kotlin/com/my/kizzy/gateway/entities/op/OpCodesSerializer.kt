@@ -13,7 +13,8 @@ class OpCodeSerializer : KSerializer<OpCode> {
 
     override fun deserialize(decoder: Decoder): OpCode {
         val opCode = decoder.decodeInt()
-        return OpCode.values().firstOrNull { it.value == opCode } ?: throw IllegalArgumentException("Unknown OpCode $opCode")
+        return OpCode.values().firstOrNull { it.value == opCode }
+            ?: throw IllegalArgumentException("Unknown OpCode $opCode")
     }
 
     override fun serialize(encoder: Encoder, value: OpCode) {

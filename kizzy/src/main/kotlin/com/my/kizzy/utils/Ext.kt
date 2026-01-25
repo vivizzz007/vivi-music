@@ -18,23 +18,20 @@ import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 
-suspend fun HttpResponse.toImageAsset(): String? {
-    return try {
-        if (this.status == HttpStatusCode.OK)
-            this.body<ApiResponse>().id
-        else
-            null
-    } catch (e: Exception) {
+suspend fun HttpResponse.toImageAsset(): String? = try {
+    if (this.status == HttpStatusCode.OK) {
+        this.body<ApiResponse>().id
+    } else {
         null
     }
+} catch (e: Exception) {
+    null
 }
 
-fun String.toRpcImage(): RpcImage? {
-    return if (this.isBlank())
-        null
-    else if (this.startsWith("attachments"))
-        RpcImage.DiscordImage(this)
-    else
-        RpcImage.ExternalImage(this)
+fun String.toRpcImage(): RpcImage? = if (this.isBlank()) {
+    null
+} else if (this.startsWith("attachments")) {
+    RpcImage.DiscordImage(this)
+} else {
+    RpcImage.ExternalImage(this)
 }
-
