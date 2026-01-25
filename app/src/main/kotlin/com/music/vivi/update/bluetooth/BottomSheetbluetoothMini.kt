@@ -793,6 +793,10 @@ private fun loadDevices(
 }
 
 
+private fun determineActiveDevice(
+    audioManager: AudioManager,
+    audioDevices: Array<AudioDeviceInfo>
+): AudioDeviceInfo? {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
         // Check various audio manager states
         when {

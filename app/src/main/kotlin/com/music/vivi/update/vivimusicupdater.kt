@@ -653,7 +653,8 @@ fun UpdateScreen(navController: NavHostController) {
 //                                        pop()
 //                                        append(".")
 //                                    }
-//                                    ClickableText(
+//                                    @Suppress("DEPRECATION")
+                                    ClickableText(
 //                                        text = annotatedString,
 //                                        onClick = { offset ->
 //                                            annotatedString.getStringAnnotations(tag = "URL", start = offset, end = offset)
