@@ -9,7 +9,7 @@ import androidx.compose.ui.res.pluralStringResource
 import com.music.vivi.R
 import com.music.vivi.constants.ListThumbnailSize
 import com.music.vivi.db.entities.Artist
-import com.music.vivi.ui.component.core.ListItem
+import com.music.vivi.ui.component.ListItem
 import com.music.vivi.ui.component.media.common.ItemThumbnail
 import com.music.vivi.ui.component.media.common.MediaIcons
 

@@ -15,7 +15,7 @@ import com.music.vivi.constants.ThumbnailCornerRadius
 import com.music.vivi.db.entities.Song
 import com.music.vivi.extensions.toMediaItem
 import com.music.vivi.ui.component.RoundedCheckbox
-import com.music.vivi.ui.component.core.ListItem
+import com.music.vivi.ui.component.ListItem
 import com.music.vivi.ui.component.media.common.ItemThumbnail
 import com.music.vivi.ui.component.media.common.MediaIcons
 import com.music.vivi.ui.component.media.common.SwipeToSongBox

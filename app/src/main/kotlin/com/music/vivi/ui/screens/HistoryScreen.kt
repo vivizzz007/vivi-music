@@ -147,11 +147,11 @@ public fun HistoryScreen(
         }
     }
 
-    val historySource by viewModel.historySource.collectAsState()
+    val historySource: com.music.vivi.constants.HistorySource by viewModel.historySource.collectAsState()
 
-    val historyPage by viewModel.historyPage.collectAsState()
+    val historyPage: com.music.innertube.pages.HistoryPage? by viewModel.historyPage.collectAsState()
 
-    val events by viewModel.events.collectAsState()
+    val events: Map<com.music.vivi.viewmodels.DateAgo, List<com.music.vivi.db.entities.EventWithSong>> by viewModel.events.collectAsState()
 
     val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn = remember(innerTubeCookie) {

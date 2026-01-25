@@ -12,7 +12,7 @@ import com.music.vivi.R
 import com.music.vivi.constants.ListThumbnailSize
 import com.music.vivi.constants.ThumbnailCornerRadius
 import com.music.vivi.db.entities.Album
-import com.music.vivi.ui.component.core.ListItem
+import com.music.vivi.ui.component.ListItem
 import com.music.vivi.ui.component.media.common.ItemThumbnail
 import com.music.vivi.ui.component.media.common.MediaIcons
 import com.music.vivi.utils.joinByBullet

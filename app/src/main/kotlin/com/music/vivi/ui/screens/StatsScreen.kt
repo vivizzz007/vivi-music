@@ -57,14 +57,12 @@ import com.music.vivi.utils.makeTimeString
 import com.music.vivi.viewmodels.StatsViewModel
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 import com.music.vivi.db.entities.Song
 import com.music.vivi.db.entities.Artist
 import com.music.vivi.db.entities.Album
 import com.music.vivi.db.entities.SongWithStats
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+
 @Composable
 public fun StatsScreen(
     navController: NavController,
@@ -92,7 +90,7 @@ public fun StatsScreen(
     val weeklyDates =
         if (currentDate != null && firstEvent != null) {
             generateSequence(currentDate) { it.minusWeeks(1) }
-                .takeWhile { it.isAfter(firstEvent?.event?.timestamp?.minusWeeks(1)) }
+                .takeWhile { it.isAfter(firstEvent?.timestamp?.minusWeeks(1)) }
                 .mapIndexed { index, date ->
                     val endDate = date.plusWeeks(1).minusDays(1).coerceAtMost(currentDate)
                     val formatter = DateTimeFormatter.ofPattern("dd MMM")
@@ -125,7 +123,6 @@ public fun StatsScreen(
                 .takeWhile {
                     it.isAfter(
                         firstEvent
-                            ?.event
                             ?.timestamp
                             ?.withDayOfMonth(1),
                     )
@@ -155,7 +152,6 @@ public fun StatsScreen(
                 .takeWhile {
                     it.isAfter(
                         firstEvent
-                            ?.event
                             ?.timestamp,
                     )
                 }.mapIndexed { index, date ->
@@ -233,11 +229,11 @@ public fun StatsScreen(
             item(key = "mostPlayedSongs") {
                 NavigationTitle(
                     title = "${mostPlayedSongsStats.size} ${stringResource(id = R.string.songs)}",
-                    modifier = Modifier.animateItemPlacement(),
+                    modifier = Modifier.animateItem(),
                 )
 
                 LazyRow(
-                    modifier = Modifier.animateItemPlacement(),
+                    modifier = Modifier.animateItem(),
                 ) {
                     itemsIndexed(
                         items = mostPlayedSongsStats,
@@ -284,7 +280,7 @@ public fun StatsScreen(
                                         }
                                     },
                                 )
-                                .animateItemPlacement(),
+                                .animateItem(),
                         )
                     }
                 }
@@ -293,11 +289,11 @@ public fun StatsScreen(
             item(key = "mostPlayedArtists") {
                 NavigationTitle(
                     title = "${mostPlayedArtists.size} ${stringResource(id = R.string.artists)}",
-                    modifier = Modifier.animateItemPlacement(),
+                    modifier = Modifier.animateItem(),
                 )
 
                 LazyRow(
-                    modifier = Modifier.animateItemPlacement(),
+                    modifier = Modifier.animateItem(),
                 ) {
                     itemsIndexed(
                         items = mostPlayedArtists,
@@ -332,7 +328,7 @@ public fun StatsScreen(
                                         }
                                     },
                                 )
-                                .animateItemPlacement(),
+                                .animateItem(),
                         )
                     }
                 }

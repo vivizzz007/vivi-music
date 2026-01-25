@@ -14,7 +14,7 @@ import com.music.vivi.R
 import com.music.vivi.constants.ListThumbnailSize
 import com.music.vivi.constants.ThumbnailCornerRadius
 import com.music.vivi.db.entities.Playlist
-import com.music.vivi.ui.component.core.ListItem
+import com.music.vivi.ui.component.ListItem
 import com.music.vivi.ui.component.media.common.PlaylistThumbnail
 
 @Composable

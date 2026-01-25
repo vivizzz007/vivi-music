@@ -128,9 +128,9 @@ fun DiscordSettings(
     }
 
     val playerConnection = LocalPlayerConnection.current ?: return
-    val song by playerConnection.currentSong.collectAsState(null)
+    val song: com.music.vivi.db.entities.Song? by playerConnection.currentSong.collectAsState(null)
+    val playbackState: Int by playerConnection.playbackState.collectAsState()
 
-    val playbackState by playerConnection.playbackState.collectAsState()
     var position by rememberSaveable(playbackState) {
         mutableLongStateOf(playerConnection.player.currentPosition)
     }
@@ -139,13 +139,13 @@ fun DiscordSettings(
 
     var discordToken by rememberPreference(DiscordTokenKey, "")
     val integrationsViewModel: com.music.vivi.viewmodels.IntegrationsViewModel = androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel()
-    val discordState by integrationsViewModel.discordState.collectAsState()
+    val discordState: com.music.vivi.viewmodels.DiscordState by integrationsViewModel.discordState.collectAsState()
 
     // Delegate actual display values to VM state for reliability, but use preferences for mutability
     var discordUsername by rememberPreference(DiscordUsernameKey, "")
     var discordName by rememberPreference(DiscordNameKey, "")
     val isLoggedIn = discordToken.isNotEmpty()
-    
+
     var infoDismissed by rememberPreference(DiscordInfoDismissedKey, false)
 
     // Local manual update for token editing still writes to DataStore via rememberPreference

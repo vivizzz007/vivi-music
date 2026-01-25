@@ -13,7 +13,7 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import com.music.vivi.R
 import com.music.vivi.db.entities.Artist
-import com.music.vivi.ui.component.core.GridItem
+import com.music.vivi.ui.component.GridItem
 import com.music.vivi.ui.component.media.common.MediaIcons
 
 @Composable

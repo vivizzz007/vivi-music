@@ -73,9 +73,9 @@ public fun ExploreScreen(
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
-    val explorePage by exploreViewModel.explorePage.collectAsState()
-    val chartsPage by chartsViewModel.chartsPage.collectAsState()
-    val isChartsLoading by chartsViewModel.isLoading.collectAsState()
+    val explorePage: com.music.innertube.models.ExplorePage? by exploreViewModel.explorePage.collectAsState()
+    val chartsPage: com.music.innertube.models.ExplorePage? by chartsViewModel.chartsPage.collectAsState()
+    val isChartsLoading: Boolean by chartsViewModel.isLoading.collectAsState()
 
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()

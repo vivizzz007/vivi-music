@@ -29,7 +29,7 @@ import com.music.vivi.constants.ThumbnailCornerRadius
 import com.music.vivi.db.entities.Album
 import com.music.vivi.db.entities.Song
 import com.music.vivi.playback.queues.LocalAlbumRadio
-import com.music.vivi.ui.component.core.GridItem
+import com.music.vivi.ui.component.GridItem
 import com.music.vivi.ui.component.media.common.AlbumPlayButton
 import com.music.vivi.ui.component.media.common.ItemThumbnail
 import com.music.vivi.ui.component.media.common.MediaIcons

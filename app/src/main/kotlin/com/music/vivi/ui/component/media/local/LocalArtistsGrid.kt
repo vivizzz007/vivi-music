@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.music.vivi.ui.component.core.GridItem
+import com.music.vivi.ui.component.GridItem
 import com.music.vivi.ui.component.media.common.LocalThumbnail
 
 @Composable

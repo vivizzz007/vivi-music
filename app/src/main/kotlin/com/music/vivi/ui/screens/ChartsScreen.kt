@@ -65,8 +65,8 @@ public fun ChartsScreen(
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
-    val chartsPage by viewModel.chartsPage.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
+    val chartsPage: com.music.innertube.models.ExplorePage? by viewModel.chartsPage.collectAsState()
+    val isLoading: Boolean by viewModel.isLoading.collectAsState()
 
     val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()

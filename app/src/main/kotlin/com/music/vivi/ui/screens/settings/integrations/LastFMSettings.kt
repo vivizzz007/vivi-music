@@ -81,7 +81,7 @@ fun LastFMSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
     onBack: (() -> Unit)? = null,
-) { 
+) {
     val (settingsShapeTertiary, _) = rememberPreference(SettingsShapeColorTertiaryKey, false)
     val (darkMode, _) = rememberEnumPreference(
         DarkModeKey,
@@ -118,7 +118,7 @@ fun LastFMSettings(
     var lastfmSession by rememberPreference(LastFMSessionKey, "")
 
     val integrationsViewModel: com.music.vivi.viewmodels.IntegrationsViewModel = androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel()
-    val lastFmState by integrationsViewModel.lastFmState.collectAsState()
+    val lastFmState: com.music.vivi.viewmodels.LastFMState by integrationsViewModel.lastFmState.collectAsState()
 
 
 

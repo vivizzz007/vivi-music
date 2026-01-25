@@ -33,7 +33,7 @@ constructor(
     public val topPeriod: MutableStateFlow<MyTopFilter> = MutableStateFlow(MyTopFilter.ALL_TIME)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    public val topSongs: StateFlow<List<com.music.vivi.db.entities.PlaylistSong>> =
+    public val topSongs: StateFlow<List<com.music.vivi.db.entities.Song>> =
         combine(topPeriod, _top.filterNotNull()) { period, topVal ->
             Pair(period, topVal)
         }.flatMapLatest { (period, topVal) ->

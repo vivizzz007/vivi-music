@@ -66,11 +66,11 @@ public fun OnlineSearchScreen(
     val scope = rememberCoroutineScope()
 
     val haptic = LocalHapticFeedback.current
-    val isPlaying by playerConnection.isPlaying.collectAsState()
-    val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+    val isPlaying: Boolean by playerConnection.isPlaying.collectAsState()
+    val mediaMetadata: com.music.vivi.models.MediaMetadata? by playerConnection.mediaMetadata.collectAsState()
 
     val coroutineScope = rememberCoroutineScope()
-    val viewState by viewModel.viewState.collectAsState()
+    val viewState: com.music.vivi.viewmodels.SearchSuggestionViewState by viewModel.viewState.collectAsState()
 
     val lazyListState = rememberLazyListState()
 

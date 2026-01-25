@@ -6,7 +6,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.music.vivi.constants.ThumbnailCornerRadius
-import com.music.vivi.ui.component.core.GridItem
+import com.music.vivi.ui.component.GridItem
 import com.music.vivi.ui.component.media.common.LocalThumbnail
 
 @Composable

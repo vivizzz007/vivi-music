@@ -52,7 +52,7 @@ public fun NewReleaseScreen(
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
-    val newReleaseAlbums by viewModel.newReleaseAlbums.collectAsState()
+    val newReleaseAlbums: List<com.music.innertube.models.AlbumItem> by viewModel.newReleaseAlbums.collectAsState()
 
     val coroutineScope = rememberCoroutineScope()
 

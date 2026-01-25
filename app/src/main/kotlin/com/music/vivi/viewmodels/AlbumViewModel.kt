@@ -34,7 +34,7 @@ constructor(
 
     public val playlistId: MutableStateFlow<String> = MutableStateFlow("")
     @OptIn(ExperimentalCoroutinesApi::class)
-    public val albumWithSongs: StateFlow<com.music.vivi.db.entities.Album?> = _albumId.filterNotNull().flatMapLatest { id ->
+    public val albumWithSongs: StateFlow<com.music.vivi.db.entities.AlbumWithSongs?> = _albumId.filterNotNull().flatMapLatest { id ->
             database.albumWithSongs(id)
         }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
     public var otherVersions: MutableStateFlow<List<AlbumItem>> = MutableStateFlow(emptyList())
