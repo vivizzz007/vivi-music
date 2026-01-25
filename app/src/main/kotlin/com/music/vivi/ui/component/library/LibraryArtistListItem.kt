@@ -10,7 +10,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.music.vivi.R
 import com.music.vivi.db.entities.Artist
-import com.music.vivi.ui.component.ArtistListItem
+import com.music.vivi.ui.component.media.artists.ArtistListItem
 
 /**
  * A list item representing an Artist in the Library.

@@ -19,6 +19,11 @@ import com.music.vivi.ui.menu.AlbumMenu
 import com.music.vivi.ui.menu.ArtistMenu
 import com.music.vivi.ui.menu.PlaylistMenu
 import com.music.vivi.ui.menu.YouTubePlaylistMenu
+import com.music.vivi.ui.component.media.artists.ArtistGridItem
+import com.music.vivi.ui.component.media.albums.AlbumListItem
+import com.music.vivi.ui.component.media.albums.AlbumGridItem
+import com.music.vivi.ui.component.media.playlists.PlaylistListItem
+import com.music.vivi.ui.component.media.playlists.PlaylistGridItem
 import kotlinx.coroutines.CoroutineScope
 
 

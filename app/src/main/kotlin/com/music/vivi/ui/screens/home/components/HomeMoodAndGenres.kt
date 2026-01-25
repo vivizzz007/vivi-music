@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.music.innertube.models.MoodAndGenres
+import com.music.innertube.pages.MoodAndGenres
 import com.music.vivi.R
 import com.music.vivi.constants.MoodAndGenresButtonHeight
 import com.music.vivi.ui.component.MoodAndGenresButton
@@ -27,7 +27,7 @@ import com.music.vivi.ui.component.shimmer.TextPlaceholder
 import com.music.vivi.utils.ImmutableList
 
 internal fun LazyListScope.homeMoodAndGenres(
-    moodAndGenres: ImmutableList<MoodAndGenres>?,
+    moodAndGenres: ImmutableList<MoodAndGenres.Item>?,
     isLoading: Boolean,
     navController: NavController
 ) {

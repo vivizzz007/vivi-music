@@ -577,6 +577,11 @@ internal fun ArtistScreen(
                     // Replace the local songs itemsIndexed section with this:
 
                     if (librarySongs.isNotEmpty()) {
+                        val filteredLibrarySongs = if (hideExplicit) {
+                            librarySongs.filter { !it.song.explicit }
+                        } else {
+                            librarySongs
+                        }
                         item(key = "local_songs_title") {
                             NavigationTitle(
                                 title = stringResource(R.string.songs),

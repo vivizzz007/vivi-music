@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
-import com.music.innertube.models.YouTubeSection
+import com.music.innertube.pages.HomePage
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.constants.ListThumbnailSize
 import com.music.vivi.constants.ThumbnailCornerRadius
@@ -27,7 +27,7 @@ import kotlinx.coroutines.CoroutineScope
 import com.music.vivi.utils.ImmutableList
 
 internal fun LazyListScope.homeInnertubeSections(
-    sections: ImmutableList<YouTubeSection>,
+    sections: ImmutableList<HomePage.Section>,
     activeId: String?,
     activeAlbumId: String?,
     isPlaying: Boolean,

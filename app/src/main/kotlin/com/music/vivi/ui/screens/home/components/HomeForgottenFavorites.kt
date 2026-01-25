@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
+import com.music.vivi.ui.utils.GridSnapLayoutInfoProvider
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -39,7 +40,7 @@ import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.ListItemHeight
 import com.music.vivi.db.entities.Song
-import com.music.vivi.extensions.toMediaMetadata
+import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.ui.component.LocalMenuState
@@ -50,7 +51,9 @@ import kotlin.math.min
 
 import com.music.vivi.utils.ImmutableList
 
-@OptIn(ExperimentalMaterial3Api::class)
+import androidx.compose.foundation.ExperimentalFoundationApi
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 internal fun HomeForgottenFavorites(
     forgottenFavorites: ImmutableList<Song>,
@@ -75,7 +78,7 @@ internal fun HomeForgottenFavorites(
     val horizontalLazyGridItemWidth = maxWidth * horizontalLazyGridItemWidthFactor
 
     val snapLayoutInfoProvider = remember(lazyGridState) {
-        SnapLayoutInfoProvider(
+        GridSnapLayoutInfoProvider(
             lazyGridState = lazyGridState,
             positionInLayout = { layoutSize, itemSize ->
                 (layoutSize * horizontalLazyGridItemWidthFactor / 2f - itemSize / 2f)
@@ -112,7 +115,7 @@ internal fun HomeForgottenFavorites(
             // ForgottenFavorites seems to put SongListItem directly in grid cell.
             // Check snippet 1283 Lines 735+. It puts SongListItem inside modifiers.
             // But wait, GridItem has width set to horizontalLazyGridItemWidth.
-            
+
             Box(
                  modifier = Modifier
                     .width(horizontalLazyGridItemWidth)

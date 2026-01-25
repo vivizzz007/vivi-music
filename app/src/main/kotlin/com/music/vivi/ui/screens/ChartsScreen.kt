@@ -46,7 +46,8 @@ import com.music.vivi.ui.component.shimmer.ShimmerHost
 import com.music.vivi.ui.component.shimmer.TextPlaceholder
 import com.music.vivi.ui.menu.YouTubeSongMenu
 import com.music.vivi.ui.utils.backToMain
-import com.music.vivi.ui.utils.SnapLayoutInfoProvider
+import com.music.vivi.ui.utils.GridSnapLayoutInfoProvider
+
 import com.music.vivi.viewmodels.ChartsViewModel
 import com.music.vivi.R
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
@@ -69,7 +70,7 @@ fun ChartsScreen(
 
     val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
-    
+
     val topMusicVideosText = stringResource(R.string.top_music_videos)
 
     LaunchedEffect(Unit) {
@@ -134,7 +135,7 @@ fun ChartsScreen(
 
                                 val lazyGridState = rememberLazyGridState()
                                 val snapLayoutInfoProvider = remember(lazyGridState) {
-                                    SnapLayoutInfoProvider(
+                                    GridSnapLayoutInfoProvider(
                                         lazyGridState = lazyGridState,
                                         positionInLayout = { layoutSize, itemSize ->
                                             (layoutSize * horizontalLazyGridItemWidthFactor / 2f - itemSize / 2f)

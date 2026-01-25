@@ -50,7 +50,7 @@ import com.music.vivi.db.entities.Playlist
 import com.music.vivi.ui.component.CreatePlaylistDialog
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.ListDialog
-import com.music.vivi.ui.component.PlaylistListItem
+import com.music.vivi.ui.component.media.playlists.PlaylistListItem
 import com.music.vivi.ui.component.SortHeader
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference

@@ -71,7 +71,7 @@ import com.music.vivi.playback.ExoDownloadService
 import com.music.vivi.playback.queues.ListQueue
 import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.ui.component.DefaultDialog
-import com.music.vivi.ui.component.PlaylistListItem
+import com.music.vivi.ui.component.media.playlists.PlaylistListItem
 import com.music.vivi.ui.component.TextFieldDialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

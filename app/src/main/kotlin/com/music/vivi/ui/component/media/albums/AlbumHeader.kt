@@ -71,9 +71,11 @@ import com.music.vivi.db.entities.AlbumWithSongs
 import com.music.vivi.playback.ExoDownloadService
 import com.music.vivi.playback.queues.LocalAlbumRadio
 import com.music.vivi.ui.menu.AlbumMenu
-import com.music.vivi.utils.fastForEachIndexed
+import androidx.compose.ui.util.fastForEachIndexed
 
-@OptIn(ExperimentalMaterial3Api::class)
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AlbumHeader(
     albumWithSongs: AlbumWithSongs,
@@ -205,7 +207,7 @@ fun AlbumHeader(
                     } else if (mediaMetadata?.album?.id == albumWithSongs.album.id) {
                         playerConnection.player.play()
                     } else {
-                        playerConnection.service.getAutomix(playlistId)
+                        playerConnection.service.getAutomix(playlistId ?: "")
                         playerConnection.playQueue(
                             LocalAlbumRadio(albumWithSongs),
                         )
@@ -405,7 +407,7 @@ fun AlbumHeader(
         Text(
             text = buildAnnotatedString {
                 append(stringResource(R.string.by_text))
-                albumWithSongs.artists.fastForEachIndexed { index, artist ->
+                albumWithSongs.artists.forEachIndexed { index, artist ->
                     val link = LinkAnnotation.Clickable(artist.id) {
                         navController.navigate("artist/${artist.id}")
                     }
@@ -509,7 +511,7 @@ fun AlbumHeader(
             ToggleButton(
                 checked = false,
                 onCheckedChange = {
-                    playerConnection.service.getAutomix(playlistId)
+                    playerConnection.service.getAutomix(playlistId ?: "")
                     playerConnection.playQueue(
                         LocalAlbumRadio(albumWithSongs.copy(songs = albumWithSongs.songs.shuffled())),
                     )

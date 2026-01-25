@@ -37,6 +37,10 @@ import com.music.vivi.extensions.toMediaItem
 import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.playback.queues.ListQueue
 import com.music.vivi.ui.component.*
+import com.music.vivi.ui.component.media.songs.SongListItem
+import com.music.vivi.ui.component.media.albums.AlbumListItem
+import com.music.vivi.ui.component.media.artists.ArtistListItem
+import com.music.vivi.ui.component.media.playlists.PlaylistListItem
 import com.music.vivi.ui.menu.SongMenu
 import com.music.vivi.viewmodels.LocalFilter
 import com.music.vivi.viewmodels.LocalSearchViewModel

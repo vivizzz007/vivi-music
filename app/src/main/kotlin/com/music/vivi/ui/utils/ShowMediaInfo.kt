@@ -57,6 +57,8 @@ import com.music.vivi.ui.component.shimmer.ShimmerHost
 import androidx.compose.material3.TextButton
 import com.music.vivi.ui.component.LocalBottomSheetPageState
 import com.music.vivi.ui.component.shimmer.TextPlaceholder
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.launch
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -108,7 +110,7 @@ fun ShowMediaInfo(videoId: String) {
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
                 )
-                
+
                 TextButton(onClick = { sheetState.dismiss() }) {
                     Text(stringResource(R.string.done))
                 }
@@ -125,7 +127,7 @@ fun ShowMediaInfo(videoId: String) {
                     .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 val imageUrl = song?.thumbnailUrl ?: "https://i.ytimg.com/vi/$videoId/mqdefault.jpg"
-                
+
                 AsyncImage(
                     model = imageUrl,
                     contentDescription = null,
@@ -152,7 +154,7 @@ fun ShowMediaInfo(videoId: String) {
                             value = song?.title ?: info?.title ?: stringResource(R.string.unknown),
                             modifier = Modifier.weight(1f)
                         )
-                        
+
                         // Registration (Format info)
                         val formatText = buildString {
                             if (currentFormat != null) {
@@ -180,7 +182,7 @@ fun ShowMediaInfo(videoId: String) {
                             val seconds = totalSeconds % 60
                             "%d:%02d".format(minutes, seconds)
                         }                             ?: stringResource(R.string.unknown)
-                        
+
                         InfoItem(
                             label = stringResource(R.string.duration),
                             value = duration,
@@ -216,7 +218,7 @@ fun ShowMediaInfo(videoId: String) {
                             modifier = Modifier.weight(1f)
                         )
                     }
-                    
+
                      // Row 4 (Extra details)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -227,7 +229,7 @@ fun ShowMediaInfo(videoId: String) {
                             value = currentFormat?.itag?.toString() ?: "N/A",
                             modifier = Modifier.weight(1f)
                         )
-                        
+
                          InfoItem(
                             label = stringResource(R.string.loudness),
                              value = currentFormat?.loudnessDb?.let { "$it dB" } ?: "N/A",
@@ -236,7 +238,7 @@ fun ShowMediaInfo(videoId: String) {
                     }
                 }
             }
-            
+
             // Description (Full width at bottom)
              item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -264,7 +266,7 @@ fun ShowMediaInfo(videoId: String) {
                      }
                 }
             }
-            
+
         } else {
              item {
                  Box(
@@ -275,7 +277,7 @@ fun ShowMediaInfo(videoId: String) {
                  }
              }
         }
-        
+
         item {
             Spacer(modifier = Modifier.height(24.dp))
         }

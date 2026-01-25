@@ -60,8 +60,8 @@ import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.ui.component.CreatePlaylistDialog
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.ListDialog
-import com.music.vivi.ui.component.ListItem
-import com.music.vivi.ui.component.PlaylistListItem
+import com.music.vivi.ui.component.core.ListItem
+import com.music.vivi.ui.component.media.playlists.PlaylistListItem
 import com.music.vivi.ui.component.SortHeader
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.rememberEnumPreference

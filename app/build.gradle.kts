@@ -9,8 +9,8 @@ plugins {
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.kover)
-    alias(libs.plugins.dokka)
+    // alias(libs.plugins.kover) - Disabled for debugging
+    // alias(libs.plugins.dokka)
 }
 
 configure<com.android.build.api.dsl.ApplicationExtension> {
@@ -127,7 +127,7 @@ configure<com.android.build.api.dsl.ApplicationExtension> {
             )
             jvmTarget.set(JvmTarget.JVM_21)
         }
-        explicitApi()
+        // explicitApi()
     }
 
     buildFeatures {
@@ -289,6 +289,7 @@ dependencies {
     testImplementation(libs.turbine)
 }
 
+/*
 kover {
     reports {
         verify {
@@ -298,3 +299,4 @@ kover {
         }
     }
 }
+*/

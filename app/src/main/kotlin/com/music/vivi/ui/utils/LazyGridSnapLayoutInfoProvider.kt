@@ -8,7 +8,7 @@ import androidx.compose.foundation.lazy.grid.LazyGridLayoutInfo
 import androidx.compose.foundation.lazy.grid.LazyGridState
 
 @ExperimentalFoundationApi
-fun SnapLayoutInfoProvider(
+fun GridSnapLayoutInfoProvider(
     lazyGridState: LazyGridState,
     positionInLayout: (layoutSize: Float, itemSize: Float) -> Float = { layoutSize, itemSize ->
         (layoutSize / 2f - itemSize / 2f)

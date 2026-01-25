@@ -1,0 +1,111 @@
+Reusing configuration cache.
+> Task :innertube:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :kizzy:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :lastfm:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :betterlyrics:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:preBuild UP-TO-DATE
+> Task :lrclib:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:preUniversalStandardDebugBuild UP-TO-DATE
+> Task :kizzy:processResources NO-SOURCE
+> Task :betterlyrics:processResources NO-SOURCE
+> Task :innertube:processResources NO-SOURCE
+> Task :lrclib:processResources NO-SOURCE
+> Task :lastfm:processResources NO-SOURCE
+> Task :kugou:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :kugou:processResources NO-SOURCE
+> Task :app:createUniversalStandardDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:generateUniversalStandardDebugBuildConfig UP-TO-DATE
+> Task :app:generateUniversalStandardDebugResValues UP-TO-DATE
+> Task :app:generateUniversalStandardDebugResources UP-TO-DATE
+> Task :app:extractUniversalStandardDebugSupportedLocales UP-TO-DATE
+> Task :app:extractDeepLinksUniversalStandardDebug UP-TO-DATE
+> Task :kizzy:compileKotlin UP-TO-DATE
+> Task :lastfm:compileKotlin UP-TO-DATE
+> Task :betterlyrics:compileKotlin UP-TO-DATE
+> Task :lrclib:compileKotlin UP-TO-DATE
+> Task :kizzy:compileJava NO-SOURCE
+> Task :lastfm:compileJava NO-SOURCE
+> Task :lrclib:compileJava NO-SOURCE
+> Task :betterlyrics:compileJava NO-SOURCE
+> Task :innertube:compileKotlin UP-TO-DATE
+> Task :lastfm:classes UP-TO-DATE
+> Task :betterlyrics:classes UP-TO-DATE
+> Task :lrclib:classes UP-TO-DATE
+> Task :kizzy:classes UP-TO-DATE
+> Task :app:checkUniversalStandardDebugAarMetadata UP-TO-DATE
+> Task :app:mapUniversalStandardDebugSourceSetPaths UP-TO-DATE
+> Task :app:processUniversalStandardDebugNavigationResources UP-TO-DATE
+> Task :innertube:compileJava NO-SOURCE
+> Task :lrclib:jar UP-TO-DATE
+> Task :lastfm:jar UP-TO-DATE
+> Task :kugou:compileKotlin UP-TO-DATE
+> Task :betterlyrics:jar UP-TO-DATE
+> Task :kizzy:jar UP-TO-DATE
+> Task :app:compileUniversalStandardDebugNavigationResources UP-TO-DATE
+> Task :innertube:classes UP-TO-DATE
+> Task :app:processUniversalStandardDebugMainManifest UP-TO-DATE
+> Task :innertube:jar UP-TO-DATE
+> Task :kugou:compileJava NO-SOURCE
+> Task :kugou:classes UP-TO-DATE
+> Task :app:processUniversalStandardDebugManifest UP-TO-DATE
+> Task :kugou:jar UP-TO-DATE
+> Task :app:processUniversalStandardDebugManifestForPackage UP-TO-DATE
+> Task :app:generateUniversalStandardDebugLocaleConfig UP-TO-DATE
+> Task :app:packageUniversalStandardDebugResources UP-TO-DATE
+> Task :app:mergeUniversalStandardDebugResources UP-TO-DATE
+> Task :app:parseUniversalStandardDebugLocalResources UP-TO-DATE
+> Task :app:processUniversalStandardDebugResources UP-TO-DATE
+> Task :app:kspUniversalStandardDebugKotlin
+
+> Task :app:compileUniversalStandardDebugKotlin FAILED
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumHeader.kt:158:13 This material3 API is experimental and is likely to change or to be removed in the future.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumHeader.kt:164:41 This material3 API is experimental and is likely to change or to be removed in the future.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumHeader.kt:201:13 This material3 API is experimental and is likely to change or to be removed in the future.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumHeader.kt:214:41 This material3 API is experimental and is likely to change or to be removed in the future.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumHeader.kt:333:17 This material3 API is experimental and is likely to change or to be removed in the future.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumHeader.kt:392:21 This material3 API is experimental and is likely to change or to be removed in the future.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumHeader.kt:394:49 This material3 API is experimental and is likely to change or to be removed in the future.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumHeader.kt:436:58 This material3 API is experimental and is likely to change or to be removed in the future.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumHeader.kt:436:78 This material3 API is experimental and is likely to change or to be removed in the future.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumHeader.kt:439:13 This material3 API is experimental and is likely to change or to be removed in the future.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumHeader.kt:472:26 This material3 API is experimental and is likely to change or to be removed in the future.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumHeader.kt:472:46 This material3 API is experimental and is likely to change or to be removed in the future.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumHeader.kt:497:38 This material3 API is experimental and is likely to change or to be removed in the future.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumHeader.kt:497:59 This material3 API is experimental and is likely to change or to be removed in the future.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumHeader.kt:509:13 This material3 API is experimental and is likely to change or to be removed in the future.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumHeader.kt:512:57 Argument type mismatch: actual type is 'String?', but 'String' was expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumHeader.kt:518:26 This material3 API is experimental and is likely to change or to be removed in the future.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumHeader.kt:518:46 This material3 API is experimental and is likely to change or to be removed in the future.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumHeader.kt:525:38 This material3 API is experimental and is likely to change or to be removed in the future.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumHeader.kt:525:59 This material3 API is experimental and is likely to change or to be removed in the future.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumHeader.kt:530:13 This material3 API is experimental and is likely to change or to be removed in the future.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumHeader.kt:545:26 This material3 API is experimental and is likely to change or to be removed in the future.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumHeader.kt:545:46 This material3 API is experimental and is likely to change or to be removed in the future.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumHeader.kt:552:38 This material3 API is experimental and is likely to change or to be removed in the future.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/media/albums/AlbumHeader.kt:552:59 This material3 API is experimental and is likely to change or to be removed in the future.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/home/components/HomeForgottenFavorites.kt:77:34 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/home/components/HomeForgottenFavorites.kt:78:9 None of the following candidates is applicable:
+fun SnapLayoutInfoProvider(lazyGridState: LazyGridState, snapPosition: SnapPosition = ...): SnapLayoutInfoProvider
+fun SnapLayoutInfoProvider(lazyListState: LazyListState, snapPosition: SnapPosition = ...): SnapLayoutInfoProvider
+fun SnapLayoutInfoProvider(pagerState: PagerState, pagerSnapDistance: PagerSnapDistance, calculateFinalSnappingBound: (Float, Float, Float) -> Float): SnapLayoutInfoProvider
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/home/components/HomeForgottenFavorites.kt:80:34 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/home/components/HomeForgottenFavorites.kt:80:46 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/home/components/HomeQuickPicks.kt:3:27 Unresolved reference 'media'.
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileUniversalStandardDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 11s
+32 actionable tasks: 2 executed, 30 up-to-date
+Configuration cache entry reused.

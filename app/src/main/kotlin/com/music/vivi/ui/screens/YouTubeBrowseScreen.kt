@@ -69,8 +69,9 @@ import com.music.vivi.ui.menu.YouTubeAlbumMenu
 import com.music.vivi.ui.menu.YouTubeArtistMenu
 import com.music.vivi.ui.menu.YouTubePlaylistMenu
 import com.music.vivi.ui.menu.YouTubeSongMenu
-import com.music.vivi.ui.utils.SnapLayoutInfoProvider
+
 import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.ui.utils.GridSnapLayoutInfoProvider
 import com.music.vivi.viewmodels.YouTubeBrowseViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
@@ -97,7 +98,7 @@ fun YouTubeBrowseScreen(
         val horizontalLazyGridItemWidthFactor = if (maxWidth * 0.475f >= 320.dp) 0.475f else 0.9f
         val lazyGridState = rememberLazyGridState()
         val snapLayoutInfoProvider = remember(lazyGridState) {
-            SnapLayoutInfoProvider(
+            GridSnapLayoutInfoProvider(
                 lazyGridState = lazyGridState,
                 positionInLayout = { layoutSize, itemSize ->
                     (layoutSize * horizontalLazyGridItemWidthFactor / 2f - itemSize / 2f)

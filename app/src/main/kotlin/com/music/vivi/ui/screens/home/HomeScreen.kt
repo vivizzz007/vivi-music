@@ -126,7 +126,7 @@ import com.music.vivi.ui.menu.YouTubeAlbumMenu
 import com.music.vivi.ui.menu.YouTubeArtistMenu
 import com.music.vivi.ui.menu.YouTubePlaylistMenu
 import com.music.vivi.ui.menu.YouTubeSongMenu
-import com.music.vivi.ui.utils.SnapLayoutInfoProvider
+import com.music.vivi.ui.utils.GridSnapLayoutInfoProvider
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.HomeViewModel
 import kotlinx.coroutines.Dispatchers
@@ -282,7 +282,7 @@ internal fun HomeScreen(
         val horizontalLazyGridItemWidthFactor = if (maxWidth * 0.475f >= 320.dp) 0.475f else 0.9f
         val horizontalLazyGridItemWidth = maxWidth * horizontalLazyGridItemWidthFactor
         val quickPicksSnapLayoutInfoProvider = remember(quickPicksLazyGridState) {
-            SnapLayoutInfoProvider(
+            GridSnapLayoutInfoProvider(
                 lazyGridState = quickPicksLazyGridState,
                 positionInLayout = { layoutSize, itemSize ->
                     (layoutSize * horizontalLazyGridItemWidthFactor / 2f - itemSize / 2f)
@@ -290,7 +290,7 @@ internal fun HomeScreen(
             )
         }
         val forgottenFavoritesSnapLayoutInfoProvider = remember(forgottenFavoritesLazyGridState) {
-            SnapLayoutInfoProvider(
+            GridSnapLayoutInfoProvider(
                 lazyGridState = forgottenFavoritesLazyGridState,
                 positionInLayout = { layoutSize, itemSize ->
                     (layoutSize * horizontalLazyGridItemWidthFactor / 2f - itemSize / 2f)

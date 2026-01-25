@@ -130,7 +130,7 @@ import com.music.vivi.ui.component.BottomSheet
 import com.music.vivi.ui.component.BottomSheetState
 import com.music.vivi.ui.component.LocalBottomSheetPageState
 import com.music.vivi.ui.component.LocalMenuState
-import com.music.vivi.ui.component.MediaMetadataListItem
+import com.music.vivi.ui.component.media.common.MediaMetadataListItem
 import com.music.vivi.ui.component.RoundedCheckbox
 import com.music.vivi.ui.menu.PlayerMenu
 import com.music.vivi.ui.menu.SelectionMediaMetadataMenu

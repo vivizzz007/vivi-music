@@ -13,13 +13,13 @@ import com.music.innertube.models.PlaylistItem
 import com.music.innertube.models.SongItem
 import com.music.innertube.models.WatchEndpoint
 import com.music.innertube.models.YTItem
-import com.music.vivi.PlayerConnection
+import com.music.vivi.playback.PlayerConnection
 import com.music.vivi.db.entities.Album
 import com.music.vivi.db.entities.Artist
 import com.music.vivi.db.entities.LocalItem
 import com.music.vivi.db.entities.Playlist
 import com.music.vivi.db.entities.Song
-import com.music.vivi.extensions.toMediaMetadata
+import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.ui.component.MenuState

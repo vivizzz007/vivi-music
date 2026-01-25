@@ -1,6 +1,5 @@
 package com.music.vivi.ui.component.home
 
-import android.support.v4.media.session.PlaybackStateCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -38,11 +37,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.music.vivi.LocalPlayerConnection
-import com.music.vivi.PlayerConnection
+import com.music.vivi.playback.PlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.ListItemHeight
 import com.music.vivi.db.entities.Song
-import com.music.vivi.extensions.toMediaMetadata
+import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.playback.queues.YouTubeQueue

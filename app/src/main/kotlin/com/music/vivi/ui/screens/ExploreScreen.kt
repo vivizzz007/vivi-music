@@ -38,6 +38,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.music.innertube.models.*
+import com.music.vivi.ui.utils.GridSnapLayoutInfoProvider
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.constants.ListItemHeight
@@ -53,7 +54,7 @@ import com.music.vivi.ui.component.shimmer.ShimmerHost
 import com.music.vivi.ui.component.shimmer.TextPlaceholder
 import com.music.vivi.ui.menu.YouTubeAlbumMenu
 import com.music.vivi.ui.menu.YouTubeSongMenu
-import com.music.vivi.ui.utils.SnapLayoutInfoProvider
+
 import com.music.vivi.viewmodels.ChartsViewModel
 import com.music.vivi.viewmodels.ExploreViewModel
 import com.music.vivi.R
@@ -133,7 +134,7 @@ fun ExploreScreen(
 
                         val lazyGridState = rememberLazyGridState()
                         val snapLayoutInfoProvider = remember(lazyGridState) {
-                            SnapLayoutInfoProvider(
+                            GridSnapLayoutInfoProvider(
                                 lazyGridState = lazyGridState,
                                 positionInLayout = { layoutSize, itemSize ->
                                     (layoutSize * horizontalLazyGridItemWidthFactor / 2f - itemSize / 2f)

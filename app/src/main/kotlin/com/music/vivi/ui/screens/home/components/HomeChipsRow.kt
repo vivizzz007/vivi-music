@@ -23,14 +23,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.music.innertube.models.Chip
+import com.music.innertube.pages.HomePage
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun HomeChipsRow(
-    chips: List<Chip>,
-    selectedChip: Chip?,
-    onChipClick: (Chip) -> Unit,
+      chips: List<HomePage.Chip>,
+      selectedChip: HomePage.Chip?,
+      onChipClick: (HomePage.Chip) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(

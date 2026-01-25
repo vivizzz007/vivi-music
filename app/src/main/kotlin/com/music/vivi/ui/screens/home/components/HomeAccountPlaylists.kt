@@ -20,6 +20,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
+import androidx.compose.foundation.layout.only
+import coil3.request.crossfade
 import coil3.request.ImageRequest
 import com.music.innertube.models.PlaylistItem
 import com.music.vivi.LocalPlayerConnection

@@ -35,6 +35,7 @@ import com.music.vivi.ui.utils.resize
 import com.music.vivi.utils.joinByBullet
 import com.music.vivi.utils.makeTimeString
 import com.music.vivi.utils.rememberPreference
+import kotlinx.coroutines.flow.firstOrNull
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
