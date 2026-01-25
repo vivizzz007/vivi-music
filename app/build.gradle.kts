@@ -11,7 +11,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
-android {
+configure<com.android.build.api.dsl.ApplicationExtension> {
     namespace = "com.music.vivi"
     compileSdk = 36
 
