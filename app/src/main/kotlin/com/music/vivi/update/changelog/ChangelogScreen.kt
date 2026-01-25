@@ -135,15 +135,15 @@ fun ChangelogScreen(
                     val changelogJson = changelogUrl.openStream().bufferedReader().use { it.readText() }
                     val changelogData = JSONObject(changelogJson)
 
-                    val desc = changelogData.optString("description", null)
-                    val imageUrl = changelogData.optString("image", null)
+                    val desc = changelogData.optString("description")
+                    val imageUrl = changelogData.optString("image")
                     val changelogArray = changelogData.getJSONArray("changelog")
                     val changelogText = buildString {
                         for (i in 0 until changelogArray.length()) {
                             appendLine(changelogArray.getString(i))
                         }
                     }.trim()
-                    val warning = changelogData.optString("warning", null)
+                    val warning = changelogData.optString("warning")
 
                     saveChangelogToCache(context, tag, changelogText, imageUrl, desc, warning)
 
@@ -203,7 +203,7 @@ fun ChangelogScreen(
                         try {
                             val changelogJson = URL(changelogUrl).openStream().bufferedReader().use { it.readText() }
                             val changelogData = JSONObject(changelogJson)
-                            list.add(ReleaseMetadata(tagName, name, formattedDate, changelogData.optString("image", null)))
+                            list.add(ReleaseMetadata(tagName, name, formattedDate, changelogData.optString("image")))
                         } catch (e: Exception) {
                             list.add(ReleaseMetadata(tagName, name, formattedDate, null))
                         }
@@ -465,9 +465,9 @@ private fun loadChangelogFromCache(context: Context, versionTag: String): Cached
         val cacheData = JSONObject(context.openFileInput("changelog_cache_$versionTag.json").use { it.bufferedReader().readText() })
         CachedChangelogData(
             changelog = cacheData.getString("changelog"),
-            image = cacheData.optString("image", null).takeIf { !it.isNullOrBlank() },
-            description = cacheData.optString("description", null).takeIf { !it.isNullOrBlank() },
-            warning = cacheData.optString("warning", null).takeIf { !it.isNullOrBlank() }
+            image = cacheData.optString("image").takeIf { !it.isNullOrBlank() },
+            description = cacheData.optString("description").takeIf { !it.isNullOrBlank() },
+            warning = cacheData.optString("warning").takeIf { !it.isNullOrBlank() }
         )
     } catch (e: Exception) { null }
 }

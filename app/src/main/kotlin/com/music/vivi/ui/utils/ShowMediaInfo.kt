@@ -130,18 +130,12 @@ fun ShowMediaInfo(videoId: String) {
             ) {
                 val imageUrl = song?.thumbnailUrl ?: "https://i.ytimg.com/vi/$videoId/mqdefault.jpg"
                 
-                if (imageUrl != null) {
-                    AsyncImage(
-                        model = imageUrl,
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                     ShimmerHost {
-                        Box(modifier = Modifier.fillMaxSize()) // Placeholder
-                    }
-                }
+                AsyncImage(
+                    model = imageUrl,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
             }
         }
 

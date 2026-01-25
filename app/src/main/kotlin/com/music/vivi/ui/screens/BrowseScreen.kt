@@ -120,7 +120,7 @@ import androidx.compose.ui.Alignment
                  )
              }
  
-             if (items == null || items.isEmpty()) {
+            if (items.isEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     Box(
                         modifier = Modifier
