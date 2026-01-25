@@ -48,6 +48,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.music.vivi.R
+
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 import com.music.vivi.repositories.NewsItem
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.utils.backToMain
@@ -94,7 +97,7 @@ fun NewsDetailScreen(
             isRefreshing = isRefreshing,
             onRefresh = onRefresh,
             indicator = {
-                @OptIn(ExperimentalMaterial3Api::class)
+
                 PullToRefreshDefaults.LoadingIndicator(
                     state = pullRefreshState,
                     isRefreshing = isRefreshing,
