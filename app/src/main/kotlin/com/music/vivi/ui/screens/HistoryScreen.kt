@@ -93,7 +93,7 @@ import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.NavigationTitle
 import com.music.vivi.ui.component.RoundedCheckbox
-import com.music.vivi.ui.component.media.songs.SongListItem
+import com.music.vivi.ui.component.LibrarySongListItem
 import com.music.vivi.ui.component.media.youtube.YouTubeListItem
 import com.music.vivi.ui.menu.SelectionMediaMetadataMenu
 import com.music.vivi.ui.menu.SongMenu
@@ -149,7 +149,7 @@ fun HistoryScreen(
     val historySource by viewModel.historySource.collectAsState()
 
     val historyPage by viewModel.historyPage.collectAsState()
-    
+
     val events by viewModel.events.collectAsState()
 
     val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
@@ -441,7 +441,7 @@ fun HistoryScreen(
                                         else MaterialTheme.colorScheme.surfaceContainer
                                     )
                             ) {
-                                SongListItem(
+                                LibrarySongListItem(
                                     song = event.song,
                                     isActive = isActive,
                                     isPlaying = isPlaying,
@@ -553,7 +553,7 @@ fun HistoryScreen(
                 }
             }
         )
-        
+
 
     }
 

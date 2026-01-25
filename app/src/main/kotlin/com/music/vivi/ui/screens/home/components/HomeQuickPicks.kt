@@ -47,7 +47,7 @@ import com.music.vivi.models.MediaMetadata
 import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.NavigationTitle
-import com.music.vivi.ui.component.media.songs.SongListItem
+import com.music.vivi.ui.component.LibrarySongListItem
 import com.music.vivi.ui.menu.SongMenu
 
 import com.music.vivi.utils.ImmutableList
@@ -125,7 +125,7 @@ internal fun HomeQuickPicks(
                                     else MaterialTheme.colorScheme.surfaceContainer
                                 )
                         ) {
-                            SongListItem(
+                            LibrarySongListItem(
                                 song = song,
                                 showInLibraryIcon = true,
                                 isActive = isActive,

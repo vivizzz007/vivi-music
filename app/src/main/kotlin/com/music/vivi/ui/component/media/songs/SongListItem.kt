@@ -10,9 +10,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.music.vivi.LocalDownloadUtil
 import com.music.vivi.constants.ListThumbnailSize
-import com.music.vivi.constants.SwipeToSongKey
 import com.music.vivi.constants.ThumbnailCornerRadius
 import com.music.vivi.db.entities.Song
 import com.music.vivi.extensions.toMediaItem
@@ -23,7 +21,6 @@ import com.music.vivi.ui.component.media.common.MediaIcons
 import com.music.vivi.ui.component.media.common.SwipeToSongBox
 import com.music.vivi.utils.joinByBullet
 import com.music.vivi.utils.makeTimeString
-import com.music.vivi.utils.rememberPreference
 
 @Composable
 fun SongListItem(
@@ -33,6 +30,8 @@ fun SongListItem(
     showLikedIcon: Boolean = true,
     showInLibraryIcon: Boolean = false,
     showDownloadIcon: Boolean = true,
+    downloadState: Int? = null,
+    swipeEnabled: Boolean = false,
     badges: @Composable RowScope.() -> Unit = {
         if (showLikedIcon && song.song.liked) {
             MediaIcons.Favorite()
@@ -44,9 +43,7 @@ fun SongListItem(
             MediaIcons.Library()
         }
         if (showDownloadIcon) {
-            val download by LocalDownloadUtil.current.getDownload(song.id)
-                .collectAsState(initial = null)
-            MediaIcons.Download(download?.state)
+            MediaIcons.Download(downloadState)
         }
     },
     isSelected: Boolean = false,
@@ -58,8 +55,6 @@ fun SongListItem(
     trailingContent: @Composable RowScope.() -> Unit = {},
     drawHighlight: Boolean = true,
 ) {
-    val swipeEnabled by rememberPreference(SwipeToSongKey, defaultValue = false)
-
     val content: @Composable () -> Unit = {
         ListItem(
             title = song.song.title,

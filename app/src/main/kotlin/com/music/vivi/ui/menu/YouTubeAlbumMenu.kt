@@ -82,7 +82,7 @@ import com.music.vivi.playback.ExoDownloadService
 import com.music.vivi.playback.queues.YouTubeAlbumRadio
 import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.ui.component.ListDialog
-import com.music.vivi.ui.component.media.songs.SongListItem
+import com.music.vivi.ui.component.LibrarySongListItem
 import com.music.vivi.utils.reportException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOf
@@ -792,7 +792,7 @@ fun YouTubeAlbumMenu(
             }
 
             items(notAddedList) { song: Song ->
-                SongListItem(song = song)
+                LibrarySongListItem(song = song)
             }
         }
     }

@@ -46,7 +46,7 @@ import com.music.vivi.playback.queues.ListQueue
 import com.music.vivi.ui.component.HideOnScrollFAB
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.LocalMenuState
-import com.music.vivi.ui.component.media.songs.SongListItem
+import com.music.vivi.ui.component.LibrarySongListItem
 import com.music.vivi.ui.component.SortHeader
 import com.music.vivi.ui.menu.SongMenu
 import com.music.vivi.ui.utils.backToMain
@@ -124,7 +124,7 @@ fun ArtistSongsScreen(
                 items = songs,
                 key = { _, item -> item.id },
             ) { index, song ->
-                SongListItem(
+                LibrarySongListItem(
                     song = song,
                     showInLibraryIcon = true,
                     isActive = song.id == mediaMetadata?.id,

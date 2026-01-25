@@ -109,7 +109,7 @@ import com.music.vivi.playback.queues.LocalAlbumRadio
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.NavigationTitle
-import com.music.vivi.ui.component.media.songs.SongListItem
+import com.music.vivi.ui.component.LibrarySongListItem
 import com.music.vivi.ui.component.media.youtube.YouTubeGridItem
 import com.music.vivi.ui.component.shimmer.ListItemPlaceHolder
 import com.music.vivi.ui.component.shimmer.ShimmerHost
@@ -270,7 +270,7 @@ internal fun AlbumScreen(
                             songWrapper.isSelected = true
                         }
                     ) { songWrapper, shape, modifier ->
-                        SongListItem(
+                        LibrarySongListItem(
                             song = songWrapper.item,
                             isActive = songWrapper.item.id == mediaMetadata?.id,
                             isPlaying = isPlaying,

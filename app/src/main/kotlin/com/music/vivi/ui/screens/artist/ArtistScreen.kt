@@ -96,7 +96,7 @@ import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.NavigationTitle
 import com.music.vivi.ui.component.media.songs.roundedSongItems
-import com.music.vivi.ui.component.media.songs.SongListItem
+import com.music.vivi.ui.component.LibrarySongListItem
 import com.music.vivi.ui.component.media.youtube.YouTubeGridItem
 import com.music.vivi.ui.component.media.youtube.YouTubeListItem
 import com.music.vivi.ui.component.shimmer.ButtonPlaceholder
@@ -621,7 +621,7 @@ internal fun ArtistScreen(
                                     }
                                 }
                             ) { song, shape, modifier ->
-                                SongListItem(
+                                LibrarySongListItem(
                                     song = song,
                                     showInLibraryIcon = true,
                                     isActive = song.id == mediaMetadata?.id,

@@ -333,3 +333,44 @@ fun LibraryPlaylistGridItem(
             }
         )
 )
+
+@Composable
+fun LibrarySongListItem(
+    song: com.music.vivi.db.entities.Song,
+    modifier: Modifier = Modifier,
+    albumIndex: Int? = null,
+    showLikedIcon: Boolean = true,
+    showInLibraryIcon: Boolean = false,
+    showDownloadIcon: Boolean = true,
+    isSelected: Boolean = false,
+    isActive: Boolean = false,
+    isPlaying: Boolean = false,
+    isSwipeable: Boolean = true,
+    inSelectionMode: Boolean = false,
+    onSelectionChange: (Boolean) -> Unit = {},
+    trailingContent: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit = {},
+    drawHighlight: Boolean = true,
+) {
+    val downloadUtil = LocalDownloadUtil.current
+    val downloadState by downloadUtil.getDownload(song.id).collectAsState(initial = null)
+    val swipeEnabled by com.music.vivi.utils.rememberPreference(com.music.vivi.constants.SwipeToSongKey, defaultValue = false)
+
+    com.music.vivi.ui.component.media.songs.SongListItem(
+        song = song,
+        modifier = modifier,
+        albumIndex = albumIndex,
+        showLikedIcon = showLikedIcon,
+        showInLibraryIcon = showInLibraryIcon,
+        showDownloadIcon = showDownloadIcon,
+        downloadState = downloadState?.state,
+        swipeEnabled = swipeEnabled,
+        isSelected = isSelected,
+        isActive = isActive,
+        isPlaying = isPlaying,
+        isSwipeable = isSwipeable,
+        inSelectionMode = inSelectionMode,
+        onSelectionChange = onSelectionChange,
+        trailingContent = trailingContent,
+        drawHighlight = drawHighlight
+    )
+}

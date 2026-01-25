@@ -99,7 +99,7 @@ import com.music.vivi.ui.component.EmptyPlaceholder
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.RoundedCheckbox
-import com.music.vivi.ui.component.media.songs.SongListItem
+import com.music.vivi.ui.component.LibrarySongListItem
 import com.music.vivi.ui.component.SortHeader
 import com.music.vivi.ui.menu.SelectionSongMenu
 import com.music.vivi.ui.menu.SongMenu
@@ -471,7 +471,7 @@ fun CachePlaylistScreen(
                                         else MaterialTheme.colorScheme.surfaceContainer
                                     )
                             ) {
-                                SongListItem(
+                                LibrarySongListItem(
                                     song = songWrapper.item,
                                     isActive = isActive,
                                     isPlaying = isPlaying,
@@ -497,8 +497,8 @@ fun CachePlaylistScreen(
                                         }
                                     },
                                     isSelected = songWrapper.isSelected,
-                                inSelectionMode = selection,
-                                onSelectionChange = { songWrapper.isSelected = it },
+                                    inSelectionMode = selection,
+                                    onSelectionChange = { songWrapper.isSelected = it },
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .combinedClickable(

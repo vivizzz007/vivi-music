@@ -45,7 +45,7 @@ import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.NavigationTitle
-import com.music.vivi.ui.component.media.songs.SongListItem
+import com.music.vivi.ui.component.LibrarySongListItem
 import com.music.vivi.ui.menu.SongMenu
 import kotlin.math.min
 
@@ -120,7 +120,7 @@ internal fun HomeForgottenFavorites(
                  modifier = Modifier
                     .width(horizontalLazyGridItemWidth)
             ) {
-                 SongListItem(
+                LibrarySongListItem(
                     song = song,
                     showInLibraryIcon = true,
                     isActive = isActive,

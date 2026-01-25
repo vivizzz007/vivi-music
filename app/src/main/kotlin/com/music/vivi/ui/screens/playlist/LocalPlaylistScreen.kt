@@ -148,7 +148,7 @@ import com.music.vivi.ui.component.EmptyPlaceholder
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.OverlayEditButton
-import com.music.vivi.ui.component.media.songs.SongListItem
+import com.music.vivi.ui.component.LibrarySongListItem
 import com.music.vivi.ui.component.SortHeader
 import com.music.vivi.ui.component.TextFieldDialog
 import com.music.vivi.ui.menu.CustomThumbnailMenu
@@ -1060,13 +1060,12 @@ fun LocalPlaylistScreen(
                                                         else MaterialTheme.colorScheme.surfaceContainer
                                                     )
                                             ) {
-                                                SongListItem(
+                                                LibrarySongListItem(
                                                     song = song.song,
                                                     isActive = isActive,
                                                     isPlaying = isPlaying,
                                                     showInLibraryIcon = true,
                                                     isSwipeable = false,
-                                                    drawHighlight = false,
                                                     trailingContent = {
                                                         IconButton(
                                                             onClick = {
@@ -1099,6 +1098,34 @@ fun LocalPlaylistScreen(
                                                             }
                                                         }
                                                     },
+                                                    isSelected = false, // Not using selection here directly as per original? Wait, original had no selection params here?
+                                                    // Original code snippet for FIRST SongListItem:
+                                                    // song = song.song, isActive, isPlaying, showInLibraryIcon=true, isSwipeable=false, drawHighlight=false
+                                                    // trailingContent includes menu and drag handle.
+                                                    // modifier combinedClickable with onClick and onLongClick for selection.
+
+                                                    // LibrarySongListItem has isSelected and inSelectionMode params.
+                                                    // But here logic is handled via modifier.
+                                                    // I should pass isSelected = false (or check wrappedSongs? this is mutableSongs loop).
+                                                    // Wait, selection logic in LocalPlaylistScreen uses `wrappedSongs` for selection mode, but `itemsIndexed` iterates `if (isSearching) filteredSongs else mutableSongs`.
+                                                    // `filteredSongs` are wrappers?
+                                                    // filteredSongs logic:
+                                                    // if query empty -> songs (mutableSongs?) No.
+                                                    // val filteredSongs = remember(songs, query) { ... songs.filter ... }
+                                                    // See line 230: filteredSongs handles `songs` (List<PlaylistSong>).
+                                                    // `wrappedSongs` (line 250) wraps filteredSongs.
+
+                                                    // Wait, `itemsIndexed` at line 956 uses `if (isSearching) filteredSongs else mutableSongs`.
+                                                    // `mutableSongs` is list of contents.
+                                                    // `filteredSongs` is list of contents.
+                                                    // `wrappedSongs` is list of `ItemWrapper` used when `selection` is true?
+
+                                                    // Line 955: `if (!selection)`.
+                                                    // So here selection is FALSE.
+                                                    // So I should pass `inSelectionMode = false`.
+
+                                                    inSelectionMode = false,
+                                                    onSelectionChange = {},
                                                     modifier = Modifier
                                                         .fillMaxSize()
                                                         .combinedClickable(
@@ -1301,13 +1328,12 @@ fun LocalPlaylistScreen(
                                                         else MaterialTheme.colorScheme.surfaceContainer
                                                     )
                                             ) {
-                                                SongListItem(
+                                                LibrarySongListItem(
                                                     song = songWrapper.item.song,
                                                     isActive = isActive,
                                                     isPlaying = isPlaying,
                                                     showInLibraryIcon = true,
                                                     isSwipeable = false,
-                                                    drawHighlight = false,
                                                     trailingContent = {
                                                         IconButton(
                                                             onClick = {

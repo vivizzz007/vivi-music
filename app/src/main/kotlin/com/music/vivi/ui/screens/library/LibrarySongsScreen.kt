@@ -69,7 +69,7 @@ import com.music.vivi.playback.queues.ListQueue
 import com.music.vivi.ui.component.HideOnScrollFAB
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.RoundedCheckbox
-import com.music.vivi.ui.component.media.songs.SongListItem
+import com.music.vivi.ui.component.LibrarySongListItem
 import com.music.vivi.ui.component.SortHeader
 import com.music.vivi.ui.menu.SelectionSongMenu
 import com.music.vivi.ui.menu.SongMenu
@@ -332,7 +332,7 @@ fun LibrarySongsScreen(
                                     else MaterialTheme.colorScheme.surfaceContainer
                                 )
                         ) {
-                            SongListItem(
+                            LibrarySongListItem(
                                 song = songWrapper.item,
                                 showInLibraryIcon = true,
                                 isActive = isActive,

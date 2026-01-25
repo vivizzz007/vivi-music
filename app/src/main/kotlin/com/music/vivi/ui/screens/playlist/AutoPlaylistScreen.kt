@@ -109,7 +109,7 @@ import com.music.vivi.ui.component.RoundedCheckbox
 import com.music.vivi.constants.SongSortDescendingKey
 import com.music.vivi.constants.SongSortType
 import com.music.vivi.constants.SongSortTypeKey
-import com.music.vivi.ui.component.media.songs.SongListItem
+import com.music.vivi.ui.component.LibrarySongListItem
 import com.music.vivi.ui.component.SortHeader
 import com.music.vivi.ui.menu.AutoPlaylistMenu
 import com.music.vivi.ui.menu.SelectionSongMenu
@@ -709,7 +709,7 @@ fun AutoPlaylistScreen(
                                         else MaterialTheme.colorScheme.surfaceContainer
                                     )
                             ) {
-                                SongListItem(
+                                LibrarySongListItem(
                                     song = songWrapper.item,
                                     isActive = isActive,
                                     isPlaying = isPlaying,

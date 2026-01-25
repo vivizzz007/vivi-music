@@ -37,11 +37,11 @@ import com.music.vivi.extensions.toMediaItem
 import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.playback.queues.ListQueue
 import com.music.vivi.ui.component.*
-import com.music.vivi.ui.component.media.songs.SongListItem
 import com.music.vivi.ui.component.media.albums.AlbumListItem
 import com.music.vivi.ui.component.media.artists.ArtistListItem
 import com.music.vivi.ui.component.media.playlists.PlaylistListItem
 import com.music.vivi.ui.menu.SongMenu
+import com.music.vivi.ui.component.LibrarySongListItem
 import com.music.vivi.viewmodels.LocalFilter
 import com.music.vivi.viewmodels.LocalSearchViewModel
 import kotlinx.coroutines.flow.drop
@@ -180,7 +180,7 @@ fun LocalSearchScreen(
                     contentType = { CONTENT_TYPE_LIST },
                 ) { item ->
                     when (item) {
-                        is Song -> SongListItem(
+                        is Song -> LibrarySongListItem(
                             song = item,
                             showInLibraryIcon = true,
                             isActive = item.id == mediaMetadata?.id,
