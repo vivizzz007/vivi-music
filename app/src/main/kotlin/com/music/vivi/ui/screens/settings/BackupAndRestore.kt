@@ -73,6 +73,7 @@ fun BackupAndRestore(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
     viewModel: BackupRestoreViewModel = hiltViewModel(),
+    onBack: (() -> Unit)? = null,
 ) {
     val (settingsShapeTertiary, _) = rememberPreference(SettingsShapeColorTertiaryKey, false)
     val (darkMode, _) = rememberEnumPreference(
@@ -118,6 +119,7 @@ fun BackupAndRestore(
         mutableIntStateOf(0)
     }
     val context = LocalContext.current
+    val appName = stringResource(R.string.app_name)
     val backupLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
             if (uri != null) {
@@ -172,7 +174,7 @@ fun BackupAndRestore(
                     title = {},
                     navigationIcon = {
                         IconButton(
-                            onClick = navController::navigateUp,
+                            onClick = { onBack?.invoke() ?: navController.navigateUp() },
                             onLongClick = navController::backToMain
                         ) {
                             Icon(
@@ -249,7 +251,7 @@ fun BackupAndRestore(
                                     onClick = {
                                         val formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
                                         backupLauncher.launch(
-                                            "${context.getString(R.string.app_name)}_${
+                                            "${appName}_${
                                                 LocalDateTime.now().format(formatter)
                                             }.backup"
                                         )

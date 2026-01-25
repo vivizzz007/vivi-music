@@ -10,6 +10,7 @@ import com.music.innertube.models.MusicResponsiveListItemRenderer
 import com.music.innertube.models.MusicShelfRenderer
 import com.music.innertube.models.MusicTwoRowItemRenderer
 import com.music.innertube.models.PlaylistItem
+import com.music.innertube.models.Run
 import com.music.innertube.models.SectionListRenderer
 import com.music.innertube.models.SongItem
 import com.music.innertube.models.YTItem
@@ -26,6 +27,8 @@ data class ArtistPage(
     val artist: ArtistItem,
     val sections: List<ArtistSection>,
     val description: String?,
+    val monthlyListenerCount: String? = null,
+    val descriptionRuns: List<Run>? = null,
 ) {
     companion object {
         fun fromSectionListRendererContent(content: SectionListRenderer.Content): ArtistSection? {

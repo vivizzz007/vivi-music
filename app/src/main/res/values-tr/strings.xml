@@ -45,7 +45,7 @@
 
     <!-- Search -->
     <string name="search">Ara</string>
-    <string name="search_yt_music">YouTube Music\'te ara…</string>
+    <string name="search_yt_music">YouTube Music\te ara…</string>
     <string name="search_library">Kitaplıkta ara…</string>
     <string name="filter_library">Kitaplık</string>
     <string name="filter_liked">Beğenilenler</string>
@@ -253,6 +253,8 @@
     <string name="player_slider_style">Oynatıcı slider stili</string>
     <string name="default_">Varsayılan</string>
     <string name="wavy">Dalgalı</string>
+    <string name="squiggly">Kıvrımlı</string>
+    <string name="slim">İnce</string>
     <string name="misc">Misc</string>
     <string name="default_open_tab">Varsayılan açılan sekme</string>
     <string name="grid_cell_size">Izgara hücre boyutu</string>
@@ -269,7 +271,7 @@
     <string name="content_language">Varsayılan içerik dili</string>
     <string name="content_country">Varsayılan içerik ülke</string>
     <string name="system_default">Sistem varsayılanı</string>
-    <string name="enable_proxy">Proxy'yi etkinleştir</string>
+    <string name="enable_proxy">Proxyyi etkinleştir</string>
     <string name="proxy_type">Proxy türü</string>
     <string name="proxy_url">Proxy URL</string>
     <string name="restart_to_take_effect">Değişikliklerin etkili olması için yeniden başlatın</string>
@@ -352,4 +354,5 @@
     <string name="lyrics_text_size">Sözlerin boyutu</string>
     <string name="lyrics_line_spacing">Sözlerin satır aralığı</string>
     <string name="lyrics_style">Sözlerin stili</string>
+    <string name="login_required_premium">Çok Yüksek Kalite için YouTube Premium gerekir</string>
 </resources>

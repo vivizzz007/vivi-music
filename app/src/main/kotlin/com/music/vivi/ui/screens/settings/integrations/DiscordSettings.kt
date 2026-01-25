@@ -95,6 +95,7 @@ import com.music.vivi.update.mordernswitch.ModernSwitch
 fun DiscordSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    onBack: (() -> Unit)? = null,
 ) {
     val (settingsShapeTertiary, _) = rememberPreference(SettingsShapeColorTertiaryKey, false)
     val (darkMode, _) = rememberEnumPreference(
@@ -137,22 +138,19 @@ fun DiscordSettings(
     val coroutineScope = rememberCoroutineScope()
 
     var discordToken by rememberPreference(DiscordTokenKey, "")
+    val integrationsViewModel: com.music.vivi.viewmodels.IntegrationsViewModel = androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel()
+    val discordState by integrationsViewModel.discordState.collectAsState()
+
+    // Delegate actual display values to VM state for reliability, but use preferences for mutability
     var discordUsername by rememberPreference(DiscordUsernameKey, "")
     var discordName by rememberPreference(DiscordNameKey, "")
+    val isLoggedIn = discordToken.isNotEmpty()
+    
     var infoDismissed by rememberPreference(DiscordInfoDismissedKey, false)
 
-    LaunchedEffect(discordToken) {
-        val token = discordToken
-        if (token.isEmpty()) {
-            return@LaunchedEffect
-        }
-        coroutineScope.launch(Dispatchers.IO) {
-            KizzyRPC.getUserInfo(token).onSuccess {
-                discordUsername = it.username
-                discordName = it.name
-            }
-        }
-    }
+    // Local manual update for token editing still writes to DataStore via rememberPreference
+    // VM observes DataStore and updates state.
+
 
     LaunchedEffect(playbackState) {
         if (playbackState == STATE_READY) {
@@ -173,10 +171,7 @@ fun DiscordSettings(
         defaultValue = false
     )
 
-    val isLoggedIn =
-        remember(discordToken) {
-            discordToken != ""
-        }
+
 
     var showTokenDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -382,7 +377,7 @@ fun DiscordSettings(
         title = { Text(stringResource(R.string.discord_integration)) },
         navigationIcon = {
             IconButton(
-                onClick = navController::navigateUp,
+                onClick = { onBack?.invoke() ?: navController.navigateUp() },
                 onLongClick = navController::backToMain,
             ) {
                 Icon(

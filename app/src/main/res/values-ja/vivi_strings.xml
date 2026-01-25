@@ -101,7 +101,6 @@
     <string name="swipe_song_to_add">曲を左にスワイプしてキューに追加、右にスワイプして次に再生</string>
     <string name="lyrics_click_change">クリックで歌詞を変更</string>
     <string name="lyrics_auto_scroll">歌詞の自動スクロール</string>
-    <string name="slim">スリム</string>
     <string name="slim_navbar">スリムな下部ナビゲーションバー</string>
     <string name="auto_playlists">自動プレイリスト</string>
     <string name="show_liked_playlist">\"高く評価\" プレイリストを表示</string>
@@ -829,9 +828,9 @@
     <string name="radio_text">ラジオ</string>
     <string name="shuffle_text">シャッフル</string>
     <string name="audio_quality_title">音質</string>
-    <string name="progress_percentage">進行状況 %1%%</string>
-    <string name="songs_count">曲数 (%1)</string>
-    <string name="check_out_top_share">Vivi Musicで私のトップ %1 をチェック！\n\n</string>
+    <string name="progress_percentage">進行状況 %1$s%%</string>
+    <string name="songs_count">曲数 (%1$s)</string>
+    <string name="check_out_top_share">Vivi Musicで私のトップ %1$s をチェック！\n\n</string>
     <string name="by_text">By </string>
     <string name="is_a_playlist">はプレイリストです</string>
     <string name="album_text">アルバム</string>
@@ -844,9 +843,9 @@
     <string name="crash_log_email_body">クラッシュログ（クリップボードにもコピーされました）:\n\n%1$s\n\nデバイス情報:\n%2$s</string>
     <string name="feedback_for_vivi_music_app">Vivi Musicアプリへのフィードバック</string>
     <string name="please_write_feedback">ここにフィードバックをお書きください...</string>
-    <string name="crash_log_subject">クラッシュログ: %1</string>
+    <string name="crash_log_subject">クラッシュログ: %1$s</string>
     <string name="crash_log_attached">Vivi Musicアプリからのクラッシュログ添付</string>
-    <string name="vivi_music_issue_report">Vivi Music問題レポート - v%1</string>
+    <string name="vivi_music_issue_report">Vivi Music問題レポート - v%1$s</string>
 
     <!-- Experimental Settings -->
     <string name="updates_title">アップデート</string>
@@ -894,10 +893,10 @@
 
     <!-- Download Notifications -->
     <string name="downloading_update">アップデートをダウンロード中</string>
-    <string name="version_file_size">バージョン %1$s • %2$s</string>
-    <string name="version_progress">バージョン %1$s • %2$d%%</string>
+    <string name="version_file_size">バージョン %1 • %2</string>
+    <string name="version_progress">バージョン %1 • %2%%</string>
     <string name="update_ready">アップデート準備完了</string>
-    <string name="tap_to_install_version">タップしてバージョン %1 をインストール</string>
+    <string name="tap_to_install_version">タップしてバージョン %1$s をインストール</string>
 
     <!-- Beta Update Labels -->
     <string name="version_label">バージョン</string>

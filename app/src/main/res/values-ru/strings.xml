@@ -272,7 +272,9 @@
     <string name="right">Справа</string>
     <string name="player_slider_style">Стиль слайдера</string>
     <string name="default_">По умолчанию</string>
-    <string name="squiggly">Волнистый</string>
+    <string name="wavy">Волнистый</string>
+    <string name="squiggly">Извилистый</string>
+    <string name="slim">Тонкий</string>
     <string name="misc">Разное</string>
     <string name="default_open_tab">Вкладка по умолчанию</string>
     <string name="grid_cell_size">Размер ячейки сетки</string>
@@ -372,4 +374,5 @@
     <string name="lyrics_text_size">Размер текста</string>
     <string name="lyrics_line_spacing">Междустрочный интервал</string>
     <string name="lyrics_style">Стиль текста</string>
+    <string name="login_required_premium">Для очень высокого качества требуется YouTube Premium</string>
 </resources>

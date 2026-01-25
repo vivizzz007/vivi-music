@@ -93,6 +93,7 @@ import java.util.Locale
 fun AboutScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    onBack: (() -> Unit)? = null,
 ) {
     val (settingsShapeTertiary, _) = rememberPreference(SettingsShapeColorTertiaryKey, false)
     val (darkMode, _) = rememberEnumPreference(
@@ -126,6 +127,7 @@ fun AboutScreen(
 
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
+    val unknownString = stringResource(R.string.unknown)
     val scrollState = rememberLazyListState()
 
     var latestRelease by remember { mutableStateOf<String?>(null) }
@@ -148,7 +150,7 @@ fun AboutScreen(
             val installTime = packageInfo.firstInstallTime
             SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date(installTime))
         } catch (_: Exception) {
-            context.getString(R.string.unknown)
+            unknownString
         }
     }
 
@@ -217,7 +219,7 @@ fun AboutScreen(
                     },
                     navigationIcon = {
                         IconButton(
-                            onClick = navController::navigateUp,
+                            onClick = { onBack?.invoke() ?: navController.navigateUp() },
                             onLongClick = navController::backToMain
                         ) {
                             Icon(
@@ -273,7 +275,7 @@ fun AboutScreen(
                                 .padding(horizontal = 16.dp, vertical = 8.dp)
                         ) {
                             Text(
-                                text = "v${BuildConfig.VERSION_NAME} • Stable",
+                                text = "v${BuildConfig.VERSION_NAME} • Van Halen • Stable",
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.primary
                             )
@@ -382,6 +384,44 @@ fun AboutScreen(
                                 )
                             }
                         )
+                    )
+                }
+
+                // Collaborator Section
+                item {
+                    Text(
+                        text = stringResource(R.string.collaborator_section),
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
+                    )
+                }
+
+                item {
+                    Material3ExpressiveSettingsGroup(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        items = listOf {
+                            ModernInfoItem(
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.person),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                },
+                                title = stringResource(R.string.collaborator_tboyke),
+                                subtitle = stringResource(R.string.collaborator_role),
+                                onClick = { uriHandler.openUri("https://github.com/T-Boyke") },
+                                showArrow = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
+                            )
+                        }
                     )
                 }
 

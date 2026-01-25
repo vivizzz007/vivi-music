@@ -3,6 +3,8 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     id("com.android.application")
     kotlin("android")
+    id("kotlin-parcelize")
+
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.compose.compiler)
@@ -17,13 +19,12 @@ android {
         applicationId = "com.vivi.vivimusic"
         minSdk = 26
         targetSdk = 36
-        versionCode = 20 //20 //61
-        versionName = "5.0.2" //updated
+        versionCode = 21 //62 //21
+        versionName = "5.0.3"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "com.music.vivi.CustomTestRunner"
         vectorDrawables.useSupportLibrary = true
 
-        // LastFM API keys from GitHub Secrets
         buildConfigField("String", "LASTFM_API_KEY", "\"${System.getenv("LASTFM_API_KEY") ?: ""}\"")
         buildConfigField("String", "LASTFM_SECRET", "\"${System.getenv("LASTFM_SECRET") ?: ""}\"")
     }
@@ -31,7 +32,6 @@ android {
     flavorDimensions += listOf("abi", "distribution")
 
     productFlavors {
-        // ABI Dimension (Architecture)
         create("universal") {
             dimension = "abi"
             ndk {
@@ -60,16 +60,13 @@ android {
             buildConfigField("String", "ARCHITECTURE", "\"x86_64\"")
         }
 
-        // Distribution Dimension (Build Type)
         create("foss") {
             dimension = "distribution"
             buildConfigField("String", "BUILD_TYPE", "\"foss\"")
-
         }
         create("standard") {
             dimension = "distribution"
             buildConfigField("String", "BUILD_TYPE", "\"standard\"")
-
         }
     }
     signingConfigs {
@@ -96,6 +93,16 @@ android {
         }
     }
 
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            all {
+                it.testLogging {
+                    events("passed", "skipped", "failed", "standardOut", "standardError")
+                }
+            }
+        }
+    }
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
@@ -103,10 +110,18 @@ android {
         targetCompatibility = JavaVersion.VERSION_21
     }
 
+    // KORRIGIERTER BLOCK -> // CORRECTED BLOCK
+    // implementation(libs.coil.compose) wurde entfernt -> // implementation(libs.coil.compose) was removed
     kotlin {
         jvmToolchain(21)
         compilerOptions {
-            freeCompilerArgs.add("-Xannotation-default-target=param-property")
+            freeCompilerArgs.addAll(
+                listOf(
+                    "-Xannotation-default-target=param-property",
+                    "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
+                    "-opt-in=kotlinx.coroutines.FlowPreview"
+                )
+            )
             jvmTarget.set(JvmTarget.JVM_21)
         }
     }
@@ -178,18 +193,24 @@ dependencies {
     implementation(libs.compose.ui.tooling)
     implementation(libs.compose.animation)
     implementation(libs.compose.reorderable)
+    implementation(libs.compose.google.fonts)
 
     implementation(libs.viewmodel)
     implementation(libs.viewmodel.compose)
 
     implementation(libs.material3)
+    implementation(libs.material3.adaptive)
+    implementation(libs.material3.adaptive.layout)
+    implementation(libs.material3.adaptive.navigation)
     implementation(libs.palette)
     implementation(libs.materialKolor)
 
     implementation(libs.appcompat)
 
+    // Coil dependencies
     implementation(libs.coil)
     implementation(libs.coil.network.okhttp)
+    // implementation(libs.coil.compose) wurde entfernt
 
     implementation(libs.ucrop)
 
@@ -219,9 +240,9 @@ dependencies {
     implementation(project(":lastfm"))
     implementation(project(":betterlyrics"))
 
-
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.client.cio)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.json)
 
@@ -233,19 +254,32 @@ dependencies {
     implementation("androidx.compose.material:material-icons-core:1.7.8")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation("com.airbnb.android:lottie-compose:6.6.9")
-    implementation("io.coil-kt:coil-compose:2.7.0")
-    implementation("com.squareup.okhttp3:okhttp:4.10.0")
     implementation("com.google.code.gson:gson:2.13.2")
     implementation("com.github.racra:smooth-corner-rect-android-compose:v1.0.0")
-    implementation("com.squareup.retrofit2:retrofit:3.0.0")
-    implementation("com.squareup.retrofit2:converter-gson:3.0.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:5.1.0")
-    implementation("androidx.core:core-ktx:1.17.0")
-    implementation("androidx.work:work-runtime-ktx:2.9.0")
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.compose.ui:ui:1.6.1")
-    implementation("androidx.graphics:graphics-shapes:1.1.0")
-    implementation("androidx.glance:glance-appwidget:1.1.0")
-    implementation("androidx.glance:glance-material3:1.1.0")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.profileinstaller)
+    
+    implementation("androidx.compose.ui:ui:1.6.1")
+    implementation("androidx.graphics:graphics-shapes:1.0.0-alpha05")
+    implementation("androidx.glance:glance-appwidget:1.0.0")
+    implementation("androidx.glance:glance-material3:1.0.0")
+
+    testImplementation(libs.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.coroutines.test)
+    testImplementation(libs.robolectric)
+
+    androidTestImplementation(libs.junit)
+    androidTestImplementation(libs.espresso.core)
+    androidTestImplementation(libs.ui.test.junit4)
+    debugImplementation(libs.ui.test.manifest)
+
+    // Hilt Testing
+    testImplementation(libs.hilt.android.testing)
+    androidTestImplementation(libs.hilt.android.testing)
+    kspAndroidTest(libs.hilt.compiler)
 }

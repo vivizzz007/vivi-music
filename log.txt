@@ -1,0 +1,20 @@
+Calculating task graph as no cached configuration is available for tasks: help
+
+FAILURE: Build failed with an exception.
+
+* Where:
+Build file 'D:\DEV\vivi\vivi-music\app\build.gradle.kts' line: 3
+
+* What went wrong:
+An exception occurred applying plugin request [id: 'com.google.dagger.hilt.android', version: '2.58']
+> Failed to apply plugin 'com.google.dagger.hilt.android'.
+   > Could not find the Android Gradle Plugin (AGP) base extension.
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 901ms
+Configuration cache entry stored.

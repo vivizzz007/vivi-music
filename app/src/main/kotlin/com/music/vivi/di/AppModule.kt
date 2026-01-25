@@ -1,6 +1,8 @@
 package com.music.vivi.di
 
 import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.media3.database.DatabaseProvider
 import androidx.media3.database.StandaloneDatabaseProvider
 import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
@@ -43,6 +45,12 @@ object AppModule {
     fun provideDatabaseProvider(
         @ApplicationContext context: Context,
     ): DatabaseProvider = StandaloneDatabaseProvider(context)
+
+    @Singleton
+    @Provides
+    fun provideDataStore(
+        @ApplicationContext context: Context
+    ): DataStore<Preferences> = context.dataStore
 
     @Singleton
     @Provides

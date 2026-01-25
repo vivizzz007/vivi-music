@@ -107,7 +107,6 @@
     <string name="swipe_song_to_add">Свайп влево - в очередь, вправо - играть следующей</string>
     <string name="lyrics_click_change">Смена текста по клику</string>
     <string name="lyrics_auto_scroll">Автопрокрутка текста</string>
-    <string name="slim">Тонкий</string>
     <string name="slim_navbar">Тонкая панель навигации</string>
     <string name="auto_playlists">Авто-плейлисты</string>
     <string name="show_liked_playlist">Показывать плейлист \"Понравившиеся\"</string>

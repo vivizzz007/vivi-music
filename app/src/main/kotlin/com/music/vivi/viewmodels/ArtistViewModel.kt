@@ -17,6 +17,12 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import android.content.Context
 import com.music.innertube.models.filterVideoSongs
@@ -39,24 +45,32 @@ class ArtistViewModel @Inject constructor(
     database: MusicDatabase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    val artistId = savedStateHandle.get<String>("artistId")!!
+    private val _artistId = MutableStateFlow(savedStateHandle.get<String>("artistId"))
+    val artistId: StateFlow<String?> = _artistId.asStateFlow()
+
     var artistPage by mutableStateOf<ArtistPage?>(null)
-    val libraryArtist = database.artist(artistId)
-        .stateIn(viewModelScope, SharingStarted.Lazily, null)
-    val librarySongs = context.dataStore.data
-        .map { it[HideExplicitKey] ?: false }
-        .distinctUntilChanged()
-        .flatMapLatest { hideExplicit ->
-            database.artistSongs(artistId, ArtistSongSortType.CREATE_DATE, true).map { it.filterExplicit(hideExplicit) }
-        }
-        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-    val libraryAlbums = context.dataStore.data
-        .map { it[HideExplicitKey] ?: false }
-        .distinctUntilChanged()
-        .flatMapLatest { hideExplicit ->
-            database.artistAlbumsPreview(artistId).map { it.filterExplicitAlbums(hideExplicit) }
-        }
-        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    
+    val libraryArtist = _artistId.filterNotNull().flatMapLatest { id ->
+        database.artist(id)
+    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    val librarySongs = combine(
+        context.dataStore.data.map { it[HideExplicitKey] ?: false }.distinctUntilChanged(),
+        _artistId.filterNotNull()
+    ) { hideExplicit, id ->
+        Pair(hideExplicit, id)
+    }.flatMapLatest { (hideExplicit, id) ->
+        database.artistSongs(id, ArtistSongSortType.CREATE_DATE, true).map { it.filterExplicit(hideExplicit) }
+    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    val libraryAlbums = combine(
+        context.dataStore.data.map { it[HideExplicitKey] ?: false }.distinctUntilChanged(),
+        _artistId.filterNotNull()
+    ) { hideExplicit, id ->
+        Pair(hideExplicit, id)
+    }.flatMapLatest { (hideExplicit, id) ->
+        database.artistAlbumsPreview(id).map { it.filterExplicitAlbums(hideExplicit) }
+    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     init {
         // Load artist page and reload when hide explicit setting changes
@@ -70,11 +84,19 @@ class ArtistViewModel @Inject constructor(
         }
     }
 
+    fun setArtistId(id: String) {
+        if (_artistId.value != id) {
+            _artistId.value = id
+            fetchArtistsFromYTM()
+        }
+    }
+
     fun fetchArtistsFromYTM() {
         viewModelScope.launch {
+            val id = _artistId.value ?: return@launch
             val hideExplicit = context.dataStore.get(HideExplicitKey, false)
             val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
-            YouTube.artist(artistId)
+            YouTube.artist(id)
                 .onSuccess { page ->
                     val filteredSections = page.sections
                         .filterNot { section ->
