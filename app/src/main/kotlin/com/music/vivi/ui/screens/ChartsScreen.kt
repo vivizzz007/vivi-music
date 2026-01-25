@@ -28,7 +28,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.music.innertube.pages.ExplorePage
+import com.music.innertube.pages.ChartsPage
 import com.music.innertube.models.SongItem
 import com.music.innertube.models.WatchEndpoint
 import com.music.vivi.LocalPlayerAwareWindowInsets
@@ -124,7 +124,7 @@ public fun ChartsScreen(
                                     "Trending" -> stringResource(R.string.trending)
                                     else -> section.title ?: stringResource(R.string.charts)
                                 },
-                                modifier = Modifier.animateItem(),
+                                modifier = Modifier.animateItemPlacement(),
                             )
                         }
                         item(key = "section_content_${section.title}") {
@@ -150,7 +150,7 @@ public fun ChartsScreen(
                                     contentPadding = WindowInsets.systemBars
                                         .only(WindowInsetsSides.Horizontal)
                                         .asPaddingValues(),
-                                    modifier = with(lazyItemScope) { Modifier.animateItem() }
+                                    modifier = with(lazyItemScope) { Modifier.animateItemPlacement() }
                                         .fillMaxWidth()
                                         .height(ListItemHeight * 4),
                                 ) {
@@ -262,7 +262,7 @@ public fun ChartsScreen(
                                                     }
                                                 },
                                             )
-                                            .then(with(this) { Modifier.animateItem() }),
+                                            .then(with(this) { Modifier.animateItemPlacement() }),
                                     )
                                 }
                             }

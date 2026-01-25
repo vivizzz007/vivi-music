@@ -1,3 +1,5 @@
+package com.music.vivi.ui.component.history
+
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -142,5 +144,3 @@ fun LazyListScope.remoteHistoryList(
         }
     }
 }
-
-

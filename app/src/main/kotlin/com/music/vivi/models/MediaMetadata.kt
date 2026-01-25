@@ -110,3 +110,19 @@ fun SongItem.toMediaMetadata() =
         libraryAddToken = libraryAddToken,
         libraryRemoveToken = libraryRemoveToken
     )
+
+fun SongEntity.toMediaMetadata() =
+    MediaMetadata(
+        id = id,
+        title = title,
+        artists = emptyList(),
+        duration = duration,
+        thumbnailUrl = thumbnailUrl,
+        album = if (albumId != null) MediaMetadata.Album(albumId, albumName.orEmpty()) else null,
+        explicit = explicit,
+        liked = liked,
+        likedDate = likedDate,
+        inLibrary = inLibrary,
+        libraryAddToken = libraryAddToken,
+        libraryRemoveToken = libraryRemoveToken
+    )

@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -37,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.music.innertube.pages.ChartsPage
 import com.music.innertube.pages.ExplorePage
 import com.music.innertube.models.SongItem
 import com.music.innertube.models.WatchEndpoint
@@ -52,6 +52,7 @@ import com.music.vivi.ui.component.MoodAndGenresButton
 import com.music.vivi.ui.component.NavigationTitle
 import com.music.vivi.ui.component.media.youtube.YouTubeGridItem
 import com.music.vivi.ui.component.media.youtube.YouTubeListItem
+import com.music.vivi.ui.component.shimmer.ContainedLoadingIndicator
 import com.music.vivi.ui.menu.YouTubeAlbumMenu
 import com.music.vivi.ui.menu.YouTubeSongMenu
 import com.music.vivi.ui.utils.GridSnapLayoutInfoProvider
@@ -74,8 +75,8 @@ public fun ExploreScreen(
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
-    val explorePage: ExplorePage? by viewModel.explorePage.collectAsState()
-    val chartsPage: ExplorePage? by chartsViewModel.chartsPage.collectAsState()
+    val explorePage: ExplorePage? by exploreViewModel.explorePage.collectAsState()
+    val chartsPage: ChartsPage? by chartsViewModel.chartsPage.collectAsState()
     val isChartsLoading: Boolean by chartsViewModel.isLoading.collectAsState()
 
     val coroutineScope = rememberCoroutineScope()
@@ -250,7 +251,7 @@ public fun ExploreScreen(
                                             }
                                         },
                                     )
-                                    .animateItem(),
+                                    .animateItemPlacement(),
                             )
                         }
                     }
@@ -299,7 +300,7 @@ public fun ExploreScreen(
                                             }
                                         },
                                     )
-                                    .animateItem(),
+                                    .animateItemPlacement(),
                             )
                         }
                     }

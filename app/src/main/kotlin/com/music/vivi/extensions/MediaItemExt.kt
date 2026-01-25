@@ -5,6 +5,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata.MEDIA_TYPE_MUSIC
 import com.music.innertube.models.SongItem
 import com.music.vivi.db.entities.Song
+import com.music.vivi.db.entities.SongEntity
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.ui.utils.resize
@@ -68,3 +69,5 @@ fun MediaMetadata.toMediaItem() =
                 .setMediaType(MEDIA_TYPE_MUSIC)
                 .build(),
         ).build()
+
+fun SongEntity.toMediaItem() = toMediaMetadata().toMediaItem()
