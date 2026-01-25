@@ -793,17 +793,17 @@ private fun loadDevices(
 }
 
 
-private fun determineActiveDevice(
-    audioManager: AudioManager,
-    audioDevices: Array<AudioDeviceInfo>
-): AudioDeviceInfo? {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
         // Check various audio manager states
         when {
-            audioManager.isBluetoothA2dpOn ->
+             // Check if any Bluetooth A2DP device is present in the list (assuming it is connected if present)
+            audioDevices.any { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP } ->
                 audioDevices.find { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP }
-            audioManager.isWiredHeadsetOn ->
+
+            // Check if any Wired Headset/Headphones are present
+            audioDevices.any { it.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES || it.type == AudioDeviceInfo.TYPE_WIRED_HEADSET } ->
                 audioDevices.find { it.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES || it.type == AudioDeviceInfo.TYPE_WIRED_HEADSET }
+
             else ->
                 audioDevices.find { it.type == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER }
         }
@@ -813,6 +813,7 @@ private fun determineActiveDevice(
 }
 
 
+@Suppress("DEPRECATION")
 private fun loadDevicesLegacy(
     context: Context,
     onSuccess: (List<AudioDevice>) -> Unit,

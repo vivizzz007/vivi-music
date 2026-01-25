@@ -124,9 +124,16 @@ class ViviNotificationProvider(
             val updatedNotification = builder.build()
 
             // Re-attach the media session token if it was lost during build()
-            mediaNotification.notification.extras.getParcelable<android.media.session.MediaSession.Token>(
-                Notification.EXTRA_MEDIA_SESSION)?.let {
-                updatedNotification.extras.putParcelable(Notification.EXTRA_MEDIA_SESSION, it)
+            if (Build.VERSION.SDK_INT >= 33) {
+                mediaNotification.notification.extras.getParcelable(Notification.EXTRA_MEDIA_SESSION, android.media.session.MediaSession.Token::class.java)?.let {
+                    updatedNotification.extras.putParcelable(Notification.EXTRA_MEDIA_SESSION, it)
+                }
+            } else {
+                @Suppress("DEPRECATION")
+                mediaNotification.notification.extras.getParcelable<android.media.session.MediaSession.Token>(
+                    Notification.EXTRA_MEDIA_SESSION)?.let {
+                    updatedNotification.extras.putParcelable(Notification.EXTRA_MEDIA_SESSION, it)
+                }
             }
 
             return MediaNotification(mediaNotification.notificationId, updatedNotification)

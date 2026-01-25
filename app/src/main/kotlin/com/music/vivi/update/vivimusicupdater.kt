@@ -379,6 +379,7 @@ fun UpdateScreen(navController: NavHostController) {
                     pop()
                     append(text.substring(urlIndex + url.length))
                 }
+                @Suppress("DEPRECATION")
                 ClickableText(
                     text = annotatedString,
                     onClick = { offset ->
@@ -444,6 +445,7 @@ fun UpdateScreen(navController: NavHostController) {
                                     .size(8.dp)
                                     .background(MaterialTheme.colorScheme.primary, CircleShape)
                             )
+                            @Suppress("DEPRECATION")
                             ClickableText(
                                 text = annotatedText,
                                 onClick = { offset ->
@@ -758,6 +760,7 @@ fun UpdateScreen(navController: NavHostController) {
                                                     .size(8.dp)
                                                     .background(MaterialTheme.colorScheme.primary, CircleShape)
                                             )
+                                            @Suppress("DEPRECATION")
                                             ClickableText(
                                                 text = annotatedText,
                                                 onClick = { offset ->
