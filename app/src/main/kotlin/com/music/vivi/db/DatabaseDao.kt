@@ -58,10 +58,20 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.Locale
 
+/**
+ * Data Access Object (DAO) for the Music Database.
+ * Contains all SQL queries and methods for interacting with local media data.
+ *
+ * It uses a mix of Flow (for reactive updates) and suspend functions.
+ * Complex sorting logic is often implemented in Kotlin via [.map] transformations on Flows.
+ */
 @Dao
 interface DatabaseDao {
     @Transaction
     @Query("SELECT * FROM song WHERE (inLibrary IS NOT NULL OR liked OR isDownloaded = 1) ORDER BY rowId")
+    /**
+     * Observable list of all available songs (Library, Liked, or Downloaded), sorted by insertion order.
+     */
     fun songsByRowIdAsc(): Flow<List<Song>>
 
     @Transaction
@@ -76,6 +86,11 @@ interface DatabaseDao {
     @Query("SELECT * FROM song WHERE (inLibrary IS NOT NULL OR liked OR isDownloaded = 1) ORDER BY totalPlayTime")
     fun songsByPlayTimeAsc(): Flow<List<Song>>
 
+    /**
+     * Returns a flow of songs sorted by the [sortType].
+     * @param sortType The criterion to sort by (Name, Artist, Date, Play Time).
+     * @param descending Whether to reverse the sort order.
+     */
     fun songs(sortType: SongSortType, descending: Boolean) = when (sortType) {
         SongSortType.CREATE_DATE -> songsByCreateDateAsc()
         SongSortType.NAME ->
@@ -109,6 +124,9 @@ interface DatabaseDao {
 
     @Transaction
     @Query("SELECT * FROM song WHERE liked ORDER BY rowId")
+    /**
+     * Observable list of Liked songs.
+     */
     fun likedSongsByRowIdAsc(): Flow<List<Song>>
 
     @Transaction
@@ -156,6 +174,9 @@ interface DatabaseDao {
 
     @Transaction
     @Query("SELECT COUNT(1) FROM song WHERE liked")
+    /**
+     * Observes the count of liked songs.
+     */
     fun likedSongsCount(): Flow<Int>
 
     @Transaction
@@ -204,6 +225,15 @@ interface DatabaseDao {
     )
     fun artistSongsPreview(artistId: String, previewSize: Int = 3): Flow<List<Song>>
 
+    /**
+     * "Quick Picks" algorithm.
+     * Selects songs based on:
+     * 1. Recent listening history (last 5 songs).
+     * 2. Heavy rotation from the last 7 days.
+     * 3. Overall most played songs.
+     *
+     * It uses a weighted approach where recent interactions and related songs boost the ranking.
+     */
     @Transaction
     @Query(
         """
@@ -256,7 +286,7 @@ interface DatabaseDao {
             sum(event.playTime) DESC
         LIMIT :limit
         OFFSET :offset
-        
+
         """
     )
     fun getRecommendationAlbum(
@@ -265,6 +295,15 @@ interface DatabaseDao {
         offset: Int = 0,
     ): Flow<List<Song>>
 
+    /**
+     * Calculations for "Most Played Songs" statistics.
+     * Returns Song objects augmented with play counts within the time window.
+     *
+     * @param fromTimeStamp Start of the time window.
+     * @param limit Max results.
+     * @param offset Pagination offset.
+     * @param toTimeStamp End of the time window (default: now).
+     */
     @Transaction
     @Query(
         """
@@ -378,13 +417,13 @@ interface DatabaseDao {
             FROM song_album_map
                      JOIN event e ON song_album_map.songId = e.songId
             WHERE albumId = album.id
-              AND e.timestamp > :fromTimeStamp 
+              AND e.timestamp > :fromTimeStamp
               AND e.timestamp <= :toTimeStamp) AS songCountListened,
            (SELECT SUM(e.playTime)
             FROM song_album_map
                      JOIN event e ON song_album_map.songId = e.songId
             WHERE albumId = album.id
-              AND e.timestamp > :fromTimeStamp 
+              AND e.timestamp > :fromTimeStamp
               AND e.timestamp <= :toTimeStamp) AS timeListened
     FROM album
     JOIN song_album_map ON album.id = song_album_map.albumId
@@ -414,7 +453,7 @@ interface DatabaseDao {
     @Query(
         """
         SELECT album.*, count(song.dateDownload) downloadCount
-        FROM album_artist_map 
+        FROM album_artist_map
             JOIN album ON album_artist_map.albumId = album.id
             JOIN song ON album_artist_map.albumId = song.albumId
         WHERE artistId = :artistId
@@ -433,6 +472,15 @@ interface DatabaseDao {
     @Query("SELECT count from playCount WHERE song = :songId AND year = :year AND month = :month")
     fun getPlayCountByMonth(songId: String?, year: Int, month: Int): Flow<Int>
 
+    /**
+     * Finds "Forgotten Favorites".
+     * Songs that were played a lot more in the past (> 30 days ago) than recently.
+     *
+     * Logic:
+     * - oldPlayTime: Sum of play time before 30 days ago.
+     * - newPlayTime: Sum of play time within last 30 days.
+     * - Selects where 20% of oldPlayTime is still greater than newPlayTime (i.e. listening dropped off significantly).
+     */
     @Transaction
     @Query(
         """
@@ -519,11 +567,11 @@ interface DatabaseDao {
                       ORDER BY totalPlayTime DESC) AS artistTotalPlayTime
                      ON artist.id = artistId
                      OR artist.bookmarkedAt IS NOT NULL
-                     ORDER BY 
-                      CASE 
-                        WHEN artistTotalPlayTime.artistId IS NULL THEN 1 
-                        ELSE 0 
-                      END, 
+                     ORDER BY
+                      CASE
+                        WHEN artistTotalPlayTime.artistId IS NULL THEN 1
+                        ELSE 0
+                      END,
                       artistTotalPlayTime.totalPlayTime DESC
     """
     )
@@ -931,11 +979,11 @@ interface DatabaseDao {
     fun addSongToPlaylist(playlist: Playlist, songIds: List<String>) {
         var position = playlist.songCount
         songIds.forEach { id ->
-            // Wir prüfen vorher nicht aufwändig, sondern fangen den FK-Fehler ab.
-            // Das ist performant und sicher.
+            // We do not check exhaustively beforehand, but catch the FK error.
+            // This is performant and safe.
             try {
-                // Optional: Sicherstellen, dass der Song existiert, falls er noch nicht gespeichert wurde.
-                // Das setzt voraus, dass 'insert' für den Song vorher anderswo aufgerufen wurde.
+                // Optional: Ensure that the song exists if it has not been saved elsewhere before.
+                // This assumes that 'insert' for the song was called elsewhere previously.
 
                 insert(
                     PlaylistSongMap(
@@ -945,7 +993,7 @@ interface DatabaseDao {
                     )
                 )
             } catch (e: android.database.sqlite.SQLiteConstraintException) {
-                // Song oder Playlist existiert nicht -> Überspringen statt Absturz
+                // Song or Playlist does not exist -> Skip instead of crash
                 android.util.Log.e("DatabaseDao", "Failed to add song $id to playlist ${playlist.id}: ${e.message}")
             }
         }
@@ -1139,12 +1187,12 @@ interface DatabaseDao {
     @Transaction
     @Query(
         """
-        UPDATE playlist_song_map SET position = 
-            CASE 
+        UPDATE playlist_song_map SET position =
+            CASE
                 WHEN position < :fromPosition THEN position + 1
                 WHEN position > :fromPosition THEN position - 1
                 ELSE :toPosition
-            END 
+            END
         WHERE playlistId = :playlistId AND position BETWEEN MIN(:fromPosition, :toPosition) AND MAX(:fromPosition, :toPosition)
     """
     )
@@ -1197,6 +1245,9 @@ interface DatabaseDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insert(playCountEntity: PlayCountEntity): Long
 
+    /**
+     * Helper to insert media metadata (Song) and its Artists/Artist Maps in one transaction.
+     */
     @Transaction
     fun insert(mediaMetadata: MediaMetadata, block: (SongEntity) -> SongEntity = { it }) {
         if (insert(mediaMetadata.toSongEntity().let(block)) == -1L) return
@@ -1457,6 +1508,10 @@ interface DatabaseDao {
     @RawQuery
     fun raw(supportSQLiteQuery: SupportSQLiteQuery): Int
 
+    /**
+     * Forces a WAL (Write-Ahead-Log) checkpoint.
+     * Use this during optimizing or maintenance to ensure data is fully flushed to the main DB file.
+     */
     fun checkpoint() {
         raw("PRAGMA wal_checkpoint(FULL)".toSQLiteQuery())
     }

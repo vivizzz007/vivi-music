@@ -12,6 +12,17 @@ import kotlinx.coroutines.launch
 import org.apache.commons.lang3.RandomStringUtils
 import java.time.LocalDateTime
 
+/**
+ * Represents an Artist stored in the local database.
+ *
+ * @property id Unique identifier (YouTube Channel ID or generated local ID).
+ * @property name Artist name.
+ * @property thumbnailUrl Profile picture URL.
+ * @property channelId YouTube Channel ID (redundant with ID usually, but separate if ID is internal).
+ * @property lastUpdateTime Last sync timestamp.
+ * @property bookmarkedAt Timestamp when user subscribed/bookmarked.
+ * @property isLocal Whether this artist is from local files.
+ */
 @Immutable
 @Entity(tableName = "artist")
 data class ArtistEntity(

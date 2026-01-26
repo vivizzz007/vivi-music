@@ -5,6 +5,13 @@ import androidx.room.Embedded
 import androidx.room.Junction
 import androidx.room.Relation
 
+/**
+ * Represents a complete Playlist with thumbnail previews.
+ *
+ * @property playlist The core Playlist entity.
+ * @property songCount Total number of songs in the playlist.
+ * @property songThumbnails List of thumbnails from the first few songs (used for playlist cover grid).
+ */
 @Immutable
 data class Playlist(
     @Embedded

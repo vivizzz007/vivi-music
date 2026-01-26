@@ -22,6 +22,13 @@ import androidx.room.ForeignKey
         )
     ]
 )
+/**
+ * Map connecting Songs to Albums.
+ *
+ * @property songId ID of the song.
+ * @property albumId ID of the album.
+ * @property index Track number/index of the song in the album.
+ */
 data class SongAlbumMap(
     @ColumnInfo(index = true) val songId: String,
     @ColumnInfo(index = true) val albumId: String,

@@ -11,6 +11,24 @@ import kotlinx.coroutines.launch
 import org.apache.commons.lang3.RandomStringUtils
 import java.time.LocalDateTime
 
+/**
+ * Represents a Playlist stored in the local database.
+ * Can be a local user-created playlist or a synced YouTube playlist.
+ *
+ * @property id Unique identifier.
+ * @property name Playlist name.
+ * @property browseId YouTube Browse ID (for synced playlists).
+ * @property createdAt Creation timestamp.
+ * @property lastUpdateTime Last modification timestamp.
+ * @property isEditable Whether the user can add/remove songs.
+ * @property bookmarkedAt Timestamp if pinned/bookmarked.
+ * @property remoteSongCount Song count reported by YouTube.
+ * @property playEndpointParams YouTube play parameters.
+ * @property thumbnailUrl Playlist cover URL.
+ * @property shuffleEndpointParams YouTube shuffle parameters.
+ * @property radioEndpointParams YouTube radio parameters.
+ * @property isLocal Whether it is a purely local playlist.
+ */
 @Immutable
 @Entity(tableName = "playlist")
 data class PlaylistEntity(

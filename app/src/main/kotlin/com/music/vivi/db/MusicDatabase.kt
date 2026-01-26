@@ -40,16 +40,31 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.Date
 
+/**
+ * The main Room Database access point for the application.
+ *
+ * Provides thread-safe access to the DAO and handles database transactions.
+ * Wraps the [InternalDatabase] to abstract Room implementation details.
+ */
 class MusicDatabase(private val delegate: InternalDatabase) : DatabaseDao by delegate.dao {
+    /**
+     * Access to the underlying SQLite helper.
+     */
     val openHelper: SupportSQLiteOpenHelper
         get() = delegate.openHelper
 
+    /**
+     * Executes a database query block on the IO/Query executor.
+     */
     fun query(block: MusicDatabase.() -> Unit) = with(delegate) {
         queryExecutor.execute {
             block(this@MusicDatabase)
         }
     }
 
+    /**
+     * Executes a database transaction block on the Transaction executor.
+     */
     fun transaction(block: MusicDatabase.() -> Unit) = with(delegate) {
         transactionExecutor.execute {
             runInTransaction {
@@ -58,9 +73,21 @@ class MusicDatabase(private val delegate: InternalDatabase) : DatabaseDao by del
         }
     }
 
+    /**
+     * Closes the underlying database.
+     */
     fun close() = delegate.close()
 }
 
+/**
+ * The internal Room database definition.
+ * Should not be accessed directly; use [MusicDatabase] instead.
+ *
+ * Contains:
+ * - Entity registrations
+ * - View definitions
+ * - Migration logic (automatic and manual specs)
+ */
 @Database(
     entities = [
         SongEntity::class,

@@ -13,6 +13,8 @@ import android.media.audiofx.AudioEffect
 import android.media.audiofx.LoudnessEnhancer
 import android.net.ConnectivityManager
 import android.os.Binder
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
@@ -1918,7 +1920,8 @@ class MusicService :
         isRunning = false
         // Persist queue before killing scope
         if (dataStore.get(PersistentQueueKey, true)) {
-            saveQueueToDisk()
+            // Use blocking save to ensure data is written before process death
+            saveQueueToDisk(blocking = true)
         }
 
         // Cancel scope FIRST to stop new coroutines/updates

@@ -22,6 +22,13 @@ import androidx.room.ForeignKey
         )
     ]
 )
+/**
+ * Map connecting Songs to Artists.
+ *
+ * @property songId ID of the song.
+ * @property artistId ID of the artist.
+ * @property position Order of the artist (e.g., Main artist vs Featured artist).
+ */
 data class SongArtistMap(
     @ColumnInfo(index = true) val songId: String,
     @ColumnInfo(index = true) val artistId: String,

@@ -4,6 +4,10 @@ import androidx.compose.runtime.Immutable
 import androidx.room.Embedded
 import androidx.room.Relation
 
+/**
+ * A listening event combined with the Song details.
+ * Used for displaying History UI.
+ */
 @Immutable
 data class EventWithSong(
     @Embedded
