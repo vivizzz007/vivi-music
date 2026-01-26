@@ -42,7 +42,8 @@ fun MusicTheme(
     themeColor: Color = DefaultThemeColor,
     enableDynamicTheme: Boolean = true,
     overrideColorScheme: ColorScheme? = null,
-    expressive: Boolean = false,
+    shapeStyle: ShapeStyle = ShapeStyle.Default, // New parameter replacing expressive
+    fontName: String = "Roboto Flex",
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
@@ -78,11 +79,29 @@ fun MusicTheme(
         }
     }
 
+    // Generate responsive/expressive typography based on selection
+    val typography = remember(shapeStyle, fontName) {
+        // We still use expressive typography effectively if the style is "Expressive" or generally always,
+        // but let's keep the logic consistent: Expressive shapes usually pair with expressive type,
+        // but here we have a dedicated fontName.
+        // Let's assume we always use makeExpressiveTypography with the font name,
+        // as the "Existing" logic was just a boolean switch.
+        // If we want to strictly follow previous logic:
+        // if (expressive) makeExpressiveTypography(fontName) else AppTypography
+        // Now "expressive" is shapeStyle == ShapeStyle.Expressive?
+        // Actually, usually font style is independent. Let's make it always use the selected font.
+        makeExpressiveTypography(fontName)
+    }
+
+    val shapes = remember(shapeStyle) {
+        makeShapes(shapeStyle)
+    }
+
     // Use standard MaterialTheme instead of MaterialExpressiveTheme
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = if (expressive) ExpressiveTypography else AppTypography,
-        shapes = if (expressive) ExpressiveShapes else DefaultShapes,
+        typography = typography,
+        shapes = shapes,
         content = content
     )
 }

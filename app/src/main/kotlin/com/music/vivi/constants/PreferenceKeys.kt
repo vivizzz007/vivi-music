@@ -369,6 +369,13 @@ val SearchSourceKey = stringPreferencesKey("searchSource")
 val SwipeThumbnailKey = booleanPreferencesKey("swipeThumbnail")
 val SwipeSensitivityKey = floatPreferencesKey("swipeSensitivity")
 
+// New Features Keys
+val AppFontKey = stringPreferencesKey("appFont") // "Roboto Flex", "Outfit", "Space Grotesk"
+val AppShapeKey = stringPreferencesKey("appShape") // "Round", "Square", "Cut", "Expressive"
+val CDCoverModeKey = booleanPreferencesKey("cdCoverMode") // true = Spinning Disc, false = Normal
+val ZenModeKey = booleanPreferencesKey("zenMode") // AOD/ScreenSaver mode
+
+
 enum class SearchSource {
     LOCAL,
     ONLINE,

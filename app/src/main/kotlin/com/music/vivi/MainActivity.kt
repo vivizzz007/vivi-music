@@ -136,6 +136,10 @@ import com.music.innertube.models.SongItem
 import com.music.innertube.models.WatchEndpoint
 import com.music.vivi.constants.AppBarHeight
 import com.music.vivi.constants.AppLanguageKey
+import com.music.vivi.constants.AppFontKey
+import com.music.vivi.constants.AppShapeKey
+import com.music.vivi.constants.CDCoverModeKey
+import com.music.vivi.constants.ZenModeKey
 import com.music.vivi.constants.CheckForUpdatesKey
 import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.DefaultOpenTabKey
@@ -189,6 +193,7 @@ import com.music.vivi.ui.screens.settings.NavigationTab
 import com.music.vivi.ui.theme.ColorSaver
 import com.music.vivi.ui.theme.DefaultThemeColor
 import com.music.vivi.ui.theme.MusicTheme
+import com.music.vivi.ui.theme.ShapeStyle
 import com.music.vivi.ui.theme.extractThemeColor
 import com.music.vivi.ui.utils.appBarScrollBehavior
 import com.music.vivi.ui.utils.backToMain
@@ -422,7 +427,8 @@ class MainActivity : ComponentActivity() {
                 (pureBlackEnabled || (powerSaver && powerSaverPureBlack)) && useDarkTheme
             }
 
-            val material3Expressive by rememberPreference(Material3ExpressiveKey, defaultValue = false)
+            val (appShape, _) = rememberEnumPreference(AppShapeKey, defaultValue = ShapeStyle.Default)
+
 
             var themeColor by rememberSaveable(stateSaver = ColorSaver) {
                 mutableStateOf(DefaultThemeColor)
@@ -504,13 +510,16 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
+            val appFont by rememberPreference(AppFontKey, defaultValue = "Roboto Flex")
+
             MusicTheme(
                 darkTheme = useDarkTheme,
                 pureBlack = pureBlack,
                 themeColor = themeColor,
                 enableDynamicTheme = enableDynamicTheme,
                 overrideColorScheme = generatedColorScheme,
-                expressive = material3Expressive
+                shapeStyle = appShape,
+                fontName = appFont
             ) {
                 BoxWithConstraints(
                     modifier =
