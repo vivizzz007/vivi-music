@@ -55,6 +55,10 @@ import com.music.vivi.update.settingstyle.ModernInfoItem
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 
+/**
+ * Screen for managing privacy settings.
+ * Includes options to pause/clear listening and search history, and disable screenshots.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrivacySettings(

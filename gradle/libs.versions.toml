@@ -2,7 +2,7 @@
 androidGradlePlugin = "9.0.0"
 annotation = "1.9.1"
 json = "20250517"
-kotlin = "2.1.0"
+kotlin = "2.3.0"
 compose = "1.10.1"
 lifecycle = "2.10.0"
 material3 = "1.5.0-alpha12"
@@ -41,7 +41,7 @@ workmanager = "2.11.0"
 uiGraphics = "1.10.0"
 robolectric = "4.15"
 mockk = "1.13.13"
-espresso = "3.6.1"
+espresso = "3.7.0"
 coreKtx = "1.13.0"
 profileinstaller = "1.4.1"
 kover = "0.9.1"
@@ -116,7 +116,7 @@ material3-adaptive-navigation = { module = "androidx.compose.material3.adaptive:
 profileinstaller = { module = "androidx.profileinstaller:profileinstaller", version.ref = "profileinstaller" }
 hilt-android-testing = { module = "com.google.dagger:hilt-android-testing", version.ref = "hilt" }
 compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "compose" }
-androidx-test-runner = "androidx.test:runner:1.6.2"
+androidx-test-runner = "androidx.test:runner:1.7.0"
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 
 [plugins]

@@ -72,6 +72,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
+/**
+ * Screen for managing app storage usage.
+ * Displays storage breakdown (downloads, song cache, image cache) and allows clearing caches.
+ */
 @OptIn(ExperimentalCoilApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun StorageSettings(

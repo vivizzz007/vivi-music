@@ -128,6 +128,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.seconds
 
+/**
+ * The main Lyrics screen component.
+ * Displays synced or plain lyrics with auto-scrolling, translation/romanization support, and sharing features.
+ */
 @RequiresApi(Build.VERSION_CODES.M)
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @SuppressLint("UnusedBoxWithConstraintsScope", "StringFormatInvalid")

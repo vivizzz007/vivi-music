@@ -36,6 +36,10 @@ import androidx.compose.ui.unit.sp
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
 // Enhanced Action Button - Material 3 Expressive Design (Box-based)
+/**
+ * An enhanced action button used in the new grid-style menus.
+ * Features a large icon, marquee text, and smooth background animation.
+ */
 @Composable
 public fun NewActionButton(
     icon: @Composable () -> Unit,
@@ -126,6 +130,9 @@ public fun getGroupShape(
     }
 }
 
+/**
+ * An enhanced list item for menus, supporting grouping (top, middle, bottom, single) with rounded corners.
+ */
 @Composable
 public fun NewMenuItem(
     headlineContent: @Composable () -> Unit,
@@ -158,6 +165,9 @@ public fun NewMenuItem(
 }
 
 // Enhanced Menu Section Header - Material 3 Expressive Design
+/**
+ * header for sections within the new menu design.
+ */
 @Composable
 public fun NewMenuSectionHeader(text: String, modifier: Modifier = Modifier) {
     Text(
@@ -172,6 +182,9 @@ public fun NewMenuSectionHeader(text: String, modifier: Modifier = Modifier) {
 }
 
 // Enhanced Action Grid - Material 3 Expressive Design
+/**
+ * A grid of action buttons for the top of menus.
+ */
 @Composable
 public fun NewActionGrid(actions: List<NewAction>, modifier: Modifier = Modifier, columns: Int = 3) {
     val rows = actions.chunked(columns)
@@ -228,6 +241,9 @@ public data class NewAction(
 )
 
 // Enhanced Menu Content - Material 3 Expressive Design
+/**
+ * A container for menu content that organizes headers, action grids, and list items.
+ */
 @Composable
 public fun NewMenuContent(
     headerContent: @Composable (() -> Unit)? = null,
@@ -259,6 +275,9 @@ public fun NewMenuContent(
 }
 
 // Enhanced Icon Button - Material 3 Expressive Design
+/**
+ * A square icon button with a background card, used in menus.
+ */
 @Composable
 public fun NewIconButton(
     icon: @Composable () -> Unit,
@@ -306,6 +325,9 @@ public fun NewIconButton(
 }
 
 // Enhanced Menu Container - Material 3 Expressive Design
+/**
+ * A standard container for the new menu design, ensuring consistent padding and layout.
+ */
 @Composable
 public fun NewMenuContainer(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     Column(

@@ -31,6 +31,11 @@ sealed class LibraryRoute : Parcelable {
     data class TopPlaylist(val topParam: String) : LibraryRoute()
 }
 
+/**
+ * A Master-Detail adaptive layout for the Library screen.
+ * Uses [ListDetailPaneScaffold] to show the list of library items on the left/top
+ * and the details (Artist, Album, Playlist) on the right/bottom or as a separate screen depending on window size.
+ */
 @OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun AdaptiveLibraryScreen(navController: NavController) {

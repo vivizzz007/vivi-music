@@ -23,6 +23,18 @@ import com.materialkolor.score.Score
 
 val DefaultThemeColor = Color(0xFFED5564)
 
+/**
+ * Main theme composable for the Music Application.
+ * Configures the MaterialTheme with dynamic colors, typography, and shapes.
+ *
+ * @param darkTheme Whether to use the dark theme (defaults to system setting).
+ * @param pureBlack Whether to use pure black for background in dark mode (OLED optimization).
+ * @param themeColor The seed color for generating the color scheme.
+ * @param enableDynamicTheme Whether to use Android 12+ dynamic system colors if available.
+ * @param overrideColorScheme Optional specific color scheme to use, overriding generation logic.
+ * @param expressive Whether to use the expressive design system (typography and shapes).
+ * @param content The content to display within the theme.
+ */
 @Composable
 fun MusicTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -75,6 +87,10 @@ fun MusicTheme(
     )
 }
 
+/**
+ * Extracts a dominant theme color from the Bitmap using Palette API.
+ * Uses scoring to find the most suitable color.
+ */
 fun Bitmap.extractThemeColor(): Color {
     val colorsToPopulation = Palette.from(this)
         .maximumColorCount(8)
@@ -85,6 +101,10 @@ fun Bitmap.extractThemeColor(): Color {
     return Color(rankedColors.first())
 }
 
+/**
+ * Extracts a list of colors suitable for a gradient from the Bitmap.
+ * Returns at least two colors (primary and secondary/background).
+ */
 fun Bitmap.extractGradientColors(): List<Color> {
     val extractedColors = Palette.from(this)
         .maximumColorCount(64)

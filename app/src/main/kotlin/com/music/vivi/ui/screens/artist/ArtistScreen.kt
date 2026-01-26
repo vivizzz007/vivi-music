@@ -125,6 +125,16 @@ import com.music.vivi.ui.utils.fadingEdge
 import com.music.vivi.ui.utils.resize
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.ArtistViewModel
+/**
+ * The Main Artist Page Screen.
+ *
+ * Features:
+ * - Parallax Header with Artist Image.
+ * - Subscribe/Exclude buttons.
+ * - "Radio" and "Shuffle" controls.
+ * - Sections for Songs, Albums, Videos, and "Fans also like".
+ * - Supports both Local (Library) and Remote (Online) artist views.
+ */
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 public fun ArtistScreen(

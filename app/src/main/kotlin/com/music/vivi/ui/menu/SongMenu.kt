@@ -95,6 +95,17 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
+/**
+ * A comprehensive menu for a single song (local/library).
+ * Features:
+ * - Song info header with favorite toggle
+ * - Play/Pause/Queue actions
+ * - Download/Remove Download
+ * - Navigation to Artist/Album
+ * - Add to Playlist
+ * - Edit Song metadata
+ * - Share
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SongMenu(

@@ -30,6 +30,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
+/**
+ * A slider with a wavy progress indicator effect.
+ * The wave amplitude animates based on the `isPlaying` state.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 public fun WavySlider(

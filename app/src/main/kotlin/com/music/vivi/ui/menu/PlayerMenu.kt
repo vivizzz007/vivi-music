@@ -81,6 +81,13 @@ import kotlin.math.log2
 import kotlin.math.pow
 import kotlin.math.round
 
+
+
+/**
+ * The main player menu (three dot menu in the player).
+ * Provides a wide range of actions for the currently playing song:
+ * Add to playlist, share, download, view artist/album, audio settings (equalizer, pitch/tempo), etc.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PlayerMenu(

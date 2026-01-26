@@ -37,6 +37,10 @@ import com.music.vivi.ui.menu.YouTubePlaylistMenu
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.viewmodels.BrowseViewModel
 
+/**
+ * Generic screen for browsing YouTube Music content (Browse Endpoint).
+ * Used for pages like "New Releases" or specific section drills.
+ */
 @OptIn(
     ExperimentalFoundationApi::class,
     ExperimentalMaterial3Api::class,

@@ -22,6 +22,10 @@ import androidx.compose.ui.unit.dp
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.ui.utils.isScrollingUp
 
+/**
+ * A Floating Action Button that hides itself when the user scrolls down
+ * and reappears when scrolling up.
+ */
 @Composable
 public fun BoxScope.HideOnScrollFAB(
     visible: Boolean = true,

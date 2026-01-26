@@ -59,6 +59,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * A dialog for adding songs to a local playlist.
+ * Shows a list of existing playlists and an option to create a new one.
+ * Handles duplicate checking.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AddToPlaylistDialog(

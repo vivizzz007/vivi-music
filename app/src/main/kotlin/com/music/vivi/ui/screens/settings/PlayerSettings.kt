@@ -79,6 +79,10 @@ import com.music.vivi.update.settingstyle.ModernInfoItem
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 
+/**
+ * Screen for configuring audio and player-related settings.
+ * Includes audio quality, normalization, skip silence, simple shuffle, and other playback options.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PlayerSettings(

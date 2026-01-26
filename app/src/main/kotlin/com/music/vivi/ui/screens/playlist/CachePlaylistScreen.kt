@@ -101,6 +101,11 @@ import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.CachePlaylistViewModel
 import java.time.LocalDateTime
 
+/**
+ * Screen displaying the "Cached" playlist.
+ * Shows songs that are currently cached on the device but not necessarily fully downloaded/pinned.
+ * This is effectively a "Recently Played / Cached" list.
+ */
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CachePlaylistScreen(

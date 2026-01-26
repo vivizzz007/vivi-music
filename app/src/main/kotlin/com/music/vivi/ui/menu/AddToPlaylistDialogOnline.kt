@@ -70,6 +70,10 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
+/**
+ * A dialog for adding online songs (from YouTube) to a local playlist.
+ * Handles fetching song metadata from YouTube if needed before adding to the playlist.
+ */
 @Composable
 fun AddToPlaylistDialogOnline(
     isVisible: Boolean,

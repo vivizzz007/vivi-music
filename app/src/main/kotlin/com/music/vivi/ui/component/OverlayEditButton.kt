@@ -16,6 +16,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.music.vivi.R
 
+/**
+ * A small floating edit button used on top of images (e.g. playlist covers) to trigger editing.
+ */
 @Composable
 public fun BoxScope.OverlayEditButton(
     onClick: () -> Unit,

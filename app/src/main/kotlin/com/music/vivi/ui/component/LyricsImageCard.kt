@@ -29,6 +29,10 @@ import coil3.request.crossfade
 import com.music.vivi.R
 import com.music.vivi.models.MediaMetadata
 
+/**
+ * Calculates the optimal font size to fit text within a given width and height.
+ * Uses a binary search approach to find the best fit.
+ */
 @Composable
 public fun rememberAdjustedFontSize(
     text: String,
@@ -111,6 +115,9 @@ public fun rememberAdjustedFontSize(
     return calculatedFontSize
 }
 
+/**
+ * A card displaying lyrics with the song's cover art, typically for sharing.
+ */
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 public fun LyricsImageCard(

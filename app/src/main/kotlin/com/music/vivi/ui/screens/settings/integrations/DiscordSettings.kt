@@ -85,6 +85,10 @@ import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 
+/**
+ * Screen for configuring Discord integration.
+ * Allows logging in (via token or WebView) and toggling rich presence/detailed status.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiscordSettings(

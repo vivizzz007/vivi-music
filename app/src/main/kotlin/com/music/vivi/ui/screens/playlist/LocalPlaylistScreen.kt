@@ -173,6 +173,11 @@ import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import java.time.LocalDateTime
 
+/**
+ * Screen for displaying a user-created local playlist.
+ * Allows editing (renaming, reordering songs, removing songs) and playback.
+ * The playlist data is stored in the local Room database.
+ */
 @SuppressLint("RememberReturnType")
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable

@@ -44,6 +44,10 @@ public class MenuState(isVisible: Boolean = false, content: @Composable ColumnSc
     }
 }
 
+/**
+ * A modal bottom sheet wrapper for menus.
+ * Uses `ModalBottomSheet` from Material3 to display content provided via `MenuState`.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 public fun BottomSheetMenu(

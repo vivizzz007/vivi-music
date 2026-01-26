@@ -90,6 +90,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
+/**
+ * Menu for a YouTube Album (online).
+ * Allows managing the album (Add to library, Download), playing/shuffling/radio, and sharing.
+ * Checks local library status to update UI (e.g. favorite status).
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @SuppressLint("MutableCollectionMutableState")
 @Composable

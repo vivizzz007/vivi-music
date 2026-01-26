@@ -92,6 +92,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
+/**
+ * The bottom sheet menu for an album.
+ * Provides options like Play Next, Add to Queue, Download, Share, etc.
+ * Also shows album details and songs if available in library.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @SuppressLint("MutableCollectionMutableState")
 @Composable

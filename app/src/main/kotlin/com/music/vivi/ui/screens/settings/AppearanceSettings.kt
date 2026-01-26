@@ -133,6 +133,10 @@ import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import kotlin.math.roundToInt
 
+/**
+ * Screen for customizing the app's visual appearance.
+ * Includes settings for themes, player design, lyrics style, and more.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AppearanceSettings(

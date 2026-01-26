@@ -123,6 +123,12 @@ enum class PlaylistType {
     OTHER,
 }
 
+/**
+ * Screen for displaying auto-generated playlists like Liked Songs, Offline, Uploaded, etc.
+ * These playlists are "virtual" or system-managed rather than user-created local playlists.
+ *
+ * @param playlistId The ID/type of the auto playlist (e.g., "liked", "downloaded", "uploaded").
+ */
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AutoPlaylistScreen(

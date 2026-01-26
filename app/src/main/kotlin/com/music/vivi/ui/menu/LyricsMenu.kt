@@ -68,6 +68,11 @@ import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.LyricsMenuViewModel
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
+
+/**
+ * The menu for lyrics options.
+ * Allows editing lyrics, searching for lyrics online, syncing, and toggling romanization.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun LyricsMenu(

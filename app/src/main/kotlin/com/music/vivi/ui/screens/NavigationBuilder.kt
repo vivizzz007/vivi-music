@@ -53,6 +53,10 @@ import com.music.vivi.update.updatenotification.UpdateInfoScreen
 import com.music.vivi.updatesreen.UpdateStatus
 import com.music.vivi.updatesreen.ViviUpdatesScreen
 
+/**
+ * The main Navigation Graph builder for the Vivi Music application.
+ * Defines all the composable routes and their arguments.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 public fun NavGraphBuilder.navigationBuilder(
     navController: NavHostController,

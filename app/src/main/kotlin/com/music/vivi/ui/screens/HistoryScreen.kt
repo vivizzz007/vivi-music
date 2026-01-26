@@ -71,6 +71,14 @@ import com.music.vivi.viewmodels.DateAgo
 import com.music.vivi.viewmodels.HistoryViewModel
 import java.time.format.DateTimeFormatter
 
+/**
+ * Screen displaying playback history.
+ *
+ * Features:
+ * - Toggle between Local (App DB) and Remote (YouTube Account) history.
+ * - Search/Filter within history.
+ * - Multi-select to create playlists or delete entries.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 public fun HistoryScreen(navController: NavController, viewModel: HistoryViewModel = hiltViewModel()) {

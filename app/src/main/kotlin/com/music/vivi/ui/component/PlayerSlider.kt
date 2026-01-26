@@ -18,6 +18,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 
+
+/**
+ * A custom slider track implementation for the music player.
+ * Draws a visual representation of the track progress with buffering (though buffering drawing is standard slider).
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 public fun PlayerSliderTrack(

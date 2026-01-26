@@ -60,6 +60,10 @@ import java.time.Duration
 import java.time.LocalDateTime
 import javax.inject.Inject
 
+/**
+ * ViewModel for the "Songs" tab in Library.
+ * Supports filtering by source (Library, Liked, Downloaded, Uploaded) and sorting.
+ */
 @HiltViewModel
 public class LibrarySongsViewModel
 @Inject
@@ -110,6 +114,10 @@ constructor(
     }
 }
 
+/**
+ * ViewModel for the "Artists" tab in Library.
+ * Automatically updates artist metadata (thumbnails) from YouTube every 10 days.
+ */
 @HiltViewModel
 public class LibraryArtistsViewModel
 @Inject
@@ -161,6 +169,10 @@ constructor(
     }
 }
 
+/**
+ * ViewModel for the "Albums" tab in Library.
+ * Automatically attempts to fetch metadata for incomplete albums (songCount == 0).
+ */
 @HiltViewModel
 public class LibraryAlbumsViewModel
 @Inject
@@ -227,6 +239,9 @@ constructor(
     }
 }
 
+/**
+ * ViewModel for the "Playlists" tab in Library.
+ */
 @HiltViewModel
 public class LibraryPlaylistsViewModel
 @Inject
@@ -257,6 +272,10 @@ constructor(
             .distinctUntilChanged()
 }
 
+/**
+ * ViewModel for displaying songs of a specific artist in the library.
+ * This is effectively "Songs by Artist" view.
+ */
 @HiltViewModel
 public class ArtistSongsViewModel
 @Inject
@@ -288,6 +307,10 @@ constructor(
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 }
 
+/**
+ * ViewModel for the "Overview" / "Mix" tab in Library.
+ * Displays horizontal lists of recent artists, albums, playlists.
+ */
 @HiltViewModel
 public class LibraryMixViewModel
 @Inject
@@ -373,6 +396,9 @@ constructor(
     }
 }
 
+/**
+ * Shared ViewModel for managing the selected tab/filter in the Library screen.
+ */
 @HiltViewModel
 public class LibraryViewModel
 @Inject

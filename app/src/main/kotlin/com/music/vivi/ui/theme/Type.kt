@@ -26,7 +26,10 @@ val ExpressiveFontFamily = FontFamily(
     Font(googleFont = RobotoFlex, fontProvider = provider, weight = FontWeight.Bold)
 )
 
-// Standard Material 3 Typography
+/**
+ * Standard Material 3 Typography configuration.
+ * Uses the default system positioning and scaling.
+ */
 val AppTypography = Typography(
     displayLarge = TextStyle(
         fontFamily = FontFamily.Default,
@@ -135,9 +138,10 @@ val AppTypography = Typography(
     )
 )
 
-// Material 3 Expressive Typography
-// Logic: Increased sizes for Display and Headline to be more "Expressive"
-// Uses Roboto Flex for a more modern, adaptive look.
+/**
+ * Expressive Typography configuration with larger display sizes and custom font implementation.
+ * Uses Roboto Flex for a more modern, adaptive look.
+ */
 val ExpressiveTypography = Typography(
     displayLarge = TextStyle(
         fontFamily = ExpressiveFontFamily,

@@ -73,6 +73,10 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/**
+ * Screen displaying app information, "About" details, developer info, and changelog.
+ * Also handles fetching and displaying updates from GitHub.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AboutScreen(navController: NavController, scrollBehavior: TopAppBarScrollBehavior, onBack: (() -> Unit)? = null) {

@@ -46,6 +46,10 @@ import com.music.vivi.ui.utils.GridSnapLayoutInfoProvider
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.viewmodels.ChartsViewModel
 
+/**
+ * Screen displaying Music Charts (Top Songs, Top Videos, Trending, etc.).
+ * Fetches data via [ChartsViewModel].
+ */
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalFoundationApi::class,

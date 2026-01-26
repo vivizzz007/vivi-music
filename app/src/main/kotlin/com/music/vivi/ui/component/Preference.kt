@@ -39,6 +39,9 @@ import androidx.compose.ui.unit.dp
 import com.music.vivi.R
 import kotlin.math.roundToInt
 
+/**
+ * A basic preference entry with title, description, icon, and optional trailing content.
+ */
 @Composable
 public fun PreferenceEntry(
     modifier: Modifier = Modifier,
@@ -98,6 +101,9 @@ public fun PreferenceEntry(
     }
 }
 
+/**
+ * A preference that opens a dialog with a list of options.
+ */
 @Composable
 public fun <T> ListPreference(
     modifier: Modifier = Modifier,
@@ -152,6 +158,9 @@ public fun <T> ListPreference(
     )
 }
 
+/**
+ * A convenience wrapper for `ListPreference` that works with Enums.
+ */
 @Composable
 public inline fun <reified T : Enum<T>> EnumListPreference(
     modifier: Modifier = Modifier,
@@ -174,6 +183,9 @@ public inline fun <reified T : Enum<T>> EnumListPreference(
     )
 }
 
+/**
+ * A preference with a toggle switch.
+ */
 @Composable
 public fun SwitchPreference(
     modifier: Modifier = Modifier,
@@ -210,6 +222,9 @@ public fun SwitchPreference(
     )
 }
 
+/**
+ * A preference that allows editing a string value via a dialog.
+ */
 @Composable
 public fun EditTextPreference(
     modifier: Modifier = Modifier,
@@ -249,6 +264,9 @@ public fun EditTextPreference(
     )
 }
 
+/**
+ * A preference with a slider in a dialog (specifically for history duration here, but could be generalized).
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 public fun SliderPreference(
@@ -328,6 +346,9 @@ public fun SliderPreference(
     )
 }
 
+/**
+ * A section title for grouping preferences.
+ */
 @Composable
 public fun PreferenceGroupTitle(title: String, modifier: Modifier = Modifier) {
     Text(

@@ -18,6 +18,10 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.unit.dp
 
+/**
+ * A large, touch-friendly seek bar / progress bar.
+ * Typically used in the full player view for scrubbing.
+ */
 @Composable
 public fun BigSeekBar(
     progressProvider: () -> Float,

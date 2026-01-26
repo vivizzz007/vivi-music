@@ -34,6 +34,10 @@ import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.util.logging.Logger
 
+/**
+ * Dialog for creating a new playlist.
+ * Supports creating local playlists and syncing with YouTube (if logged in).
+ */
 @Composable
 public fun CreatePlaylistDialog(
     onDismiss: () -> Unit,

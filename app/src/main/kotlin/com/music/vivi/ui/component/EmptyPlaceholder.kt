@@ -17,6 +17,10 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 
+/**
+ * A standard placeholder for empty states (e.g. no songs in playlist).
+ * Displays an icon and a text message.
+ */
 @Composable
 public fun EmptyPlaceholder(
     @DrawableRes icon: Int,

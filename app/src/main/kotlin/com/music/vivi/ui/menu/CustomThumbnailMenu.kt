@@ -17,6 +17,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.music.vivi.R
 
+/**
+ * A menu to choose between editing or removing a custom thumbnail.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomThumbnailMenu(onEdit: () -> Unit, onRemove: () -> Unit, onDismiss: () -> Unit) {

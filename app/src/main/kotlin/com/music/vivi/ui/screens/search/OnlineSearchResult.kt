@@ -88,6 +88,11 @@ import com.music.vivi.viewmodels.OnlineSearchViewModel
 import kotlinx.coroutines.launch
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
+/**
+ * Component that displays the results of an online (YouTube Music) search.
+ * Shows a list of items (Songs, Videos, Albums, Artists, Playlists) matching the query.
+ * Supports filtering by type.
+ */
 @OptIn(
     ExperimentalFoundationApi::class,
     ExperimentalMaterial3Api::class,

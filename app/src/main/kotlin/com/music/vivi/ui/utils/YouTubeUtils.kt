@@ -1,5 +1,13 @@
 package com.music.vivi.ui.utils
 
+/**
+ * Resizes a Google/YouTube image URL to the specified dimensions.
+ * Handles different URL formats (googleusercontent, ggpht).
+ *
+ * @param width Target width.
+ * @param height Target height.
+ * @return The resized image URL.
+ */
 fun String.resize(width: Int? = null, height: Int? = null): String {
     if (width == null && height == null) return this
     "https://lh3\\.googleusercontent\\.com/.*=w(\\d+)-h(\\d+).*".toRegex()

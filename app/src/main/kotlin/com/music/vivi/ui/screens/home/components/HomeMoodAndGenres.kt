@@ -23,6 +23,10 @@ import com.music.vivi.ui.component.shimmer.ShimmerHost
 import com.music.vivi.ui.component.shimmer.TextPlaceholder
 import com.music.vivi.utils.ImmutableList
 
+/**
+ * Section displaying the "Moods & Genres" buttons.
+ * Usually displayed at the bottom of the home screen or in the Explore tab.
+ */
 internal fun LazyListScope.homeMoodAndGenres(
     moodAndGenres: ImmutableList<MoodAndGenres.Item>?,
     isLoading: Boolean,

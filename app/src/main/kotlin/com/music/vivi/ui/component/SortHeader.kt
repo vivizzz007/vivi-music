@@ -31,6 +31,10 @@ import androidx.compose.ui.unit.sp
 import com.music.vivi.R
 import com.music.vivi.constants.PlaylistSongSortType
 
+/**
+ * A header used in lists to handle sorting.
+ * Provides a split button for easy toggling of sort order (ASC/DESC) and a dropdown for selecting sort type.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 public inline fun <reified T : Enum<T>> SortHeader(

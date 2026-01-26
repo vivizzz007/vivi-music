@@ -30,6 +30,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
+/**
+ * An animated visualizer-like indicator with random bar heights.
+ */
 @Composable
 public fun PlayingIndicator(
     color: Color,
@@ -80,6 +83,9 @@ public fun PlayingIndicator(
     }
 }
 
+/**
+ * A box that switches between a play icon (paused) and the playing indicator (playing).
+ */
 @Composable
 public fun PlayingIndicatorBox(
     modifier: Modifier = Modifier,

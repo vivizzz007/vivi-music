@@ -52,6 +52,10 @@ import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.viewmodels.ArtistAlbumsViewModel
 
+/**
+ * Screen displaying the user's local Library albums for a specific Artist.
+ * Allows filtering, selection, and grid view of albums.
+ */
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 public fun ArtistAlbumsScreen(

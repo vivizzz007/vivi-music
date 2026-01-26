@@ -31,6 +31,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+/**
+ * ViewModel for the Lyrics screen/bottom sheet.
+ * Handles searching for lyrics, Romanization toggles, and Swipe-to-Seek settings.
+ */
 @HiltViewModel
 public class LyricsMenuViewModel
 @Inject

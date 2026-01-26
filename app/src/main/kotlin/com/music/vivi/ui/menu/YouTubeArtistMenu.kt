@@ -55,6 +55,10 @@ import com.music.vivi.db.entities.ArtistEntity
 import com.music.vivi.playback.queues.YouTubeQueue
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
+/**
+ * Menu for a YouTube Artist (online).
+ * Allows subscribing, starting radio/shuffle (if available), and sharing.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun YouTubeArtistMenu(artist: ArtistItem, onDismiss: () -> Unit) {

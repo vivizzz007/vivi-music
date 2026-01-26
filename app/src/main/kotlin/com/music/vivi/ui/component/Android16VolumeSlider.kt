@@ -31,6 +31,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.music.vivi.R
 
+/**
+ * A sleek Volume Slider inspired by Android 16 design.
+ * Features an animated color change on the icon and smooth progress indication.
+ */
 @Composable
 public fun Android16VolumeSlider(
     volume: Float,

@@ -63,6 +63,11 @@ import com.music.vivi.viewmodels.ArtistItemsViewModel
 
 // this is more option in artist screen leading to here
 // artistscreen
+/**
+ * Screen displaying a specific section of items from an Artist's page.
+ * Used when clicking "More" on a section like "Albums" or "Singles" from the main Artist page.
+ * Supports infinite scrolling for large lists.
+ */
 @OptIn(
     ExperimentalFoundationApi::class,
     ExperimentalMaterial3Api::class,

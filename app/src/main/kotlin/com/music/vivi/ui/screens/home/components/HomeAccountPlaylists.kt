@@ -32,6 +32,9 @@ import com.music.vivi.ui.component.NavigationTitle
 import com.music.vivi.utils.ImmutableList
 import kotlinx.coroutines.CoroutineScope
 
+/**
+ * Section displaying the user's YouTube Music playlists in a horizontal row.
+ */
 @Composable
 internal fun HomeAccountPlaylists(
     accountPlaylists: ImmutableList<PlaylistItem>,

@@ -20,6 +20,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.music.vivi.constants.ListItemHeight
 
+/**
+ * A generic list item with leading icon, title, subtitle, and trailing content.
+ * Inline version for performance.
+ */
 @Composable
 inline fun ListItem(
     modifier: Modifier = Modifier,
@@ -64,6 +68,9 @@ inline fun ListItem(
     }
 }
 
+/**
+ * A generic list item wrapper that handles badges and subtitle styling.
+ */
 @Composable
 fun ListItem(
     modifier: Modifier = Modifier,

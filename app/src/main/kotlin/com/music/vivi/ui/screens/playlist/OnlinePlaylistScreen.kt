@@ -146,6 +146,11 @@ import com.music.vivi.viewmodels.OnlinePlaylistViewModel
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 import kotlin.collections.isNotEmpty
 
+/**
+ * Screen for displaying an Online (YouTube Music) playlist.
+ * Fetches playlist details and songs from the network.
+ * Allows playing, saving (to local DB), and downloading.
+ */
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalFoundationApi::class,

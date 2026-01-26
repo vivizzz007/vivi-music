@@ -57,6 +57,10 @@ import com.music.vivi.ui.utils.GridSnapLayoutInfoProvider
 import com.music.vivi.viewmodels.ChartsViewModel
 import com.music.vivi.viewmodels.ExploreViewModel
 
+/**
+ * The "Explore" tab screen.
+ * Aggregates Charts, New Releases, and Moods & Genres.
+ */
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalFoundationApi::class,

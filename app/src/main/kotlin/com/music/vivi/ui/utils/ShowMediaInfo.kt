@@ -52,6 +52,12 @@ import com.music.vivi.ui.component.LocalBottomSheetPageState
 import kotlinx.coroutines.launch
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
+/**
+ * Displays detailed information about a media item (song/video) in a bottom sheet.
+ * Fetches and shows details like Format, Duration, Artist, Views, Likes, and Description.
+ *
+ * @param videoId The ID of the video/song to show info for.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ShowMediaInfo(videoId: String) {

@@ -37,6 +37,10 @@ import com.music.vivi.ui.menu.YouTubePlaylistMenu
 import com.music.vivi.ui.menu.YouTubeSongMenu
 import kotlinx.coroutines.CoroutineScope
 
+/**
+ * Helper composite for rendering a grid item for a LOCAL database item (Song, Album, Artist).
+ * Routes to the appropriate specific item component.
+ */
 @Composable
 internal fun HomeLocalGridItem(
     item: LocalItem,
@@ -141,6 +145,10 @@ internal fun HomeLocalGridItem(
     }
 }
 
+/**
+ * Helper composite for rendering a grid item for a YOUTUBE specific item (Song, Video, Album, Playlist, Artist).
+ * Routes to the appropriate specific item component.
+ */
 @Composable
 internal fun HomeYTGridItem(
     item: YTItem,

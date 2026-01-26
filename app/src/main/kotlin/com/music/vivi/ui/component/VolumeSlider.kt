@@ -38,6 +38,10 @@ private object VolumeSliderDefaults {
     val StopIndicatorRadius: Dp = 4.dp
 }
 
+/**
+ * A custom volume slider implementation based on Material 3 Expressive.
+ * Includes dynamic volume icons (mute, low, high) and custom drawing for the track and thumb.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 public fun VolumeSlider(

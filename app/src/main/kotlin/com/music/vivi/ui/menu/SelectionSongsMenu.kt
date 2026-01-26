@@ -75,6 +75,10 @@ import kotlinx.coroutines.withContext
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 import java.time.LocalDateTime
 
+/**
+ * Menu for a selection of songs (local/library).
+ * Provides bulk actions like Play, Shuffle, Add to Playlist, Download, Queue, Library management, Like, and Delete.
+ */
 @SuppressLint("MutableCollectionMutableState")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -778,6 +782,10 @@ fun SelectionSongMenu(
     }
 }
 
+/**
+ * Menu for a selection of MediaMetadata (used in some contexts).
+ * Provides bulk actions similar to SelectionSongMenu but for MediaMetadata objects.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @SuppressLint("MutableCollectionMutableState")
 @Composable

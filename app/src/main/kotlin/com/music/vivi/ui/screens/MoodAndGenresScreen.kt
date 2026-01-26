@@ -35,6 +35,9 @@ import com.music.vivi.ui.component.NavigationTitle
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.viewmodels.MoodAndGenresViewModel
 
+/**
+ * Screen displaying the full list of Moods and Genres from YouTube Music.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 public fun MoodAndGenresScreen(

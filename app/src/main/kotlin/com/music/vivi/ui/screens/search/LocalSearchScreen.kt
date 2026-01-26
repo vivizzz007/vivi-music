@@ -48,6 +48,15 @@ import com.music.vivi.ui.menu.SongMenu
 import com.music.vivi.viewmodels.LocalFilter
 import com.music.vivi.viewmodels.LocalSearchViewModel
 import kotlinx.coroutines.flow.drop
+/**
+ * Screen for searching within the local library (songs, albums, artists, playlists).
+ * Filters results by type and allows playback or navigation to detailed views.
+ *
+ * @param query The search query string.
+ * @param onDismiss Callback when search is dismissed or an item is clicked.
+ * @param isFromCache Whether the search is being performed within cached/downloaded content.
+ * @param pureBlack Whether to use pure black background (OLED optimization).
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 public fun LocalSearchScreen(

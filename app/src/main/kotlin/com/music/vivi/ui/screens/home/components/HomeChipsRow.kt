@@ -25,6 +25,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.music.innertube.pages.HomePage
 
+/**
+ * Horizontal scrollable row of Chips for filtering Home content (e.g., "Relax", "Workout", "Focus").
+ * These chips map to different Home Page endpoints from InnerTube.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun HomeChipsRow(

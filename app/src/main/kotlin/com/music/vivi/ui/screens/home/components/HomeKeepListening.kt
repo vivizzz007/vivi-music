@@ -26,6 +26,10 @@ import com.music.vivi.ui.component.NavigationTitle
 import com.music.vivi.utils.ImmutableList
 import kotlinx.coroutines.CoroutineScope
 
+/**
+ * "Keep Listening" section.
+ * Displays recently played LOCAL items (Albums, Artists) to quickly resume playback.
+ */
 @Composable
 internal fun HomeKeepListening(
     keepListening: ImmutableList<LocalItem>,

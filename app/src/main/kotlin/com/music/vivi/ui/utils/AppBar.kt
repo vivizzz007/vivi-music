@@ -29,6 +29,14 @@ fun appBarScrollBehavior(
     canScroll = canScroll
 )
 
+/**
+ * Custom Scroll Behavior for TopAppBar that enables collapsing/expanding.
+ *
+ * @param state The state object to be used to control the TopAppBar.
+ * @param snapAnimationSpec Animation spec for snapping to collapsed/expanded state.
+ * @param flingAnimationSpec Animation spec for fling decay.
+ * @param canScroll Callback to determine if scrolling is allowed.
+ */
 @ExperimentalMaterial3Api
 class AppBarScrollBehavior(
     override val state: TopAppBarState,

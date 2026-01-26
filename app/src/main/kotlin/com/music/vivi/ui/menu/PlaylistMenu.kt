@@ -80,6 +80,12 @@ import kotlinx.coroutines.withContext
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 import java.time.LocalDateTime
 
+
+
+/**
+ * The bottom sheet menu for a playlist.
+ * Provides actions like Play, Shuffle, Add to Queue, Edit (if editable), Download, Share, Delete, etc.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PlaylistMenu(

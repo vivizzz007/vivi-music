@@ -35,6 +35,9 @@ import com.music.vivi.ui.menu.YouTubeAlbumMenu
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.viewmodels.NewReleaseViewModel
 
+/**
+ * Screen displaying the "New Releases" album feed.
+ */
 @OptIn(
     ExperimentalFoundationApi::class,
     ExperimentalMaterial3Api::class,

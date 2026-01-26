@@ -41,6 +41,10 @@ import com.music.vivi.update.settingstyle.ModernInfoItem
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 
+/**
+ * Screen for configuring lyrics romanization settings.
+ * Allows users to enable romanization for various languages (Japanese, Korean, Cyrillic, etc.).
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RomanizationSettings(

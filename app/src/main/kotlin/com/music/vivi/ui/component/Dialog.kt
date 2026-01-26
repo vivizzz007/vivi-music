@@ -54,6 +54,9 @@ import com.music.vivi.R
 import com.music.vivi.ui.screens.settings.AccountSettings
 import kotlinx.coroutines.delay
 
+/**
+ * A standard dialog wrapper with consistent styling (icon, title, content, buttons).
+ */
 @Composable
 public fun DefaultDialog(
     onDismiss: () -> Unit,
@@ -127,6 +130,9 @@ public fun DefaultDialog(
     }
 }
 
+/**
+ * Dialog displaying account settings/profile.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 public fun AccountSettingsDialog(navController: NavController, onDismiss: () -> Unit) {
@@ -166,6 +172,9 @@ public fun AccountSettingsDialog(navController: NavController, onDismiss: () -> 
     }
 }
 
+/**
+ * A dialog for prompting the user for an action (Confirm/Cancel/Reset).
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 public fun ActionPromptDialog(
@@ -242,6 +251,9 @@ public fun ActionPromptDialog(
     }
 }
 
+/**
+ * A dialog displaying a list of items.
+ */
 @Composable
 public fun ListDialog(onDismiss: () -> Unit, modifier: Modifier = Modifier, content: LazyListScope.() -> Unit) {
     Dialog(
@@ -264,6 +276,9 @@ public fun ListDialog(onDismiss: () -> Unit, modifier: Modifier = Modifier, cont
     }
 }
 
+/**
+ * A small label with an info icon, used within dialogs to provide hints.
+ */
 @Composable
 public fun InfoLabel(text: String): Unit = Row(
     verticalAlignment = Alignment.CenterVertically,
@@ -282,6 +297,9 @@ public fun InfoLabel(text: String): Unit = Row(
     )
 }
 
+/**
+ * A dialog with one or more text input fields.
+ */
 @Composable
 public fun TextFieldDialog(
     modifier: Modifier = Modifier,

@@ -71,6 +71,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
+/**
+ * Screen for configuring Last.fm scrobbling integration.
+ * Allows login, enabling scrobbling/now playing, and tweaking scrobble delay parameters.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LastFMSettings(

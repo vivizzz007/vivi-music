@@ -61,6 +61,10 @@ import kotlinx.coroutines.delay
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+/**
+ * Screen for backing up and restoring app data (database, settings).
+ * Also supports importing playlists from external files (M3U, CSV).
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BackupAndRestore(

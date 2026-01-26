@@ -61,6 +61,14 @@ import com.music.vivi.viewmodels.StatsViewModel
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+/**
+ * Screen displaying User Statistics (Most Played, etc.).
+ *
+ * Features:
+ * - Time period tabs (Weeks, Months, Years, Continuous).
+ * - Horizontal lists for Top Songs, Artists, Albums.
+ * - FAB to shuffle "Most Played Songs".
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 public fun StatsScreen(navController: NavController, viewModel: StatsViewModel = hiltViewModel()) {

@@ -39,6 +39,10 @@ import com.music.vivi.lyrics.LyricsEntry
 import com.music.vivi.ui.screens.settings.LyricsPosition
 import com.music.vivi.utils.rememberPreference
 
+/**
+ * Displays a single line of lyrics.
+ * Handles synchronization, word-by-word animation (karaoke style), active state styling, and romanization.
+ */
 @OptIn(ExperimentalTextApi::class, ExperimentalLayoutApi::class)
 @Composable
 public fun LyricsLine(

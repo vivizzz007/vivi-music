@@ -45,6 +45,11 @@ import com.music.vivi.ui.utils.GridSnapLayoutInfoProvider
 import com.music.vivi.utils.ImmutableList
 import kotlin.math.min
 
+/**
+ * "Forgotten Favorites" section.
+ * Displays a grid of songs that the user used to listen to but hasn't recently.
+ * Calculated locally based on play history and skip counts.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 internal fun HomeForgottenFavorites(

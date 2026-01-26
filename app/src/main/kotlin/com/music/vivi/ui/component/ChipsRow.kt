@@ -50,6 +50,9 @@ import androidx.compose.ui.unit.dp
 import com.music.vivi.R
 import com.music.vivi.ui.screens.OptionStats
 
+/**
+ * A generic horizontal row of chips for selection.
+ */
 @Composable
 public fun <E> ChipsRow(
     chips: List<Pair<E, String>>,
@@ -84,6 +87,10 @@ public fun <E> ChipsRow(
     }
 }
 
+/**
+ * A specialized row of chips that also includes a dropdown menu for additional options (stats).
+ * Used in "Stats" top tracks/artists to switch between Weeks/Months/Years and specific timeframes.
+ */
 @SuppressLint("UnusedContentLambdaTargetStateParameter")
 @Composable
 public fun <Int> ChoiceChipsRow(

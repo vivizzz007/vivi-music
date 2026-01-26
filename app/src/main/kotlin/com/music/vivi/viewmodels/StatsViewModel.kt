@@ -22,6 +22,14 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 import javax.inject.Inject
 
+/**
+ * ViewModel for the User Statistics Screen.
+ *
+ * Capabilities:
+ * - Computes "Most Played" Songs, Artists, Albums.
+ * - Supports filtering by Time Period (Week, Month, Year, etc.).
+ * - Fetches thumbnails for top artists if missing.
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 public class StatsViewModel

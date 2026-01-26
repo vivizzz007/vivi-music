@@ -17,6 +17,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.music.vivi.constants.MoodAndGenresButtonHeight
 
+/**
+ * A button used in the Home screen for navigating to Moods & Genres categories.
+ */
 @Composable
 public fun MoodAndGenresButton(title: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Box(

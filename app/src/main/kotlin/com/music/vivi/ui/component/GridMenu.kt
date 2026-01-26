@@ -37,6 +37,10 @@ import com.music.vivi.utils.makeTimeString
 
 public val GridMenuItemHeight: androidx.compose.ui.unit.Dp = 108.dp
 
+/**
+ * A grid-based menu layout.
+ * Used for bottom sheet menus that have a grid of actions (e.g. Download, Share, Add to Playlist).
+ */
 @Composable
 public fun GridMenu(
     modifier: Modifier = Modifier,

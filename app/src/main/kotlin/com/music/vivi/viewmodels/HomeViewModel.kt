@@ -41,6 +41,15 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel for the Home Screen.
+ *
+ * Responsibilities:
+ * - Aggregates various content sections: Quick Picks, Forgotten Favorites, Keep Listening.
+ * - Fetches "Similar Recommendations" based on local listening habits (Artists/Songs).
+ * - Loads the remote YouTube Music Home/Explore pages.
+ * - Manages user account state (Avatar, Name, Login status).
+ */
 @HiltViewModel
 public class HomeViewModel @Inject constructor(
     @ApplicationContext public val context: Context,

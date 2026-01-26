@@ -27,6 +27,10 @@ public data class DiscordState(
 
 public data class LastFMState(val sessionKey: String = "", val username: String = "", val isLoggedIn: Boolean = false)
 
+/**
+ * ViewModel for managing 3rd party integrations (Discord RPC, Last.fm).
+ * Observes datastore keys for tokens/sessions and updates connection state.
+ */
 @HiltViewModel
 public class IntegrationsViewModel @Inject constructor(private val dataStore: DataStore<Preferences>) : ViewModel() {
 

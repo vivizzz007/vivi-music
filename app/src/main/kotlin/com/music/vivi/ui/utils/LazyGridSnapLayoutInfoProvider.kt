@@ -7,6 +7,13 @@ import androidx.compose.foundation.lazy.grid.LazyGridItemInfo
 import androidx.compose.foundation.lazy.grid.LazyGridLayoutInfo
 import androidx.compose.foundation.lazy.grid.LazyGridState
 
+/**
+ * Creates a SnapLayoutInfoProvider for LazyGrids to enable snapping behavior.
+ * Used for implementing pager-like snapping in grids.
+ *
+ * @param lazyGridState The state of the LazyGrid.
+ * @param positionInLayout Lambda to calculate the desired snap position.
+ */
 @ExperimentalFoundationApi
 fun GridSnapLayoutInfoProvider(
     lazyGridState: LazyGridState,

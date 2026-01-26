@@ -49,6 +49,15 @@ import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.viewmodels.AccountContentType
 import com.music.vivi.viewmodels.AccountViewModel
 
+/**
+ * Screen for displaying the user's YouTube Music account library (Playlists, Albums, Artists).
+ *
+ * Features:
+ * - 3-Tab filtering: Playlists, Albums, Artists.
+ * - Grid view of items.
+ * - Context menus for items.
+ * - Integration with [AccountViewModel].
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 public fun AccountScreen(

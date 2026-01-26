@@ -100,6 +100,11 @@ import java.time.LocalDateTime
 import java.util.Locale
 import java.util.UUID
 
+/**
+ * The main Library Screen hosting the different library filters.
+ * Switches between [LibraryMixScreen], [LibraryPlaylistsScreen], [LibrarySongsScreen], etc.
+ * based on the selected [LibraryFilter] chip.
+ */
 @Composable
 fun LibraryScreen(navController: NavController, onNavigate: ((String) -> Unit)? = null) {
     var filterType by rememberEnumPreference(ChipSortTypeKey, LibraryFilter.LIBRARY)
@@ -170,6 +175,11 @@ fun LibraryScreen(navController: NavController, onNavigate: ((String) -> Unit)? 
     }
 }
 
+/**
+ * The "Default" or "All" view of the library.
+ * Displays a mixed list of Playlists, Artists, and Albums sorted by user preference.
+ * Supports switching between List and Grid views.
+ */
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun LibraryMixScreen(
@@ -912,6 +922,10 @@ fun LibraryMixScreen(
     }
 }
 
+/**
+ * Displays the user's playlists (Local, Downloaded, and innerTube synced).
+ * Supports sorting by name, creation date, song count, etc.
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LibraryPlaylistsScreen(
@@ -1432,6 +1446,11 @@ fun LibraryPlaylistsScreen(
     }
 }
 
+/**
+ * Displays all songs in the library.
+ * Supports filtering by source (Liked, Library, Uploaded, Downloaded) and sorting.
+ * Allows multi-selection of songs for playlist management.
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LibrarySongsScreen(
@@ -1773,6 +1792,10 @@ fun LibrarySongsScreen(
     }
 }
 
+/**
+ * Displays all albums in the library.
+ * Supports filtering (Liked, Library, Uploaded) and sorting options (Artist, Year, Song Count, etc.).
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LibraryAlbumsScreen(
@@ -2081,6 +2104,10 @@ fun LibraryAlbumsScreen(
     }
 }
 
+/**
+ * Displays all artists in the library.
+ * Supports filtering (Liked, Library) and sorting options.
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LibraryArtistsScreen(

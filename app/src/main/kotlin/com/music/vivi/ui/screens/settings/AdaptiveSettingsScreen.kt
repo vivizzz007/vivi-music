@@ -16,6 +16,11 @@ import com.music.vivi.ui.screens.settings.integrations.IntegrationScreen
 import com.music.vivi.ui.screens.settings.integrations.LastFMSettings
 import com.music.vivi.updatesreen.ViviUpdatesScreen
 
+/**
+ * A master-detail settings screen layout that adapts to screen size (e.g., tablets vs phones).
+ * Uses [ListDetailPaneScaffold] to show the list of settings on one side and the detail on the other
+ * on large screens, or full screen on smaller devices.
+ */
 @OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun AdaptiveSettingsScreen(navController: NavController) {

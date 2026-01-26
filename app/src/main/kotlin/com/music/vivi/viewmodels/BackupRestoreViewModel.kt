@@ -28,6 +28,11 @@ import java.util.zip.ZipEntry
 import javax.inject.Inject
 import kotlin.system.exitProcess
 
+/**
+ * ViewModel for Backup and Restore operations.
+ * Handles exporting the Database and Settings to a ZIP file, and restoring from it.
+ * Also supports importing Playlists from CSV and M3U files.
+ */
 @HiltViewModel
 public class BackupRestoreViewModel @Inject constructor(public val database: MusicDatabase) : ViewModel() {
     public fun backup(context: Context, uri: Uri) {

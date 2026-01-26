@@ -33,6 +33,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
+/**
+ * Grid item for an Artist in the Library.
+ * Handles navigation and context menu.
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 public fun LibraryArtistGridItem(
@@ -67,6 +71,10 @@ public fun LibraryArtistGridItem(
         )
 )
 
+/**
+ * List item for an Album in the Library.
+ * Displays download state, favorite status, and context menu.
+ */
 @Composable
 public fun LibraryAlbumListItem(
     modifier: Modifier = Modifier,
@@ -119,6 +127,10 @@ public fun LibraryAlbumListItem(
     )
 }
 
+/**
+ * Grid item for an Album in the Library.
+ * Displays download state (aggregated from songs), favorite status, and context menu.
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 public fun LibraryAlbumGridItem(
@@ -206,6 +218,10 @@ public fun LibraryAlbumGridItem(
     )
 }
 
+/**
+ * List item for a Playlist in the Library.
+ * Handles both local and online (synced) playlists navigation and menus.
+ */
 @Composable
 public fun LibraryPlaylistListItem(
     navController: NavController,
@@ -281,6 +297,10 @@ public fun LibraryPlaylistListItem(
         }
 )
 
+/**
+ * Grid item for a Playlist in the Library.
+ * Handles both local and online (synced) playlists navigation and menus.
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 public fun LibraryPlaylistGridItem(
@@ -351,6 +371,10 @@ public fun LibraryPlaylistGridItem(
         )
 )
 
+/**
+ * List item for a Song in the Library.
+ * Wrapper around `SongListItem` that injects local dependencies like download state and preferences.
+ */
 @Composable
 public fun LibrarySongListItem(
     song: com.music.vivi.db.entities.Song,

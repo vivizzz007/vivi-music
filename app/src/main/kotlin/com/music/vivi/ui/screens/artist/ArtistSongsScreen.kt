@@ -54,6 +54,10 @@ import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.ArtistSongsViewModel
 
+/**
+ * Screen displaying the user's local Library songs for a specific Artist.
+ * Features sorting (Date, Name, Play Time) and shuffle playback.
+ */
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 public fun ArtistSongsScreen(

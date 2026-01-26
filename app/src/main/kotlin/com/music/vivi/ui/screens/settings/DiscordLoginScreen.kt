@@ -24,6 +24,10 @@ import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+/**
+ * Screen that extracts the Discord token by loading the Discord login page in a WebView.
+ * Attempts to intercept the token from local storage or Webpack chunks after login.
+ */
 @SuppressLint("SetJavaScriptEnabled")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -101,7 +105,7 @@ fun DiscordLoginScreen(navController: NavController) {
                                     } catch (e) {
                                         console.log("LocalStorage extraction failed");
                                     }
-                                    
+
                                     try {
                                         // Attempt 3: Iframe fallback
                                         var i = document.createElement('iframe');
@@ -111,7 +115,7 @@ fun DiscordLoginScreen(navController: NavController) {
                                                 var alt = i.contentWindow.localStorage.token;
                                                 if (alt) {
                                                     Android.onRetrieveToken(alt.replace(/^"|"$/g, ''));
-                                                } 
+                                                }
                                             } catch (e) {}
                                         }, 1000);
                                     } catch(e) {}

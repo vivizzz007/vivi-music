@@ -22,6 +22,11 @@ import com.music.vivi.ui.component.news.NewsDetailScreen
 import com.music.vivi.ui.component.news.NewsListScreen
 import com.music.vivi.viewmodels.NewsViewModel
 
+/**
+ * Screen displaying App News and Announcements.
+ * Can show a List view or a Detail view (using AnimatedContent).
+ * Auto-refreshes every 30 seconds.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 public fun NewsScreen(

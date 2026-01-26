@@ -110,6 +110,12 @@ import com.music.vivi.ui.utils.ItemWrapper
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.viewmodels.TopPlaylistViewModel
 
+/**
+ * Screen displaying the user's "Top" songs.
+ * Probably based on play counts or similar metrics.
+ *
+ * @param topParam Filter parameter (e.g., "100", "top_tracks").
+ */
 @OptIn(
     ExperimentalFoundationApi::class,
     ExperimentalMaterial3Api::class,

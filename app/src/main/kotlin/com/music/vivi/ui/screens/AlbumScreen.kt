@@ -45,6 +45,15 @@ import com.music.vivi.ui.utils.ItemWrapper
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.AlbumViewModel
 
+/**
+ * Screen for displaying a single Album's details and tracks.
+ *
+ * Features:
+ * - Parallax Header with Album Art.
+ * - Track list with download status integration.
+ * - "Other Versions" and "Releases for You" sections.
+ * - Multi-select support for tracks.
+ */
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 public fun AlbumScreen(

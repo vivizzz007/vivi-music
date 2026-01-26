@@ -22,6 +22,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.music.vivi.constants.GridThumbnailHeight
 
+/**
+ * A standardized item for grid layouts (Songs, Albums, Artists).
+ * Displays a thumbnail, title, and subtitle.
+ * @param fillMaxWidth If true, item takes full width (list-like in grid). If false, it has fixed width.
+ */
 @Composable
 fun GridItem(
     modifier: Modifier = Modifier,

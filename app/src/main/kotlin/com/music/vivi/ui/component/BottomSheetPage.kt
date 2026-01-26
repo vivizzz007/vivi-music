@@ -66,6 +66,10 @@ public class BottomSheetPageState(isVisible: Boolean = false, content: @Composab
     }
 }
 
+/**
+ * A full-screen bottom sheet page.
+ * Used for specific sub-flows within the app that slide up from the bottom (e.g. Queue, Details).
+ */
 @Composable
 public fun BottomSheetPage(
     modifier: Modifier = Modifier,

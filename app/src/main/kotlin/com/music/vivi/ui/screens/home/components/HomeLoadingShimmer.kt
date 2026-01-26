@@ -16,6 +16,10 @@ import com.music.vivi.ui.component.shimmer.GridItemPlaceHolder
 import com.music.vivi.ui.component.shimmer.ShimmerHost
 import com.music.vivi.ui.component.shimmer.TextPlaceholder
 
+/**
+ * Loading state placeholder (Shimmer) for the Home screen.
+ * Shows a skeleton UI while data is being fetched.
+ */
 internal fun LazyListScope.homeLoadingShimmer(isLoading: Boolean, homePage: HomePage?) {
     if (isLoading || (homePage?.continuation != null && homePage.sections.isNotEmpty())) {
         item(key = "loading_shimmer") {

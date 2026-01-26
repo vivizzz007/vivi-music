@@ -43,6 +43,16 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.drop
 
+/**
+ * Screen used for typing search queries and viewing search suggestions (history & auto-complete).
+ * When a suggestion is clicked or search is submitted, it triggers the [onSearch] callback.
+ *
+ * @param query The current text in the search bar.
+ * @param onQueryChange Callback when query text changes.
+ * @param onSearch Callback when a search is initiated.
+ * @param onDismiss Callback to dismiss the search screen.
+ * @param pureBlack Whether to use pure black background.
+ */
 @OptIn(
     ExperimentalFoundationApi::class,
     ExperimentalComposeUiApi::class,
@@ -270,6 +280,9 @@ public fun OnlineSearchScreen(
     }
 }
 
+/**
+ * A single item in the search suggestion list (either history or auto-complete).
+ */
 @Composable
 public fun SuggestionItem(
     modifier: Modifier = Modifier,

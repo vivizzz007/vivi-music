@@ -101,6 +101,10 @@ import com.music.vivi.utils.setAppLocale
 import java.net.Proxy
 import java.util.Locale
 
+/**
+ * Screen for configuring content preferences.
+ * Includes settings for language, country, explicit content, proxy, and lyrics providers.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContentSettings(

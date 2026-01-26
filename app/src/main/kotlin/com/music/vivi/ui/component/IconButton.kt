@@ -30,6 +30,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 
+/**
+ * An icon button that allows resizing and custom indication.
+ */
 @Composable
 public fun ResizableIconButton(
     @DrawableRes icon: Int,
@@ -54,6 +57,9 @@ public fun ResizableIconButton(
     )
 }
 
+/**
+ * A standard circular icon button with a minimum touch target size.
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 public fun IconButton(

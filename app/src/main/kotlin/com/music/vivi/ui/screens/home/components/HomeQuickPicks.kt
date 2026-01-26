@@ -50,6 +50,11 @@ import com.music.vivi.ui.component.NavigationTitle
 import com.music.vivi.ui.menu.SongMenu
 import com.music.vivi.utils.ImmutableList
 
+/**
+ * "Quick Picks" section using the [HomeQuickPicks] song row layout.
+ * Usually the first section on the Home screen, showing frequently played or highly recommended songs.
+ * Groups songs into columns of 4 rows.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun HomeQuickPicks(

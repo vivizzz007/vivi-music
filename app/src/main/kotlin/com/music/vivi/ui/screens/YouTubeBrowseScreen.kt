@@ -70,6 +70,10 @@ import com.music.vivi.ui.utils.GridSnapLayoutInfoProvider
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.viewmodels.YouTubeBrowseViewModel
 
+/**
+ * Generic screen for displaying YouTube Music "Check this out" or "Recommended" type pages.
+ * Handles diverse content types (Songs, Albums, Playlists) in a mixed grid/list layout.
+ */
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalFoundationApi::class,

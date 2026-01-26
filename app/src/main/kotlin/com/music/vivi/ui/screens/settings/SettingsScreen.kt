@@ -61,6 +61,10 @@ import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.HomeViewModel
 
+/**
+ * The main settings screen acting as a hub for all app configurations.
+ * Displays a list of settings categories (Account, Appearance, Audio, Content, etc.).
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SettingsScreen(

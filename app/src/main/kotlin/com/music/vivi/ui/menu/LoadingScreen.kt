@@ -11,6 +11,10 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.music.vivi.R
 
+/**
+ * A simple loading screen overlay showing a percentage value.
+ * Used during long running operations like song downloading or importing.
+ */
 @Composable
 fun LoadingScreen(isVisible: Boolean, value: Int) {
     if (isVisible) {

@@ -84,6 +84,10 @@ import kotlinx.coroutines.launch
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 import java.time.LocalDateTime
 
+/**
+ * Menu for a YouTube Song (online result).
+ * Allows adding to library, downloading, adding to playlist, viewing artist/album, and queueing.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @SuppressLint("MutableCollectionMutableState")
 @Composable

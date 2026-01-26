@@ -30,6 +30,10 @@ import com.music.vivi.ui.component.NavigationTitle
 import com.music.vivi.utils.ImmutableList
 import kotlinx.coroutines.CoroutineScope
 
+/**
+ * "Similar To..." sections.
+ * Displays recommendations based on a specific artist or album the user likes (e.g. "Similar to Metallica", "More like Nevermind").
+ */
 internal fun LazyListScope.homeSimilarRecommendations(
     similarRecommendations: ImmutableList<SimilarRecommendation>,
     activeId: String?,

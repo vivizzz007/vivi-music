@@ -37,6 +37,11 @@ import com.music.vivi.utils.reportException
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.launch
 
+/**
+ * Screen for logging into YouTube Music.
+ * Uses a WebView to intercept the authentication cookies (SAPISID, etc.).
+ * Injects JavaScript to retrieve Visitor Info and Data Sync IDs.
+ */
 @SuppressLint("SetJavaScriptEnabled")
 @OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
 @Composable

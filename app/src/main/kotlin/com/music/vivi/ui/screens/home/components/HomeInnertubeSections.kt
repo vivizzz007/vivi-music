@@ -25,6 +25,10 @@ import com.music.vivi.ui.component.NavigationTitle
 import com.music.vivi.utils.ImmutableList
 import kotlinx.coroutines.CoroutineScope
 
+/**
+ * Renders dynamically provided sections from the InnerTube Home Endpoint.
+ * These are the standard "Mixed for you", "New Releases", "Recommended music videos" shelves.
+ */
 internal fun LazyListScope.homeInnertubeSections(
     sections: ImmutableList<HomePage.Section>,
     activeId: String?,

@@ -79,6 +79,10 @@ import com.music.vivi.R
 import com.music.vivi.constants.AppBarHeight
 import kotlin.math.max
 
+/**
+ * A search bar implementation that animates between a compact input field and a full-screen search view.
+ * Supports leading/trailing icons and content area for suggestions.
+ */
 @ExperimentalMaterial3Api
 @Composable
 public fun TopSearch(

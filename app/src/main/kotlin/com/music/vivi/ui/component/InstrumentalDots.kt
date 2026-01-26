@@ -13,6 +13,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 
+/**
+ * Animated breathing dots indicator for instrumental tracks.
+ * Mimics Apple Music's instrumental visualizer.
+ */
 @Composable
 public fun InstrumentalDots(
     modifier: Modifier = Modifier,

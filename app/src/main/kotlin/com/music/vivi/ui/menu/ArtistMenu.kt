@@ -63,6 +63,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
+/**
+ * The bottom sheet menu for an artist.
+ * Provides options to Play, Shuffle, Subscribe (Favorite), Share, etc.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ArtistMenu(originalArtist: Artist, coroutineScope: CoroutineScope, onDismiss: () -> Unit) {

@@ -35,6 +35,10 @@ import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.max
 
+/**
+ * A vertical scrollbar that can be dragged to quickly scroll through long lists.
+ * Shows an overlay when dragging or scrolling.
+ */
 @Composable
 public fun DraggableScrollbar(
     scrollState: LazyListState,

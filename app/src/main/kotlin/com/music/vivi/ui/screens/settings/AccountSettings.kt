@@ -72,6 +72,10 @@ import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.AccountSettingsViewModel
 import com.music.vivi.viewmodels.HomeViewModel
 
+/**
+ * Screen for managing user account settings, including login/logout.
+ * Also handles sync settings and advanced token management.
+ */
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AccountSettings(

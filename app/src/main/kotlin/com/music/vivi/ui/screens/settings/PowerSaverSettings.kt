@@ -44,6 +44,10 @@ import com.music.vivi.update.settingstyle.ModernInfoItem
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 
+/**
+ * Screen for configuring power saving options.
+ * Allows disabling animations, high refresh rate, and background services to save battery.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PowerSaverSettings(

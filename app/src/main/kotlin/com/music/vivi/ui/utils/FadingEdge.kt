@@ -8,6 +8,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 
+/**
+ * Applies a fading edge effect to the component.
+ * Useful for scrollable containers to indicate more content.
+ *
+ * @param left Width of the fade on the left edge.
+ * @param top Height of the fade on the top edge.
+ * @param right Width of the fade on the right edge.
+ * @param bottom Height of the fade on the bottom edge.
+ */
 fun Modifier.fadingEdge(left: Dp? = null, top: Dp? = null, right: Dp? = null, bottom: Dp? = null) =
     graphicsLayer(alpha = 0.99f)
         .drawWithCache {

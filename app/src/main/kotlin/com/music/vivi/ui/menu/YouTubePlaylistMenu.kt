@@ -92,6 +92,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
+/**
+ * Menu for a YouTube Playlist (online).
+ * Allows importing the playlist, playing/shuffling/radio, adding to queue, and sharing.
+ * If songs are provided, allows downloading the playlist.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @SuppressLint("MutableCollectionMutableState")
 @Composable
