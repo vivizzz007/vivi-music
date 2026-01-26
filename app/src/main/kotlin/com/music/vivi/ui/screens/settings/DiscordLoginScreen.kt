@@ -81,7 +81,8 @@ fun DiscordLoginScreen(navController: NavController) {
                 webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView, url: String) {
                         if (url.contains("/channels/@me") || url.contains("/app")) {
-                                    """
+                            view.evaluateJavascript(
+                                """
                                     (function() {
                                         var checkCount = 0;
                                         var interval = setInterval(function() {
