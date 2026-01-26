@@ -3,16 +3,16 @@
     <string name="explore">Khám phá</string>
     <string name="charts">Xếp hạng</string>
     <string name="trending">Thịnh hành</string>
-    
+
     <string name="back_button_desc">Quay lại</string>
     <string name="retry_button">Thử lại</string>
     <string name="cancel">Hủy</string>
     <string name="close">Đóng</string>
     <string name="done">Xong</string>
-    
+
     <string name="enable_squiggly_slider">Bật thanh trượt ngoằn ngoèo</string>
     <string name="enable_swipe_thumbnail">Vuốt để đổi bài</string>
-    
+
     <string name="settings_title">Cài đặt</string>
     <string name="settings_section_ui">Giao diện</string>
     <string name="settings_section_privacy">Quyền riêng tư &amp; Bảo mật</string>
@@ -22,7 +22,7 @@
 
     <string name="player_background_style">Kiểu nền trình phát</string>
     <string name="modern_player_interface">Giao diện trình phát hiện đại</string>
-    
+
     <string name="lyrics">Lời nhạc</string>
     <string name="share_lyrics">Chia sẻ lời nhạc</string>
 
@@ -30,13 +30,12 @@
     <string name="download_album">Tải album</string>
     <string name="download_playlist">Tải danh sách phát</string>
 
-    <string name="spotify_login">Đăng nhập Spotify</string>
     <string name="connect_with_discord">Kết nối với Discord</string>
-    
+
     <string name="about_subtitle">Thông tin ứng dụng &amp; nhà phát triển</string>
     <string name="developer">Nhà phát triển</string>
     <string name="app_developer">Nhà phát triển Ứng dụng</string>
-    
+
     <string name="update_available">Có bản cập nhật mới</string>
     <string name="check_for_updates">Kiểm tra cập nhật</string>
 
