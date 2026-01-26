@@ -172,14 +172,30 @@ import com.music.vivi.update.widget.MusicPlayerWidgetReceiver
  * The core Service responsible for handling media playback, notification management,
  * and background audio focus.
  *
- * This service extends [MediaLibraryService] to provide a MediaSession to the system,
+ * This service extends [MediaLibraryService] to provide a [MediaSession] to the system,
  * allowing external controls (Bluetooth, Android Auto, Lockscreen) to interact with the app.
  *
- * Key responsibilities:
- * - Managing the [ExoPlayer] instance.
- * - Handling Audio Focus (pausing when other apps play audio).
- * - Reacting to network changes (pausing/retrying).
- * - Persisting playback state and queue to disk.
+ * ## Architecture
+ * The service functions as a central hub for playback logic, coordinating between:
+ * - **ExoPlayer**: The underlying media player engine.
+ * - **MediaSession**: The interface for external controllers.
+ * - **QueueManager**: Manages the playlist and track transitions.
+ * - **IntegrationManager**: Handles external integrations like Last.fm and Discord RPC.
+ *
+ * ## Lifecycle & Concurrency
+ * - **SupervisorJob**: A [SupervisorJob] is used to manage coroutines. usage of [SupervisorJob] ensures that
+ *   child coroutine failures do not crash the entire service scope.
+ * - **Foreground Service**: The service runs in the foreground to prevent system killing during playback.
+ *   Special handling is implemented for Android 12+ foreground service start restrictions in [safePlay].
+ *
+ * ## Key Responsibilities
+ * - **Playback Management**: Initialization and control of [ExoPlayer].
+ * - **Audio Focus**: Handling interruptions via [handleAudioFocusChange] (e.g., pausing when a call comes in).
+ * - **State Persistence**: Saving the current queue and player state to disk to survive process death.
+ * - **Network Resilience**: Observing connectivity changes to pause/resume or retry playback.
+ *
+ * @see MediaLibraryService
+ * @see ExoPlayer
  */
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @AndroidEntryPoint
@@ -323,6 +339,18 @@ class MusicService :
     private var retryJob: Job? = null
     private var globalRetryCount = 0
 
+    /**
+     * Initializes the service, creating the [ExoPlayer], [MediaSession], and setting up system integrations.
+     *
+     * This method performs the following critical setup:
+     * 1.  **Service Lifecycle**: Marks the service as running.
+     * 2.  **Notification Provider**: Configures the media notification appearance.
+     * 3.  **ExoPlayer Builder**: Configures the player with [AudioAttributes] (Usage: MEDIA), wake mode, and renderers.
+     * 4.  **Integrations**: Starts [IntegrationManager] (Last.fm, Discord).
+     * 5.  **Media Session**: Builds the [MediaLibrarySession] with a [CoilBitmapLoader] for artwork.
+     * 6.  **Broadcast Receivers**: Registers receivers for volume changes and "becoming noisy" (headphone unplug).
+     * 7.  **State Restoration**: Asynchronously restores the last played queue and position from disk.
+     */
     override fun onCreate() {
         super.onCreate()
         isRunning = true
@@ -682,6 +710,22 @@ class MusicService :
             .build()
     }
 
+    /**
+     * Handles audio focus changes to ensure correct playback behavior during interruptions.
+     *
+     * This method reacts to focus changes reported by the system [AudioManager]:
+     *
+     * - [AudioManager.AUDIOFOCUS_GAIN]: Regained focus. Resumes playback if it was paused transiently
+     *   or lowers volume (ducking) was active.
+     * - [AudioManager.AUDIOFOCUS_LOSS]: Permanent loss (e.g., another music app started).
+     *   Pauses playback and abandons our focus request.
+     * - [AudioManager.AUDIOFOCUS_LOSS_TRANSIENT]: Temporary loss (e.g., phone call).
+     *   Pauses playback but keeps the focus request active to resume later.
+     * - [AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK]: Temporary loss where we can keep playing
+     *   at a reduced volume (e.g., notification sound).
+     *
+     * @param focusChange The integer code representing the new focus state.
+     */
     private fun handleAudioFocusChange(focusChange: Int) {
         when (focusChange) {
             AudioManager.AUDIOFOCUS_GAIN,
@@ -735,11 +779,16 @@ class MusicService :
     }
 
     /**
-     * Attempts to start playback safely.
+     * Attempts to start playback safely, handling Android 12+ foreground service restrictions.
      *
-     * In Android 12+, starting a foreground service from the background is restricted.
-     * Use this method to catch potential [android.app.ForegroundServiceStartNotAllowedException]
-     * or other playback initialization errors.
+     * On Android 12 (API 31) and higher, starting a foreground service from the background is restricted.
+     * If the app is in the background and attempts to start playback (which promotes the service to foreground),
+     * a [android.app.ForegroundServiceStartNotAllowedException] may be thrown.
+     *
+     * This method wraps the [player.play] call in a try-catch block to gracefully handle this exception,
+     * logging the error instead of crashing.
+     *
+     * @see android.app.ForegroundServiceStartNotAllowedException
      */
     private fun safePlay() {
         try {

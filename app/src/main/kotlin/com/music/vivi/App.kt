@@ -123,7 +123,7 @@ class App :
             // Music playback channel (required for MusicService)
             val musicChannel = NotificationChannel(
                 "music_channel_01",
-                "Music Player",
+                getString(R.string.music_player),
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
                 description = getString(R.string.controls_for_music_playback)
