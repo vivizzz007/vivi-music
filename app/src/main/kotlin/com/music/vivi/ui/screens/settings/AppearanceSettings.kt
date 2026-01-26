@@ -592,8 +592,8 @@ private fun UISettingsScreen(
                             Box(Modifier.weight(1f)) {
                                 ModernInfoItem(
                                     icon = { Icon(painterResource(R.drawable.swipe), null, Modifier.size(22.dp)) },
-                                    title = stringResource(R.string.swipe_to_song),
-                                    subtitle = stringResource(R.string.swipe_on_the_mini_player_to_skip_songs),
+                                    title = stringResource(R.string.swipe_to_change_track),
+                                    subtitle = stringResource(R.string.swipe_to_change_track_description),
                                     iconBackgroundColor = iconBgColor,
                                     iconContentColor = iconStyleColor
                                 )
