@@ -207,7 +207,7 @@ public fun ArtistScreen(
             } else {
                 item(key = "header") {
                     val thumbnail = artistPage?.artist?.thumbnail ?: libraryArtist?.artist?.thumbnailUrl
-                    val artistName = artistPage?.artist?.title ?: libraryArtist?.artist?.name
+                    val artistName = artistPage?.artist?.title ?: libraryArtist?.artist?.name ?: stringResource(R.string.unknown)
 
                     Box {
                         // Artist Image with offset
@@ -258,7 +258,7 @@ public fun ArtistScreen(
                             ) {
                                 // Artist Name
                                 Text(
-                                    text = artistName ?: "Unknown",
+                                    text = artistName,
                                     style = MaterialTheme.typography.headlineLarge,
                                     fontWeight = FontWeight.Bold,
                                     maxLines = 1,
@@ -292,7 +292,7 @@ public fun ArtistScreen(
                                             )
                                             Spacer(modifier = Modifier.width(6.dp))
                                             Text(
-                                                text = subscribers,
+                                                text = "${subscribers.split(' ').firstOrNull() ?: ""} ${stringResource(R.string.subscribers)}",
                                                 style = MaterialTheme.typography.labelLarge,
                                                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                                                 fontWeight = FontWeight.Medium
@@ -317,7 +317,7 @@ public fun ArtistScreen(
                                                 )
                                                 Spacer(modifier = Modifier.width(6.dp))
                                                 Text(
-                                                    text = monthlyListeners,
+                                                    text = "${monthlyListeners.split(' ').firstOrNull() ?: ""} ${stringResource(R.string.monthly_listeners)}",
                                                     style = MaterialTheme.typography.labelLarge,
                                                     color = MaterialTheme.colorScheme.onTertiaryContainer,
                                                     fontWeight = FontWeight.Medium
@@ -339,12 +339,7 @@ public fun ArtistScreen(
 
                                 var showDescriptionDialog by rememberSaveable { mutableStateOf(false) }
                                 var isDescriptionTruncated by remember { mutableStateOf(false) }
-                                val description = artistPage?.description ?: run {
-                                    buildString {
-                                        append(artistName ?: "Unknown")
-                                        append(" is a music artist.")
-                                    }
-                                }
+                                val description = artistPage?.description ?: stringResource(R.string.artist_description_fallback, artistName)
 
 // Build the display text - only show full text, let maxLines handle truncation
                                 val displayText = description

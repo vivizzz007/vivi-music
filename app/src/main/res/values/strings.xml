@@ -503,7 +503,7 @@
     <string name="ytm_sync">Automatically sync with your YouTube Music account</string>
     <string name="yt_sync">Auto sync with account</string>
     <string name="more_content">More content</string>
-    
+
     <string name="edit_playlist_cover">Edit playlist cover</string>
     <string name="edit_playlist_cover_note">Note: Your account must be linked to a phone number and verified on YouTube Music to change playlist cover.</string>
     <string name="edit_playlist_cover_note_wait">After selecting an image, please wait a moment for the new cover to appear in your playlist.</string>
@@ -572,7 +572,8 @@
     <string name="information">Information</string>
     <string name="description">Description</string>
     <string name="numbers">Numbers</string>
-    <string name="subscribers">Subscribers</string>
+    <string name="subscribers">Followers</string>
+    <string name="monthly_listeners">Monthly Members</string> //monthly listeners
     <string name="views">Views</string>
     <string name="likes">Likes</string>
     <string name="dislikes">Dislikes</string>
@@ -785,6 +786,7 @@
     <string name="top_playlist_description">Your most played tracks based on your listening history. This dynamic playlist updates as you discover new music.</string>
     <string name="cache_playlist_description">Your cached songs stored locally on your device. These tracks are available for offline playback and don\'t require an internet connection.</string>
 
+    <string name="artist_description_fallback">%1$s is a music artist.</string>
     <string name="about_artist">About Artist</string>
 
     <string name="explicit">E  Explicit</string>
