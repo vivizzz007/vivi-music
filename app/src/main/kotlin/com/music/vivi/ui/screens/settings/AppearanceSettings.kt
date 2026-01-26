@@ -88,11 +88,7 @@ private enum class AppearanceScreenType {
     MAIN, THEME, PLAYER, LYRICS, UI
 }
 
-enum class DarkMode {
-    AUTO,
-    ON,
-    OFF
-}
+
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalAnimationApi::class)
 @Composable
