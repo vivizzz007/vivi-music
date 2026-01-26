@@ -111,3 +111,7 @@
 -dontwarn com.yalantis.ucrop**
 -keep class com.yalantis.ucrop** { *; }
 -keep interface com.yalantis.ucrop** { *; }
+
+## Jsoup optional re2j dependency
+-dontwarn com.google.re2j.Matcher
+-dontwarn com.google.re2j.Pattern
