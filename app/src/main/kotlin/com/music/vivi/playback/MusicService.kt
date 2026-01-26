@@ -627,9 +627,7 @@ class MusicService :
             while (isActive) {
                 delay(30.seconds)
                 if (dataStore.get(PersistentQueueKey, true)) {
-                    withContext(Dispatchers.IO) {
-                        saveQueueToDisk()
-                    }
+                    saveQueueToDisk()
                 }
             }
         }
@@ -639,9 +637,7 @@ class MusicService :
             while (isActive) {
                 delay(10.seconds)
                 if (dataStore.get(PersistentQueueKey, true) && player.isPlaying) {
-                    withContext(Dispatchers.IO) {
-                        saveQueueToDisk()
-                    }
+                     saveQueueToDisk()
                 }
             }
         }
@@ -1843,9 +1839,14 @@ class MusicService :
             return
         }
 
-        // Save current queue with proper type information
-        val persistQueue = queueManager.currentQueue.toPersistQueue(
-            title = queueManager.queueTitle,
+        // Capture state on Main Thread
+        val currentQueue = queueManager.currentQueue
+        val queueTitle = queueManager.queueTitle
+
+        // Convert to serializable format on Main Thread to avoid concurrent modification
+        // and ensure thread safety for player and queue access
+        val persistQueue = currentQueue.toPersistQueue(
+            title = queueTitle,
             items = player.mediaItems.mapNotNull { it.metadata },
             mediaItemIndex = player.currentMediaItemIndex,
             position = player.currentPosition
@@ -1859,7 +1860,7 @@ class MusicService :
                 position = 0
             )
 
-        // Save player state
+        // Capture player state on Main Thread
         val persistPlayerState = PersistPlayerState(
             playWhenReady = player.playWhenReady,
             repeatMode = player.repeatMode,
@@ -1870,32 +1871,35 @@ class MusicService :
             playbackState = player.playbackState
         )
 
-        runCatching {
-            filesDir.resolve(PERSISTENT_QUEUE_FILE).outputStream().use { fos ->
-                ObjectOutputStream(fos).use { oos ->
-                    oos.writeObject(persistQueue)
+        // Offload serialization and disk I/O to background thread
+        scope.launch(Dispatchers.IO) {
+            runCatching {
+                filesDir.resolve(PERSISTENT_QUEUE_FILE).outputStream().use { fos ->
+                    ObjectOutputStream(fos).use { oos ->
+                        oos.writeObject(persistQueue)
+                    }
                 }
+            }.onFailure {
+                reportException(it)
             }
-        }.onFailure {
-            reportException(it)
-        }
-        runCatching {
-            filesDir.resolve(PERSISTENT_AUTOMIX_FILE).outputStream().use { fos ->
-                ObjectOutputStream(fos).use { oos ->
-                    oos.writeObject(persistAutomix)
+            runCatching {
+                filesDir.resolve(PERSISTENT_AUTOMIX_FILE).outputStream().use { fos ->
+                    ObjectOutputStream(fos).use { oos ->
+                        oos.writeObject(persistAutomix)
+                    }
                 }
+            }.onFailure {
+                reportException(it)
             }
-        }.onFailure {
-            reportException(it)
-        }
-        runCatching {
-            filesDir.resolve(PERSISTENT_PLAYER_STATE_FILE).outputStream().use { fos ->
-                ObjectOutputStream(fos).use { oos ->
-                    oos.writeObject(persistPlayerState)
+            runCatching {
+                filesDir.resolve(PERSISTENT_PLAYER_STATE_FILE).outputStream().use { fos ->
+                    ObjectOutputStream(fos).use { oos ->
+                        oos.writeObject(persistPlayerState)
+                    }
                 }
+            }.onFailure {
+                reportException(it)
             }
-        }.onFailure {
-            reportException(it)
         }
     }
 
