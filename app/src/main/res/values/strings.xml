@@ -1437,4 +1437,8 @@
     <string name="pause_action">Pause</string>
     <string name="next_action">Next</string>
     <string name="previous_action">Previous</string>
+    <string name="system_colors">System Colors</string>
+    <string name="use_system_monet_colors">Use system Monet colors</string>
+    <string name="pitch_black_background_for_oled_displays">Pitch black background for OLED displays</string>
+    <string name="lyrics_word_by_word">Word-by-word Lyrics</string>
 </resources>
