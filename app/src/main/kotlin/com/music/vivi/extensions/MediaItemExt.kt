@@ -10,9 +10,17 @@ import com.music.vivi.models.MediaMetadata
 import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.ui.utils.resize
 
+/**
+ * Helper to extract [MediaMetadata] from a [MediaItem].
+ * Expects the tag property to hold the metadata object.
+ */
 val MediaItem.metadata: MediaMetadata?
     get() = localConfiguration?.tag as? MediaMetadata
 
+/**
+ * Converts a [Song] persistence entity to a Media3 [MediaItem].
+ * Populates standard metadata fields (Title, Artist, Album, Artwork URI).
+ */
 fun Song.toMediaItem() = MediaItem
     .Builder()
     .setMediaId(song.id)
@@ -31,6 +39,10 @@ fun Song.toMediaItem() = MediaItem
             .build()
     ).build()
 
+/**
+ * Converts a [SongItem] (from InnerTube/Network) to a Media3 [MediaItem].
+ * Resizes artwork to 544x544 for better quality.
+ */
 fun SongItem.toMediaItem() = MediaItem
     .Builder()
     .setMediaId(id)
@@ -49,6 +61,9 @@ fun SongItem.toMediaItem() = MediaItem
             .build()
     ).build()
 
+/**
+ * Converts a [MediaMetadata] domain object to a Media3 [MediaItem].
+ */
 fun MediaMetadata.toMediaItem() = MediaItem
     .Builder()
     .setMediaId(id)

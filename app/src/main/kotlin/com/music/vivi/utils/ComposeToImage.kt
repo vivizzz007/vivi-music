@@ -28,6 +28,20 @@ import java.io.FileOutputStream
 
 object ComposeToImage {
 
+    /**
+     * Draws lyrics and song metadata onto a Bitmap for sharing.
+     *
+     * Creates a custom card layout with:
+     * - Rounded background
+     * - Cover art
+     * - Song title and artist
+     * - Scrollable-looking lyrics text (truncates if too long)
+     * - App logo branding
+     *
+     * @param context Application context.
+     * @param coverArtUrl URL of the album art.
+     * @return Generated [Bitmap].
+     */
     @RequiresApi(Build.VERSION_CODES.M)
     suspend fun createLyricsImage(
         context: Context,
@@ -229,6 +243,15 @@ object ComposeToImage {
         canvas.drawText(appName, textX, textY, appNamePaint)
     }
 
+    /**
+     * Saves a bitmap to the device storage.
+     *
+     * - On Android Q (10) and above: Uses MediaStore to save to the "Pictures/vivimusic" directory.
+     * - On older versions: Saves to the app's cache directory and returns a FileProvider URI.
+     *
+     * @param fileName The desired filename (without extension).
+     * @return The [Uri] of the saved file.
+     */
     fun saveBitmapAsFile(context: Context, bitmap: Bitmap, fileName: String): Uri =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val contentValues = ContentValues().apply {

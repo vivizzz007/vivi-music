@@ -6,7 +6,24 @@ import com.music.vivi.db.entities.Song
 import com.my.kizzy.rpc.KizzyRPC
 import com.my.kizzy.rpc.RpcImage
 
+/**
+ * Handles Discord Rich Presence integration via [KizzyRPC].
+ *
+ * Updates the user's Discord status to show what they are currently listening to on Vivi Music.
+ * Features include:
+ * - Song Title, Artist, Album.
+ * - Time remaining/elapsed.
+ * - Links to YouTube Music and the GitHub project.
+ */
 class DiscordRPC(val context: Context, token: String) : KizzyRPC(token) {
+    /**
+     * Updates the Rich Presence status with the current song details.
+     *
+     * @param song The currently playing [Song].
+     * @param currentPlaybackTimeMillis Current playback position in milliseconds.
+     * @param playbackSpeed Current playback speed (affects estimated end time).
+     * @param useDetails Whether to show detailed status.
+     */
     suspend fun updateSong(
         song: Song,
         currentPlaybackTimeMillis: Long,

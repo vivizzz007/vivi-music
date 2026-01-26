@@ -3,6 +3,12 @@ package com.music.vivi.utils
 import java.math.BigInteger
 import java.security.MessageDigest
 
+/**
+ * Formats a duration in milliseconds into a string (e.g., "1:23", "12:34", "1:23:45").
+ *
+ * @param duration Duration in milliseconds.
+ * @return Formatted string (e.g. "MM:SS" or "H:MM:SS").
+ */
 public fun makeTimeString(duration: Long?): String {
     if (duration == null || duration < 0) return ""
     var sec = duration / 1000
@@ -19,11 +25,19 @@ public fun makeTimeString(duration: Long?): String {
     }
 }
 
+/**
+ * Computes the MD5 hash of the input string.
+ * Used for generating cache keys.
+ */
 public fun md5(str: String): String {
     val md = MessageDigest.getInstance("MD5")
     return BigInteger(1, md.digest(str.toByteArray())).toString(16).padStart(32, '0')
 }
 
+/**
+ * Joins non-null/non-empty strings with a bullet separator (•).
+ * Useful for subtitles like "Artist • Album • 2024".
+ */
 public fun joinByBullet(vararg str: String?): String = str
     .filterNot {
         it.isNullOrEmpty()

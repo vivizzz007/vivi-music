@@ -1385,6 +1385,18 @@ class MusicService :
         )
     }
 
+    /**
+     * Called when the currently playing media item changes.
+     *
+     * This method handles the transition logic:
+     * - **Persistence**: Saves the queue state to disk immediately.
+     * - **Smart Suggestions**: Refreshes the automix/suggestions pool if enabled.
+     * - **Auto-Load**: Fetches more songs if near the end of the queue ([checkAndLoadMoreItems]).
+     * - **Widget**: Updates the home screen widget with new song details.
+     *
+     * @param mediaItem The new [MediaItem] being played.
+     * @param reason The reason for the transition (e.g., [Player.MEDIA_ITEM_TRANSITION_REASON_AUTO]).
+     */
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
         lastPlaybackSpeed = -1.0f // force update song
 
@@ -1406,6 +1418,17 @@ class MusicService :
         retryCount.remove(mediaItem?.mediaId)
     }
 
+    /**
+     * Called when the playback state changes (IDLE, BUFFERING, READY, ENDED).
+     *
+     * Key actions:
+     * - **Persistence**: Saves state on every change.
+     * - **Scrobbling**: Triggers periodic scrobble updates or finalizes scrobble on stop.
+     * - **Infinite Playback**: Triggers loading more items when [Player.STATE_ENDED] is reached
+     *   to simulate infinite playback if enabled.
+     *
+     * @param playbackState The new state constant from [Player].
+     */
     override fun onPlaybackStateChanged(@Player.State playbackState: Int) {
         // Save state when playback state changes
         if (dataStore.get(PersistentQueueKey, true)) {
@@ -1876,6 +1899,17 @@ class MusicService :
         }
     }
 
+    /**
+     * Cleans up resources when the service is destroyed.
+     *
+     * This method ensures a clean shutdown by:
+     * 1.  **Persisting State**: Saves the final queue and player state to disk.
+     * 2.  **Cancelling Scopes**: Cancels [scope] and [serviceJob] to stop all active coroutines.
+     * 3.  **Stopping Integrations**: Disconnects from Last.fm and Discord.
+     * 4.  **Releasing Player**: Releases the [ExoPlayer] instance to free hardware decoders.
+     * 5.  **Releasing Session**: Releases the [MediaSession] to notify the system the session is dead.
+     * 6.  **Unregistering Receivers**: Cleans up all broadcast receivers to prevent leaks.
+     */
     override fun onDestroy() {
         isRunning = false
         // Persist queue before killing scope
@@ -1928,6 +1962,15 @@ class MusicService :
 
     override fun onBind(intent: Intent?) = super.onBind(intent) ?: binder
 
+    /**
+     * Called when the app is removed from the recent tasks list (swiped away).
+     *
+     * If the user has enabled [StopMusicOnTaskClearKey], this method will pause playback
+     * and stop the service, effectively killing the player. Otherwise, the service continues
+     * running in the foreground.
+     *
+     * @param rootIntent The intent that launched the root activity.
+     */
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
         if (dataStore.get(StopMusicOnTaskClearKey, false)) {
@@ -1979,6 +2022,14 @@ class MusicService :
         widgetUpdateJob = null
     }
 
+    /**
+     * Called when the system requests a notification update.
+     *
+     * **Android 12+ Compliance**:
+     * We override this to force `startInForeground = true`. This is a defensive measure to reduce
+     * the likelihood of `ForegroundServiceStartNotAllowedException` by trying to keep the service
+     * promoted to foreground status as much as possible, even during notification updates.
+     */
     override fun onUpdateNotification(session: MediaSession, startInForeground: Boolean) {
         // Try to stay in foreground even when paused to avoid ForegroundServiceStartNotAllowedException
         // when resuming from background on Android 12+

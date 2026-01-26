@@ -71,8 +71,18 @@ constructor(
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    /**
+     * A flow emitting the current status of all downloads.
+     * Key: Media ID (Song ID). Value: [Download] object containing state and progress.
+     */
     val downloads = MutableStateFlow<Map<String, Download>>(emptyMap())
 
+    /**
+     * Custom DataSource Factory that prioritizes:
+     * 1. **Cache**: Checks if the content is fully or partially downloaded in [playerCache].
+     * 2. **Expired Stream Handling**: Checks [songUrlCache] for valid stream URLs.
+     * 3. **Network Fetch**: Fetches new playback data via [YTPlayerUtils] if needed, updating the database.
+     */
     private val dataSourceFactory =
         ResolvingDataSource.Factory(
             CacheDataSource
@@ -207,6 +217,11 @@ constructor(
         downloads.value = result
     }
 
+    /**
+     * Returns a flow emitting the download status for a specific song.
+     *
+     * @param songId The unique ID of the song.
+     */
     fun getDownload(songId: String): Flow<Download?> = downloads.map { it[songId] }
 
     fun release() {

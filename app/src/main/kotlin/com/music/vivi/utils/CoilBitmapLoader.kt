@@ -17,6 +17,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.guava.future
 
+/**
+ * A [BitmapLoader] implementation that uses Coil to load images.
+ *
+ * This adapter allows Media3/ExoPlayer to leverage Coil's caching and image loading capabilities
+ * for fetching artwork to display in the system notification and lockscreen.
+ *
+ * @param context Application context.
+ * @param scope Coroutine scope for async loading.
+ */
 class CoilBitmapLoader(private val context: Context, private val scope: CoroutineScope) : BitmapLoader {
     override fun supportsMimeType(mimeType: String): Boolean = mimeType.startsWith("image/")
 
@@ -25,6 +34,18 @@ class CoilBitmapLoader(private val context: Context, private val scope: Coroutin
             ?: error("Could not decode image data")
     }
 
+    /**
+     * Loads a bitmap from the given [Uri].
+     *
+     * This method:
+     * 1.  Creates a Coil [ImageRequest].
+     * 2.  Disables hardware bitmaps (required for remote views/notifications).
+     * 3.  Executes the request synchronously (blocking the IO dispatcher).
+     * 4.  Returns a [ListenableFuture] compatible with Media3's async API.
+     *
+     * @param uri The URI of the image to load.
+     * @return A Future containing the loaded Bitmap or a placeholder on error.
+     */
     override fun loadBitmap(uri: Uri): ListenableFuture<Bitmap> = scope.future(Dispatchers.IO) {
         val request = ImageRequest.Builder(context)
             .data(uri)

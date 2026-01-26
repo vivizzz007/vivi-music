@@ -8,6 +8,10 @@ import com.music.vivi.models.MediaMetadata
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 
+/**
+ * A queue backed by a YouTube Music "Watch Endpoint" (Radio/Mix).
+ * Supports infinite loading via [nextPage].
+ */
 class YouTubeQueue(private var endpoint: WatchEndpoint, override val preloadItem: MediaMetadata? = null) : Queue {
     private var continuation: String? = null
 

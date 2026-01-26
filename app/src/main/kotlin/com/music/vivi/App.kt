@@ -44,6 +44,22 @@ import java.net.Proxy
 import java.util.Locale
 import javax.inject.Inject
 
+/**
+ * The main Application class for Vivi Music.
+ *
+ * This class serves as the dependency injection root (@HiltAndroidApp) and handles global initialization for:
+ * - **Image Loading**: Configures Coil with caching policies.
+ * - **Settings**: Loads critical preferences (Locale, Proxy, Integrations) at startup.
+ * - **Notification Channels**: Creates the required channels for Android O+.
+ * - **Error Handling**: Initializes global crash handlers.
+ *
+ * ## Usage Example
+ * Accessing the application scope for global coroutines:
+ * ```kotlin
+ * @Inject lateinit var app: App
+ * app.applicationScope.launch { ... }
+ * ```
+ */
 @HiltAndroidApp
 class App :
     Application(),
@@ -53,6 +69,13 @@ class App :
     @ApplicationScope
     lateinit var applicationScope: CoroutineScope
 
+    /**
+     * Initializes the application.
+     *
+     * - Sets up [Timber] for logging.
+     * - Launches a coroutine to initialize settings ([initializeSettings]) and observe changes ([observeSettingsChanges]).
+     * - This ensures that critical config (like Proxy settings) is applied before any network requests are made.
+     */
     override fun onCreate() {
         super.onCreate()
         Timber.plant(Timber.DebugTree())
@@ -174,6 +197,18 @@ class App :
         }
     }
 
+    /**
+     * Configures the global Coil [ImageLoader].
+     *
+     * The loader is configured with:
+     * - **Crossfade**: Enabled for smooth transitions.
+     * - **Hardware Bitmaps**: Allowed on Android P+ for performance.
+     * - **Memory Cache**: Limited to 25% of available memory.
+     * - **Disk Cache**: Configurable via [MaxImageCacheSizeKey], located in `cacheDir/coil`.
+     *
+     * @param context The platform context.
+     * @return A configured [ImageLoader] instance.
+     */
     override fun newImageLoader(context: PlatformContext): ImageLoader {
         val cacheSize = dataStore.get(MaxImageCacheSizeKey, 512)
 

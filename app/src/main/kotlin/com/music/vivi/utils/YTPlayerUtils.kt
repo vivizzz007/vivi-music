@@ -70,6 +70,21 @@ object YTPlayerUtils {
      * Metadata like audioConfig and videoDetails are from [MAIN_CLIENT].
      * Format & stream can be from [MAIN_CLIENT] or [STREAM_FALLBACK_CLIENTS].
      */
+    /**
+     * Retrieves the [PlaybackData] required to play a song/video.
+     *
+     * This method implements a robust fallback mechanism to find a working stream:
+     * 1.  **Main Client**: Attempts to fetch data using the [MAIN_CLIENT] (usually Android VR) to get accurate metadata and volume normalization.
+     * 2.  **Fallback Clients**: If the main client fails (or stream is invalid), iterates through [STREAM_FALLBACK_CLIENTS] (Web, iOS, TV, etc.).
+     * 3.  **Validation**: Validates the stream URL via a HEAD request to ensure it's accessible.
+     *
+     * @param videoId The YouTube video ID.
+     * @param playlistId Optional context playlist ID.
+     * @param audioQuality The desired [AudioQuality].
+     * @param connectivityManager System connectivity manager for network checks.
+     * @param httpClient The OkHttpClient used for validation requests.
+     * @return A [Result] containing the [PlaybackData] on success, or an exception on failure.
+     */
     suspend fun playerResponseForPlayback(
         videoId: String,
         playlistId: String? = null,
@@ -262,6 +277,16 @@ object YTPlayerUtils {
     /**
      * Simple player response intended to use for metadata only.
      * Stream URLs of this response might not work so don't use them.
+     */
+    /**
+     * Fetches metadata-only player response (lighter weight than full playback response).
+     *
+     * Use this when you only need metadata (title, artist, duration, related songs) and not the actual audio stream.
+     * Uses `WEB_REMIX` client for best metadata accuracy.
+     *
+     * @param videoId The YouTube video ID.
+     * @param playlistId Optional context playlist ID.
+     * @return A [Result] containing the [PlayerResponse].
      */
     suspend fun playerResponseForMetadata(videoId: String, playlistId: String? = null): Result<PlayerResponse> {
         Timber.tag(

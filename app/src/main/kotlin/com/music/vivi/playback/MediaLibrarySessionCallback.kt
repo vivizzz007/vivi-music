@@ -459,6 +459,15 @@ constructor(
         }
     }
 
+    /**
+     * Called when a client requests to play a specific item or category.
+     * Matches the structure of [onGetChildren] to resolve IDs back to real media items.
+     *
+     * Example IDs:
+     * - `song/[ID]` -> Plays the song in the context of "All Songs".
+     * - `playlist/[ID]` -> Plays the playlist.
+     * - `album/[ID]` -> Plays the album.
+     */
     override fun onSetMediaItems(
         mediaSession: MediaSession,
         controller: MediaSession.ControllerInfo,

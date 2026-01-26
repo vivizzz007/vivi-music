@@ -11,6 +11,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+/**
+ * Manages the sleep timer functionality.
+ * Can stop playback after a specific duration or at the end of the current song.
+ */
 class SleepTimer(private val scope: CoroutineScope, val player: Player) : Player.Listener {
     private var sleepTimerJob: Job? = null
     var triggerTime by mutableLongStateOf(-1L)
@@ -20,6 +24,12 @@ class SleepTimer(private val scope: CoroutineScope, val player: Player) : Player
     val isActive: Boolean
         get() = triggerTime != -1L || pauseWhenSongEnd
 
+    /**
+     * Starts the sleep timer.
+     *
+     * @param durationMillis The duration in milliseconds to wait before pausing.
+     *                       Pass -1L to pause when the current song ends.
+     */
     fun start(durationMillis: Long) {
         sleepTimerJob?.cancel()
         sleepTimerJob = null

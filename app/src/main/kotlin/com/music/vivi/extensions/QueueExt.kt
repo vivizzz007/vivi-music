@@ -6,6 +6,16 @@ import com.music.vivi.models.QueueData
 import com.music.vivi.models.QueueType
 import com.music.vivi.playback.queues.*
 
+/**
+ * Converts a runtime [Queue] into a persistable [PersistQueue] data object.
+ * This is used to save the playback state to disk when the service is destroyed.
+ *
+ * @param title Title of the queue (e.g. Playlist name).
+ * @param items List of metadata items in the queue.
+ * @param mediaItemIndex Current playing index.
+ * @param position Current playback position in ms.
+ * @return A serializable [PersistQueue].
+ */
 fun Queue.toPersistQueue(
     title: String?,
     items: List<MediaMetadata>,
@@ -67,6 +77,12 @@ fun Queue.toPersistQueue(
     )
 }
 
+/**
+ * Restores a [PersistQueue] back into a runtime [Queue] implementation.
+ *
+ * NOTE: Currently falls back to [ListQueue] for complex types (YouTubeQueue, AlbumRadio)
+ * if full reconstruction is not possible without network.
+ */
 fun PersistQueue.toQueue(): Queue = when (queueType) {
     is QueueType.LIST -> ListQueue(
         title = title,

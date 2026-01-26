@@ -17,6 +17,10 @@ import com.music.vivi.R
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
+/**
+ * A foreground service responsible for running media downloads.
+ * Uses ExoPlayer's [DownloadService] infrastructure.
+ */
 @AndroidEntryPoint
 class ExoDownloadService :
     DownloadService(

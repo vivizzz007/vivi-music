@@ -25,6 +25,24 @@ import java.time.LocalDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Manages synchronization between the local database and the remote YouTube Music library.
+ *
+ * This utility handles bidirectional syncing for:
+ * - Liked Songs ("LM" playlist)
+ * - Library Songs (Liked videos/In-Library tracks)
+ * - Uploaded Songs and Albums
+ * - Saved Playlists and Subscribed Artists
+ *
+ * It uses a "last-write-wins" or "merge" strategy depending on the content type, ensuring
+ * that local changes (like offline likes) are pushed to the server and remote changes are pulled down.
+ *
+ * ## Usage
+ * Usually injected via Hilt and called from a Worker or ViewModel:
+ * ```kotlin
+ * syncUtils.runAllSyncs() // Triggers a full sync
+ * ```
+ */
 @Singleton
 public class SyncUtils @Inject constructor(private val database: MusicDatabase) {
     private val syncScope = CoroutineScope(Dispatchers.IO)
@@ -37,6 +55,10 @@ public class SyncUtils @Inject constructor(private val database: MusicDatabase) 
     private val isSyncingArtists = MutableStateFlow(false)
     private val isSyncingPlaylists = MutableStateFlow(false)
 
+    /**
+     * Triggers a full synchronization of all supported content types.
+     * This runs asynchronously in the [syncScope] (Dispatchers.IO).
+     */
     public fun runAllSyncs() {
         syncScope.launch {
             syncLikedSongs()
@@ -55,6 +77,16 @@ public class SyncUtils @Inject constructor(private val database: MusicDatabase) 
         }
     }
 
+    /**
+     * Synchronizes "Liked Songs" (Playlist ID: "LM").
+     *
+     * Logic:
+     * 1.  Fetches the remote "Liked Songs" playlist.
+     * 2.  **Push**: Pushes any local pending likes (songs liked offline) to YouTube.
+     * 3.  **Pull**: Updates the local database with remote likes, including the liked timestamp.
+     *
+     * Thread-safe: skips execution if a sync is already in progress.
+     */
     public suspend fun syncLikedSongs() {
         if (isSyncingLikedSongs.value) return
         isSyncingLikedSongs.value = true
@@ -279,6 +311,12 @@ public class SyncUtils @Inject constructor(private val database: MusicDatabase) 
         }
     }
 
+    /**
+     * Synchronizes saved playlists.
+     *
+     * Fetches the list of playlists from the user's library and updates the local [PlaylistEntity] entries.
+     * New playlists are inserted, and existing ones are updated with new metadata (title, thumbnail, song count).
+     */
     public suspend fun syncSavedPlaylists() {
         if (isSyncingPlaylists.value) return
         isSyncingPlaylists.value = true

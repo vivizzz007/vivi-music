@@ -34,6 +34,10 @@ class PlayerConnection(context: Context, binder: MusicBinder, val database: Musi
 
     val playbackState = MutableStateFlow(player.playbackState)
     private val playWhenReady = MutableStateFlow(player.playWhenReady)
+    /**
+     * A derived state indicating if the player is actively playing.
+     * True only if [playWhenReady] is true AND playback state is NOT [STATE_ENDED].
+     */
     val isPlaying =
         combine(playbackState, playWhenReady) { playbackState, playWhenReady ->
             playWhenReady && playbackState != STATE_ENDED
@@ -87,16 +91,25 @@ class PlayerConnection(context: Context, binder: MusicBinder, val database: Musi
         service.playQueue(queue)
     }
 
+    /**
+     * Starts radio based on the current song seamlessly.
+     */
     fun startRadioSeamlessly() {
         service.startRadioSeamlessly()
     }
 
+    /**
+     * Plays the provided item(s) next in the queue.
+     */
     fun playNext(item: MediaItem) = playNext(listOf(item))
 
     fun playNext(items: List<MediaItem>) {
         service.playNext(items)
     }
 
+    /**
+     * Adds the provided item(s) to the end of the queue.
+     */
     fun addToQueue(item: MediaItem) = addToQueue(listOf(item))
 
     fun addToQueue(items: List<MediaItem>) {
