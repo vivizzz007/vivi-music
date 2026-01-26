@@ -21,6 +21,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
+/**
+ * ViewModel for the "Add to Playlist" sheet or Playlists management screen.
+ * Displays all user playlists and handles syncing.
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 public class PlaylistsViewModel

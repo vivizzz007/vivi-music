@@ -19,6 +19,10 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
+/**
+ * ViewModel for "My Top 100" playlists (Most Played).
+ * Supports filtering by time period (Week, Month, Year, All Time).
+ */
 @HiltViewModel
 public class TopPlaylistViewModel
 @Inject

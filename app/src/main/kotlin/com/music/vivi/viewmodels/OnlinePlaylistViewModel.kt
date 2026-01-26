@@ -30,6 +30,15 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel for displaying an Online (YouTube Music) Playlist.
+ *
+ * Features:
+ * - Fetches initial playlist songs.
+ * - **Proactive Loading**: Automatically fetches continuation tokens in the background to load the full playlist.
+ * - Handles manual pagination (Load More) which pauses the proactive loader.
+ * - Checks local DB for bookmark status (to show Heart icon).
+ */
 @HiltViewModel
 public class OnlinePlaylistViewModel @Inject constructor(
     @ApplicationContext private val context: Context,

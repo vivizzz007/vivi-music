@@ -37,6 +37,15 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel for the main Artist Detail Screen.
+ *
+ * Responsibilities:
+ * - Fetches Artist page data from YouTube Music.
+ * - Observes local library songs and albums for this artist.
+ * - Merges library data with network data.
+ * - Handles filtering preferences (Hide Explicit / Hide Music Videos).
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 public class ArtistViewModel @Inject constructor(

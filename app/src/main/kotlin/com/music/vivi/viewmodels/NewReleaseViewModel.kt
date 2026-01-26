@@ -20,6 +20,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel for the "New Releases" dedicated page of the Explore tab.
+ * Sorts releases by user preference/listening history similar to [ExploreViewModel].
+ */
 @HiltViewModel
 public class NewReleaseViewModel
 @Inject

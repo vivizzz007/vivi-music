@@ -14,12 +14,19 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * Enum defining the types of content displayable in the Account section.
+ */
 public enum class AccountContentType {
     PLAYLISTS,
     ALBUMS,
     ARTISTS,
 }
 
+/**
+ * ViewModel for managing the Account/Library dashboard.
+ * Fetches and displays user-specific content from YouTube Music (Private Library).
+ */
 @HiltViewModel
 public class AccountViewModel @Inject constructor() : ViewModel() {
     public val playlists: MutableStateFlow<List<PlaylistItem>?> = MutableStateFlow(null)

@@ -20,6 +20,15 @@ import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import javax.inject.Inject
 
+/**
+ * ViewModel for managing the "Cached" songs smart playlist.
+ *
+ * Responsibilities:
+ * - Monitors the physical cache (PlayerCache & DownloadCache).
+ * - Identifies songs that are fully cached but not explicitly "Downloaded" by the user.
+ * - Updates the database to mark these songs as "Cached" so they appear in cache lists.
+ * - Provides the list of cached songs sorted by download date.
+ */
 @HiltViewModel
 public class CachePlaylistViewModel @Inject constructor(
     @ApplicationContext private val context: Context,

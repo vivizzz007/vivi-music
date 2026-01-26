@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel for fetching the list of Moods and Genres categories.
+ */
 @HiltViewModel
 public class MoodAndGenresViewModel
 @Inject

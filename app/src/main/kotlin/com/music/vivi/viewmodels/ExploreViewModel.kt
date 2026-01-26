@@ -19,6 +19,14 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel for the Explore page.
+ *
+ * Responsibilities:
+ * - Fetches "Moods & Genres", "New Releases", and other explore signals.
+ * - Sorts "New Releases" based on user's favorite artists (Local Play Time stats).
+ * - Applies Explicit Content filters.
+ */
 @HiltViewModel
 public class ExploreViewModel
 @Inject

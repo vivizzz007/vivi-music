@@ -11,6 +11,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel for the Charts screen.
+ * Fetches Top Songs, Top Videos, and Trending content.
+ */
 @HiltViewModel
 public class ChartsViewModel @Inject constructor() : ViewModel() {
     private val _chartsPage = MutableStateFlow<ChartsPage?>(null)

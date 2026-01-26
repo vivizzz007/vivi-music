@@ -28,6 +28,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel for showing Search Suggestions (Auto-complete) and History.
+ * Combines local search history with remote YouTube search suggestions.
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 public class OnlineSearchSuggestionViewModel

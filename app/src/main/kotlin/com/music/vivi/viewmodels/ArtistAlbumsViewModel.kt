@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
+/**
+ * ViewModel for displaying the list of Albums for a specific Artist from the local database.
+ */
 @HiltViewModel
 public class ArtistAlbumsViewModel @Inject constructor(database: MusicDatabase, savedStateHandle: SavedStateHandle) :
     ViewModel() {

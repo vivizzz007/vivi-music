@@ -24,6 +24,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel for displaying Online Search Results.
+ * Handles both the "Summary" view (mixed types) and "Filter" views (Songs only, Videos only, etc.).
+ */
 @HiltViewModel
 public class OnlineSearchViewModel
 @Inject

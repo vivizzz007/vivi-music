@@ -7,6 +7,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
+/**
+ * ViewModel for the App News/Updates system.
+ * Delegates to [NewsRepository] to fetch and manage read state of news items.
+ */
 @HiltViewModel
 public class NewsViewModel @Inject constructor(private val repository: NewsRepository) : ViewModel() {
 

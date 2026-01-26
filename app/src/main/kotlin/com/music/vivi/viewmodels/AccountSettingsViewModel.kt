@@ -10,6 +10,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel for Account Settings screen.
+ * Handles logout and account cleanup operations.
+ */
 @HiltViewModel
 public class AccountSettingsViewModel @Inject constructor(private val syncUtils: SyncUtils) : ViewModel() {
 

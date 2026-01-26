@@ -11,6 +11,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * Generic ViewModel for browsing YouTube Music endpoints.
+ * Used for dynamic content pages that don't fit into other specific categories.
+ */
 @HiltViewModel
 public class BrowseViewModel @Inject constructor(savedStateHandle: SavedStateHandle) : ViewModel() {
     private val browseId: String? = savedStateHandle.get<String>("browseId")

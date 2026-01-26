@@ -29,6 +29,10 @@ import java.text.Collator
 import java.util.Locale
 import javax.inject.Inject
 
+/**
+ * ViewModel for a User-created Local Playlist.
+ * Handles fetching playlist details and sorting its songs based on user preference.
+ */
 @HiltViewModel
 public class LocalPlaylistViewModel
 @Inject

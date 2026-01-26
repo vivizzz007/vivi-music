@@ -1836,7 +1836,12 @@ class MusicService :
         }
     }
 
-    private fun saveQueueToDisk() {
+    private fun saveQueueToDisk(blocking: Boolean = false) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            Handler(Looper.getMainLooper()).post { saveQueueToDisk(blocking) }
+            return
+        }
+
         if (player.mediaItemCount == 0) {
             return
         }
@@ -1873,8 +1878,7 @@ class MusicService :
             playbackState = player.playbackState
         )
 
-        // Offload serialization and disk I/O to background thread
-        scope.launch(Dispatchers.IO) {
+        val performSave = {
             runCatching {
                 filesDir.resolve(PERSISTENT_QUEUE_FILE).outputStream().use { fos ->
                     ObjectOutputStream(fos).use { oos ->
@@ -1902,6 +1906,12 @@ class MusicService :
             }.onFailure {
                 reportException(it)
             }
+        }
+
+        if (blocking) {
+            runBlocking(Dispatchers.IO) { performSave() }
+        } else {
+            scope.launch(Dispatchers.IO) { performSave() }
         }
     }
 

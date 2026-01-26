@@ -20,6 +20,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
+/**
+ * ViewModel for searching the Local Library / Database.
+ * Supports filtering by Songs, Albums, Artists, or Playlists.
+ * Returns a unified [LocalSearchResult] object.
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 public class LocalSearchViewModel

@@ -22,6 +22,15 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel for displaying Album details.
+ *
+ * Responsibilities:
+ * - Fetching Album details from YouTube Music.
+ * - Observing local library state for the album (Bookmarking/DB sync).
+ * - Reactively fetching and updating Album Description (Wikipedia).
+ * - Handling sync between local and remote album data.
+ */
 @HiltViewModel
 public class AlbumViewModel
 @Inject

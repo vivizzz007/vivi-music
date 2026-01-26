@@ -21,6 +21,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel for handling paged lists of items for an Artist (e.g., "Singles", "Albums" view all).
+ * Handles pagination (continuations) and applies content filters (Explicit/Video mode).
+ */
 @HiltViewModel
 public class ArtistItemsViewModel
 @Inject

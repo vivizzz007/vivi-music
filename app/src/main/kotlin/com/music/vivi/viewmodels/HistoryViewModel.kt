@@ -20,6 +20,11 @@ import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 
+/**
+ * ViewModel for the History screen.
+ * Groups playback history by Date (Today, Yesterday, This Week, etc.).
+ * Supports determining history source (Local Database vs Remote YouTube History).
+ */
 @HiltViewModel
 public class HistoryViewModel
 @Inject

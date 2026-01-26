@@ -30,6 +30,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel for Auto-generated playlists (Liked, Downloaded, Uploaded).
+ * Handles sorting and filtering preferences for these special collections.
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 public class AutoPlaylistViewModel

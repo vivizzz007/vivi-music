@@ -17,6 +17,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * A general-purpose ViewModel for browsing any YouTube endpoint by Browse ID.
+ * Similar to [BrowseViewModel] but specifically tailored for result filtering (Explicit/Video)
+ * and typically used for "More" pages or deep links.
+ */
 @HiltViewModel
 public class YouTubeBrowseViewModel
 @Inject
