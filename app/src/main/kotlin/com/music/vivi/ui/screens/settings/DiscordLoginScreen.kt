@@ -81,48 +81,68 @@ fun DiscordLoginScreen(navController: NavController) {
                 webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView, url: String) {
                         if (url.contains("/channels/@me") || url.contains("/app")) {
-                            view.evaluateJavascript(
-                                """
-                                (function() {
-                                    try {
-                                        // Attempt 1: Webpack extraction (most reliable for Discord Web)
-                                        let token = (webpackChunkdiscord_app.push([[''],{},e=>{m=[];for(let c in e.c)m.push(e.c[c])}]),m).find(m=>m?.exports?.default?.getToken!==undefined).exports.default.getToken();
-                                        if (token) {
-                                            Android.onRetrieveToken(token);
-                                            return;
-                                        }
-                                    } catch (e) {
-                                        console.log("Webpack extraction failed");
-                                    }
-
-                                    try {
-                                        // Attempt 2: LocalStorage (Legacy)
-                                        let token = localStorage.getItem("token");
-                                        if (token) {
-                                            Android.onRetrieveToken(token.replace(/^"|"$/g, '')); // Remove quotes safely
-                                            return;
-                                        }
-                                    } catch (e) {
-                                        console.log("LocalStorage extraction failed");
-                                    }
-
-                                    try {
-                                        // Attempt 3: Iframe fallback
-                                        var i = document.createElement('iframe');
-                                        document.body.appendChild(i);
-                                        setTimeout(function() {
+                                    """
+                                    (function() {
+                                        var checkCount = 0;
+                                        var interval = setInterval(function() {
+                                            checkCount++;
                                             try {
-                                                var alt = i.contentWindow.localStorage.token;
-                                                if (alt) {
-                                                    Android.onRetrieveToken(alt.replace(/^"|"$/g, ''));
+                                                // Attempt 1: Webpack extraction
+                                                window.webpackChunkdiscord_app.push([[Math.random()], {}, (req) => {
+                                                    for (const m of Object.keys(req.c).map((x) => req.c[x].exports).filter((x) => x)) {
+                                                        if (m.default && m.default.getToken !== undefined) {
+                                                            var token = m.default.getToken();
+                                                            if (token) {
+                                                                Android.onRetrieveToken(token);
+                                                                clearInterval(interval);
+                                                                return;
+                                                            }
+                                                        }
+                                                        if (m.getToken !== undefined) {
+                                                            var token = m.getToken();
+                                                            if (token) {
+                                                                Android.onRetrieveToken(token);
+                                                                clearInterval(interval);
+                                                                return;
+                                                            }
+                                                        }
+                                                    }
+                                                }]);
+                                            } catch (e) { }
+
+                                            try {
+                                                // Attempt 2: LocalStorage
+                                                var token = localStorage.getItem("token");
+                                                if (token) {
+                                                    Android.onRetrieveToken(token.replace(/^"|"$/g, ''));
+                                                    clearInterval(interval);
+                                                    return;
                                                 }
-                                            } catch (e) {}
+                                            } catch(e) {}
+
+                                            // Attempt 3: Iframe fallback
+                                            try {
+                                                var i = document.createElement('iframe');
+                                                document.body.appendChild(i);
+                                                try {
+                                                    var alt = i.contentWindow.localStorage.token;
+                                                    if (alt) {
+                                                        Android.onRetrieveToken(alt.replace(/^"|"$/g, ''));
+                                                        clearInterval(interval);
+                                                        return;
+                                                    }
+                                                } catch (e) {}
+                                                document.body.removeChild(i);
+                                            } catch(e) {}
+
+                                            if (checkCount > 20) {
+                                                clearInterval(interval);
+                                            }
                                         }, 1000);
-                                    } catch(e) {}
-                                })();
-                                """.trimIndent(),
-                                null
-                            )
+                                    })();
+                                    """.trimIndent(),
+                                    null
+                                )
                         }
                     }
 
