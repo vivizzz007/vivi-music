@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 
 // an improved verion of network checker
 
-
 class NetworkConnectivityObserver(private val context: Context) {
 
     private val connectivityManager =
@@ -58,6 +57,6 @@ class NetworkConnectivityObserver(private val context: Context) {
     enum class NetworkStatus {
         Available,
         Lost,
-        Unavailable
+        Unavailable,
     }
 }

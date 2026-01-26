@@ -11,6 +11,10 @@ import androidx.media3.common.TrackSelectionParameters
 import com.music.vivi.models.MediaMetadata
 import java.util.ArrayDeque
 
+/**
+ * Toggles between Play and Pause states.
+ * If the player is Idle, it calls [Player.prepare] first.
+ */
 fun Player.togglePlayPause() {
     if (!playWhenReady && playbackState == Player.STATE_IDLE) {
         prepare()
@@ -18,6 +22,9 @@ fun Player.togglePlayPause() {
     playWhenReady = !playWhenReady
 }
 
+/**
+ * Cycles through Repeat Modes: OFF -> ALL -> ONE -> OFF.
+ */
 fun Player.toggleRepeatMode() {
     repeatMode =
         when (repeatMode) {
@@ -28,6 +35,12 @@ fun Player.toggleRepeatMode() {
         }
 }
 
+/**
+ * Creates a list of queue "windows" (items) for the UI.
+ * This is used to display the upcoming songs in the player queue.
+ *
+ * @return A list of [Timeline.Window] representing the playback queue.
+ */
 fun Player.getQueueWindows(): List<Timeline.Window> {
     val timeline = currentTimeline
     if (timeline.isEmpty) {
@@ -104,6 +117,12 @@ fun Player.findNextMediaItemById(mediaId: String): MediaItem? {
     return null
 }
 
+/**
+ * Enables or disables Audio Offload mode.
+ * Audio Offload allows the audio processing to be handled by the DSP, saving battery.
+ *
+ * @param enabled True to enable offload.
+ */
 fun Player.setOffloadEnabled(enabled: Boolean) {
     trackSelectionParameters = trackSelectionParameters.buildUpon()
         .setAudioOffloadPreferences(

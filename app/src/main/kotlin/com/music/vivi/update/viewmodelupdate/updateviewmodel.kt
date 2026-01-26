@@ -1,16 +1,15 @@
 package com.music.vivi.update.viewmodelupdate
 
-
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.music.vivi.BuildConfig
 import com.music.vivi.constants.CheckForUpdatesKey
 import com.music.vivi.ui.screens.checkForUpdate
-import com.music.vivi.updatesreen.UpdateInfo
-import com.music.vivi.updatesreen.UpdateStatus
 import com.music.vivi.update.experiment.getUpdateCheckInterval
 import com.music.vivi.update.isNewerVersion
+import com.music.vivi.updatesreen.UpdateInfo
+import com.music.vivi.updatesreen.UpdateStatus
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.get
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,12 +21,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
-//new view model for the update
+// new view model for the update
 
 @HiltViewModel
-class UpdateViewModel @Inject constructor(
-    @ApplicationContext private val context: Context
-) : ViewModel() {
+class UpdateViewModel @Inject constructor(@ApplicationContext private val context: Context) : ViewModel() {
 
     private val _updateStatus = MutableStateFlow<UpdateStatus>(UpdateStatus.Loading)
     val updateStatus: StateFlow<UpdateStatus> = _updateStatus.asStateFlow()

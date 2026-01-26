@@ -34,7 +34,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.Credentials
@@ -45,17 +44,41 @@ import java.net.Proxy
 import java.util.Locale
 import javax.inject.Inject
 
+/**
+ * The main Application class for Vivi Music.
+ *
+ * This class serves as the dependency injection root (@HiltAndroidApp) and handles global initialization for:
+ * - **Image Loading**: Configures Coil with caching policies.
+ * - **Settings**: Loads critical preferences (Locale, Proxy, Integrations) at startup.
+ * - **Notification Channels**: Creates the required channels for Android O+.
+ * - **Error Handling**: Initializes global crash handlers.
+ *
+ * ## Usage Example
+ * Accessing the application scope for global coroutines:
+ * ```kotlin
+ * @Inject lateinit var app: App
+ * app.applicationScope.launch { ... }
+ * ```
+ */
 @HiltAndroidApp
-class App : Application(), SingletonImageLoader.Factory {
+class App :
+    Application(),
+    SingletonImageLoader.Factory {
 
     @Inject
     @ApplicationScope
     lateinit var applicationScope: CoroutineScope
 
+    /**
+     * Initializes the application.
+     *
+     * - Sets up [Timber] for logging.
+     * - Launches a coroutine to initialize settings ([initializeSettings]) and observe changes ([observeSettingsChanges]).
+     * - This ensures that critical config (like Proxy settings) is applied before any network requests are made.
+     */
     override fun onCreate() {
         super.onCreate()
         Timber.plant(Timber.DebugTree())
-
 
         applicationScope.launch {
             initializeSettings()
@@ -123,15 +146,13 @@ class App : Application(), SingletonImageLoader.Factory {
             // Music playback channel (required for MusicService)
             val musicChannel = NotificationChannel(
                 "music_channel_01",
-                "Music Player",
+                getString(R.string.music_player),
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
                 description = getString(R.string.controls_for_music_playback)
                 setShowBadge(false)
             }
             nm.createNotificationChannel(musicChannel)
-
-
         }
     }
 
@@ -176,12 +197,29 @@ class App : Application(), SingletonImageLoader.Factory {
         }
     }
 
+    /**
+     * Configures the global Coil [ImageLoader].
+     *
+     * The loader is configured with:
+     * - **Crossfade**: Enabled for smooth transitions.
+     * - **Hardware Bitmaps**: Allowed on Android P+ for performance.
+     * - **Memory Cache**: Limited to 25% of available memory.
+     * - **Disk Cache**: Configurable via [MaxImageCacheSizeKey], located in `cacheDir/coil`.
+     *
+     * @param context The platform context.
+     * @return A configured [ImageLoader] instance.
+     */
     override fun newImageLoader(context: PlatformContext): ImageLoader {
         val cacheSize = dataStore.get(MaxImageCacheSizeKey, 512)
 
         return ImageLoader.Builder(this).apply {
-            crossfade(false)
+            crossfade(true)
             allowHardware(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+            memoryCache {
+                coil3.memory.MemoryCache.Builder()
+                    .maxSizePercent(context, 0.25)
+                    .build()
+            }
             if (cacheSize == 0) {
                 diskCachePolicy(CachePolicy.DISABLED)
             } else {

@@ -9,10 +9,11 @@ import com.music.vivi.models.MediaMetadata
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 
-class LocalAlbumRadio(
-    private val albumWithSongs: AlbumWithSongs,
-    private val startIndex: Int = 0,
-) : Queue {
+/**
+ * A queue that plays a local album and then continues with YouTube radio recommendations
+ * based on the album's online ID.
+ */
+class LocalAlbumRadio(private val albumWithSongs: AlbumWithSongs, private val startIndex: Int = 0) : Queue {
     override val preloadItem: MediaMetadata? = null
 
     private lateinit var playlistId: String

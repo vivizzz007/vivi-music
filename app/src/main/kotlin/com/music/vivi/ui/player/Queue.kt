@@ -1,17 +1,14 @@
 package com.music.vivi.ui.player
 
-import androidx.activity.compose.BackHandler
 import android.annotation.SuppressLint
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -42,17 +39,18 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.graphics.RectangleShape
-import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Slider
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -60,30 +58,23 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
-import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimeInput
-import androidx.compose.material3.TimePickerDialog
-import androidx.compose.material3.TimePickerDialogDefaults
-import androidx.compose.material3.TimePickerDisplayMode
-import androidx.compose.material3.rememberSwipeToDismissBoxState
-import androidx.compose.material3.rememberTimePickerState
-import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
+import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.TooltipAnchorPosition
-import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -94,6 +85,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
@@ -117,9 +109,9 @@ import coil3.request.ImageRequest
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.ListItemHeight
-import com.music.vivi.constants.UseNewPlayerDesignKey
 import com.music.vivi.constants.QueueEditLockKey
 import com.music.vivi.constants.SmartSuggestionsKey
+import com.music.vivi.constants.UseNewPlayerDesignKey
 import com.music.vivi.extensions.metadata
 import com.music.vivi.extensions.move
 import com.music.vivi.extensions.togglePlayPause
@@ -130,8 +122,8 @@ import com.music.vivi.ui.component.BottomSheet
 import com.music.vivi.ui.component.BottomSheetState
 import com.music.vivi.ui.component.LocalBottomSheetPageState
 import com.music.vivi.ui.component.LocalMenuState
-import com.music.vivi.ui.component.MediaMetadataListItem
 import com.music.vivi.ui.component.RoundedCheckbox
+import com.music.vivi.ui.component.media.common.MediaMetadataListItem
 import com.music.vivi.ui.menu.PlayerMenu
 import com.music.vivi.ui.menu.SelectionMediaMetadataMenu
 import com.music.vivi.ui.utils.ShowMediaInfo
@@ -141,12 +133,11 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Locale
-import kotlin.math.roundToInt
 
 @SuppressLint("UnrememberedMutableState")
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -169,7 +160,6 @@ fun Queue(
     val clipboardManager = LocalClipboard.current
     val menuState = LocalMenuState.current
     val bottomSheetPageState = LocalBottomSheetPageState.current
-
 
     val sleepTimerState = rememberTimePickerState(
         initialHour = 0,
@@ -251,8 +241,8 @@ fun Queue(
                         .windowInsetsPadding(
                             WindowInsets.systemBars.only(
                                 WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal
-                            ),
-                        ),
+                            )
+                        )
                 ) {
                     val buttonSize = 42.dp
                     val iconSize = 24.dp
@@ -306,7 +296,7 @@ fun Queue(
                     ) {
                         AnimatedContent(
                             label = "sleepTimer",
-                            targetState = sleepTimerEnabled,
+                            targetState = sleepTimerEnabled
                         ) { enabled ->
                             if (enabled) {
                                 Text(
@@ -456,8 +446,8 @@ fun Queue(
                         .padding(horizontal = 30.dp, vertical = 12.dp)
                         .windowInsetsPadding(
                             WindowInsets.systemBars
-                                .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal),
-                        ),
+                                .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
+                        )
                 ) {
                     TextButton(
                         onClick = { state.expandSoft() },
@@ -510,7 +500,7 @@ fun Queue(
                             Spacer(modifier = Modifier.width(6.dp))
                             AnimatedContent(
                                 label = "sleepTimer",
-                                targetState = sleepTimerEnabled,
+                                targetState = sleepTimerEnabled
                             ) { enabled ->
                                 if (enabled) {
                                     Text(
@@ -575,7 +565,7 @@ fun Queue(
                                 text = stringResource(R.string.sleep_timer),
                                 overflow = TextOverflow.Ellipsis,
                                 maxLines = 1,
-                                style = MaterialTheme.typography.headlineSmall,
+                                style = MaterialTheme.typography.headlineSmall
                             )
                         }
                     },
@@ -615,7 +605,7 @@ fun Queue(
                     }
                 )
             }
-        },
+        }
     ) {
         val queueTitle by playerConnection.queueTitle.collectAsState()
         val queueWindows by playerConnection.queueWindows.collectAsState()
@@ -697,7 +687,7 @@ fun Queue(
             modifier =
             Modifier
                 .fillMaxSize()
-                .background(background),
+                .background(background)
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 // Static Header Section
@@ -768,36 +758,68 @@ fun Queue(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            val likeDescription = if (currentSong?.song?.liked == true) stringResource(R.string.action_remove_like) else stringResource(R.string.action_like)
+                            val likeDescription = if (currentSong?.song?.liked ==
+                                true
+                            ) {
+                                stringResource(R.string.action_remove_like)
+                            } else {
+                                stringResource(R.string.action_like)
+                            }
                             TooltipBox(
-                                positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
+                                positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+                                    TooltipAnchorPosition.Above
+                                ),
                                 tooltip = { PlainTooltip { Text(likeDescription) } },
-                                state = rememberTooltipState(),
+                                state = rememberTooltipState()
                             ) {
                                 FilledTonalIconButton(
                                     onClick = playerConnection::toggleLike,
-                                    shapes = IconButtonDefaults.shapes(),
+                                    shapes = IconButtonDefaults.shapes()
                                 ) {
                                     Icon(
-                                        painter = painterResource(if (currentSong?.song?.liked == true) R.drawable.favorite else R.drawable.favorite_border),
+                                        painter = painterResource(
+                                            if (currentSong?.song?.liked ==
+                                                true
+                                            ) {
+                                                R.drawable.favorite
+                                            } else {
+                                                R.drawable.favorite_border
+                                            }
+                                        ),
                                         contentDescription = likeDescription,
-                                        tint = if (currentSong?.song?.liked == true) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+                                        tint = if (currentSong?.song?.liked ==
+                                            true
+                                        ) {
+                                            MaterialTheme.colorScheme.error
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurface
+                                        }
                                     )
                                 }
                             }
 
-                            val lockDescription = if (locked) stringResource(R.string.unlock_queue) else stringResource(R.string.lock_queue)
+                            val lockDescription = if (locked) {
+                                stringResource(
+                                    R.string.unlock_queue
+                                )
+                            } else {
+                                stringResource(R.string.lock_queue)
+                            }
                             TooltipBox(
-                                positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
+                                positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+                                    TooltipAnchorPosition.Above
+                                ),
                                 tooltip = { PlainTooltip { Text(lockDescription) } },
-                                state = rememberTooltipState(),
+                                state = rememberTooltipState()
                             ) {
                                 FilledTonalIconButton(
                                     onClick = { locked = !locked },
-                                    shapes = IconButtonDefaults.shapes(),
+                                    shapes = IconButtonDefaults.shapes()
                                 ) {
                                     Icon(
-                                        painter = painterResource(if (locked) R.drawable.lock else R.drawable.lock_open),
+                                        painter = painterResource(
+                                            if (locked) R.drawable.lock else R.drawable.lock_open
+                                        ),
                                         contentDescription = lockDescription,
                                         tint = MaterialTheme.colorScheme.onSurface
                                     )
@@ -806,9 +828,11 @@ fun Queue(
 
                             val moreDescription = stringResource(R.string.more_options)
                             TooltipBox(
-                                positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
+                                positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+                                    TooltipAnchorPosition.Above
+                                ),
                                 tooltip = { PlainTooltip { Text(moreDescription) } },
-                                state = rememberTooltipState(),
+                                state = rememberTooltipState()
                             ) {
                                 FilledTonalIconButton(
                                     onClick = {
@@ -828,7 +852,7 @@ fun Queue(
                                             )
                                         }
                                     },
-                                    shapes = IconButtonDefaults.shapes(),
+                                    shapes = IconButtonDefaults.shapes()
                                 ) {
                                     Icon(
                                         painter = painterResource(R.drawable.more_vert),
@@ -862,7 +886,7 @@ fun Queue(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(56.dp),
-                            shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
+                            shapes = ButtonGroupDefaults.connectedLeadingButtonShapes()
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.shuffle),
@@ -892,7 +916,7 @@ fun Queue(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(56.dp),
-                            shapes = ButtonGroupDefaults.connectedMiddleButtonShapes(),
+                            shapes = ButtonGroupDefaults.connectedMiddleButtonShapes()
                         ) {
                             Icon(
                                 painter = painterResource(
@@ -928,7 +952,7 @@ fun Queue(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(56.dp),
-                            shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
+                            shapes = ButtonGroupDefaults.connectedTrailingButtonShapes()
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.loop_queue),
@@ -960,7 +984,13 @@ fun Queue(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = if (automix.isNotEmpty()) stringResource(R.string.upcoming_recommendations) else stringResource(R.string.next_in_queue),
+                                text = if (automix.isNotEmpty()) {
+                                    stringResource(
+                                        R.string.upcoming_recommendations
+                                    )
+                                } else {
+                                    stringResource(R.string.next_in_queue)
+                                },
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -992,11 +1022,14 @@ fun Queue(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            if (pureBlack) Color.Black
-                            else MaterialTheme.colorScheme
-                                .secondaryContainer
-                                .copy(alpha = 0.90f),
-                        ),
+                            if (pureBlack) {
+                                Color.Black
+                            } else {
+                                MaterialTheme.colorScheme
+                                    .secondaryContainer
+                                    .copy(alpha = 0.90f)
+                            }
+                        )
                 ) {
                     Column {
                         Row(
@@ -1006,22 +1039,24 @@ fun Queue(
                             Modifier
                                 .fillMaxWidth()
                                 .height(ListItemHeight)
-                                .padding(horizontal = 12.dp),
+                                .padding(horizontal = 12.dp)
                         ) {
                             val count = selectedSongs.size
                             val closeDescription = stringResource(R.string.close)
                             TooltipBox(
-                                positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
+                                positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+                                    TooltipAnchorPosition.Above
+                                ),
                                 tooltip = { PlainTooltip { Text(closeDescription) } },
-                                state = rememberTooltipState(),
+                                state = rememberTooltipState()
                             ) {
                                 FilledTonalIconButton(
                                     onClick = { selection = false },
-                                    shapes = IconButtonDefaults.shapes(),
+                                    shapes = IconButtonDefaults.shapes()
                                 ) {
                                     Icon(
                                         painter = painterResource(R.drawable.close),
-                                        contentDescription = closeDescription,
+                                        contentDescription = closeDescription
                                     )
                                 }
                             }
@@ -1048,9 +1083,11 @@ fun Queue(
 
                             val selectionMoreDescription = stringResource(R.string.more_options)
                             TooltipBox(
-                                positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
+                                positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+                                    TooltipAnchorPosition.Above
+                                ),
                                 tooltip = { PlainTooltip { Text(selectionMoreDescription) } },
-                                state = rememberTooltipState(),
+                                state = rememberTooltipState()
                             ) {
                                 FilledTonalIconButton(
                                     onClick = {
@@ -1062,16 +1099,16 @@ fun Queue(
                                                     selectedSongs.clear()
                                                     selectedItems.clear()
                                                 },
-                                                currentItems = selectedItems,
+                                                currentItems = selectedItems
                                             )
                                         }
                                     },
-                                    shapes = IconButtonDefaults.shapes(),
+                                    shapes = IconButtonDefaults.shapes()
                                 ) {
                                     Icon(
                                         painter = painterResource(R.drawable.more_vert),
                                         contentDescription = selectionMoreDescription,
-                                        tint = LocalContentColor.current,
+                                        tint = LocalContentColor.current
                                     )
                                 }
                             }
@@ -1099,11 +1136,11 @@ fun Queue(
 
                     itemsIndexed(
                         items = mutableQueueWindows,
-                        key = { _, item -> item.uid.hashCode() },
+                        key = { _, item -> item.uid.hashCode() }
                     ) { index, window ->
                         ReorderableItem(
                             state = reorderableState,
-                            key = window.uid.hashCode(),
+                            key = window.uid.hashCode()
                         ) {
                             val currentItem by rememberUpdatedState(window)
                             val dismissBoxState =
@@ -1127,24 +1164,39 @@ fun Queue(
                             val cornerRadius = 24.dp
                             val topShape = remember(cornerRadius) {
                                 AbsoluteSmoothCornerShape(
-                                    cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
-                                    smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
-                                    cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+                                    cornerRadiusTR = cornerRadius,
+                                    smoothnessAsPercentBR = 0,
+                                    cornerRadiusBR = 0.dp,
+                                    smoothnessAsPercentTL = 60,
+                                    cornerRadiusTL = cornerRadius,
+                                    smoothnessAsPercentBL = 0,
+                                    cornerRadiusBL = 0.dp,
+                                    smoothnessAsPercentTR = 60
                                 )
                             }
                             val middleShape = RectangleShape
                             val bottomShape = remember(cornerRadius) {
                                 AbsoluteSmoothCornerShape(
-                                    cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-                                    smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
-                                    cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
+                                    cornerRadiusTR = 0.dp,
+                                    smoothnessAsPercentBR = 60,
+                                    cornerRadiusBR = cornerRadius,
+                                    smoothnessAsPercentTL = 0,
+                                    cornerRadiusTL = 0.dp,
+                                    smoothnessAsPercentBL = 60,
+                                    cornerRadiusBL = cornerRadius,
+                                    smoothnessAsPercentTR = 0
                                 )
                             }
                             val singleShape = remember(cornerRadius) {
                                 AbsoluteSmoothCornerShape(
-                                    cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-                                    smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-                                    cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+                                    cornerRadiusTR = cornerRadius,
+                                    smoothnessAsPercentBR = 60,
+                                    cornerRadiusBR = cornerRadius,
+                                    smoothnessAsPercentTL = 60,
+                                    cornerRadiusTL = cornerRadius,
+                                    smoothnessAsPercentBL = 60,
+                                    cornerRadiusBL = cornerRadius,
+                                    smoothnessAsPercentTR = 60
                                 )
                             }
 
@@ -1160,10 +1212,11 @@ fun Queue(
                             var processedDismiss by remember { mutableStateOf(false) }
                             LaunchedEffect(dismissBoxState.currentValue) {
                                 val dv = dismissBoxState.currentValue
-                                if (!processedDismiss && (
-                                            dv == SwipeToDismissBoxValue.StartToEnd ||
-                                                    dv == SwipeToDismissBoxValue.EndToStart
-                                            )
+                                if (!processedDismiss &&
+                                    (
+                                        dv == SwipeToDismissBoxValue.StartToEnd ||
+                                            dv == SwipeToDismissBoxValue.EndToStart
+                                        )
                                 ) {
                                     processedDismiss = true
                                     if (dv == SwipeToDismissBoxValue.EndToStart) {
@@ -1173,23 +1226,28 @@ fun Queue(
                                             val snackbarResult = snackbarHostState.showSnackbar(
                                                 message = context.getString(
                                                     R.string.removed_song_from_playlist,
-                                                    currentItem.mediaItem.metadata?.title,
+                                                    currentItem.mediaItem.metadata?.title
                                                 ),
                                                 actionLabel = context.getString(R.string.undo),
-                                                duration = SnackbarDuration.Short,
+                                                duration = SnackbarDuration.Short
                                             )
                                             if (snackbarResult == SnackbarResult.ActionPerformed) {
                                                 playerConnection.player.addMediaItem(currentItem.mediaItem)
                                                 playerConnection.player.moveMediaItem(
                                                     mutableQueueWindows.size,
-                                                    currentItem.firstPeriodIndex,
+                                                    currentItem.firstPeriodIndex
                                                 )
                                             }
                                         }
                                     } else if (dv == SwipeToDismissBoxValue.StartToEnd) {
-                                        val targetIndex = (currentWindowIndex + 1).coerceAtMost(mutableQueueWindows.lastIndex)
+                                        val targetIndex = (currentWindowIndex + 1).coerceAtMost(
+                                            mutableQueueWindows.lastIndex
+                                        )
                                         if (currentItem.firstPeriodIndex != targetIndex) {
-                                            playerConnection.player.moveMediaItem(currentItem.firstPeriodIndex, targetIndex)
+                                            playerConnection.player.moveMediaItem(
+                                                currentItem.firstPeriodIndex,
+                                                targetIndex
+                                            )
                                             coroutineScope.launch {
                                                 snackbarHostState.showSnackbar(
                                                     message = context.getString(R.string.added_to_play_next),
@@ -1244,14 +1302,14 @@ fun Queue(
                                                                 }
                                                             }
                                                         },
-                                                        onDismiss = menuState::dismiss,
+                                                        onDismiss = menuState::dismiss
                                                     )
                                                 }
-                                            },
+                                            }
                                         ) {
                                             Icon(
                                                 painter = painterResource(R.drawable.more_vert),
-                                                contentDescription = null,
+                                                contentDescription = null
                                             )
                                         }
                                         if (!locked) {
@@ -1261,7 +1319,7 @@ fun Queue(
                                             ) {
                                                 Icon(
                                                     painter = painterResource(R.drawable.drag_handle),
-                                                    contentDescription = null,
+                                                    contentDescription = null
                                                 )
                                             }
                                         }
@@ -1284,7 +1342,7 @@ fun Queue(
                                                         playerConnection.player.togglePlayPause()
                                                     } else {
                                                         playerConnection.player.seekToDefaultPosition(
-                                                            window.firstPeriodIndex,
+                                                            window.firstPeriodIndex
                                                         )
                                                         playerConnection.player.playWhenReady =
                                                             true
@@ -1300,8 +1358,8 @@ fun Queue(
                                                 }
                                                 selectedSongs.clear() // Clear all selections
                                                 selectedSongs.add(window.mediaItem.metadata!!) // Select current item
-                                            },
-                                        ),
+                                            }
+                                        )
                                 )
                             }
 
@@ -1317,8 +1375,11 @@ fun Queue(
                                         .height(ListItemHeight)
                                         .clip(shape)
                                         .background(
-                                            if (isActive) MaterialTheme.colorScheme.secondaryContainer
-                                            else MaterialTheme.colorScheme.surfaceContainer
+                                            if (isActive) {
+                                                MaterialTheme.colorScheme.secondaryContainer
+                                            } else {
+                                                MaterialTheme.colorScheme.surfaceContainer
+                                            }
                                         )
                                 ) {
                                     if (locked) {
@@ -1332,11 +1393,21 @@ fun Queue(
                                                         .fillMaxSize()
                                                         .background(dismissColor)
                                                         .padding(horizontal = 24.dp),
-                                                    contentAlignment = if (dismissBoxState.targetValue == SwipeToDismissBoxValue.StartToEnd)
-                                                        Alignment.CenterStart else Alignment.CenterEnd
+                                                    contentAlignment = if (dismissBoxState.targetValue ==
+                                                        SwipeToDismissBoxValue.StartToEnd
+                                                    ) {
+                                                        Alignment.CenterStart
+                                                    } else {
+                                                        Alignment.CenterEnd
+                                                    }
                                                 ) {
-                                                    val icon = if (dismissBoxState.targetValue == SwipeToDismissBoxValue.StartToEnd)
-                                                        painterResource(R.drawable.playlist_play) else painterResource(R.drawable.delete)
+                                                    val icon = if (dismissBoxState.targetValue ==
+                                                        SwipeToDismissBoxValue.StartToEnd
+                                                    ) {
+                                                        painterResource(R.drawable.playlist_play)
+                                                    } else {
+                                                        painterResource(R.drawable.delete)
+                                                    }
 
                                                     if (dismissBoxState.targetValue != SwipeToDismissBoxValue.Settled) {
                                                         Icon(
@@ -1346,7 +1417,7 @@ fun Queue(
                                                         )
                                                     }
                                                 }
-                                            },
+                                            }
                                         ) {
                                             content()
                                         }
@@ -1406,31 +1477,46 @@ fun Queue(
 
                         itemsIndexed(
                             items = automix,
-                            key = { _, it -> it.mediaId },
+                            key = { _, it -> it.mediaId }
                         ) { index, item ->
                             val isFirst = index == 0
                             val isLast = index == automix.size - 1
                             val cornerRadius = 24.dp
                             val topShape = remember(cornerRadius) {
                                 AbsoluteSmoothCornerShape(
-                                    cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
-                                    smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
-                                    cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+                                    cornerRadiusTR = cornerRadius,
+                                    smoothnessAsPercentBR = 0,
+                                    cornerRadiusBR = 0.dp,
+                                    smoothnessAsPercentTL = 60,
+                                    cornerRadiusTL = cornerRadius,
+                                    smoothnessAsPercentBL = 0,
+                                    cornerRadiusBL = 0.dp,
+                                    smoothnessAsPercentTR = 60
                                 )
                             }
                             val middleShape = RectangleShape
                             val bottomShape = remember(cornerRadius) {
                                 AbsoluteSmoothCornerShape(
-                                    cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-                                    smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
-                                    cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
+                                    cornerRadiusTR = 0.dp,
+                                    smoothnessAsPercentBR = 60,
+                                    cornerRadiusBR = cornerRadius,
+                                    smoothnessAsPercentTL = 0,
+                                    cornerRadiusTL = 0.dp,
+                                    smoothnessAsPercentBL = 60,
+                                    cornerRadiusBL = cornerRadius,
+                                    smoothnessAsPercentTR = 0
                                 )
                             }
                             val singleShape = remember(cornerRadius) {
                                 AbsoluteSmoothCornerShape(
-                                    cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-                                    smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-                                    cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+                                    cornerRadiusTR = cornerRadius,
+                                    smoothnessAsPercentBR = 60,
+                                    cornerRadiusBR = cornerRadius,
+                                    smoothnessAsPercentTL = 60,
+                                    cornerRadiusTL = cornerRadius,
+                                    smoothnessAsPercentBL = 60,
+                                    cornerRadiusBL = cornerRadius,
+                                    smoothnessAsPercentTR = 60
                                 )
                             }
 
@@ -1462,44 +1548,48 @@ fun Queue(
                                         trailingContent = {
                                             val playNextDescription = stringResource(R.string.play_next)
                                             TooltipBox(
-                                                positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
+                                                positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+                                                    TooltipAnchorPosition.Above
+                                                ),
                                                 tooltip = { PlainTooltip { Text(playNextDescription) } },
-                                                state = rememberTooltipState(),
+                                                state = rememberTooltipState()
                                             ) {
                                                 FilledTonalIconButton(
                                                     onClick = {
                                                         playerConnection.service.playNextAutomix(
                                                             item,
-                                                            index,
+                                                            index
                                                         )
                                                     },
-                                                    shapes = IconButtonDefaults.shapes(),
+                                                    shapes = IconButtonDefaults.shapes()
                                                 ) {
                                                     Icon(
                                                         painter = painterResource(R.drawable.playlist_play),
-                                                        contentDescription = playNextDescription,
+                                                        contentDescription = playNextDescription
                                                     )
                                                 }
                                             }
 
                                             val addToQueueDescription = stringResource(R.string.add_to_queue)
                                             TooltipBox(
-                                                positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
+                                                positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+                                                    TooltipAnchorPosition.Above
+                                                ),
                                                 tooltip = { PlainTooltip { Text(addToQueueDescription) } },
-                                                state = rememberTooltipState(),
+                                                state = rememberTooltipState()
                                             ) {
                                                 FilledTonalIconButton(
                                                     onClick = {
                                                         playerConnection.service.addToQueueAutomix(
                                                             item,
-                                                            index,
+                                                            index
                                                         )
                                                     },
-                                                    shapes = IconButtonDefaults.shapes(),
+                                                    shapes = IconButtonDefaults.shapes()
                                                 ) {
                                                     Icon(
                                                         painter = painterResource(R.drawable.queue_music),
-                                                        contentDescription = addToQueueDescription,
+                                                        contentDescription = addToQueueDescription
                                                     )
                                                 }
                                             }
@@ -1511,7 +1601,7 @@ fun Queue(
                                                 onClick = {
                                                     playerConnection.service.playNextAutomix(
                                                         item,
-                                                        index,
+                                                        index
                                                     )
                                                 },
                                                 onLongClick = {
@@ -1528,11 +1618,11 @@ fun Queue(
                                                                     }
                                                                 }
                                                             },
-                                                            onDismiss = menuState::dismiss,
+                                                            onDismiss = menuState::dismiss
                                                         )
                                                     }
-                                                },
-                                            ),
+                                                }
+                                            )
                                     )
                                 }
                                 if (!isLast) {
@@ -1544,7 +1634,6 @@ fun Queue(
                 }
             }
         }
-
 
 //        Box(
 //            modifier =
@@ -1575,11 +1664,11 @@ fun Queue(
                 .padding(
                     bottom =
                     ListItemHeight +
-                            WindowInsets.systemBars
-                                .asPaddingValues()
-                                .calculateBottomPadding(),
+                        WindowInsets.systemBars
+                            .asPaddingValues()
+                            .calculateBottomPadding()
                 )
-                .align(Alignment.BottomCenter),
+                .align(Alignment.BottomCenter)
         )
     }
 }

@@ -12,6 +12,17 @@ import kotlinx.coroutines.launch
 import org.apache.commons.lang3.RandomStringUtils
 import java.time.LocalDateTime
 
+/**
+ * Represents an Artist stored in the local database.
+ *
+ * @property id Unique identifier (YouTube Channel ID or generated local ID).
+ * @property name Artist name.
+ * @property thumbnailUrl Profile picture URL.
+ * @property channelId YouTube Channel ID (redundant with ID usually, but separate if ID is internal).
+ * @property lastUpdateTime Last sync timestamp.
+ * @property bookmarkedAt Timestamp when user subscribed/bookmarked.
+ * @property isLocal Whether this artist is from local files.
+ */
 @Immutable
 @Entity(tableName = "artist")
 data class ArtistEntity(
@@ -22,7 +33,7 @@ data class ArtistEntity(
     val lastUpdateTime: LocalDateTime = LocalDateTime.now(),
     val bookmarkedAt: LocalDateTime? = null,
     @ColumnInfo(name = "isLocal", defaultValue = false.toString())
-    val isLocal: Boolean = false
+    val isLocal: Boolean = false,
 ) {
     val isYouTubeArtist: Boolean
         get() = id.startsWith("UC") || id.startsWith("FEmusic_library_privately_owned_artist")
@@ -31,15 +42,16 @@ data class ArtistEntity(
         get() = id.startsWith("FEmusic_library_privately_owned_artist")
 
     fun localToggleLike() = copy(
-        bookmarkedAt = if (bookmarkedAt != null) null else LocalDateTime.now(),
+        bookmarkedAt = if (bookmarkedAt != null) null else LocalDateTime.now()
     )
 
     fun toggleLike() = localToggleLike().also {
         CoroutineScope(Dispatchers.IO).launch {
-            if (channelId == null)
+            if (channelId == null) {
                 YouTube.subscribeChannel(YouTube.getChannelId(id), bookmarkedAt == null)
-            else
+            } else {
                 YouTube.subscribeChannel(channelId, bookmarkedAt == null)
+            }
             this.cancel()
         }
     }

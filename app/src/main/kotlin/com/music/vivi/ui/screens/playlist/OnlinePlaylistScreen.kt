@@ -1,6 +1,5 @@
 package com.music.vivi.ui.screens.playlist
 
-
 import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -12,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -34,8 +33,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.graphics.RectangleShape
-import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonGroupDefaults
@@ -79,6 +76,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -112,7 +110,6 @@ import com.music.innertube.models.ArtistItem
 import com.music.innertube.models.PlaylistItem
 import com.music.innertube.models.SongItem
 import com.music.innertube.models.WatchEndpoint
-import com.music.innertube.models.YTItem
 import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalDownloadUtil
 import com.music.vivi.LocalPlayerAwareWindowInsets
@@ -133,11 +130,10 @@ import com.music.vivi.ui.component.DraggableScrollbar
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.NavigationTitle
-import com.music.vivi.ui.component.YouTubeGridItem
-import com.music.vivi.ui.component.YouTubeListItem
+import com.music.vivi.ui.component.media.youtube.YouTubeGridItem
+import com.music.vivi.ui.component.media.youtube.YouTubeListItem
 import com.music.vivi.ui.component.shimmer.ListItemPlaceHolder
 import com.music.vivi.ui.component.shimmer.ShimmerHost
-import com.music.vivi.ui.component.shimmer.TextPlaceholder
 import com.music.vivi.ui.menu.SelectionMediaMetadataMenu
 import com.music.vivi.ui.menu.YouTubeAlbumMenu
 import com.music.vivi.ui.menu.YouTubeArtistMenu
@@ -147,13 +143,20 @@ import com.music.vivi.ui.utils.ItemWrapper
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.OnlinePlaylistViewModel
+import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 import kotlin.collections.isNotEmpty
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
+/**
+ * Screen for displaying an Online (YouTube Music) playlist.
+ * Fetches playlist details and songs from the network.
+ * Allows playing, saving (to local DB), and downloading.
+ */
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalFoundationApi::class,
     ExperimentalMaterial3ExpressiveApi::class
 )
 @Composable
-
 fun OnlinePlaylistScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
@@ -176,8 +179,8 @@ fun OnlinePlaylistScreen(
 
     val relatedItems by viewModel.relatedItems.collectAsStateWithLifecycle()
     val playlist by viewModel.playlist.collectAsState()
-    val songs by viewModel.playlistSongs.collectAsState()
-    val dbPlaylist by viewModel.dbPlaylist.collectAsState()
+    val songs: List<com.music.innertube.models.SongItem> by viewModel.playlistSongs.collectAsState()
+    val dbPlaylist: com.music.vivi.db.entities.Playlist? by viewModel.dbPlaylist.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val isLoadingMore by viewModel.isLoadingMore.collectAsState()
     val error by viewModel.error.collectAsState()
@@ -195,9 +198,10 @@ fun OnlinePlaylistScreen(
     var query by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue())
     }
-//fixed issue explicit
+// fixed issue explicit
     val filteredSongs =
-        remember(songs, query, hideExplicit) {  // Add hideExplicit here
+        remember(songs, query, hideExplicit) {
+            // Add hideExplicit here
             val searchFiltered = if (query.text.isEmpty()) {
                 songs.mapIndexed { index, song -> index to song }
             } else {
@@ -205,12 +209,12 @@ fun OnlinePlaylistScreen(
                     .mapIndexed { index, song -> index to song }
                     .filter { (_, song) ->
                         song.title.contains(query.text, ignoreCase = true) ||
-                                song.artists.fastAny {
-                                    it.name.contains(
-                                        query.text,
-                                        ignoreCase = true
-                                    )
-                                }
+                            song.artists.fastAny {
+                                it.name.contains(
+                                    query.text,
+                                    ignoreCase = true
+                                )
+                            }
                     }
             }
 
@@ -237,22 +241,6 @@ fun OnlinePlaylistScreen(
     } else if (selection) {
         BackHandler {
             selection = false
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         }
     }
 
@@ -260,28 +248,9 @@ fun OnlinePlaylistScreen(
         filteredSongs.map { item -> ItemWrapper(item) }
     }.toMutableStateList()
 
-
-
-
-
-
-
-
-
     val transparentAppBar by remember {
         derivedStateOf {
             lazyListState.firstVisibleItemIndex == 0 && lazyListState.firstVisibleItemScrollOffset < 400
-
-
-
-
-
-
-
-
-
-
-
         }
     }
 
@@ -299,15 +268,8 @@ fun OnlinePlaylistScreen(
                     Download.STATE_COMPLETED
                 } else if (songs.all {
                         downloads[it.id]?.state == Download.STATE_QUEUED ||
-                                downloads[it.id]?.state == Download.STATE_DOWNLOADING ||
-                                downloads[it.id]?.state == Download.STATE_COMPLETED
-
-
-
-
-
-
-
+                            downloads[it.id]?.state == Download.STATE_DOWNLOADING ||
+                            downloads[it.id]?.state == Download.STATE_COMPLETED
                     }
                 ) {
                     Download.STATE_DOWNLOADING
@@ -432,7 +394,7 @@ fun OnlinePlaylistScreen(
                                     Icon(
                                         painter = painterResource(R.drawable.playlist_new_vivi),
                                         contentDescription = null,
-                                        modifier = Modifier.size(30.dp), //20dp icon size was changed to 30dp
+                                        modifier = Modifier.size(30.dp), // 20dp icon size was changed to 30dp
                                         tint = MaterialTheme.colorScheme.onSurface
                                     )
                                     Spacer(Modifier.width(8.dp))
@@ -517,7 +479,13 @@ fun OnlinePlaylistScreen(
                                                 )
                                                 Spacer(Modifier.width(8.dp))
                                                 Text(
-                                                    text = if (dbPlaylist?.playlist?.bookmarkedAt != null) stringResource(R.string.saved) else stringResource(R.string.save),
+                                                    text = if (dbPlaylist?.playlist?.bookmarkedAt !=
+                                                        null
+                                                    ) {
+                                                        stringResource(R.string.saved)
+                                                    } else {
+                                                        stringResource(R.string.save)
+                                                    },
                                                     style = MaterialTheme.typography.labelLarge,
                                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                                 )
@@ -537,7 +505,7 @@ fun OnlinePlaylistScreen(
                                                     playerConnection.playQueue(
                                                         ListQueue(
                                                             title = playlist.title,
-                                                            items = songs.map { it.toMediaItem() },
+                                                            items = songs.map { it.toMediaItem() }
                                                         )
                                                     )
                                                 }
@@ -554,10 +522,11 @@ fun OnlinePlaylistScreen(
                                         ) {
                                             Icon(
                                                 painter = painterResource(
-                                                    if (isPlaying && mediaMetadata?.album?.id == playlist.id)
+                                                    if (isPlaying && mediaMetadata?.album?.id == playlist.id) {
                                                         R.drawable.pause
-                                                    else
+                                                    } else {
                                                         R.drawable.play
+                                                    }
                                                 ),
                                                 contentDescription = null,
                                                 modifier = Modifier.size(20.dp),
@@ -565,8 +534,11 @@ fun OnlinePlaylistScreen(
                                             )
                                             Spacer(Modifier.width(8.dp))
                                             Text(
-                                                text = if (isPlaying && mediaMetadata?.album?.id == playlist.id)
-                                                    stringResource(R.string.pause) else stringResource(R.string.play),
+                                                text = if (isPlaying && mediaMetadata?.album?.id == playlist.id) {
+                                                    stringResource(R.string.pause)
+                                                } else {
+                                                    stringResource(R.string.play)
+                                                },
                                                 style = MaterialTheme.typography.labelLarge,
                                                 color = MaterialTheme.colorScheme.onPrimary
                                             )
@@ -579,7 +551,14 @@ fun OnlinePlaylistScreen(
                                             val intent = Intent().apply {
                                                 action = Intent.ACTION_SEND
                                                 type = "text/plain"
-                                                putExtra(Intent.EXTRA_TEXT, context.getString(R.string.check_out_playlist_share, playlist.title, "https://music.youtube.com/playlist?list=${playlist.id}"))
+                                                putExtra(
+                                                    Intent.EXTRA_TEXT,
+                                                    context.getString(
+                                                        R.string.check_out_playlist_share,
+                                                        playlist.title,
+                                                        "https://music.youtube.com/playlist?list=${playlist.id}"
+                                                    )
+                                                )
                                             }
                                             context.startActivity(Intent.createChooser(intent, null))
                                         },
@@ -593,7 +572,9 @@ fun OnlinePlaylistScreen(
                                         ) {
                                             Icon(
                                                 painter = painterResource(R.drawable.share),
-                                                contentDescription = stringResource(R.string.share_playlist_content_desc),
+                                                contentDescription = stringResource(
+                                                    R.string.share_playlist_content_desc
+                                                ),
                                                 modifier = Modifier.size(20.dp),
                                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
@@ -644,7 +625,10 @@ fun OnlinePlaylistScreen(
                                                 append(it)
                                             }
                                             append(". ")
-                                            append(playlist.songCountText ?: context.getString(R.string.this_collection_text))
+                                            append(
+                                                playlist.songCountText
+                                                    ?: context.getString(R.string.this_collection_text)
+                                            )
                                             append(" ")
                                             append(context.getString(R.string.playlist_description_suffix))
                                         },
@@ -664,11 +648,15 @@ fun OnlinePlaylistScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(horizontal = 32.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+                                    horizontalArrangement = Arrangement.spacedBy(
+                                        ButtonGroupDefaults.ConnectedSpaceBetween
+                                    )
                                 ) {
                                     // Download Button
                                     ToggleButton(
-                                        checked = downloadState == Download.STATE_COMPLETED || downloadState == Download.STATE_DOWNLOADING,
+                                        checked =
+                                        downloadState == Download.STATE_COMPLETED ||
+                                            downloadState == Download.STATE_DOWNLOADING,
                                         onCheckedChange = {
                                             when (downloadState) {
                                                 Download.STATE_COMPLETED, Download.STATE_DOWNLOADING -> {
@@ -677,7 +665,7 @@ fun OnlinePlaylistScreen(
                                                             context,
                                                             ExoDownloadService::class.java,
                                                             song.id,
-                                                            false,
+                                                            false
                                                         )
                                                     }
                                                 }
@@ -693,14 +681,14 @@ fun OnlinePlaylistScreen(
                                                             context,
                                                             ExoDownloadService::class.java,
                                                             downloadRequest,
-                                                            false,
+                                                            false
                                                         )
                                                     }
                                                 }
                                             }
                                         },
                                         modifier = Modifier.weight(1f).semantics { role = Role.Button },
-                                        shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
+                                        shapes = ButtonGroupDefaults.connectedLeadingButtonShapes()
                                     ) {
                                         when (downloadState) {
                                             Download.STATE_COMPLETED -> {
@@ -745,12 +733,12 @@ fun OnlinePlaylistScreen(
                                                 playerConnection.playQueue(
                                                     ListQueue(
                                                         title = playlist.title,
-                                                        items = shuffledSongs,
+                                                        items = shuffledSongs
                                                     )
                                                 )
                                             },
                                             modifier = Modifier.weight(1f).semantics { role = Role.Button },
-                                            shapes = ButtonGroupDefaults.connectedMiddleButtonShapes(),
+                                            shapes = ButtonGroupDefaults.connectedMiddleButtonShapes()
                                         ) {
                                             Icon(
                                                 painter = painterResource(R.drawable.shuffle),
@@ -758,7 +746,10 @@ fun OnlinePlaylistScreen(
                                                 modifier = Modifier.size(20.dp)
                                             )
                                             Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                                            Text(stringResource(R.string.shuffle_label), style = MaterialTheme.typography.labelMedium)
+                                            Text(
+                                                stringResource(R.string.shuffle_label),
+                                                style = MaterialTheme.typography.labelMedium
+                                            )
                                         }
                                     }
 
@@ -773,12 +764,12 @@ fun OnlinePlaylistScreen(
                                                     coroutineScope = coroutineScope,
                                                     onDismiss = menuState::dismiss,
                                                     selectAction = { selection = true },
-                                                    canSelect = true,
+                                                    canSelect = true
                                                 )
                                             }
                                         },
                                         modifier = Modifier.weight(1f).semantics { role = Role.Button },
-                                        shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
+                                        shapes = ButtonGroupDefaults.connectedTrailingButtonShapes()
                                     ) {
                                         Icon(
                                             painter = painterResource(R.drawable.more_vert),
@@ -786,14 +777,16 @@ fun OnlinePlaylistScreen(
                                             modifier = Modifier.size(20.dp)
                                         )
                                         Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                                        Text(stringResource(R.string.more_label), style = MaterialTheme.typography.labelMedium)
+                                        Text(
+                                            stringResource(R.string.more_label),
+                                            style = MaterialTheme.typography.labelMedium
+                                        )
                                     }
                                 }
 
                                 Spacer(Modifier.height(24.dp))
                             }
                         }
-
 
                         // Solid background for the rest of the content
                         item {
@@ -855,24 +848,39 @@ fun OnlinePlaylistScreen(
 
                                 val topShape = remember(cornerRadius) {
                                     AbsoluteSmoothCornerShape(
-                                        cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
-                                        smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
-                                        cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+                                        cornerRadiusTR = cornerRadius,
+                                        smoothnessAsPercentBR = 0,
+                                        cornerRadiusBR = 0.dp,
+                                        smoothnessAsPercentTL = 60,
+                                        cornerRadiusTL = cornerRadius,
+                                        smoothnessAsPercentBL = 0,
+                                        cornerRadiusBL = 0.dp,
+                                        smoothnessAsPercentTR = 60
                                     )
                                 }
                                 val middleShape = remember { RectangleShape }
                                 val bottomShape = remember(cornerRadius) {
                                     AbsoluteSmoothCornerShape(
-                                        cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-                                        smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
-                                        cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
+                                        cornerRadiusTR = 0.dp,
+                                        smoothnessAsPercentBR = 60,
+                                        cornerRadiusBR = cornerRadius,
+                                        smoothnessAsPercentTL = 0,
+                                        cornerRadiusTL = 0.dp,
+                                        smoothnessAsPercentBL = 60,
+                                        cornerRadiusBL = cornerRadius,
+                                        smoothnessAsPercentTR = 0
                                     )
                                 }
                                 val singleShape = remember(cornerRadius) {
                                     AbsoluteSmoothCornerShape(
-                                        cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-                                        smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-                                        cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+                                        cornerRadiusTR = cornerRadius,
+                                        smoothnessAsPercentBR = 60,
+                                        cornerRadiusBR = cornerRadius,
+                                        smoothnessAsPercentTL = 60,
+                                        cornerRadiusTL = cornerRadius,
+                                        smoothnessAsPercentBL = 60,
+                                        cornerRadiusBL = cornerRadius,
+                                        smoothnessAsPercentTR = 60
                                     )
                                 }
 
@@ -891,8 +899,11 @@ fun OnlinePlaylistScreen(
                                         .height(ListItemHeight)
                                         .clip(shape)
                                         .background(
-                                            if (isActive) MaterialTheme.colorScheme.secondaryContainer
-                                            else MaterialTheme.colorScheme.surfaceContainer
+                                            if (isActive) {
+                                                MaterialTheme.colorScheme.secondaryContainer
+                                            } else {
+                                                MaterialTheme.colorScheme.surfaceContainer
+                                            }
                                         )
                                 ) {
                                     YouTubeListItem(
@@ -910,14 +921,14 @@ fun OnlinePlaylistScreen(
                                                         YouTubeSongMenu(
                                                             song = songWrapper.item.second,
                                                             navController = navController,
-                                                            onDismiss = menuState::dismiss,
+                                                            onDismiss = menuState::dismiss
                                                         )
                                                     }
-                                                },
+                                                }
                                             ) {
                                                 Icon(
                                                     painter = painterResource(R.drawable.more_vert),
-                                                    contentDescription = null,
+                                                    contentDescription = null
                                                 )
                                             }
                                         },
@@ -932,7 +943,9 @@ fun OnlinePlaylistScreen(
                                                             playerConnection.playQueue(
                                                                 ListQueue(
                                                                     title = playlist.title,
-                                                                    items = filteredSongs.map { it.second.toMediaItem() },
+                                                                    items = filteredSongs.map {
+                                                                        it.second.toMediaItem()
+                                                                    },
                                                                     startIndex = index
                                                                 )
                                                             )
@@ -948,8 +961,8 @@ fun OnlinePlaylistScreen(
                                                     }
                                                     wrappedSongs.forEach { it.isSelected = false }
                                                     songWrapper.isSelected = true
-                                                },
-                                            ),
+                                                }
+                                            )
                                     )
                                 }
 
@@ -961,7 +974,7 @@ fun OnlinePlaylistScreen(
                         }
 // Add bottom spacing after the last song
                         item(key = "songs_list_end") {
-                            Spacer(modifier = Modifier.height(18.dp)) //24
+                            Spacer(modifier = Modifier.height(18.dp)) // 24
                         }
                     }
 
@@ -978,11 +991,13 @@ fun OnlinePlaylistScreen(
 
                         item(key = "related_list") {
                             LazyRow(
-                                contentPadding = WindowInsets.systemBars.only(WindowInsetsSides.Horizontal).asPaddingValues(),
+                                contentPadding = WindowInsets.systemBars.only(
+                                    WindowInsetsSides.Horizontal
+                                ).asPaddingValues()
                             ) {
                                 items(
                                     items = relatedItems,
-                                    key = { "related_${it.id}" },
+                                    key = { "related_${it.id}" }
                                 ) { item ->
                                     YouTubeGridItem(
                                         item = item,
@@ -1002,12 +1017,14 @@ fun OnlinePlaylistScreen(
                                                                 YouTubeQueue(
                                                                     WatchEndpoint(videoId = item.id),
                                                                     item.toMediaMetadata()
-                                                                ),
+                                                                )
                                                             )
 
                                                         is AlbumItem -> navController.navigate("album/${item.id}")
                                                         is ArtistItem -> navController.navigate("artist/${item.id}")
-                                                        is PlaylistItem -> navController.navigate("online_playlist/${item.id}")
+                                                        is PlaylistItem -> navController.navigate(
+                                                            "online_playlist/${item.id}"
+                                                        )
                                                     }
                                                 },
                                                 onLongClick = {
@@ -1018,33 +1035,33 @@ fun OnlinePlaylistScreen(
                                                                 YouTubeSongMenu(
                                                                     song = item,
                                                                     navController = navController,
-                                                                    onDismiss = menuState::dismiss,
+                                                                    onDismiss = menuState::dismiss
                                                                 )
 
                                                             is AlbumItem ->
                                                                 YouTubeAlbumMenu(
                                                                     albumItem = item,
                                                                     navController = navController,
-                                                                    onDismiss = menuState::dismiss,
+                                                                    onDismiss = menuState::dismiss
                                                                 )
 
                                                             is ArtistItem ->
                                                                 YouTubeArtistMenu(
                                                                     artist = item,
-                                                                    onDismiss = menuState::dismiss,
+                                                                    onDismiss = menuState::dismiss
                                                                 )
 
                                                             is PlaylistItem ->
                                                                 YouTubePlaylistMenu(
                                                                     playlist = item,
                                                                     coroutineScope = coroutineScope,
-                                                                    onDismiss = menuState::dismiss,
+                                                                    onDismiss = menuState::dismiss
                                                                 )
                                                         }
                                                     }
-                                                },
+                                                }
                                             )
-                                            .animateItem(),
+                                            .animateItem()
                                     )
                                 }
                             }
@@ -1064,7 +1081,6 @@ fun OnlinePlaylistScreen(
                             }
                         }
                     }
-
                 } else {
                     // Show error state when playlist is null and there's an error
                     item(key = "error_state") {
@@ -1081,7 +1097,13 @@ fun OnlinePlaylistScreen(
                                     stringResource(R.string.playlist_not_found)
                                 },
                                 style = MaterialTheme.typography.titleLarge,
-                                color = if (error != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+                                color = if (error !=
+                                    null
+                                ) {
+                                    MaterialTheme.colorScheme.error
+                                } else {
+                                    MaterialTheme.colorScheme.onSurface
+                                }
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
@@ -1147,7 +1169,7 @@ fun OnlinePlaylistScreen(
                             unfocusedContainerColor = Color.Transparent,
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
-                            disabledIndicatorColor = Color.Transparent,
+                            disabledIndicatorColor = Color.Transparent
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -1193,7 +1215,7 @@ fun OnlinePlaylistScreen(
                             } else {
                                 wrappedSongs.forEach { it.isSelected = true }
                             }
-                        },
+                        }
                     ) {
                         Icon(
                             painter = painterResource(
@@ -1213,7 +1235,7 @@ fun OnlinePlaylistScreen(
                                     currentItems = emptyList()
                                 )
                             }
-                        },
+                        }
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.more_vert),
@@ -1244,7 +1266,7 @@ fun OnlinePlaylistScreen(
             hostState = snackbarHostState,
             modifier = Modifier
                 .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.union(WindowInsets.ime))
-                .align(Alignment.BottomCenter),
+                .align(Alignment.BottomCenter)
         )
     }
 }

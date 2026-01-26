@@ -52,9 +52,13 @@ import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.viewmodels.ArtistAlbumsViewModel
 
+/**
+ * Screen displaying the user's local Library albums for a specific Artist.
+ * Allows filtering, selection, and grid view of albums.
+ */
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun ArtistAlbumsScreen(
+public fun ArtistAlbumsScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
     viewModel: ArtistAlbumsViewModel = hiltViewModel(),
@@ -64,8 +68,8 @@ fun ArtistAlbumsScreen(
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
-    val artist by viewModel.artist.collectAsState()
-    val albums by viewModel.albums.collectAsState()
+    val artist: com.music.vivi.db.entities.Artist? by viewModel.artist.collectAsState()
+    val albums: List<com.music.vivi.db.entities.Album> by viewModel.albums.collectAsState()
 
     val coroutineScope = rememberCoroutineScope()
     val lazyGridState = rememberLazyGridState()

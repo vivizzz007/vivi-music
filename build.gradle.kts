@@ -1,6 +1,9 @@
 plugins {
     alias(libs.plugins.hilt) apply (false)
     alias(libs.plugins.kotlin.ksp) apply (false)
+    alias(libs.plugins.kover) apply (false)
+    alias(libs.plugins.dokka) apply (false)
+    alias(libs.plugins.ktlint) apply (false)
 }
 
 buildscript {
@@ -28,6 +31,22 @@ subprojects {
                     freeCompilerArgs.add("plugin:androidx.compose.compiler.plugins.kotlin:${it}Destination=${project.layout.buildDirectory}/compose_metrics")
                 }
             }
+        }
+    }
+
+    apply(plugin = "org.jlleitschuh.gradle.ktlint")
+
+    configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+        debug.set(false)
+        version.set("1.5.0") // Ktlint CLI version
+        verbose.set(true)
+        android.set(true)
+        outputToConsole.set(true)
+        ignoreFailures.set(false)
+        enableExperimentalRules.set(false)
+        filter {
+            exclude("**/generated/**")
+            include("**/kotlin/**")
         }
     }
 }

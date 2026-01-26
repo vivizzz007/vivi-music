@@ -3,6 +3,13 @@ package com.music.vivi.db.entities
 import androidx.compose.runtime.Immutable
 import androidx.room.Embedded
 
+/**
+ * Represents a complete Artist with statistics.
+ *
+ * @property artist The core Artist entity.
+ * @property songCount Number of songs by this artist in the database.
+ * @property timeListened Total time listened to this artist.
+ */
 @Immutable
 data class Artist(
     @Embedded

@@ -9,9 +9,11 @@ plugins {
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kover)
+    alias(libs.plugins.dokka)
 }
 
-android {
+configure<com.android.build.api.dsl.ApplicationExtension> {
     namespace = "com.music.vivi"
     compileSdk = 36
 
@@ -19,8 +21,8 @@ android {
         applicationId = "com.vivi.vivimusic"
         minSdk = 26
         targetSdk = 36
-        versionCode = 21 //62 //21
-        versionName = "5.0.2"
+        versionCode = 22
+        versionName = "5.0.4 Alpha"
 
         testInstrumentationRunner = "com.music.vivi.CustomTestRunner"
         vectorDrawables.useSupportLibrary = true
@@ -90,6 +92,7 @@ android {
         debug {
             applicationIdSuffix = ".debug"
             isDebuggable = true
+            resValue("string", "app_name", "VIVI Alpha")
         }
     }
 
@@ -124,6 +127,7 @@ android {
             )
             jvmTarget.set(JvmTarget.JVM_21)
         }
+        // explicitApi()
     }
 
     buildFeatures {
@@ -262,7 +266,7 @@ dependencies {
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.profileinstaller)
-    
+
     implementation("androidx.compose.ui:ui:1.6.1")
     implementation("androidx.graphics:graphics-shapes:1.0.0-alpha05")
     implementation("androidx.glance:glance-appwidget:1.0.0")
@@ -282,4 +286,32 @@ dependencies {
     testImplementation(libs.hilt.android.testing)
     androidTestImplementation(libs.hilt.android.testing)
     kspAndroidTest(libs.hilt.compiler)
+    testImplementation(libs.turbine)
+}
+
+kover {
+    reports {
+        filters {
+            excludes {
+                classes(
+                    "*Fragment",
+                    "*Fragment\$*",
+                    "*Activity",
+                    "*Activity\$*",
+                    "*.databinding.*",
+                    "*.BuildConfig",
+                    "dagger.hilt.*",
+                    "hilt_aggregated_deps.*",
+                    "com.music.vivi.ViviApp_HiltComponents*",
+                    "com.music.vivi.Hilt_*"
+                )
+                annotatedBy("androidx.compose.runtime.Composable")
+            }
+        }
+        verify {
+            rule {
+                minBound(80)
+            }
+        }
+    }
 }

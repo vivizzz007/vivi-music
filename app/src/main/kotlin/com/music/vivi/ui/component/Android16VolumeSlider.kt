@@ -4,8 +4,8 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,14 +31,18 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.music.vivi.R
 
+/**
+ * A sleek Volume Slider inspired by Android 16 design.
+ * Features an animated color change on the icon and smooth progress indication.
+ */
 @Composable
-fun Android16VolumeSlider(
+public fun Android16VolumeSlider(
     volume: Float,
     onVolumeChange: (Float) -> Unit,
     modifier: Modifier = Modifier,
     activeColor: Color = MaterialTheme.colorScheme.primary,
     inactiveColor: Color = MaterialTheme.colorScheme.surfaceVariant,
-    iconPainter: Painter = painterResource(R.drawable.volume_up)
+    iconPainter: Painter = painterResource(R.drawable.volume_up),
 ) {
     var width by remember { mutableFloatStateOf(0f) }
     val animatedVolume by animateFloatAsState(targetValue = volume, label = "volume_animation")
@@ -89,7 +93,7 @@ fun Android16VolumeSlider(
                 targetValue = if (animatedVolume > 0.15f) iconOnColor else iconOffColor,
                 label = "icon_tint"
             )
-            
+
             Icon(
                 painter = iconPainter,
                 contentDescription = null,

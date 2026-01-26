@@ -1,0 +1,631 @@
+Calculating task graph as no cached configuration is available for tasks: :innertube:compileKotlin
+> Task :innertube:checkKotlinGradlePluginConfigurationErrors SKIPPED
+
+> Task :innertube:compileKotlin FAILED
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:32:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:35:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:35:9 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:39:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:40:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:41:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:48:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:55:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:57:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:124:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:124:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:146:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:146:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:177:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:177:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:194:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:194:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:216:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:216:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:239:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:239:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:252:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:252:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:265:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:265:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:280:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:280:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:296:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:296:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:298:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:298:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:303:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:303:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:316:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:316:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:329:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:329:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:342:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:342:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:355:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:355:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:368:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:368:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:381:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:381:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:398:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:398:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:415:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:415:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:436:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:436:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:458:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:458:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:471:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:471:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:490:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:490:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:502:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:502:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:517:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:517:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:538:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:538:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:554:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:554:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/InnerTube.kt:574:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:79:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:82:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:87:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:92:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:97:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:102:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:108:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:113:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:119:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:133:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:164:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:178:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:189:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:254:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:292:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:344:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:373:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:412:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:485:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:533:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:567:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:584:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:592:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:598:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:628:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:628:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:665:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:665:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:695:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:730:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:899:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:899:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:917:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:917:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:924:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:924:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:931:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:931:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:938:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:945:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:945:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:949:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:949:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:953:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:953:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:957:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:957:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:961:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:961:9 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:965:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:965:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:969:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:969:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:980:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:980:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:984:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:984:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:988:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:992:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:992:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1012:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1060:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1065:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1092:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1104:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1124:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1136:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1145:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1149:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1154:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1154:30 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1155:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1156:13 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1156:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1157:13 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1157:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1158:13 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1158:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1159:13 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1159:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1160:13 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1160:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1161:13 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1161:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1166:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1166:31 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1167:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1168:13 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1168:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1169:13 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1169:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1170:13 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1170:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1171:13 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1171:17 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1175:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/YouTube.kt:1175:15 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/AccountInfo.kt:3:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/AutomixPreviewVideoRenderer.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/AutomixPreviewVideoRenderer.kt:10:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/AutomixPreviewVideoRenderer.kt:14:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Badges.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Badges.kt:10:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Button.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Button.kt:10:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Context.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Context.kt:13:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Context.kt:27:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Context.kt:32:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Context.kt:38:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Continuation.kt:9:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Continuation.kt:14:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Continuation.kt:19:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Continuation.kt:19:24 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/ContinuationItemRenderer.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/ContinuationItemRenderer.kt:10:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/ContinuationItemRenderer.kt:14:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:10:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:13:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:23:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:27:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:30:13 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:31:17 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:31:27 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:32:17 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:32:27 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:33:17 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:33:27 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:40:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:54:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:58:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:61:13 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:62:17 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:62:27 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:63:17 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:63:27 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:64:17 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:64:27 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:65:17 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:65:27 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:66:17 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:66:27 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:67:17 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:67:27 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:68:17 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:68:27 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:69:17 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:69:27 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:76:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:82:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:87:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:92:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:99:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:104:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:109:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Endpoint.kt:116:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/GridRenderer.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/GridRenderer.kt:12:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/GridRenderer.kt:16:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/GridRenderer.kt:22:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Icon.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MediaInfo.kt:3:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Menu.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Menu.kt:10:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Menu.kt:15:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Menu.kt:21:13 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Menu.kt:28:13 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Menu.kt:34:13 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Menu.kt:42:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Menu.kt:46:13 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicCardShelfRenderer.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicCardShelfRenderer.kt:17:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicCardShelfRenderer.kt:21:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicCardShelfRenderer.kt:27:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicCarouselShelfRenderer.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicCarouselShelfRenderer.kt:13:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicCarouselShelfRenderer.kt:17:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicCarouselShelfRenderer.kt:26:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicDescriptionShelfRenderer.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicEditablePlaylistDetailHeaderRenderer.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicEditablePlaylistDetailHeaderRenderer.kt:11:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicEditablePlaylistDetailHeaderRenderer.kt:17:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicEditablePlaylistDetailHeaderRenderer.kt:23:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicEditablePlaylistDetailHeaderRenderer.kt:33:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicNavigationButtonRenderer.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicNavigationButtonRenderer.kt:13:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicNavigationButtonRenderer.kt:18:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicPlaylistShelfRenderer.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicQueueRenderer.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicQueueRenderer.kt:11:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicQueueRenderer.kt:16:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicQueueRenderer.kt:20:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicResponsiveHeaderRenderer.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicResponsiveHeaderRenderer.kt:15:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicResponsiveHeaderRenderer.kt:20:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicResponsiveListItemRenderer.kt:20:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicResponsiveListItemRenderer.kt:53:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicResponsiveListItemRenderer.kt:58:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicResponsiveListItemRenderer.kt:64:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicResponsiveListItemRenderer.kt:70:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicResponsiveListItemRenderer.kt:74:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicResponsiveListItemRenderer.kt:78:13 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicResponsiveListItemRenderer.kt:82:17 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicShelfRenderer.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicShelfRenderer.kt:14:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicShelfRenderer.kt:20:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicShelfRenderer.kt:23:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/MusicTwoRowItemRenderer.kt:15:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/NavigationEndpoint.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/PlaylistDeleteBody.kt:7:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/PlaylistPanelRenderer.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/PlaylistPanelRenderer.kt:17:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/PlaylistPanelVideoRenderer.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/ResponseContext.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/ResponseContext.kt:11:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/ResponseContext.kt:16:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/ReturnYouTubeDislikeResponse.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Runs.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Runs.kt:11:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Runs.kt:16:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Runs.kt:31:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Runs.kt:40:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Runs.kt:40:15 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/SearchSuggestions.kt:3:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/SearchSuggestionsSectionRenderer.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/SearchSuggestionsSectionRenderer.kt:10:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/SearchSuggestionsSectionRenderer.kt:15:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/SectionListRenderer.kt:8:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/SectionListRenderer.kt:14:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/SectionListRenderer.kt:18:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/SectionListRenderer.kt:22:13 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/SectionListRenderer.kt:26:17 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/SectionListRenderer.kt:40:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/SubscriptionButton.kt:18:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/SubscriptionButton.kt:22:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Tabs.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Tabs.kt:10:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Tabs.kt:14:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Tabs.kt:20:13 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/ThumbnailRenderer.kt:9:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/ThumbnailRenderer.kt:16:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/ThumbnailRenderer.kt:21:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/ThumbnailRenderer.kt:21:13 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/ThumbnailRenderer.kt:25:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Thumbnails.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/Thumbnails.kt:11:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/TwoColumnBrowseResultsRenderer.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/TwoColumnBrowseResultsRenderer.kt:11:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/TwoColumnBrowseResultsRenderer.kt:16:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/TwoColumnBrowseResultsRenderer.kt:21:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YTItem.kt:5:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YTItem.kt:6:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YTItem.kt:7:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YTItem.kt:8:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YTItem.kt:9:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YTItem.kt:10:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YTItem.kt:13:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YTItem.kt:18:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YTItem.kt:23:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YTItem.kt:47:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YTItem.kt:61:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YTItem.kt:78:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YTItem.kt:94:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YTItem.kt:94:26 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YTItem.kt:100:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YTItem.kt:100:26 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:27:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:27:9 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:45:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:49:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:49:19 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:51:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:51:19 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:52:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:52:19 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:53:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:53:19 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:55:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:55:13 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:62:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:62:13 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:71:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:71:13 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:81:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:81:13 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:91:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:91:13 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:102:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:102:13 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:110:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:110:13 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:119:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:119:13 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:133:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:133:13 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:155:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:155:13 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:177:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:177:13 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:198:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:198:13 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:225:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeClient.kt:225:13 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeDataPage.kt:8:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeDataPage.kt:13:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeDataPage.kt:18:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeDataPage.kt:23:13 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeDataPage.kt:28:17 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeDataPage.kt:33:21 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeDataPage.kt:42:25 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeDataPage.kt:47:29 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeDataPage.kt:52:33 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeDataPage.kt:59:37 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeDataPage.kt:66:41 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeDataPage.kt:78:25 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeDataPage.kt:87:29 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeDataPage.kt:92:33 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeDataPage.kt:99:29 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeDataPage.kt:104:33 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeDataPage.kt:109:37 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeDataPage.kt:117:29 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeDataPage.kt:124:25 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeDataPage.kt:131:29 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeDataPage.kt:137:29 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeDataPage.kt:142:33 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeDataPage.kt:153:37 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeDataPage.kt:159:37 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeDataPage.kt:165:37 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeDataPage.kt:170:41 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/YouTubeLocale.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/AccountMenuBody.kt:7:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/BrowseBody.kt:7:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/CreatePlaylistBody.kt:7:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/CreatePlaylistBody.kt:13:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/CreatePlaylistBody.kt:14:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/CreatePlaylistBody.kt:14:19 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/CreatePlaylistBody.kt:15:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/CreatePlaylistBody.kt:15:19 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/CreatePlaylistBody.kt:16:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/CreatePlaylistBody.kt:16:19 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/EditPlaylistBody.kt:7:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/EditPlaylistBody.kt:14:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/EditPlaylistBody.kt:16:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/EditPlaylistBody.kt:22:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/EditPlaylistBody.kt:28:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/EditPlaylistBody.kt:35:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/EditPlaylistBody.kt:42:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/EditPlaylistBody.kt:48:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/EditPlaylistBody.kt:53:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/EditPlaylistBody.kt:61:13 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/EditPlaylistBody.kt:69:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/EditPlaylistBody.kt:74:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/FeedbackBody.kt:7:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/GetQueueBody.kt:7:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/GetSearchSuggestionsBody.kt:7:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/GetTranscriptBody.kt:7:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/LikeBody.kt:7:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/LikeBody.kt:12:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/LikeBody.kt:14:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/LikeBody.kt:16:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/NextBody.kt:7:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/PlayerBody.kt:7:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/PlayerBody.kt:17:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/PlayerBody.kt:21:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/PlayerBody.kt:27:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/SearchBody.kt:7:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/body/SubscribeBody.kt:7:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/AccountMenuResponse.kt:9:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/AccountMenuResponse.kt:13:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/AccountMenuResponse.kt:17:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/AccountMenuResponse.kt:21:13 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/AccountMenuResponse.kt:25:17 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/AccountMenuResponse.kt:29:21 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/AccountMenuResponse.kt:33:25 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/AccountMenuResponse.kt:39:29 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/AccountMenuResponse.kt:39:33 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/AddItemYouTubePlaylistResponse.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/AddItemYouTubePlaylistResponse.kt:11:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/AddItemYouTubePlaylistResponse.kt:15:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/BrowseResponse.kt:19:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/BrowseResponse.kt:29:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/BrowseResponse.kt:36:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/BrowseResponse.kt:41:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/BrowseResponse.kt:46:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/BrowseResponse.kt:53:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/BrowseResponse.kt:59:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/BrowseResponse.kt:65:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/BrowseResponse.kt:72:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/BrowseResponse.kt:76:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/BrowseResponse.kt:82:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/BrowseResponse.kt:90:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/BrowseResponse.kt:102:13 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/BrowseResponse.kt:106:17 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/BrowseResponse.kt:113:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/BrowseResponse.kt:120:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/BrowseResponse.kt:125:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/BrowseResponse.kt:135:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/BrowseResponse.kt:139:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/BrowseResponse.kt:146:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/BrowseResponse.kt:150:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/ContinuationResponse.kt:7:2 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/ContinuationResponse.kt:12:6 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/ContinuationResponse.kt:17:6 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/CreatePlaylistResponse.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/EditPlaylistResponse.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/FeedbackResponse.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/FeedbackResponse.kt:10:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/GetQueueResponse.kt:7:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/GetQueueResponse.kt:11:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/GetSearchSuggestionsResponse.kt:7:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/GetSearchSuggestionsResponse.kt:11:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/GetTranscriptResponse.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/GetTranscriptResponse.kt:10:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/GetTranscriptResponse.kt:14:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/GetTranscriptResponse.kt:18:13 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/GetTranscriptResponse.kt:22:17 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/GetTranscriptResponse.kt:26:21 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/GetTranscriptResponse.kt:30:25 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/GetTranscriptResponse.kt:34:29 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/GetTranscriptResponse.kt:38:33 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/GetTranscriptResponse.kt:42:37 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/GetTranscriptResponse.kt:46:41 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/GetTranscriptResponse.kt:52:45 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/ImageUploadResponse.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/NextResponse.kt:10:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/NextResponse.kt:16:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/NextResponse.kt:21:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/NextResponse.kt:25:13 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/NextResponse.kt:29:17 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/NextResponse.kt:37:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/PlayerResponse.kt:12:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/PlayerResponse.kt:22:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/PlayerResponse.kt:28:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/PlayerResponse.kt:32:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/PlayerResponse.kt:39:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/PlayerResponse.kt:45:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/PlayerResponse.kt:72:13 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/PlayerResponse.kt:81:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/PlayerResponse.kt:93:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/PlayerResponse.kt:102:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/PlayerResponse.kt:107:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/PlayerResponse.kt:112:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/SearchResponse.kt:9:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/SearchResponse.kt:14:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/SearchResponse.kt:19:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/SearchResponse.kt:23:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/models/response/SearchResponse.kt:28:13 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/AlbumPage.kt:15:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/AlbumPage.kt:21:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/AlbumPage.kt:22:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/AlbumPage.kt:32:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/AlbumPage.kt:37:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/AlbumPage.kt:42:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/AlbumPage.kt:47:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/AlbumPage.kt:72:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/AlbumPage.kt:83:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/ArtistItemsContinuationPage.kt:5:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/ArtistItemsPage.kt:15:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/ArtistItemsPage.kt:20:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/ArtistItemsPage.kt:21:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/ArtistItemsPage.kt:58:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/ArtistPage.kt:20:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/ArtistPage.kt:26:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/ArtistPage.kt:33:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/ArtistPage.kt:34:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/BrowseResult.kt:7:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/BrowseResult.kt:11:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/BrowseResult.kt:16:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/BrowseResult.kt:16:9 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/BrowseResult.kt:32:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/BrowseResult.kt:32:9 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/ChartsPage.kt:5:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/ChartsPage.kt:9:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/ChartsPage.kt:15:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/ExplorePage.kt:5:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/HistoryPage.kt:12:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/HistoryPage.kt:15:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/HistoryPage.kt:20:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/HistoryPage.kt:21:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/HomePage.kt:18:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/HomePage.kt:23:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/HomePage.kt:28:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/HomePage.kt:29:13 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/HomePage.kt:39:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/HomePage.kt:46:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/HomePage.kt:47:13 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/HomePage.kt:161:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/HomePage.kt:161:9 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/HomePage.kt:168:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/HomePage.kt:168:9 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/LibraryAlbumsPage.kt:6:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/LibraryAlbumsPage.kt:10:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/LibraryAlbumsPage.kt:11:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/LibraryContinuationPage.kt:5:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/LibraryPage.kt:16:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/LibraryPage.kt:20:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/LibraryPage.kt:21:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/LibraryPage.kt:75:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/MoodAndGenres.kt:8:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/MoodAndGenres.kt:12:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/MoodAndGenres.kt:18:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/MoodAndGenres.kt:19:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/MoodAndGenres.kt:36:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/NewPipe.kt:76:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/NewPipe.kt:82:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/NewPipe.kt:86:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/NewReleaseAlbumPage.kt:9:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/NewReleaseAlbumPage.kt:10:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/NextPage.kt:13:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/NextPage.kt:23:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/NextPage.kt:24:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/PageHelper.kt:7:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/PageHelper.kt:8:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/PageHelper.kt:27:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/PlaylistContinuationPage.kt:5:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/PlaylistPage.kt:13:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/PlaylistPage.kt:20:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/PlaylistPage.kt:21:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/RelatedPage.kt:14:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/RelatedPage.kt:20:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/RelatedPage.kt:21:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/RelatedPage.kt:62:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/SearchPage.kt:15:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/SearchPage.kt:20:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/SearchPage.kt:21:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/SearchSuggestionPage.kt:13:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/SearchSuggestionPage.kt:14:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/SearchSummaryPage.kt:19:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/SearchSummaryPage.kt:24:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/SearchSummaryPage.kt:27:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/SearchSummaryPage.kt:27:9 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/SearchSummaryPage.kt:44:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/SearchSummaryPage.kt:44:9 Return type must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/SearchSummaryPage.kt:61:5 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/SearchSummaryPage.kt:62:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/pages/SearchSummaryPage.kt:192:9 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/utils/Utils.kt:9:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/utils/Utils.kt:38:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/utils/Utils.kt:64:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/utils/Utils.kt:66:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/utils/Utils.kt:68:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/utils/Utils.kt:78:1 Visibility must be specified in explicit API mode.
+e: file:///D:/DEV/vivi/vivi-music/innertube/src/main/kotlin/com/music/innertube/utils/Utils.kt:93:1 Visibility must be specified in explicit API mode.
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':innertube:compileKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 51s
+1 actionable task: 1 executed
+Configuration cache entry stored.

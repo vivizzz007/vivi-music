@@ -13,31 +13,29 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.MaterialShapes
-import androidx.compose.material3.toShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.music.vivi.R
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-//fun ModernInfoItem(
+// fun ModernInfoItem(
 //    icon: @Composable () -> Unit,
 //    title: String,
 //    subtitle: String,
@@ -50,7 +48,7 @@ import com.music.vivi.R
 //    arrowColor: Color? = null,
 //    settingsIconColor: Color? = null,
 //    trailingContent: (@Composable () -> Unit)? = null
-//) {
+// ) {
 //    Row(
 //        modifier = Modifier
 //            .fillMaxWidth()
@@ -100,27 +98,27 @@ import com.music.vivi.R
 //                horizontalArrangement = Arrangement.spacedBy(8.dp),
 //                verticalAlignment = Alignment.CenterVertically
 //            ) {
-////                if (showArrow) {
-////                    Icon(
-////                        imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
-////                        contentDescription = null,
-////                        modifier = Modifier.size(18.dp), //16
-////                        tint = arrowColor ?: if (showSettingsIcon) {
-////                            MaterialTheme.colorScheme.primary
-////                        } else {
-////                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-////                        }
-////                    )
-////                }
-////
-////                if (showSettingsIcon) {
-////                    Icon(
-////                        painter = painterResource(R.drawable.settings),
-////                        contentDescription = null,
-////                        modifier = Modifier.size(24.dp), //20
-////                        tint = settingsIconColor ?: MaterialTheme.colorScheme.primary
-////                    )
-////                }
+// //                if (showArrow) {
+// //                    Icon(
+// //                        imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+// //                        contentDescription = null,
+// //                        modifier = Modifier.size(18.dp), //16
+// //                        tint = arrowColor ?: if (showSettingsIcon) {
+// //                            MaterialTheme.colorScheme.primary
+// //                        } else {
+// //                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+// //                        }
+// //                    )
+// //                }
+// //
+// //                if (showSettingsIcon) {
+// //                    Icon(
+// //                        painter = painterResource(R.drawable.settings),
+// //                        contentDescription = null,
+// //                        modifier = Modifier.size(24.dp), //20
+// //                        tint = settingsIconColor ?: MaterialTheme.colorScheme.primary
+// //                    )
+// //                }
 //
 //                if (showArrow) {
 //                    Icon(
@@ -142,10 +140,10 @@ import com.music.vivi.R
 //            }
 //        }
 //    }
-//}
+// }
 
-
-
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
 fun ModernInfoItem(
     icon: @Composable () -> Unit,
     title: String,
@@ -162,7 +160,7 @@ fun ModernInfoItem(
     trailingContent: (@Composable () -> Unit)? = null,
     iconShape: Shape = MaterialShapes.Ghostish.toShape(),
     iconSize: androidx.compose.ui.unit.Dp = 44.dp,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier
@@ -170,7 +168,9 @@ fun ModernInfoItem(
             .then(
                 if (onClick != null) {
                     Modifier.clickable(onClick = onClick)
-                } else Modifier
+                } else {
+                    Modifier
+                }
             )
             .padding(horizontal = 20.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -185,7 +185,9 @@ fun ModernInfoItem(
                 .then(if (iconShape != CircleShape) Modifier.clip(iconShape) else Modifier.clip(CircleShape)),
             contentAlignment = Alignment.Center
         ) {
-            CompositionLocalProvider(LocalContentColor provides (iconContentColor ?: MaterialTheme.colorScheme.primary)) {
+            CompositionLocalProvider(
+                LocalContentColor provides (iconContentColor ?: MaterialTheme.colorScheme.primary)
+            ) {
                 icon()
             }
         }

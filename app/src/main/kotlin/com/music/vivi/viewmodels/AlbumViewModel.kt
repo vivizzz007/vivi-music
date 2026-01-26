@@ -10,6 +10,7 @@ import com.music.vivi.utils.Wikipedia
 import com.music.vivi.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,32 +20,41 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import javax.inject.Inject
 
+/**
+ * ViewModel for displaying Album details.
+ *
+ * Responsibilities:
+ * - Fetching Album details from YouTube Music.
+ * - Observing local library state for the album (Bookmarking/DB sync).
+ * - Reactively fetching and updating Album Description (Wikipedia).
+ * - Handling sync between local and remote album data.
+ */
 @HiltViewModel
-class AlbumViewModel
+public class AlbumViewModel
 @Inject
 constructor(
     private val database: MusicDatabase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val _albumId = MutableStateFlow(savedStateHandle.get<String>("albumId"))
-    val albumId: StateFlow<String?> = _albumId.asStateFlow()
-    
-    val playlistId = MutableStateFlow("")
+    public val albumId: StateFlow<String?> = _albumId.asStateFlow()
+
+    public val playlistId: MutableStateFlow<String> = MutableStateFlow("")
+
     @OptIn(ExperimentalCoroutinesApi::class)
-    val albumWithSongs = _albumId.filterNotNull().flatMapLatest { id ->
-            database.albumWithSongs(id)
-        }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
-    var otherVersions = MutableStateFlow<List<AlbumItem>>(emptyList())
-    var releasesForYou = MutableStateFlow<List<AlbumItem>>(emptyList())
+    public val albumWithSongs: StateFlow<com.music.vivi.db.entities.AlbumWithSongs?> = _albumId.filterNotNull().flatMapLatest { id ->
+        database.albumWithSongs(id)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    public var otherVersions: MutableStateFlow<List<AlbumItem>> = MutableStateFlow(emptyList())
+    public var releasesForYou: MutableStateFlow<List<AlbumItem>> = MutableStateFlow(emptyList())
 
     private val _albumDescription = MutableStateFlow<String?>(null)
-    val albumDescription = _albumDescription.asStateFlow()
+    public val albumDescription: StateFlow<String?> = _albumDescription.asStateFlow()
 
     private val _isDescriptionLoading = MutableStateFlow(false)
-    val isDescriptionLoading = _isDescriptionLoading.asStateFlow()
+    public val isDescriptionLoading: StateFlow<Boolean> = _isDescriptionLoading.asStateFlow()
 
     init {
         // Reactive Wikipedia Fetching
@@ -97,7 +107,7 @@ constructor(
         }
     }
 
-    fun setAlbumId(id: String) {
+    public fun setAlbumId(id: String) {
         if (_albumId.value != id) {
             _albumId.value = id
         }

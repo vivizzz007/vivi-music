@@ -1,20 +1,16 @@
 package com.music.vivi.update.downloadmanager
 
-
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.graphics.drawable.Icon
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.graphics.toColorInt
 import com.music.vivi.R
-
-
 
 object DownloadNotificationManager {
     private lateinit var notificationManager: NotificationManager
@@ -85,8 +81,10 @@ object DownloadNotificationManager {
             .setSmallIcon(android.R.drawable.stat_sys_warning)
             .setContentTitle(appContext.getString(R.string.update_failed))
             .setContentText(appContext.getString(R.string.failed_to_download_version, version))
-            .setStyle(NotificationCompat.BigTextStyle()
-                .bigText(appContext.getString(R.string.failed_to_download_version_error, version, errorMessage)))
+            .setStyle(
+                NotificationCompat.BigTextStyle()
+                    .bigText(appContext.getString(R.string.failed_to_download_version_error, version, errorMessage))
+            )
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setAutoCancel(true)
@@ -112,8 +110,11 @@ object DownloadNotificationManager {
                     it.addProgressSegment(
                         Notification.ProgressStyle.Segment(25)
                             .setColor(
-                                if (i % 2 == 0) "#4285F4".toColorInt() // Primary blue
-                                else "#8E24AA".toColorInt() // Tertiary maroon/purple
+                                if (i % 2 == 0) {
+                                    "#4285F4".toColorInt() // Primary blue
+                                } else {
+                                    "#8E24AA".toColorInt() // Tertiary maroon/purple
+                                }
                             )
                     )
                 }
@@ -146,8 +147,11 @@ object DownloadNotificationManager {
                     it.addProgressSegment(
                         Notification.ProgressStyle.Segment(25)
                             .setColor(
-                                if (i % 2 == 0) "#4285F4".toColorInt() // Primary blue
-                                else "#8E24AA".toColorInt() // Tertiary maroon/purple
+                                if (i % 2 == 0) {
+                                    "#4285F4".toColorInt() // Primary blue
+                                } else {
+                                    "#8E24AA".toColorInt() // Tertiary maroon/purple
+                                }
                             )
                     )
                 }
@@ -200,8 +204,11 @@ object DownloadNotificationManager {
                     it.addProgressSegment(
                         Notification.ProgressStyle.Segment(25)
                             .setColor(
-                                if (i % 2 == 0) "#4285F4".toColorInt() // Primary blue
-                                else "#8E24AA".toColorInt() // Tertiary maroon/purple
+                                if (i % 2 == 0) {
+                                    "#4285F4".toColorInt() // Primary blue
+                                } else {
+                                    "#8E24AA".toColorInt() // Tertiary maroon/purple
+                                }
                             )
                     )
                 }
@@ -238,7 +245,7 @@ object DownloadNotificationManager {
     private fun setRequestPromotedOngoingSafely(builder: Notification.Builder, promoted: Boolean) {
         // Fallback: set via extras first
         builder.getExtras().putBoolean("android.requestPromotedOngoing", promoted)
-        
+
         try {
             // Try different possible method names from various previews
             val methodNames = arrayOf("setRequestPromotedOngoing", "setPromotedOngoing", "setOngoingActivity")

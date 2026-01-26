@@ -16,14 +16,14 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AssistChip
@@ -50,8 +50,11 @@ import androidx.compose.ui.unit.dp
 import com.music.vivi.R
 import com.music.vivi.ui.screens.OptionStats
 
+/**
+ * A generic horizontal row of chips for selection.
+ */
 @Composable
-fun <E> ChipsRow(
+public fun <E> ChipsRow(
     chips: List<Pair<E, String>>,
     currentValue: E,
     onValueUpdate: (E) -> Unit,
@@ -63,7 +66,7 @@ fun <E> ChipsRow(
         modifier
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState())
-            .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal)),
+            .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
     ) {
         Spacer(Modifier.width(12.dp))
 
@@ -72,7 +75,7 @@ fun <E> ChipsRow(
                 label = { Text(label) },
                 selected = currentValue == value,
                 colors = FilterChipDefaults.filterChipColors(
-                    containerColor = containerColor,
+                    containerColor = containerColor
                 ),
                 onClick = { onValueUpdate(value) },
                 shape = RoundedCornerShape(16.dp),
@@ -84,9 +87,13 @@ fun <E> ChipsRow(
     }
 }
 
+/**
+ * A specialized row of chips that also includes a dropdown menu for additional options (stats).
+ * Used in "Stats" top tracks/artists to switch between Weeks/Months/Years and specific timeframes.
+ */
 @SuppressLint("UnusedContentLambdaTargetStateParameter")
 @Composable
-fun <Int> ChoiceChipsRow(
+public fun <Int> ChoiceChipsRow(
     chips: List<Pair<Int, String>>,
     options: List<Pair<OptionStats, String>>,
     selectedOption: OptionStats,
@@ -100,7 +107,7 @@ fun <Int> ChoiceChipsRow(
     val rotationAnimation by animateFloatAsState(
         targetValue = expandIconDegree,
         animationSpec = tween(durationMillis = 400),
-        label = "",
+        label = ""
     )
 
     Row(
@@ -108,7 +115,7 @@ fun <Int> ChoiceChipsRow(
         modifier
             .fillMaxWidth()
             .padding(start = 12.dp)
-            .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal)),
+            .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
     ) {
         var expanded by remember { mutableStateOf(false) }
 
@@ -126,14 +133,14 @@ fun <Int> ChoiceChipsRow(
                             OptionStats.MONTHS -> stringResource(id = R.string.months)
                             OptionStats.YEARS -> stringResource(id = R.string.years)
                             OptionStats.CONTINUOUS -> stringResource(id = R.string.continuous)
-                        },
+                        }
                     )
                 },
                 trailingIcon = {
                     Icon(
                         painter = painterResource(R.drawable.expand_more),
                         contentDescription = null,
-                        modifier = Modifier.graphicsLayer(rotationZ = rotationAnimation),
+                        modifier = Modifier.graphicsLayer(rotationZ = rotationAnimation)
                     )
                 },
                 shape = RoundedCornerShape(16.dp),
@@ -147,7 +154,7 @@ fun <Int> ChoiceChipsRow(
             AnimatedVisibility(
                 visible = expanded,
                 enter = expandIn() + fadeIn(),
-                exit = shrinkOut() + fadeOut(),
+                exit = shrinkOut() + fadeOut()
             ) {
                 DropdownMenu(
                     modifier = Modifier.padding(start = 12.dp),
@@ -155,7 +162,7 @@ fun <Int> ChoiceChipsRow(
                     onDismissRequest = {
                         expanded = false
                         expandIconDegree -= 180
-                    },
+                    }
                 ) {
                     options.forEach { option ->
                         DropdownMenuItem(
@@ -164,7 +171,7 @@ fun <Int> ChoiceChipsRow(
                                 onSelectionChange(option.first)
                                 expandIconDegree -= 180
                                 expanded = false
-                            },
+                            }
                         )
                     }
                 }
@@ -174,14 +181,14 @@ fun <Int> ChoiceChipsRow(
         AnimatedContent(
             targetState = selectedOption,
             transitionSpec = { slideInHorizontally() + fadeIn() togetherWith slideOutHorizontally() + fadeOut() },
-            label = "",
+            label = ""
         ) {
             Row(
                 modifier =
                 Modifier
                     .fillMaxWidth()
                     .horizontalScroll(rememberScrollState())
-                    .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal)),
+                    .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
             ) {
                 chips.forEach { (value, label) ->
                     Spacer(Modifier.width(8.dp))
@@ -190,7 +197,7 @@ fun <Int> ChoiceChipsRow(
                         label = { Text(label) },
                         selected = currentValue == value,
                         colors = FilterChipDefaults.filterChipColors(
-                            containerColor = containerColor,
+                            containerColor = containerColor
                         ),
                         onClick = { onValueUpdate(value) },
                         shape = RoundedCornerShape(16.dp),

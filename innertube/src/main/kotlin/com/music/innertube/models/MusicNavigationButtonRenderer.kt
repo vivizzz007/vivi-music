@@ -10,12 +10,8 @@ data class MusicNavigationButtonRenderer(
     val clickCommand: NavigationEndpoint,
 ) {
     @Serializable
-    data class Solid(
-        val leftStripeColor: Long,
-    )
+    data class Solid(val leftStripeColor: Long)
 
     @Serializable
-    data class IconStyle(
-        val icon: Icon,
-    )
+    data class IconStyle(val icon: Icon)
 }

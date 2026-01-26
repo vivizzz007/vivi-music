@@ -1,6 +1,5 @@
 package com.music.vivi.ui.menu
 
-
 import android.annotation.SuppressLint
 import android.content.Intent
 import androidx.compose.animation.animateColorAsState
@@ -22,7 +21,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -69,7 +67,6 @@ import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.LocalSyncUtils
 import com.music.vivi.R
 import com.music.vivi.constants.ListItemHeight
-import com.music.vivi.constants.ListThumbnailSize
 import com.music.vivi.db.entities.SongEntity
 import com.music.vivi.extensions.toMediaItem
 import com.music.vivi.models.MediaMetadata
@@ -87,6 +84,10 @@ import kotlinx.coroutines.launch
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 import java.time.LocalDateTime
 
+/**
+ * Menu for a YouTube Song (online result).
+ * Allows adding to library, downloading, adding to playlist, viewing artist/album, and queueing.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @SuppressLint("MutableCollectionMutableState")
 @Composable
@@ -94,7 +95,7 @@ fun YouTubeSongMenu(
     song: SongItem,
     navController: NavController,
     onDismiss: () -> Unit,
-    onHistoryRemoved: () -> Unit = {}
+    onHistoryRemoved: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current
@@ -126,40 +127,65 @@ fun YouTubeSongMenu(
     val cornerRadius = remember { 24.dp }
     val albumArtShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentTR = 60
         )
     }
     val playButtonShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentTR = 60
         )
     }
 
     // Android 16 grouped shapes
     val topShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
-            cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentBR = 0,
+            cornerRadiusBR = 0.dp,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentBL = 0,
+            cornerRadiusBL = 0.dp,
+            smoothnessAsPercentTR = 60
         )
     }
     val middleShape = remember { RectangleShape }
     val bottomShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-            smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
+            cornerRadiusTR = 0.dp,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 0,
+            cornerRadiusTL = 0.dp,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentTR = 0
         )
     }
     val singleShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentTR = 60
         )
     }
 
@@ -168,15 +194,18 @@ fun YouTubeSongMenu(
 
     val favoriteButtonCornerRadius by animateDpAsState(
         targetValue = if (isFavorite) cornerRadius else 60.dp,
-        animationSpec = tween(durationMillis = 300), label = "FavoriteCornerAnimation"
+        animationSpec = tween(durationMillis = 300),
+        label = "FavoriteCornerAnimation"
     )
     val favoriteButtonContainerColor by animateColorAsState(
         targetValue = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-        animationSpec = tween(durationMillis = 300), label = "FavoriteContainerColorAnimation"
+        animationSpec = tween(durationMillis = 300),
+        label = "FavoriteContainerColorAnimation"
     )
     val favoriteButtonContentColor by animateColorAsState(
         targetValue = if (isFavorite) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-        animationSpec = tween(durationMillis = 300), label = "FavoriteContentColorAnimation"
+        animationSpec = tween(durationMillis = 300),
+        label = "FavoriteContentColorAnimation"
     )
 
     val favoriteButtonShape = remember(favoriteButtonCornerRadius) {
@@ -282,7 +311,13 @@ fun YouTubeSongMenu(
                     painter = painterResource(
                         if (isFavorite) R.drawable.favorite else R.drawable.favorite_border
                     ),
-                    contentDescription = if (isFavorite) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites),
+                    contentDescription = if (isFavorite) {
+                        stringResource(
+                            R.string.remove_from_favorites
+                        )
+                    } else {
+                        stringResource(R.string.add_to_favorites)
+                    },
                     tint = if (isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -325,13 +360,25 @@ fun YouTubeSongMenu(
                         painter = painterResource(
                             if (isCurrentSongPlaying && isPlaying) R.drawable.pause else R.drawable.play
                         ),
-                        contentDescription = if (isCurrentSongPlaying && isPlaying) stringResource(R.string.pause) else stringResource(R.string.play)
+                        contentDescription = if (isCurrentSongPlaying &&
+                            isPlaying
+                        ) {
+                            stringResource(R.string.pause)
+                        } else {
+                            stringResource(R.string.play)
+                        }
                     )
                 },
                 text = {
                     Text(
                         modifier = Modifier.padding(end = 10.dp),
-                        text = if (isCurrentSongPlaying && isPlaying) stringResource(R.string.pause) else stringResource(R.string.play),
+                        text = if (isCurrentSongPlaying &&
+                            isPlaying
+                        ) {
+                            stringResource(R.string.pause)
+                        } else {
+                            stringResource(R.string.play)
+                        },
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         softWrap = false
@@ -370,7 +417,13 @@ fun YouTubeSongMenu(
                     painter = painterResource(
                         if (isFavorite) R.drawable.favorite else R.drawable.favorite_border
                     ),
-                    contentDescription = if (isFavorite) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites),
+                    contentDescription = if (isFavorite) {
+                        stringResource(
+                            R.string.remove_from_favorites
+                        )
+                    } else {
+                        stringResource(R.string.add_to_favorites)
+                    },
                     tint = if (isFavorite) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -415,12 +468,18 @@ fun YouTubeSongMenu(
                 when (download?.state) {
                     Download.STATE_COMPLETED -> {
                         DownloadService.sendRemoveDownload(
-                            context, ExoDownloadService::class.java, song.id, false
+                            context,
+                            ExoDownloadService::class.java,
+                            song.id,
+                            false
                         )
                     }
                     Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
                         DownloadService.sendRemoveDownload(
-                            context, ExoDownloadService::class.java, song.id, false
+                            context,
+                            ExoDownloadService::class.java,
+                            song.id,
+                            false
                         )
                     }
                     else -> {
@@ -432,7 +491,10 @@ fun YouTubeSongMenu(
                             .setData(song.title.toByteArray())
                             .build()
                         DownloadService.sendAddDownload(
-                            context, ExoDownloadService::class.java, downloadRequest, false
+                            context,
+                            ExoDownloadService::class.java,
+                            downloadRequest,
+                            false
                         )
                     }
                 }
@@ -719,23 +781,32 @@ fun YouTubeSongMenu(
             ) {
                 Icon(
                     painter = painterResource(
-                        if (librarySong?.song?.inLibrary != null) R.drawable.library_add_check
-                        else R.drawable.library_add
+                        if (librarySong?.song?.inLibrary != null) {
+                            R.drawable.library_add_check
+                        } else {
+                            R.drawable.library_add
+                        }
                     ),
                     contentDescription = stringResource(R.string.library_icon)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        if (librarySong?.song?.inLibrary != null) stringResource(R.string.remove_from_library)
-                        else stringResource(R.string.add_to_library),
+                        if (librarySong?.song?.inLibrary != null) {
+                            stringResource(R.string.remove_from_library)
+                        } else {
+                            stringResource(R.string.add_to_library)
+                        },
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        if (librarySong?.song?.inLibrary != null) stringResource(R.string.remove_from_your_music)
-                        else stringResource(R.string.save_to_your_music),
+                        if (librarySong?.song?.inLibrary != null) {
+                            stringResource(R.string.remove_from_your_music)
+                        } else {
+                            stringResource(R.string.save_to_your_music)
+                        },
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -851,14 +922,14 @@ fun YouTubeSongMenu(
                             showSelectArtistDialog = false
                             onDismiss()
                         }
-                        .padding(horizontal = 24.dp),
+                        .padding(horizontal = 24.dp)
                 ) {
                     Text(
                         text = artist.name,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }

@@ -1,15 +1,30 @@
 package com.music.vivi.utils
 
-import com.music.vivi.models.MediaMetadata
 import com.music.lastfm.LastFM
+import com.music.vivi.models.MediaMetadata
 import kotlinx.coroutines.*
 import kotlin.math.min
 
+/**
+ * Manages Last.fm scrobbling logic.
+ *
+ * This class handles the rules for valid scrobbles:
+ * - Song must be longer than [minSongDuration] (default 30s).
+ * - User must listen for at least [scrobbleDelayPercent] (50%) or [scrobbleDelaySeconds] (4 minutes).
+ *
+ * It manages a timer that pauses/resumes with playback and triggers the actual scrobble network call
+ * when the threshold is reached.
+ *
+ * @param scope Coroutine scope for launching timer and network jobs.
+ * @param minSongDuration Minimum duration in seconds for a song to be scrobble-able.
+ * @param scrobbleDelayPercent Percentage of song that must be played (0.0 - 1.0).
+ * @param scrobbleDelaySeconds Maximum seconds to wait before scrobbling (cap for long songs).
+ */
 class ScrobbleManager(
     private val scope: CoroutineScope,
     var minSongDuration: Int = 30,
     var scrobbleDelayPercent: Float = 0.5f,
-    var scrobbleDelaySeconds: Int = 50
+    var scrobbleDelaySeconds: Int = 50,
 ) {
     private var scrobbleJob: Job? = null
     private var scrobbleRemainingMillis: Long = 0L
@@ -26,6 +41,13 @@ class ScrobbleManager(
         songStarted = false
     }
 
+    /**
+     * Called when a new song starts playing.
+     * Starts the scrobble timer and optionally updates "Now Playing" status.
+     *
+     * @param metadata The metadata of the started song.
+     * @param duration Optional override for duration (in milliseconds).
+     */
     fun onSongStart(metadata: MediaMetadata?, duration: Long? = null) {
         if (metadata == null) return
         songStartedAt = System.currentTimeMillis() / 1000
@@ -105,7 +127,7 @@ class ScrobbleManager(
                 track = metadata.title,
                 duration = metadata.duration,
                 timestamp = songStartedAt,
-                album = metadata.album?.title,
+                album = metadata.album?.title
             )
         }
     }

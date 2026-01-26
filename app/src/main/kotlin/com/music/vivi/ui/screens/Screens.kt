@@ -5,12 +5,16 @@ import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
 import com.music.vivi.R
 
+/**
+ * Sealed class defining the Main Bottom Navigation Tab routes.
+ * Used for defining the bottom bar items.
+ */
 @Immutable
-sealed class Screens(
-    @StringRes val titleId: Int,
-    @DrawableRes val iconIdInactive: Int,
-    @DrawableRes val iconIdActive: Int,
-    val route: String,
+public sealed class Screens(
+    @StringRes public val titleId: Int,
+    @DrawableRes public val iconIdInactive: Int,
+    @DrawableRes public val iconIdActive: Int,
+    public val route: String,
 ) {
     object Home : Screens(
         titleId = R.string.home,

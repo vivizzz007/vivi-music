@@ -4,7 +4,6 @@ import com.music.lastfm.models.Authentication
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
-import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.*
@@ -19,7 +18,12 @@ object LastFM {
     private val client by lazy {
         HttpClient(OkHttp) {
             install(ContentNegotiation) {
-                json(Json { isLenient = true; ignoreUnknownKeys = true })
+                json(
+                    Json {
+                        isLenient = true
+                        ignoreUnknownKeys = true
+                    }
+                )
             }
             defaultRequest { url("https://ws.audioscrobbler.com/2.0/") }
             expectSuccess = true
@@ -38,7 +42,7 @@ object LastFM {
         apiKey: String,
         secret: String,
         sessionKey: String? = null,
-        extra: Map<String, String> = emptyMap()
+        extra: Map<String, String> = emptyMap(),
     ) {
         contentType(ContentType.Application.FormUrlEncoded)
         userAgent("vivi-music (https://github.com/vivizzz007/vivi-music)")
@@ -67,8 +71,11 @@ object LastFM {
     }
 
     suspend fun updateNowPlaying(
-        artist: String, track: String,
-        album: String? = null, trackNumber: Int? = null, duration: Int? = null
+        artist: String,
+        track: String,
+        album: String? = null,
+        trackNumber: Int? = null,
+        duration: Int? = null,
     ) = runCatching {
         client.post {
             lastfmParams(
@@ -89,8 +96,12 @@ object LastFM {
     }
 
     suspend fun scrobble(
-        artist: String, track: String, timestamp: Long,
-        album: String? = null, trackNumber: Int? = null, duration: Int? = null
+        artist: String,
+        track: String,
+        timestamp: Long,
+        album: String? = null,
+        trackNumber: Int? = null,
+        duration: Int? = null,
     ) = runCatching {
         client.post {
             lastfmParams(

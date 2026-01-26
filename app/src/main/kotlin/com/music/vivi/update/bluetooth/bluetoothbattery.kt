@@ -1,10 +1,6 @@
 package com.music.vivi.bluetooth
 
-import android.bluetooth.BluetoothDevice
-import android.content.Context
-import android.os.Build
-
-//fun getBluetoothBatteryLevel(context: Context, device: BluetoothDevice): Int? {
+// fun getBluetoothBatteryLevel(context: Context, device: BluetoothDevice): Int? {
 //    return try {
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 //            if (checkBluetoothPermission(context)) {
@@ -32,4 +28,4 @@ import android.os.Build
 //    } catch (e: Exception) {
 //        null // General error handling
 //    }
-//}
+// }

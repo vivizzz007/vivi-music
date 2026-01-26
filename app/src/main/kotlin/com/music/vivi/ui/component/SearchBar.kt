@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CornerSize
@@ -59,8 +58,6 @@ import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.res.stringResource
-import com.music.vivi.R
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -78,12 +75,17 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.util.lerp
+import com.music.vivi.R
 import com.music.vivi.constants.AppBarHeight
 import kotlin.math.max
 
+/**
+ * A search bar implementation that animates between a compact input field and a full-screen search view.
+ * Supports leading/trailing icons and content area for suggestions.
+ */
 @ExperimentalMaterial3Api
 @Composable
-fun TopSearch(
+public fun TopSearch(
     query: TextFieldValue,
     onQueryChange: (TextFieldValue) -> Unit,
     onSearch: (String) -> Unit,
@@ -107,7 +109,7 @@ fun TopSearch(
     val animationProgress: Float by animateFloatAsState(
         targetValue = if (active) 1f else 0f,
         animationSpec = tween(durationMillis = AnimationDurationMillis),
-        label = "SearchBarAnimation",
+        label = "SearchBarAnimation"
     )
 
     val defaultInputFieldShape = SearchBarDefaults.inputFieldShape
@@ -137,14 +139,14 @@ fun TopSearch(
                 start = startInset * animationProgress,
                 top = topPadding * animationProgress,
                 end = endInset * animationProgress,
-                bottom = SearchBarVerticalPadding * animationProgress,
+                bottom = SearchBarVerticalPadding * animationProgress
             )
         }
     }
 
     BoxWithConstraints(
         modifier = modifier.offset { IntOffset(x = 0, y = 0) },
-        propagateMinConstraints = true,
+        propagateMinConstraints = true
     ) {
         val height: Dp
         val width: Dp
@@ -188,9 +190,9 @@ fun TopSearch(
                 .padding(
                     top = animatedSurfaceTopPadding,
                     start = startPadding,
-                    end = endPadding,
+                    end = endPadding
                 )
-                .size(width = width, height = height),
+                .size(width = width, height = height)
         ) {
             Column {
                 SearchBarInputField(
@@ -215,7 +217,7 @@ fun TopSearch(
                         unfocusedIndicatorColor = Color.Transparent
                     ),
                     interactionSource = interactionSource,
-                    focusRequester = focusRequester,
+                    focusRequester = focusRequester
                 )
 
                 if (animationProgress > 0) {
@@ -260,7 +262,7 @@ private fun SearchBarInputField(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
-            .height(InputFieldHeight),
+            .height(InputFieldHeight)
     ) {
         if (leadingIcon != null) {
             Spacer(Modifier.width(SearchBarIconOffsetX))
@@ -314,9 +316,9 @@ private fun SearchBarInputField(
                     shape = SearchBarDefaults.inputFieldShape,
                     colors = colors,
                     contentPadding = PaddingValues(),
-                    container = {},
+                    container = {}
                 )
-            },
+            }
         )
 
         if (trailingIcon != null) {

@@ -25,7 +25,7 @@ class ViviNotificationProvider(
     private val context: Context,
     notificationIdProvider: DefaultMediaNotificationProvider.NotificationIdProvider,
     channelId: String,
-    channelNameResourceId: Int
+    channelNameResourceId: Int,
 ) : MediaNotification.Provider {
 
     private val defaultProvider = DefaultMediaNotificationProvider(
@@ -47,7 +47,7 @@ class ViviNotificationProvider(
         mediaSession: MediaSession,
         customLayout: ImmutableList<CommandButton>,
         actionFactory: MediaNotification.ActionFactory,
-        onNotificationChangedCallback: MediaNotification.Provider.Callback
+        onNotificationChangedCallback: MediaNotification.Provider.Callback,
     ): MediaNotification {
         // Get the default notification built by Media3
         val mediaNotification = defaultProvider.createNotification(
@@ -124,9 +124,20 @@ class ViviNotificationProvider(
             val updatedNotification = builder.build()
 
             // Re-attach the media session token if it was lost during build()
-            mediaNotification.notification.extras.getParcelable<android.media.session.MediaSession.Token>(
-                Notification.EXTRA_MEDIA_SESSION)?.let {
-                updatedNotification.extras.putParcelable(Notification.EXTRA_MEDIA_SESSION, it)
+            if (Build.VERSION.SDK_INT >= 33) {
+                mediaNotification.notification.extras.getParcelable(
+                    Notification.EXTRA_MEDIA_SESSION,
+                    android.media.session.MediaSession.Token::class.java
+                )?.let {
+                    updatedNotification.extras.putParcelable(Notification.EXTRA_MEDIA_SESSION, it)
+                }
+            } else {
+                @Suppress("DEPRECATION")
+                mediaNotification.notification.extras.getParcelable<android.media.session.MediaSession.Token>(
+                    Notification.EXTRA_MEDIA_SESSION
+                )?.let {
+                    updatedNotification.extras.putParcelable(Notification.EXTRA_MEDIA_SESSION, it)
+                }
             }
 
             return MediaNotification(mediaNotification.notificationId, updatedNotification)
@@ -135,13 +146,8 @@ class ViviNotificationProvider(
         return mediaNotification
     }
 
-    override fun handleCustomCommand(
-        session: MediaSession,
-        action: String,
-        extras: Bundle
-    ): Boolean {
-        return defaultProvider.handleCustomCommand(session, action, extras)
-    }
+    override fun handleCustomCommand(session: MediaSession, action: String, extras: Bundle): Boolean =
+        defaultProvider.handleCustomCommand(session, action, extras)
 
     private fun setShortCriticalTextSafely(builder: Notification.Builder, text: String) {
         try {
@@ -154,7 +160,10 @@ class ViviNotificationProvider(
 
     private fun setChronometerCountDownSafely(builder: Notification.Builder, countDown: Boolean) {
         try {
-            val method = Notification.Builder::class.java.getMethod("setChronometerCountDown", Boolean::class.javaPrimitiveType)
+            val method = Notification.Builder::class.java.getMethod(
+                "setChronometerCountDown",
+                Boolean::class.javaPrimitiveType
+            )
             method.invoke(builder, countDown)
         } catch (e: Exception) {
             builder.getExtras().putBoolean("android.chronometerCountDown", countDown)

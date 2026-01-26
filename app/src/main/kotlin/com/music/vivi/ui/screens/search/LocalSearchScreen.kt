@@ -7,8 +7,8 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
@@ -18,15 +18,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.music.vivi.LocalDatabase
+import com.music.vivi.LocalDownloadUtil
 import com.music.vivi.LocalPlayerConnection
+import com.music.vivi.R
 import com.music.vivi.constants.CONTENT_TYPE_LIST
 import com.music.vivi.constants.ListItemHeight
 import com.music.vivi.db.entities.Album
@@ -37,14 +40,26 @@ import com.music.vivi.extensions.toMediaItem
 import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.playback.queues.ListQueue
 import com.music.vivi.ui.component.*
+import com.music.vivi.ui.component.LibrarySongListItem
+import com.music.vivi.ui.component.media.albums.AlbumListItem
+import com.music.vivi.ui.component.media.artists.ArtistListItem
+import com.music.vivi.ui.component.media.playlists.PlaylistListItem
 import com.music.vivi.ui.menu.SongMenu
 import com.music.vivi.viewmodels.LocalFilter
 import com.music.vivi.viewmodels.LocalSearchViewModel
 import kotlinx.coroutines.flow.drop
-import com.music.vivi.R
+/**
+ * Screen for searching within the local library (songs, albums, artists, playlists).
+ * Filters results by type and allows playback or navigation to detailed views.
+ *
+ * @param query The search query string.
+ * @param onDismiss Callback when search is dismissed or an item is clicked.
+ * @param isFromCache Whether the search is being performed within cached/downloaded content.
+ * @param pureBlack Whether to use pure black background (OLED optimization).
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun LocalSearchScreen(
+public fun LocalSearchScreen(
     query: String,
     navController: NavController,
     onDismiss: () -> Unit,
@@ -90,7 +105,9 @@ fun LocalSearchScreen(
                     base.windowInsetsPadding(
                         WindowInsets.systemBars.only(WindowInsetsSides.Horizontal)
                     )
-                } else base
+                } else {
+                    base
+                }
             }
     ) {
         Row(
@@ -105,7 +122,7 @@ fun LocalSearchScreen(
                 LocalFilter.SONG to stringResource(R.string.filter_songs),
                 LocalFilter.ALBUM to stringResource(R.string.filter_albums),
                 LocalFilter.ARTIST to stringResource(R.string.filter_artists),
-                LocalFilter.PLAYLIST to stringResource(R.string.filter_playlists),
+                LocalFilter.PLAYLIST to stringResource(R.string.filter_playlists)
             ).forEach { (filter, label) ->
                 FilterChip(
                     selected = searchFilter == filter,
@@ -116,12 +133,12 @@ fun LocalSearchScreen(
                             Icon(
                                 imageVector = Icons.Filled.Done,
                                 contentDescription = stringResource(R.string.selected_content_desc),
-                                modifier = Modifier.size(FilterChipDefaults.IconSize),
+                                modifier = Modifier.size(FilterChipDefaults.IconSize)
                             )
                         }
                     } else {
                         null
-                    },
+                    }
                 )
             }
         }
@@ -132,7 +149,7 @@ fun LocalSearchScreen(
             // Keep only bottom safe area inside the list; top handled above (landscape only)
             contentPadding = WindowInsets.safeDrawing
                 .only(WindowInsetsSides.Bottom)
-                .asPaddingValues(),
+                .asPaddingValues()
         ) {
             result.map.forEach { (filter, items) ->
                 if (result.filter == LocalFilter.ALL) {
@@ -144,7 +161,7 @@ fun LocalSearchScreen(
                                 .fillMaxWidth()
                                 .height(ListItemHeight)
                                 .clickable { viewModel.filter.value = filter }
-                                .padding(start = 12.dp, end = 18.dp),
+                                .padding(start = 12.dp, end = 18.dp)
                         ) {
                             Text(
                                 text = stringResource(
@@ -157,12 +174,12 @@ fun LocalSearchScreen(
                                     }
                                 ),
                                 style = MaterialTheme.typography.titleLarge,
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.weight(1f)
                             )
 
                             Icon(
                                 painter = painterResource(R.drawable.navigate_next),
-                                contentDescription = null,
+                                contentDescription = null
                             )
                         }
                     }
@@ -171,10 +188,10 @@ fun LocalSearchScreen(
                 items(
                     items = items.distinctBy { it.id },
                     key = { it.id },
-                    contentType = { CONTENT_TYPE_LIST },
+                    contentType = { CONTENT_TYPE_LIST }
                 ) { item ->
                     when (item) {
-                        is Song -> SongListItem(
+                        is Song -> LibrarySongListItem(
                             song = item,
                             showInLibraryIcon = true,
                             isActive = item.id == mediaMetadata?.id,
@@ -197,7 +214,7 @@ fun LocalSearchScreen(
                                 ) {
                                     Icon(
                                         painter = painterResource(R.drawable.more_vert),
-                                        contentDescription = null,
+                                        contentDescription = null
                                     )
                                 }
                             },
@@ -215,7 +232,7 @@ fun LocalSearchScreen(
                                                 ListQueue(
                                                     title = context.getString(R.string.queue_searched_songs),
                                                     items = songs,
-                                                    startIndex = songs.indexOfFirst { it.mediaId == item.id },
+                                                    startIndex = songs.indexOfFirst { it.mediaId == item.id }
                                                 )
                                             )
                                         }
@@ -234,20 +251,30 @@ fun LocalSearchScreen(
                                         }
                                     }
                                 )
-                                .animateItem(),
+                                .animateItem()
                         )
 
-                        is Album -> AlbumListItem(
-                            album = item,
-                            isActive = item.id == mediaMetadata?.album?.id,
-                            isPlaying = isPlaying,
-                            modifier = Modifier
-                                .clickable {
-                                    onDismiss()
-                                    navController.navigate("album/${item.id}")
-                                }
-                                .animateItem(),
-                        )
+                        is Album -> {
+                            val downloadUtil = LocalDownloadUtil.current
+                            val database = LocalDatabase.current
+                            val downloadState by downloadUtil.getDownload(item.id).collectAsState(initial = null)
+                            val albumState by database.album(item.id).collectAsState(initial = item)
+                            val isFavorite = albumState?.album?.bookmarkedAt != null
+
+                            AlbumListItem(
+                                album = item,
+                                isActive = item.id == mediaMetadata?.album?.id,
+                                isPlaying = isPlaying,
+                                isFavorite = isFavorite,
+                                downloadState = downloadState?.state,
+                                modifier = Modifier
+                                    .clickable {
+                                        onDismiss()
+                                        navController.navigate("album/${item.id}")
+                                    }
+                                    .animateItem()
+                            )
+                        }
 
                         is Artist -> ArtistListItem(
                             artist = item,
@@ -256,7 +283,7 @@ fun LocalSearchScreen(
                                     onDismiss()
                                     navController.navigate("artist/${item.id}")
                                 }
-                                .animateItem(),
+                                .animateItem()
                         )
 
                         is Playlist -> PlaylistListItem(
@@ -266,7 +293,7 @@ fun LocalSearchScreen(
                                     onDismiss()
                                     navController.navigate("local_playlist/${item.id}")
                                 }
-                                .animateItem(),
+                                .animateItem()
                         )
                     }
                 }
@@ -276,7 +303,7 @@ fun LocalSearchScreen(
                 item(key = "no_result") {
                     EmptyPlaceholder(
                         icon = R.drawable.search,
-                        text = stringResource(R.string.no_results_found),
+                        text = stringResource(R.string.no_results_found)
                     )
                 }
             }

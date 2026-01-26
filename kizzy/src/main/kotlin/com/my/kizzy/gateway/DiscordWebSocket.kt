@@ -47,9 +47,7 @@ import kotlin.time.Duration.Companion.milliseconds
 /**
  * Modified by Zion Huang
  */
-open class DiscordWebSocket(
-    private val token: String,
-) : CoroutineScope {
+open class DiscordWebSocket(private val token: String) : CoroutineScope {
     private val gatewayUrl = "wss://gateway.discord.gg/?v=10&encoding=json"
     private var websocket: DefaultClientWebSocketSession? = null
     private var sequence = 0
@@ -100,12 +98,21 @@ open class DiscordWebSocket(
         heartbeatJob?.cancel()
         connected = false
         val close = websocket?.closeReason?.await()
-        Logger.getLogger("Kizzy").log(INFO, "Gateway: Closed with code: ${close?.code}, reason: ${close?.message},  can_reconnect: ${close?.code?.toInt() == 4000}")
-        if (close?.code?.toInt() == 4000) {
-            delay(200.milliseconds)
+        val code = close?.code?.toInt()
+        Logger.getLogger(
+            "Kizzy"
+        ).log(
+            INFO,
+            "Gateway: Closed with code: $code, reason: ${close?.message},  can_reconnect: ${code == 4000 || code == 1000 || code == 1001 || code == 1006}"
+        )
+
+        // Reconnect on 4000 (standard), 1000 (normal), 1001 (going away), 1006 (abnormal)
+        if (code == 4000 || code == 1000 || code == 1001 || code == 1006) {
+            delay(1000.milliseconds) // Slightly longer delay
             connect()
-        } else
+        } else {
             close()
+        }
     }
 
     private suspend fun onMessage(payload: Payload) {
@@ -166,7 +173,7 @@ open class DiscordWebSocket(
         Logger.getLogger("Kizzy").log(INFO, "Gateway: Sending $HEARTBEAT with seq: $sequence")
         send(
             op = HEARTBEAT,
-            d = if (sequence == 0) "null" else sequence.toString(),
+            d = if (sequence == 0) "null" else sequence.toString()
         )
     }
 
@@ -209,21 +216,17 @@ open class DiscordWebSocket(
         }
     }
 
-    private fun isSocketConnectedToAccount(): Boolean {
-        return connected && websocket?.isActive == true
-    }
+    private fun isSocketConnectedToAccount(): Boolean = connected && websocket?.isActive == true
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun isWebSocketConnected(): Boolean {
-        return websocket?.incoming != null && websocket?.outgoing?.isClosedForSend == false
-    }
+    fun isWebSocketConnected(): Boolean = websocket?.incoming != null && websocket?.outgoing?.isClosedForSend == false
 
     private suspend inline fun <reified T> send(op: OpCode, d: T?) {
         if (websocket?.isActive == true) {
             val payload = json.encodeToString(
                 Payload(
                     op = op,
-                    d = json.encodeToJsonElement(d),
+                    d = json.encodeToJsonElement(d)
                 )
             )
             websocket?.send(Frame.Text(payload))
@@ -254,5 +257,4 @@ open class DiscordWebSocket(
             d = presence
         )
     }
-
 }

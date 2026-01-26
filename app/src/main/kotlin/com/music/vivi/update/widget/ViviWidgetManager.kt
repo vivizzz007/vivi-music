@@ -11,7 +11,6 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Shader
-import android.view.View
 import android.widget.RemoteViews
 import androidx.media3.common.MediaItem
 import coil3.ImageLoader
@@ -21,22 +20,19 @@ import coil3.request.crossfade
 import coil3.toBitmap
 import com.music.vivi.MainActivity
 import com.music.vivi.R
-
+import com.music.vivi.db.MusicDatabase
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
-import com.music.vivi.db.MusicDatabase
-import androidx.core.content.ContextCompat
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class ViviWidgetManager @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val database: MusicDatabase
+    private val database: MusicDatabase,
 ) {
     private val imageLoader by lazy {
         ImageLoader.Builder(context)
@@ -52,7 +48,7 @@ class ViviWidgetManager @Inject constructor(
         isLiked: Boolean,
         queueItems: List<MediaItem>,
         duration: Long = 0,
-        currentPosition: Long = 0
+        currentPosition: Long = 0,
     ) {
         // Mitigation for race condition: MusicService might call this before DB update finishes
         delay(150)
@@ -133,7 +129,7 @@ class ViviWidgetManager @Inject constructor(
         queueItems: List<MediaItem>,
         queueAlbumArts: List<Bitmap?>,
         duration: Long = 0,
-        currentPosition: Long = 0
+        currentPosition: Long = 0,
     ): RemoteViews {
         val views = RemoteViews(context.packageName, R.layout.widget_music_player)
 
@@ -152,13 +148,13 @@ class ViviWidgetManager @Inject constructor(
         // Set play/pause icon (Central in Pill)
         val playPauseIcon = if (isPlaying) R.drawable.pause else R.drawable.play
         views.setImageViewResource(R.id.widget_play_pause, playPauseIcon)
-        
+
         // Dynamic Shape Animation (Capsule -> Squircle)
         // Matches Player.kt behavior: More rounded (Capsule) when Paused, Less rounded (Squircle) when Playing
         val containerShape = if (isPlaying) R.drawable.widget_play_shape_playing else R.drawable.widget_play_shape_paused
-        // Note: We need to target the BACKGROUND of the container. 
+        // Note: We need to target the BACKGROUND of the container.
         // RemoteViews setInt("setBackgroundResource") or setImageViewResource if it's an ImageView background
-        // The container ID is widget_play_pause_container (FrameLayout). 
+        // The container ID is widget_play_pause_container (FrameLayout).
         // Check layout: inside container is widget_play_pause_bg (ImageView). We should update THAT.
         views.setImageViewResource(R.id.widget_play_pause_bg, containerShape)
 
@@ -180,12 +176,11 @@ class ViviWidgetManager @Inject constructor(
 
         // Set click intents
         views.setOnClickPendingIntent(R.id.widget_album_art, getOpenAppIntent())
-        views.setOnClickPendingIntent(R.id.widget_play_pause_container, getPlayPauseIntent()) 
+        views.setOnClickPendingIntent(R.id.widget_play_pause_container, getPlayPauseIntent())
         views.setOnClickPendingIntent(R.id.widget_like_button, getLikeIntent())
 
         return views
     }
-
 
     private fun createWavesRemoteViews(
         title: String,
@@ -193,7 +188,7 @@ class ViviWidgetManager @Inject constructor(
         albumArt: Bitmap?,
         isLiked: Boolean,
         duration: Long,
-        currentPosition: Long
+        currentPosition: Long,
     ): RemoteViews {
         val views = RemoteViews(context.packageName, R.layout.widget_waves_player)
 
@@ -228,21 +223,18 @@ class ViviWidgetManager @Inject constructor(
         return views
     }
 
-
-    private suspend fun loadAlbumArt(artworkUri: String, size: Int = 200): Bitmap? {
-        return withContext(Dispatchers.IO) {
-            try {
-                val request = ImageRequest.Builder(context)
-                    .data(artworkUri)
-                    .size(size, size)
-                    .allowHardware(false)
-                    .crossfade(300)
-                    .build()
-                val result = imageLoader.execute(request)
-                result.image?.toBitmap()
-            } catch (e: Exception) {
-                null
-            }
+    private suspend fun loadAlbumArt(artworkUri: String, size: Int = 200): Bitmap? = withContext(Dispatchers.IO) {
+        try {
+            val request = ImageRequest.Builder(context)
+                .data(artworkUri)
+                .size(size, size)
+                .allowHardware(false)
+                .crossfade(300)
+                .build()
+            val result = imageLoader.execute(request)
+            result.image?.toBitmap()
+        } catch (e: Exception) {
+            null
         }
     }
 
@@ -258,7 +250,6 @@ class ViviWidgetManager @Inject constructor(
         canvas.drawRoundRect(rect, cornerRadius, cornerRadius, paint)
         return output
     }
-
 
     private fun getOpenAppIntent(): PendingIntent {
         val intent = Intent(context, MainActivity::class.java)

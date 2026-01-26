@@ -532,7 +532,7 @@
     <string name="developer">开发者</string>
 
     <!-- Loading Screen -->
-    <string name="progress_percent">进度 %1%%</string>
+    <string name="progress_percent">进度 %1$d%%</string>
 
     <!-- Playlist Screen -->
     <string name="this_collection">此收藏</string>
@@ -572,20 +572,20 @@
     <string name="arm_older_phones">ARM - %1 MB（旧手机）</string>
     <string name="x86_64_intel_tablets">x86_64 - %1 MB（Intel 平板）</string>
     <string name="x86_emulators">x86 - %1 MB（模拟器）</string>
-    <string name="minutes_ago">%1 分钟前</string>
-    <string name="hours_ago">%1 小时前</string>
-    <string name="days_ago">%1 天前</string>
+    <string name="minutes_ago">%1$d 分钟前</string>
+    <string name="hours_ago">%1$d 小时前</string>
+    <string name="days_ago">%1$d 天前</string>
 
     <!-- Toast Messages -->
     <string name="all_crash_logs_cleared">所有崩溃日志已清除</string>
     <string name="crash_log_deleted">崩溃日志已删除</string>
     <string name="please_install_web_browser">请安装网页浏览器</string>
-    <string name="error_message">错误：%1</string>
+    <string name="error_message">错误：%1$s</string>
     <string name="unable_to_open_email_app">无法打开电子邮件应用：%1</string>
     <string name="error_sharing_log">分享日志出错：%1</string>
     <string name="no_apk_found">在最新的预发布版本中未找到 APK</string>
     <string name="enable_install_unknown_apps">请启用“安装未知应用”并重试。</string>
-    <string name="download_error">下载错误：%1</string>
+    <string name="download_error">下载错误：%1$s</string>
     <string name="download_started">下载已开始…</string>
     <string name="download_completed">下载完成！</string>
     <string name="download_completed_file_not_found">下载完成但未找到文件</string>
@@ -640,8 +640,8 @@
 
     <!-- Media Info -->
     <string name="no_description_available">无可用描述</string>
-    <string name="views_count">%1 次观看</string>
-    <string name="likes_count">%1 赞</string>
+    <string name="views_count">%1$s 次观看</string>
+    <string name="likes_count">%1$s 赞</string>
 
     <!-- Backup Restore -->
     <string name="save_data_settings">保存您的数据和设置</string>
@@ -800,8 +800,8 @@
     <string name="shuffle_text">随机播放</string>
     <string name="audio_quality_title">音质</string>
     <string name="progress_percentage">进度 %1%%</string>
-    <string name="songs_count">歌曲 (%1)</string>
-    <string name="check_out_top_share">在 Vivi Music 上查看我的最爱 %1！\n\n</string>
+    <string name="songs_count">歌曲 (%1$d)</string>
+    <string name="check_out_top_share">在 Vivi Music 上查看我的最爱 %1$d！\n\n</string>
     <string name="by_text">艺人：</string>
     <string name="is_a_playlist">是歌单</string>
     <string name="album_text">专辑</string>

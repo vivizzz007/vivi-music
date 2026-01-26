@@ -4,10 +4,9 @@ import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
-
-import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.text.googlefonts.Font
+import androidx.compose.ui.text.googlefonts.GoogleFont
+import androidx.compose.ui.unit.sp
 import com.music.vivi.R
 
 val provider = GoogleFont.Provider(
@@ -27,7 +26,10 @@ val ExpressiveFontFamily = FontFamily(
     Font(googleFont = RobotoFlex, fontProvider = provider, weight = FontWeight.Bold)
 )
 
-// Standard Material 3 Typography
+/**
+ * Standard Material 3 Typography configuration.
+ * Uses the default system positioning and scaling.
+ */
 val AppTypography = Typography(
     displayLarge = TextStyle(
         fontFamily = FontFamily.Default,
@@ -136,42 +138,43 @@ val AppTypography = Typography(
     )
 )
 
-// Material 3 Expressive Typography
-// Logic: Increased sizes for Display and Headline to be more "Expressive"
-// Uses Roboto Flex for a more modern, adaptive look.
+/**
+ * Expressive Typography configuration with larger display sizes and custom font implementation.
+ * Uses Roboto Flex for a more modern, adaptive look.
+ */
 val ExpressiveTypography = Typography(
     displayLarge = TextStyle(
         fontFamily = ExpressiveFontFamily,
-        fontWeight = FontWeight.Normal, 
-        fontSize = 64.sp, 
+        fontWeight = FontWeight.Normal,
+        fontSize = 64.sp,
         lineHeight = 72.sp,
         letterSpacing = (-0.25).sp
     ),
     displayMedium = TextStyle(
         fontFamily = ExpressiveFontFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 52.sp, 
+        fontSize = 52.sp,
         lineHeight = 60.sp,
         letterSpacing = 0.sp
     ),
     displaySmall = TextStyle(
         fontFamily = ExpressiveFontFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 44.sp, 
+        fontSize = 44.sp,
         lineHeight = 52.sp,
         letterSpacing = 0.sp
     ),
     headlineLarge = TextStyle(
         fontFamily = ExpressiveFontFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 40.sp, 
+        fontSize = 40.sp,
         lineHeight = 48.sp,
         letterSpacing = 0.sp
     ),
     headlineMedium = TextStyle(
         fontFamily = ExpressiveFontFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 36.sp, 
+        fontSize = 36.sp,
         lineHeight = 44.sp,
         letterSpacing = 0.sp
     ),

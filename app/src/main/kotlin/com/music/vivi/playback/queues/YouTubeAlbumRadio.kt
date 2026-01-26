@@ -8,9 +8,10 @@ import com.music.vivi.models.MediaMetadata
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 
-class YouTubeAlbumRadio(
-    private var playlistId: String,
-) : Queue {
+/**
+ * A queue that plays a YouTube album and continues with radio recommendations.
+ */
+class YouTubeAlbumRadio(private var playlistId: String) : Queue {
     override val preloadItem: MediaMetadata? = null
 
     private val endpoint: WatchEndpoint

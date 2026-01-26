@@ -25,8 +25,8 @@ import androidx.compose.ui.unit.dp
 import com.music.innertube.YouTube
 import com.music.vivi.LocalDatabase
 import com.music.vivi.R
-import com.music.vivi.db.entities.PlaylistEntity
 import com.music.vivi.constants.InnerTubeCookieKey
+import com.music.vivi.db.entities.PlaylistEntity
 import com.music.vivi.extensions.isSyncEnabled
 import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
@@ -34,8 +34,12 @@ import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.util.logging.Logger
 
+/**
+ * Dialog for creating a new playlist.
+ * Supports creating local playlists and syncing with YouTube (if logged in).
+ */
 @Composable
-fun CreatePlaylistDialog(
+public fun CreatePlaylistDialog(
     onDismiss: () -> Unit,
     initialTextFieldValue: String? = null,
     allowSyncing: Boolean = true,
@@ -60,7 +64,9 @@ fun CreatePlaylistDialog(
                 } else if (syncedPlaylist) {
                     Logger.getLogger("CreatePlaylistDialog").warning(context.getString(R.string.not_signed_in_warning))
                     return@launch
-                } else null
+                } else {
+                    null
+                }
 
                 database.query {
                     insert(
@@ -68,7 +74,7 @@ fun CreatePlaylistDialog(
                             name = playlistName,
                             browseId = browseId,
                             bookmarkedAt = LocalDateTime.now(),
-                            isEditable = true,
+                            isEditable = true
                         )
                     )
                 }
@@ -82,7 +88,7 @@ fun CreatePlaylistDialog(
                     Column {
                         Text(
                             text = stringResource(R.string.sync_playlist),
-                            style = MaterialTheme.typography.titleLarge,
+                            style = MaterialTheme.typography.titleLarge
                         )
                         Text(
                             text = stringResource(R.string.allows_for_sync_witch_youtube),

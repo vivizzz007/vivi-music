@@ -1,14 +1,1393 @@
-Calculating task graph as no cached configuration is available for tasks: help
+Reusing configuration cache.
+> Task :betterlyrics:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :lastfm:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:preBuild UP-TO-DATE
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :lrclib:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :kugou:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :kizzy:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :innertube:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :kugou:processResources NO-SOURCE
+> Task :lrclib:processResources NO-SOURCE
+> Task :lastfm:processResources NO-SOURCE
+> Task :kizzy:processResources NO-SOURCE
+> Task :betterlyrics:processResources NO-SOURCE
+> Task :innertube:processResources NO-SOURCE
+> Task :app:preUniversalStandardDebugBuild UP-TO-DATE
+> Task :app:createUniversalStandardDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:generateUniversalStandardDebugBuildConfig UP-TO-DATE
+> Task :app:generateUniversalStandardDebugResValues UP-TO-DATE
+> Task :app:javaPreCompileUniversalStandardDebug UP-TO-DATE
+> Task :app:extractUniversalStandardDebugSupportedLocales UP-TO-DATE
+> Task :app:generateUniversalStandardDebugResources UP-TO-DATE
+> Task :app:extractDeepLinksUniversalStandardDebug UP-TO-DATE
+> Task :kugou:compileKotlin UP-TO-DATE
+> Task :lastfm:compileKotlin UP-TO-DATE
+> Task :betterlyrics:compileKotlin UP-TO-DATE
+> Task :lrclib:compileKotlin UP-TO-DATE
+> Task :innertube:compileKotlin UP-TO-DATE
+> Task :kizzy:compileKotlin UP-TO-DATE
+> Task :lastfm:compileJava NO-SOURCE
+> Task :betterlyrics:compileJava NO-SOURCE
+> Task :lrclib:compileJava NO-SOURCE
+> Task :betterlyrics:classes UP-TO-DATE
+> Task :lrclib:classes UP-TO-DATE
+> Task :innertube:compileJava NO-SOURCE
+> Task :kugou:compileJava NO-SOURCE
+> Task :kugou:classes UP-TO-DATE
+> Task :kizzy:compileJava NO-SOURCE
+> Task :lastfm:classes UP-TO-DATE
+> Task :kizzy:classes UP-TO-DATE
+> Task :innertube:classes UP-TO-DATE
+> Task :kizzy:jar UP-TO-DATE
+> Task :lrclib:jar UP-TO-DATE
+> Task :innertube:jar UP-TO-DATE
+> Task :app:checkUniversalStandardDebugAarMetadata UP-TO-DATE
+> Task :app:processUniversalStandardDebugNavigationResources UP-TO-DATE
+> Task :app:mapUniversalStandardDebugSourceSetPaths UP-TO-DATE
+> Task :kugou:jar UP-TO-DATE
+> Task :betterlyrics:jar UP-TO-DATE
+> Task :lastfm:jar UP-TO-DATE
+> Task :app:compileUniversalStandardDebugNavigationResources UP-TO-DATE
+> Task :app:processUniversalStandardDebugMainManifest UP-TO-DATE
+> Task :app:generateUniversalStandardDebugLocaleConfig UP-TO-DATE
+> Task :app:processUniversalStandardDebugManifest UP-TO-DATE
+> Task :app:packageUniversalStandardDebugResources UP-TO-DATE
+> Task :app:processUniversalStandardDebugManifestForPackage UP-TO-DATE
+> Task :app:parseUniversalStandardDebugLocalResources UP-TO-DATE
+> Task :app:mergeUniversalStandardDebugResources UP-TO-DATE
+> Task :app:processUniversalStandardDebugResources UP-TO-DATE
+> Task :app:kspUniversalStandardDebugKotlin
+
+> Task :app:compileUniversalStandardDebugKotlin
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/Lyrics.kt:811:33 Argument type mismatch: actual type is 'com.music.vivi.models.MediaMetadata?', but 'androidx.media3.common.MediaMetadata?' was expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:42:56 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:45:64 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:48:62 Argument type mismatch: actual type is 'String?', but 'String' was expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:50:46 Argument type mismatch: actual type is 'Album', but 'AlbumWithSongs' was expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:70:67 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/album/AlbumTrackList.kt:77:26 No value passed for parameter 'onLongClick'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/history/RemoteHistoryList.kt:27:34 Unresolved reference 'toMediaMetadata'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/history/RemoteHistoryList.kt:95:33 No value passed for parameter 'onLongClick'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/lyrics/LyricsColorPickerDialog.kt:83:49 Argument type mismatch: actual type is 'androidx.media3.common.MediaMetadata', but 'com.music.vivi.models.MediaMetadata' was expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/news/NewsDetailScreen.kt:62:32 No value passed for parameter 'onLongClick'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/news/NewsDetailScreen.kt:81:39 This material3 API is experimental and is likely to change or to be removed in the future.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialogOnline.kt:94:19 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialogOnline.kt:94:22 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialogOnline.kt:94:22 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialogOnline.kt:94:45 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialogOnline.kt:94:45 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialogOnline.kt:125:37 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialogOnline.kt:126:70 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialogOnline.kt:128:46 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialogOnline.kt:198:76 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialogOnline.kt:201:32 Argument type mismatch: actual type is 'Int', but 'Playlist' was expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialogOnline.kt:203:44 Assignment type mismatch: actual type is 'Int', but 'Playlist?' was expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/AddToPlaylistDialogOnline.kt:235:80 Argument type mismatch: actual type is 'Int', but 'Playlist' was expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:16:42 Unresolved reference 'AlbumTrackList'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:18:42 Unresolved reference 'AlbumRelatedContent'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:153:24 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:153:24 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:154:29 Not enough information to infer type argument for 'K'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:155:13 Not enough information to infer type argument for 'K'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:155:29 Unresolved reference 'songs'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:155:46 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:155:68 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:155:68 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:157:13 Not enough information to infer type argument for 'K'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:157:29 Unresolved reference 'songs'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:157:38 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:157:38 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:159:29 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:159:37 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:159:57 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:159:57 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:178:37 Unresolved reference 'songs'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:178:50 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:182:43 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:185:35 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:186:43 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:187:43 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:207:25 Unresolved reference 'songs'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:207:38 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:217:58 Unresolved reference 'songs'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:220:42 Argument type mismatch: actual type is 'Album', but 'AlbumWithSongs' was expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:236:41 Argument type mismatch: actual type is 'com.music.vivi.models.MediaMetadata?', but 'androidx.media3.common.MediaMetadata?' was expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:280:52 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/AlbumScreen.kt:281:54 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:68:20 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:68:23 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:68:23 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:68:44 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:68:44 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:69:19 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:69:22 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:69:22 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:69:42 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:69:42 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:121:33 Unresolved reference 'sections'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:121:52 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:121:96 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:122:61 Unresolved reference 'title'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:124:55 Unresolved reference 'title'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:126:53 Unresolved reference 'title'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:131:63 Unresolved reference 'title'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:159:57 Function invocation 'items(...)' expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:159:105 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:160:49 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:161:41 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:162:41 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:164:61 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:189:66 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:194:109 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:218:33 Unresolved reference 'sections'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:218:50 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:218:84 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:218:84 Unresolved reference. None of the following candidates is applicable because of a receiver type mismatch:
+fun <T, R> T.let(block: (T) -> R): R
+    [R|Contract description]
+     <
+        CallsInPlace(block, EXACTLY_ONCE)
+    >
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:218:90 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:233:62 Function invocation 'items(...)' expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:233:110 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:234:45 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:235:37 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:236:37 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:238:58 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:244:63 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:249:106 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ChartsScreen.kt:266:46 'fun Modifier.animateItem(fadeInSpec: FiniteAnimationSpec<Float>? = ..., placementSpec: FiniteAnimationSpec<IntOffset>? = ..., fadeOutSpec: FiniteAnimationSpec<Float>? = ...): Modifier' cannot be called in this context with an implicit receiver. Use an explicit receiver if necessary.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:77:20 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:77:23 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:77:23 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:77:50 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:77:50 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:78:25 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:78:28 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:78:28 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:78:54 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:78:54 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:122:29 Unresolved reference 'sections'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:122:48 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:122:92 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:123:21 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:124:47 Unresolved reference 'title'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:125:43 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:126:45 Unresolved reference 'title'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:126:54 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:129:21 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:157:49 Function invocation 'items(...)' expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:157:97 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:158:41 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:159:33 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:160:33 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:162:53 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:187:58 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:192:101 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:258:29 Unresolved reference 'sections'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:258:46 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:258:80 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:258:80 Unresolved reference. None of the following candidates is applicable because of a receiver type mismatch:
+fun <T, R> T.let(block: (T) -> R): R
+    [R|Contract description]
+     <
+        CallsInPlace(block, EXACTLY_ONCE)
+    >
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:258:86 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:268:54 Function invocation 'items(...)' expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:268:102 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:269:37 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:270:29 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:271:29 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:273:50 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:279:55 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:284:98 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/ExploreScreen.kt:301:38 Unresolved reference 'animateItem'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:154:16 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:154:19 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:154:19 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:154:36 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:154:36 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:176:20 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:176:20 Not enough information to infer type argument for 'K'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:176:20 Not enough information to infer type argument for 'V'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:176:33 Not enough information to infer type argument for 'K'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:176:33 Not enough information to infer type argument for 'V'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:176:36 Not enough information to infer type argument for 'K'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:176:36 Not enough information to infer type argument for 'V'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:177:32 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:178:27 Unresolved reference 'song'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:179:35 Unresolved reference 'song'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/HistoryScreen.kt:180:33 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewReleaseScreen.kt:55:26 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewReleaseScreen.kt:55:29 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewReleaseScreen.kt:55:29 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewReleaseScreen.kt:55:56 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewReleaseScreen.kt:55:56 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewReleaseScreen.kt:64:51 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewReleaseScreen.kt:65:21 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewReleaseScreen.kt:66:13 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewReleaseScreen.kt:67:13 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewReleaseScreen.kt:69:62 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/NewReleaseScreen.kt:77:67 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:75:25 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:75:28 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:75:28 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:75:54 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:75:54 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:76:30 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:76:33 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:76:33 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:76:64 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:76:64 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:77:27 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:77:30 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:77:30 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:77:58 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:77:58 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:78:26 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:78:29 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:78:29 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:78:56 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:78:56 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:79:20 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:79:23 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:79:23 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:79:44 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:79:44 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:89:53 Unresolved reference 'event'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:122:31 Unresolved reference 'event'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:152:31 Unresolved reference 'event'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:229:53 Unresolved reference 'size'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:238:33 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:238:36 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:238:49 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:239:25 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:239:32 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:240:25 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:241:59 Unresolved reference 'title'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:244:33 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:246:42 Unresolved reference 'songCountListened'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:247:42 Unresolved reference 'songCountListened'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:249:53 Unresolved reference 'timeListened'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:251:49 Unresolved reference 'thumbnailUrl'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:252:45 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:259:50 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:264:83 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:265:90 None of the following candidates is applicable:
+fun Song.toMediaMetadata(): MediaMetadata
+fun SongItem.toMediaMetadata(): MediaMetadata
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:274:64 Argument type mismatch: actual type is 'MatchGroup?', but 'Song' was expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:281:34 'fun Modifier.animateItem(fadeInSpec: FiniteAnimationSpec<Float>? = ..., placementSpec: FiniteAnimationSpec<IntOffset>? = ..., fadeOutSpec: FiniteAnimationSpec<Float>? = ...): Modifier' cannot be called in this context with an implicit receiver. Use an explicit receiver if necessary.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:289:50 Unresolved reference 'size'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:298:33 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:298:36 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:298:53 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:299:25 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:299:32 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:300:25 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:301:61 Unresolved reference 'artist'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:304:33 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:306:44 Unresolved reference 'songCount'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:307:44 Unresolved reference 'songCount'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:309:55 Unresolved reference 'timeListened'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:311:51 Unresolved reference 'artist'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:316:81 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:329:34 'fun Modifier.animateItem(fadeInSpec: FiniteAnimationSpec<Float>? = ..., placementSpec: FiniteAnimationSpec<IntOffset>? = ..., fadeOutSpec: FiniteAnimationSpec<Float>? = ...): Modifier' cannot be called in this context with an implicit receiver. Use an explicit receiver if necessary.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:337:49 Unresolved reference 'size'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:347:37 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:347:40 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:347:55 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:348:29 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:348:36 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:349:29 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:350:64 Unresolved reference 'album'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:353:37 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:355:47 Unresolved reference 'songCountListened'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:356:47 Unresolved reference 'songCountListened'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:358:58 Unresolved reference 'timeListened'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:360:54 Unresolved reference 'album'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:361:50 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:368:83 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:381:38 'fun Modifier.animateItem(fadeInSpec: FiniteAnimationSpec<Float>? = ..., placementSpec: FiniteAnimationSpec<IntOffset>? = ..., fadeOutSpec: FiniteAnimationSpec<Float>? = ...): Modifier' cannot be called in this context with an implicit receiver. Use an explicit receiver if necessary.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/StatsScreen.kt:399:59 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistAlbumsScreen.kt:67:16 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistAlbumsScreen.kt:67:19 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistAlbumsScreen.kt:67:19 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistAlbumsScreen.kt:67:36 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistAlbumsScreen.kt:67:36 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistAlbumsScreen.kt:68:16 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistAlbumsScreen.kt:68:19 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistAlbumsScreen.kt:68:19 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistAlbumsScreen.kt:68:36 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistAlbumsScreen.kt:68:36 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistAlbumsScreen.kt:110:79 Unresolved reference 'size'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistAlbumsScreen.kt:110:92 Unresolved reference 'size'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistAlbumsScreen.kt:118:45 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistAlbumsScreen.kt:119:25 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistAlbumsScreen.kt:121:17 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistAlbumsScreen.kt:122:17 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistAlbumsScreen.kt:127:38 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistAlbumsScreen.kt:129:41 Unresolved reference 'animateItem'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistAlbumsScreen.kt:135:36 Unresolved reference 'artist'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistScreen.kt:682:41 No parameter with name 'coroutineScope' found.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistScreen.kt:683:41 No value passed for parameter 'onPlayClick'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistSongsScreen.kt:80:16 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistSongsScreen.kt:80:19 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistSongsScreen.kt:80:19 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistSongsScreen.kt:80:36 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistSongsScreen.kt:80:36 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistSongsScreen.kt:81:15 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistSongsScreen.kt:81:18 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistSongsScreen.kt:81:18 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistSongsScreen.kt:81:34 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistSongsScreen.kt:81:34 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistSongsScreen.kt:116:77 Unresolved reference 'size'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistSongsScreen.kt:116:89 Unresolved reference 'size'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistSongsScreen.kt:125:25 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistSongsScreen.kt:125:28 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistSongsScreen.kt:125:41 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistSongsScreen.kt:126:17 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistSongsScreen.kt:126:24 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistSongsScreen.kt:127:17 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistSongsScreen.kt:130:37 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistSongsScreen.kt:155:42 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistSongsScreen.kt:161:65 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistSongsScreen.kt:178:26 Unresolved reference 'animateItem'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistSongsScreen.kt:184:36 Unresolved reference 'artist'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistSongsScreen.kt:204:41 Unresolved reference 'artist'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/artist/ArtistSongsScreen.kt:205:56 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/home/components/HomeGridHelpers.kt:88:13 No parameter with name 'coroutineScope' found.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/home/components/HomeGridHelpers.kt:89:13 No value passed for parameter 'onPlayClick'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:158:16 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:158:19 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:158:19 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:158:39 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:158:39 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:204:71 Function invocation 'size(...)' expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:204:84 Function invocation 'size(...)' expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:252:28 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:252:28 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:252:34 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:264:46 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:272:76 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:273:41 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:273:44 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:273:59 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:274:33 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:274:40 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:276:90 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:276:98 Function invocation 'size(...)' expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:277:54 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:279:33 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:307:115 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:348:28 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:348:28 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:348:34 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:360:46 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:365:72 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:366:37 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:368:29 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:369:29 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:374:50 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryAlbumsScreen.kt:377:103 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:155:17 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:155:20 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:155:20 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:155:41 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:155:41 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:196:22 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:196:22 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:196:22 Not enough information to infer type argument for 'R'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:196:28 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:200:33 Function invocation 'size(...)' expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:201:33 Function invocation 'size(...)' expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:251:29 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:251:29 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:251:35 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:262:68 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:266:41 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:266:44 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:266:61 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:267:49 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:267:52 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:268:33 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:268:40 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:270:71 Function invocation 'size(...)' expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:272:33 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:294:81 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:296:93 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:347:29 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:347:29 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:347:35 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:359:58 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:360:37 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:362:29 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:363:29 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryArtistsScreen.kt:369:105 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:182:35 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:182:35 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:183:36 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:183:36 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:184:40 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:184:40 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:192:37 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:203:21 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:203:43 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:214:37 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:222:11 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:222:11 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:439:21 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:439:21 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:440:42 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:440:42 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:440:42 Not enough information to infer type argument for 'K'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:440:53 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:440:58 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:441:31 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:441:36 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:442:39 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:443:25 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:729:21 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:729:21 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:730:42 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:730:42 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:730:42 Not enough information to infer type argument for 'K'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:730:53 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:730:58 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:731:31 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:731:36 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:732:39 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryMixScreen.kt:733:25 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:107:19 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:107:22 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:107:22 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:107:45 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:107:45 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:234:31 Unresolved reference 'size'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:235:31 Unresolved reference 'size'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:380:31 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:380:31 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:380:37 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:387:60 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:388:37 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:390:29 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:391:29 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:399:55 Unresolved reference 'playlist'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:399:87 Unresolved reference 'songCount'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:399:114 Unresolved reference 'playlist'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:400:82 Unresolved reference 'playlist'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:402:81 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:552:31 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:552:31 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:552:37 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:559:60 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:560:37 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:562:29 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:563:29 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:571:55 Unresolved reference 'playlist'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:571:87 Unresolved reference 'songCount'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:571:114 Unresolved reference 'playlist'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:572:82 Unresolved reference 'playlist'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibraryPlaylistsScreen.kt:574:81 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibrarySongsScreen.kt:106:15 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibrarySongsScreen.kt:106:18 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibrarySongsScreen.kt:106:18 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibrarySongsScreen.kt:106:37 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibrarySongsScreen.kt:106:37 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibrarySongsScreen.kt:123:24 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibrarySongsScreen.kt:124:25 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibrarySongsScreen.kt:124:33 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibrarySongsScreen.kt:291:43 Function invocation 'size(...)' expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibrarySongsScreen.kt:292:43 Function invocation 'size(...)' expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibrarySongsScreen.kt:372:81 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/library/LibrarySongsScreen.kt:412:56 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:156:27 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:156:30 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:156:30 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:156:49 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:156:49 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:184:16 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:184:16 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:184:26 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:184:31 Unresolved reference 'song'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:195:24 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:195:24 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:196:9 Not enough information to infer type argument for 'K'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:196:16 Overload resolution ambiguity between candidates:
+fun <R, T> Result<T>.map(transform: (@ParameterName(...) T) -> R): Result<R>
+    [R|Contract description]
+     <
+        CallsInPlace(transform, AT_MOST_ONCE)
+    >
+fun <T, R> Array<out T>.map(transform: (T) -> R): List<R>
+fun <R> ByteArray.map(transform: (Byte) -> R): List<R>
+fun <R> ShortArray.map(transform: (Short) -> R): List<R>
+fun <R> IntArray.map(transform: (Int) -> R): List<R>
+fun <R> LongArray.map(transform: (Long) -> R): List<R>
+fun <R> FloatArray.map(transform: (Float) -> R): List<R>
+fun <R> DoubleArray.map(transform: (Double) -> R): List<R>
+fun <R> BooleanArray.map(transform: (Boolean) -> R): List<R>
+fun <R> CharArray.map(transform: (Char) -> R): List<R>
+fun <T, R> Iterable<T>.map(transform: (T) -> R): List<R>
+fun <K, V, R> Map<out K, V>.map(transform: (Map.Entry<K, V>) -> R): List<R>
+fun <R> UIntArray.map(transform: (UInt) -> R): List<R>
+fun <R> ULongArray.map(transform: (ULong) -> R): List<R>
+fun <R> UByteArray.map(transform: (UByte) -> R): List<R>
+fun <R> UShortArray.map(transform: (UShort) -> R): List<R>
+fun <T, R> Sequence<T>.map(transform: (T) -> R): Sequence<R>
+fun <R> CharSequence.map(transform: (Char) -> R): List<R>
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:196:22 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:196:30 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:196:51 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:196:51 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:196:75 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:196:75 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:235:20 Overload resolution ambiguity between candidates:
+fun <T> Array<out T>.isEmpty(): Boolean
+fun ByteArray.isEmpty(): Boolean
+fun ShortArray.isEmpty(): Boolean
+fun IntArray.isEmpty(): Boolean
+fun LongArray.isEmpty(): Boolean
+fun FloatArray.isEmpty(): Boolean
+fun DoubleArray.isEmpty(): Boolean
+fun BooleanArray.isEmpty(): Boolean
+fun CharArray.isEmpty(): Boolean
+fun CharSequence.isEmpty(): Boolean
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:241:28 Overload resolution ambiguity between candidates:
+fun <T> Array<out T>.all(predicate: (T) -> Boolean): Boolean
+fun ByteArray.all(predicate: (Byte) -> Boolean): Boolean
+fun ShortArray.all(predicate: (Short) -> Boolean): Boolean
+fun IntArray.all(predicate: (Int) -> Boolean): Boolean
+fun LongArray.all(predicate: (Long) -> Boolean): Boolean
+fun FloatArray.all(predicate: (Float) -> Boolean): Boolean
+fun DoubleArray.all(predicate: (Double) -> Boolean): Boolean
+fun BooleanArray.all(predicate: (Boolean) -> Boolean): Boolean
+fun CharArray.all(predicate: (Char) -> Boolean): Boolean
+fun <T> Iterable<T>.all(predicate: (T) -> Boolean): Boolean
+fun <K, V> Map<out K, V>.all(predicate: (Map.Entry<K, V>) -> Boolean): Boolean
+fun UIntArray.all(predicate: (UInt) -> Boolean): Boolean
+fun ULongArray.all(predicate: (ULong) -> Boolean): Boolean
+fun UByteArray.all(predicate: (UByte) -> Boolean): Boolean
+fun UShortArray.all(predicate: (UShort) -> Boolean): Boolean
+fun <T> Sequence<T>.all(predicate: (T) -> Boolean): Boolean
+fun CharSequence.all(predicate: (Char) -> Boolean): Boolean
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:241:44 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:243:35 Overload resolution ambiguity between candidates:
+fun <T> Array<out T>.all(predicate: (T) -> Boolean): Boolean
+fun ByteArray.all(predicate: (Byte) -> Boolean): Boolean
+fun ShortArray.all(predicate: (Short) -> Boolean): Boolean
+fun IntArray.all(predicate: (Int) -> Boolean): Boolean
+fun LongArray.all(predicate: (Long) -> Boolean): Boolean
+fun FloatArray.all(predicate: (Float) -> Boolean): Boolean
+fun DoubleArray.all(predicate: (Double) -> Boolean): Boolean
+fun BooleanArray.all(predicate: (Boolean) -> Boolean): Boolean
+fun CharArray.all(predicate: (Char) -> Boolean): Boolean
+fun <T> Iterable<T>.all(predicate: (T) -> Boolean): Boolean
+fun <K, V> Map<out K, V>.all(predicate: (Map.Entry<K, V>) -> Boolean): Boolean
+fun UIntArray.all(predicate: (UInt) -> Boolean): Boolean
+fun ULongArray.all(predicate: (ULong) -> Boolean): Boolean
+fun UByteArray.all(predicate: (UByte) -> Boolean): Boolean
+fun UShortArray.all(predicate: (UShort) -> Boolean): Boolean
+fun <T> Sequence<T>.all(predicate: (T) -> Boolean): Boolean
+fun CharSequence.all(predicate: (Char) -> Boolean): Boolean
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:244:35 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:245:43 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:246:43 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:278:33 Overload resolution ambiguity between candidates:
+fun <T> Iterable<T>.forEach(action: (T) -> Unit): Unit
+fun <K, V> Map<out K, V>.forEach(action: (Map.Entry<K, V>) -> Unit): Unit
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:278:43 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:282:38 Unresolved reference 'song'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:294:25 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:294:25 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:295:9 Not enough information to infer type argument for 'K'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:296:36 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:297:32 Unresolved reference 'item'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:299:40 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:317:29 Overload resolution ambiguity between candidates:
+fun <T> Array<out T>.isEmpty(): Boolean
+fun ByteArray.isEmpty(): Boolean
+fun ShortArray.isEmpty(): Boolean
+fun IntArray.isEmpty(): Boolean
+fun LongArray.isEmpty(): Boolean
+fun FloatArray.isEmpty(): Boolean
+fun DoubleArray.isEmpty(): Boolean
+fun BooleanArray.isEmpty(): Boolean
+fun CharArray.isEmpty(): Boolean
+fun CharSequence.isEmpty(): Boolean
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:342:49 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:342:49 Not enough information to infer type argument for 'V'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:342:60 Unresolved reference 'song'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:395:69 Overload resolution ambiguity between candidates:
+fun <R, T> Result<T>.map(transform: (@ParameterName(...) T) -> R): Result<R>
+    [R|Contract description]
+     <
+        CallsInPlace(transform, AT_MOST_ONCE)
+    >
+fun <T, R> Array<out T>.map(transform: (T) -> R): List<R>
+fun <R> ByteArray.map(transform: (Byte) -> R): List<R>
+fun <R> ShortArray.map(transform: (Short) -> R): List<R>
+fun <R> IntArray.map(transform: (Int) -> R): List<R>
+fun <R> LongArray.map(transform: (Long) -> R): List<R>
+fun <R> FloatArray.map(transform: (Float) -> R): List<R>
+fun <R> DoubleArray.map(transform: (Double) -> R): List<R>
+fun <R> BooleanArray.map(transform: (Boolean) -> R): List<R>
+fun <R> CharArray.map(transform: (Char) -> R): List<R>
+fun <T, R> Iterable<T>.map(transform: (T) -> R): List<R>
+fun <K, V, R> Map<out K, V>.map(transform: (Map.Entry<K, V>) -> R): List<R>
+fun <R> UIntArray.map(transform: (UInt) -> R): List<R>
+fun <R> ULongArray.map(transform: (ULong) -> R): List<R>
+fun <R> UByteArray.map(transform: (UByte) -> R): List<R>
+fun <R> UShortArray.map(transform: (UShort) -> R): List<R>
+fun <T, R> Sequence<T>.map(transform: (T) -> R): Sequence<R>
+fun <R> CharSequence.map(transform: (Char) -> R): List<R>
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:395:75 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:429:69 Overload resolution ambiguity between candidates:
+fun <T> Iterable<T>.shuffled(): List<T>
+fun <T> Sequence<T>.shuffled(): Sequence<T>
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:430:64 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:467:57 Function invocation 'size(...)' expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:468:57 Function invocation 'size(...)' expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:516:61 Overload resolution ambiguity between candidates:
+fun <T> Iterable<T>.forEach(action: (T) -> Unit): Unit
+fun <K, V> Map<out K, V>.forEach(action: (Map.Entry<K, V>) -> Unit): Unit
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:516:71 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:520:74 Unresolved reference 'song'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:521:74 Unresolved reference 'song'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:523:89 Unresolved reference 'song'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:524:79 Unresolved reference 'song'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:581:65 Overload resolution ambiguity between candidates:
+fun <R, T> Result<T>.map(transform: (@ParameterName(...) T) -> R): Result<R>
+    [R|Contract description]
+     <
+        CallsInPlace(transform, AT_MOST_ONCE)
+    >
+fun <T, R> Array<out T>.map(transform: (T) -> R): List<R>
+fun <R> ByteArray.map(transform: (Byte) -> R): List<R>
+fun <R> ShortArray.map(transform: (Short) -> R): List<R>
+fun <R> IntArray.map(transform: (Int) -> R): List<R>
+fun <R> LongArray.map(transform: (Long) -> R): List<R>
+fun <R> FloatArray.map(transform: (Float) -> R): List<R>
+fun <R> DoubleArray.map(transform: (Double) -> R): List<R>
+fun <R> BooleanArray.map(transform: (Boolean) -> R): List<R>
+fun <R> CharArray.map(transform: (Char) -> R): List<R>
+fun <T, R> Iterable<T>.map(transform: (T) -> R): List<R>
+fun <K, V, R> Map<out K, V>.map(transform: (Map.Entry<K, V>) -> R): List<R>
+fun <R> UIntArray.map(transform: (UInt) -> R): List<R>
+fun <R> ULongArray.map(transform: (ULong) -> R): List<R>
+fun <R> UByteArray.map(transform: (UByte) -> R): List<R>
+fun <R> UShortArray.map(transform: (UShort) -> R): List<R>
+fun <T, R> Sequence<T>.map(transform: (T) -> R): Sequence<R>
+fun <R> CharSequence.map(transform: (Char) -> R): List<R>
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:581:74 None of the following candidates is applicable:
+fun Song.toMediaItem(): MediaItem
+fun SongItem.toMediaItem(): MediaItem
+fun MediaMetadata.toMediaItem(): MediaItem
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:613:73 Overload resolution ambiguity between candidates:
+fun <T> Iterable<T>.forEach(action: (T) -> Unit): Unit
+fun <K, V> Map<out K, V>.forEach(action: (Map.Entry<K, V>) -> Unit): Unit
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:613:83 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:617:86 Unresolved reference 'song'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:618:86 Unresolved reference 'song'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:620:101 Unresolved reference 'song'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:621:91 Unresolved reference 'song'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:682:33 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:682:36 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:682:49 Unresolved reference 'item'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:683:25 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:683:32 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:685:61 Function invocation 'size(...)' expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:686:52 Unresolved reference 'item'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:687:58 Function invocation 'size(...)' expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:689:25 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:713:56 Unresolved reference 'item'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:723:84 Unresolved reference 'item'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:736:62 Unresolved reference 'isSelected'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:738:71 Unresolved reference 'isSelected'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:744:69 Unresolved reference 'item'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:750:81 Overload resolution ambiguity between candidates:
+fun <R, T> Result<T>.map(transform: (@ParameterName(...) T) -> R): Result<R>
+    [R|Contract description]
+     <
+        CallsInPlace(transform, AT_MOST_ONCE)
+    >
+fun <T, R> Array<out T>.map(transform: (T) -> R): List<R>
+fun <R> ByteArray.map(transform: (Byte) -> R): List<R>
+fun <R> ShortArray.map(transform: (Short) -> R): List<R>
+fun <R> IntArray.map(transform: (Int) -> R): List<R>
+fun <R> LongArray.map(transform: (Long) -> R): List<R>
+fun <R> FloatArray.map(transform: (Float) -> R): List<R>
+fun <R> DoubleArray.map(transform: (Double) -> R): List<R>
+fun <R> BooleanArray.map(transform: (Boolean) -> R): List<R>
+fun <R> CharArray.map(transform: (Char) -> R): List<R>
+fun <T, R> Iterable<T>.map(transform: (T) -> R): List<R>
+fun <K, V, R> Map<out K, V>.map(transform: (Map.Entry<K, V>) -> R): List<R>
+fun <R> UIntArray.map(transform: (UInt) -> R): List<R>
+fun <R> ULongArray.map(transform: (ULong) -> R): List<R>
+fun <R> UByteArray.map(transform: (UByte) -> R): List<R>
+fun <R> UShortArray.map(transform: (UShort) -> R): List<R>
+fun <T, R> Sequence<T>.map(transform: (T) -> R): Sequence<R>
+fun <R> CharSequence.map(transform: (Char) -> R): List<R>
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:750:87 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:751:86 Overload resolution ambiguity between candidates:
+fun <T> Array<out T>.indexOfFirst(predicate: (T) -> Boolean): Int
+fun ByteArray.indexOfFirst(predicate: (Byte) -> Boolean): Int
+fun ShortArray.indexOfFirst(predicate: (Short) -> Boolean): Int
+fun IntArray.indexOfFirst(predicate: (Int) -> Boolean): Int
+fun LongArray.indexOfFirst(predicate: (Long) -> Boolean): Int
+fun FloatArray.indexOfFirst(predicate: (Float) -> Boolean): Int
+fun DoubleArray.indexOfFirst(predicate: (Double) -> Boolean): Int
+fun BooleanArray.indexOfFirst(predicate: (Boolean) -> Boolean): Int
+fun CharArray.indexOfFirst(predicate: (Char) -> Boolean): Int
+fun <T> Iterable<T>.indexOfFirst(predicate: (T) -> Boolean): Int
+fun <T> List<T>.indexOfFirst(predicate: (T) -> Boolean): Int
+fun UIntArray.indexOfFirst(predicate: (UInt) -> Boolean): Int
+fun ULongArray.indexOfFirst(predicate: (ULong) -> Boolean): Int
+fun UByteArray.indexOfFirst(predicate: (UByte) -> Boolean): Int
+fun UShortArray.indexOfFirst(predicate: (UShort) -> Boolean): Int
+fun <T> Sequence<T>.indexOfFirst(predicate: (T) -> Boolean): Int
+fun CharSequence.indexOfFirst(predicate: (Char) -> Boolean): Int
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:751:101 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:751:122 Unresolved reference 'item'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:756:65 Unresolved reference 'isSelected'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:756:91 Unresolved reference 'isSelected'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:764:72 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:765:61 Unresolved reference 'isSelected'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:787:58 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:859:55 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:861:58 Function invocation 'size(...)' expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:864:57 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:866:57 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:876:75 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/AutoPlaylistScreen.kt:877:48 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/OnlinePlaylistScreen.kt:180:20 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/OnlinePlaylistScreen.kt:180:23 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/OnlinePlaylistScreen.kt:180:23 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/OnlinePlaylistScreen.kt:180:44 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/OnlinePlaylistScreen.kt:180:44 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/OnlinePlaylistScreen.kt:181:19 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/OnlinePlaylistScreen.kt:181:22 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/OnlinePlaylistScreen.kt:181:22 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/OnlinePlaylistScreen.kt:181:42 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/OnlinePlaylistScreen.kt:181:42 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/OnlinePlaylistScreen.kt:182:23 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/OnlinePlaylistScreen.kt:182:26 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/OnlinePlaylistScreen.kt:182:26 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/OnlinePlaylistScreen.kt:182:50 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/OnlinePlaylistScreen.kt:182:50 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/OnlinePlaylistScreen.kt:183:15 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/OnlinePlaylistScreen.kt:183:18 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/OnlinePlaylistScreen.kt:183:18 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/OnlinePlaylistScreen.kt:183:34 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/OnlinePlaylistScreen.kt:183:34 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/OnlinePlaylistScreen.kt:462:65 Unresolved reference 'playlist'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/OnlinePlaylistScreen.kt:487:79 Not enough information to infer type argument for 'K'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/OnlinePlaylistScreen.kt:487:92 Unresolved reference 'playlist'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/OnlinePlaylistScreen.kt:504:73 Unresolved reference 'playlist'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/OnlinePlaylistScreen.kt:512:76 Unresolved reference 'playlist'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/OnlinePlaylistScreen.kt:520:76 Unresolved reference 'playlist'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/OnlinePlaylistScreen.kt:810:44 Unresolved reference 'not' for operator '!'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/TopPlaylistScreen.kt:143:35 Unresolved reference 'duration'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/TopPlaylistScreen.kt:245:26 Unresolved reference 'artists'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/TopPlaylistScreen.kt:245:40 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/TopPlaylistScreen.kt:339:68 None of the following candidates is applicable:
+fun Song.toMediaItem(): MediaItem
+fun SongItem.toMediaItem(): MediaItem
+fun MediaMetadata.toMediaItem(): MediaItem
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/TopPlaylistScreen.kt:372:72 None of the following candidates is applicable:
+fun Song.toMediaItem(): MediaItem
+fun SongItem.toMediaItem(): MediaItem
+fun MediaMetadata.toMediaItem(): MediaItem
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/TopPlaylistScreen.kt:407:58 Unresolved reference 'artists'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/TopPlaylistScreen.kt:408:71 Unresolved reference 'artists'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/TopPlaylistScreen.kt:408:100 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/TopPlaylistScreen.kt:574:83 None of the following candidates is applicable:
+fun Song.toMediaItem(): MediaItem
+fun SongItem.toMediaItem(): MediaItem
+fun MediaMetadata.toMediaItem(): MediaItem
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/TopPlaylistScreen.kt:650:40 Argument type mismatch: actual type is 'PlaylistSong', but 'Song' was expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/TopPlaylistScreen.kt:660:68 Argument type mismatch: actual type is 'PlaylistSong', but 'Song' was expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/TopPlaylistScreen.kt:687:84 None of the following candidates is applicable:
+fun Song.toMediaItem(): MediaItem
+fun SongItem.toMediaItem(): MediaItem
+fun MediaMetadata.toMediaItem(): MediaItem
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/TopPlaylistScreen.kt:688:98 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/TopPlaylistScreen.kt:688:121 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/TopPlaylistScreen.kt:812:53 Argument type mismatch: actual type is 'List<PlaylistSong>', but 'List<Song>' was expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/playlist/TopPlaylistScreen.kt:831:45 Argument type mismatch: actual type is 'List<PlaylistSong>', but 'List<Song>' was expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:70:16 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:70:19 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:70:19 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:70:36 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:70:36 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:143:20 Function invocation 'map(...)' expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:143:34 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:143:34 Function 'component1()' is ambiguous for this expression: 
+fun <T> Array<out T>.component1(): T
+fun ByteArray.component1(): Byte
+fun ShortArray.component1(): Short
+fun IntArray.component1(): Int
+fun LongArray.component1(): Long
+fun FloatArray.component1(): Float
+fun DoubleArray.component1(): Double
+fun BooleanArray.component1(): Boolean
+fun CharArray.component1(): Char
+fun <T> List<T>.component1(): T
+fun <K, V> Map.Entry<K, V>.component1(): K
+fun UIntArray.component1(): UInt
+fun ULongArray.component1(): ULong
+fun UByteArray.component1(): UByte
+fun UShortArray.component1(): UShort.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:143:34 Function 'component2()' is ambiguous for this expression: 
+fun <T> Array<out T>.component2(): T
+fun ByteArray.component2(): Byte
+fun ShortArray.component2(): Short
+fun IntArray.component2(): Int
+fun LongArray.component2(): Long
+fun FloatArray.component2(): Float
+fun DoubleArray.component2(): Double
+fun BooleanArray.component2(): Boolean
+fun CharArray.component2(): Char
+fun <T> List<T>.component2(): T
+fun <K, V> Map.Entry<K, V>.component2(): V
+fun UIntArray.component2(): UInt
+fun ULongArray.component2(): ULong
+fun UByteArray.component2(): UByte
+fun UShortArray.component2(): UShort.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:144:28 Function invocation 'filter(...)' expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:157:37 'when' expression must be exhaustive. Add an 'else' branch.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:178:48 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:179:29 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:181:21 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:183:36 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:216:64 Function invocation 'map(...)' expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:217:50 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:217:50 Not enough information to infer type argument for 'V'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:217:81 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:217:81 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:219:56 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:224:87 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:243:34 Unresolved reference 'animateItem'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:247:66 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:248:58 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:249:84 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:250:71 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:253:29 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:264:38 Unresolved reference 'animateItem'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:268:38 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:275:34 Unresolved reference 'animateItem'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:278:40 @Composable invocations can only happen from the context of a @Composable function
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:285:34 Unresolved reference 'animateItem'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:291:24 Unresolved reference 'query'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/LocalSearchScreen.kt:291:53 Function invocation 'map(...)' expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/OnlineSearchScreen.kt:73:19 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/OnlineSearchScreen.kt:73:22 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/OnlineSearchScreen.kt:73:22 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/OnlineSearchScreen.kt:73:42 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/OnlineSearchScreen.kt:73:42 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/OnlineSearchScreen.kt:98:25 Unresolved reference 'history'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/OnlineSearchScreen.kt:98:56 Unresolved reference 'query'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/OnlineSearchScreen.kt:100:33 Unresolved reference 'query'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/OnlineSearchScreen.kt:103:38 Unresolved reference 'query'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/OnlineSearchScreen.kt:108:25 None of the following candidates is applicable:
+fun delete(song: SongEntity): Unit
+fun delete(songArtistMap: SongArtistMap): Unit
+fun delete(artist: ArtistEntity): Unit
+fun delete(album: AlbumEntity): Unit
+fun delete(albumArtistMap: AlbumArtistMap): Unit
+fun delete(playlist: PlaylistEntity): Unit
+fun delete(playlistSongMap: PlaylistSongMap): Unit
+fun delete(lyrics: LyricsEntity): Unit
+fun delete(searchHistory: SearchHistory): Unit
+fun delete(event: Event): Unit
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/OnlineSearchScreen.kt:112:58 Unresolved reference 'query'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/OnlineSearchScreen.kt:112:83 Unresolved reference 'query'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/OnlineSearchScreen.kt:119:25 Unresolved reference 'suggestions'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/OnlineSearchScreen.kt:121:25 Argument type mismatch: actual type is 'Int', but 'String' was expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/OnlineSearchScreen.kt:124:30 Argument type mismatch: actual type is 'Int', but 'String' was expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/OnlineSearchScreen.kt:128:35 None of the following candidates is applicable:
+constructor(annotatedString: AnnotatedString, selection: TextRange = ..., composition: TextRange? = ...): TextFieldValue
+constructor(text: String = ..., selection: TextRange = ..., composition: TextRange? = ...): TextFieldValue
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/OnlineSearchScreen.kt:128:73 Unresolved reference 'length'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/OnlineSearchScreen.kt:135:23 Function invocation 'items(...)' expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/OnlineSearchScreen.kt:135:55 Unresolved reference 'history'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/OnlineSearchScreen.kt:135:80 Unresolved reference 'suggestions'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/OnlineSearchScreen.kt:135:97 'operator' modifier is required on 'FirNamedFunctionSymbol kotlin/compareTo' in 'compareTo'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/OnlineSearchScreen.kt:143:25 Function invocation 'items(...)' expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/OnlineSearchScreen.kt:143:51 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/search/OnlineSearchScreen.kt:145:24 Argument type mismatch: actual type is 'Int', but 'YTItem' was expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/settings/integrations/DiscordSettings.kt:142:22 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/settings/integrations/DiscordSettings.kt:142:25 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/settings/integrations/DiscordSettings.kt:142:25 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/settings/integrations/DiscordSettings.kt:142:60 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/settings/integrations/DiscordSettings.kt:142:60 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/settings/integrations/LastFMSettings.kt:121:21 Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:
+fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/settings/integrations/LastFMSettings.kt:121:24 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/settings/integrations/LastFMSettings.kt:121:24 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/settings/integrations/LastFMSettings.kt:121:58 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/settings/integrations/LastFMSettings.kt:121:58 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/screens/settings/integrations/LastFMSettings.kt:125:34 Unresolved reference 'isLoggedIn'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/AlbumViewModel.kt:37:79 Initializer type mismatch: expected 'StateFlow<Album?>', actual 'StateFlow<AlbumWithSongs?>'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/AlbumViewModel.kt:37:79 Type mismatch: inferred type is 'AlbumWithSongs?', but 'Album?' was expected.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/ArtistAlbumsViewModel.kt:18:24 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/ArtistAlbumsViewModel.kt:21:24 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/AutoPlaylistViewModel.kt:42:26 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/AutoPlaylistViewModel.kt:45:28 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/ChartsViewModel.kt:16:28 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/ChartsViewModel.kt:19:27 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/ChartsViewModel.kt:22:23 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/HistoryViewModel.kt:36:24 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/IntegrationsViewModel.kt:42:30 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/IntegrationsViewModel.kt:45:29 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:71:26 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:83:14 Unresolved reference 'flatMapLatest'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:83:30 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:83:30 Function 'component1()' is ambiguous for this expression: 
+fun <T> Array<out T>.component1(): T
+fun ByteArray.component1(): Byte
+fun ShortArray.component1(): Short
+fun IntArray.component1(): Int
+fun LongArray.component1(): Long
+fun FloatArray.component1(): Float
+fun DoubleArray.component1(): Double
+fun BooleanArray.component1(): Boolean
+fun CharArray.component1(): Char
+fun <T> List<T>.component1(): T
+fun <K, V> Map.Entry<K, V>.component1(): K
+fun UIntArray.component1(): UInt
+fun ULongArray.component1(): ULong
+fun UByteArray.component1(): UByte
+fun UShortArray.component1(): UShort.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:83:30 Function 'component2()' is ambiguous for this expression: 
+fun <T> Array<out T>.component2(): T
+fun ByteArray.component2(): Byte
+fun ShortArray.component2(): Short
+fun IntArray.component2(): Int
+fun LongArray.component2(): Long
+fun FloatArray.component2(): Float
+fun DoubleArray.component2(): Double
+fun BooleanArray.component2(): Boolean
+fun CharArray.component2(): Char
+fun <T> List<T>.component2(): T
+fun <K, V> Map.Entry<K, V>.component2(): V
+fun UIntArray.component2(): UInt
+fun ULongArray.component2(): ULong
+fun UByteArray.component2(): UByte
+fun UShortArray.component2(): UShort.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:84:54 Function 'component1()' is ambiguous for this expression: 
+fun <T> Array<out T>.component1(): T
+fun ByteArray.component1(): Byte
+fun ShortArray.component1(): Short
+fun IntArray.component1(): Int
+fun LongArray.component1(): Long
+fun FloatArray.component1(): Float
+fun DoubleArray.component1(): Double
+fun BooleanArray.component1(): Boolean
+fun CharArray.component1(): Char
+fun <T> List<T>.component1(): T
+fun <K, V> Map.Entry<K, V>.component1(): K
+fun UIntArray.component1(): UInt
+fun ULongArray.component1(): ULong
+fun UByteArray.component1(): UByte
+fun UShortArray.component1(): UShort.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:84:54 Function 'component2()' is ambiguous for this expression: 
+fun <T> Array<out T>.component2(): T
+fun ByteArray.component2(): Byte
+fun ShortArray.component2(): Short
+fun IntArray.component2(): Int
+fun LongArray.component2(): Long
+fun FloatArray.component2(): Float
+fun DoubleArray.component2(): Double
+fun BooleanArray.component2(): Boolean
+fun CharArray.component2(): Char
+fun <T> List<T>.component2(): T
+fun <K, V> Map.Entry<K, V>.component2(): V
+fun UIntArray.component2(): UInt
+fun ULongArray.component2(): ULong
+fun UByteArray.component2(): UByte
+fun UShortArray.component2(): UShort.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:84:54 Function 'component3()' is ambiguous for this expression: 
+fun <T> Array<out T>.component3(): T
+fun ByteArray.component3(): Byte
+fun ShortArray.component3(): Short
+fun IntArray.component3(): Int
+fun LongArray.component3(): Long
+fun FloatArray.component3(): Float
+fun DoubleArray.component3(): Double
+fun BooleanArray.component3(): Boolean
+fun CharArray.component3(): Char
+fun <T> List<T>.component3(): T
+fun UIntArray.component3(): UInt
+fun ULongArray.component3(): ULong
+fun UByteArray.component3(): UByte
+fun UShortArray.component3(): UShort.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:91:15 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:91:62 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:114:28 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:123:14 Unresolved reference 'flatMapLatest'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:123:30 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:123:30 Function 'component1()' is ambiguous for this expression: 
+fun <T> Array<out T>.component1(): T
+fun ByteArray.component1(): Byte
+fun ShortArray.component1(): Short
+fun IntArray.component1(): Int
+fun LongArray.component1(): Long
+fun FloatArray.component1(): Float
+fun DoubleArray.component1(): Double
+fun BooleanArray.component1(): Boolean
+fun CharArray.component1(): Char
+fun <T> List<T>.component1(): T
+fun <K, V> Map.Entry<K, V>.component1(): K
+fun UIntArray.component1(): UInt
+fun ULongArray.component1(): ULong
+fun UByteArray.component1(): UByte
+fun UShortArray.component1(): UShort.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:123:30 Function 'component2()' is ambiguous for this expression: 
+fun <T> Array<out T>.component2(): T
+fun ByteArray.component2(): Byte
+fun ShortArray.component2(): Short
+fun IntArray.component2(): Int
+fun LongArray.component2(): Long
+fun FloatArray.component2(): Float
+fun DoubleArray.component2(): Double
+fun BooleanArray.component2(): Boolean
+fun CharArray.component2(): Char
+fun <T> List<T>.component2(): T
+fun <K, V> Map.Entry<K, V>.component2(): V
+fun UIntArray.component2(): UInt
+fun ULongArray.component2(): ULong
+fun UByteArray.component2(): UByte
+fun UShortArray.component2(): UShort.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:123:30 Function 'component3()' is ambiguous for this expression: 
+fun <T> Array<out T>.component3(): T
+fun ByteArray.component3(): Byte
+fun ShortArray.component3(): Short
+fun IntArray.component3(): Int
+fun LongArray.component3(): Long
+fun FloatArray.component3(): Float
+fun DoubleArray.component3(): Double
+fun BooleanArray.component3(): Boolean
+fun CharArray.component3(): Char
+fun <T> List<T>.component3(): T
+fun UIntArray.component3(): UInt
+fun ULongArray.component3(): ULong
+fun UByteArray.component3(): UByte
+fun UShortArray.component3(): UShort.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:128:15 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:128:62 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:136:32 Too many arguments for 'suspend fun Flow<*>.collect(): Unit'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:136:34 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:139:22 Unresolved reference 'filter'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:145:33 Suspension functions can only be called within coroutine body.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:164:27 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:176:14 Unresolved reference 'flatMapLatest'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:176:30 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:176:30 Function 'component1()' is ambiguous for this expression: 
+fun <T> Array<out T>.component1(): T
+fun ByteArray.component1(): Byte
+fun ShortArray.component1(): Short
+fun IntArray.component1(): Int
+fun LongArray.component1(): Long
+fun FloatArray.component1(): Float
+fun DoubleArray.component1(): Double
+fun BooleanArray.component1(): Boolean
+fun CharArray.component1(): Char
+fun <T> List<T>.component1(): T
+fun <K, V> Map.Entry<K, V>.component1(): K
+fun UIntArray.component1(): UInt
+fun ULongArray.component1(): ULong
+fun UByteArray.component1(): UByte
+fun UShortArray.component1(): UShort.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:176:30 Function 'component2()' is ambiguous for this expression: 
+fun <T> Array<out T>.component2(): T
+fun ByteArray.component2(): Byte
+fun ShortArray.component2(): Short
+fun IntArray.component2(): Int
+fun LongArray.component2(): Long
+fun FloatArray.component2(): Float
+fun DoubleArray.component2(): Double
+fun BooleanArray.component2(): Boolean
+fun CharArray.component2(): Char
+fun <T> List<T>.component2(): T
+fun <K, V> Map.Entry<K, V>.component2(): V
+fun UIntArray.component2(): UInt
+fun ULongArray.component2(): ULong
+fun UByteArray.component2(): UByte
+fun UShortArray.component2(): UShort.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:177:54 Function 'component1()' is ambiguous for this expression: 
+fun <T> Array<out T>.component1(): T
+fun ByteArray.component1(): Byte
+fun ShortArray.component1(): Short
+fun IntArray.component1(): Int
+fun LongArray.component1(): Long
+fun FloatArray.component1(): Float
+fun DoubleArray.component1(): Double
+fun BooleanArray.component1(): Boolean
+fun CharArray.component1(): Char
+fun <T> List<T>.component1(): T
+fun <K, V> Map.Entry<K, V>.component1(): K
+fun UIntArray.component1(): UInt
+fun ULongArray.component1(): ULong
+fun UByteArray.component1(): UByte
+fun UShortArray.component1(): UShort.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:177:54 Function 'component2()' is ambiguous for this expression: 
+fun <T> Array<out T>.component2(): T
+fun ByteArray.component2(): Byte
+fun ShortArray.component2(): Short
+fun IntArray.component2(): Int
+fun LongArray.component2(): Long
+fun FloatArray.component2(): Float
+fun DoubleArray.component2(): Double
+fun BooleanArray.component2(): Boolean
+fun CharArray.component2(): Char
+fun <T> List<T>.component2(): T
+fun <K, V> Map.Entry<K, V>.component2(): V
+fun UIntArray.component2(): UInt
+fun ULongArray.component2(): ULong
+fun UByteArray.component2(): UByte
+fun UShortArray.component2(): UShort.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:177:54 Function 'component3()' is ambiguous for this expression: 
+fun <T> Array<out T>.component3(): T
+fun ByteArray.component3(): Byte
+fun ShortArray.component3(): Short
+fun IntArray.component3(): Int
+fun LongArray.component3(): Long
+fun FloatArray.component3(): Float
+fun DoubleArray.component3(): Double
+fun BooleanArray.component3(): Boolean
+fun CharArray.component3(): Char
+fun <T> List<T>.component3(): T
+fun UIntArray.component3(): UInt
+fun ULongArray.component3(): ULong
+fun UByteArray.component3(): UByte
+fun UShortArray.component3(): UShort.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:183:15 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:183:62 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:191:31 Too many arguments for 'suspend fun Flow<*>.collect(): Unit'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:191:33 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:194:25 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:195:33 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:197:30 Suspension functions can only be called within coroutine body.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:197:42 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:200:50 Unresolved reference 'album'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:200:74 Unresolved reference 'artists'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:206:54 Unresolved reference 'album'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:224:30 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:230:14 Unresolved reference 'flatMapLatest'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:230:30 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:230:30 Function 'component1()' is ambiguous for this expression: 
+fun <T> Array<out T>.component1(): T
+fun ByteArray.component1(): Byte
+fun ShortArray.component1(): Short
+fun IntArray.component1(): Int
+fun LongArray.component1(): Long
+fun FloatArray.component1(): Float
+fun DoubleArray.component1(): Double
+fun BooleanArray.component1(): Boolean
+fun CharArray.component1(): Char
+fun <T> List<T>.component1(): T
+fun <K, V> Map.Entry<K, V>.component1(): K
+fun UIntArray.component1(): UInt
+fun ULongArray.component1(): ULong
+fun UByteArray.component1(): UByte
+fun UShortArray.component1(): UShort.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:230:30 Function 'component2()' is ambiguous for this expression: 
+fun <T> Array<out T>.component2(): T
+fun ByteArray.component2(): Byte
+fun ShortArray.component2(): Short
+fun IntArray.component2(): Int
+fun LongArray.component2(): Long
+fun FloatArray.component2(): Float
+fun DoubleArray.component2(): Double
+fun BooleanArray.component2(): Boolean
+fun CharArray.component2(): Char
+fun <T> List<T>.component2(): T
+fun <K, V> Map.Entry<K, V>.component2(): V
+fun UIntArray.component2(): UInt
+fun ULongArray.component2(): ULong
+fun UByteArray.component2(): UByte
+fun UShortArray.component2(): UShort.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:232:15 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:232:62 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:253:24 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:258:23 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:267:14 Unresolved reference 'flatMapLatest'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:267:30 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:267:30 Function 'component1()' is ambiguous for this expression: 
+fun <T> Array<out T>.component1(): T
+fun ByteArray.component1(): Byte
+fun ShortArray.component1(): Short
+fun IntArray.component1(): Int
+fun LongArray.component1(): Long
+fun FloatArray.component1(): Float
+fun DoubleArray.component1(): Double
+fun BooleanArray.component1(): Boolean
+fun CharArray.component1(): Char
+fun <T> List<T>.component1(): T
+fun <K, V> Map.Entry<K, V>.component1(): K
+fun UIntArray.component1(): UInt
+fun ULongArray.component1(): ULong
+fun UByteArray.component1(): UByte
+fun UShortArray.component1(): UShort.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:267:30 Function 'component2()' is ambiguous for this expression: 
+fun <T> Array<out T>.component2(): T
+fun ByteArray.component2(): Byte
+fun ShortArray.component2(): Short
+fun IntArray.component2(): Int
+fun LongArray.component2(): Long
+fun FloatArray.component2(): Float
+fun DoubleArray.component2(): Double
+fun BooleanArray.component2(): Boolean
+fun CharArray.component2(): Char
+fun <T> List<T>.component2(): T
+fun <K, V> Map.Entry<K, V>.component2(): V
+fun UIntArray.component2(): UInt
+fun ULongArray.component2(): ULong
+fun UByteArray.component2(): UByte
+fun UShortArray.component2(): UShort.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:268:46 Function 'component1()' is ambiguous for this expression: 
+fun <T> Array<out T>.component1(): T
+fun ByteArray.component1(): Byte
+fun ShortArray.component1(): Short
+fun IntArray.component1(): Int
+fun LongArray.component1(): Long
+fun FloatArray.component1(): Float
+fun DoubleArray.component1(): Double
+fun BooleanArray.component1(): Boolean
+fun CharArray.component1(): Char
+fun <T> List<T>.component1(): T
+fun <K, V> Map.Entry<K, V>.component1(): K
+fun UIntArray.component1(): UInt
+fun ULongArray.component1(): ULong
+fun UByteArray.component1(): UByte
+fun UShortArray.component1(): UShort.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:268:46 Function 'component2()' is ambiguous for this expression: 
+fun <T> Array<out T>.component2(): T
+fun ByteArray.component2(): Byte
+fun ShortArray.component2(): Short
+fun IntArray.component2(): Int
+fun LongArray.component2(): Long
+fun FloatArray.component2(): Float
+fun DoubleArray.component2(): Double
+fun BooleanArray.component2(): Boolean
+fun CharArray.component2(): Char
+fun <T> List<T>.component2(): T
+fun <K, V> Map.Entry<K, V>.component2(): V
+fun UIntArray.component2(): UInt
+fun ULongArray.component2(): ULong
+fun UByteArray.component2(): UByte
+fun UShortArray.component2(): UShort.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:270:15 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:270:62 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:294:25 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:300:24 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:303:10 Unresolved reference 'flatMapLatest'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:303:26 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:305:11 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:305:58 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:306:27 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:311:28 Too many arguments for 'suspend fun Flow<*>.collect(): Unit'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:311:30 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:314:25 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:315:33 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:317:30 Suspension functions can only be called within coroutine body.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:317:42 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:320:50 Unresolved reference 'album'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:320:74 Unresolved reference 'artists'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:326:54 Unresolved reference 'album'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:334:29 Too many arguments for 'suspend fun Flow<*>.collect(): Unit'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:334:31 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:336:22 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:336:22 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:336:22 Not enough information to infer type argument for 'R'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:336:26 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:336:31 Unresolved reference 'artist'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:337:22 Unresolved reference 'filter'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:338:25 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:340:37 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:343:33 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:344:33 Suspension functions can only be called within coroutine body.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LibraryViewModels.kt:344:47 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/LocalSearchViewModel.kt:32:24 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/NewReleaseViewModel.kt:30:34 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/OnlinePlaylistViewModel.kt:45:27 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/OnlinePlaylistViewModel.kt:48:23 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/OnlinePlaylistViewModel.kt:51:31 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/OnlinePlaylistViewModel.kt:54:28 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/OnlineSearchSuggestionViewModel.kt:41:27 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/PlaylistsViewModel.kt:32:30 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:34:38 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:34:80 Unresolved reference 'MostPlayedStats'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:57:33 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:80:35 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:80:77 Unresolved reference 'EventWithArtist'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:105:34 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:105:76 Unresolved reference 'EventWithAlbum'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:127:28 Unresolved reference 'StateFlow'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:134:31 Unresolved reference 'collect'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:134:41 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:136:22 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:136:22 Not enough information to infer type argument for 'T'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:136:22 Not enough information to infer type argument for 'R'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:136:26 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:136:31 Unresolved reference 'artist'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:137:22 Unresolved reference 'filter'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:138:25 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:139:29 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:142:33 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:143:33 Suspension functions can only be called within coroutine body.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:143:47 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:152:30 Unresolved reference 'collect'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:152:40 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:155:25 Unresolved reference 'it'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:156:33 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:158:30 Suspension functions can only be called within coroutine body.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:158:42 Unresolved reference 'id'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:161:50 Unresolved reference 'album'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:161:74 Unresolved reference 'artists'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/StatsViewModel.kt:167:54 Unresolved reference 'album'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/viewmodels/TopPlaylistViewModel.kt:37:9 Type mismatch: inferred type is 'List<Song>', but 'List<PlaylistSong>' was expected.
+
+> Task :app:compileUniversalStandardDebugKotlin FAILED
 
 FAILURE: Build failed with an exception.
 
-* Where:
-Build file 'D:\DEV\vivi\vivi-music\app\build.gradle.kts' line: 3
-
 * What went wrong:
-An exception occurred applying plugin request [id: 'com.google.dagger.hilt.android', version: '2.58']
-> Failed to apply plugin 'com.google.dagger.hilt.android'.
-   > Could not find the Android Gradle Plugin (AGP) base extension.
+Execution failed for task ':app:compileUniversalStandardDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
 
 * Try:
 > Run with --stacktrace option to get the stack trace.
@@ -16,5 +1395,6 @@ An exception occurred applying plugin request [id: 'com.google.dagger.hilt.andro
 > Run with --scan to generate a Build Scan (Powered by Develocity).
 > Get more help at https://help.gradle.org.
 
-BUILD FAILED in 901ms
-Configuration cache entry stored.
+BUILD FAILED in 16s
+33 actionable tasks: 2 executed, 31 up-to-date
+Configuration cache entry reused.

@@ -37,7 +37,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.music.innertube.YouTube
 import com.music.innertube.utils.parseCookieString
 import com.music.vivi.LocalDatabase
@@ -50,8 +50,8 @@ import com.music.vivi.db.entities.Playlist
 import com.music.vivi.ui.component.CreatePlaylistDialog
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.ListDialog
-import com.music.vivi.ui.component.PlaylistListItem
 import com.music.vivi.ui.component.SortHeader
+import com.music.vivi.ui.component.media.playlists.PlaylistListItem
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.PlaylistsViewModel
@@ -59,6 +59,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * A dialog for adding songs to a local playlist.
+ * Shows a list of existing playlists and an option to create a new one.
+ * Handles duplicate checking.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AddToPlaylistDialog(
@@ -68,13 +73,13 @@ fun AddToPlaylistDialog(
     songsToCheck: List<String>? = null,
     onGetSong: suspend (Playlist) -> List<String>, // list of song ids. Songs should be inserted to database in this function.
     onDismiss: () -> Unit,
-    viewModel: PlaylistsViewModel = hiltViewModel()
+    viewModel: PlaylistsViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current
     val coroutineScope = rememberCoroutineScope()
 
-    val playlists by viewModel.allPlaylists.collectAsState()
+    val playlists: List<Playlist> by viewModel.allPlaylists.collectAsState()
 
     val (innerTubeCookie) = rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn = remember(innerTubeCookie) {
@@ -120,7 +125,7 @@ fun AddToPlaylistDialog(
 
     if (isVisible) {
         ListDialog(
-            onDismiss = onDismiss,
+            onDismiss = onDismiss
         ) {
             item {
                 Row(
@@ -158,7 +163,10 @@ fun AddToPlaylistDialog(
             }
 
             item {
-                val (sortType, onSortTypeChange) = rememberEnumPreference(AddToPlaylistSortTypeKey, PlaylistSortType.CREATE_DATE)
+                val (sortType, onSortTypeChange) = rememberEnumPreference(
+                    AddToPlaylistSortTypeKey,
+                    PlaylistSortType.CREATE_DATE
+                )
                 val (sortDescending, onSortDescendingChange) = rememberPreference(AddToPlaylistSortDescendingKey, true)
 
                 SortHeader(

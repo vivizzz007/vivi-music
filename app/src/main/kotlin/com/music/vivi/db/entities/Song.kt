@@ -5,6 +5,16 @@ import androidx.room.Embedded
 import androidx.room.Junction
 import androidx.room.Relation
 
+/**
+ * Represents a complete Song with all its relationships.
+ * Fetches the SongEntity along with associated Artists and Album.
+ *
+ * @property song The core Song entity data.
+ * @property artists List of artists performing this song.
+ * @property album The album this song belongs to (optional).
+ * @property format Cached format info (bitrate, codecs, etc.).
+ * @property romanizeLyrics Helper property to access romanization preference.
+ */
 @Immutable
 data class Song
 @JvmOverloads
@@ -16,11 +26,11 @@ constructor(
         entityColumn = "id",
         parentColumn = "id",
         associateBy =
-            Junction(
-                value = SortedSongArtistMap::class,
-                parentColumn = "songId",
-                entityColumn = "artistId",
-            ),
+        Junction(
+            value = SortedSongArtistMap::class,
+            parentColumn = "songId",
+            entityColumn = "artistId"
+        )
     )
     val artists: List<ArtistEntity>,
 
@@ -29,11 +39,11 @@ constructor(
         entityColumn = "id",
         parentColumn = "id",
         associateBy =
-            Junction(
-                value = SongAlbumMap::class,
-                parentColumn = "songId",
-                entityColumn = "albumId",
-            ),
+        Junction(
+            value = SongAlbumMap::class,
+            parentColumn = "songId",
+            entityColumn = "albumId"
+        )
     )
     val album: AlbumEntity? = null,
 

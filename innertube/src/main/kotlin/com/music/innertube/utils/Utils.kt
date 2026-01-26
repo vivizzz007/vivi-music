@@ -13,7 +13,7 @@ suspend fun Result<PlaylistPage>.completed(): Result<PlaylistPage> = runCatching
     val seenContinuations = mutableSetOf<String>()
     var requestCount = 0
     val maxRequests = 50 // Prevent excessive API calls
-    
+
     while (continuation != null && requestCount < maxRequests) {
         // Prevent infinite loops by tracking seen continuations
         if (continuation in seenContinuations) {
@@ -21,7 +21,7 @@ suspend fun Result<PlaylistPage>.completed(): Result<PlaylistPage> = runCatching
         }
         seenContinuations.add(continuation)
         requestCount++
-        
+
         val continuationPage = YouTube.playlistContinuation(continuation).getOrThrow()
         songs += continuationPage.songs
         continuation = continuationPage.continuation
@@ -42,7 +42,7 @@ suspend fun Result<LibraryPage>.completed(): Result<LibraryPage> = runCatching {
     val seenContinuations = mutableSetOf<String>()
     var requestCount = 0
     val maxRequests = 50 // Prevent excessive API calls
-    
+
     while (continuation != null && requestCount < maxRequests) {
         // Prevent infinite loops by tracking seen continuations
         if (continuation in seenContinuations) {
@@ -50,7 +50,7 @@ suspend fun Result<LibraryPage>.completed(): Result<LibraryPage> = runCatching {
         }
         seenContinuations.add(continuation)
         requestCount++
-        
+
         val continuationPage = YouTube.libraryContinuation(continuation).getOrThrow()
         items += continuationPage.items
         continuation = continuationPage.continuation
@@ -65,15 +65,17 @@ fun ByteArray.toHex(): String = joinToString(separator = "") { eachByte -> "%02x
 
 fun sha1(str: String): String = MessageDigest.getInstance("SHA-1").digest(str.toByteArray()).toHex()
 
-fun parseCookieString(cookie: String): Map<String, String> =
-    cookie.split("; ")
-        .filter { it.isNotEmpty() }
-        .mapNotNull { part ->
-            val splitIndex = part.indexOf('=')
-            if (splitIndex == -1) null
-            else part.substring(0, splitIndex) to part.substring(splitIndex + 1)
+fun parseCookieString(cookie: String): Map<String, String> = cookie.split("; ")
+    .filter { it.isNotEmpty() }
+    .mapNotNull { part ->
+        val splitIndex = part.indexOf('=')
+        if (splitIndex == -1) {
+            null
+        } else {
+            part.substring(0, splitIndex) to part.substring(splitIndex + 1)
         }
-        .toMap()
+    }
+    .toMap()
 
 fun String.parseTime(): Int? {
     try {
@@ -90,6 +92,4 @@ fun String.parseTime(): Int? {
     return null
 }
 
-fun isPrivateId(browseId: String): Boolean {
-    return browseId.contains("privately")
-}
+fun isPrivateId(browseId: String): Boolean = browseId.contains("privately")

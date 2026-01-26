@@ -19,7 +19,7 @@ import com.valentinilk.shimmer.defaultShimmerTheme
 import com.valentinilk.shimmer.shimmer
 
 @Composable
-fun ShimmerHost(
+public fun ShimmerHost(
     modifier: Modifier = Modifier,
     horizontalAlignment: Alignment.Horizontal = Alignment.Start,
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
@@ -36,10 +36,10 @@ fun ShimmerHost(
                 drawContent()
                 drawRect(
                     brush = Brush.verticalGradient(listOf(Color.Black, Color.Transparent)),
-                    blendMode = BlendMode.DstIn,
+                    blendMode = BlendMode.DstIn
                 )
             },
-        content = content,
+        content = content
     )
 }
 
@@ -51,14 +51,14 @@ val ShimmerTheme =
             tween(
                 durationMillis = 800,
                 easing = LinearEasing,
-                delayMillis = 250,
+                delayMillis = 250
             ),
-            repeatMode = RepeatMode.Restart,
+            repeatMode = RepeatMode.Restart
         ),
         shaderColors =
         listOf(
             Color.Unspecified.copy(alpha = 0.25f),
             Color.Unspecified.copy(alpha = 0.50f),
-            Color.Unspecified.copy(alpha = 0.25f),
-        ),
+            Color.Unspecified.copy(alpha = 0.25f)
+        )
     )

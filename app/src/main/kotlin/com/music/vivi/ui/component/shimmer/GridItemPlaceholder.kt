@@ -19,7 +19,7 @@ import com.music.vivi.constants.GridThumbnailHeight
 import com.music.vivi.constants.ThumbnailCornerRadius
 
 @Composable
-fun GridItemPlaceHolder(
+public fun GridItemPlaceHolder(
     modifier: Modifier = Modifier,
     thumbnailShape: Shape = RoundedCornerShape(ThumbnailCornerRadius),
     fillMaxWidth: Boolean = false,
@@ -34,7 +34,7 @@ fun GridItemPlaceHolder(
             modifier
                 .padding(12.dp)
                 .width(GridThumbnailHeight)
-        },
+        }
     ) {
         Spacer(
             modifier =
@@ -44,7 +44,7 @@ fun GridItemPlaceHolder(
                 Modifier.height(GridThumbnailHeight)
             }.aspectRatio(1f)
                 .clip(thumbnailShape)
-                .background(MaterialTheme.colorScheme.onSurface),
+                .background(MaterialTheme.colorScheme.onSurface)
         )
 
         Spacer(modifier = Modifier.height(6.dp))

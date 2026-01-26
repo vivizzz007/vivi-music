@@ -240,6 +240,7 @@
     <string name="dark_theme_off">Desactivado</string>
     <string name="dark_theme_follow_system">sistema</string>
     <string name="pure_black">Negro puro</string>
+
     <string name="customize_navigation_tabs">Personalizar pestañas de navegación</string>
     <string name="player">Reproductor</string>
     <string name="player_text_alignment">Alineación de texto del reproductor</string>
@@ -353,5 +354,11 @@
     <string name="lyrics_line_spacing">Espaciado de líneas de letras</string>
     <string name="lyrics_style">Estilo de letras</string>
     <string name="login_required_premium">Se requiere YouTube Premium para calidad muy alta</string>
+    <string name="power_saver_description">Habilita el Ahorro de Energía para extender la duración de la batería reduciendo el rendimiento y desactivando funciones en segundo plano.</string>
+    <string name="enable_power_saver">Habilitar Ahorro de Energía</string>
+    <string name="power_saver_subtitle">Reduce efectos visuales y actividad en segundo plano</string>
+    <string name="estimated_power_saved">Ahorro estimado</string>
+    <string name="disable_animations">Desactivar animaciones</string>
+    <string name="disable_animations_desc">Reduce el uso de batería desactivando efectos visuales</string>
 </resources>
 

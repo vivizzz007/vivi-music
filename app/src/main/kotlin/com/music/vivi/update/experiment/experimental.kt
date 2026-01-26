@@ -23,14 +23,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Error
@@ -42,13 +40,11 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -84,7 +80,6 @@ import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -479,7 +474,11 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                             onClick = {
                                 CrashLogHandler.clearAllCrashLogs(context)
                                 crashLogs = emptyList()
-                                Toast.makeText(context, context.getString(R.string.all_crash_logs_cleared), Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.all_crash_logs_cleared),
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             },
                             shape = RoundedCornerShape(8.dp)
                         ) {
@@ -574,7 +573,11 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                                         onClick = {
                                             CrashLogHandler.deleteCrashLog(logFile)
                                             crashLogs = CrashLogHandler.getAllCrashLogs(context)
-                                            Toast.makeText(context, context.getString(R.string.crash_log_deleted), Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(
+                                                context,
+                                                context.getString(R.string.crash_log_deleted),
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
                                     ) {
                                         Icon(
@@ -652,7 +655,11 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                         onClick = {
                             CrashLogHandler.deleteCrashLog(selectedCrashLog!!)
                             crashLogs = CrashLogHandler.getAllCrashLogs(context)
-                            Toast.makeText(context, context.getString(R.string.crash_log_deleted), Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.crash_log_deleted),
+                                Toast.LENGTH_SHORT
+                            ).show()
                             coroutineScope.launch {
                                 crashLogViewerSheetState.hide()
                                 showCrashLogViewerSheet = false
@@ -724,7 +731,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                 }
             },
             scrollBehavior = scrollBehavior,
-            colors = TopAppBarDefaults.largeTopAppBarColors(
+            colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = MaterialTheme.colorScheme.surface,
                 scrolledContainerColor = MaterialTheme.colorScheme.surface
             )
@@ -840,7 +847,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
                             } else {
                                 Toast.makeText(
                                     context,
-                                        context.getString(R.string.no_apk_files_to_clear),
+                                    context.getString(R.string.no_apk_files_to_clear),
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
@@ -970,11 +977,7 @@ fun ExperimentalSettingsScreen(navController: NavController) {
 }
 
 @Composable
-fun SplicedColumnGroup(
-    modifier: Modifier = Modifier,
-    title: String = "",
-    content: List<@Composable () -> Unit>,
-) {
+fun SplicedColumnGroup(modifier: Modifier = Modifier, title: String = "", content: List<@Composable () -> Unit>) {
     if (content.isEmpty()) return
 
     val cornerRadius = 16.dp
@@ -1054,46 +1057,42 @@ fun SheetDragHandle() {
 }
 
 // Utility functions
-fun clearDownloadedApks(context: Context): Boolean {
-    return try {
-        val downloadsDir = File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "")
-        var deletedCount = 0
-        var totalSize = 0L
+fun clearDownloadedApks(context: Context): Boolean = try {
+    val downloadsDir = File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "")
+    var deletedCount = 0
+    var totalSize = 0L
 
-        downloadsDir.listFiles()?.forEach { file ->
-            if (file.name.endsWith(".apk")) {
-                totalSize += file.length()
-                if (file.delete()) {
-                    deletedCount++
-                }
+    downloadsDir.listFiles()?.forEach { file ->
+        if (file.name.endsWith(".apk")) {
+            totalSize += file.length()
+            if (file.delete()) {
+                deletedCount++
             }
         }
-
-        Log.d("ClearAPK", "Cleared $deletedCount APK files, freed ${totalSize / (1024.0 * 1024.0)} MB")
-        true
-    } catch (e: Exception) {
-        Log.e("ClearAPK", "Error clearing APKs: ${e.message}")
-        false
     }
+
+    Log.d("ClearAPK", "Cleared $deletedCount APK files, freed ${totalSize / (1024.0 * 1024.0)} MB")
+    true
+} catch (e: Exception) {
+    Log.e("ClearAPK", "Error clearing APKs: ${e.message}")
+    false
 }
 
-fun getDownloadedApksInfo(context: Context): Pair<Int, Long> {
-    return try {
-        val downloadsDir = File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "")
-        var count = 0
-        var totalSize = 0L
+fun getDownloadedApksInfo(context: Context): Pair<Int, Long> = try {
+    val downloadsDir = File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "")
+    var count = 0
+    var totalSize = 0L
 
-        downloadsDir.listFiles()?.forEach { file ->
-            if (file.name.endsWith(".apk")) {
-                count++
-                totalSize += file.length()
-            }
+    downloadsDir.listFiles()?.forEach { file ->
+        if (file.name.endsWith(".apk")) {
+            count++
+            totalSize += file.length()
         }
-
-        Pair(count, totalSize)
-    } catch (e: Exception) {
-        Pair(0, 0L)
     }
+
+    Pair(count, totalSize)
+} catch (e: Exception) {
+    Pair(0, 0L)
 }
 
 private fun openGitHubIssues(context: Context) {
@@ -1115,19 +1114,32 @@ private fun openGitHubIssues(context: Context) {
                 context.startActivity(githubIntent)
             } catch (e: ActivityNotFoundException) {
                 Log.e("ExperimentalSettings", "No browser installed", e)
-                Toast.makeText(context, context.getString(R.string.please_install_web_browser), Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.please_install_web_browser),
+                    Toast.LENGTH_LONG
+                ).show()
             }
         }
     } catch (e: Exception) {
         Log.e("ExperimentalSettings", "Error opening GitHub: ${e.message}", e)
-        Toast.makeText(context, context.getString(R.string.error_message, e.localizedMessage ?: ""), Toast.LENGTH_LONG).show()
+        Toast.makeText(
+            context,
+            context.getString(R.string.error_message, e.localizedMessage ?: ""),
+            Toast.LENGTH_LONG
+        ).show()
     }
 }
 
 private fun sendFeedbackEmail(context: Context) {
     try {
         val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
-            data = Uri.parse("mailto:mkmdevilmi@gmail.com?subject=${Uri.encode(context.getString(R.string.feedback_for_vivi_music_app))}&body=${Uri.encode("Please write your feedback here...")}")
+            data =
+                Uri.parse(
+                    "mailto:mkmdevilmi@gmail.com?subject=${Uri.encode(
+                        context.getString(R.string.feedback_for_vivi_music_app)
+                    )}&body=${Uri.encode("Please write your feedback here...")}"
+                )
         }
 
         if (emailIntent.resolveActivity(context.packageManager) != null) {
@@ -1141,20 +1153,24 @@ private fun sendFeedbackEmail(context: Context) {
             }
 
             if (fallbackIntent.resolveActivity(context.packageManager) != null) {
-                context.startActivity(Intent.createChooser(fallbackIntent, context.getString(R.string.choose_email_app)))
+                context.startActivity(
+                    Intent.createChooser(fallbackIntent, context.getString(R.string.choose_email_app))
+                )
             } else {
                 Toast.makeText(context, context.getString(R.string.no_email_app_found), Toast.LENGTH_SHORT).show()
             }
         }
     } catch (e: Exception) {
-        Toast.makeText(context, context.getString(R.string.unable_to_open_email_app, e.message ?: ""), Toast.LENGTH_SHORT).show()
+        Toast.makeText(
+            context,
+            context.getString(R.string.unable_to_open_email_app, e.message ?: ""),
+            Toast.LENGTH_SHORT
+        ).show()
     }
 }
 
-fun getSelectedApkVariant(context: Context): String {
-    return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        .getString(KEY_SELECTED_APK_VARIANT, DEFAULT_APK_VARIANT) ?: DEFAULT_APK_VARIANT
-}
+fun getSelectedApkVariant(context: Context): String = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    .getString(KEY_SELECTED_APK_VARIANT, DEFAULT_APK_VARIANT) ?: DEFAULT_APK_VARIANT
 
 fun saveSelectedApkVariant(context: Context, variant: String) {
     context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -1180,39 +1196,37 @@ fun saveUpdateCheckInterval(context: Context, hours: Int) {
     prefs.edit().putInt(KEY_UPDATE_CHECK_INTERVAL, hours).apply()
 }
 
-suspend fun fetchAvailableApkVariants(): List<Pair<String, String>> {
-    return withContext(Dispatchers.IO) {
-        try {
-            val url = URL("https://api.github.com/repos/vivizzz007/vivi-music/releases/latest")
-            val json = url.openStream().bufferedReader().use { it.readText() }
-            val release = JSONObject(json)
-            val assets = release.getJSONArray("assets")
-            val apkList = mutableListOf<Pair<String, String>>()
+suspend fun fetchAvailableApkVariants(): List<Pair<String, String>> = withContext(Dispatchers.IO) {
+    try {
+        val url = URL("https://api.github.com/repos/vivizzz007/vivi-music/releases/latest")
+        val json = url.openStream().bufferedReader().use { it.readText() }
+        val release = JSONObject(json)
+        val assets = release.getJSONArray("assets")
+        val apkList = mutableListOf<Pair<String, String>>()
 
-            for (i in 0 until assets.length()) {
-                val asset = assets.getJSONObject(i)
-                val name = asset.getString("name")
-                if (name.endsWith(".apk")) {
-                    val sizeInBytes = asset.getLong("size")
-                    val sizeInMB = String.format("%.1f", sizeInBytes / (1024.0 * 1024.0))
-                    val description = when {
-                        name == "vivi.apk" -> "Universal - $sizeInMB MB (Recommended)"
-                        name.contains("arm64-v8a") -> "ARM64 - $sizeInMB MB (Modern phones)"
-                        name.contains("armeabi-v7a") -> "ARM - $sizeInMB MB (Older phones)"
-                        name.contains("x86_64") -> "x86_64 - $sizeInMB MB (Intel tablets)"
-                        name.contains("x86") -> "x86 - $sizeInMB MB (Emulators)"
-                        else -> "$sizeInMB MB"
-                    }
-                    apkList.add(name to description)
+        for (i in 0 until assets.length()) {
+            val asset = assets.getJSONObject(i)
+            val name = asset.getString("name")
+            if (name.endsWith(".apk")) {
+                val sizeInBytes = asset.getLong("size")
+                val sizeInMB = String.format("%.1f", sizeInBytes / (1024.0 * 1024.0))
+                val description = when {
+                    name == "vivi.apk" -> "Universal - $sizeInMB MB (Recommended)"
+                    name.contains("arm64-v8a") -> "ARM64 - $sizeInMB MB (Modern phones)"
+                    name.contains("armeabi-v7a") -> "ARM - $sizeInMB MB (Older phones)"
+                    name.contains("x86_64") -> "x86_64 - $sizeInMB MB (Intel tablets)"
+                    name.contains("x86") -> "x86 - $sizeInMB MB (Emulators)"
+                    else -> "$sizeInMB MB"
                 }
+                apkList.add(name to description)
             }
-
-            // Sort to put vivi.apk first
-            apkList.sortedBy { if (it.first == "vivi.apk") 0 else 1 }
-        } catch (e: Exception) {
-            Log.e("ExperimentalSettings", "Error fetching APK variants: ${e.message}")
-            listOf(DEFAULT_APK_VARIANT to "Universal (Recommended)")
         }
+
+        // Sort to put vivi.apk first
+        apkList.sortedBy { if (it.first == "vivi.apk") 0 else 1 }
+    } catch (e: Exception) {
+        Log.e("ExperimentalSettings", "Error fetching APK variants: ${e.message}")
+        listOf(DEFAULT_APK_VARIANT to "Universal (Recommended)")
     }
 }
 
@@ -1248,7 +1262,11 @@ private fun shareLogFile(context: Context, file: File) {
 
         context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.share_crash_log)))
     } catch (e: Exception) {
-        Toast.makeText(context, context.getString(R.string.error_sharing_log, e.message ?: ""), Toast.LENGTH_SHORT).show()
+        Toast.makeText(
+            context,
+            context.getString(R.string.error_sharing_log, e.message ?: ""),
+            Toast.LENGTH_SHORT
+        ).show()
     }
 }
 
@@ -1283,7 +1301,10 @@ private fun openCrashLogsFolder(context: Context) {
             } catch (e2: ActivityNotFoundException) {
                 // Fallback 2: Show path and copy to clipboard
                 val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                val clip = android.content.ClipData.newPlainText(context.getString(R.string.crash_log_path), crashLogsDir.absolutePath)
+                val clip = android.content.ClipData.newPlainText(
+                    context.getString(R.string.crash_log_path),
+                    crashLogsDir.absolutePath
+                )
                 clipboard.setPrimaryClip(clip)
 
                 Toast.makeText(

@@ -3,20 +3,15 @@ package com.music.innertube.models
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class MusicEditablePlaylistDetailHeaderRenderer(
-    val header: Header,
-    val editHeader: EditHeader
-) {
+data class MusicEditablePlaylistDetailHeaderRenderer(val header: Header, val editHeader: EditHeader) {
     @Serializable
     data class Header(
         val musicDetailHeaderRenderer: MusicDetailHeaderRenderer?,
-        val musicResponsiveHeaderRenderer: MusicResponsiveHeaderRenderer?
+        val musicResponsiveHeaderRenderer: MusicResponsiveHeaderRenderer?,
     )
 
     @Serializable
-    data class EditHeader(
-        val musicPlaylistEditHeaderRenderer: MusicPlaylistEditHeaderRenderer?
-    )
+    data class EditHeader(val musicPlaylistEditHeaderRenderer: MusicPlaylistEditHeaderRenderer?)
 }
 
 @Serializable
@@ -30,6 +25,4 @@ data class MusicDetailHeaderRenderer(
 )
 
 @Serializable
-data class MusicPlaylistEditHeaderRenderer(
-    val editTitle: Runs?
-)
+data class MusicPlaylistEditHeaderRenderer(val editTitle: Runs?)

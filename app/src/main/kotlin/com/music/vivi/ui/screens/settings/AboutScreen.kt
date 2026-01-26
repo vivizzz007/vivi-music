@@ -1,10 +1,5 @@
 package com.music.vivi.ui.screens.settings
 
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -21,26 +16,21 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
-import androidx.compose.material3.MaterialShapes
-import androidx.compose.material3.toShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -50,13 +40,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
@@ -66,19 +51,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import coil3.compose.AsyncImage
 import com.music.vivi.BuildConfig
 import com.music.vivi.R
 import com.music.vivi.constants.CheckForUpdatesKey
+import com.music.vivi.constants.DarkModeKey
+import com.music.vivi.constants.SettingsShapeColorTertiaryKey
 import com.music.vivi.ui.component.IconButton
+import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.update.isNewerVersion
+import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
+import com.music.vivi.update.settingstyle.ModernInfoItem
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
-import com.music.vivi.constants.SettingsShapeColorTertiaryKey
-import com.music.vivi.constants.DarkModeKey
-import com.music.vivi.ui.screens.settings.DarkMode
-import com.music.vivi.update.isNewerVersion
-import com.music.vivi.update.settingstyle.ModernInfoItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -88,13 +73,13 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/**
+ * Screen displaying app information, "About" details, developer info, and changelog.
+ * Also handles fetching and displaying updates from GitHub.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun AboutScreen(
-    navController: NavController,
-    scrollBehavior: TopAppBarScrollBehavior,
-    onBack: (() -> Unit)? = null,
-) {
+fun AboutScreen(navController: NavController, scrollBehavior: TopAppBarScrollBehavior, onBack: (() -> Unit)? = null) {
     val (settingsShapeTertiary, _) = rememberPreference(SettingsShapeColorTertiaryKey, false)
     val (darkMode, _) = rememberEnumPreference(
         DarkModeKey,
@@ -349,22 +334,22 @@ fun AboutScreen(
                         items = listOf(
                             {
                                 ModernInfoItem(
-                                   icon = {
-                                       Image(
-                                           painter = painterResource(R.drawable.dev),
-                                           contentDescription = stringResource(R.string.developer),
-                                           modifier = Modifier.fillMaxSize(),
-                                           contentScale = ContentScale.Crop
-                                       )
-                                   },
-                                   title = stringResource(R.string.developer_name),
-                                   subtitle = stringResource(R.string.app_developer),
-                                   onClick = { uriHandler.openUri("https://github.com/vivizzz007") },
-                                   showArrow = true,
-                                   iconBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
-                                   iconShape = MaterialShapes.Circle.toShape(),
-                                   iconSize = 48.dp
-                               )
+                                    icon = {
+                                        Image(
+                                            painter = painterResource(R.drawable.dev),
+                                            contentDescription = stringResource(R.string.developer),
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    },
+                                    title = stringResource(R.string.developer_name),
+                                    subtitle = stringResource(R.string.app_developer),
+                                    onClick = { uriHandler.openUri("https://github.com/vivizzz007") },
+                                    showArrow = true,
+                                    iconBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                                    iconShape = MaterialShapes.Circle.toShape(),
+                                    iconSize = 48.dp
+                                )
                             },
                             {
                                 ModernInfoItem(
@@ -558,7 +543,7 @@ fun AboutScreen(
                                 )
                             },
                             {
-                                 ModernInfoItem(
+                                ModernInfoItem(
                                     icon = {
                                         Icon(
                                             Icons.Filled.Favorite,

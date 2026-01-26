@@ -5,6 +5,14 @@ import androidx.room.Embedded
 import androidx.room.Junction
 import androidx.room.Relation
 
+/**
+ * Represents an Album with its associated Songs and Artists.
+ * Used when retrieving full album details from the database.
+ *
+ * @property album The core Album entity.
+ * @property artists List of artists associated with the album.
+ * @property songs List of songs belonging to the album (sorted by index).
+ */
 @Immutable
 data class AlbumWithSongs(
     @Embedded
@@ -17,8 +25,8 @@ data class AlbumWithSongs(
         Junction(
             value = AlbumArtistMap::class,
             parentColumn = "albumId",
-            entityColumn = "artistId",
-        ),
+            entityColumn = "artistId"
+        )
     )
     val artists: List<ArtistEntity>,
     @Relation(
@@ -29,8 +37,8 @@ data class AlbumWithSongs(
         Junction(
             value = SortedSongAlbumMap::class,
             parentColumn = "albumId",
-            entityColumn = "songId",
-        ),
+            entityColumn = "songId"
+        )
     )
     val songs: List<Song>,
 )

@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -40,11 +39,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -52,25 +51,28 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.music.vivi.viewmodels.LyricsMenuViewModel
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.music.vivi.LocalDatabase
 import com.music.vivi.R
+import com.music.vivi.constants.LyricsLetterByLetterAnimationKey
+import com.music.vivi.constants.LyricsWordForWordKey
 import com.music.vivi.db.entities.LyricsEntity
 import com.music.vivi.db.entities.SongEntity
 import com.music.vivi.lyrics.LyricsResult
 import com.music.vivi.models.MediaMetadata
-import com.music.vivi.constants.LyricsLetterByLetterAnimationKey
-import com.music.vivi.constants.LyricsWordForWordKey
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.ListDialog
 import com.music.vivi.ui.component.TextFieldDialog
 import com.music.vivi.update.mordernswitch.ModernSwitch
 import com.music.vivi.utils.rememberPreference
-import kotlinx.coroutines.flow.StateFlow
+import com.music.vivi.viewmodels.LyricsMenuViewModel
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
-import androidx.compose.ui.graphics.RectangleShape
 
+
+/**
+ * The menu for lyrics options.
+ * Allows editing lyrics, searching for lyrics online, syncing, and toggling romanization.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun LyricsMenu(
@@ -96,7 +98,7 @@ fun LyricsMenu(
             singleLine = false,
             onDone = {
                 viewModel.updateLyrics(mediaMetadataProvider().id, it)
-            },
+            }
         )
     }
 
@@ -115,16 +117,16 @@ fun LyricsMenu(
         rememberSaveable(showSearchDialog, stateSaver = TextFieldValue.Saver) {
             mutableStateOf(
                 TextFieldValue(
-                    text = mediaMetadataProvider().title,
-                ),
+                    text = mediaMetadataProvider().title
+                )
             )
         }
     val (artistField, onArtistFieldChange) =
         rememberSaveable(showSearchDialog, stateSaver = TextFieldValue.Saver) {
             mutableStateOf(
                 TextFieldValue(
-                    text = mediaMetadataProvider().artists.joinToString { it.name },
-                ),
+                    text = mediaMetadataProvider().artists.joinToString { it.name }
+                )
             )
         }
 
@@ -143,7 +145,7 @@ fun LyricsMenu(
             title = { Text(stringResource(R.string.search_lyrics)) },
             buttons = {
                 TextButton(
-                    onClick = { showSearchDialog = false },
+                    onClick = { showSearchDialog = false }
                 ) {
                     Text(stringResource(android.R.string.cancel))
                 }
@@ -161,11 +163,11 @@ fun LyricsMenu(
                                         SearchManager.QUERY,
                                         "${artistField.text} ${titleField.text} lyrics"
                                     )
-                                },
+                                }
                             )
                         } catch (_: Exception) {
                         }
-                    },
+                    }
                 ) {
                     Text(stringResource(R.string.search_online))
                 }
@@ -183,19 +185,23 @@ fun LyricsMenu(
                         showSearchResultDialog = true
 
                         if (!isNetworkAvailable) {
-                            Toast.makeText(context, context.getString(R.string.error_no_internet), Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.error_no_internet),
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
-                    },
+                    }
                 ) {
                     Text(stringResource(android.R.string.ok))
                 }
-            },
+            }
         ) {
             OutlinedTextField(
                 value = titleField,
                 onValueChange = onTitleFieldChange,
                 singleLine = true,
-                label = { Text(stringResource(R.string.song_title)) },
+                label = { Text(stringResource(R.string.song_title)) }
             )
 
             Spacer(Modifier.height(12.dp))
@@ -204,7 +210,7 @@ fun LyricsMenu(
                 value = artistField,
                 onValueChange = onArtistFieldChange,
                 singleLine = true,
-                label = { Text(stringResource(R.string.song_artists)) },
+                label = { Text(stringResource(R.string.song_artists)) }
             )
         }
     }
@@ -218,40 +224,40 @@ fun LyricsMenu(
         }
 
         ListDialog(
-            onDismiss = { showSearchResultDialog = false },
+            onDismiss = { showSearchResultDialog = false }
         ) {
             itemsIndexed(results) { index, result ->
                 Row(
                     modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                onDismiss()
-                                viewModel.cancelSearch()
-                                viewModel.updateLyrics(searchMediaMetadata.id, result.lyrics)
-                            }
-                            .padding(12.dp)
-                            .animateContentSize(),
+                    Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            onDismiss()
+                            viewModel.cancelSearch()
+                            viewModel.updateLyrics(searchMediaMetadata.id, result.lyrics)
+                        }
+                        .padding(12.dp)
+                        .animateContentSize()
                 ) {
                     Column(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f)
                     ) {
                         Text(
                             text = result.lyrics,
                             style = MaterialTheme.typography.bodyMedium,
                             maxLines = if (index == expandedItemIndex) Int.MAX_VALUE else 2,
                             overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.padding(bottom = 4.dp),
+                            modifier = Modifier.padding(bottom = 4.dp)
                         )
 
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
                                 text = result.providerName,
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.secondary,
-                                maxLines = 1,
+                                maxLines = 1
                             )
                             if (result.lyrics.startsWith("[")) {
                                 Icon(
@@ -259,9 +265,9 @@ fun LyricsMenu(
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.secondary,
                                     modifier =
-                                        Modifier
-                                            .padding(start = 4.dp)
-                                            .size(18.dp),
+                                    Modifier
+                                        .padding(start = 4.dp)
+                                        .size(18.dp)
                                 )
                             }
                         }
@@ -270,11 +276,19 @@ fun LyricsMenu(
                     IconButton(
                         onClick = {
                             expandedItemIndex = if (expandedItemIndex == index) -1 else index
-                        },
+                        }
                     ) {
                         Icon(
-                            painter = painterResource(if (index == expandedItemIndex) R.drawable.expand_less else R.drawable.expand_more),
-                            contentDescription = null,
+                            painter = painterResource(
+                                if (index ==
+                                    expandedItemIndex
+                                ) {
+                                    R.drawable.expand_less
+                                } else {
+                                    R.drawable.expand_more
+                                }
+                            ),
+                            contentDescription = null
                         )
                     }
                 }
@@ -284,7 +298,7 @@ fun LyricsMenu(
                 item {
                     Box(
                         contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         CircularProgressIndicator()
                     }
@@ -297,8 +311,8 @@ fun LyricsMenu(
                         text = context.getString(R.string.lyrics_not_found),
                         textAlign = TextAlign.Center,
                         modifier =
-                            Modifier
-                                .fillMaxWidth(),
+                        Modifier
+                            .fillMaxWidth()
                     )
                 }
             }
@@ -318,27 +332,47 @@ fun LyricsMenu(
 
     val cornerRadius = 24.dp
     val topShape = AbsoluteSmoothCornerShape(
-        cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
-        smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
-        cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+        cornerRadiusTR = cornerRadius,
+        smoothnessAsPercentBR = 0,
+        cornerRadiusBR = 0.dp,
+        smoothnessAsPercentTL = 60,
+        cornerRadiusTL = cornerRadius,
+        smoothnessAsPercentBL = 0,
+        cornerRadiusBL = 0.dp,
+        smoothnessAsPercentTR = 60
     )
     val middleShape = RectangleShape
     val bottomShape = AbsoluteSmoothCornerShape(
-        cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-        smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
-        cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
+        cornerRadiusTR = 0.dp,
+        smoothnessAsPercentBR = 60,
+        cornerRadiusBR = cornerRadius,
+        smoothnessAsPercentTL = 0,
+        cornerRadiusTL = 0.dp,
+        smoothnessAsPercentBL = 60,
+        cornerRadiusBL = cornerRadius,
+        smoothnessAsPercentTR = 0
     )
     val singleShape = AbsoluteSmoothCornerShape(
-        cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-        smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-        cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+        cornerRadiusTR = cornerRadius,
+        smoothnessAsPercentBR = 60,
+        cornerRadiusBR = cornerRadius,
+        smoothnessAsPercentTL = 60,
+        cornerRadiusTL = cornerRadius,
+        smoothnessAsPercentBL = 60,
+        cornerRadiusBL = cornerRadius,
+        smoothnessAsPercentTR = 60
     )
 
     val evenCornerRadiusElems = 26.dp
     val playButtonShape = AbsoluteSmoothCornerShape(
-        cornerRadiusTR = evenCornerRadiusElems, smoothnessAsPercentBR = 60, cornerRadiusBR = evenCornerRadiusElems,
-        smoothnessAsPercentTL = 60, cornerRadiusTL = evenCornerRadiusElems, smoothnessAsPercentBL = 60,
-        cornerRadiusBL = evenCornerRadiusElems, smoothnessAsPercentTR = 60
+        cornerRadiusTR = evenCornerRadiusElems,
+        smoothnessAsPercentBR = 60,
+        cornerRadiusBR = evenCornerRadiusElems,
+        smoothnessAsPercentTL = 60,
+        cornerRadiusTL = evenCornerRadiusElems,
+        smoothnessAsPercentBL = 60,
+        cornerRadiusBL = evenCornerRadiusElems,
+        smoothnessAsPercentTR = 60
     )
 
     Column(
@@ -371,7 +405,7 @@ fun LyricsMenu(
                 icon = {
                     Icon(
                         painter = painterResource(R.drawable.edit),
-                        contentDescription = stringResource(R.string.edit_content_desc_menu),
+                        contentDescription = stringResource(R.string.edit_content_desc_menu)
                     )
                 },
                 text = {
@@ -399,7 +433,7 @@ fun LyricsMenu(
                 Icon(
                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
                     painter = painterResource(R.drawable.cached),
-                    contentDescription = stringResource(R.string.refetch_content_desc),
+                    contentDescription = stringResource(R.string.refetch_content_desc)
                 )
             }
 
@@ -416,7 +450,7 @@ fun LyricsMenu(
                 Icon(
                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
                     painter = painterResource(R.drawable.search),
-                    contentDescription = stringResource(R.string.search_content_desc),
+                    contentDescription = stringResource(R.string.search_content_desc)
                 )
             }
         }
@@ -441,7 +475,7 @@ fun LyricsMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.language_korean_latin),
-                    contentDescription = stringResource(R.string.romanize_icon_content_desc),
+                    contentDescription = stringResource(R.string.romanize_icon_content_desc)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -452,7 +486,13 @@ fun LyricsMenu(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        if (isRomanized) stringResource(R.string.romanization_enabled) else stringResource(R.string.romanization_disabled),
+                        if (isRomanized) {
+                            stringResource(
+                                R.string.romanization_enabled
+                            )
+                        } else {
+                            stringResource(R.string.romanization_disabled)
+                        },
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -488,7 +528,7 @@ fun LyricsMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.lyrics),
-                    contentDescription = null,
+                    contentDescription = null
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -531,7 +571,7 @@ fun LyricsMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.swipe),
-                    contentDescription = stringResource(R.string.swipe_icon_content_desc),
+                    contentDescription = stringResource(R.string.swipe_icon_content_desc)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {

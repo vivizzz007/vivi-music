@@ -346,4 +346,9 @@
     <string name="lyrics_line_spacing">Khoảng cách dòng lời</string>
     <string name="lyrics_style">Kiểu lời bài hát</string>
     <string name="login_required_premium">Cần YouTube Premium cho Chất lượng Rất Cao</string>
+    <!-- Power Saver -->
+
+    <string name="estimated_power_saved">Tiết kiệm năng lượng ước tính</string>
+    <string name="disable_animations">Tắt hoạt ảnh</string>
+    <string name="disable_animations_desc">Giảm sử dụng pin bằng cách tắt hiệu ứng hình ảnh</string>
 </resources>

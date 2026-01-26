@@ -18,6 +18,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
@@ -28,9 +30,13 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel for Auto-generated playlists (Liked, Downloaded, Uploaded).
+ * Handles sorting and filtering preferences for these special collections.
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class AutoPlaylistViewModel
+public class AutoPlaylistViewModel
 @Inject
 constructor(
     @ApplicationContext context: Context,
@@ -39,24 +45,26 @@ constructor(
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
     private val _playlist = MutableStateFlow(savedStateHandle.get<String>("playlist"))
-    val playlist = _playlist.asStateFlow()
+    public val playlist: StateFlow<String?> = _playlist.asStateFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val likedSongs =
+    public val likedSongs: StateFlow<List<com.music.vivi.db.entities.Song>> =
         context.dataStore.data
             .map {
                 Pair(
-                    it[SongSortTypeKey].toEnum(SongSortType.CREATE_DATE) to (it[SongSortDescendingKey]
-                        ?: true),
+                    it[SongSortTypeKey].toEnum(SongSortType.CREATE_DATE) to (
+                        it[SongSortDescendingKey]
+                            ?: true
+                        ),
                     it[HideExplicitKey] ?: false
                 )
             }
             .distinctUntilChanged()
             .flatMapLatest { (sortDesc, hideExplicit) ->
                 val (sortType, descending) = sortDesc
-                
+
                 _playlist.filterNotNull().flatMapLatest { playlistName ->
-                     when (playlistName) {
+                    when (playlistName) {
                         "liked" -> database.likedSongs(sortType, descending)
                             .map { it.filterExplicit(hideExplicit) }
 
@@ -72,17 +80,17 @@ constructor(
             }
             .stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.Lazily, emptyList())
 
-    fun setPlaylist(playlistParam: String) {
+    public fun setPlaylist(playlistParam: String) {
         if (_playlist.value != playlistParam) {
             _playlist.value = playlistParam
         }
     }
 
-    fun syncLikedSongs() {
+    public fun syncLikedSongs() {
         viewModelScope.launch(Dispatchers.IO) { syncUtils.syncLikedSongs() }
     }
 
-    fun syncUploadedSongs() {
+    public fun syncUploadedSongs() {
         viewModelScope.launch(Dispatchers.IO) { syncUtils.syncUploadedSongs() }
     }
 }

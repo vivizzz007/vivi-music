@@ -10,22 +10,24 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel for Account Settings screen.
+ * Handles logout and account cleanup operations.
+ */
 @HiltViewModel
-class AccountSettingsViewModel @Inject constructor(
-    private val syncUtils: SyncUtils,
-) : ViewModel() {
+public class AccountSettingsViewModel @Inject constructor(private val syncUtils: SyncUtils) : ViewModel() {
 
     /**
      * Logout user and clear all synced content to prevent data mixing between accounts
      */
-    fun logoutAndClearSyncedContent(context: Context, onCookieChange: (String) -> Unit) {
+    public fun logoutAndClearSyncedContent(context: Context, onCookieChange: (String) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             // Clear all YouTube Music synced content first
             syncUtils.clearAllSyncedContent()
-            
+
             // Then clear account preferences
             App.forgetAccount(context)
-            
+
             // Clear cookie in UI
             onCookieChange("")
         }

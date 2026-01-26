@@ -21,8 +21,12 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel for handling paged lists of items for an Artist (e.g., "Singles", "Albums" view all).
+ * Handles pagination (continuations) and applies content filters (Explicit/Video mode).
+ */
 @HiltViewModel
-class ArtistItemsViewModel
+public class ArtistItemsViewModel
 @Inject
 constructor(
     @ApplicationContext val context: Context,
@@ -31,8 +35,8 @@ constructor(
     private val browseId = savedStateHandle.get<String>("browseId")!!
     private val params = savedStateHandle.get<String>("params")
 
-    val title = MutableStateFlow("")
-    val itemsPage = MutableStateFlow<ItemsPage?>(null)
+    public val title: MutableStateFlow<String> = MutableStateFlow("")
+    public val itemsPage: MutableStateFlow<ItemsPage?> = MutableStateFlow(null)
 
     init {
         viewModelScope.launch {
@@ -40,8 +44,8 @@ constructor(
                 .artistItems(
                     BrowseEndpoint(
                         browseId = browseId,
-                        params = params,
-                    ),
+                        params = params
+                    )
                 ).onSuccess { artistItemsPage ->
                     val hideExplicit = context.dataStore.get(HideExplicitKey, false)
                     val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
@@ -52,7 +56,7 @@ constructor(
                                 .distinctBy { it.id }
                                 .filterExplicit(hideExplicit)
                                 .filterVideoSongs(hideVideoSongs),
-                            continuation = artistItemsPage.continuation,
+                            continuation = artistItemsPage.continuation
                         )
                 }.onFailure {
                     reportException(it)
@@ -60,7 +64,7 @@ constructor(
         }
     }
 
-    fun loadMore() {
+    public fun loadMore() {
         viewModelScope.launch {
             val oldItemsPage = itemsPage.value ?: return@launch
             val continuation = oldItemsPage.continuation ?: return@launch
@@ -76,7 +80,7 @@ constructor(
                                 .distinctBy { it.id }
                                 .filterExplicit(hideExplicit)
                                 .filterVideoSongs(hideVideoSongs),
-                            continuation = artistItemsContinuationPage.continuation,
+                            continuation = artistItemsContinuationPage.continuation
                         )
                     }
                 }.onFailure {

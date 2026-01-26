@@ -8,20 +8,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
-import androidx.compose.ui.draw.clip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -48,25 +43,28 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
+import com.music.vivi.constants.DarkModeKey
+import com.music.vivi.constants.SettingsShapeColorTertiaryKey
 import com.music.vivi.db.entities.Song
 import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.component.PreferenceEntry
 import com.music.vivi.ui.menu.AddToPlaylistDialogOnline
 import com.music.vivi.ui.menu.LoadingScreen
-import com.music.vivi.ui.utils.backToMain
-import com.music.vivi.update.settingstyle.ModernInfoItem
-import com.music.vivi.utils.rememberPreference
-import com.music.vivi.utils.rememberEnumPreference
-import com.music.vivi.constants.SettingsShapeColorTertiaryKey
-import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.ui.screens.settings.DarkMode
+import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
+import com.music.vivi.update.settingstyle.ModernInfoItem
+import com.music.vivi.utils.rememberEnumPreference
+import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.BackupRestoreViewModel
 import kotlinx.coroutines.delay
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+/**
+ * Screen for backing up and restoring app data (database, settings).
+ * Also supports importing playlists from external files (M3U, CSV).
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BackupAndRestore(
@@ -245,7 +243,9 @@ fun BackupAndRestore(
                             {
                                 // Backup
                                 ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.backup), null, modifier = Modifier.size(22.dp)) },
+                                    icon = {
+                                        Icon(painterResource(R.drawable.backup), null, modifier = Modifier.size(22.dp))
+                                    },
                                     title = stringResource(R.string.action_backup),
                                     subtitle = stringResource(R.string.save_data_settings),
                                     onClick = {
@@ -264,7 +264,9 @@ fun BackupAndRestore(
                             {
                                 // Restore
                                 ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.restore), null, modifier = Modifier.size(22.dp)) },
+                                    icon = {
+                                        Icon(painterResource(R.drawable.restore), null, modifier = Modifier.size(22.dp))
+                                    },
                                     title = stringResource(R.string.action_restore),
                                     subtitle = stringResource(R.string.restore_from_backup),
                                     onClick = {
@@ -301,7 +303,13 @@ fun BackupAndRestore(
                             {
                                 // Import M3U
                                 ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.playlist_add), null, modifier = Modifier.size(22.dp)) },
+                                    icon = {
+                                        Icon(
+                                            painterResource(R.drawable.playlist_add),
+                                            null,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    },
                                     title = stringResource(R.string.import_online),
                                     subtitle = stringResource(R.string.import_playlists_m3u_files),
                                     onClick = {
@@ -315,11 +323,19 @@ fun BackupAndRestore(
                             {
                                 // Import CSV
                                 ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.playlist_add), null, modifier = Modifier.size(22.dp)) },
+                                    icon = {
+                                        Icon(
+                                            painterResource(R.drawable.playlist_add),
+                                            null,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    },
                                     title = stringResource(R.string.import_csv),
                                     subtitle = stringResource(R.string.import_playlists_csv_files),
                                     onClick = {
-                                        importPlaylistFromCsv.launch(arrayOf("text/csv", "text/comma-separated-values", "application/csv"))
+                                        importPlaylistFromCsv.launch(
+                                            arrayOf("text/csv", "text/comma-separated-values", "application/csv")
+                                        )
                                     },
                                     showArrow = true,
                                     iconBackgroundColor = iconBgColor,
@@ -359,6 +375,6 @@ fun BackupAndRestore(
 
     LoadingScreen(
         isVisible = isProgressStarted,
-        value = progressPercentage,
+        value = progressPercentage
     )
 }

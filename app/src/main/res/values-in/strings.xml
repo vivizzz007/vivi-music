@@ -346,4 +346,9 @@
     <string name="lyrics_line_spacing">Spasi baris lirik</string>
     <string name="lyrics_style">Gaya Lirik</string>
     <string name="login_required_premium">YouTube Premium diperlukan untuk Kualitas Sangat Tinggi</string>
+    <!-- Power Saver -->
+
+    <string name="estimated_power_saved">Perkiraan Hemat Daya</string>
+    <string name="disable_animations">Nonaktifkan Animasi</string>
+    <string name="disable_animations_desc">Mengurangi penggunaan baterai dengan menonaktifkan efek visual</string>
 </resources>

@@ -14,12 +14,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
+import com.music.innertube.YouTube
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
 import com.music.vivi.constants.AccountChannelHandleKey
@@ -32,17 +34,18 @@ import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.utils.reportException
-import com.music.innertube.YouTube
-import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.launch
 
+/**
+ * Screen for logging into YouTube Music.
+ * Uses a WebView to intercept the authentication cookies (SAPISID, etc.).
+ * Injects JavaScript to retrieve Visitor Info and Data Sync IDs.
+ */
 @SuppressLint("SetJavaScriptEnabled")
 @OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
 @Composable
-fun LoginScreen(
-    navController: NavController,
-) {
+public fun LoginScreen(navController: NavController) {
     val coroutineScope = rememberCoroutineScope()
     var visitorData by rememberPreference(VisitorDataKey, "")
     var dataSyncId by rememberPreference(DataSyncIdKey, "")
@@ -86,20 +89,24 @@ fun LoginScreen(
                     builtInZoomControls = true
                     displayZoomControls = false
                 }
-                addJavascriptInterface(object {
-                    @JavascriptInterface
-                    fun onRetrieveVisitorData(newVisitorData: String?) {
-                        if (newVisitorData != null) {
-                            visitorData = newVisitorData
+                addJavascriptInterface(
+                    object {
+                        @JavascriptInterface
+                        fun onRetrieveVisitorData(newVisitorData: String?) {
+                            if (newVisitorData != null) {
+                                visitorData = newVisitorData
+                            }
                         }
-                    }
-                    @JavascriptInterface
-                    fun onRetrieveDataSyncId(newDataSyncId: String?) {
-                        if (newDataSyncId != null) {
-                            dataSyncId = newDataSyncId.substringBefore("||")
+
+                        @JavascriptInterface
+                        fun onRetrieveDataSyncId(newDataSyncId: String?) {
+                            if (newDataSyncId != null) {
+                                dataSyncId = newDataSyncId.substringBefore("||")
+                            }
                         }
-                    }
-                }, "Android")
+                    },
+                    "Android"
+                )
                 webView = this
                 loadUrl("https://accounts.google.com/ServiceLogin?continue=https%3A%2F%2Fmusic.youtube.com")
             }

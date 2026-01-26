@@ -7,7 +7,6 @@ import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
-import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.serialization.kotlinx.json.json
@@ -24,7 +23,7 @@ object LrcLib {
                     Json {
                         isLenient = true
                         ignoreUnknownKeys = true
-                    },
+                    }
                 )
             }
 
@@ -42,11 +41,7 @@ object LrcLib {
         }
     }
 
-    private suspend fun queryLyrics(
-        artist: String,
-        title: String,
-        album: String? = null,
-    ) = client
+    private suspend fun queryLyrics(artist: String, title: String, album: String? = null) = client
         .get("/api/search") {
             parameter("track_name", title)
             parameter("artist_name", artist)
@@ -54,12 +49,7 @@ object LrcLib {
         }.body<List<Track>>()
         .filter { it.syncedLyrics != null }
 
-    suspend fun getLyrics(
-        title: String,
-        artist: String,
-        duration: Int,
-        album: String? = null,
-    ) = runCatching {
+    suspend fun getLyrics(title: String, artist: String, duration: Int, album: String? = null) = runCatching {
         val tracks = queryLyrics(artist, title, album)
 
         val res = when {
@@ -99,7 +89,7 @@ object LrcLib {
                     val titleSimilarity = calculateStringSimilarity(title, track.trackName)
                     val artistSimilarity = calculateStringSimilarity(artist, track.artistName)
                     score += (titleSimilarity + artistSimilarity) / 2.0
-                    
+
                     score
                 }
             }
@@ -132,10 +122,10 @@ object LrcLib {
     private fun calculateStringSimilarity(str1: String, str2: String): Double {
         val s1 = str1.trim().lowercase()
         val s2 = str2.trim().lowercase()
-        
+
         if (s1 == s2) return 1.0
         if (s1.isEmpty() || s2.isEmpty()) return 0.0
-        
+
         return when {
             s1.contains(s2) || s2.contains(s1) -> 0.8
             else -> {
@@ -150,35 +140,30 @@ object LrcLib {
         val len1 = str1.length
         val len2 = str2.length
         val matrix = Array(len1 + 1) { IntArray(len2 + 1) }
-        
+
         for (i in 0..len1) matrix[i][0] = i
         for (j in 0..len2) matrix[0][j] = j
-        
+
         for (i in 1..len1) {
             for (j in 1..len2) {
                 val cost = if (str1[i - 1] == str2[j - 1]) 0 else 1
                 matrix[i][j] = minOf(
-                    matrix[i - 1][j] + 1,      // deletion
-                    matrix[i][j - 1] + 1,      // insertion
+                    matrix[i - 1][j] + 1, // deletion
+                    matrix[i][j - 1] + 1, // insertion
                     matrix[i - 1][j - 1] + cost // substitution
                 )
             }
         }
-        
+
         return matrix[len1][len2]
     }
 
-    suspend fun lyrics(
-        artist: String,
-        title: String,
-    ) = runCatching {
+    suspend fun lyrics(artist: String, title: String) = runCatching {
         queryLyrics(artist = artist, title = title, album = null)
     }
 
     @JvmInline
-    value class Lyrics(
-        val text: String,
-    ) {
+    value class Lyrics(val text: String) {
         val sentences
             get() =
                 runCatching {
@@ -192,12 +177,10 @@ object LrcLib {
                                     it[4].digitToInt() * 10000 +
                                     it[2].digitToInt() * 60 * 1000 +
                                     it[1].digitToInt() * 600 * 1000,
-                                it.substring(10),
+                                it.substring(10)
                             )
                         }
                     }
                 }.getOrNull()
     }
 }
-
-

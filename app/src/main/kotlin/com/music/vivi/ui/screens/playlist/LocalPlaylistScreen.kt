@@ -40,19 +40,17 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.graphics.RectangleShape
-import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledIconToggleButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -87,6 +85,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
@@ -146,9 +145,10 @@ import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.DraggableScrollbar
 import com.music.vivi.ui.component.EmptyPlaceholder
 import com.music.vivi.ui.component.IconButton
+import com.music.vivi.ui.component.LibrarySongListItem
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.OverlayEditButton
-import com.music.vivi.ui.component.SongListItem
+import com.music.vivi.ui.component.RoundedCheckbox
 import com.music.vivi.ui.component.SortHeader
 import com.music.vivi.ui.component.TextFieldDialog
 import com.music.vivi.ui.menu.CustomThumbnailMenu
@@ -168,18 +168,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import java.time.LocalDateTime
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.semantics.stateDescription
-import androidx.compose.material3.FilledIconToggleButton
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.IconToggleButton
-import androidx.compose.ui.text.style.TextOverflow
-import com.music.vivi.ui.component.RoundedCheckbox
 
+/**
+ * Screen for displaying a user-created local playlist.
+ * Allows editing (renaming, reordering songs, removing songs) and playback.
+ * The playlist data is stored in the local Room database.
+ */
 @SuppressLint("RememberReturnType")
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -233,7 +231,7 @@ fun LocalPlaylistScreen(
         } else {
             songs.filter { song ->
                 song.song.song.title.contains(query.text, ignoreCase = true) ||
-                        song.song.artists.fastAny { it.name.contains(query.text, ignoreCase = true) }
+                    song.song.artists.fastAny { it.name.contains(query.text, ignoreCase = true) }
             }
         }
     }
@@ -279,8 +277,8 @@ fun LocalPlaylistScreen(
                     Download.STATE_COMPLETED
                 } else if (songs.all {
                         downloads[it.song.id]?.state == Download.STATE_QUEUED ||
-                                downloads[it.song.id]?.state == Download.STATE_DOWNLOADING ||
-                                downloads[it.song.id]?.state == Download.STATE_COMPLETED
+                            downloads[it.song.id]?.state == Download.STATE_DOWNLOADING ||
+                            downloads[it.song.id]?.state == Download.STATE_COMPLETED
                     }
                 ) {
                     Download.STATE_DOWNLOADING
@@ -319,7 +317,7 @@ fun LocalPlaylistScreen(
                     viewModel.viewModelScope.launch(Dispatchers.IO) {
                         playlistEntity.browseId?.let { YouTube.renamePlaylist(it, name) }
                     }
-                },
+                }
             )
         }
     }
@@ -336,7 +334,7 @@ fun LocalPlaylistScreen(
                         playlist?.playlist!!.name
                     ),
                     style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(horizontal = 18.dp),
+                    modifier = Modifier.padding(horizontal = 18.dp)
                 )
             },
             buttons = {
@@ -363,7 +361,7 @@ fun LocalPlaylistScreen(
                 ) {
                     Text(text = stringResource(android.R.string.ok))
                 }
-            },
+            }
         )
     }
 
@@ -552,9 +550,13 @@ fun LocalPlaylistScreen(
                                         ) {
                                             Icon(
                                                 painter = painterResource(
-                                                    if (editable) R.drawable.delete
-                                                    else if (playlist.playlist.bookmarkedAt != null) R.drawable.favorite
-                                                    else R.drawable.favorite_border
+                                                    if (editable) {
+                                                        R.drawable.delete
+                                                    } else if (playlist.playlist.bookmarkedAt != null) {
+                                                        R.drawable.favorite
+                                                    } else {
+                                                        R.drawable.favorite_border
+                                                    }
                                                 ),
                                                 contentDescription = null,
                                                 modifier = Modifier.size(20.dp),
@@ -566,9 +568,15 @@ fun LocalPlaylistScreen(
                                             )
                                             Spacer(Modifier.width(8.dp))
                                             Text(
-                                                text = if (editable) stringResource(R.string.delete)
-                                                else if (playlist.playlist.bookmarkedAt != null) stringResource(R.string.saved)
-                                                else stringResource(R.string.save),
+                                                text = if (editable) {
+                                                    stringResource(R.string.delete)
+                                                } else if (playlist.playlist.bookmarkedAt !=
+                                                    null
+                                                ) {
+                                                    stringResource(R.string.saved)
+                                                } else {
+                                                    stringResource(R.string.save)
+                                                },
                                                 style = MaterialTheme.typography.labelLarge,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
@@ -580,8 +588,8 @@ fun LocalPlaylistScreen(
                                             playerConnection.playQueue(
                                                 ListQueue(
                                                     title = playlist.playlist.name,
-                                                    items = songs.map { it.song.toMediaItem() },
-                                                ),
+                                                    items = songs.map { it.song.toMediaItem() }
+                                                )
                                             )
                                         },
                                         shape = RoundedCornerShape(24.dp),
@@ -611,7 +619,7 @@ fun LocalPlaylistScreen(
                                     Surface(
                                         onClick = {
                                             playerConnection.addToQueue(
-                                                items = songs.map { it.song.toMediaItem() },
+                                                items = songs.map { it.song.toMediaItem() }
                                             )
                                         },
                                         shape = CircleShape,
@@ -636,7 +644,9 @@ fun LocalPlaylistScreen(
 
                                 Text(
                                     text = buildString {
-                                        val trackCount = if (playlist.songCount == 0 && playlist.playlist.remoteSongCount != null) {
+                                        val trackCount = if (playlist.songCount == 0 &&
+                                            playlist.playlist.remoteSongCount != null
+                                        ) {
                                             playlist.playlist.remoteSongCount ?: 0
                                         } else {
                                             playlist.songCount
@@ -654,23 +664,55 @@ fun LocalPlaylistScreen(
                                         if (hours > 0 && minutes > 0) {
                                             append(stringResource(R.string.playlist_duration_description))
                                             append(" $hours ")
-                                            append(if (hours > 1) stringResource(R.string.hours) else stringResource(R.string.hour))
+                                            append(
+                                                if (hours >
+                                                    1
+                                                ) {
+                                                    stringResource(R.string.hours)
+                                                } else {
+                                                    stringResource(R.string.hour)
+                                                }
+                                            )
                                             append(" ")
                                             append(stringResource(R.string.and))
                                             append(" $minutes ")
-                                            append(if (minutes > 1) stringResource(R.string.minutes) else stringResource(R.string.minute))
+                                            append(
+                                                if (minutes >
+                                                    1
+                                                ) {
+                                                    stringResource(R.string.minutes)
+                                                } else {
+                                                    stringResource(R.string.minute)
+                                                }
+                                            )
                                             append(" ")
                                             append(stringResource(R.string.of_music))
                                         } else if (hours > 0) {
                                             append(stringResource(R.string.playlist_duration_description))
                                             append(" $hours ")
-                                            append(if (hours > 1) stringResource(R.string.hours) else stringResource(R.string.hour))
+                                            append(
+                                                if (hours >
+                                                    1
+                                                ) {
+                                                    stringResource(R.string.hours)
+                                                } else {
+                                                    stringResource(R.string.hour)
+                                                }
+                                            )
                                             append(" ")
                                             append(stringResource(R.string.of_music))
                                         } else if (minutes > 0) {
                                             append(stringResource(R.string.playlist_duration_description))
                                             append(" $minutes ")
-                                            append(if (minutes > 1) stringResource(R.string.minutes) else stringResource(R.string.minute))
+                                            append(
+                                                if (minutes >
+                                                    1
+                                                ) {
+                                                    stringResource(R.string.minutes)
+                                                } else {
+                                                    stringResource(R.string.minute)
+                                                }
+                                            )
                                             append(" ")
                                             append(stringResource(R.string.of_music))
                                         }
@@ -695,10 +737,14 @@ fun LocalPlaylistScreen(
                                     // First row: Download, Shuffle, and Edit (if editable)
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+                                        horizontalArrangement = Arrangement.spacedBy(
+                                            ButtonGroupDefaults.ConnectedSpaceBetween
+                                        )
                                     ) {
                                         ToggleButton(
-                                            checked = downloadState == Download.STATE_COMPLETED || downloadState == Download.STATE_DOWNLOADING,
+                                            checked =
+                                            downloadState == Download.STATE_COMPLETED ||
+                                                downloadState == Download.STATE_DOWNLOADING,
                                             onCheckedChange = {
                                                 when (downloadState) {
                                                     Download.STATE_COMPLETED, Download.STATE_DOWNLOADING -> {
@@ -715,14 +761,14 @@ fun LocalPlaylistScreen(
                                                                 context,
                                                                 ExoDownloadService::class.java,
                                                                 downloadRequest,
-                                                                false,
+                                                                false
                                                             )
                                                         }
                                                     }
                                                 }
                                             },
                                             modifier = Modifier.weight(1f).semantics { role = Role.Button },
-                                            shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
+                                            shapes = ButtonGroupDefaults.connectedLeadingButtonShapes()
                                         ) {
                                             when (downloadState) {
                                                 Download.STATE_COMPLETED -> {
@@ -764,8 +810,8 @@ fun LocalPlaylistScreen(
                                                 playerConnection.playQueue(
                                                     ListQueue(
                                                         title = playlist.playlist.name,
-                                                        items = songs.shuffled().map { it.song.toMediaItem() },
-                                                    ),
+                                                        items = songs.shuffled().map { it.song.toMediaItem() }
+                                                    )
                                                 )
                                             },
                                             modifier = Modifier.weight(1f).semantics { role = Role.Button },
@@ -773,7 +819,7 @@ fun LocalPlaylistScreen(
                                                 editable -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                                                 playlist.playlist.browseId != null -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                                                 else -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                                            },
+                                            }
                                         ) {
                                             Icon(
                                                 painter = painterResource(R.drawable.shuffle),
@@ -781,9 +827,11 @@ fun LocalPlaylistScreen(
                                                 modifier = Modifier.size(20.dp)
                                             )
                                             Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                                            Text(stringResource(R.string.shuffle_label), style = MaterialTheme.typography.labelMedium)
+                                            Text(
+                                                stringResource(R.string.shuffle_label),
+                                                style = MaterialTheme.typography.labelMedium
+                                            )
                                         }
-
 
                                         // Show Sync button in first row only if NOT editable
                                         if (!editable && playlist.playlist.browseId != null) {
@@ -811,11 +859,13 @@ fun LocalPlaylistScreen(
                                                         }
                                                     }
                                                     coroutineScope.launch(Dispatchers.Main) {
-                                                        snackbarHostState.showSnackbar(context.getString(R.string.playlist_synced))
+                                                        snackbarHostState.showSnackbar(
+                                                            context.getString(R.string.playlist_synced)
+                                                        )
                                                     }
                                                 },
                                                 modifier = Modifier.weight(1f).semantics { role = Role.Button },
-                                                shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
+                                                shapes = ButtonGroupDefaults.connectedTrailingButtonShapes()
                                             ) {
                                                 Icon(
                                                     painter = painterResource(R.drawable.sync),
@@ -823,7 +873,10 @@ fun LocalPlaylistScreen(
                                                     modifier = Modifier.size(20.dp)
                                                 )
                                                 Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                                                Text(stringResource(R.string.sync_label), style = MaterialTheme.typography.labelMedium)
+                                                Text(
+                                                    stringResource(R.string.sync_label),
+                                                    style = MaterialTheme.typography.labelMedium
+                                                )
                                             }
                                         }
 
@@ -835,7 +888,7 @@ fun LocalPlaylistScreen(
                                                     showEditDialog = true
                                                 },
                                                 modifier = Modifier.weight(1f).semantics { role = Role.Button },
-                                                shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
+                                                shapes = ButtonGroupDefaults.connectedTrailingButtonShapes()
                                             ) {
                                                 Icon(
                                                     painter = painterResource(R.drawable.edit),
@@ -843,7 +896,10 @@ fun LocalPlaylistScreen(
                                                     modifier = Modifier.size(20.dp)
                                                 )
                                                 Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                                                Text(stringResource(R.string.edit_label), style = MaterialTheme.typography.labelMedium)
+                                                Text(
+                                                    stringResource(R.string.edit_label),
+                                                    style = MaterialTheme.typography.labelMedium
+                                                )
                                             }
                                         }
                                     }
@@ -873,11 +929,13 @@ fun LocalPlaylistScreen(
                                                     }
                                                 }
                                                 coroutineScope.launch(Dispatchers.Main) {
-                                                    snackbarHostState.showSnackbar(context.getString(R.string.playlist_synced))
+                                                    snackbarHostState.showSnackbar(
+                                                        context.getString(R.string.playlist_synced)
+                                                    )
                                                 }
                                             },
                                             modifier = Modifier.fillMaxWidth().semantics { role = Role.Button },
-                                            shapes = ToggleButtonDefaults.shapes(),
+                                            shapes = ToggleButtonDefaults.shapes()
                                         ) {
                                             Icon(
                                                 painter = painterResource(R.drawable.sync),
@@ -885,7 +943,10 @@ fun LocalPlaylistScreen(
                                                 modifier = Modifier.size(20.dp)
                                             )
                                             Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                                            Text(stringResource(R.string.sync_label), style = MaterialTheme.typography.labelMedium)
+                                            Text(
+                                                stringResource(R.string.sync_label),
+                                                style = MaterialTheme.typography.labelMedium
+                                            )
                                         }
                                     }
                                 }
@@ -902,7 +963,7 @@ fun LocalPlaylistScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
                             ) {
                                 SortHeader(
                                     sortType = sortType,
@@ -1002,15 +1063,20 @@ fun LocalPlaylistScreen(
 
                                 LaunchedEffect(dismissBoxState.currentValue) {
                                     if (swipeRemoveEnabled &&
-                                        (dismissBoxState.currentValue == SwipeToDismissBoxValue.StartToEnd ||
-                                                dismissBoxState.currentValue == SwipeToDismissBoxValue.EndToStart)) {
+                                        (
+                                            dismissBoxState.currentValue == SwipeToDismissBoxValue.StartToEnd ||
+                                                dismissBoxState.currentValue == SwipeToDismissBoxValue.EndToStart
+                                            )
+                                    ) {
                                         deleteFromPlaylist()
                                     }
                                 }
 
                                 AnimatedVisibility(
                                     visible = isVisible,
-                                    exit = shrinkVertically(animationSpec = tween(300)) + fadeOut(animationSpec = tween(300))
+                                    exit =
+                                    shrinkVertically(animationSpec = tween(300)) +
+                                        fadeOut(animationSpec = tween(300))
                                 ) {
                                     Column(
                                         modifier = Modifier.padding(horizontal = 16.dp)
@@ -1020,24 +1086,39 @@ fun LocalPlaylistScreen(
 
                                             val topShape = remember(cornerRadius) {
                                                 AbsoluteSmoothCornerShape(
-                                                    cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
-                                                    smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
-                                                    cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+                                                    cornerRadiusTR = cornerRadius,
+                                                    smoothnessAsPercentBR = 0,
+                                                    cornerRadiusBR = 0.dp,
+                                                    smoothnessAsPercentTL = 60,
+                                                    cornerRadiusTL = cornerRadius,
+                                                    smoothnessAsPercentBL = 0,
+                                                    cornerRadiusBL = 0.dp,
+                                                    smoothnessAsPercentTR = 60
                                                 )
                                             }
                                             val middleShape = remember { RectangleShape }
                                             val bottomShape = remember(cornerRadius) {
                                                 AbsoluteSmoothCornerShape(
-                                                    cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-                                                    smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
-                                                    cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
+                                                    cornerRadiusTR = 0.dp,
+                                                    smoothnessAsPercentBR = 60,
+                                                    cornerRadiusBR = cornerRadius,
+                                                    smoothnessAsPercentTL = 0,
+                                                    cornerRadiusTL = 0.dp,
+                                                    smoothnessAsPercentBL = 60,
+                                                    cornerRadiusBL = cornerRadius,
+                                                    smoothnessAsPercentTR = 0
                                                 )
                                             }
                                             val singleShape = remember(cornerRadius) {
                                                 AbsoluteSmoothCornerShape(
-                                                    cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-                                                    smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-                                                    cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+                                                    cornerRadiusTR = cornerRadius,
+                                                    smoothnessAsPercentBR = 60,
+                                                    cornerRadiusBR = cornerRadius,
+                                                    smoothnessAsPercentTL = 60,
+                                                    cornerRadiusTL = cornerRadius,
+                                                    smoothnessAsPercentBL = 60,
+                                                    cornerRadiusBL = cornerRadius,
+                                                    smoothnessAsPercentTR = 60
                                                 )
                                             }
 
@@ -1056,17 +1137,19 @@ fun LocalPlaylistScreen(
                                                     .height(ListItemHeight)
                                                     .clip(shape)
                                                     .background(
-                                                        if (isActive) MaterialTheme.colorScheme.secondaryContainer
-                                                        else MaterialTheme.colorScheme.surfaceContainer
+                                                        if (isActive) {
+                                                            MaterialTheme.colorScheme.secondaryContainer
+                                                        } else {
+                                                            MaterialTheme.colorScheme.surfaceContainer
+                                                        }
                                                     )
                                             ) {
-                                                SongListItem(
+                                                LibrarySongListItem(
                                                     song = song.song,
                                                     isActive = isActive,
                                                     isPlaying = isPlaying,
                                                     showInLibraryIcon = true,
                                                     isSwipeable = false,
-                                                    drawHighlight = false,
                                                     trailingContent = {
                                                         IconButton(
                                                             onClick = {
@@ -1076,29 +1159,61 @@ fun LocalPlaylistScreen(
                                                                         playlistSong = song,
                                                                         playlistBrowseId = playlist.playlist.browseId,
                                                                         navController = navController,
-                                                                        onDismiss = menuState::dismiss,
+                                                                        onDismiss = menuState::dismiss
                                                                     )
                                                                 }
-                                                            },
+                                                            }
                                                         ) {
                                                             Icon(
                                                                 painter = painterResource(R.drawable.more_vert),
-                                                                contentDescription = null,
+                                                                contentDescription = null
                                                             )
                                                         }
 
-                                                        if (sortType == PlaylistSongSortType.CUSTOM && !locked && !isSearching && editable) {
+                                                        if (sortType == PlaylistSongSortType.CUSTOM &&
+                                                            !locked &&
+                                                            !isSearching &&
+                                                            editable
+                                                        ) {
                                                             IconButton(
                                                                 onClick = { },
-                                                                modifier = Modifier.draggableHandle(),
+                                                                modifier = Modifier.draggableHandle()
                                                             ) {
                                                                 Icon(
                                                                     painter = painterResource(R.drawable.drag_handle),
-                                                                    contentDescription = null,
+                                                                    contentDescription = null
                                                                 )
                                                             }
                                                         }
                                                     },
+                                                    isSelected = false, // Not using selection here directly as per original? Wait, original had no selection params here?
+                                                    // Original code snippet for FIRST SongListItem:
+                                                    // song = song.song, isActive, isPlaying, showInLibraryIcon=true, isSwipeable=false, drawHighlight=false
+                                                    // trailingContent includes menu and drag handle.
+                                                    // modifier combinedClickable with onClick and onLongClick for selection.
+
+                                                    // LibrarySongListItem has isSelected and inSelectionMode params.
+                                                    // But here logic is handled via modifier.
+                                                    // I should pass isSelected = false (or check wrappedSongs? this is mutableSongs loop).
+                                                    // Wait, selection logic in LocalPlaylistScreen uses `wrappedSongs` for selection mode, but `itemsIndexed` iterates `if (isSearching) filteredSongs else mutableSongs`.
+                                                    // `filteredSongs` are wrappers?
+                                                    // filteredSongs logic:
+                                                    // if query empty -> songs (mutableSongs?) No.
+                                                    // val filteredSongs = remember(songs, query) { ... songs.filter ... }
+                                                    // See line 230: filteredSongs handles `songs` (List<PlaylistSong>).
+                                                    // `wrappedSongs` (line 250) wraps filteredSongs.
+
+                                                    // Wait, `itemsIndexed` at line 956 uses `if (isSearching) filteredSongs else mutableSongs`.
+                                                    // `mutableSongs` is list of contents.
+                                                    // `filteredSongs` is list of contents.
+                                                    // `wrappedSongs` is list of `ItemWrapper` used when `selection` is true?
+
+                                                    // Line 955: `if (!selection)`.
+                                                    // So here selection is FALSE.
+                                                    // So I should pass `inSelectionMode = false`.
+
+                                                    inSelectionMode = false,
+                                                    onSelectionChange = {},
                                                     modifier = Modifier
                                                         .fillMaxSize()
                                                         .combinedClickable(
@@ -1110,20 +1225,28 @@ fun LocalPlaylistScreen(
                                                                         ListQueue(
                                                                             title = playlist.playlist.name,
                                                                             items = songs.map { it.song.toMediaItem() },
-                                                                            startIndex = songs.indexOfFirst { it.map.id == song.map.id },
-                                                                        ),
+                                                                            startIndex = songs.indexOfFirst {
+                                                                                it.map.id ==
+                                                                                    song.map.id
+                                                                            }
+                                                                        )
                                                                     )
                                                                 }
                                                             },
                                                             onLongClick = {
-                                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                                haptic.performHapticFeedback(
+                                                                    HapticFeedbackType.LongPress
+                                                                )
                                                                 if (!selection) {
                                                                     selection = true
                                                                 }
                                                                 wrappedSongs.forEach { it.isSelected = false }
-                                                                wrappedSongs.find { it.item.map.id == song.map.id }?.isSelected = true
-                                                            },
-                                                        ),
+                                                                wrappedSongs.find {
+                                                                    it.item.map.id == song.map.id
+                                                                }?.isSelected =
+                                                                    true
+                                                            }
+                                                        )
                                                 )
                                             }
                                         }
@@ -1137,7 +1260,8 @@ fun LocalPlaylistScreen(
                                                     val color by animateColorAsState(
                                                         targetValue = when (dismissBoxState.dismissDirection) {
                                                             SwipeToDismissBoxValue.StartToEnd,
-                                                            SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.errorContainer
+                                                            SwipeToDismissBoxValue.EndToStart,
+                                                            -> MaterialTheme.colorScheme.errorContainer
                                                             else -> Color.Transparent
                                                         },
                                                         label = "swipe_background_color"
@@ -1146,24 +1270,39 @@ fun LocalPlaylistScreen(
 
                                                     val topShape = remember(cornerRadius) {
                                                         AbsoluteSmoothCornerShape(
-                                                            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
-                                                            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
-                                                            cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+                                                            cornerRadiusTR = cornerRadius,
+                                                            smoothnessAsPercentBR = 0,
+                                                            cornerRadiusBR = 0.dp,
+                                                            smoothnessAsPercentTL = 60,
+                                                            cornerRadiusTL = cornerRadius,
+                                                            smoothnessAsPercentBL = 0,
+                                                            cornerRadiusBL = 0.dp,
+                                                            smoothnessAsPercentTR = 60
                                                         )
                                                     }
                                                     val middleShape = remember { RectangleShape }
                                                     val bottomShape = remember(cornerRadius) {
                                                         AbsoluteSmoothCornerShape(
-                                                            cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-                                                            smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
-                                                            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
+                                                            cornerRadiusTR = 0.dp,
+                                                            smoothnessAsPercentBR = 60,
+                                                            cornerRadiusBR = cornerRadius,
+                                                            smoothnessAsPercentTL = 0,
+                                                            cornerRadiusTL = 0.dp,
+                                                            smoothnessAsPercentBL = 60,
+                                                            cornerRadiusBL = cornerRadius,
+                                                            smoothnessAsPercentTR = 0
                                                         )
                                                     }
                                                     val singleShape = remember(cornerRadius) {
                                                         AbsoluteSmoothCornerShape(
-                                                            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-                                                            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-                                                            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+                                                            cornerRadiusTR = cornerRadius,
+                                                            smoothnessAsPercentBR = 60,
+                                                            cornerRadiusBR = cornerRadius,
+                                                            smoothnessAsPercentTL = 60,
+                                                            cornerRadiusTL = cornerRadius,
+                                                            smoothnessAsPercentBL = 60,
+                                                            cornerRadiusBL = cornerRadius,
+                                                            smoothnessAsPercentTR = 60
                                                         )
                                                     }
 
@@ -1191,7 +1330,7 @@ fun LocalPlaylistScreen(
                                                             modifier = Modifier.size(24.dp)
                                                         )
                                                     }
-                                                },
+                                                }
                                             ) {
                                                 songContent()
                                             }
@@ -1243,15 +1382,20 @@ fun LocalPlaylistScreen(
 
                                 LaunchedEffect(dismissBoxState.currentValue) {
                                     if (swipeRemoveEnabled &&
-                                        (dismissBoxState.currentValue == SwipeToDismissBoxValue.StartToEnd ||
-                                                dismissBoxState.currentValue == SwipeToDismissBoxValue.EndToStart)) {
+                                        (
+                                            dismissBoxState.currentValue == SwipeToDismissBoxValue.StartToEnd ||
+                                                dismissBoxState.currentValue == SwipeToDismissBoxValue.EndToStart
+                                            )
+                                    ) {
                                         deleteFromPlaylist()
                                     }
                                 }
 
                                 AnimatedVisibility(
                                     visible = isVisible,
-                                    exit = shrinkVertically(animationSpec = tween(300)) + fadeOut(animationSpec = tween(300))
+                                    exit =
+                                    shrinkVertically(animationSpec = tween(300)) +
+                                        fadeOut(animationSpec = tween(300))
                                 ) {
                                     Column(
                                         modifier = Modifier.padding(horizontal = 16.dp)
@@ -1261,24 +1405,39 @@ fun LocalPlaylistScreen(
 
                                             val topShape = remember(cornerRadius) {
                                                 AbsoluteSmoothCornerShape(
-                                                    cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
-                                                    smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
-                                                    cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+                                                    cornerRadiusTR = cornerRadius,
+                                                    smoothnessAsPercentBR = 0,
+                                                    cornerRadiusBR = 0.dp,
+                                                    smoothnessAsPercentTL = 60,
+                                                    cornerRadiusTL = cornerRadius,
+                                                    smoothnessAsPercentBL = 0,
+                                                    cornerRadiusBL = 0.dp,
+                                                    smoothnessAsPercentTR = 60
                                                 )
                                             }
                                             val middleShape = remember { RectangleShape }
                                             val bottomShape = remember(cornerRadius) {
                                                 AbsoluteSmoothCornerShape(
-                                                    cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-                                                    smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
-                                                    cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
+                                                    cornerRadiusTR = 0.dp,
+                                                    smoothnessAsPercentBR = 60,
+                                                    cornerRadiusBR = cornerRadius,
+                                                    smoothnessAsPercentTL = 0,
+                                                    cornerRadiusTL = 0.dp,
+                                                    smoothnessAsPercentBL = 60,
+                                                    cornerRadiusBL = cornerRadius,
+                                                    smoothnessAsPercentTR = 0
                                                 )
                                             }
                                             val singleShape = remember(cornerRadius) {
                                                 AbsoluteSmoothCornerShape(
-                                                    cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-                                                    smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-                                                    cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+                                                    cornerRadiusTR = cornerRadius,
+                                                    smoothnessAsPercentBR = 60,
+                                                    cornerRadiusBR = cornerRadius,
+                                                    smoothnessAsPercentTL = 60,
+                                                    cornerRadiusTL = cornerRadius,
+                                                    smoothnessAsPercentBL = 60,
+                                                    cornerRadiusBL = cornerRadius,
+                                                    smoothnessAsPercentTR = 60
                                                 )
                                             }
 
@@ -1297,17 +1456,19 @@ fun LocalPlaylistScreen(
                                                     .height(ListItemHeight)
                                                     .clip(shape)
                                                     .background(
-                                                        if (isActive) MaterialTheme.colorScheme.secondaryContainer
-                                                        else MaterialTheme.colorScheme.surfaceContainer
+                                                        if (isActive) {
+                                                            MaterialTheme.colorScheme.secondaryContainer
+                                                        } else {
+                                                            MaterialTheme.colorScheme.surfaceContainer
+                                                        }
                                                     )
                                             ) {
-                                                SongListItem(
+                                                LibrarySongListItem(
                                                     song = songWrapper.item.song,
                                                     isActive = isActive,
                                                     isPlaying = isPlaying,
                                                     showInLibraryIcon = true,
                                                     isSwipeable = false,
-                                                    drawHighlight = false,
                                                     trailingContent = {
                                                         IconButton(
                                                             onClick = {
@@ -1317,25 +1478,29 @@ fun LocalPlaylistScreen(
                                                                         playlistSong = songWrapper.item,
                                                                         playlistBrowseId = playlist.playlist.browseId,
                                                                         navController = navController,
-                                                                        onDismiss = menuState::dismiss,
+                                                                        onDismiss = menuState::dismiss
                                                                     )
                                                                 }
-                                                            },
+                                                            }
                                                         ) {
                                                             Icon(
                                                                 painter = painterResource(R.drawable.more_vert),
-                                                                contentDescription = null,
+                                                                contentDescription = null
                                                             )
                                                         }
 
-                                                        if (sortType == PlaylistSongSortType.CUSTOM && !locked && !isSearching && editable) {
+                                                        if (sortType == PlaylistSongSortType.CUSTOM &&
+                                                            !locked &&
+                                                            !isSearching &&
+                                                            editable
+                                                        ) {
                                                             IconButton(
                                                                 onClick = { },
-                                                                modifier = Modifier.draggableHandle(),
+                                                                modifier = Modifier.draggableHandle()
                                                             ) {
                                                                 Icon(
                                                                     painter = painterResource(R.drawable.drag_handle),
-                                                                    contentDescription = null,
+                                                                    contentDescription = null
                                                                 )
                                                             }
                                                         }
@@ -1350,14 +1515,16 @@ fun LocalPlaylistScreen(
                                                                 songWrapper.isSelected = !songWrapper.isSelected
                                                             },
                                                             onLongClick = {
-                                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                                haptic.performHapticFeedback(
+                                                                    HapticFeedbackType.LongPress
+                                                                )
                                                                 if (!selection) {
                                                                     selection = true
                                                                 }
                                                                 wrappedSongs.forEach { it.isSelected = false }
                                                                 songWrapper.isSelected = true
-                                                            },
-                                                        ),
+                                                            }
+                                                        )
                                                 )
                                             }
                                         }
@@ -1371,7 +1538,8 @@ fun LocalPlaylistScreen(
                                                     val color by animateColorAsState(
                                                         targetValue = when (dismissBoxState.dismissDirection) {
                                                             SwipeToDismissBoxValue.StartToEnd,
-                                                            SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.errorContainer
+                                                            SwipeToDismissBoxValue.EndToStart,
+                                                            -> MaterialTheme.colorScheme.errorContainer
                                                             else -> Color.Transparent
                                                         },
                                                         label = "swipe_background_color"
@@ -1380,24 +1548,39 @@ fun LocalPlaylistScreen(
 
                                                     val topShape = remember(cornerRadius) {
                                                         AbsoluteSmoothCornerShape(
-                                                            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
-                                                            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
-                                                            cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+                                                            cornerRadiusTR = cornerRadius,
+                                                            smoothnessAsPercentBR = 0,
+                                                            cornerRadiusBR = 0.dp,
+                                                            smoothnessAsPercentTL = 60,
+                                                            cornerRadiusTL = cornerRadius,
+                                                            smoothnessAsPercentBL = 0,
+                                                            cornerRadiusBL = 0.dp,
+                                                            smoothnessAsPercentTR = 60
                                                         )
                                                     }
                                                     val middleShape = remember { RectangleShape }
                                                     val bottomShape = remember(cornerRadius) {
                                                         AbsoluteSmoothCornerShape(
-                                                            cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-                                                            smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
-                                                            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
+                                                            cornerRadiusTR = 0.dp,
+                                                            smoothnessAsPercentBR = 60,
+                                                            cornerRadiusBR = cornerRadius,
+                                                            smoothnessAsPercentTL = 0,
+                                                            cornerRadiusTL = 0.dp,
+                                                            smoothnessAsPercentBL = 60,
+                                                            cornerRadiusBL = cornerRadius,
+                                                            smoothnessAsPercentTR = 0
                                                         )
                                                     }
                                                     val singleShape = remember(cornerRadius) {
                                                         AbsoluteSmoothCornerShape(
-                                                            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-                                                            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-                                                            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+                                                            cornerRadiusTR = cornerRadius,
+                                                            smoothnessAsPercentBR = 60,
+                                                            cornerRadiusBR = cornerRadius,
+                                                            smoothnessAsPercentTL = 60,
+                                                            cornerRadiusTL = cornerRadius,
+                                                            smoothnessAsPercentBL = 60,
+                                                            cornerRadiusBL = cornerRadius,
+                                                            smoothnessAsPercentTR = 60
                                                         )
                                                     }
 
@@ -1425,7 +1608,7 @@ fun LocalPlaylistScreen(
                                                             modifier = Modifier.size(24.dp)
                                                         )
                                                     }
-                                                },
+                                                }
                                             ) {
                                                 songContent()
                                             }
@@ -1484,7 +1667,7 @@ fun LocalPlaylistScreen(
                             unfocusedContainerColor = Color.Transparent,
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
-                            disabledIndicatorColor = Color.Transparent,
+                            disabledIndicatorColor = Color.Transparent
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -1548,7 +1731,7 @@ fun LocalPlaylistScreen(
                                     }
                                 )
                             }
-                        },
+                        }
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.more_vert),
@@ -1572,10 +1755,10 @@ fun LocalPlaylistScreen(
                                     PlaylistMenu(
                                         playlist = playlistData,
                                         coroutineScope = coroutineScope,
-                                        onDismiss = menuState::dismiss,
+                                        onDismiss = menuState::dismiss
                                     )
                                 }
-                            },
+                            }
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.more_vert),
@@ -1597,7 +1780,7 @@ fun LocalPlaylistScreen(
             hostState = snackbarHostState,
             modifier = Modifier
                 .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.union(WindowInsets.ime))
-                .align(Alignment.BottomCenter),
+                .align(Alignment.BottomCenter)
         )
     }
 }
@@ -1608,7 +1791,7 @@ fun PlaylistThumbnail(
     editable: Boolean,
     menuState: com.music.vivi.ui.component.MenuState,
     snackbarHostState: SnackbarHostState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current
@@ -1688,7 +1871,9 @@ fun PlaylistThumbnail(
                         }
                     }.onFailure {
                         if (it is ClientRequestException) {
-                            snackbarHostState.showSnackbar("${it.response.status.value} ${it.response.status.description}")
+                            snackbarHostState.showSnackbar(
+                                "${it.response.status.value} ${it.response.status.description}"
+                            )
                         }
                         reportException(it)
                     }
@@ -1758,7 +1943,9 @@ fun PlaylistThumbnail(
                                     CustomThumbnailMenu(
                                         onEdit = {
                                             pickLauncher.launch(
-                                                PickVisualMediaRequest(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                                PickVisualMediaRequest(
+                                                    mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly
+                                                )
                                             )
                                         },
                                         onRemove = {
@@ -1771,10 +1958,16 @@ fun PlaylistThumbnail(
                                                 }
                                                 else -> {
                                                     scope.launch(Dispatchers.IO) {
-                                                        YouTube.removeThumbnailPlaylist(playlist.playlist.browseId).onSuccess { newThumbnailUrl ->
+                                                        YouTube.removeThumbnailPlaylist(
+                                                            playlist.playlist.browseId
+                                                        ).onSuccess { newThumbnailUrl ->
                                                             overrideThumbnail.value = newThumbnailUrl
                                                             database.query {
-                                                                update(playlist.playlist.copy(thumbnailUrl = newThumbnailUrl))
+                                                                update(
+                                                                    playlist.playlist.copy(
+                                                                        thumbnailUrl = newThumbnailUrl
+                                                                    )
+                                                                )
                                                             }
                                                         }
                                                     }
@@ -1800,7 +1993,7 @@ fun PlaylistThumbnail(
                     Alignment.TopStart,
                     Alignment.TopEnd,
                     Alignment.BottomStart,
-                    Alignment.BottomEnd,
+                    Alignment.BottomEnd
                 ).fastForEachIndexed { index, alignment ->
                     AsyncImage(
                         model = ImageRequest.Builder(context)
@@ -1822,7 +2015,9 @@ fun PlaylistThumbnail(
                                     CustomThumbnailMenu(
                                         onEdit = {
                                             pickLauncher.launch(
-                                                PickVisualMediaRequest(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                                PickVisualMediaRequest(
+                                                    mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly
+                                                )
                                             )
                                         },
                                         onRemove = {
@@ -1835,10 +2030,16 @@ fun PlaylistThumbnail(
                                                 }
                                                 else -> {
                                                     scope.launch(Dispatchers.IO) {
-                                                        YouTube.removeThumbnailPlaylist(playlist.playlist.browseId).onSuccess { newThumbnailUrl ->
+                                                        YouTube.removeThumbnailPlaylist(
+                                                            playlist.playlist.browseId
+                                                        ).onSuccess { newThumbnailUrl ->
                                                             overrideThumbnail.value = newThumbnailUrl
                                                             database.query {
-                                                                update(playlist.playlist.copy(thumbnailUrl = newThumbnailUrl))
+                                                                update(
+                                                                    playlist.playlist.copy(
+                                                                        thumbnailUrl = newThumbnailUrl
+                                                                    )
+                                                                )
                                                             }
                                                         }
                                                     }
@@ -1861,10 +2062,8 @@ fun PlaylistThumbnail(
     }
 }
 
-fun uriToByteArray(context: Context, uri: Uri): ByteArray? {
-    return try {
-        context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
-    } catch (_: SecurityException) {
-        null
-    }
+fun uriToByteArray(context: Context, uri: Uri): ByteArray? = try {
+    context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+} catch (_: SecurityException) {
+    null
 }

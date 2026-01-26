@@ -1,0 +1,627 @@
+Reusing configuration cache.
+> Task :lastfm:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:preBuild UP-TO-DATE
+> Task :innertube:processResources NO-SOURCE
+> Task :betterlyrics:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :lrclib:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:generateX86FossDebugAssets UP-TO-DATE
+> Task :app:generateX86StandardDebugAssets UP-TO-DATE
+> Task :app:generateX86_64FossDebugAssets UP-TO-DATE
+> Task :kugou:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :kizzy:processResources NO-SOURCE
+> Task :app:generateX86_64StandardDebugAssets UP-TO-DATE
+> Task :app:preArm64FossDebugBuild UP-TO-DATE
+> Task :lrclib:processResources NO-SOURCE
+> Task :betterlyrics:processResources NO-SOURCE
+> Task :kugou:processResources NO-SOURCE
+> Task :app:generateArm64FossDebugBuildConfig UP-TO-DATE
+> Task :app:generateArm64StandardDebugAssets UP-TO-DATE
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :lastfm:processResources NO-SOURCE
+> Task :app:generateArmeabiStandardDebugAssets UP-TO-DATE
+> Task :innertube:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :kizzy:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:generateArmeabiFossDebugAssets UP-TO-DATE
+> Task :app:generateArm64FossDebugAssets UP-TO-DATE
+> Task :app:generateUniversalFossDebugAssets UP-TO-DATE
+> Task :app:mergeArm64FossDebugNativeDebugMetadata NO-SOURCE
+> Task :app:generateUniversalStandardDebugAssets UP-TO-DATE
+> Task :app:preArm64StandardDebugBuild UP-TO-DATE
+> Task :app:mergeArm64StandardDebugNativeDebugMetadata NO-SOURCE
+> Task :app:checkArm64FossDebugAarMetadata UP-TO-DATE
+> Task :app:mergeArm64FossDebugJniLibFolders UP-TO-DATE
+> Task :app:processArm64FossDebugNavigationResources UP-TO-DATE
+> Task :app:writeArm64FossDebugAppMetadata UP-TO-DATE
+> Task :app:javaPreCompileArm64FossDebug UP-TO-DATE
+> Task :app:createArm64FossDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:l8DexDesugarLibArm64FossDebug UP-TO-DATE
+> Task :app:generateArm64StandardDebugBuildConfig UP-TO-DATE
+> Task :app:validateSigningArm64FossDebug UP-TO-DATE
+> Task :app:writeArm64FossDebugSigningConfigVersions UP-TO-DATE
+> Task :app:desugarArm64FossDebugFileDependencies UP-TO-DATE
+> Task :app:checkArm64FossDebugDuplicateClasses UP-TO-DATE
+> Task :app:compileArm64FossDebugNavigationResources UP-TO-DATE
+> Task :app:generateArm64StandardDebugResValues UP-TO-DATE
+> Task :app:processArm64StandardDebugNavigationResources UP-TO-DATE
+> Task :app:createArm64StandardDebugCompatibleScreenManifests UP-TO-DATE
+> Task :lastfm:compileKotlin UP-TO-DATE
+> Task :app:javaPreCompileArm64StandardDebug UP-TO-DATE
+> Task :app:checkArm64StandardDebugAarMetadata UP-TO-DATE
+> Task :app:mergeArm64StandardDebugJniLibFolders UP-TO-DATE
+> Task :lrclib:compileKotlin UP-TO-DATE
+> Task :betterlyrics:compileKotlin UP-TO-DATE
+> Task :lastfm:compileJava NO-SOURCE
+> Task :lastfm:classes UP-TO-DATE
+> Task :app:l8DexDesugarLibArm64StandardDebug UP-TO-DATE
+> Task :app:generateArm64FossDebugResValues UP-TO-DATE
+> Task :app:writeArm64StandardDebugAppMetadata UP-TO-DATE
+> Task :lrclib:compileJava NO-SOURCE
+> Task :app:extractDeepLinksArm64StandardDebug UP-TO-DATE
+> Task :app:validateSigningArm64StandardDebug UP-TO-DATE
+> Task :betterlyrics:compileJava NO-SOURCE
+> Task :app:extractArm64StandardDebugSupportedLocales UP-TO-DATE
+> Task :lrclib:classes UP-TO-DATE
+> Task :betterlyrics:classes UP-TO-DATE
+> Task :lastfm:jar UP-TO-DATE
+> Task :app:generateArm64StandardDebugResources UP-TO-DATE
+> Task :app:compileArm64StandardDebugNavigationResources UP-TO-DATE
+> Task :app:mergeArm64StandardDebugAssets UP-TO-DATE
+> Task :app:mergeArm64FossDebugAssets UP-TO-DATE
+> Task :app:extractArm64FossDebugSupportedLocales UP-TO-DATE
+> Task :betterlyrics:jar UP-TO-DATE
+> Task :app:extractDeepLinksArm64FossDebug UP-TO-DATE
+> Task :app:checkArm64StandardDebugDuplicateClasses UP-TO-DATE
+> Task :app:generateArm64FossDebugResources UP-TO-DATE
+> Task :app:desugarArm64StandardDebugFileDependencies UP-TO-DATE
+> Task :innertube:compileKotlin UP-TO-DATE
+> Task :kizzy:compileKotlin UP-TO-DATE
+> Task :lrclib:jar UP-TO-DATE
+> Task :kugou:compileKotlin UP-TO-DATE
+> Task :app:mapArm64StandardDebugSourceSetPaths UP-TO-DATE
+> Task :app:compressArm64FossDebugAssets UP-TO-DATE
+> Task :app:preArmeabiFossDebugBuild UP-TO-DATE
+> Task :kizzy:compileJava NO-SOURCE
+> Task :app:mergeArmeabiFossDebugNativeDebugMetadata NO-SOURCE
+> Task :app:writeArm64StandardDebugSigningConfigVersions UP-TO-DATE
+> Task :app:mergeExtDexArm64FossDebug UP-TO-DATE
+> Task :app:compressArm64StandardDebugAssets UP-TO-DATE
+> Task :kizzy:classes UP-TO-DATE
+> Task :app:mapArm64FossDebugSourceSetPaths UP-TO-DATE
+> Task :app:generateArmeabiFossDebugBuildConfig UP-TO-DATE
+> Task :kugou:compileJava NO-SOURCE
+> Task :kugou:classes UP-TO-DATE
+> Task :innertube:compileJava NO-SOURCE
+> Task :innertube:classes UP-TO-DATE
+> Task :app:generateArmeabiFossDebugResValues UP-TO-DATE
+> Task :app:mergeArmeabiFossDebugAssets UP-TO-DATE
+> Task :app:generateArm64FossDebugLocaleConfig UP-TO-DATE
+> Task :app:createArmeabiFossDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:generateArm64StandardDebugLocaleConfig UP-TO-DATE
+> Task :app:javaPreCompileArmeabiFossDebug UP-TO-DATE
+> Task :kugou:jar UP-TO-DATE
+> Task :app:l8DexDesugarLibArmeabiFossDebug UP-TO-DATE
+> Task :kizzy:jar UP-TO-DATE
+> Task :app:extractArmeabiFossDebugSupportedLocales UP-TO-DATE
+> Task :innertube:jar UP-TO-DATE
+> Task :app:generateArmeabiFossDebugLocaleConfig UP-TO-DATE
+> Task :app:packageArm64StandardDebugResources UP-TO-DATE
+> Task :app:generateArmeabiFossDebugResources UP-TO-DATE
+> Task :app:mergeArm64FossDebugResources UP-TO-DATE
+> Task :app:extractDeepLinksArmeabiFossDebug UP-TO-DATE
+> Task :app:compressArmeabiFossDebugAssets UP-TO-DATE
+> Task :app:desugarArmeabiFossDebugFileDependencies UP-TO-DATE
+> Task :app:mergeArmeabiFossDebugJniLibFolders UP-TO-DATE
+> Task :app:writeArmeabiFossDebugAppMetadata UP-TO-DATE
+> Task :app:validateSigningArmeabiFossDebug UP-TO-DATE
+> Task :app:parseArm64StandardDebugLocalResources UP-TO-DATE
+> Task :app:preUniversalFossDebugBuild UP-TO-DATE
+> Task :app:mergeUniversalFossDebugNativeDebugMetadata NO-SOURCE
+> Task :app:writeArmeabiFossDebugSigningConfigVersions UP-TO-DATE
+> Task :app:preArmeabiStandardDebugBuild UP-TO-DATE
+> Task :app:generateUniversalFossDebugBuildConfig UP-TO-DATE
+> Task :app:mergeArmeabiStandardDebugNativeDebugMetadata NO-SOURCE
+> Task :app:mergeArm64StandardDebugNativeLibs UP-TO-DATE
+> Task :app:generateArmeabiStandardDebugBuildConfig UP-TO-DATE
+> Task :app:mergeLibDexArm64StandardDebug UP-TO-DATE
+> Task :app:stripArm64StandardDebugDebugSymbols UP-TO-DATE
+> Task :app:packageArm64FossDebugResources UP-TO-DATE
+> Task :app:generateArmeabiStandardDebugResValues UP-TO-DATE
+> Task :app:createArmeabiStandardDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:mergeArm64FossDebugNativeLibs UP-TO-DATE
+> Task :app:parseArm64FossDebugLocalResources UP-TO-DATE
+> Task :app:mergeArmeabiFossDebugNativeLibs UP-TO-DATE
+> Task :app:generateArmeabiStandardDebugResources UP-TO-DATE
+> Task :app:mergeArmeabiFossDebugResources UP-TO-DATE
+> Task :app:stripArm64FossDebugDebugSymbols UP-TO-DATE
+> Task :app:processArm64StandardDebugMainManifest UP-TO-DATE
+> Task :app:packageArmeabiFossDebugResources UP-TO-DATE
+> Task :app:processArm64StandardDebugManifest UP-TO-DATE
+> Task :app:extractArmeabiStandardDebugSupportedLocales UP-TO-DATE
+> Task :app:stripArmeabiFossDebugDebugSymbols UP-TO-DATE
+> Task :app:checkUniversalFossDebugAarMetadata UP-TO-DATE
+> Task :app:extractDeepLinksArmeabiStandardDebug UP-TO-DATE
+> Task :app:processArm64StandardDebugManifestForPackage UP-TO-DATE
+> Task :app:generateArmeabiStandardDebugLocaleConfig UP-TO-DATE
+> Task :app:l8DexDesugarLibArmeabiStandardDebug UP-TO-DATE
+> Task :app:mapArmeabiFossDebugSourceSetPaths UP-TO-DATE
+> Task :app:desugarArmeabiStandardDebugFileDependencies UP-TO-DATE
+> Task :app:mergeArmeabiStandardDebugJniLibFolders UP-TO-DATE
+> Task :app:validateSigningArmeabiStandardDebug UP-TO-DATE
+> Task :app:writeArmeabiStandardDebugSigningConfigVersions UP-TO-DATE
+> Task :app:writeArmeabiStandardDebugAppMetadata UP-TO-DATE
+> Task :app:javaPreCompileArmeabiStandardDebug UP-TO-DATE
+> Task :app:createUniversalFossDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:generateUniversalFossDebugResValues UP-TO-DATE
+> Task :app:mergeArmeabiStandardDebugAssets UP-TO-DATE
+> Task :app:compressArmeabiStandardDebugAssets UP-TO-DATE
+> Task :app:checkArmeabiFossDebugAarMetadata UP-TO-DATE
+> Task :app:packageArmeabiStandardDebugResources UP-TO-DATE
+> Task :app:mergeLibDexArm64FossDebug UP-TO-DATE
+> Task :app:mergeUniversalFossDebugAssets UP-TO-DATE
+> Task :app:mergeArm64StandardDebugResources UP-TO-DATE
+> Task :app:generateUniversalFossDebugResources UP-TO-DATE
+> Task :app:extractUniversalFossDebugSupportedLocales UP-TO-DATE
+> Task :app:generateUniversalFossDebugLocaleConfig UP-TO-DATE
+> Task :app:compressUniversalFossDebugAssets UP-TO-DATE
+> Task :app:mergeArmeabiStandardDebugNativeLibs UP-TO-DATE
+> Task :app:extractDeepLinksUniversalFossDebug UP-TO-DATE
+> Task :app:javaPreCompileUniversalFossDebug UP-TO-DATE
+> Task :app:processArmeabiFossDebugMainManifest UP-TO-DATE
+> Task :app:stripArmeabiStandardDebugDebugSymbols UP-TO-DATE
+> Task :app:l8DexDesugarLibUniversalFossDebug UP-TO-DATE
+> Task :app:processArmeabiFossDebugManifest UP-TO-DATE
+> Task :app:desugarUniversalFossDebugFileDependencies UP-TO-DATE
+> Task :app:packageUniversalFossDebugResources UP-TO-DATE
+> Task :app:processArmeabiFossDebugManifestForPackage UP-TO-DATE
+> Task :app:mergeUniversalFossDebugJniLibFolders UP-TO-DATE
+> Task :app:processArmeabiFossDebugNavigationResources UP-TO-DATE
+> Task :app:validateSigningUniversalFossDebug UP-TO-DATE
+> Task :app:writeUniversalFossDebugAppMetadata UP-TO-DATE
+> Task :app:preUniversalStandardDebugBuild UP-TO-DATE
+> Task :app:writeUniversalFossDebugSigningConfigVersions UP-TO-DATE
+> Task :app:compileArmeabiFossDebugNavigationResources UP-TO-DATE
+> Task :app:mergeUniversalStandardDebugNativeDebugMetadata NO-SOURCE
+> Task :app:generateUniversalStandardDebugBuildConfig UP-TO-DATE
+> Task :app:parseArmeabiFossDebugLocalResources UP-TO-DATE
+> Task :app:generateUniversalStandardDebugResValues UP-TO-DATE
+> Task :app:mergeUniversalFossDebugNativeLibs UP-TO-DATE
+> Task :app:stripUniversalFossDebugDebugSymbols UP-TO-DATE
+> Task :app:mergeExtDexArm64StandardDebug UP-TO-DATE
+> Task :app:processArmeabiStandardDebugNavigationResources UP-TO-DATE
+> Task :app:mapArmeabiStandardDebugSourceSetPaths UP-TO-DATE
+> Task :app:compileArmeabiStandardDebugNavigationResources UP-TO-DATE
+> Task :app:extractUniversalStandardDebugSupportedLocales UP-TO-DATE
+> Task :app:parseArmeabiStandardDebugLocalResources UP-TO-DATE
+> Task :app:generateUniversalStandardDebugResources UP-TO-DATE
+> Task :app:createUniversalStandardDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:generateUniversalStandardDebugLocaleConfig UP-TO-DATE
+> Task :app:mergeArmeabiStandardDebugResources UP-TO-DATE
+> Task :app:extractDeepLinksUniversalStandardDebug UP-TO-DATE
+> Task :app:mergeUniversalStandardDebugAssets UP-TO-DATE
+> Task :app:processArm64FossDebugMainManifest UP-TO-DATE
+> Task :app:compressUniversalStandardDebugAssets UP-TO-DATE
+> Task :app:packageUniversalStandardDebugResources UP-TO-DATE
+> Task :app:processArm64FossDebugManifest UP-TO-DATE
+> Task :app:mapUniversalFossDebugSourceSetPaths UP-TO-DATE
+> Task :app:processArm64FossDebugManifestForPackage UP-TO-DATE
+> Task :app:l8DexDesugarLibUniversalStandardDebug UP-TO-DATE
+> Task :app:javaPreCompileUniversalStandardDebug UP-TO-DATE
+> Task :app:desugarUniversalStandardDebugFileDependencies UP-TO-DATE
+> Task :app:validateSigningUniversalStandardDebug UP-TO-DATE
+> Task :app:writeUniversalStandardDebugAppMetadata UP-TO-DATE
+> Task :app:mergeUniversalStandardDebugJniLibFolders UP-TO-DATE
+> Task :app:preX86FossDebugBuild UP-TO-DATE
+> Task :app:writeUniversalStandardDebugSigningConfigVersions UP-TO-DATE
+> Task :app:mergeX86FossDebugNativeDebugMetadata NO-SOURCE
+> Task :app:generateX86FossDebugBuildConfig UP-TO-DATE
+> Task :app:mergeUniversalFossDebugResources UP-TO-DATE
+> Task :app:mergeUniversalStandardDebugNativeLibs UP-TO-DATE
+> Task :app:generateX86FossDebugResValues UP-TO-DATE
+> Task :app:stripUniversalStandardDebugDebugSymbols UP-TO-DATE
+> Task :app:checkArmeabiStandardDebugAarMetadata UP-TO-DATE
+> Task :app:processUniversalFossDebugNavigationResources UP-TO-DATE
+> Task :app:generateX86FossDebugResources UP-TO-DATE
+> Task :app:extractX86FossDebugSupportedLocales UP-TO-DATE
+> Task :app:compileUniversalFossDebugNavigationResources UP-TO-DATE
+> Task :app:createX86FossDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:checkUniversalStandardDebugAarMetadata UP-TO-DATE
+> Task :app:generateX86FossDebugLocaleConfig UP-TO-DATE
+> Task :app:mapUniversalStandardDebugSourceSetPaths UP-TO-DATE
+> Task :app:extractDeepLinksX86FossDebug UP-TO-DATE
+> Task :app:parseUniversalFossDebugLocalResources UP-TO-DATE
+> Task :app:processUniversalStandardDebugNavigationResources UP-TO-DATE
+> Task :app:packageX86FossDebugResources UP-TO-DATE
+> Task :app:compileUniversalStandardDebugNavigationResources UP-TO-DATE
+> Task :app:mergeUniversalStandardDebugResources UP-TO-DATE
+> Task :app:mergeX86FossDebugAssets UP-TO-DATE
+> Task :app:compressX86FossDebugAssets UP-TO-DATE
+> Task :app:parseUniversalStandardDebugLocalResources UP-TO-DATE
+> Task :app:desugarX86FossDebugFileDependencies UP-TO-DATE
+> Task :app:mergeX86FossDebugJniLibFolders UP-TO-DATE
+> Task :app:javaPreCompileX86FossDebug UP-TO-DATE
+> Task :app:l8DexDesugarLibX86FossDebug UP-TO-DATE
+> Task :app:validateSigningX86FossDebug UP-TO-DATE
+> Task :app:writeX86FossDebugAppMetadata UP-TO-DATE
+> Task :app:preX86StandardDebugBuild UP-TO-DATE
+> Task :app:preX86_64FossDebugBuild UP-TO-DATE
+> Task :app:writeX86FossDebugSigningConfigVersions UP-TO-DATE
+> Task :app:mergeX86StandardDebugNativeDebugMetadata NO-SOURCE
+> Task :app:generateX86StandardDebugBuildConfig UP-TO-DATE
+> Task :app:processArmeabiStandardDebugMainManifest UP-TO-DATE
+> Task :app:generateX86StandardDebugResValues UP-TO-DATE
+> Task :app:processArmeabiStandardDebugManifest UP-TO-DATE
+> Task :app:mergeX86FossDebugNativeLibs UP-TO-DATE
+> Task :app:stripX86FossDebugDebugSymbols UP-TO-DATE
+> Task :app:processArmeabiStandardDebugManifestForPackage UP-TO-DATE
+> Task :app:checkArmeabiFossDebugDuplicateClasses UP-TO-DATE
+> Task :app:processUniversalFossDebugMainManifest UP-TO-DATE
+> Task :app:extractX86StandardDebugSupportedLocales UP-TO-DATE
+> Task :app:processUniversalFossDebugManifest UP-TO-DATE
+> Task :app:processUniversalFossDebugManifestForPackage UP-TO-DATE
+> Task :app:mergeLibDexArmeabiFossDebug UP-TO-DATE
+> Task :app:mapX86FossDebugSourceSetPaths UP-TO-DATE
+> Task :app:generateX86StandardDebugLocaleConfig UP-TO-DATE
+> Task :app:createX86StandardDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:generateX86StandardDebugResources UP-TO-DATE
+> Task :app:extractDeepLinksX86StandardDebug UP-TO-DATE
+> Task :app:checkArmeabiStandardDebugDuplicateClasses UP-TO-DATE
+> Task :app:checkUniversalFossDebugDuplicateClasses UP-TO-DATE
+> Task :app:processX86FossDebugNavigationResources UP-TO-DATE
+> Task :app:packageX86StandardDebugResources UP-TO-DATE
+> Task :app:processArmeabiFossDebugResources UP-TO-DATE
+> Task :app:checkX86FossDebugAarMetadata UP-TO-DATE
+> Task :app:mergeX86FossDebugResources UP-TO-DATE
+> Task :app:processX86StandardDebugNavigationResources UP-TO-DATE
+> Task :app:compileX86FossDebugNavigationResources UP-TO-DATE
+> Task :app:mergeLibDexArmeabiStandardDebug UP-TO-DATE
+> Task :app:compileX86StandardDebugNavigationResources UP-TO-DATE
+> Task :app:processUniversalStandardDebugMainManifest UP-TO-DATE
+> Task :app:parseX86FossDebugLocalResources UP-TO-DATE
+> Task :app:parseX86StandardDebugLocalResources UP-TO-DATE
+> Task :app:processUniversalStandardDebugManifest UP-TO-DATE
+> Task :app:mergeLibDexUniversalFossDebug UP-TO-DATE
+> Task :app:processUniversalStandardDebugManifestForPackage UP-TO-DATE
+> Task :app:mergeX86StandardDebugAssets UP-TO-DATE
+> Task :app:compressX86StandardDebugAssets UP-TO-DATE
+> Task :app:mapX86StandardDebugSourceSetPaths UP-TO-DATE
+> Task :app:l8DexDesugarLibX86StandardDebug UP-TO-DATE
+> Task :app:desugarX86StandardDebugFileDependencies UP-TO-DATE
+> Task :app:validateSigningX86StandardDebug UP-TO-DATE
+> Task :app:writeX86StandardDebugAppMetadata UP-TO-DATE
+> Task :app:writeX86StandardDebugSigningConfigVersions UP-TO-DATE
+> Task :app:mergeX86_64FossDebugNativeDebugMetadata NO-SOURCE
+> Task :app:generateX86_64FossDebugBuildConfig UP-TO-DATE
+> Task :app:mergeX86StandardDebugJniLibFolders UP-TO-DATE
+> Task :app:mergeX86StandardDebugResources UP-TO-DATE
+> Task :app:generateX86_64FossDebugResValues UP-TO-DATE
+> Task :app:javaPreCompileX86StandardDebug UP-TO-DATE
+> Task :app:mergeX86StandardDebugNativeLibs UP-TO-DATE
+> Task :app:stripX86StandardDebugDebugSymbols UP-TO-DATE
+> Task :app:extractX86_64FossDebugSupportedLocales UP-TO-DATE
+> Task :app:processX86FossDebugMainManifest UP-TO-DATE
+> Task :app:generateX86_64FossDebugLocaleConfig UP-TO-DATE
+> Task :app:processX86FossDebugManifest UP-TO-DATE
+> Task :app:checkX86StandardDebugAarMetadata UP-TO-DATE
+> Task :app:generateX86_64FossDebugResources UP-TO-DATE
+> Task :app:createX86_64FossDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:processX86FossDebugManifestForPackage UP-TO-DATE
+> Task :app:processArm64StandardDebugResources UP-TO-DATE
+> Task :app:extractDeepLinksX86_64FossDebug UP-TO-DATE
+> Task :app:packageX86_64FossDebugResources UP-TO-DATE
+> Task :app:processArm64FossDebugResources UP-TO-DATE
+> Task :app:checkUniversalStandardDebugDuplicateClasses UP-TO-DATE
+> Task :app:javaPreCompileX86_64FossDebug UP-TO-DATE
+> Task :app:processX86_64FossDebugNavigationResources UP-TO-DATE
+> Task :app:mapX86_64FossDebugSourceSetPaths UP-TO-DATE
+> Task :app:compileX86_64FossDebugNavigationResources UP-TO-DATE
+> Task :app:parseX86_64FossDebugLocalResources UP-TO-DATE
+> Task :app:mergeX86_64FossDebugAssets UP-TO-DATE
+> Task :app:compressX86_64FossDebugAssets UP-TO-DATE
+> Task :app:mergeLibDexUniversalStandardDebug UP-TO-DATE
+> Task :app:l8DexDesugarLibX86_64FossDebug UP-TO-DATE
+> Task :app:desugarX86_64FossDebugFileDependencies UP-TO-DATE
+> Task :app:validateSigningX86_64FossDebug UP-TO-DATE
+> Task :app:mergeX86_64FossDebugJniLibFolders UP-TO-DATE
+> Task :app:writeX86_64FossDebugAppMetadata UP-TO-DATE
+> Task :app:writeX86_64FossDebugSigningConfigVersions UP-TO-DATE
+> Task :app:preX86_64StandardDebugBuild UP-TO-DATE
+> Task :app:mergeX86_64StandardDebugNativeDebugMetadata NO-SOURCE
+> Task :app:checkX86_64FossDebugAarMetadata UP-TO-DATE
+> Task :app:generateX86_64StandardDebugBuildConfig UP-TO-DATE
+> Task :app:mergeX86_64FossDebugResources UP-TO-DATE
+> Task :app:mergeX86_64FossDebugNativeLibs UP-TO-DATE
+> Task :app:generateX86_64StandardDebugResValues UP-TO-DATE
+> Task :app:checkX86FossDebugDuplicateClasses UP-TO-DATE
+> Task :app:stripX86_64FossDebugDebugSymbols UP-TO-DATE
+> Task :app:processX86StandardDebugMainManifest UP-TO-DATE
+> Task :app:mergeExtDexArmeabiFossDebug UP-TO-DATE
+> Task :app:processUniversalFossDebugResources UP-TO-DATE
+> Task :app:processX86StandardDebugManifest UP-TO-DATE
+> Task :app:processX86StandardDebugManifestForPackage UP-TO-DATE
+> Task :app:mergeLibDexX86FossDebug UP-TO-DATE
+> Task :app:extractX86_64StandardDebugSupportedLocales UP-TO-DATE
+> Task :app:generateX86_64StandardDebugLocaleConfig UP-TO-DATE
+> Task :app:generateX86_64StandardDebugResources UP-TO-DATE
+> Task :app:processArmeabiStandardDebugResources UP-TO-DATE
+> Task :app:packageX86_64StandardDebugResources UP-TO-DATE
+> Task :app:createX86_64StandardDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:mergeExtDexArmeabiStandardDebug UP-TO-DATE
+> Task :app:extractDeepLinksX86_64StandardDebug UP-TO-DATE
+> Task :app:processX86_64FossDebugMainManifest UP-TO-DATE
+> Task :app:kspArmeabiFossDebugKotlin UP-TO-DATE
+> Task :app:processX86_64FossDebugManifest UP-TO-DATE
+> Task :app:processX86_64FossDebugManifestForPackage UP-TO-DATE
+> Task :app:mergeExtDexUniversalFossDebug UP-TO-DATE
+> Task :app:javaPreCompileX86_64StandardDebug UP-TO-DATE
+> Task :app:mergeX86_64StandardDebugAssets UP-TO-DATE
+> Task :app:compressX86_64StandardDebugAssets UP-TO-DATE
+> Task :app:l8DexDesugarLibX86_64StandardDebug UP-TO-DATE
+> Task :app:desugarX86_64StandardDebugFileDependencies UP-TO-DATE
+> Task :app:mapX86_64StandardDebugSourceSetPaths UP-TO-DATE
+> Task :app:validateSigningX86_64StandardDebug UP-TO-DATE
+> Task :app:mergeX86_64StandardDebugJniLibFolders UP-TO-DATE
+> Task :app:writeX86_64StandardDebugAppMetadata UP-TO-DATE
+> Task :app:writeX86_64StandardDebugSigningConfigVersions UP-TO-DATE
+> Task :app:checkX86_64StandardDebugAarMetadata UP-TO-DATE
+> Task :app:processUniversalStandardDebugResources UP-TO-DATE
+> Task :app:mergeX86_64StandardDebugNativeLibs UP-TO-DATE
+> Task :app:processX86_64StandardDebugNavigationResources UP-TO-DATE
+> Task :app:stripX86_64StandardDebugDebugSymbols UP-TO-DATE
+> Task :app:compileX86_64StandardDebugNavigationResources UP-TO-DATE
+> Task :app:checkX86StandardDebugDuplicateClasses UP-TO-DATE
+> Task :app:parseX86_64StandardDebugLocalResources UP-TO-DATE
+> Task :app:processX86FossDebugResources UP-TO-DATE
+> Task :app:mergeLibDexX86StandardDebug UP-TO-DATE
+> Task :app:mergeX86_64StandardDebugResources UP-TO-DATE
+> Task :app:mergeExtDexUniversalStandardDebug UP-TO-DATE
+> Task :app:kspArm64StandardDebugKotlin UP-TO-DATE
+> Task :app:kspArm64FossDebugKotlin UP-TO-DATE
+> Task :app:processX86StandardDebugResources UP-TO-DATE
+> Task :app:checkX86_64FossDebugDuplicateClasses UP-TO-DATE
+> Task :app:processX86_64StandardDebugMainManifest UP-TO-DATE
+> Task :app:processX86_64StandardDebugManifest UP-TO-DATE
+> Task :app:processX86_64StandardDebugManifestForPackage UP-TO-DATE
+> Task :app:mergeLibDexX86_64FossDebug UP-TO-DATE
+> Task :app:mergeExtDexX86FossDebug UP-TO-DATE
+> Task :app:processX86_64FossDebugResources UP-TO-DATE
+> Task :app:kspUniversalFossDebugKotlin UP-TO-DATE
+> Task :app:mergeExtDexX86StandardDebug UP-TO-DATE
+> Task :app:kspArmeabiStandardDebugKotlin UP-TO-DATE
+> Task :app:checkX86_64StandardDebugDuplicateClasses UP-TO-DATE
+> Task :app:mergeLibDexX86_64StandardDebug UP-TO-DATE
+> Task :app:mergeExtDexX86_64FossDebug UP-TO-DATE
+> Task :app:processX86_64StandardDebugResources UP-TO-DATE
+> Task :app:kspX86FossDebugKotlin UP-TO-DATE
+> Task :app:kspUniversalStandardDebugKotlin UP-TO-DATE
+> Task :app:kspX86StandardDebugKotlin UP-TO-DATE
+> Task :app:mergeExtDexX86_64StandardDebug UP-TO-DATE
+> Task :app:kspX86_64FossDebugKotlin UP-TO-DATE
+> Task :app:kspX86_64StandardDebugKotlin UP-TO-DATE
+
+> Task :app:compileUniversalFossDebugKotlin FAILED
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/PlayerSlider.kt:26:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/LyricsMenu.kt:76:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlayerMenu.kt:91:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlayerMenu.kt:92:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlaylistMenu.kt:89:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlaylistMenu.kt:90:1 This annotation is not repeatable.
+
+> Task :app:compileX86FossDebugKotlin
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/PlayerSlider.kt:26:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/LyricsMenu.kt:76:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlayerMenu.kt:91:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlayerMenu.kt:92:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlaylistMenu.kt:89:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlaylistMenu.kt:90:1 This annotation is not repeatable.
+
+> Task :app:compileX86FossDebugKotlin FAILED
+
+> Task :app:compileX86_64StandardDebugKotlin FAILED
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/PlayerSlider.kt:26:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/LyricsMenu.kt:76:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlayerMenu.kt:91:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlayerMenu.kt:92:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlaylistMenu.kt:89:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlaylistMenu.kt:90:1 This annotation is not repeatable.
+
+> Task :app:compileX86StandardDebugKotlin FAILED
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/PlayerSlider.kt:26:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/LyricsMenu.kt:76:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlayerMenu.kt:91:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlayerMenu.kt:92:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlaylistMenu.kt:89:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlaylistMenu.kt:90:1 This annotation is not repeatable.
+
+> Task :app:compileUniversalStandardDebugKotlin FAILED
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/PlayerSlider.kt:26:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/LyricsMenu.kt:76:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlayerMenu.kt:91:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlayerMenu.kt:92:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlaylistMenu.kt:89:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlaylistMenu.kt:90:1 This annotation is not repeatable.
+
+> Task :app:compileArm64StandardDebugKotlin FAILED
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/PlayerSlider.kt:26:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/LyricsMenu.kt:76:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlayerMenu.kt:91:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlayerMenu.kt:92:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlaylistMenu.kt:89:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlaylistMenu.kt:90:1 This annotation is not repeatable.
+
+> Task :app:compileArm64FossDebugKotlin FAILED
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/PlayerSlider.kt:26:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/LyricsMenu.kt:76:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlayerMenu.kt:91:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlayerMenu.kt:92:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlaylistMenu.kt:89:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlaylistMenu.kt:90:1 This annotation is not repeatable.
+
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/PlayerSlider.kt:26:1 This annotation is not repeatable.
+> Task :app:compileX86_64FossDebugKotlin FAILED
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/LyricsMenu.kt:76:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlayerMenu.kt:91:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlayerMenu.kt:92:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlaylistMenu.kt:89:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlaylistMenu.kt:90:1 This annotation is not repeatable.
+
+> Task :app:compileArmeabiFossDebugKotlin FAILED
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/PlayerSlider.kt:26:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/LyricsMenu.kt:76:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlayerMenu.kt:91:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlayerMenu.kt:92:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlaylistMenu.kt:89:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlaylistMenu.kt:90:1 This annotation is not repeatable.
+
+> Task :app:compileArmeabiStandardDebugKotlin FAILED
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/component/PlayerSlider.kt:26:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/LyricsMenu.kt:76:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlayerMenu.kt:91:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlayerMenu.kt:92:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlaylistMenu.kt:89:1 This annotation is not repeatable.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/ui/menu/PlaylistMenu.kt:90:1 This annotation is not repeatable.
+
+FAILURE: Build completed with 10 failures.
+
+1: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':app:compileUniversalFossDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+2: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':app:compileX86FossDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+3: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':app:compileX86_64StandardDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+4: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':app:compileX86StandardDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+5: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':app:compileUniversalStandardDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+6: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':app:compileArm64StandardDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+7: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':app:compileArm64FossDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+8: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':app:compileX86_64FossDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+9: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':app:compileArmeabiFossDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+10: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':app:compileArmeabiStandardDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+BUILD FAILED in 25s
+352 actionable tasks: 10 executed, 342 up-to-date
+Configuration cache entry reused.

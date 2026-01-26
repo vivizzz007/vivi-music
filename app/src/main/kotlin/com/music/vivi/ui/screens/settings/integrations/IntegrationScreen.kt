@@ -9,11 +9,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
-import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -22,6 +20,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -29,18 +28,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
-import com.music.vivi.ui.component.*
-import com.music.vivi.ui.utils.backToMain
-import com.music.vivi.update.settingstyle.ModernInfoItem
-import com.music.vivi.utils.rememberPreference
-import com.music.vivi.utils.rememberEnumPreference
-import com.music.vivi.constants.SettingsShapeColorTertiaryKey
 import com.music.vivi.constants.DarkModeKey
+import com.music.vivi.constants.SettingsShapeColorTertiaryKey
+import com.music.vivi.ui.component.*
 import com.music.vivi.ui.screens.settings.DarkMode
-import androidx.compose.runtime.remember
-
+import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
+import com.music.vivi.update.settingstyle.ModernInfoItem
+import com.music.vivi.utils.rememberEnumPreference
+import com.music.vivi.utils.rememberPreference
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,7 +81,7 @@ fun IntegrationScreen(
             TopAppBar(
                 title = {
 //                    Text(
-////                        text = stringResource(R.string.integrations),
+// //                        text = stringResource(R.string.integrations),
 //                        style = MaterialTheme.typography.titleLarge
 //                    )
                 },

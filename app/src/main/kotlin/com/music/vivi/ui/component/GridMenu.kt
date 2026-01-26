@@ -35,10 +35,14 @@ import androidx.media3.exoplayer.offline.Download
 import com.music.vivi.R
 import com.music.vivi.utils.makeTimeString
 
-val GridMenuItemHeight = 108.dp
+public val GridMenuItemHeight: androidx.compose.ui.unit.Dp = 108.dp
 
+/**
+ * A grid-based menu layout.
+ * Used for bottom sheet menus that have a grid of actions (e.g. Download, Share, Add to Playlist).
+ */
 @Composable
-fun GridMenu(
+public fun GridMenu(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     content: LazyGridScope.() -> Unit,
@@ -51,7 +55,7 @@ fun GridMenu(
     )
 }
 
-fun LazyGridScope.GridMenuItem(
+public fun LazyGridScope.GridMenuItem(
     modifier: Modifier = Modifier,
     @DrawableRes icon: Int,
     tint: @Composable () -> Color = { LocalContentColor.current },
@@ -72,7 +76,7 @@ fun LazyGridScope.GridMenuItem(
     onClick = onClick
 )
 
-fun LazyGridScope.GridMenuItem(
+public fun LazyGridScope.GridMenuItem(
     modifier: Modifier = Modifier,
     icon: @Composable BoxScope.() -> Unit,
     @StringRes title: Int,
@@ -105,16 +109,17 @@ fun LazyGridScope.GridMenuItem(
                 maxLines = 2,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(with(LocalDensity.current) {
-                        MaterialTheme.typography.labelLarge.lineHeight.toDp() * 2
-                    })
+                    .height(
+                        with(LocalDensity.current) {
+                            MaterialTheme.typography.labelLarge.lineHeight.toDp() * 2
+                        }
+                    )
             )
         }
     }
 }
 
-
-fun LazyGridScope.DownloadGridMenu(
+public fun LazyGridScope.DownloadGridMenu(
     @Download.State state: Int?,
     onRemoveDownload: () -> Unit,
     onDownload: () -> Unit,
@@ -151,11 +156,11 @@ fun LazyGridScope.DownloadGridMenu(
     }
 }
 
-fun LazyGridScope.SleepTimerGridMenu(
+public fun LazyGridScope.SleepTimerGridMenu(
     modifier: Modifier = Modifier,
     sleepTimerTimeLeft: Long,
     enabled: Boolean = true,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     item {
         Column(
@@ -181,9 +186,13 @@ fun LazyGridScope.SleepTimerGridMenu(
                 }
             )
             Text(
-                text = if (enabled) makeTimeString(sleepTimerTimeLeft) else stringResource(
-                    id = R.string.sleep_timer
-                ),
+                text = if (enabled) {
+                    makeTimeString(sleepTimerTimeLeft)
+                } else {
+                    stringResource(
+                        id = R.string.sleep_timer
+                    )
+                },
                 style = MaterialTheme.typography.labelLarge,
                 textAlign = TextAlign.Center,
                 maxLines = 2,

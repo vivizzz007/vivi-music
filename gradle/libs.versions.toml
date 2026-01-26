@@ -1,19 +1,19 @@
 [versions]
-androidGradlePlugin = "8.13.0"
+androidGradlePlugin = "9.0.0"
 annotation = "1.9.1"
 json = "20250517"
-kotlin = "2.2.10"
-compose = "1.9.4"
-lifecycle = "2.9.4"
-material3 = "1.5.0-alpha11"
+kotlin = "2.3.0"
+compose = "1.10.1"
+lifecycle = "2.10.0"
+material3 = "1.5.0-alpha12"
 appcompat = "1.7.1"
 media3 = "1.7.1"
 material3Adaptive = "1.0.0"
-room = "2.7.2"
-hilt = "2.57.1"
-ktor = "3.3.0"
-ksp = "2.2.20-2.0.3"
-jsoup = "1.21.2"
+room = "2.8.0-alpha01"
+hilt = "2.59"
+ktor = "3.4.0"
+ksp = "2.3.0"
+jsoup = "1.22.1"
 multidex = "2.0.1"
 coil = "3.3.0"
 ucrop = "2.2.11"
@@ -21,7 +21,7 @@ guava = "33.5.0-android"
 coroutinesGuava = "1.10.2"
 concurrentFutures = "1.3.0"
 activity = "1.11.0"
-navigation = "2.9.5"
+navigation = "2.9.6"
 hiltNavigation = "1.3.0"
 datastore = "1.1.7"
 composeReorderable = "3.0.0"
@@ -39,26 +39,25 @@ extractor = "06b7ae2"
 graphics-shapes = "1.1.0"
 workmanager = "2.11.0"
 uiGraphics = "1.10.0"
-robolectric = "4.14.1"
+robolectric = "4.15"
 mockk = "1.13.13"
-espresso = "3.6.1"
-coreKtx = "1.12.0"
+espresso = "3.7.0"
+coreKtx = "1.13.0"
 profileinstaller = "1.4.1"
+kover = "0.9.1"
+dokka = "2.0.0"
+turbine = "1.2.0"
 
 [libraries]
 annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 coroutines-guava = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-guava", version.ref = "coroutinesGuava" }
 concurrent-futures = { module = "androidx.concurrent:concurrent-futures-ktx", version.ref = "concurrentFutures" }
-
 androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workmanager" }
-
-
 gradle = { module = "com.android.tools.build:gradle", version.ref = "androidGradlePlugin" }
 activity = { module = "androidx.activity:activity-compose", version.ref = "activity" }
 hilt-navigation = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigation" }
 datastore = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
-
 compose-runtime = { module = "androidx.compose.runtime:runtime", version.ref = "compose" }
 compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "compose" }
 compose-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
@@ -67,69 +66,43 @@ compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = 
 compose-animation = { module = "androidx.compose.animation:animation-graphics", version.ref = "compose" }
 compose-reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "composeReorderable" }
 compose-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts", version.ref = "compose" }
-
 androidx-graphics-shapes = { module = "androidx.graphics:graphics-shapes", version.ref = "graphics-shapes" }
-
 squigglyslider = { module = "me.saket.squigglyslider:squigglyslider", version.ref = "squigglyslider" }
-
 viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
 viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
-
 material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
-
 materialKolor = { module = "com.materialkolor:material-kolor", version.ref = "materialKolor" }
-
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
-
 coil = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 ucrop = { module = "com.github.yalantis:ucrop", version.ref = "ucrop" }
-
 shimmer = { module = "com.valentinilk.shimmer:compose-shimmer", version.ref = "shimmer" }
-
 palette = { module = "androidx.palette:palette-ktx", version.ref = "palette" }
-
 media3 = { module = "androidx.media3:media3-exoplayer", version.ref = "media3" }
 media3-okhttp = { module = "androidx.media3:media3-datasource-okhttp", version.ref = "media3" }
 media3-session = { module = "androidx.media3:media3-session", version.ref = "media3" }
-
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
-
 apache-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "apacheLang3" }
-
 hilt = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
 hilt-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hilt" }
-
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-encoding = { module = "io.ktor:ktor-client-encoding", version.ref = "ktor" }
 ktor-serialization-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
-
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
-
 json = { module = "org.json:json", version.ref = "json" }
-
 brotli = { module = "org.brotli:dec", version.ref = "brotli" }
-
 desugaring = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugaring" }
-
 junit = { module = "junit:junit", version.ref = "junit" }
-
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
-
 multidex = { module = "androidx.multidex:multidex", version.ref = "multidex" }
-
-#newpipe-extractor = { module = "com.github.libre-tube:NewPipeExtractor", version = "70abbdb" }
-#newpipe-extractor = { module = "com.github.TeamNewPipe:NewPipeExtractor", version = "dev-SNAPSHOT" }
 extractor = { module = "com.github.mostafaalagamy:MetrolistExtractor", version.ref = "extractor" }
-
 kuromoji-ipadic = { module = "com.atilika.kuromoji:kuromoji-ipadic", version.ref = "kuromojiIpadic" }
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics", version.ref = "uiGraphics" }
-
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutinesGuava" }
@@ -137,17 +110,20 @@ espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref =
 ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "compose" }
 ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "compose" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-
 material3-adaptive = { module = "androidx.compose.material3.adaptive:adaptive", version.ref = "material3Adaptive" }
 material3-adaptive-layout = { module = "androidx.compose.material3.adaptive:adaptive-layout", version.ref = "material3Adaptive" }
 material3-adaptive-navigation = { module = "androidx.compose.material3.adaptive:adaptive-navigation", version.ref = "material3Adaptive" }
 profileinstaller = { module = "androidx.profileinstaller:profileinstaller", version.ref = "profileinstaller" }
 hilt-android-testing = { module = "com.google.dagger:hilt-android-testing", version.ref = "hilt" }
 compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "compose" }
-androidx-test-runner = "androidx.test:runner:1.6.2"
+androidx-test-runner = "androidx.test:runner:1.7.0"
+turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 
 [plugins]
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kotlin-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version = "12.1.0" }

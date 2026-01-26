@@ -2,18 +2,15 @@ package com.music.vivi.ui.menu
 
 import android.content.Context
 import android.content.Intent
-import android.media.AudioManager
 import android.media.audiofx.AudioEffect
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -24,7 +21,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.progressSemantics
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -37,13 +33,11 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumExtendedFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -53,28 +47,15 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.unit.sp
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.rememberSliderState
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import androidx.media3.common.PlaybackParameters
@@ -90,7 +71,6 @@ import com.music.vivi.R
 import com.music.vivi.constants.ListItemHeight
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.playback.ExoDownloadService
-import com.music.vivi.ui.component.BigSeekBar
 import com.music.vivi.ui.component.BottomSheetState
 import com.music.vivi.ui.component.ListDialog
 import com.music.vivi.ui.component.VolumeSlider
@@ -102,6 +82,12 @@ import kotlin.math.pow
 import kotlin.math.round
 
 
+
+/**
+ * The main player menu (three dot menu in the player).
+ * Provides a wide range of actions for the currently playing song:
+ * Add to playlist, share, download, view artist/album, audio settings (equalizer, pitch/tempo), etc.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PlayerMenu(
@@ -157,29 +143,29 @@ fun PlayerMenu(
 
     if (showSelectArtistDialog) {
         ListDialog(
-            onDismiss = { showSelectArtistDialog = false },
+            onDismiss = { showSelectArtistDialog = false }
         ) {
             items(artists) { artist ->
                 Box(
                     contentAlignment = Alignment.CenterStart,
                     modifier =
-                        Modifier
-                            .fillParentMaxWidth()
-                            .height(ListItemHeight)
-                            .clickable {
-                                navController.navigate("artist/${artist.id}")
-                                showSelectArtistDialog = false
-                                playerBottomSheetState.collapseSoft()
-                                onDismiss()
-                            }
-                            .padding(horizontal = 24.dp),
+                    Modifier
+                        .fillParentMaxWidth()
+                        .height(ListItemHeight)
+                        .clickable {
+                            navController.navigate("artist/${artist.id}")
+                            showSelectArtistDialog = false
+                            playerBottomSheetState.collapseSoft()
+                            onDismiss()
+                        }
+                        .padding(horizontal = 24.dp)
                 ) {
                     Text(
                         text = artist.name,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -192,31 +178,46 @@ fun PlayerMenu(
 
     if (showPitchTempoDialog) {
         TempoPitchDialog(
-            onDismiss = { showPitchTempoDialog = false },
+            onDismiss = { showPitchTempoDialog = false }
         )
     }
 
     val cornerRadius = remember { 24.dp }
     val topShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
-            cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentBR = 0,
+            cornerRadiusBR = 0.dp,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentBL = 0,
+            cornerRadiusBL = 0.dp,
+            smoothnessAsPercentTR = 60
         )
     }
     val middleShape = remember { RectangleShape }
     val bottomShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-            smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
+            cornerRadiusTR = 0.dp,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 0,
+            cornerRadiusTL = 0.dp,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentTR = 0
         )
     }
     val singleShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentTR = 60
         )
     }
 
@@ -234,7 +235,7 @@ fun PlayerMenu(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 8.dp)
-                    .padding(top = 8.dp, bottom = 12.dp),
+                    .padding(top = 8.dp, bottom = 12.dp)
             ) {
                 VolumeSlider(
                     value = playerVolume.value,
@@ -338,12 +339,18 @@ fun PlayerMenu(
                 when (download?.state) {
                     Download.STATE_COMPLETED -> {
                         DownloadService.sendRemoveDownload(
-                            context, ExoDownloadService::class.java, mediaMetadata.id, false
+                            context,
+                            ExoDownloadService::class.java,
+                            mediaMetadata.id,
+                            false
                         )
                     }
                     Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
                         DownloadService.sendRemoveDownload(
-                            context, ExoDownloadService::class.java, mediaMetadata.id, false
+                            context,
+                            ExoDownloadService::class.java,
+                            mediaMetadata.id,
+                            false
                         )
                     }
                     else -> {
@@ -355,7 +362,10 @@ fun PlayerMenu(
                             .setData(mediaMetadata.title.toByteArray())
                             .build()
                         DownloadService.sendAddDownload(
-                            context, ExoDownloadService::class.java, downloadRequest, false
+                            context,
+                            ExoDownloadService::class.java,
+                            downloadRequest,
+                            false
                         )
                     }
                 }
@@ -479,10 +489,19 @@ fun PlayerMenu(
                     .heightIn(min = 66.dp),
                 shape = topShape,
                 onClick = {
-                    val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                    val clip = android.content.ClipData.newPlainText("Song Link", "https://music.youtube.com/watch?v=${mediaMetadata.id}")
+                    val clipboard = context.getSystemService(
+                        android.content.Context.CLIPBOARD_SERVICE
+                    ) as android.content.ClipboardManager
+                    val clip = android.content.ClipData.newPlainText(
+                        "Song Link",
+                        "https://music.youtube.com/watch?v=${mediaMetadata.id}"
+                    )
                     clipboard.setPrimaryClip(clip)
-                    android.widget.Toast.makeText(context, R.string.link_copied, android.widget.Toast.LENGTH_SHORT).show()
+                    android.widget.Toast.makeText(
+                        context,
+                        R.string.link_copied,
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
                     onDismiss()
                 }
             ) {
@@ -554,7 +573,7 @@ fun PlayerMenu(
                             Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
                                 putExtra(
                                     AudioEffect.EXTRA_AUDIO_SESSION,
-                                    playerConnection.player.audioSessionId,
+                                    playerConnection.player.audioSessionId
                                 )
                                 putExtra(AudioEffect.EXTRA_PACKAGE_NAME, context.packageName)
                                 putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
@@ -649,14 +668,14 @@ fun TempoPitchDialog(onDismiss: () -> Unit) {
                     tempo = 1f
                     transposeValue = 0
                     updatePlaybackParameters()
-                },
+                }
             ) {
                 Text(stringResource(R.string.reset))
             }
         },
         confirmButton = {
             TextButton(
-                onClick = onDismiss,
+                onClick = onDismiss
             ) {
                 Text(stringResource(android.R.string.ok))
             }
@@ -672,7 +691,7 @@ fun TempoPitchDialog(onDismiss: () -> Unit) {
                         updatePlaybackParameters()
                     },
                     valueText = { "x$it" },
-                    modifier = Modifier.padding(bottom = 12.dp),
+                    modifier = Modifier.padding(bottom = 12.dp)
                 )
                 ValueAdjuster(
                     icon = R.drawable.discover_tune,
@@ -682,10 +701,10 @@ fun TempoPitchDialog(onDismiss: () -> Unit) {
                         transposeValue = it
                         updatePlaybackParameters()
                     },
-                    valueText = { "${if (it > 0) "+" else ""}$it" },
+                    valueText = { "${if (it > 0) "+" else ""}$it" }
                 )
             }
-        },
+        }
     )
 }
 
@@ -701,12 +720,12 @@ fun <T> ValueAdjuster(
     Row(
         horizontalArrangement = Arrangement.spacedBy(24.dp),
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier,
+        modifier = modifier
     ) {
         Icon(
             painter = painterResource(icon),
             contentDescription = null,
-            modifier = Modifier.size(28.dp),
+            modifier = Modifier.size(28.dp)
         )
 
         IconButton(
@@ -716,11 +735,11 @@ fun <T> ValueAdjuster(
                 if (index > 0) {
                     onValueUpdate(values[index - 1])
                 }
-            },
+            }
         ) {
             Icon(
                 painter = painterResource(R.drawable.remove),
-                contentDescription = null,
+                contentDescription = null
             )
         }
 
@@ -728,7 +747,7 @@ fun <T> ValueAdjuster(
             text = valueText(currentValue),
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center,
-            modifier = Modifier.width(80.dp),
+            modifier = Modifier.width(80.dp)
         )
 
         IconButton(
@@ -738,11 +757,11 @@ fun <T> ValueAdjuster(
                 if (index >= 0 && index < values.size - 1) {
                     onValueUpdate(values[index + 1])
                 }
-            },
+            }
         ) {
             Icon(
                 painter = painterResource(R.drawable.add),
-                contentDescription = null,
+                contentDescription = null
             )
         }
     }

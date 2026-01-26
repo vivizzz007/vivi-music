@@ -1,13 +1,13 @@
 package com.music.vivi.ui.menu
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -42,28 +42,24 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
-import androidx.datastore.preferences.core.edit
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.music.innertube.YouTube
 import com.music.innertube.models.SongItem
 import com.music.vivi.LocalDatabase
 import com.music.vivi.R
 import com.music.vivi.constants.AddToPlaylistSortDescendingKey
 import com.music.vivi.constants.AddToPlaylistSortTypeKey
-import com.music.vivi.constants.ListThumbnailSize
 import com.music.vivi.constants.PlaylistSortType
 import com.music.vivi.db.entities.Playlist
 import com.music.vivi.db.entities.Song
-import com.music.vivi.extensions.toEnum
 import com.music.vivi.models.ItemsPage
 import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.ui.component.CreatePlaylistDialog
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.ListDialog
 import com.music.vivi.ui.component.ListItem
-import com.music.vivi.ui.component.PlaylistListItem
 import com.music.vivi.ui.component.SortHeader
-import com.music.vivi.utils.dataStore
+import com.music.vivi.ui.component.media.playlists.PlaylistListItem
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.utils.reportException
@@ -74,7 +70,10 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
-import androidx.compose.foundation.background
+/**
+ * A dialog for adding online songs (from YouTube) to a local playlist.
+ * Handles fetching song metadata from YouTube if needed before adding to the playlist.
+ */
 @Composable
 fun AddToPlaylistDialogOnline(
     isVisible: Boolean,
@@ -84,15 +83,14 @@ fun AddToPlaylistDialogOnline(
     onDismiss: () -> Unit,
     onProgressStart: (Boolean) -> Unit,
     onPercentageChange: (Int) -> Unit,
-    viewModel: PlaylistsViewModel = hiltViewModel()
+    viewModel: PlaylistsViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current
     val coroutineScope = rememberCoroutineScope()
     val viewStateMap = remember { mutableStateMapOf<String, ItemsPage?>() }
 
-    val playlists by viewModel.allPlaylists.collectAsState()
-
+    val playlists: List<Playlist> by viewModel.allPlaylists.collectAsState()
 
     var showCreatePlaylistDialog by rememberSaveable {
         mutableStateOf(false)
@@ -175,7 +173,10 @@ fun AddToPlaylistDialogOnline(
             }
 
             item {
-                val (sortType, onSortTypeChange) = rememberEnumPreference(AddToPlaylistSortTypeKey, PlaylistSortType.CREATE_DATE)
+                val (sortType, onSortTypeChange) = rememberEnumPreference(
+                    AddToPlaylistSortTypeKey,
+                    PlaylistSortType.CREATE_DATE
+                )
                 val (sortDescending, onSortDescendingChange) = rememberPreference(AddToPlaylistSortDescendingKey, true)
 
                 SortHeader(
@@ -204,14 +205,13 @@ fun AddToPlaylistDialogOnline(
                         coroutineScope.launch(Dispatchers.IO) {
                             onDismiss()
                             val songsTot = songs.count().toDouble()
-                            var  songsIdx = 0.toDouble()
+                            var songsIdx = 0.toDouble()
                             onProgressStart(true)
-                            songs.reversed().forEach{
-                                    song ->
+                            songs.reversed().forEach { song ->
                                 var allArtists = ""
-                                song.artists.forEach {
-                                        artist ->
-                                    allArtists += " ${URLDecoder.decode(artist.name, StandardCharsets.UTF_8.toString())}"
+                                song.artists.forEach { artist ->
+                                    allArtists +=
+                                        " ${URLDecoder.decode(artist.name, StandardCharsets.UTF_8.toString())}"
                                 }
                                 val query = "${song.title} - $allArtists"
 
@@ -224,7 +224,7 @@ fun AddToPlaylistDialogOnline(
                                                 val itemsPage = viewStateMap.entries.first().value!!
                                                 val firstSong = itemsPage.items[0] as SongItem
                                                 val firstSongMedia = firstSong.toMediaMetadata()
-                                                val ids = List(1) {firstSong.id}
+                                                val ids = List(1) { firstSong.id }
                                                 withContext(Dispatchers.IO) {
                                                     try {
                                                         database.insert(firstSongMedia)
@@ -246,15 +246,11 @@ fun AddToPlaylistDialogOnline(
                                             onProgressStart(false)
                                         }
                                         onPercentageChange(((songsIdx / songsTot) * 100).toInt())
-
-                                    } catch (e: Exception){
+                                    } catch (e: Exception) {
                                         Timber.tag("ERROR").v(e.toString())
                                     }
-
                                 }
-
                             }
-
                         }
                     },
                     trailingContent = {
@@ -283,14 +279,13 @@ fun AddToPlaylistDialogOnline(
                         coroutineScope.launch(Dispatchers.IO) {
                             onDismiss()
                             val songsTot = songs.count().toDouble()
-                            var  songsIdx = 0.toDouble()
+                            var songsIdx = 0.toDouble()
                             onProgressStart(true)
-                            songs.reversed().forEach{
-                                    song ->
+                            songs.reversed().forEach { song ->
                                 var allArtists = ""
-                                song.artists.forEach {
-                                        artist ->
-                                    allArtists += " ${URLDecoder.decode(artist.name, StandardCharsets.UTF_8.toString())}"
+                                song.artists.forEach { artist ->
+                                    allArtists +=
+                                        " ${URLDecoder.decode(artist.name, StandardCharsets.UTF_8.toString())}"
                                 }
                                 val query = "${song.title} - $allArtists"
 
@@ -327,15 +322,11 @@ fun AddToPlaylistDialogOnline(
                                             onProgressStart(false)
                                         }
                                         onPercentageChange(((songsIdx / songsTot) * 100).toInt())
-
-                                    } catch (e: Exception){
+                                    } catch (e: Exception) {
                                         Timber.tag("ERROR").v(e.toString())
                                     }
-
                                 }
-
                             }
-
                         }
                     },
                     title = stringResource(R.string.liked_songs),

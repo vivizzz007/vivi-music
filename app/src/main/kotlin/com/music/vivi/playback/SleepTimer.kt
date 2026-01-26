@@ -10,12 +10,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.minutes
 
-class SleepTimer(
-    private val scope: CoroutineScope,
-    val player: Player,
-) : Player.Listener {
+/**
+ * Manages the sleep timer functionality.
+ * Can stop playback after a specific duration or at the end of the current song.
+ */
+class SleepTimer(private val scope: CoroutineScope, val player: Player) : Player.Listener {
     private var sleepTimerJob: Job? = null
     var triggerTime by mutableLongStateOf(-1L)
         private set
@@ -24,6 +24,12 @@ class SleepTimer(
     val isActive: Boolean
         get() = triggerTime != -1L || pauseWhenSongEnd
 
+    /**
+     * Starts the sleep timer.
+     *
+     * @param durationMillis The duration in milliseconds to wait before pausing.
+     *                       Pass -1L to pause when the current song ends.
+     */
     fun start(durationMillis: Long) {
         sleepTimerJob?.cancel()
         sleepTimerJob = null
@@ -47,19 +53,14 @@ class SleepTimer(
         triggerTime = -1L
     }
 
-    override fun onMediaItemTransition(
-        mediaItem: MediaItem?,
-        reason: Int,
-    ) {
+    override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
         if (pauseWhenSongEnd) {
             pauseWhenSongEnd = false
             player.pause()
         }
     }
 
-    override fun onPlaybackStateChanged(
-        @Player.State playbackState: Int,
-    ) {
+    override fun onPlaybackStateChanged(@Player.State playbackState: Int) {
         if (playbackState == Player.STATE_ENDED && pauseWhenSongEnd) {
             pauseWhenSongEnd = false
             player.pause()

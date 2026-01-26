@@ -11,26 +11,18 @@ import com.music.innertube.models.PlaylistItem
 import com.music.innertube.models.SectionListRenderer
 import com.music.innertube.models.SongItem
 import com.music.innertube.models.YTItem
-import com.music.innertube.models.oddElements
 import com.music.innertube.models.filterExplicit
 import com.music.innertube.models.filterVideoSongs
+import com.music.innertube.models.oddElements
 
-data class HomePage(
-    val chips: List<Chip>?,
-    val sections: List<Section>,
-    val continuation: String? = null,
-) {
-    data class Chip(
-        val title: String,
-        val endpoint: BrowseEndpoint?,
-        val deselectEndPoint: BrowseEndpoint?,
-    ) {
+data class HomePage(val chips: List<Chip>?, val sections: List<Section>, val continuation: String? = null) {
+    data class Chip(val title: String, val endpoint: BrowseEndpoint?, val deselectEndPoint: BrowseEndpoint?) {
         companion object {
             fun fromChipCloudChipRenderer(renderer: SectionListRenderer.Header.ChipCloudRenderer.Chip): Chip? {
                 return Chip(
                     title = renderer.chipCloudChipRenderer.text?.runs?.firstOrNull()?.text ?: return null,
                     endpoint = renderer.chipCloudChipRenderer.navigationEndpoint.browseEndpoint,
-                    deselectEndPoint = renderer.chipCloudChipRenderer.onDeselectedCommand?.browseEndpoint,
+                    deselectEndPoint = renderer.chipCloudChipRenderer.onDeselectedCommand?.browseEndpoint
                 )
             }
         }
@@ -46,7 +38,9 @@ data class HomePage(
         companion object {
             fun fromMusicCarouselShelfRenderer(renderer: MusicCarouselShelfRenderer): Section? {
                 return Section(
-                    title = renderer.header?.musicCarouselShelfBasicHeaderRenderer?.title?.runs?.firstOrNull()?.text ?: return null,
+                    title =
+                    renderer.header?.musicCarouselShelfBasicHeaderRenderer?.title?.runs?.firstOrNull()?.text
+                        ?: return null,
                     label = renderer.header.musicCarouselShelfBasicHeaderRenderer.strapline?.runs?.firstOrNull()?.text,
                     thumbnail = renderer.header.musicCarouselShelfBasicHeaderRenderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl(),
                     endpoint = renderer.header.musicCarouselShelfBasicHeaderRenderer.moreContentButton?.buttonRenderer?.navigationEndpoint?.browseEndpoint,
@@ -88,7 +82,8 @@ data class HomePage(
                             },
                             duration = null,
                             musicVideoType = renderer.musicVideoType,
-                            thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
+                            thumbnail =
+                            renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
                             explicit = renderer.subtitleBadges?.any {
                                 it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                             } == true
@@ -108,7 +103,8 @@ data class HomePage(
                                 )
                             },
                             year = null,
-                            thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
+                            thumbnail =
+                            renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
                             explicit = renderer.subtitleBadges?.find {
                                 it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                             } != null
@@ -117,14 +113,17 @@ data class HomePage(
 
                     renderer.isPlaylist -> {
                         PlaylistItem(
-                            id = renderer.navigationEndpoint.browseEndpoint?.browseId?.removePrefix("VL") ?: return null,
+                            id = renderer.navigationEndpoint.browseEndpoint?.browseId?.removePrefix(
+                                "VL"
+                            ) ?: return null,
                             title = renderer.title.runs?.firstOrNull()?.text ?: return null,
                             author = Artist(
                                 name = renderer.subtitle?.runs?.lastOrNull()?.text ?: return null,
                                 id = null
                             ),
                             songCountText = null,
-                            thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
+                            thumbnail =
+                            renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
                             playEndpoint = renderer.thumbnailOverlay
                                 ?.musicItemThumbnailOverlayRenderer?.content
                                 ?.musicPlayButtonRenderer?.playNavigationEndpoint
@@ -142,13 +141,14 @@ data class HomePage(
                         ArtistItem(
                             id = renderer.navigationEndpoint.browseEndpoint?.browseId ?: return null,
                             title = renderer.title.runs?.lastOrNull()?.text ?: return null,
-                            thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
+                            thumbnail =
+                            renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
                             shuffleEndpoint = renderer.menu?.menuRenderer?.items?.find {
                                 it.menuNavigationItemRenderer?.icon?.iconType == "MUSIC_SHUFFLE"
                             }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint ?: return null,
                             radioEndpoint = renderer.menu.menuRenderer.items.find {
                                 it.menuNavigationItemRenderer?.icon?.iconType == "MIX"
-                            }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint ?: return null,
+                            }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint ?: return null
                         )
                     }
 
@@ -158,18 +158,23 @@ data class HomePage(
         }
     }
 
-    fun filterExplicit(enabled: Boolean = true) =
-        if (enabled) {
-            copy(sections = sections.map {
+    fun filterExplicit(enabled: Boolean = true) = if (enabled) {
+        copy(
+            sections = sections.map {
                 it.copy(items = it.items.filterExplicit())
-            })
-        } else this
+            }
+        )
+    } else {
+        this
+    }
 
-    fun filterVideoSongs(disableVideos: Boolean = false) =
-        if (disableVideos) {
-            copy(sections = sections.map { section ->
+    fun filterVideoSongs(disableVideos: Boolean = false) = if (disableVideos) {
+        copy(
+            sections = sections.map { section ->
                 section.copy(items = section.items.filterVideoSongs(true))
-            })
-        } else this
-
+            }
+        )
+    } else {
+        this
+    }
 }

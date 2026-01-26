@@ -14,17 +14,11 @@ data class MusicCardShelfRenderer(
     val subtitleBadges: List<Badges>?,
 ) {
     @Serializable
-    data class Header(
-        val musicCardShelfHeaderBasicRenderer: MusicCardShelfHeaderBasicRenderer,
-    ) {
+    data class Header(val musicCardShelfHeaderBasicRenderer: MusicCardShelfHeaderBasicRenderer) {
         @Serializable
-        data class MusicCardShelfHeaderBasicRenderer(
-            val title: Runs,
-        )
+        data class MusicCardShelfHeaderBasicRenderer(val title: Runs)
     }
 
     @Serializable
-    data class Content(
-        val musicResponsiveListItemRenderer: MusicResponsiveListItemRenderer?,
-    )
+    data class Content(val musicResponsiveListItemRenderer: MusicResponsiveListItemRenderer?)
 }

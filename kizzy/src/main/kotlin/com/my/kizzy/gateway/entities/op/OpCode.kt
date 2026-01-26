@@ -38,5 +38,5 @@ enum class OpCode(val value: Int) {
     HEARTBEAT_ACK(11),
 
     /** For future use or unknown opcodes. */
-    UNKNOWN(-1);
+    UNKNOWN(-1),
 }

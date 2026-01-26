@@ -22,8 +22,12 @@ import androidx.compose.ui.unit.dp
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.ui.utils.isScrollingUp
 
+/**
+ * A Floating Action Button that hides itself when the user scrolls down
+ * and reappears when scrolling up.
+ */
 @Composable
-fun BoxScope.HideOnScrollFAB(
+public fun BoxScope.HideOnScrollFAB(
     visible: Boolean = true,
     lazyListState: LazyListState,
     @DrawableRes icon: Int,
@@ -38,23 +42,23 @@ fun BoxScope.HideOnScrollFAB(
             .align(Alignment.BottomEnd)
             .windowInsetsPadding(
                 LocalPlayerAwareWindowInsets.current
-                    .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal),
-            ),
+                    .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
+            )
     ) {
         FloatingActionButton(
             modifier = Modifier.padding(16.dp),
-            onClick = onClick,
+            onClick = onClick
         ) {
             Icon(
                 painter = painterResource(icon),
-                contentDescription = null,
+                contentDescription = null
             )
         }
     }
 }
 
 @Composable
-fun BoxScope.HideOnScrollFAB(
+public fun BoxScope.HideOnScrollFAB(
     visible: Boolean = true,
     lazyListState: LazyGridState,
     @DrawableRes icon: Int,
@@ -69,23 +73,23 @@ fun BoxScope.HideOnScrollFAB(
             .align(Alignment.BottomEnd)
             .windowInsetsPadding(
                 LocalPlayerAwareWindowInsets.current
-                    .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal),
-            ),
+                    .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
+            )
     ) {
         FloatingActionButton(
             modifier = Modifier.padding(16.dp),
-            onClick = onClick,
+            onClick = onClick
         ) {
             Icon(
                 painter = painterResource(icon),
-                contentDescription = null,
+                contentDescription = null
             )
         }
     }
 }
 
 @Composable
-fun BoxScope.HideOnScrollFAB(
+public fun BoxScope.HideOnScrollFAB(
     visible: Boolean = true,
     scrollState: ScrollState,
     @DrawableRes icon: Int,
@@ -100,16 +104,16 @@ fun BoxScope.HideOnScrollFAB(
             .align(Alignment.BottomEnd)
             .windowInsetsPadding(
                 LocalPlayerAwareWindowInsets.current
-                    .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal),
-            ),
+                    .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
+            )
     ) {
         FloatingActionButton(
             modifier = Modifier.padding(16.dp),
-            onClick = onClick,
+            onClick = onClick
         ) {
             Icon(
                 painter = painterResource(icon),
-                contentDescription = null,
+                contentDescription = null
             )
         }
     }

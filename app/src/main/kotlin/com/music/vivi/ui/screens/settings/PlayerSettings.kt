@@ -1,7 +1,6 @@
 package com.music.vivi.ui.screens.settings
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,46 +14,36 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
-import androidx.compose.ui.draw.clip
-import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.ui.platform.LocalContext
-import com.music.vivi.constants.InnerTubeCookieKey
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.ButtonGroupDefaults
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
-import androidx.compose.material3.VerticalDivider
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -70,25 +59,30 @@ import com.music.vivi.constants.AutoSkipNextOnErrorKey
 import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.DisableLoadMoreWhenRepeatAllKey
 import com.music.vivi.constants.HistoryDuration
+import com.music.vivi.constants.InnerTubeCookieKey
+import com.music.vivi.constants.PauseOnHeadphonesDisconnectKey
+import com.music.vivi.constants.PauseOnZeroVolumeKey
 import com.music.vivi.constants.PersistentQueueKey
 import com.music.vivi.constants.SeekExtraSeconds
+import com.music.vivi.constants.SettingsShapeColorTertiaryKey
 import com.music.vivi.constants.SimilarContent
 import com.music.vivi.constants.SkipSilenceKey
+import com.music.vivi.constants.SmartShuffleKey
+import com.music.vivi.constants.SmartSuggestionsKey
 import com.music.vivi.constants.StopMusicOnTaskClearKey
-import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.IconButton
+import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.update.mordernswitch.ModernSwitch
+import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
 import com.music.vivi.update.settingstyle.ModernInfoItem
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
-import com.music.vivi.constants.SettingsShapeColorTertiaryKey
-import com.music.vivi.constants.PauseOnZeroVolumeKey
-import com.music.vivi.constants.SmartShuffleKey
-import com.music.vivi.constants.SmartSuggestionsKey
-import com.music.vivi.constants.PauseOnHeadphonesDisconnectKey
-import com.music.vivi.ui.screens.settings.DarkMode
 
+/**
+ * Screen for configuring audio and player-related settings.
+ * Includes audio quality, normalization, skip silence, simple shuffle, and other playback options.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PlayerSettings(
@@ -198,7 +192,7 @@ fun PlayerSettings(
         PauseOnHeadphonesDisconnectKey,
         defaultValue = false
     )
-    
+
     val scrollState = rememberLazyListState()
 
     Box(
@@ -289,14 +283,26 @@ fun PlayerSettings(
                             {
                                 Column(modifier = Modifier.fillMaxWidth()) {
                                     ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.graphic_eq), null, modifier = Modifier.size(22.dp)) },
+                                        icon = {
+                                            Icon(
+                                                painterResource(R.drawable.graphic_eq),
+                                                null,
+                                                modifier = Modifier.size(22.dp)
+                                            )
+                                        },
                                         title = stringResource(R.string.audio_quality),
                                         subtitle = stringResource(R.string.select_playback_audio_quality),
                                         iconBackgroundColor = iconBgColor,
                                         iconContentColor = iconStyleColor
                                     )
 
-                                    val options = listOf(AudioQuality.LOW, AudioQuality.HIGH, AudioQuality.VERY_HIGH, AudioQuality.AUTO)
+                                    val options =
+                                        listOf(
+                                            AudioQuality.LOW,
+                                            AudioQuality.HIGH,
+                                            AudioQuality.VERY_HIGH,
+                                            AudioQuality.AUTO
+                                        )
                                     val labels = listOf(
                                         stringResource(R.string.audio_quality_low),
                                         stringResource(R.string.audio_quality_high),
@@ -314,20 +320,26 @@ fun PlayerSettings(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .padding(start = 64.dp, bottom = 12.dp, end = 20.dp),
-                                        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-                                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(
+                                            ButtonGroupDefaults.ConnectedSpaceBetween
+                                        ),
+                                        verticalArrangement = Arrangement.spacedBy(2.dp)
                                     ) {
                                         options.forEachIndexed { index, value ->
                                             ToggleButton(
                                                 checked = audioQuality == value,
-                                                onCheckedChange = { 
+                                                onCheckedChange = {
                                                     if (value == AudioQuality.VERY_HIGH) {
-                                                         if (!isLoggedIn) {
-                                                             android.widget.Toast.makeText(context, R.string.login_required_premium, android.widget.Toast.LENGTH_SHORT).show()
-                                                             onAudioQualityChange(value) // Still allow selection, but warn
-                                                         } else {
-                                                             onAudioQualityChange(value)
-                                                         }
+                                                        if (!isLoggedIn) {
+                                                            android.widget.Toast.makeText(
+                                                                context,
+                                                                R.string.login_required_premium,
+                                                                android.widget.Toast.LENGTH_SHORT
+                                                            ).show()
+                                                            onAudioQualityChange(value) // Still allow selection, but warn
+                                                        } else {
+                                                            onAudioQualityChange(value)
+                                                        }
                                                     } else {
                                                         onAudioQualityChange(value)
                                                     }
@@ -343,7 +355,7 @@ fun PlayerSettings(
                                                     options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
                                                     else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                                                 },
-                                                modifier = Modifier.weight(1f).semantics { role = Role.RadioButton },
+                                                modifier = Modifier.weight(1f).semantics { role = Role.RadioButton }
                                             ) {
                                                 Text(labels[index], style = MaterialTheme.typography.labelSmall)
                                             }
@@ -355,7 +367,13 @@ fun PlayerSettings(
                                 // History Duration with permanent slider
                                 Column(modifier = Modifier.fillMaxWidth()) {
                                     ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.history), null, modifier = Modifier.size(22.dp)) },
+                                        icon = {
+                                            Icon(
+                                                painterResource(R.drawable.history),
+                                                null,
+                                                modifier = Modifier.size(22.dp)
+                                            )
+                                        },
                                         title = stringResource(R.string.history_duration),
                                         subtitle = "${historyDuration.toInt()} seconds",
                                         iconBackgroundColor = iconBgColor,
@@ -381,7 +399,13 @@ fun PlayerSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.fast_forward), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.fast_forward),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.skip_silence),
                                             subtitle = stringResource(R.string.remove_silent_parts),
                                             iconBackgroundColor = iconBgColor,
@@ -402,7 +426,13 @@ fun PlayerSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.volume_up), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.volume_up),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.audio_normalization),
                                             subtitle = stringResource(R.string.normalize_audio_levels),
                                             iconBackgroundColor = iconBgColor,
@@ -423,7 +453,13 @@ fun PlayerSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.graphic_eq), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.graphic_eq),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.audio_offload),
                                             subtitle = stringResource(R.string.audio_offload_description),
                                             iconBackgroundColor = iconBgColor,
@@ -444,7 +480,13 @@ fun PlayerSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.arrow_forward), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.arrow_forward),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.seek_seconds_addup),
                                             subtitle = stringResource(R.string.seek_seconds_addup_description),
                                             iconBackgroundColor = iconBgColor,
@@ -465,7 +507,13 @@ fun PlayerSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.volume_off), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.volume_off),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.pause_on_zero_volume),
                                             subtitle = stringResource(R.string.pause_on_zero_volume_description),
                                             iconBackgroundColor = iconBgColor,
@@ -486,7 +534,13 @@ fun PlayerSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.shuffle), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.shuffle),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.smart_shuffle),
                                             subtitle = stringResource(R.string.smart_shuffle_desc),
                                             iconBackgroundColor = iconBgColor,
@@ -507,7 +561,13 @@ fun PlayerSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.auto_playlist), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.auto_playlist),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.smart_suggestions),
                                             subtitle = stringResource(R.string.smart_suggestions_desc),
                                             iconBackgroundColor = iconBgColor,
@@ -528,7 +588,13 @@ fun PlayerSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.headphones), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.headphones),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.smart_pause),
                                             subtitle = stringResource(R.string.smart_pause_desc),
                                             iconBackgroundColor = iconBgColor,
@@ -572,7 +638,13 @@ fun PlayerSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.queue_music), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.queue_music),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.persistent_queue),
                                             subtitle = stringResource(R.string.persistent_queue_desc),
                                             iconBackgroundColor = iconBgColor,
@@ -593,7 +665,13 @@ fun PlayerSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.playlist_add), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.playlist_add),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.auto_load_more),
                                             subtitle = stringResource(R.string.auto_load_more_desc),
                                             iconBackgroundColor = iconBgColor,
@@ -614,7 +692,13 @@ fun PlayerSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.repeat), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.repeat),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.disable_load_more_when_repeat_all),
                                             subtitle = stringResource(R.string.disable_load_more_when_repeat_all_desc),
                                             iconBackgroundColor = iconBgColor,
@@ -635,7 +719,13 @@ fun PlayerSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.download), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.download),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.auto_download_on_like),
                                             subtitle = stringResource(R.string.auto_download_on_like_desc),
                                             iconBackgroundColor = iconBgColor,
@@ -656,7 +746,13 @@ fun PlayerSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.similar), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.similar),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.enable_similar_content),
                                             subtitle = stringResource(R.string.similar_content_desc),
                                             iconBackgroundColor = iconBgColor,
@@ -677,7 +773,13 @@ fun PlayerSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.skip_next), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.skip_next),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.auto_skip_next_on_error),
                                             subtitle = stringResource(R.string.auto_skip_next_on_error_desc),
                                             iconBackgroundColor = iconBgColor,
@@ -720,7 +822,13 @@ fun PlayerSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.clear_all), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.clear_all),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.stop_music_on_task_clear),
                                             subtitle = stringResource(R.string.stop_playback_when_closed),
                                             iconBackgroundColor = iconBgColor,

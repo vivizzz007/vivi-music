@@ -7,7 +7,6 @@ package com.music.vivi.ui.component
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
@@ -39,15 +38,19 @@ private object VolumeSliderDefaults {
     val StopIndicatorRadius: Dp = 4.dp
 }
 
+/**
+ * A custom volume slider implementation based on Material 3 Expressive.
+ * Includes dynamic volume icons (mute, low, high) and custom drawing for the track and thumb.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun VolumeSlider(
+public fun VolumeSlider(
     value: Float,
     onValueChange: (Float) -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     onValueChangeFinished: (() -> Unit)? = null,
-    accentColor: Color = MaterialTheme.colorScheme.primary
+    accentColor: Color = MaterialTheme.colorScheme.primary,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
 
@@ -70,7 +73,7 @@ fun VolumeSlider(
         inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant,
         inactiveTickColor = MaterialTheme.colorScheme.onSurfaceVariant
     )
-    
+
     val stopIndicatorColor = MaterialTheme.colorScheme.onSurfaceVariant
 
     Slider(
@@ -140,7 +143,7 @@ private fun DrawScope.drawVolumeIcon(
     inactiveTrackWidth: Float,
     activeIconColor: Color,
     inactiveIconColor: Color,
-    volumeOffIcon: Painter
+    volumeOffIcon: Painter,
 ) {
     val iconSizePx = iconSize.toSize()
     val iconPaddingPx = iconPadding.toPx()

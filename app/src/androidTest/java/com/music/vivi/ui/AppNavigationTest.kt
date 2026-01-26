@@ -5,13 +5,13 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.test.platform.app.InstrumentationRegistry
 import com.music.vivi.MainActivity
+import com.music.vivi.R
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import org.junit.Rule
 import org.junit.Test
-import com.music.vivi.R
-import androidx.test.platform.app.InstrumentationRegistry
 
 /**
  * End-to-End (E2E) UI Tests for verifying the app's navigation structure.
@@ -61,7 +61,7 @@ class AppNavigationTest {
 
         // Click Library Tab
         composeTestRule.onNodeWithText(libraryString).performClick()
-        
+
         // Verify Library Screen content
         composeTestRule.onNodeWithText(libraryString).assertIsDisplayed()
     }
@@ -75,7 +75,7 @@ class AppNavigationTest {
         // Ensure we are on Home (or somewhere with the TopBar)
         // Click Settings Icon
         composeTestRule.onNodeWithContentDescription("Settings").performClick()
-        
+
         // Verify Settings Screen Title is displayed
         composeTestRule.onNodeWithText(context.getString(R.string.settings)).assertIsDisplayed()
     }

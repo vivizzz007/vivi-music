@@ -33,7 +33,7 @@ fun SineWaveLine(
     animate: Boolean? = false,
     animationDurationMillis: Int = 2000,
     samples: Int = 400,
-    cap: StrokeCap = StrokeCap.Round
+    cap: StrokeCap = StrokeCap.Round,
 ) {
     val density = LocalDensity.current
 
@@ -60,7 +60,6 @@ fun SineWaveLine(
         val ampPx = with(density) { amplitude.toPx() }
 
         if (w <= 0f || samples < 2) return@Canvas
-
 
         val path = Path().apply {
             val step = w / (samples - 1)

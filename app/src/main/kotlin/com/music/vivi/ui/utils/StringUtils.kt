@@ -3,6 +3,9 @@ package com.music.vivi.ui.utils
 import java.text.DecimalFormat
 import kotlin.math.absoluteValue
 
+/**
+ * Formats a file size in bytes to a human-readable string (e.g., "1.2 MB").
+ */
 fun formatFileSize(sizeBytes: Long): String {
     val prefix = if (sizeBytes < 0) "-" else ""
     var result: Long = sizeBytes.absoluteValue
@@ -30,7 +33,6 @@ fun formatFileSize(sizeBytes: Long): String {
     return "$prefix$result $suffix"
 }
 
-fun numberFormatter(n: Int) =
-    DecimalFormat("#,###")
-        .format(n)
-        .replace(",", ".")
+fun numberFormatter(n: Int) = DecimalFormat("#,###")
+    .format(n)
+    .replace(",", ".")

@@ -13,8 +13,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -24,13 +24,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 
-val LocalMenuState = compositionLocalOf { MenuState() }
+public val LocalMenuState: androidx.compose.runtime.ProvidableCompositionLocal<MenuState> =
+    compositionLocalOf { MenuState() }
 
 @Stable
-class MenuState(
-    isVisible: Boolean = false,
-    content: @Composable ColumnScope.() -> Unit = {},
-) {
+public class MenuState(isVisible: Boolean = false, content: @Composable ColumnScope.() -> Unit = {}) {
     var isVisible by mutableStateOf(isVisible)
     var content by mutableStateOf(content)
 
@@ -46,9 +44,13 @@ class MenuState(
     }
 }
 
+/**
+ * A modal bottom sheet wrapper for menus.
+ * Uses `ModalBottomSheet` from Material3 to display content provided via `MenuState`.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BottomSheetMenu(
+public fun BottomSheetMenu(
     modifier: Modifier = Modifier,
     state: MenuState,
     background: Color = MaterialTheme.colorScheme.surface,

@@ -31,9 +31,13 @@ import androidx.compose.ui.unit.sp
 import com.music.vivi.R
 import com.music.vivi.constants.PlaylistSongSortType
 
+/**
+ * A header used in lists to handle sorting.
+ * Provides a split button for easy toggling of sort order (ASC/DESC) and a dropdown for selecting sort type.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-inline fun <reified T : Enum<T>> SortHeader(
+public inline fun <reified T : Enum<T>> SortHeader(
     sortType: T,
     sortDescending: Boolean,
     crossinline onSortTypeChange: (T) -> Unit,
@@ -114,7 +118,7 @@ inline fun <reified T : Enum<T>> SortHeader(
         DropdownMenu(
             expanded = menuExpanded,
             onDismissRequest = { menuExpanded = false },
-            modifier = Modifier.widthIn(min = 172.dp),
+            modifier = Modifier.widthIn(min = 172.dp)
         ) {
             enumValues<T>().forEach { type ->
                 DropdownMenuItem(
@@ -122,22 +126,25 @@ inline fun <reified T : Enum<T>> SortHeader(
                         Text(
                             text = stringResource(sortTypeText(type)),
                             fontSize = 16.sp,
-                            fontWeight = FontWeight.Normal,
+                            fontWeight = FontWeight.Normal
                         )
                     },
                     trailingIcon = {
                         Icon(
                             painter = painterResource(
-                                if (sortType == type) R.drawable.radio_button_checked
-                                else R.drawable.radio_button_unchecked
+                                if (sortType == type) {
+                                    R.drawable.radio_button_checked
+                                } else {
+                                    R.drawable.radio_button_unchecked
+                                }
                             ),
-                            contentDescription = null,
+                            contentDescription = null
                         )
                     },
                     onClick = {
                         onSortTypeChange(type)
                         menuExpanded = false
-                    },
+                    }
                 )
             }
         }

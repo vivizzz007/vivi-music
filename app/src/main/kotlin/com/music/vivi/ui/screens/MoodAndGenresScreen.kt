@@ -32,14 +32,15 @@ import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.NavigationTitle
-import com.music.vivi.ui.component.shimmer.ListItemPlaceHolder
-import com.music.vivi.ui.component.shimmer.ShimmerHost
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.viewmodels.MoodAndGenresViewModel
 
+/**
+ * Screen displaying the full list of Moods and Genres from YouTube Music.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun MoodAndGenresScreen(
+public fun MoodAndGenresScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
     viewModel: MoodAndGenresViewModel = hiltViewModel(),
@@ -50,7 +51,7 @@ fun MoodAndGenresScreen(
     val moodAndGenresList by viewModel.moodAndGenres.collectAsState()
 
     LazyColumn(
-        contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
+        contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
     ) {
         if (moodAndGenresList == null) {
             item(key = "loading_indicator") {
@@ -70,10 +71,10 @@ fun MoodAndGenresScreen(
                 Column(
                     modifier = Modifier
                         .animateItem()
-                        .padding(horizontal = 6.dp),
+                        .padding(horizontal = 6.dp)
                 ) {
                     NavigationTitle(
-                        title = moodAndGenres.title,
+                        title = moodAndGenres.title
                     )
                     moodAndGenres.items.chunked(itemsPerRow).forEach { row ->
                         Row {
@@ -81,12 +82,14 @@ fun MoodAndGenresScreen(
                                 MoodAndGenresButton(
                                     title = it.title,
                                     onClick = {
-                                        navController.navigate("youtube_browse/${it.endpoint.browseId}?params=${it.endpoint.params}")
+                                        navController.navigate(
+                                            "youtube_browse/${it.endpoint.browseId}?params=${it.endpoint.params}"
+                                        )
                                     },
                                     modifier =
                                     Modifier
                                         .weight(1f)
-                                        .padding(6.dp),
+                                        .padding(6.dp)
                                 )
                             }
 
@@ -105,23 +108,19 @@ fun MoodAndGenresScreen(
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,
-                onLongClick = navController::backToMain,
+                onLongClick = navController::backToMain
             ) {
                 Icon(
                     painterResource(R.drawable.arrow_back),
-                    contentDescription = null,
+                    contentDescription = null
                 )
             }
-        },
+        }
     )
 }
 
 @Composable
-fun MoodAndGenresButton(
-    title: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+public fun MoodAndGenresButton(title: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Box(
         contentAlignment = Alignment.CenterStart,
         modifier =
@@ -130,13 +129,13 @@ fun MoodAndGenresButton(
             .clip(RoundedCornerShape(6.dp))
             .background(MaterialTheme.colorScheme.surfaceContainer)
             .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp),
+            .padding(horizontal = 12.dp)
     ) {
         Text(
             text = title,
             style = MaterialTheme.typography.labelLarge,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }

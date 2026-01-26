@@ -18,13 +18,18 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 
+
+/**
+ * A custom slider track implementation for the music player.
+ * Draws a visual representation of the track progress with buffering (though buffering drawing is standard slider).
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PlayerSliderTrack(
+public fun PlayerSliderTrack(
     sliderState: SliderState,
     modifier: Modifier = Modifier,
     colors: SliderColors = SliderDefaults.colors(),
-    trackHeight: Dp = 10.dp
+    trackHeight: Dp = 10.dp,
 ) {
     val inactiveTrackColor = colors.inactiveTrackColor
     val activeTrackColor = colors.activeTrackColor
@@ -61,7 +66,7 @@ private fun DrawScope.drawTrack(
     activeTrackColor: Color,
     inactiveTickColor: Color,
     activeTickColor: Color,
-    trackHeight: Dp = 2.dp
+    trackHeight: Dp = 2.dp,
 ) {
     val isRtl = layoutDirection == LayoutDirection.Rtl
     val sliderLeft = Offset(0f, center.y)
@@ -79,12 +84,12 @@ private fun DrawScope.drawTrack(
     )
     val sliderValueEnd = Offset(
         sliderStart.x +
-                (sliderEnd.x - sliderStart.x) * activeRangeEnd,
+            (sliderEnd.x - sliderStart.x) * activeRangeEnd,
         center.y
     )
     val sliderValueStart = Offset(
         sliderStart.x +
-                (sliderEnd.x - sliderStart.x) * activeRangeStart,
+            (sliderEnd.x - sliderStart.x) * activeRangeStart,
         center.y
     )
     drawLine(
@@ -104,8 +109,12 @@ private fun DrawScope.drawTrack(
     }
 }
 
-private fun stepsToTickFractions(steps: Int): FloatArray {
-    return if (steps == 0) floatArrayOf() else FloatArray(steps + 2) { it.toFloat() / (steps + 1) }
+private fun stepsToTickFractions(steps: Int): FloatArray = if (steps == 0) {
+    floatArrayOf()
+} else {
+    FloatArray(steps + 2) {
+        it.toFloat() / (steps + 1)
+    }
 }
 
 private fun calcFraction(a: Float, b: Float, pos: Float) =

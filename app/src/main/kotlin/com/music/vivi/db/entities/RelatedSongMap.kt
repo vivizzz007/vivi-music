@@ -5,6 +5,13 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 
+/**
+ * Caches related songs (recommendations).
+ * Relates a source song to other recommended songs.
+ *
+ * @property songId The source song ID.
+ * @property relatedSongId The ID of the recommended song.
+ */
 @Entity(
     tableName = "related_song_map",
     foreignKeys = [
@@ -12,15 +19,15 @@ import androidx.room.PrimaryKey
             entity = SongEntity::class,
             parentColumns = ["id"],
             childColumns = ["songId"],
-            onDelete = ForeignKey.CASCADE,
+            onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
             entity = SongEntity::class,
             parentColumns = ["id"],
             childColumns = ["relatedSongId"],
-            onDelete = ForeignKey.CASCADE,
-        ),
-    ],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
 )
 data class RelatedSongMap(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,

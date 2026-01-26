@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.sp
  * From https://stackoverflow.com/a/69780826
  */
 @Composable
-fun AutoResizeText(
+public fun AutoResizeText(
     text: String,
     fontSizeRange: FontSizeRange,
     modifier: Modifier = Modifier,
@@ -77,15 +77,11 @@ fun AutoResizeText(
                 readyToDraw = true
             }
         },
-        modifier = modifier.drawWithContent { if (readyToDraw) drawContent() },
+        modifier = modifier.drawWithContent { if (readyToDraw) drawContent() }
     )
 }
 
-data class FontSizeRange(
-    val min: TextUnit,
-    val max: TextUnit,
-    val step: TextUnit = DEFAULT_TEXT_STEP,
-) {
+public data class FontSizeRange(val min: TextUnit, val max: TextUnit, val step: TextUnit = DEFAULT_TEXT_STEP) {
     init {
         require(min < max) { "min should be less than max, $this" }
         require(step.value > 0) { "step should be greater than 0, $this" }

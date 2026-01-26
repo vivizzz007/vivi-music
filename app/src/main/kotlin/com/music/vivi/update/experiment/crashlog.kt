@@ -3,11 +3,8 @@ package com.music.vivi.update.experiment
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.os.Environment
 import android.util.Log
 import com.music.vivi.CrashActivity
-import com.music.vivi.ui.crash.CrashPage
-import com.music.vivi.ui.utils.appBarScrollBehavior
 import java.io.File
 import java.io.FileOutputStream
 import java.io.PrintWriter
@@ -16,10 +13,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class CrashLogHandler(
-    private val context: Context,
-    private val defaultHandler: Thread.UncaughtExceptionHandler?
-) : Thread.UncaughtExceptionHandler {
+class CrashLogHandler(private val context: Context, private val defaultHandler: Thread.UncaughtExceptionHandler?) :
+    Thread.UncaughtExceptionHandler {
 
     companion object {
         private const val TAG = "CrashLogHandler"
@@ -32,10 +27,8 @@ class CrashLogHandler(
             Thread.setDefaultUncaughtExceptionHandler(crashHandler)
         }
 
-        fun getCrashLogsDir(context: Context): File {
-            return File(context.getExternalFilesDir(null), CRASH_LOG_DIR).apply {
-                if (!exists()) mkdirs()
-            }
+        fun getCrashLogsDir(context: Context): File = File(context.getExternalFilesDir(null), CRASH_LOG_DIR).apply {
+            if (!exists()) mkdirs()
         }
 
         fun getAllCrashLogs(context: Context): List<File> {
@@ -44,30 +37,25 @@ class CrashLogHandler(
                 ?.sortedByDescending { it.lastModified() } ?: emptyList()
         }
 
-        fun deleteCrashLog(file: File): Boolean {
-            return try {
-                file.delete()
-            } catch (e: Exception) {
-                Log.e(TAG, "Error deleting crash log: ${e.message}")
-                false
-            }
+        fun deleteCrashLog(file: File): Boolean = try {
+            file.delete()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error deleting crash log: ${e.message}")
+            false
         }
 
-        fun clearAllCrashLogs(context: Context): Boolean {
-            return try {
-                val crashDir = getCrashLogsDir(context)
-                crashDir.listFiles()?.forEach { it.delete() }
-                true
-            } catch (e: Exception) {
-                Log.e(TAG, "Error clearing crash logs: ${e.message}")
-                false
-            }
+        fun clearAllCrashLogs(context: Context): Boolean = try {
+            val crashDir = getCrashLogsDir(context)
+            crashDir.listFiles()?.forEach { it.delete() }
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Error clearing crash logs: ${e.message}")
+            false
         }
     }
 
     override fun uncaughtException(thread: Thread, throwable: Throwable) {
         try {
-
             var crashLog = getCrashLog(thread, throwable)
 
             saveCrashLog(crashLog)
@@ -131,7 +119,8 @@ class CrashLogHandler(
                     writer.println("Package: ${context.packageName}")
                     try {
                         val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-                        writer.println("Version: ${packageInfo.versionName} (${packageInfo.versionCode})")
+                        val versionCode = androidx.core.content.pm.PackageInfoCompat.getLongVersionCode(packageInfo)
+                        writer.println("Version: ${packageInfo.versionName} ($versionCode)")
                     } catch (e: Exception) {
                         writer.println("Version: Unknown")
                     }

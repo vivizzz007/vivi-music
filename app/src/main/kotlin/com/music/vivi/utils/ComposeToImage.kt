@@ -28,6 +28,20 @@ import java.io.FileOutputStream
 
 object ComposeToImage {
 
+    /**
+     * Draws lyrics and song metadata onto a Bitmap for sharing.
+     *
+     * Creates a custom card layout with:
+     * - Rounded background
+     * - Cover art
+     * - Song title and artist
+     * - Scrollable-looking lyrics text (truncates if too long)
+     * - App logo branding
+     *
+     * @param context Application context.
+     * @param coverArtUrl URL of the album art.
+     * @return Generated [Bitmap].
+     */
     @RequiresApi(Build.VERSION_CODES.M)
     suspend fun createLyricsImage(
         context: Context,
@@ -39,7 +53,7 @@ object ComposeToImage {
         height: Int,
         backgroundColor: Int? = null,
         textColor: Int? = null,
-        secondaryTextColor: Int? = null
+        secondaryTextColor: Int? = null,
     ): Bitmap = withContext(Dispatchers.Default) {
         val cardSize = minOf(width, height) - 32
         val bitmap = createBitmap(cardSize, cardSize)
@@ -109,7 +123,13 @@ object ComposeToImage {
             .setAlignment(Layout.Alignment.ALIGN_NORMAL)
             .setMaxLines(1)
             .build()
-        val artistLayout = StaticLayout.Builder.obtain(artistName, 0, artistName.length, artistPaint, textMaxWidth.toInt())
+        val artistLayout = StaticLayout.Builder.obtain(
+            artistName,
+            0,
+            artistName.length,
+            artistPaint,
+            textMaxWidth.toInt()
+        )
             .setAlignment(Layout.Alignment.ALIGN_NORMAL)
             .setMaxLines(1)
             .build()
@@ -142,7 +162,11 @@ object ComposeToImage {
         do {
             lyricsPaint.textSize = lyricsTextSize
             lyricsLayout = StaticLayout.Builder.obtain(
-                lyrics, 0, lyrics.length, lyricsPaint, lyricsMaxWidth
+                lyrics,
+                0,
+                lyrics.length,
+                lyricsPaint,
+                lyricsMaxWidth
             )
                 .setAlignment(Layout.Alignment.ALIGN_CENTER)
                 .setIncludePad(false)
@@ -172,7 +196,7 @@ object ComposeToImage {
         cardSize: Int,
         padding: Float,
         secondaryTxtColor: Int,
-        backgroundColor: Int
+        backgroundColor: Int,
     ) {
         val logoSize = (cardSize * 0.05f).toInt()
 
@@ -219,8 +243,17 @@ object ComposeToImage {
         canvas.drawText(appName, textX, textY, appNamePaint)
     }
 
-    fun saveBitmapAsFile(context: Context, bitmap: Bitmap, fileName: String): Uri {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+    /**
+     * Saves a bitmap to the device storage.
+     *
+     * - On Android Q (10) and above: Uses MediaStore to save to the "Pictures/vivimusic" directory.
+     * - On older versions: Saves to the app's cache directory and returns a FileProvider URI.
+     *
+     * @param fileName The desired filename (without extension).
+     * @return The [Uri] of the saved file.
+     */
+    fun saveBitmapAsFile(context: Context, bitmap: Bitmap, fileName: String): Uri =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val contentValues = ContentValues().apply {
                 put(MediaStore.MediaColumns.DISPLAY_NAME, "$fileName.png")
                 put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
@@ -248,5 +281,4 @@ object ComposeToImage {
                 imageFile
             )
         }
-    }
 }

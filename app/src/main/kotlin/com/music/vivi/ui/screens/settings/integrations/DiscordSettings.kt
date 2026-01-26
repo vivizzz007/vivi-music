@@ -3,6 +3,7 @@ package com.music.vivi.ui.screens.settings.integrations
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,7 +15,6 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,6 +22,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -45,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -53,43 +55,40 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.media3.common.Player.STATE_READY
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
+import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.DiscordInfoDismissedKey
 import com.music.vivi.constants.DiscordNameKey
 import com.music.vivi.constants.DiscordTokenKey
-import com.music.vivi.constants.DiscordUsernameKey
 import com.music.vivi.constants.DiscordUseDetailsKey
+import com.music.vivi.constants.DiscordUsernameKey
 import com.music.vivi.constants.EnableDiscordRPCKey
+import com.music.vivi.constants.SettingsShapeColorTertiaryKey
 import com.music.vivi.db.entities.Song
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.InfoLabel
-import com.music.vivi.ui.component.PreferenceEntry
 import com.music.vivi.ui.component.PreferenceGroupTitle
-import com.music.vivi.ui.component.SwitchPreference
 import com.music.vivi.ui.component.TextFieldDialog
-import com.music.vivi.update.settingstyle.ModernInfoItem
-import com.music.vivi.utils.rememberEnumPreference
-import com.music.vivi.constants.SettingsShapeColorTertiaryKey
-import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.ui.screens.settings.DarkMode
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.ui.layout.ContentScale
 import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.update.mordernswitch.ModernSwitch
+import com.music.vivi.update.settingstyle.ModernInfoItem
 import com.music.vivi.utils.makeTimeString
+import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
-import com.my.kizzy.rpc.KizzyRPC
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import androidx.core.net.toUri
-import com.music.vivi.update.mordernswitch.ModernSwitch
 
+/**
+ * Screen for configuring Discord integration.
+ * Allows logging in (via token or WebView) and toggling rich presence/detailed status.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiscordSettings(
@@ -128,9 +127,9 @@ fun DiscordSettings(
     }
 
     val playerConnection = LocalPlayerConnection.current ?: return
-    val song by playerConnection.currentSong.collectAsState(null)
+    val song: com.music.vivi.db.entities.Song? by playerConnection.currentSong.collectAsState(null)
+    val playbackState: Int by playerConnection.playbackState.collectAsState()
 
-    val playbackState by playerConnection.playbackState.collectAsState()
     var position by rememberSaveable(playbackState) {
         mutableLongStateOf(playerConnection.player.currentPosition)
     }
@@ -139,18 +138,17 @@ fun DiscordSettings(
 
     var discordToken by rememberPreference(DiscordTokenKey, "")
     val integrationsViewModel: com.music.vivi.viewmodels.IntegrationsViewModel = androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel()
-    val discordState by integrationsViewModel.discordState.collectAsState()
+    val discordState: com.music.vivi.viewmodels.DiscordState by integrationsViewModel.discordState.collectAsState()
 
     // Delegate actual display values to VM state for reliability, but use preferences for mutability
     var discordUsername by rememberPreference(DiscordUsernameKey, "")
     var discordName by rememberPreference(DiscordNameKey, "")
     val isLoggedIn = discordToken.isNotEmpty()
-    
+
     var infoDismissed by rememberPreference(DiscordInfoDismissedKey, false)
 
     // Local manual update for token editing still writes to DataStore via rememberPreference
     // VM observes DataStore and updates state.
-
 
     LaunchedEffect(playbackState) {
         if (playbackState == STATE_READY) {
@@ -170,8 +168,6 @@ fun DiscordSettings(
         key = DiscordUseDetailsKey,
         defaultValue = false
     )
-
-
 
     var showTokenDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -193,7 +189,11 @@ fun DiscordSettings(
 
     Column(
         Modifier
-            .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
+            .windowInsetsPadding(
+                LocalPlayerAwareWindowInsets.current.only(
+                    WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
+                )
+            )
             .verticalScroll(rememberScrollState())
     ) {
         Spacer(
@@ -205,28 +205,28 @@ fun DiscordSettings(
         )
 
         AnimatedVisibility(
-            visible = !infoDismissed,
+            visible = !infoDismissed
         ) {
             Card(
                 colors =
                 CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
                 ),
                 modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(16.dp)
             ) {
                 Icon(
                     painter = painterResource(R.drawable.info),
                     contentDescription = null,
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier.padding(16.dp)
                 )
 
                 Text(
                     text = stringResource(R.string.discord_information),
                     textAlign = TextAlign.Start,
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 )
 
                 TextButton(
@@ -236,7 +236,7 @@ fun DiscordSettings(
                     modifier =
                     Modifier
                         .align(Alignment.End)
-                        .padding(16.dp),
+                        .padding(16.dp)
                 ) {
                     Text(stringResource(R.string.dismiss))
                 }
@@ -244,7 +244,7 @@ fun DiscordSettings(
         }
 
         PreferenceGroupTitle(
-            title = stringResource(R.string.account),
+            title = stringResource(R.string.account)
         )
 
         Card(
@@ -274,7 +274,13 @@ fun DiscordSettings(
                         }
                     },
                     title = if (isLoggedIn) discordName else stringResource(R.string.not_logged_in),
-                    subtitle = if (discordUsername.isNotEmpty()) "@$discordUsername" else stringResource(R.string.discord_account),
+                    subtitle = if (discordUsername.isNotEmpty()) {
+                        "@$discordUsername"
+                    } else {
+                        stringResource(
+                            R.string.discord_account
+                        )
+                    },
                     onClick = if (isLoggedIn) {
                         {
                             discordName = ""
@@ -311,7 +317,7 @@ fun DiscordSettings(
         }
 
         PreferenceGroupTitle(
-            title = stringResource(R.string.options),
+            title = stringResource(R.string.options)
         )
 
         Card(
@@ -367,7 +373,7 @@ fun DiscordSettings(
         }
 
         PreferenceGroupTitle(
-            title = stringResource(R.string.preview),
+            title = stringResource(R.string.preview)
         )
 
         RichPresence(song, position)
@@ -378,11 +384,11 @@ fun DiscordSettings(
         navigationIcon = {
             IconButton(
                 onClick = { onBack?.invoke() ?: navController.navigateUp() },
-                onLongClick = navController::backToMain,
+                onLongClick = navController::backToMain
             ) {
                 Icon(
                     painterResource(R.drawable.arrow_back),
-                    contentDescription = null,
+                    contentDescription = null
                 )
             }
         }
@@ -400,27 +406,27 @@ fun RichPresence(song: Song?, currentPlaybackTimeMillis: Long = 0L) {
         modifier =
         Modifier
             .padding(16.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = stringResource(R.string.listening_to_vivimusic),
                 style = MaterialTheme.typography.labelLarge,
                 textAlign = TextAlign.Start,
                 fontWeight = FontWeight.ExtraBold,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(Modifier.height(16.dp))
 
             Row(
-                verticalAlignment = Alignment.Top,
+                verticalAlignment = Alignment.Top
             ) {
                 Box(
-                    Modifier.size(108.dp),
+                    Modifier.size(108.dp)
                 ) {
                     AsyncImage(
                         model = song?.song?.thumbnailUrl,
@@ -440,7 +446,7 @@ fun RichPresence(song: Song?, currentPlaybackTimeMillis: Long = 0L) {
                                 } else {
                                     this
                                 }
-                            },
+                            }
                     )
 
                     song?.artists?.firstOrNull()?.thumbnailUrl?.let {
@@ -453,7 +459,7 @@ fun RichPresence(song: Song?, currentPlaybackTimeMillis: Long = 0L) {
                                     CircleShape
                                 )
                                 .padding(2.dp)
-                                .align(Alignment.BottomEnd),
+                                .align(Alignment.BottomEnd)
                         ) {
                             AsyncImage(
                                 model = it,
@@ -461,7 +467,7 @@ fun RichPresence(song: Song?, currentPlaybackTimeMillis: Long = 0L) {
                                 modifier =
                                 Modifier
                                     .size(32.dp)
-                                    .clip(CircleShape),
+                                    .clip(CircleShape)
                             )
                         }
                     }
@@ -471,7 +477,7 @@ fun RichPresence(song: Song?, currentPlaybackTimeMillis: Long = 0L) {
                     modifier =
                     Modifier
                         .weight(1f)
-                        .padding(horizontal = 6.dp),
+                        .padding(horizontal = 6.dp)
                 ) {
                     Text(
                         text = song?.song?.title ?: stringResource(R.string.song_title_fallback),
@@ -479,7 +485,7 @@ fun RichPresence(song: Song?, currentPlaybackTimeMillis: Long = 0L) {
                         fontSize = 20.sp,
                         fontWeight = FontWeight.ExtraBold,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        overflow = TextOverflow.Ellipsis
                     )
 
                     Text(
@@ -487,7 +493,7 @@ fun RichPresence(song: Song?, currentPlaybackTimeMillis: Long = 0L) {
                         color = MaterialTheme.colorScheme.secondary,
                         fontSize = 16.sp,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        overflow = TextOverflow.Ellipsis
                     )
 
                     song?.album?.title?.let {
@@ -496,14 +502,14 @@ fun RichPresence(song: Song?, currentPlaybackTimeMillis: Long = 0L) {
                             color = MaterialTheme.colorScheme.secondary,
                             fontSize = 16.sp,
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
 
                     if (song != null) {
                         SongProgressBar(
                             currentTimeMillis = currentPlaybackTimeMillis,
-                            durationMillis = song.song.duration.times(1000L),
+                            durationMillis = song.song.duration.times(1000L)
                         )
                     }
                 }
@@ -520,7 +526,7 @@ fun RichPresence(song: Song?, currentPlaybackTimeMillis: Long = 0L) {
                     )
                     context.startActivity(intent)
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text(stringResource(R.string.listen_on_youtube_music))
             }
@@ -533,7 +539,7 @@ fun RichPresence(song: Song?, currentPlaybackTimeMillis: Long = 0L) {
                     )
                     context.startActivity(intent)
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text(stringResource(R.string.visit_vivimusic))
             }
@@ -572,6 +578,5 @@ fun SongProgressBar(currentTimeMillis: Long, durationMillis: Long) {
                 fontSize = 12.sp
             )
         }
-
     }
 }

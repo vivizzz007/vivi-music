@@ -24,20 +24,25 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel for displaying Online Search Results.
+ * Handles both the "Summary" view (mixed types) and "Filter" views (Songs only, Videos only, etc.).
+ */
 @HiltViewModel
-class OnlineSearchViewModel
+public class OnlineSearchViewModel
 @Inject
 constructor(
     @ApplicationContext val context: Context,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    val query = savedStateHandle.get<String>("query")!!
-    val filter = MutableStateFlow<YouTube.SearchFilter?>(null)
-    var summaryPage by mutableStateOf<SearchSummaryPage?>(null)
-    val viewStateMap = mutableStateMapOf<String, ItemsPage?>()
+    public val query: String = savedStateHandle.get<String>("query")!!
+    public val filter: MutableStateFlow<YouTube.SearchFilter?> = MutableStateFlow(null)
+    public var summaryPage: SearchSummaryPage? by mutableStateOf(null)
+    public val viewStateMap: androidx.compose.runtime.snapshots.SnapshotStateMap<String, ItemsPage?> =
+        mutableStateMapOf()
 
-    var isLoading by mutableStateOf(false)
-    var error by mutableStateOf<Throwable?>(null)
+    public var isLoading: Boolean by mutableStateOf(false)
+    public var error: Throwable? by mutableStateOf(null)
 
     init {
         viewModelScope.launch {
@@ -47,7 +52,7 @@ constructor(
         }
     }
 
-    fun retry() {
+    public fun retry() {
         fetchSearchResults(filter.value)
     }
 
@@ -64,7 +69,7 @@ constructor(
                             val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
                             summaryPage =
                                 it.filterExplicit(
-                                    hideExplicit,
+                                    hideExplicit
                                 ).filterVideoSongs(hideVideoSongs)
                             isLoading = false
                         }.onFailure {
@@ -87,10 +92,10 @@ constructor(
                                     result.items
                                         .distinctBy { it.id }
                                         .filterExplicit(
-                                            hideExplicit,
+                                            hideExplicit
                                         )
                                         .filterVideoSongs(hideVideoSongs),
-                                    result.continuation,
+                                    result.continuation
                                 )
                             isLoading = false
                         }.onFailure {
@@ -103,7 +108,7 @@ constructor(
         }
     }
 
-    fun loadMore() {
+    public fun loadMore() {
         val filter = filter.value?.value
         viewModelScope.launch {
             if (filter == null) return@launch
@@ -121,7 +126,6 @@ constructor(
                     (viewState.items + newItems).distinctBy { it.id },
                     searchResult.continuation
                 )
-
             }
         }
     }

@@ -12,14 +12,20 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import timber.log.Timber
 
+/**
+ * Utility for fetching summaries from Wikipedia via the REST API.
+ * Defines a custom Ktor client with a specific User-Agent/Content-Negotiation configuration.
+ */
 object Wikipedia {
     private val client by lazy {
         HttpClient(OkHttp) {
             install(ContentNegotiation) {
-                json(Json { 
-                    isLenient = true
-                    ignoreUnknownKeys = true 
-                })
+                json(
+                    Json {
+                        isLenient = true
+                        ignoreUnknownKeys = true
+                    }
+                )
             }
             defaultRequest { url("https://en.wikipedia.org/api/rest_v1/") }
             expectSuccess = true
@@ -27,19 +33,30 @@ object Wikipedia {
     }
 
     @Serializable
-    private data class WikiSummary(
-        val extract: String? = null,
-        val type: String? = null
-    )
+    private data class WikiSummary(val extract: String? = null, val type: String? = null)
 
     private suspend fun fetchPageSummary(title: String): String? = runCatching {
         client.get("page/summary/${title.replace(" ", "_").encodeURLParameter()}")
             .body<WikiSummary>()
             .extract
-    }.onFailure { 
+    }.onFailure {
         Timber.e(it, "Failed to fetch Wikipedia summary for: $title")
     }.getOrNull()
 
+    /**
+     * Attempts to find the Wikipedia summary for a specific album.
+     *
+     * It uses a heuristic approach to find the correct page:
+     * 1.  **Precise Query**: Tries "Album (Artist album)" or "Album (Artist)".
+     * 2.  **Generic Query**: Tries "Album (album)" or just "Album".
+     *
+     * To avoid incorrect matches (e.g., getting a "Greatest Hits" page for a different artist),
+     * generic results are validated to ensure they mention the artist's name.
+     *
+     * @param albumTitle The title of the album.
+     * @param artistName The name of the artist (optional but recommended for accuracy).
+     * @return The extract/summary text if found, or null.
+     */
     suspend fun fetchAlbumInfo(albumTitle: String, artistName: String?): String? {
         // Precise queries: explicitly include artist name in the search term
         if (artistName != null) {
@@ -79,7 +96,5 @@ object Wikipedia {
         return null
     }
 
-    suspend fun fetchPlaylistInfo(playlistTitle: String): String? {
-        return fetchPageSummary(playlistTitle)
-    }
+    suspend fun fetchPlaylistInfo(playlistTitle: String): String? = fetchPageSummary(playlistTitle)
 }

@@ -22,9 +22,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
-import com.music.vivi.ui.component.RoundedCheckbox
-import androidx.compose.ui.draw.clip
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -55,24 +52,30 @@ import coil3.annotation.ExperimentalCoilApi
 import coil3.imageLoader
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
+import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.MaxImageCacheSizeKey
 import com.music.vivi.constants.MaxSongCacheSizeKey
+import com.music.vivi.constants.SettingsShapeColorTertiaryKey
 import com.music.vivi.extensions.tryOrNull
 import com.music.vivi.ui.component.ActionPromptDialog
 import com.music.vivi.ui.component.IconButton
+import com.music.vivi.ui.component.RoundedCheckbox
+import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.ui.utils.formatFileSize
+import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
 import com.music.vivi.update.settingstyle.ModernInfoItem
-import com.music.vivi.utils.rememberPreference
 import com.music.vivi.utils.rememberEnumPreference
-import com.music.vivi.constants.SettingsShapeColorTertiaryKey
-import com.music.vivi.constants.DarkModeKey
-import com.music.vivi.ui.screens.settings.DarkMode
+import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
+/**
+ * Screen for managing app storage usage.
+ * Displays storage breakdown (downloads, song cache, image cache) and allows clearing caches.
+ */
 @OptIn(ExperimentalCoilApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun StorageSettings(
@@ -139,14 +142,14 @@ fun StorageSettings(
     }
     val imageCacheProgress by animateFloatAsState(
         targetValue = (imageCacheSize.toFloat() / imageDiskCache.maxSize).coerceIn(0f, 1f),
-        label = "imageCacheProgress",
+        label = "imageCacheProgress"
     )
     val playerCacheProgress by animateFloatAsState(
         targetValue = (playerCacheSize.toFloat() / (maxSongCacheSize * 1024 * 1024L)).coerceIn(
             0f,
             1f
         ),
-        label = "playerCacheProgress",
+        label = "playerCacheProgress"
     )
 
     // Calculate total storage usage
@@ -154,7 +157,7 @@ fun StorageSettings(
     val totalStorageAvailable = (maxSongCacheSize * 1024 * 1024L) + imageDiskCache.maxSize + downloadCacheSize
     val totalStorageProgress by animateFloatAsState(
         targetValue = (totalStorageUsed.toFloat() / totalStorageAvailable).coerceIn(0f, 1f),
-        label = "totalStorageProgress",
+        label = "totalStorageProgress"
     )
 
     LaunchedEffect(maxImageCacheSize) {
@@ -214,11 +217,11 @@ fun StorageSettings(
                     navigationIcon = {
                         IconButton(
                             onClick = { onBack?.invoke() ?: navController.navigateUp() },
-                            onLongClick = navController::backToMain,
+                            onLongClick = navController::backToMain
                         ) {
                             Icon(
                                 painterResource(R.drawable.arrow_back),
-                                contentDescription = null,
+                                contentDescription = null
                             )
                         }
                     },
@@ -296,7 +299,9 @@ fun StorageSettings(
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
-                                        text = "${formatFileSize(totalStorageUsed)} / ${formatFileSize(totalStorageAvailable)}",
+                                        text = "${formatFileSize(
+                                            totalStorageUsed
+                                        )} / ${formatFileSize(totalStorageAvailable)}",
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.primary
                                     )
@@ -311,7 +316,7 @@ fun StorageSettings(
                                         .fillMaxWidth()
                                         .height(8.dp),
                                     color = MaterialTheme.colorScheme.primary,
-                                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    trackColor = MaterialTheme.colorScheme.surfaceVariant
                                 )
 
                                 Spacer(modifier = Modifier.height(16.dp))
@@ -364,7 +369,13 @@ fun StorageSettings(
                             {
                                 // Downloads Info
                                 ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.download), null, modifier = Modifier.size(22.dp)) },
+                                    icon = {
+                                        Icon(
+                                            painterResource(R.drawable.download),
+                                            null,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    },
                                     title = stringResource(R.string.downloaded_songs_title),
                                     subtitle = "${formatFileSize(downloadCacheSize)} used",
                                     iconBackgroundColor = iconBgColor,
@@ -374,7 +385,13 @@ fun StorageSettings(
                             {
                                 // Clear All Downloads
                                 ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.clear_all), null, modifier = Modifier.size(22.dp)) },
+                                    icon = {
+                                        Icon(
+                                            painterResource(R.drawable.clear_all),
+                                            null,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    },
                                     title = stringResource(R.string.clear_all_downloads),
                                     subtitle = stringResource(R.string.remove_all_downloaded_songs),
                                     onClick = { clearDownloads = true },
@@ -447,7 +464,9 @@ fun StorageSettings(
                                             text = if (maxSongCacheSize == -1) {
                                                 formatFileSize(playerCacheSize)
                                             } else {
-                                                "${formatFileSize(playerCacheSize)} / ${formatFileSize(maxSongCacheSize * 1024 * 1024L)}"
+                                                "${formatFileSize(playerCacheSize)} / ${formatFileSize(
+                                                    maxSongCacheSize * 1024 * 1024L
+                                                )}"
                                             },
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -462,7 +481,7 @@ fun StorageSettings(
                                                 .fillMaxWidth()
                                                 .height(6.dp),
                                             color = MaterialTheme.colorScheme.primary,
-                                            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                                            trackColor = MaterialTheme.colorScheme.surfaceVariant
                                         )
                                     }
                                 }
@@ -470,7 +489,9 @@ fun StorageSettings(
                             {
                                 // Max Cache Size
                                 ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.storage), null, modifier = Modifier.size(22.dp)) },
+                                    icon = {
+                                        Icon(painterResource(R.drawable.storage), null, modifier = Modifier.size(22.dp))
+                                    },
                                     title = stringResource(R.string.max_cache_size),
                                     subtitle = when (maxSongCacheSize) {
                                         0 -> stringResource(R.string.disable)
@@ -531,7 +552,9 @@ fun StorageSettings(
                             {
                                 // Clear Song Cache
                                 ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.delete), null, modifier = Modifier.size(22.dp)) },
+                                    icon = {
+                                        Icon(painterResource(R.drawable.delete), null, modifier = Modifier.size(22.dp))
+                                    },
                                     title = stringResource(R.string.clear_song_cache),
                                     subtitle = stringResource(R.string.free_up_cached_song_data),
                                     onClick = { clearCacheDialog = true },
@@ -601,7 +624,9 @@ fun StorageSettings(
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
                                         Text(
-                                            text = "${formatFileSize(imageCacheSize)} / ${formatFileSize(imageDiskCache.maxSize)}",
+                                            text = "${formatFileSize(
+                                                imageCacheSize
+                                            )} / ${formatFileSize(imageDiskCache.maxSize)}",
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
@@ -615,7 +640,7 @@ fun StorageSettings(
                                                 .fillMaxWidth()
                                                 .height(6.dp),
                                             color = MaterialTheme.colorScheme.primary,
-                                            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                                            trackColor = MaterialTheme.colorScheme.surfaceVariant
                                         )
                                     }
                                 }
@@ -623,7 +648,13 @@ fun StorageSettings(
                             {
                                 // Max Image Cache Size
                                 ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.music_note), null, modifier = Modifier.size(22.dp)) },
+                                    icon = {
+                                        Icon(
+                                            painterResource(R.drawable.music_note),
+                                            null,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    },
                                     title = stringResource(R.string.max_cache_size),
                                     subtitle = when (maxImageCacheSize) {
                                         0 -> stringResource(R.string.disable)
@@ -682,7 +713,9 @@ fun StorageSettings(
                             {
                                 // Clear Image Cache
                                 ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.delete), null, modifier = Modifier.size(22.dp)) },
+                                    icon = {
+                                        Icon(painterResource(R.drawable.delete), null, modifier = Modifier.size(22.dp))
+                                    },
                                     title = stringResource(R.string.clear_image_cache),
                                     subtitle = stringResource(R.string.free_up_cached_images),
                                     onClick = { clearImageCacheDialog = true },
@@ -722,11 +755,7 @@ fun StorageSettings(
 }
 
 @Composable
-private fun StorageBreakdownItem(
-    title: String,
-    size: Long,
-    color: Color
-) {
+private fun StorageBreakdownItem(title: String, size: Long, color: Color) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,

@@ -11,6 +11,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -21,20 +22,26 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 import javax.inject.Inject
 
+/**
+ * ViewModel for the User Statistics Screen.
+ *
+ * Capabilities:
+ * - Computes "Most Played" Songs, Artists, Albums.
+ * - Supports filtering by Time Period (Week, Month, Year, etc.).
+ * - Fetches thumbnails for top artists if missing.
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class StatsViewModel
+public class StatsViewModel
 @Inject
-constructor(
-    val database: MusicDatabase,
-) : ViewModel() {
-    val selectedOption = MutableStateFlow(OptionStats.CONTINUOUS)
-    val indexChips = MutableStateFlow(0)
+constructor(public val database: MusicDatabase) : ViewModel() {
+    public val selectedOption: MutableStateFlow<OptionStats> = MutableStateFlow(OptionStats.CONTINUOUS)
+    public val indexChips: MutableStateFlow<Int> = MutableStateFlow(0)
 
-    val mostPlayedSongsStats =
+    public val mostPlayedSongsStats: StateFlow<List<com.music.vivi.db.entities.SongWithStats>> =
         combine(
             selectedOption,
-            indexChips,
+            indexChips
         ) { first, second -> Pair(first, second) }
             .flatMapLatest { (selection, t) ->
                 database
@@ -46,18 +53,20 @@ constructor(
                             LocalDateTime
                                 .now()
                                 .toInstant(
-                                    ZoneOffset.UTC,
-                                ).toEpochMilli()
+                                    ZoneOffset.UTC
+                                )
+                                .toEpochMilli()
                         } else {
                             statToPeriod(selection, t - 1)
-                        },
+                        }
                     )
-            }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+            }
+            .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    val mostPlayedSongs =
+    public val mostPlayedSongs: StateFlow<List<com.music.vivi.db.entities.Song>> =
         combine(
             selectedOption,
-            indexChips,
+            indexChips
         ) { first, second -> Pair(first, second) }
             .flatMapLatest { (selection, t) ->
                 database
@@ -69,43 +78,46 @@ constructor(
                             LocalDateTime
                                 .now()
                                 .toInstant(
-                                    ZoneOffset.UTC,
-                                ).toEpochMilli()
+                                    ZoneOffset.UTC
+                                )
+                                .toEpochMilli()
                         } else {
                             statToPeriod(selection, t - 1)
-                        },
+                        }
                     )
-            }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+            }
+            .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    val mostPlayedArtists =
+    public val mostPlayedArtists: StateFlow<List<com.music.vivi.db.entities.Artist>> =
         combine(
             selectedOption,
-            indexChips,
+            indexChips
         ) { first, second -> Pair(first, second) }
             .flatMapLatest { (selection, t) ->
-                database
-                    .mostPlayedArtists(
-                        statToPeriod(selection, t),
-                        limit = -1,
-                        toTimeStamp =
-                        if (selection == OptionStats.CONTINUOUS || t == 0) {
-                            LocalDateTime
-                                .now()
-                                .toInstant(
-                                    ZoneOffset.UTC,
-                                ).toEpochMilli()
-                        } else {
-                            statToPeriod(selection, t - 1)
-                        },
-                    ).map { artists ->
-                        artists.filter { it.artist.isYouTubeArtist }
+                database.mostPlayedArtists(
+                    statToPeriod(selection, t),
+                    limit = -1,
+                    toTimeStamp =
+                    if (selection == OptionStats.CONTINUOUS || t == 0) {
+                        LocalDateTime
+                            .now()
+                            .toInstant(
+                                ZoneOffset.UTC
+                            )
+                            .toEpochMilli()
+                    } else {
+                        statToPeriod(selection, t - 1)
                     }
-            }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+                ).map { artists ->
+                    artists.filter { it.artist.isYouTubeArtist }
+                }
+            }
+            .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    val mostPlayedAlbums =
+    public val mostPlayedAlbums: StateFlow<List<com.music.vivi.db.entities.Album>> =
         combine(
             selectedOption,
-            indexChips,
+            indexChips
         ) { first, second -> Pair(first, second) }
             .flatMapLatest { (selection, t) ->
                 database.mostPlayedAlbums(
@@ -116,18 +128,18 @@ constructor(
                         LocalDateTime
                             .now()
                             .toInstant(
-                                ZoneOffset.UTC,
-                            ).toEpochMilli()
+                                ZoneOffset.UTC
+                            )
+                            .toEpochMilli()
                     } else {
                         statToPeriod(selection, t - 1)
-                    },
+                    }
                 )
-            }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+            }
+            .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    val firstEvent =
-        database
-            .firstEvent()
-            .stateIn(viewModelScope, SharingStarted.Lazily, null)
+    public val firstEvent: StateFlow<com.music.vivi.db.entities.Event?> =
+        database.firstEvent().map { it?.event }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     init {
         viewModelScope.launch {
@@ -135,10 +147,11 @@ constructor(
                 artists
                     .map { it.artist }
                     .filter {
-                        it.thumbnailUrl == null || Duration.between(
-                            it.lastUpdateTime,
-                            LocalDateTime.now()
-                        ) > Duration.ofDays(10)
+                        it.thumbnailUrl == null ||
+                            Duration.between(
+                                it.lastUpdateTime,
+                                LocalDateTime.now()
+                            ) > Duration.ofDays(10)
                     }.forEach { artist ->
                         YouTube.artist(artist.id).onSuccess { artistPage ->
                             database.query {

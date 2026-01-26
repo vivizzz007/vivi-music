@@ -19,14 +19,22 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel for the Explore page.
+ *
+ * Responsibilities:
+ * - Fetches "Moods & Genres", "New Releases", and other explore signals.
+ * - Sorts "New Releases" based on user's favorite artists (Local Play Time stats).
+ * - Applies Explicit Content filters.
+ */
 @HiltViewModel
-class ExploreViewModel
+public class ExploreViewModel
 @Inject
 constructor(
-    @ApplicationContext val context: Context,
-    val database: MusicDatabase,
+    @ApplicationContext public val context: Context,
+    public val database: MusicDatabase,
 ) : ViewModel() {
-    val explorePage = MutableStateFlow<ExplorePage?>(null)
+    public val explorePage: MutableStateFlow<ExplorePage?> = MutableStateFlow(null)
 
     private suspend fun load() {
         YouTube
@@ -59,7 +67,7 @@ constructor(
                                         }
                                     } ?: Int.MAX_VALUE
                                 firstArtistKey
-                            }.filterExplicit(context.dataStore.get(HideExplicitKey, false)),
+                            }.filterExplicit(context.dataStore.get(HideExplicitKey, false))
                     )
             }.onFailure {
                 reportException(it)

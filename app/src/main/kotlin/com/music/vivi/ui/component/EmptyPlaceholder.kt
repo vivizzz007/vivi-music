@@ -17,8 +17,12 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 
+/**
+ * A standard placeholder for empty states (e.g. no songs in playlist).
+ * Displays an icon and a text message.
+ */
 @Composable
-fun EmptyPlaceholder(
+public fun EmptyPlaceholder(
     @DrawableRes icon: Int,
     text: String,
     modifier: Modifier = Modifier,
@@ -29,20 +33,20 @@ fun EmptyPlaceholder(
         modifier =
         modifier
             .fillMaxSize()
-            .padding(12.dp),
+            .padding(12.dp)
     ) {
         Image(
             painter = painterResource(icon),
             contentDescription = null,
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
-            modifier = Modifier.size(64.dp),
+            modifier = Modifier.size(64.dp)
         )
 
         Spacer(Modifier.height(12.dp))
 
         Text(
             text = text,
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodyLarge
         )
 
         if (trailingContent != null) {

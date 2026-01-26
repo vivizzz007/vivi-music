@@ -1,6 +1,5 @@
 package com.music.vivi.ui.menu
 
-
 import android.annotation.SuppressLint
 import android.content.Intent
 import androidx.compose.animation.animateColorAsState
@@ -26,7 +25,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -53,6 +51,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -93,14 +92,15 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
+/**
+ * The bottom sheet menu for an album.
+ * Provides options like Play Next, Add to Queue, Download, Share, etc.
+ * Also shows album details and songs if available in library.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @SuppressLint("MutableCollectionMutableState")
 @Composable
-fun AlbumMenu(
-    originalAlbum: Album,
-    navController: NavController,
-    onDismiss: () -> Unit,
-) {
+fun AlbumMenu(originalAlbum: Album, navController: NavController, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val database = LocalDatabase.current
     val downloadUtil = LocalDownloadUtil.current
@@ -130,8 +130,8 @@ fun AlbumMenu(
                     STATE_COMPLETED
                 } else if (songs.all {
                         downloads[it.id]?.state == STATE_QUEUED ||
-                                downloads[it.id]?.state == STATE_DOWNLOADING ||
-                                downloads[it.id]?.state == STATE_COMPLETED
+                            downloads[it.id]?.state == STATE_DOWNLOADING ||
+                            downloads[it.id]?.state == STATE_COMPLETED
                     }
                 ) {
                     STATE_DOWNLOADING
@@ -155,7 +155,7 @@ fun AlbumMenu(
     val rotationAnimation by animateFloatAsState(
         targetValue = refetchIconDegree,
         animationSpec = tween(durationMillis = 800),
-        label = "",
+        label = ""
     )
 
     var showChoosePlaylistDialog by rememberSaveable {
@@ -178,27 +178,39 @@ fun AlbumMenu(
     val cornerRadius = remember { 24.dp }
     val topShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTL = cornerRadius, smoothnessAsPercentTL = 60,
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentTR = 60,
-            cornerRadiusBL = 0.dp, smoothnessAsPercentBL = 0,
-            cornerRadiusBR = 0.dp, smoothnessAsPercentBR = 0
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentTR = 60,
+            cornerRadiusBL = 0.dp,
+            smoothnessAsPercentBL = 0,
+            cornerRadiusBR = 0.dp,
+            smoothnessAsPercentBR = 0
         )
     }
     val middleShape = remember { RectangleShape }
     val bottomShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTL = 0.dp, smoothnessAsPercentTL = 0,
-            cornerRadiusTR = 0.dp, smoothnessAsPercentTR = 0,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentBL = 60,
-            cornerRadiusBR = cornerRadius, smoothnessAsPercentBR = 60
+            cornerRadiusTL = 0.dp,
+            smoothnessAsPercentTL = 0,
+            cornerRadiusTR = 0.dp,
+            smoothnessAsPercentTR = 0,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentBR = 60
         )
     }
     val singleShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTL = cornerRadius, smoothnessAsPercentTL = 60,
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentTR = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentBL = 60,
-            cornerRadiusBR = cornerRadius, smoothnessAsPercentBR = 60
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentTR = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentBR = 60
         )
     }
 
@@ -210,23 +222,30 @@ fun AlbumMenu(
 
     val favoriteButtonCornerRadius by animateDpAsState(
         targetValue = if (isFavorite) cornerRadius else 60.dp,
-        animationSpec = tween(durationMillis = 300), label = "FavoriteCornerAnimation"
+        animationSpec = tween(durationMillis = 300),
+        label = "FavoriteCornerAnimation"
     )
     val favoriteButtonContainerColor by animateColorAsState(
         targetValue = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-        animationSpec = tween(durationMillis = 300), label = "FavoriteContainerColorAnimation"
+        animationSpec = tween(durationMillis = 300),
+        label = "FavoriteContainerColorAnimation"
     )
     val favoriteButtonContentColor by animateColorAsState(
         targetValue = if (isFavorite) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-        animationSpec = tween(durationMillis = 300), label = "FavoriteContentColorAnimation"
+        animationSpec = tween(durationMillis = 300),
+        label = "FavoriteContentColorAnimation"
     )
 
     val favoriteButtonShape = remember(favoriteButtonCornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTL = favoriteButtonCornerRadius, smoothnessAsPercentTL = 60,
-            cornerRadiusTR = favoriteButtonCornerRadius, smoothnessAsPercentTR = 60,
-            cornerRadiusBL = favoriteButtonCornerRadius, smoothnessAsPercentBL = 60,
-            cornerRadiusBR = favoriteButtonCornerRadius, smoothnessAsPercentBR = 60
+            cornerRadiusTL = favoriteButtonCornerRadius,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTR = favoriteButtonCornerRadius,
+            smoothnessAsPercentTR = 60,
+            cornerRadiusBL = favoriteButtonCornerRadius,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBR = favoriteButtonCornerRadius,
+            smoothnessAsPercentBR = 60
         )
     }
 
@@ -304,7 +323,13 @@ fun AlbumMenu(
                     painter = painterResource(
                         if (isFavorite) R.drawable.favorite else R.drawable.favorite_border
                     ),
-                    contentDescription = if (isFavorite) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites),
+                    contentDescription = if (isFavorite) {
+                        stringResource(
+                            R.string.remove_from_favorites
+                        )
+                    } else {
+                        stringResource(R.string.add_to_favorites)
+                    },
                     tint = if (isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -349,13 +374,25 @@ fun AlbumMenu(
                         painter = painterResource(
                             if (isCurrentAlbumPlaying && isPlaying) R.drawable.pause else R.drawable.play
                         ),
-                        contentDescription = if (isCurrentAlbumPlaying && isPlaying) stringResource(R.string.pause) else stringResource(R.string.play_content_desc)
+                        contentDescription = if (isCurrentAlbumPlaying &&
+                            isPlaying
+                        ) {
+                            stringResource(R.string.pause)
+                        } else {
+                            stringResource(R.string.play_content_desc)
+                        }
                     )
                 },
                 text = {
                     Text(
                         modifier = Modifier.padding(end = 10.dp),
-                        text = if (isCurrentAlbumPlaying && isPlaying) stringResource(R.string.pause) else stringResource(R.string.play),
+                        text = if (isCurrentAlbumPlaying &&
+                            isPlaying
+                        ) {
+                            stringResource(R.string.pause)
+                        } else {
+                            stringResource(R.string.play)
+                        },
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         softWrap = false
@@ -384,7 +421,13 @@ fun AlbumMenu(
                     painter = painterResource(
                         if (isFavorite) R.drawable.favorite else R.drawable.favorite_border
                     ),
-                    contentDescription = if (isFavorite) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites),
+                    contentDescription = if (isFavorite) {
+                        stringResource(
+                            R.string.remove_from_favorites
+                        )
+                    } else {
+                        stringResource(R.string.add_to_favorites)
+                    },
                     tint = if (isFavorite) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -408,7 +451,7 @@ fun AlbumMenu(
                 Icon(
                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
                     painter = painterResource(R.drawable.share),
-                    contentDescription = stringResource(R.string.share_album_content_desc),
+                    contentDescription = stringResource(R.string.share_album_content_desc)
                 )
             }
         }
@@ -433,7 +476,7 @@ fun AlbumMenu(
                                 context,
                                 ExoDownloadService::class.java,
                                 song.id,
-                                false,
+                                false
                             )
                         }
                     }
@@ -443,7 +486,7 @@ fun AlbumMenu(
                                 context,
                                 ExoDownloadService::class.java,
                                 song.id,
-                                false,
+                                false
                             )
                         }
                     }
@@ -458,7 +501,7 @@ fun AlbumMenu(
                                 context,
                                 ExoDownloadService::class.java,
                                 downloadRequest,
-                                false,
+                                false
                             )
                         }
                     }
@@ -473,7 +516,7 @@ fun AlbumMenu(
                         else -> R.drawable.download
                     }
                 ),
-                contentDescription = stringResource(R.string.download_album_content_desc),
+                contentDescription = stringResource(R.string.download_album_content_desc)
             )
             Spacer(Modifier.width(8.dp))
             Text(
@@ -511,7 +554,7 @@ fun AlbumMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.artist),
-                    contentDescription = stringResource(R.string.artist_icon_content_desc),
+                    contentDescription = stringResource(R.string.artist_icon_content_desc)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -542,7 +585,7 @@ fun AlbumMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.music_note),
-                    contentDescription = stringResource(R.string.songs_icon_content_desc),
+                    contentDescription = stringResource(R.string.songs_icon_content_desc)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -581,7 +624,7 @@ fun AlbumMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.playlist_play),
-                    contentDescription = stringResource(R.string.play_next_icon_content_desc),
+                    contentDescription = stringResource(R.string.play_next_icon_content_desc)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -615,7 +658,7 @@ fun AlbumMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.queue_music),
-                    contentDescription = stringResource(R.string.add_to_queue_icon_content_desc),
+                    contentDescription = stringResource(R.string.add_to_queue_icon_content_desc)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -653,7 +696,7 @@ fun AlbumMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.playlist_add),
-                    contentDescription = stringResource(R.string.add_to_playlist_icon_content_desc),
+                    contentDescription = stringResource(R.string.add_to_playlist_icon_content_desc)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -693,7 +736,7 @@ fun AlbumMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.sync),
-                    contentDescription = stringResource(R.string.refresh_icon_content_desc),
+                    contentDescription = stringResource(R.string.refresh_icon_content_desc)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -738,7 +781,7 @@ fun AlbumMenu(
         },
         onDismiss = {
             showChoosePlaylistDialog = false
-        },
+        }
     )
 
     if (showErrorPlaylistAddDialog) {
@@ -777,14 +820,14 @@ fun AlbumMenu(
                             showSelectArtistDialog = false
                             onDismiss()
                         }
-                        .padding(horizontal = 12.dp),
+                        .padding(horizontal = 12.dp)
                 ) {
                     AsyncImage(
                         model = artist.thumbnailUrl,
                         contentDescription = null,
                         modifier = Modifier
                             .size(ListThumbnailSize)
-                            .clip(CircleShape),
+                            .clip(CircleShape)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
@@ -792,7 +835,7 @@ fun AlbumMenu(
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }

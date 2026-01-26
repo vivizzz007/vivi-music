@@ -31,13 +31,9 @@ import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
-import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
-import com.music.vivi.ui.component.RoundedCheckbox
-import androidx.compose.ui.draw.clip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -68,9 +64,11 @@ import com.music.vivi.constants.AppLanguageKey
 import com.music.vivi.constants.ContentCountryKey
 import com.music.vivi.constants.ContentLanguageKey
 import com.music.vivi.constants.CountryCodeToName
+import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.EnableBetterLyricsKey
 import com.music.vivi.constants.EnableKugouKey
 import com.music.vivi.constants.EnableLrcLibKey
+import com.music.vivi.constants.EnableSimpMusicKey
 import com.music.vivi.constants.EnableYouTubeLyricsKey
 import com.music.vivi.constants.EnableYouTubeSubtitleKey
 import com.music.vivi.constants.HideExplicitKey
@@ -86,23 +84,27 @@ import com.music.vivi.constants.ProxyUsernameKey
 import com.music.vivi.constants.QuickPicks
 import com.music.vivi.constants.QuickPicksKey
 import com.music.vivi.constants.SYSTEM_DEFAULT
+import com.music.vivi.constants.SettingsShapeColorTertiaryKey
 import com.music.vivi.constants.TopSize
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.IconButton
+import com.music.vivi.ui.component.RoundedCheckbox
+import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.update.mordernswitch.ModernSwitch
+import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
 import com.music.vivi.update.settingstyle.ModernInfoItem
-import com.music.vivi.utils.rememberPreference
 import com.music.vivi.utils.rememberEnumPreference
-import com.music.vivi.constants.SettingsShapeColorTertiaryKey
-import com.music.vivi.constants.DarkModeKey
-import com.music.vivi.constants.EnableSimpMusicKey
-import com.music.vivi.ui.screens.settings.DarkMode
+import com.music.vivi.utils.rememberPreference
 import com.music.vivi.utils.reportException
 import com.music.vivi.utils.setAppLocale
 import java.net.Proxy
 import java.util.Locale
 
+/**
+ * Screen for configuring content preferences.
+ * Includes settings for language, country, explicit content, proxy, and lyrics providers.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContentSettings(
@@ -146,7 +148,10 @@ fun ContentSettings(
     // Used only before Android 13
     val (appLanguage, onAppLanguageChange) = rememberPreference(key = AppLanguageKey, defaultValue = SYSTEM_DEFAULT)
 
-    val (contentLanguage, onContentLanguageChange) = rememberPreference(key = ContentLanguageKey, defaultValue = "system")
+    val (contentLanguage, onContentLanguageChange) = rememberPreference(
+        key = ContentLanguageKey,
+        defaultValue = "system"
+    )
     val (contentCountry, onContentCountryChange) = rememberPreference(key = ContentCountryKey, defaultValue = "system")
     val (hideExplicit, onHideExplicitChange) = rememberPreference(key = HideExplicitKey, defaultValue = false)
     val (proxyEnabled, onProxyEnabledChange) = rememberPreference(key = ProxyEnabledKey, defaultValue = false)
@@ -156,14 +161,29 @@ fun ContentSettings(
     val (proxyPassword, onProxyPasswordChange) = rememberPreference(key = ProxyPasswordKey, defaultValue = "password")
     val (enableKugou, onEnableKugouChange) = rememberPreference(key = EnableKugouKey, defaultValue = true)
     val (enableLrclib, onEnableLrclibChange) = rememberPreference(key = EnableLrcLibKey, defaultValue = true)
-    val (enableBetterLyrics, onEnableBetterLyricsChange) = rememberPreference(key = EnableBetterLyricsKey, defaultValue = true)
+    val (enableBetterLyrics, onEnableBetterLyricsChange) = rememberPreference(
+        key = EnableBetterLyricsKey,
+        defaultValue = true
+    )
     val (enableSimpMusic, onEnableSimpMusicChange) = rememberPreference(key = EnableSimpMusicKey, defaultValue = true)
-    val (enableYouTubeLyrics, onEnableYouTubeLyricsChange) = rememberPreference(key = EnableYouTubeLyricsKey, defaultValue = true)
-    val (enableYouTubeSubtitle, onEnableYouTubeSubtitleChange) = rememberPreference(key = EnableYouTubeSubtitleKey, defaultValue = true)
+    val (enableYouTubeLyrics, onEnableYouTubeLyricsChange) = rememberPreference(
+        key = EnableYouTubeLyricsKey,
+        defaultValue = true
+    )
+    val (enableYouTubeSubtitle, onEnableYouTubeSubtitleChange) = rememberPreference(
+        key = EnableYouTubeSubtitleKey,
+        defaultValue = true
+    )
     val (hideVideoSongs, onHideVideoSongsChange) = rememberPreference(key = HideVideoSongsKey, defaultValue = false)
-    val (preferredProvider, onPreferredProviderChange) = rememberEnumPreference(key = PreferredLyricsProviderKey, defaultValue = PreferredLyricsProvider.BETTERLYRICS,)
+    val (preferredProvider, onPreferredProviderChange) = rememberEnumPreference(
+        key = PreferredLyricsProviderKey,
+        defaultValue = PreferredLyricsProvider.BETTERLYRICS
+    )
     val (lengthTop, onLengthTopChange) = rememberPreference(key = TopSize, defaultValue = "50")
-    val (quickPicks, onQuickPicksChange) = rememberEnumPreference(key = QuickPicksKey, defaultValue = QuickPicks.QUICK_PICKS)
+    val (quickPicks, onQuickPicksChange) = rememberEnumPreference(
+        key = QuickPicksKey,
+        defaultValue = QuickPicks.QUICK_PICKS
+    )
     var showProxyConfigurationDialog by rememberSaveable { mutableStateOf(false) }
     var showContentLanguageDialog by rememberSaveable { mutableStateOf(false) }
     var showContentCountryDialog by rememberSaveable { mutableStateOf(false) }
@@ -315,9 +335,9 @@ fun ContentSettings(
             content = {
                 Column(modifier = Modifier.padding(horizontal = 18.dp)) {
                     listOf(
-                        PreferredLyricsProvider.BETTERLYRICS, 
+                        PreferredLyricsProvider.BETTERLYRICS,
                         PreferredLyricsProvider.SIMPMUSIC,
-                        PreferredLyricsProvider.LRCLIB, 
+                        PreferredLyricsProvider.LRCLIB,
                         PreferredLyricsProvider.KUGOU
                     ).forEach { value ->
                         Row(
@@ -640,9 +660,17 @@ fun ContentSettings(
                         items = listOf(
                             {
                                 ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.language), null, modifier = Modifier.size(22.dp)) },
+                                    icon = {
+                                        Icon(
+                                            painterResource(R.drawable.language),
+                                            null,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    },
                                     title = stringResource(R.string.content_language),
-                                    subtitle = LanguageCodeToName.getOrElse(contentLanguage) { stringResource(R.string.system_default) },
+                                    subtitle = LanguageCodeToName.getOrElse(contentLanguage) {
+                                        stringResource(R.string.system_default)
+                                    },
                                     onClick = { showContentLanguageDialog = true },
                                     showArrow = true,
                                     showSettingsIcon = true,
@@ -652,9 +680,17 @@ fun ContentSettings(
                             },
                             {
                                 ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.location_on), null, modifier = Modifier.size(22.dp)) },
+                                    icon = {
+                                        Icon(
+                                            painterResource(R.drawable.location_on),
+                                            null,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    },
                                     title = stringResource(R.string.content_country),
-                                    subtitle = CountryCodeToName.getOrElse(contentCountry) { stringResource(R.string.system_default) },
+                                    subtitle = CountryCodeToName.getOrElse(contentCountry) {
+                                        stringResource(R.string.system_default)
+                                    },
                                     onClick = { showContentCountryDialog = true },
                                     showArrow = true,
                                     showSettingsIcon = true,
@@ -669,7 +705,13 @@ fun ContentSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.explicit), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.explicit),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.hide_explicit),
                                             subtitle = stringResource(R.string.filter_explicit_content),
                                             iconBackgroundColor = iconBgColor,
@@ -708,7 +750,13 @@ fun ContentSettings(
                         items = listOf {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                                 ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.language), null, modifier = Modifier.size(22.dp)) },
+                                    icon = {
+                                        Icon(
+                                            painterResource(R.drawable.language),
+                                            null,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    },
                                     title = stringResource(R.string.app_language),
                                     subtitle = stringResource(R.string.configure_in_system_settings),
                                     onClick = {
@@ -726,9 +774,17 @@ fun ContentSettings(
                                 )
                             } else {
                                 ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.language), null, modifier = Modifier.size(22.dp)) },
+                                    icon = {
+                                        Icon(
+                                            painterResource(R.drawable.language),
+                                            null,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    },
                                     title = stringResource(R.string.app_language),
-                                    subtitle = LanguageCodeToName.getOrElse(appLanguage) { stringResource(R.string.system_default) },
+                                    subtitle = LanguageCodeToName.getOrElse(appLanguage) {
+                                        stringResource(R.string.system_default)
+                                    },
                                     onClick = { showAppLanguageDialog = true },
                                     showArrow = true,
                                     showSettingsIcon = true,
@@ -765,7 +821,13 @@ fun ContentSettings(
                             ) {
                                 Box(modifier = Modifier.weight(1f)) {
                                     ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.slow_motion_video), null, modifier = Modifier.size(22.dp)) },
+                                        icon = {
+                                            Icon(
+                                                painterResource(R.drawable.slow_motion_video),
+                                                null,
+                                                modifier = Modifier.size(22.dp)
+                                            )
+                                        },
                                         title = stringResource(R.string.hide_video_songs),
                                         subtitle = stringResource(R.string.hide_video_content_songs),
                                         iconBackgroundColor = iconBgColor,
@@ -808,7 +870,13 @@ fun ContentSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.wifi_proxy), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.wifi_proxy),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.enable_proxy),
                                             subtitle = stringResource(R.string.route_traffic_through_proxy),
                                             iconBackgroundColor = iconBgColor,
@@ -825,7 +893,13 @@ fun ContentSettings(
                             if (proxyEnabled) {
                                 add {
                                     ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.settings), null, modifier = Modifier.size(22.dp)) },
+                                        icon = {
+                                            Icon(
+                                                painterResource(R.drawable.settings),
+                                                null,
+                                                modifier = Modifier.size(22.dp)
+                                            )
+                                        },
                                         title = stringResource(R.string.config_proxy),
                                         subtitle = stringResource(R.string.configure_proxy_settings),
                                         onClick = { showProxyConfigurationDialog = true },
@@ -866,7 +940,13 @@ fun ContentSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.lyrics),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.betterlyrics_lyrics),
                                             subtitle = stringResource(R.string.enable_betterlyrics_lyrics_source),
                                             iconBackgroundColor = iconBgColor,
@@ -887,7 +967,13 @@ fun ContentSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.lyrics),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = "SimpMusic",
                                             subtitle = "Enable SimpMusic as a lyrics source",
                                             iconBackgroundColor = iconBgColor,
@@ -908,7 +994,13 @@ fun ContentSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.lyrics),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.lrclib_lyrics),
                                             subtitle = stringResource(R.string.enable_lrclib_lyrics_source),
                                             iconBackgroundColor = iconBgColor,
@@ -929,7 +1021,13 @@ fun ContentSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.lyrics),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.kugou_lyrics),
                                             subtitle = stringResource(R.string.enable_kugou_lyrics_source),
                                             iconBackgroundColor = iconBgColor,
@@ -950,7 +1048,13 @@ fun ContentSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.lyrics),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = "YouTube Music Lyrics",
                                             subtitle = "Enable YouTube Music as a lyrics source",
                                             iconBackgroundColor = iconBgColor,
@@ -971,7 +1075,13 @@ fun ContentSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.lyrics),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = "YouTube Subtitles",
                                             subtitle = "Enable YouTube Subtitles as a lyrics source",
                                             iconBackgroundColor = iconBgColor,
@@ -987,7 +1097,9 @@ fun ContentSettings(
                             },
                             {
                                 ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
+                                    icon = {
+                                        Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp))
+                                    },
                                     title = stringResource(R.string.lyrics),
                                     subtitle = when (preferredProvider) {
                                         PreferredLyricsProvider.BETTERLYRICS -> "BetterLyrics"
@@ -1004,7 +1116,13 @@ fun ContentSettings(
                             },
                             {
                                 ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.language_korean_latin), null, modifier = Modifier.size(22.dp)) },
+                                    icon = {
+                                        Icon(
+                                            painterResource(R.drawable.language_korean_latin),
+                                            null,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    },
                                     title = stringResource(R.string.lyrics_romanization),
                                     subtitle = stringResource(R.string.romanization_settings),
                                     onClick = { navController.navigate("settings/content/romanization") },
@@ -1039,7 +1157,13 @@ fun ContentSettings(
                         items = listOf(
                             {
                                 ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.arrow_top_left), null, modifier = Modifier.size(22.dp)) },
+                                    icon = {
+                                        Icon(
+                                            painterResource(R.drawable.arrow_top_left),
+                                            null,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    },
                                     title = stringResource(R.string.top_length),
                                     subtitle = lengthTop,
                                     onClick = { showTopLengthDialog = true },
@@ -1051,7 +1175,13 @@ fun ContentSettings(
                             },
                             {
                                 ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.grid_view), null, modifier = Modifier.size(22.dp)) },
+                                    icon = {
+                                        Icon(
+                                            painterResource(R.drawable.grid_view),
+                                            null,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    },
                                     title = stringResource(R.string.quick_picks),
                                     subtitle = when (quickPicks) {
                                         QuickPicks.QUICK_PICKS -> stringResource(R.string.quick_picks)

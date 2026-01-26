@@ -14,20 +14,25 @@ import com.music.vivi.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel for the "New Releases" dedicated page of the Explore tab.
+ * Sorts releases by user preference/listening history similar to [ExploreViewModel].
+ */
 @HiltViewModel
-class NewReleaseViewModel
+public class NewReleaseViewModel
 @Inject
 constructor(
     @ApplicationContext val context: Context,
     database: MusicDatabase,
 ) : ViewModel() {
     private val _newReleaseAlbums = MutableStateFlow<List<AlbumItem>>(emptyList())
-    val newReleaseAlbums = _newReleaseAlbums.asStateFlow()
+    public val newReleaseAlbums: StateFlow<List<AlbumItem>> = _newReleaseAlbums.asStateFlow()
 
     init {
         viewModelScope.launch {

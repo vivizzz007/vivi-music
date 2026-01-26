@@ -20,17 +20,16 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
+/**
+ * A circular tile used for navigation (e.g. Quick Picks, Library shortcuts).
+ * Similar to `NavigationTitle` but with a circular icon/image on top.
+ */
 @Composable
-fun NavigationTile(
-    title: String,
-    @DrawableRes icon: Int,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+public fun NavigationTile(title: String, @DrawableRes icon: Int, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp),
-        modifier = modifier.padding(6.dp),
+        modifier = modifier.padding(6.dp)
     ) {
         Box(
             contentAlignment = Alignment.Center,
@@ -39,11 +38,11 @@ fun NavigationTile(
                 .size(56.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.surfaceContainer)
-                .clickable(onClick = onClick),
+                .clickable(onClick = onClick)
         ) {
             Icon(
                 painter = painterResource(icon),
-                contentDescription = null,
+                contentDescription = null
             )
         }
 
@@ -51,7 +50,7 @@ fun NavigationTile(
             text = title,
             style = MaterialTheme.typography.labelMedium,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }

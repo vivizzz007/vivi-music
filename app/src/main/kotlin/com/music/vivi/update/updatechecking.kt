@@ -12,4 +12,3 @@ fun isNewerVersion(latestVersion: String, currentVersion: String): Boolean {
     }
     return false
 }
-

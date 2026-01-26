@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vivi Music | Open Source Audio</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@unocss/runtime"></script>
+    <style> [un-cloak] { display: none; } </style>
+    <script>
+        window.__unocss = {
+            theme: {
+                colors: {
+                    primary: '#D0BCFF',
+                    onPrimary: '#381E72',
+                    surface: '#141218',
+                    surfaceContainer: '#1E1C24',
+                    surfaceVariant: '#49454F',
+                    secondary: '#CCC2DC',
+                    tertiary: '#EFB8C8',
+                    accent: '#7c4dff',
+                    success: '#4ADE80',
+                    warning: '#FBBC04'
+                },
+                fontFamily: {
+                    sans: '"Plus Jakarta Sans", sans-serif',
+                    mono: '"JetBrains Mono", monospace',
+                }
+            },
+            shortcuts: {
+                'btn-primary': 'bg-primary text-onPrimary px-6 py-3 rounded-full font-bold hover:opacity-90 active:scale-95 transition-all shadow-[0_0_20px_rgba(208,188,255,0.2)] flex items-center gap-2',
+                'btn-secondary': 'bg-surfaceVariant/30 text-primary border border-primary/20 px-6 py-3 rounded-full font-bold hover:bg-surfaceVariant/50 active:scale-95 transition-all flex items-center gap-2',
+                'card-tech': 'bg-surfaceContainer p-6 rounded-3xl border border-white/5 hover:border-primary/20 transition-all',
+                'section-title': 'text-4xl md:text-5xl font-extrabold tracking-tight mb-6',
+                'code-block': 'font-mono text-sm bg-[#0a0a0a] p-4 rounded-xl border border-white/10 text-gray-300 overflow-x-auto',
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #0f0d13; color: #E6E1E5; overflow-x: hidden; }
+        
+        /* --- Pixel 10 Pro XL CSS Mockup --- */
+        .pixel-frame {
+            width: 300px; height: 640px;
+            border-radius: 3.5rem;
+            background: #1a1a1a;
+            box-shadow: 
+                inset 0 0 0 2px #3a3a3a,
+                0 0 0 4px #000,
+                0 20px 50px rgba(0,0,0,0.5);
+            position: relative;
+            padding: 10px;
+            margin: auto;
+            transform-style: preserve-3d;
+        }
+        
+        .pixel-screen {
+            width: 100%; height: 100%;
+            background: #141218;
+            border-radius: 2.8rem;
+            overflow: hidden;
+            position: relative;
+            mask-image: radial-gradient(white, black);
+            -webkit-mask-image: -webkit-radial-gradient(white, black);
+        }
+
+        .pixel-camera {
+            position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
+            width: 10px; height: 10px; background: #000; border-radius: 50%; z-index: 50;
+        }
+
+        /* 3D Tilt */
+        .tilt-card { transition: transform 0.1s ease-out; }
+        .perspective-1000 { perspective: 1000px; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { bg: #141218; }
+        ::-webkit-scrollbar-thumb { background: #49454F; border-radius: 3px; }
+
+        /* Theme Switch */
+        .switch-track {
+            background: #2B2930; border-radius: 99px;
+            position: relative; width: 100px; height: 36px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 4px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+        }
+        .switch-thumb {
+            position: absolute; top: 3px; left: 3px;
+            width: 30px; height: 30px;
+            background: #D0BCFF; border-radius: 50%;
+            transition: transform 0.3s cubic-bezier(0.3, 1.5, 0.7, 1);
+            z-index: 1; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .switch-icon {
+            flex: 1; text-align: center; font-size: 12px;
+            color: #938F99; z-index: 2; cursor: pointer;
+            transition: color 0.2s;
+        }
+        .switch-icon.active { color: #381E72; }
+
+        /* Gradients */
+        .bg-gradient-mesh {
+            background: 
+                radial-gradient(at 0% 0%, rgba(124, 77, 255, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(208, 188, 255, 0.15) 0px, transparent 50%);
+        }
+    </style>
+</head>
+<body un-cloak class="bg-gradient-mesh min-h-screen flex flex-col">
+
+    <nav class="fixed top-0 w-full z-50 backdrop-blur-xl border-b border-white/5 bg-[#0f0d13]/80 transition-all" id="navbar">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
+            <a href="#" class="flex items-center gap-3 group">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center text-onPrimary shadow-lg group-hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-wave-square text-xs"></i>
+                </div>
+                <span class="font-bold text-lg tracking-tight">Vivi Music</span>
+            </a>
+
+            <div class="hidden md:flex items-center gap-6 text-sm font-medium text-white/70">
+                <a href="#features" class="hover:text-primary transition-colors">Features</a>
+                <a href="#screenshots" class="hover:text-primary transition-colors">Screenshots</a>
+                <a href="#install" class="hover:text-primary transition-colors">Install</a>
+                <a href="#contribute" class="hover:text-primary transition-colors">Contribute</a>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div class="switch-track" id="themeSwitch">
+                    <div class="switch-thumb" id="themeThumb"></div>
+                    <div class="switch-icon active" onclick="setTheme('light', 0)"><i class="fa-solid fa-sun"></i></div>
+                    <div class="switch-icon" onclick="setTheme('system', 32)"><i class="fa-solid fa-circle-half-stroke"></i></div>
+                    <div class="switch-icon" onclick="setTheme('dark', 64)"><i class="fa-solid fa-moon"></i></div>
+                </div>
+                
+                <a href="https://github.com/t-boyke/vivi-music" target="_blank" class="text-2xl text-white/50 hover:text-white transition-colors">
+                    <i class="fa-brands fa-github"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="pt-32 pb-20 px-6 relative overflow-hidden">
+        <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+            <div class="z-10" data-aos="fade-right">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-wider mb-6">
+                    <i class="fa-solid fa-code-commit"></i> v5.0.3-testing
+                </div>
+                <h1 class="text-6xl md:text-7xl font-bold leading-tight mb-6">
+                    Music, <br>
+                    <span class="bg-clip-text text-transparent bg-gradient-to-r from-primary to-tertiary">Unleashed.</span>
+                </h1>
+                <p class="text-xl text-white/60 mb-8 max-w-lg leading-relaxed">
+                    Der Open-Source Android Player mit <b>Innertube</b> Integration, synchronen Lyrics und Material 3 Expressive Design.
+                </p>
+                <div class="flex flex-wrap gap-4">
+                    <a href="#install" class="btn-primary">
+                        <i class="fa-brands fa-android"></i> Download App
+                    </a>
+                    <a href="#features" class="btn-secondary">
+                        <i class="fa-solid fa-layer-group"></i> View Features
+                    </a>
+                </div>
+            </div>
+
+            <div class="perspective-1000 flex justify-center lg:justify-end relative">
+                <div class="absolute -inset-4 bg-primary/20 blur-3xl rounded-full opacity-30"></div>
+                <div class="pixel-frame tilt-card" id="heroPhone">
+                    <div class="pixel-camera"></div>
+                    <div class="pixel-screen flex flex-col relative bg-[url('https://source.unsplash.com/random/400x800/?abstract,purple')] bg-cover">
+                        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+                        <div class="relative z-10 flex flex-col h-full p-6 pt-10">
+                            <div class="flex justify-between text-white/80 mb-8">
+                                <i class="fa-solid fa-chevron-down"></i>
+                                <span class="text-xs uppercase tracking-widest font-bold">Playing from Chart</span>
+                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                            </div>
+                            <div class="aspect-square rounded-[2rem] bg-gradient-to-tr from-gray-800 to-gray-700 shadow-2xl mb-8 relative overflow-hidden group border border-white/10">
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <i class="fa-solid fa-music text-6xl text-white/20"></i>
+                                </div>
+                                <div class="absolute bottom-0 w-full p-4 bg-gradient-to-t from-black/90 to-transparent">
+                                    <p class="text-xl font-bold text-white leading-tight">"And I keep waiting..."</p>
+                                    <p class="text-sm text-white/60">Midnight City</p>
+                                </div>
+                            </div>
+                            <div class="mt-auto space-y-6">
+                                <div class="w-full h-1 bg-white/20 rounded-full overflow-hidden">
+                                    <div class="w-2/3 h-full bg-primary"></div>
+                                </div>
+                                <div class="flex justify-between items-center text-2xl px-2">
+                                    <i class="fa-solid fa-backward-step text-white/70"></i>
+                                    <div class="w-16 h-16 bg-primary rounded-[1.5rem] flex items-center justify-center text-onPrimary shadow-lg">
+                                        <i class="fa-solid fa-pause"></i>
+                                    </div>
+                                    <i class="fa-solid fa-forward-step text-white/70"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section id="features" class="py-24 bg-surfaceContainer/50 border-y border-white/5">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid lg:grid-cols-3 gap-12">
+                <div class="lg:col-span-1 space-y-2">
+                    <h2 class="section-title">Engineered for <span class="text-primary">Performance</span></h2>
+                    <p class="text-white/60">
+                        Vivi Music kombiniert lokale Musikbibliotheken mit der Power von YouTube Music (Innertube).
+                    </p>
+                    <div class="mt-8 p-6 rounded-2xl bg-black/40 border border-white/5">
+                        <h4 class="font-bold mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-server text-accent"></i> Architecture
+                        </h4>
+                        <ul class="space-y-3 text-sm text-gray-400 font-mono">
+                            <li>> MVVM Pattern (Jetpack Compose)</li>
+                            <li>> Single Activity (MainActivity.kt)</li>
+                            <li>> Room Database (MusicDatabase)</li>
+                            <li>> Offline-First Strategy</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2 grid md:grid-cols-2 gap-6">
+                    <div class="card-tech group">
+                        <div class="w-12 h-12 rounded-xl bg-red-500/10 text-red-400 flex items-center justify-center mb-4 group-hover:rotate-12 transition-transform">
+                            <i class="fa-brands fa-youtube text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">Innertube Client</h3>
+                        <p class="text-sm text-white/60">
+                            Direkter API-Zugriff auf `YouTubeRepository`. Streamt Audio in Opus/AAC ohne Werbung. Unterstützt "Mix", "Charts" und "New Releases".
+                        </p>
+                    </div>
+
+                    <div class="card-tech group">
+                        <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center mb-4 group-hover:rotate-12 transition-transform">
+                            <i class="fa-solid fa-microphone-lines text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">BetterLyrics</h3>
+                        <p class="text-sm text-white/60">
+                            Multi-Source Lyrics Engine (`BetterLyricsLyricsProvider`). Fetcht synchrone Texte von LRCLib, Musixmatch und KuGou.
+                        </p>
+                    </div>
+
+                    <div class="card-tech group">
+                        <div class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-4 group-hover:rotate-12 transition-transform">
+                            <i class="fa-brands fa-discord text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">Kizzy RPC</h3>
+                        <p class="text-sm text-white/60">
+                            Integrierter Discord Rich Presence Client (`KizzyRPC.kt`). Zeigt Song, Künstler und Album-Cover live in deinem Discord-Profil an.
+                        </p>
+                    </div>
+
+                    <div class="card-tech group">
+                        <div class="w-12 h-12 rounded-xl bg-green-500/10 text-green-400 flex items-center justify-center mb-4 group-hover:rotate-12 transition-transform">
+                            <i class="fa-solid fa-cloud-arrow-down text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">Smart Cache</h3>
+                        <p class="text-sm text-white/60">
+                            `ExoDownloadService` sorgt für nahtloses Caching. Songs werden automatisch gecacht, um Datenvolumen zu sparen.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="screenshots" class="py-24 overflow-hidden">
+        <div class="text-center mb-16">
+            <h2 class="section-title">Visual Excellence</h2>
+            <p class="text-white/60">Material 3 Expressive Design in Action.</p>
+        </div>
+
+        <div class="flex justify-center gap-8 flex-wrap lg:flex-nowrap px-6">
+            
+            <div class="pixel-frame scale-90 lg:scale-100 hover:-translate-y-4 transition-transform duration-500">
+                <div class="pixel-camera"></div>
+                <div class="pixel-screen bg-[#1E1C24] p-4 pt-10 flex flex-col overflow-hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <span class="font-bold text-lg">Good Morning</span>
+                        <div class="w-8 h-8 rounded-full bg-primary/20"></div>
+                    </div>
+                    <div class="flex gap-2 mb-6 overflow-hidden">
+                        <div class="bg-primary text-onPrimary px-4 py-2 rounded-xl text-xs font-bold">Relax</div>
+                        <div class="bg-white/5 px-4 py-2 rounded-xl text-xs">Workout</div>
+                        <div class="bg-white/5 px-4 py-2 rounded-xl text-xs">Commute</div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="aspect-square bg-white/5 rounded-2xl p-3">
+                            <div class="w-full h-2/3 bg-tertiary/20 rounded-xl mb-2"></div>
+                            <div class="h-2 w-2/3 bg-white/20 rounded-full"></div>
+                        </div>
+                        <div class="aspect-square bg-white/5 rounded-2xl p-3">
+                            <div class="w-full h-2/3 bg-primary/20 rounded-xl mb-2"></div>
+                            <div class="h-2 w-1/2 bg-white/20 rounded-full"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pixel-frame scale-90 lg:scale-100 hover:-translate-y-4 transition-transform duration-500 delay-100">
+                <div class="pixel-camera"></div>
+                <div class="pixel-screen bg-[#141218] p-4 pt-10 flex flex-col">
+                    <div class="flex items-center gap-4 mb-8">
+                        <i class="fa-solid fa-arrow-left"></i>
+                        <span class="font-bold text-xl">Backup & Restore</span>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="p-4 rounded-2xl bg-surfaceVariant/20 border border-white/5 flex items-center gap-4">
+                            <i class="fa-solid fa-cloud-arrow-up text-primary text-xl"></i>
+                            <div>
+                                <div class="font-bold text-sm">Create Backup</div>
+                                <div class="text-xs text-white/50">Save JSON to storage</div>
+                            </div>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-surfaceVariant/20 border border-white/5 flex items-center gap-4">
+                            <i class="fa-solid fa-file-import text-tertiary text-xl"></i>
+                            <div>
+                                <div class="font-bold text-sm">Restore</div>
+                                <div class="text-xs text-white/50">Restore from file</div>
+                            </div>
+                        </div>
+                        <div class="mt-8 border-t border-white/10 pt-4">
+                            <span class="text-xs font-mono text-white/30 uppercase">Sync Settings</span>
+                            <div class="flex justify-between items-center mt-4">
+                                <span>Auto-Sync</span>
+                                <div class="w-10 h-6 bg-primary rounded-full relative"><div class="w-4 h-4 bg-onPrimary rounded-full absolute top-1 right-1"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <section id="install" class="py-24 bg-surfaceContainer border-y border-white/5">
+        <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16">
+            
+            <div>
+                <h2 class="text-3xl font-bold mb-8 flex items-center gap-3">
+                    <i class="fa-brands fa-android text-primary"></i>
+                    Install & Use
+                </h2>
+                <div class="space-y-8">
+                    <div class="flex gap-4">
+                        <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-onPrimary font-bold flex-shrink-0">1</div>
+                        <div>
+                            <h4 class="font-bold text-lg">Download APK</h4>
+                            <p class="text-white/60 text-sm mb-2">Get the latest `universal` build from Releases.</p>
+                            <a href="#" class="text-primary text-sm hover:underline">Go to Releases <i class="fa-solid fa-arrow-right text-xs"></i></a>
+                        </div>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="w-8 h-8 rounded-full bg-surfaceVariant flex items-center justify-center text-white font-bold flex-shrink-0">2</div>
+                        <div>
+                            <h4 class="font-bold text-lg">Grant Permissions</h4>
+                            <p class="text-white/60 text-sm">
+                                On first launch, allow <b>Notification</b> (for playback controls) and <b>Storage</b> (for local file access).
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="w-8 h-8 rounded-full bg-surfaceVariant flex items-center justify-center text-white font-bold flex-shrink-0">3</div>
+                        <div>
+                            <h4 class="font-bold text-lg">Import & Sync</h4>
+                            <p class="text-white/60 text-sm">
+                                Go to Settings > Content. You can import YouTube Playlists via URL or scan local folders.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="test">
+                <h2 class="text-3xl font-bold mb-8 flex items-center gap-3">
+                    <i class="fa-solid fa-vial text-tertiary"></i>
+                    Testing & QA
+                </h2>
+                <div class="bg-[#0f0d13] p-6 rounded-3xl border border-white/5 space-y-6">
+                    <div>
+                        <h5 class="text-sm font-bold text-white/80 mb-2">Unit Tests</h5>
+                        <p class="text-xs text-white/50 mb-2">Testing core logic like `LyricsParser` and `StringUtils`.</p>
+                        <div class="code-block">
+                            ./gradlew testDebugUnitTest
+                        </div>
+                    </div>
+                    <div>
+                        <h5 class="text-sm font-bold text-white/80 mb-2">UI Tests (Espresso)</h5>
+                        <p class="text-xs text-white/50 mb-2">Automated UI testing for `SettingsScreen` and Navigation.</p>
+                        <div class="code-block">
+                            ./gradlew connectedAndroidTest
+                        </div>
+                    </div>
+                    <div class="text-xs text-yellow-500/80 bg-yellow-500/10 p-3 rounded-lg flex gap-2">
+                        <i class="fa-solid fa-triangle-exclamation mt-0.5"></i>
+                        <span>Note: Use `vivi-music-testing` branch for latest experimental features.</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <section id="contribute" class="py-24">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h2 class="section-title">Contribute Code</h2>
+            <p class="text-white/60 mb-12">
+                Vivi Music is built with **Kotlin** and **Jetpack Compose**. Join us in shaping the future of audio on Android.
+            </p>
+
+            <div class="grid md:grid-cols-3 gap-4 text-left">
+                <div class="p-6 rounded-2xl bg-surfaceContainer border border-white/5">
+                    <i class="fa-solid fa-code-branch text-3xl text-primary mb-4"></i>
+                    <h4 class="font-bold mb-2">Fork & Branch</h4>
+                    <p class="text-sm text-white/50">Clone the repo and create a feature branch from `main`.</p>
+                </div>
+                <div class="p-6 rounded-2xl bg-surfaceContainer border border-white/5">
+                    <i class="fa-brands fa-android text-3xl text-success mb-4"></i>
+                    <h4 class="font-bold mb-2">Build Debug</h4>
+                    <p class="text-sm text-white/50">Run `./gradlew assembleDebug` to verify your environment.</p>
+                </div>
+                <div class="p-6 rounded-2xl bg-surfaceContainer border border-white/5">
+                    <i class="fa-solid fa-code-pull-request text-3xl text-tertiary mb-4"></i>
+                    <h4 class="font-bold mb-2">Pull Request</h4>
+                    <p class="text-sm text-white/50">Submit your PR. Ensure lint checks pass via `.editorconfig`.</p>
+                </div>
+            </div>
+
+            <div class="mt-12 bg-surfaceVariant/20 p-6 rounded-2xl inline-block text-left max-w-2xl w-full">
+                <div class="flex items-center gap-2 mb-4 text-sm text-white/70">
+                    <i class="fa-regular fa-folder-open"></i>
+                    <span>Key Directories</span>
+                </div>
+                <div class="space-y-2 font-mono text-xs text-primary">
+                    <p>├── app/src/main/java/com/music/vivi/ui/screens/ <span class="text-white/40">// Compose Screens</span></p>
+                    <p>├── innertube/ <span class="text-white/40">// YouTube Music API Client</span></p>
+                    <p>├── betterlyrics/ <span class="text-white/40">// Lyrics Provider Logic</span></p>
+                    <p>└── kizzy/ <span class="text-white/40">// Discord RPC Implementation</span></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-black py-12 border-t border-white/10">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded bg-white/10 flex items-center justify-center">
+                    <i class="fa-solid fa-music text-sm"></i>
+                </div>
+                <span class="font-bold">Vivi Music</span>
+            </div>
+            
+            <div class="flex gap-6">
+                <a href="#" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-[#5865F2] hover:text-white transition-colors text-white/50">
+                    <i class="fa-brands fa-discord"></i>
+                </a>
+                <a href="#" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-[#0088cc] hover:text-white transition-colors text-white/50">
+                    <i class="fa-brands fa-telegram"></i>
+                </a>
+                <a href="https://github.com/t-boyke/vivi-music" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white hover:text-black transition-colors text-white/50">
+                    <i class="fa-brands fa-github"></i>
+                </a>
+            </div>
+
+            <p class="text-xs text-white/30">
+                &copy; 2026 Vivi Music. Licensed under GPL v3.0.<br>
+                Based on `innertube` and `Compose`.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // --- 3D Tilt Logic ---
+        const heroPhone = document.getElementById('heroPhone');
+        document.addEventListener('mousemove', (e) => {
+            const x = (window.innerWidth / 2 - e.pageX) / 30;
+            const y = (window.innerHeight / 2 - e.pageY) / 30;
+            heroPhone.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
+        });
+
+        // --- Theme Switcher Logic ---
+        function setTheme(mode, pos) {
+            // UI
+            const icons = document.querySelectorAll('.switch-icon');
+            icons.forEach(i => i.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            
+            const thumb = document.getElementById('themeThumb');
+            thumb.style.transform = `translateX(${pos}px)`;
+
+            // Logic
+            if(mode === 'dark') {
+                document.body.style.backgroundColor = '#0f0d13';
+                document.body.style.color = '#E6E1E5';
+            } else if(mode === 'light') {
+                document.body.style.backgroundColor = '#fdf7ff';
+                document.body.style.color = '#1d1b20';
+            } else {
+                // System
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.body.style.backgroundColor = '#0f0d13';
+                    document.body.style.color = '#E6E1E5';
+                } else {
+                    document.body.style.backgroundColor = '#fdf7ff';
+                    document.body.style.color = '#1d1b20';
+                }
+            }
+        }
+
+        // Init System Theme
+        setTheme('system', 32);
+    </script>
+</body>
+</html>

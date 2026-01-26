@@ -1,10 +1,8 @@
 package com.music.vivi.playback.managers
 
 import android.content.Context
-import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import androidx.media3.common.Player
 import androidx.media3.common.Player.STATE_IDLE
 import androidx.media3.exoplayer.ExoPlayer
 import com.music.vivi.constants.HideExplicitKey
@@ -43,10 +41,10 @@ class QueueManager @Inject constructor(
 
     var scope: CoroutineScope = CoroutineScope(Dispatchers.Main)
         private set
-    
+
     var currentQueue: Queue = EmptyQueue
         private set
-        
+
     var queueTitle: String? = null
         private set
 
@@ -66,24 +64,21 @@ class QueueManager @Inject constructor(
      * @param queue The queue to play (can be a Playlist, Album, or Single Song queue).
      * @param playWhenReady Whether to start playing immediately after preparation.
      */
-    fun playQueue(
-        queue: Queue,
-        playWhenReady: Boolean = true,
-    ) {
+    fun playQueue(queue: Queue, playWhenReady: Boolean = true) {
         addedSuggestionIds.clear()
         // KORREKTUR: Job() muss zum Context addiert werden, nicht zum Scope-Objekt
         if (!scope.isActive) scope = CoroutineScope(Dispatchers.Main + Job())
-        
+
         currentQueue = queue
         queueTitle = null
         player.shuffleModeEnabled = false
-        
+
         if (queue.preloadItem != null) {
             player.setMediaItem(queue.preloadItem!!.toMediaItem())
             player.prepare()
             player.playWhenReady = playWhenReady
         }
-        
+
         scope.launch(SilentHandler) {
             val initialStatus =
                 withContext(Dispatchers.IO) {
@@ -91,15 +86,15 @@ class QueueManager @Inject constructor(
                         .filterExplicit(dataStore.get(HideExplicitKey, false))
                         .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
                 }
-                
+
             if (queue.preloadItem != null && player.playbackState == STATE_IDLE) return@launch
-            
+
             if (initialStatus.title != null) {
                 queueTitle = initialStatus.title
             }
-            
+
             if (initialStatus.items.isEmpty()) return@launch
-            
+
             if (queue.preloadItem != null) {
                 player.addMediaItems(
                     0,
@@ -119,14 +114,14 @@ class QueueManager @Inject constructor(
                     } else {
                         0
                     },
-                    initialStatus.position,
+                    initialStatus.position
                 )
                 player.prepare()
                 player.playWhenReady = playWhenReady
             }
         }
     }
-    
+
     fun clearQueue() {
         currentQueue = EmptyQueue
         queueTitle = null

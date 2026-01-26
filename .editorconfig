@@ -1,0 +1,28 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+max_line_length = 120
+
+[*.{kt,kts}]
+ij_kotlin_allow_trailing_comma = true
+# Canonical Import Order (Android 16 Standard)
+ij_kotlin_imports_layout = android.*, androidx.*, com.*, java.*, javax.*, kotlin.*, ^
+ktlint_code_style = android_studio
+ktlint_standard_no-wildcard-imports = active
+ktlint_standard_filename = active
+# Enforce KDoc
+ktlint_standard_kdoc-wrapping = active
+
+[*.xml]
+indent_size = 4
+max_line_length = 120
+
+[*.md]
+indent_size = 2
+max_line_length = off

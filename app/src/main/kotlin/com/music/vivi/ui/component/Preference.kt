@@ -39,8 +39,11 @@ import androidx.compose.ui.unit.dp
 import com.music.vivi.R
 import kotlin.math.roundToInt
 
+/**
+ * A basic preference entry with title, description, icon, and optional trailing content.
+ */
 @Composable
-fun PreferenceEntry(
+public fun PreferenceEntry(
     modifier: Modifier = Modifier,
     title: @Composable () -> Unit,
     description: String? = null,
@@ -57,13 +60,13 @@ fun PreferenceEntry(
             .fillMaxWidth()
             .clickable(
                 enabled = isEnabled && onClick != null,
-                onClick = onClick ?: {},
+                onClick = onClick ?: {}
             ).alpha(if (isEnabled) 1f else 0.5f)
-            .padding(horizontal = 16.dp, vertical = 16.dp),
+            .padding(horizontal = 16.dp, vertical = 16.dp)
     ) {
         if (icon != null) {
             Box(
-                modifier = Modifier.padding(horizontal = 4.dp),
+                modifier = Modifier.padding(horizontal = 4.dp)
             ) {
                 icon()
             }
@@ -73,7 +76,7 @@ fun PreferenceEntry(
 
         Column(
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f)
         ) {
             ProvideTextStyle(MaterialTheme.typography.titleMedium) {
                 title()
@@ -83,7 +86,7 @@ fun PreferenceEntry(
                 Text(
                     text = description,
                     style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.secondary,
+                    color = MaterialTheme.colorScheme.secondary
                 )
             }
 
@@ -98,8 +101,11 @@ fun PreferenceEntry(
     }
 }
 
+/**
+ * A preference that opens a dialog with a list of options.
+ */
 @Composable
-fun <T> ListPreference(
+public fun <T> ListPreference(
     modifier: Modifier = Modifier,
     title: @Composable () -> Unit,
     icon: (@Composable () -> Unit)? = null,
@@ -114,7 +120,7 @@ fun <T> ListPreference(
     }
     if (showDialog) {
         ListDialog(
-            onDismiss = { showDialog = false },
+            onDismiss = { showDialog = false }
         ) {
             items(values) { value ->
                 Row(
@@ -125,17 +131,17 @@ fun <T> ListPreference(
                         .clickable {
                             showDialog = false
                             onValueSelected(value)
-                        }.padding(horizontal = 16.dp, vertical = 12.dp),
+                        }.padding(horizontal = 16.dp, vertical = 12.dp)
                 ) {
                     RoundedCheckbox(
                         checked = value == selectedValue,
-                        onCheckedChange = null,
+                        onCheckedChange = null
                     )
 
                     Text(
                         text = valueText(value),
                         style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(start = 16.dp),
+                        modifier = Modifier.padding(start = 16.dp)
                     )
                 }
             }
@@ -148,12 +154,15 @@ fun <T> ListPreference(
         description = valueText(selectedValue),
         icon = icon,
         onClick = { showDialog = true },
-        isEnabled = isEnabled,
+        isEnabled = isEnabled
     )
 }
 
+/**
+ * A convenience wrapper for `ListPreference` that works with Enums.
+ */
 @Composable
-inline fun <reified T : Enum<T>> EnumListPreference(
+public inline fun <reified T : Enum<T>> EnumListPreference(
     modifier: Modifier = Modifier,
     noinline title: @Composable () -> Unit,
     noinline icon: (@Composable () -> Unit)?,
@@ -170,12 +179,15 @@ inline fun <reified T : Enum<T>> EnumListPreference(
         values = enumValues<T>().toList(),
         valueText = valueText,
         onValueSelected = onValueSelected,
-        isEnabled = isEnabled,
+        isEnabled = isEnabled
     )
 }
 
+/**
+ * A preference with a toggle switch.
+ */
 @Composable
-fun SwitchPreference(
+public fun SwitchPreference(
     modifier: Modifier = Modifier,
     title: @Composable () -> Unit,
     description: String? = null,
@@ -200,7 +212,7 @@ fun SwitchPreference(
                             id = if (checked) R.drawable.check else R.drawable.close
                         ),
                         contentDescription = null,
-                        modifier = Modifier.size(SwitchDefaults.IconSize),
+                        modifier = Modifier.size(SwitchDefaults.IconSize)
                     )
                 }
             )
@@ -210,8 +222,11 @@ fun SwitchPreference(
     )
 }
 
+/**
+ * A preference that allows editing a string value via a dialog.
+ */
 @Composable
-fun EditTextPreference(
+public fun EditTextPreference(
     modifier: Modifier = Modifier,
     title: @Composable () -> Unit,
     icon: (@Composable () -> Unit)? = null,
@@ -230,12 +245,12 @@ fun EditTextPreference(
             initialTextFieldValue =
             TextFieldValue(
                 text = value,
-                selection = TextRange(value.length),
+                selection = TextRange(value.length)
             ),
             singleLine = singleLine,
             isInputValid = isInputValid,
             onDone = onValueChange,
-            onDismiss = { showDialog = false },
+            onDismiss = { showDialog = false }
         )
     }
 
@@ -245,13 +260,16 @@ fun EditTextPreference(
         description = value,
         icon = icon,
         onClick = { showDialog = true },
-        isEnabled = isEnabled,
+        isEnabled = isEnabled
     )
 }
 
+/**
+ * A preference with a slider in a dialog (specifically for history duration here, but could be generalized).
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SliderPreference(
+public fun SliderPreference(
     modifier: Modifier = Modifier,
     title: @Composable () -> Unit,
     icon: (@Composable () -> Unit)? = null,
@@ -278,7 +296,7 @@ fun SliderPreference(
                         text = stringResource(R.string.history_duration),
                         overflow = TextOverflow.Ellipsis,
                         maxLines = 1,
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.headlineSmall
                     )
                 }
             },
@@ -302,7 +320,7 @@ fun SliderPreference(
                             sliderValue.roundToInt(),
                             sliderValue.roundToInt()
                         ),
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.bodyLarge
                     )
 
                     Spacer(Modifier.height(16.dp))
@@ -324,19 +342,19 @@ fun SliderPreference(
         description = value.roundToInt().toString(),
         icon = icon,
         onClick = { showDialog = true },
-        isEnabled = isEnabled,
+        isEnabled = isEnabled
     )
 }
 
+/**
+ * A section title for grouping preferences.
+ */
 @Composable
-fun PreferenceGroupTitle(
-    title: String,
-    modifier: Modifier = Modifier,
-) {
+public fun PreferenceGroupTitle(title: String, modifier: Modifier = Modifier) {
     Text(
         text = title.uppercase(),
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.primary,
-        modifier = modifier.padding(16.dp),
+        modifier = modifier.padding(16.dp)
     )
 }

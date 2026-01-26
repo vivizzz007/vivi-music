@@ -45,8 +45,8 @@ import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.playback.queues.ListQueue
 import com.music.vivi.ui.component.HideOnScrollFAB
 import com.music.vivi.ui.component.IconButton
+import com.music.vivi.ui.component.LibrarySongListItem
 import com.music.vivi.ui.component.LocalMenuState
-import com.music.vivi.ui.component.SongListItem
 import com.music.vivi.ui.component.SortHeader
 import com.music.vivi.ui.menu.SongMenu
 import com.music.vivi.ui.utils.backToMain
@@ -54,9 +54,13 @@ import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.ArtistSongsViewModel
 
+/**
+ * Screen displaying the user's local Library songs for a specific Artist.
+ * Features sorting (Date, Name, Play Time) and shuffle playback.
+ */
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun ArtistSongsScreen(
+public fun ArtistSongsScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
     viewModel: ArtistSongsViewModel = hiltViewModel(),
@@ -77,24 +81,24 @@ fun ArtistSongsScreen(
         true
     )
     val hideExplicit by rememberPreference(key = HideExplicitKey, defaultValue = false)
-    val artist by viewModel.artist.collectAsState()
-    val songs by viewModel.songs.collectAsState()
+    val artist: com.music.vivi.db.entities.Artist? by viewModel.artist.collectAsState()
+    val songs: List<com.music.vivi.db.entities.Song> by viewModel.songs.collectAsState()
     val lazyListState = rememberLazyListState()
 
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
     ) {
         LazyColumn(
             state = lazyListState,
-            contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
+            contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
         ) {
             item(
                 key = "header",
-                contentType = CONTENT_TYPE_HEADER,
+                contentType = CONTENT_TYPE_HEADER
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 ) {
                     SortHeader(
                         sortType = sortType,
@@ -107,7 +111,7 @@ fun ArtistSongsScreen(
                                 ArtistSongSortType.NAME -> R.string.sort_by_name
                                 ArtistSongSortType.PLAY_TIME -> R.string.sort_by_play_time
                             }
-                        },
+                        }
                     )
 
                     Spacer(Modifier.weight(1f))
@@ -115,16 +119,16 @@ fun ArtistSongsScreen(
                     Text(
                         text = pluralStringResource(R.plurals.n_song, songs.size, songs.size),
                         style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.secondary,
+                        color = MaterialTheme.colorScheme.secondary
                     )
                 }
             }
 
             itemsIndexed(
                 items = songs,
-                key = { _, item -> item.id },
+                key = { _, item -> item.id }
             ) { index, song ->
-                SongListItem(
+                LibrarySongListItem(
                     song = song,
                     showInLibraryIcon = true,
                     isActive = song.id == mediaMetadata?.id,
@@ -136,19 +140,19 @@ fun ArtistSongsScreen(
                                     SongMenu(
                                         originalSong = song,
                                         navController = navController,
-                                        onDismiss = menuState::dismiss,
+                                        onDismiss = menuState::dismiss
                                     )
                                 }
-                            },
+                            }
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.more_vert),
-                                contentDescription = null,
+                                contentDescription = null
                             )
                         }
                     },
-                    modifier =
-                    Modifier
+                    modifier = Modifier
+                        .animateItem()
                         .fillMaxWidth()
                         .combinedClickable(
                             onClick = {
@@ -159,8 +163,8 @@ fun ArtistSongsScreen(
                                         ListQueue(
                                             title = context.getString(R.string.queue_all_songs),
                                             items = songs.map { it.toMediaItem() },
-                                            startIndex = index,
-                                        ),
+                                            startIndex = index
+                                        )
                                     )
                                 }
                             },
@@ -170,12 +174,11 @@ fun ArtistSongsScreen(
                                     SongMenu(
                                         originalSong = song,
                                         navController = navController,
-                                        onDismiss = menuState::dismiss,
+                                        onDismiss = menuState::dismiss
                                     )
                                 }
-                            },
+                            }
                         )
-                        .animateItem(),
                 )
             }
         }
@@ -185,14 +188,14 @@ fun ArtistSongsScreen(
             navigationIcon = {
                 IconButton(
                     onClick = navController::navigateUp,
-                    onLongClick = navController::backToMain,
+                    onLongClick = navController::backToMain
                 ) {
                     Icon(
                         painterResource(R.drawable.arrow_back),
-                        contentDescription = null,
+                        contentDescription = null
                     )
                 }
-            },
+            }
         )
 
         HideOnScrollFAB(
@@ -202,10 +205,10 @@ fun ArtistSongsScreen(
                 playerConnection.playQueue(
                     ListQueue(
                         title = artist?.artist?.name,
-                        items = songs.shuffled().map { it.toMediaItem() },
-                    ),
+                        items = songs.shuffled().map { it.toMediaItem() }
+                    )
                 )
-            },
+            }
         )
     }
 }

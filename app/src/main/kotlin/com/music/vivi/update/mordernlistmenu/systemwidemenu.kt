@@ -26,7 +26,7 @@ fun ModernListItem(
     subtitle: String,
     onClick: () -> Unit,
     iconModifier: Modifier = Modifier,
-    trailingContent: @Composable (() -> Unit)? = null
+    trailingContent: @Composable (() -> Unit)? = null,
 ) {
     Row(
         modifier = Modifier
@@ -62,4 +62,3 @@ fun ModernListItem(
         }
     }
 }
-

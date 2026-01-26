@@ -4,6 +4,10 @@ import androidx.compose.runtime.Immutable
 import androidx.room.Embedded
 import androidx.room.Relation
 
+/**
+ * A listening event combined with the Song details.
+ * Used for displaying History UI.
+ */
 @Immutable
 data class EventWithSong(
     @Embedded
@@ -11,7 +15,7 @@ data class EventWithSong(
     @Relation(
         entity = SongEntity::class,
         parentColumn = "songId",
-        entityColumn = "id",
+        entityColumn = "id"
     )
     val song: Song,
 )

@@ -38,22 +38,29 @@ import androidx.navigation.NavController
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
 import com.music.vivi.constants.GridThumbnailHeight
-import com.music.vivi.ui.component.ChipsRow
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.LocalMenuState
-import com.music.vivi.ui.component.YouTubeGridItem
-import com.music.vivi.ui.component.shimmer.GridItemPlaceHolder
-import com.music.vivi.ui.component.shimmer.ShimmerHost
+import com.music.vivi.ui.component.account.accountLoadingShimmer
+import com.music.vivi.ui.component.media.youtube.YouTubeGridItem
 import com.music.vivi.ui.menu.YouTubeAlbumMenu
 import com.music.vivi.ui.menu.YouTubeArtistMenu
 import com.music.vivi.ui.menu.YouTubePlaylistMenu
 import com.music.vivi.ui.utils.backToMain
-import com.music.vivi.viewmodels.AccountViewModel
 import com.music.vivi.viewmodels.AccountContentType
+import com.music.vivi.viewmodels.AccountViewModel
 
+/**
+ * Screen for displaying the user's YouTube Music account library (Playlists, Albums, Artists).
+ *
+ * Features:
+ * - 3-Tab filtering: Playlists, Albums, Artists.
+ * - Grid view of items.
+ * - Context menus for items.
+ * - Integration with [AccountViewModel].
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun AccountScreen(
+public fun AccountScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
     viewModel: AccountViewModel = hiltViewModel(),
@@ -70,7 +77,7 @@ fun AccountScreen(
 
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = GridThumbnailHeight + 24.dp),
-        contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
+        contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
     ) {
         item(span = { GridItemSpan(maxLineSpan) }) {
             Row(
@@ -83,7 +90,7 @@ fun AccountScreen(
                 listOf(
                     AccountContentType.PLAYLISTS to stringResource(R.string.filter_playlists),
                     AccountContentType.ALBUMS to stringResource(R.string.filter_albums),
-                    AccountContentType.ARTISTS to stringResource(R.string.filter_artists),
+                    AccountContentType.ARTISTS to stringResource(R.string.filter_artists)
                 ).forEach { (contentType, label) ->
                     FilterChip(
                         selected = selectedContentType == contentType,
@@ -94,12 +101,12 @@ fun AccountScreen(
                                 Icon(
                                     imageVector = Icons.Filled.Done,
                                     contentDescription = stringResource(R.string.selected_content_desc),
-                                    modifier = Modifier.size(FilterChipDefaults.IconSize),
+                                    modifier = Modifier.size(FilterChipDefaults.IconSize)
                                 )
                             }
                         } else {
                             null
-                        },
+                        }
                     )
                 }
             }
@@ -109,7 +116,7 @@ fun AccountScreen(
             AccountContentType.PLAYLISTS -> {
                 items(
                     items = playlists.orEmpty().distinctBy { it.id },
-                    key = { it.id },
+                    key = { it.id }
                 ) { item ->
                     YouTubeGridItem(
                         item = item,
@@ -125,21 +132,15 @@ fun AccountScreen(
                                         YouTubePlaylistMenu(
                                             playlist = item,
                                             coroutineScope = coroutineScope,
-                                            onDismiss = menuState::dismiss,
+                                            onDismiss = menuState::dismiss
                                         )
                                     }
-                                },
-                            ),
+                                }
+                            )
                     )
                 }
 
-                if (playlists == null) {
-                    items(8) {
-                        ShimmerHost {
-                            GridItemPlaceHolder(fillMaxWidth = true)
-                        }
-                    }
-                }
+                accountLoadingShimmer(playlists == null)
             }
 
             AccountContentType.ALBUMS -> {
@@ -169,13 +170,7 @@ fun AccountScreen(
                     )
                 }
 
-                if (albums == null) {
-                    items(8) {
-                        ShimmerHost {
-                            GridItemPlaceHolder(fillMaxWidth = true)
-                        }
-                    }
-                }
+                accountLoadingShimmer(albums == null)
             }
 
             AccountContentType.ARTISTS -> {
@@ -204,13 +199,7 @@ fun AccountScreen(
                     )
                 }
 
-                if (artists == null) {
-                    items(8) {
-                        ShimmerHost {
-                            GridItemPlaceHolder(fillMaxWidth = true)
-                        }
-                    }
-                }
+                accountLoadingShimmer(artists == null)
             }
         }
     }
@@ -220,13 +209,13 @@ fun AccountScreen(
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,
-                onLongClick = navController::backToMain,
+                onLongClick = navController::backToMain
             ) {
                 Icon(
                     painterResource(R.drawable.arrow_back),
-                    contentDescription = null,
+                    contentDescription = null
                 )
             }
-        },
+        }
     )
 }

@@ -36,9 +36,7 @@ open class KizzyRPC(token: String) {
         discordWebSocket.close()
     }
 
-    fun isRpcRunning(): Boolean {
-        return discordWebSocket.isWebSocketConnected()
-    }
+    fun isRpcRunning(): Boolean = discordWebSocket.isWebSocketConnected()
 
     suspend fun stopActivity() {
         if (!isRpcRunning()) {
@@ -108,13 +106,13 @@ open class KizzyRPC(token: String) {
         STREAMING(1),
         LISTENING(2),
         WATCHING(3),
-        COMPETING(5)
+        COMPETING(5),
     }
 
     enum class StatusDisplayType(val value: Int) {
         NAME(0),
         STATE(1),
-        DETAILS(2)
+        DETAILS(2),
     }
 
     companion object {

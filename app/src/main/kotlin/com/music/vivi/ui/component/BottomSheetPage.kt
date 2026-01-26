@@ -48,13 +48,11 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import com.music.vivi.ui.utils.top
 
-val LocalBottomSheetPageState = compositionLocalOf { BottomSheetPageState() }
+public val LocalBottomSheetPageState: androidx.compose.runtime.ProvidableCompositionLocal<BottomSheetPageState> =
+    compositionLocalOf { BottomSheetPageState() }
 
 @Stable
-class BottomSheetPageState(
-    isVisible: Boolean = false,
-    content: @Composable ColumnScope.() -> Unit = {},
-) {
+public class BottomSheetPageState(isVisible: Boolean = false, content: @Composable ColumnScope.() -> Unit = {}) {
     var isVisible by mutableStateOf(isVisible)
     var content by mutableStateOf(content)
 
@@ -68,8 +66,12 @@ class BottomSheetPageState(
     }
 }
 
+/**
+ * A full-screen bottom sheet page.
+ * Used for specific sub-flows within the app that slide up from the bottom (e.g. Queue, Details).
+ */
 @Composable
-fun BottomSheetPage(
+public fun BottomSheetPage(
     modifier: Modifier = Modifier,
     state: BottomSheetPageState,
     background: Color = MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation),
@@ -81,7 +83,7 @@ fun BottomSheetPage(
     AnimatedVisibility(
         visible = state.isVisible,
         enter = fadeIn(animationSpec = tween(300)),
-        exit = fadeOut(animationSpec = tween(300)),
+        exit = fadeOut(animationSpec = tween(300))
     ) {
         BackHandler {
             state.dismiss()
@@ -95,7 +97,7 @@ fun BottomSheetPage(
                     }
                 }
                 .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.5f))
-                .fillMaxSize(),
+                .fillMaxSize()
         )
     }
 
@@ -109,7 +111,7 @@ fun BottomSheetPage(
             targetOffsetY = { it },
             animationSpec = tween(300)
         ),
-        modifier = modifier,
+        modifier = modifier
     ) {
         Column(
             modifier = Modifier
@@ -143,7 +145,7 @@ fun BottomSheetPage(
                         shape = RoundedCornerShape(2.dp)
                     )
             )
-            
+
             // Content with proper spacing
             Column(
                 modifier = Modifier

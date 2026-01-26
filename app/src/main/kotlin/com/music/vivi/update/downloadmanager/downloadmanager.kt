@@ -2,12 +2,12 @@ package com.music.vivi.update.downloadmanager
 
 import android.content.Context
 import android.os.Environment
+import com.music.vivi.R
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
-import com.music.vivi.R
 
 class CustomDownloadManager {
     private var downloadJob: Job? = null
@@ -18,7 +18,7 @@ class CustomDownloadManager {
         apkUrl: String,
         onProgress: (Float) -> Unit,
         onDownloadComplete: (File) -> Unit,
-        onError: (String) -> Unit
+        onError: (String) -> Unit,
     ) {
         downloadJob?.cancel()
         isPaused = false
@@ -85,7 +85,6 @@ class CustomDownloadManager {
                 withContext(Dispatchers.Main) {
                     onDownloadComplete(outputFile)
                 }
-
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     onError(e.message ?: context.getString(R.string.download_failed))
@@ -105,5 +104,4 @@ class CustomDownloadManager {
     }
 }
 
-
-//new download manager removed old download manager
+// new download manager removed old download manager

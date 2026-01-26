@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 fun Material3ExpressiveSettingsGroup(
     modifier: Modifier = Modifier,
     containerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
-    items: List<@Composable () -> Unit>
+    items: List<@Composable () -> Unit>,
 ) {
     val cornerRadius = 24.dp
     val connectionRadius = 4.dp

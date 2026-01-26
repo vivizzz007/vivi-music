@@ -1,3 +1,8 @@
+@file:OptIn(
+    androidx.compose.material3.ExperimentalMaterial3Api::class,
+    androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class
+)
+
 package com.music.vivi.update.changelog
 
 import android.content.Context
@@ -27,7 +32,6 @@ import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Error
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -48,8 +52,6 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -61,12 +63,12 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -85,12 +87,16 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+// -----------------------------------------------------------------------------
+// 2. Public Entry Point
+// -----------------------------------------------------------------------------
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChangelogScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
-    versionTag: String = "v${BuildConfig.VERSION_NAME}"
+    versionTag: String = "v${BuildConfig.VERSION_NAME}",
 ) {
     val context = LocalContext.current
     var changelog by remember { mutableStateOf("") }
@@ -110,11 +116,7 @@ fun ChangelogScreen(
     val pullToRefreshState = rememberPullToRefreshState()
     val isRefreshing = isLoading || isFetchingOldReleases
 
-    val scaleFraction = {
-        if (isRefreshing) 1f
-        else LinearOutSlowInEasing.transform(pullToRefreshState.distanceFraction).coerceIn(0f, 1f)
-    }
-
+    // --- Logic Logic (Kept internal for SFC Pilot) ---
     fun fetchChangelog(tag: String) {
         isLoading = true
         hasError = false
@@ -131,19 +133,20 @@ fun ChangelogScreen(
                         showingCached = true
                     }
                 } else {
-                    val changelogUrl = URL("https://github.com/vivizzz007/vivi-music/releases/download/$tag/changelog.json")
+                    val changelogUrl =
+                        URL("https://github.com/vivizzz007/vivi-music/releases/download/$tag/changelog.json")
                     val changelogJson = changelogUrl.openStream().bufferedReader().use { it.readText() }
                     val changelogData = JSONObject(changelogJson)
 
-                    val desc = changelogData.optString("description", null)
-                    val imageUrl = changelogData.optString("image", null)
+                    val desc = changelogData.optString("description")
+                    val imageUrl = changelogData.optString("image")
                     val changelogArray = changelogData.getJSONArray("changelog")
                     val changelogText = buildString {
                         for (i in 0 until changelogArray.length()) {
                             appendLine(changelogArray.getString(i))
                         }
                     }.trim()
-                    val warning = changelogData.optString("warning", null)
+                    val warning = changelogData.optString("warning")
 
                     saveChangelogToCache(context, tag, changelogText, imageUrl, desc, warning)
 
@@ -187,7 +190,9 @@ fun ChangelogScreen(
                     val publishedAt = obj.getString("published_at")
                     val formattedDate = try {
                         ZonedDateTime.parse(publishedAt).format(outputFormatter)
-                    } catch (e: Exception) { publishedAt }
+                    } catch (e: Exception) {
+                        publishedAt
+                    }
 
                     val assets = obj.getJSONArray("assets")
                     var changelogUrl: String? = null
@@ -203,7 +208,7 @@ fun ChangelogScreen(
                         try {
                             val changelogJson = URL(changelogUrl).openStream().bufferedReader().use { it.readText() }
                             val changelogData = JSONObject(changelogJson)
-                            list.add(ReleaseMetadata(tagName, name, formattedDate, changelogData.optString("image", null)))
+                            list.add(ReleaseMetadata(tagName, name, formattedDate, changelogData.optString("image")))
                         } catch (e: Exception) {
                             list.add(ReleaseMetadata(tagName, name, formattedDate, null))
                         }
@@ -224,6 +229,7 @@ fun ChangelogScreen(
         fetchChangelog(currentVersionTag)
     }
 
+    // --- UI Structure ---
     Scaffold(
         modifier = Modifier.pullToRefresh(
             state = pullToRefreshState,
@@ -252,201 +258,336 @@ fun ChangelogScreen(
                 .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Bottom))
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
-                // Segmented Button
-                SingleChoiceSegmentedButtonRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    val context = LocalContext.current
-                    val options = listOf(context.getString(R.string.current), context.getString(R.string.old_releases))
-                    options.forEachIndexed { index, label ->
-                        SegmentedButton(
-                            shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
-                            onClick = {
-                                selectedIndex = index
-                                if (index == 0) {
-                                    currentVersionTag = versionTag
-                                } else {
-                                    fetchOldReleases()
-                                }
-                            },
-                            selected = index == selectedIndex,
-                        ) { Text(label) }
+                ChangelogTypeSelector(
+                    selectedIndex = selectedIndex,
+                    onOptionSelected = { index ->
+                        selectedIndex = index
+                        if (index == 0) currentVersionTag = versionTag else fetchOldReleases()
                     }
-                }
+                )
 
                 if (selectedIndex == 0) {
-                    // Current Changelog View
-                    if (hasError && !isLoading) {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(Icons.Default.Error, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(48.dp))
-                                Spacer(Modifier.height(16.dp))
-                                Text(stringResource(R.string.error_loading_changelog), color = MaterialTheme.colorScheme.error)
-                            }
+                    CurrentChangelogView(
+                        hasError = hasError,
+                        isLoading = isLoading,
+                        showingCached = showingCached,
+                        versionTag = currentVersionTag,
+                        updateImage = updateImage,
+                        updateDescription = updateDescription,
+                        updateWarning = updateWarning,
+                        changelog = changelog,
+                        onUrlClick = { url ->
+                            ContextCompat.startActivity(context, Intent(Intent.ACTION_VIEW, Uri.parse(url)), null)
                         }
-                    } else {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .verticalScroll(rememberScrollState())
-                        ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Column {
-                                        Text(stringResource(R.string.changelog_title), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                                        Text(currentVersionTag, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    }
-                                    if (showingCached) {
-                                        Surface(color = MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(8.dp)) {
-                                            Text(stringResource(R.string.cached), style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
-                                        }
-                                    }
-                                }
-                                updateImage?.let { imageUrl ->
-                                    Spacer(modifier = Modifier.height(16.dp))
-                                    AsyncImage(model = imageUrl, contentDescription = null, modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)), contentScale = ContentScale.FillWidth)
-                                }
-                            }
-
-                            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                                updateDescription?.let { desc ->
-                                    Text(desc, style = MaterialTheme.typography.bodyLarge)
-                                    Spacer(Modifier.height(16.dp))
-                                }
-                                if (changelog.isNotEmpty()) {
-                                    changelog.split("\n").filter { it.isNotBlank() }.forEach { item ->
-                                        val urls = item.extractUrls()
-                                        val annotatedText = buildAnnotatedString {
-                                            append(item.trim())
-                                            urls.forEach { (range, url) ->
-                                                addStringAnnotation("URL", url, range.first, range.last + 1)
-                                                addStyle(SpanStyle(color = MaterialTheme.colorScheme.primary, textDecoration = TextDecoration.Underline), range.first, range.last + 1)
-                                            }
-                                        }
-                                        Row(modifier = Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                            Box(modifier = Modifier.padding(top = 8.dp).size(6.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
-                                            ClickableText(
-                                                text = annotatedText,
-                                                onClick = { offset ->
-                                                    annotatedText.getStringAnnotations("URL", offset, offset).firstOrNull()?.let {
-                                                        ContextCompat.startActivity(context, Intent(Intent.ACTION_VIEW, Uri.parse(it.item)), null)
-                                                    }
-                                                },
-                                                style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface)
-                                            )
-                                        }
-                                    }
-                                }
-                                updateWarning?.let { warning ->
-                                    Spacer(Modifier.height(16.dp))
-                                    Surface(color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f), shape = RoundedCornerShape(12.dp)) {
-                                        Row(modifier = Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                            Icon(Icons.Default.Error, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
-                                            Text(warning, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onErrorContainer)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    )
                 } else {
-                    // Old Releases View
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        if (oldReleasesMetadata.isEmpty() && !isFetchingOldReleases) {
-                            Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                                Text(stringResource(R.string.no_old_releases_with_changelog), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        } else {
-                            oldReleasesMetadata.forEach { release ->
-                                OutlinedCard(
-                                    modifier = Modifier.fillMaxWidth().clickable {
-                                        currentVersionTag = release.tagName
-                                        selectedIndex = 0
-                                    },
-                                    shape = RoundedCornerShape(16.dp)
-                                ) {
-                                    Column {
-                                        release.imageUrl?.let { imageUrl ->
-                                            AsyncImage(model = imageUrl, contentDescription = null, modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)), contentScale = ContentScale.Crop)
-                                        }
-                                        Column(modifier = Modifier.padding(16.dp)) {
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Text(
-                                                    text = release.name,
-                                                    style = MaterialTheme.typography.titleLarge,
-                                                    fontWeight = FontWeight.Bold,
-                                                    modifier = Modifier.weight(1f)
-                                                )
-                                                Surface(
-                                                    color = MaterialTheme.colorScheme.secondaryContainer,
-                                                    shape = RoundedCornerShape(8.dp)
-                                                ) {
-                                                    Text(
-                                                        text = release.tagName,
-                                                        style = MaterialTheme.typography.labelMedium,
-                                                        color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                                                    )
-                                                }
-                                            }
-                                            Spacer(Modifier.height(4.dp))
-                                            Text(
-                                                text = release.date,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        }
-                                    }
-                                }
-                            }
+                    OldReleasesView(
+                        oldReleases = oldReleasesMetadata,
+                        isFetching = isFetchingOldReleases,
+                        onReleaseClick = { tag ->
+                            currentVersionTag = tag
+                            selectedIndex = 0
                         }
-                    }
+                    )
                 }
             }
 
-            // The Loading Indicator at the top center
-            Box(
-                Modifier
-                    .align(Alignment.TopCenter)
-                    .graphicsLayer {
-                        scaleX = scaleFraction()
-                        scaleY = scaleFraction()
+            // Loading Indicator
+            PullIndicator(
+                modifier = Modifier.align(Alignment.TopCenter),
+                state = pullToRefreshState,
+                isRefreshing = isRefreshing
+            )
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+// 4. Private Sub-components
+// -----------------------------------------------------------------------------
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun ChangelogTypeSelector(selectedIndex: Int, onOptionSelected: (Int) -> Unit) {
+    SingleChoiceSegmentedButtonRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        val context = LocalContext.current
+        val options = listOf(context.getString(R.string.current), context.getString(R.string.old_releases))
+        options.forEachIndexed { index, label ->
+            SegmentedButton(
+                shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
+                onClick = { onOptionSelected(index) },
+                selected = index == selectedIndex
+            ) { Text(label) }
+        }
+    }
+}
+
+@Composable
+private fun CurrentChangelogView(
+    hasError: Boolean,
+    isLoading: Boolean,
+    showingCached: Boolean,
+    versionTag: String,
+    updateImage: String?,
+    updateDescription: String?,
+    updateWarning: String?,
+    changelog: String,
+    onUrlClick: (String) -> Unit,
+) {
+    if (hasError && !isLoading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(Icons.Default.Error, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(48.dp))
+                Spacer(Modifier.height(16.dp))
+                Text(stringResource(R.string.error_loading_changelog), color = MaterialTheme.colorScheme.error)
+            }
+        }
+    } else {
+        Column(
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            stringResource(R.string.changelog_title),
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            versionTag,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
-            ) {
-                PullToRefreshDefaults.LoadingIndicator(state = pullToRefreshState, isRefreshing = isRefreshing)
+                    if (showingCached) {
+                        Surface(color = MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(8.dp)) {
+                            Text(
+                                stringResource(R.string.cached),
+                                style = MaterialTheme.typography.labelSmall,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
+                }
+                updateImage?.let { imageUrl ->
+                    Spacer(modifier = Modifier.height(16.dp))
+                    AsyncImage(
+                        model = imageUrl,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)),
+                        contentScale = ContentScale.FillWidth
+                    )
+                }
+            }
+
+            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                updateDescription?.let { desc ->
+                    Text(desc, style = MaterialTheme.typography.bodyLarge)
+                    Spacer(Modifier.height(16.dp))
+                }
+                if (changelog.isNotEmpty()) {
+                    changelog.split("\n").filter { it.isNotBlank() }.forEach { item ->
+                        ChangelogItem(item, onUrlClick)
+                    }
+                }
+                updateWarning?.let { warning ->
+                    Spacer(Modifier.height(16.dp))
+                    Surface(
+                        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(modifier = Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Icon(
+                                Icons.Default.Error,
+                                null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Text(
+                                warning,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                        }
+                    }
+                }
             }
         }
     }
 }
 
+@Composable
+private fun ChangelogItem(item: String, onUrlClick: (String) -> Unit) {
+    val urls = item.extractUrls()
+    val annotatedText = buildAnnotatedString {
+        append(item.trim())
+        urls.forEach { (range, url) ->
+            addStringAnnotation("URL", url, range.first, range.last + 1)
+            addStyle(
+                SpanStyle(color = MaterialTheme.colorScheme.primary, textDecoration = TextDecoration.Underline),
+                range.first,
+                range.last + 1
+            )
+        }
+    }
+    Row(
+        modifier = Modifier.padding(vertical = 4.dp),
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Box(
+            modifier = Modifier.padding(
+                top = 8.dp
+            ).size(6.dp).background(MaterialTheme.colorScheme.primary, CircleShape)
+        )
+        @Suppress("DEPRECATION")
+        ClickableText(
+            text = annotatedText,
+            onClick = { offset ->
+                annotatedText.getStringAnnotations("URL", offset, offset).firstOrNull()?.let {
+                    onUrlClick(it.item)
+                }
+            },
+            style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface)
+        )
+    }
+}
+
+@Composable
+private fun OldReleasesView(oldReleases: List<ReleaseMetadata>, isFetching: Boolean, onReleaseClick: (String) -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        if (oldReleases.isEmpty() && !isFetching) {
+            Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                Text(
+                    stringResource(R.string.no_old_releases_with_changelog),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        } else {
+            oldReleases.forEach { release ->
+                ReleaseCard(release, onReleaseClick)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReleaseCard(release: ReleaseMetadata, onClick: (String) -> Unit) {
+    OutlinedCard(
+        modifier = Modifier.fillMaxWidth().clickable { onClick(release.tagName) },
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column {
+            release.imageUrl?.let { imageUrl ->
+                AsyncImage(
+                    model = imageUrl,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxWidth().height(
+                        180.dp
+                    ).clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            }
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = release.name,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = RoundedCornerShape(8.dp)) {
+                        Text(
+                            text = release.tagName,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = release.date,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PullIndicator(
+    modifier: Modifier = Modifier,
+    state: androidx.compose.material3.pulltorefresh.PullToRefreshState,
+    isRefreshing: Boolean,
+) {
+    val scaleFraction = {
+        if (isRefreshing) {
+            1f
+        } else {
+            LinearOutSlowInEasing.transform(state.distanceFraction).coerceIn(0f, 1f)
+        }
+    }
+    Box(
+        modifier.graphicsLayer {
+            scaleX = scaleFraction()
+            scaleY = scaleFraction()
+        }
+    ) {
+        PullToRefreshDefaults.LoadingIndicator(state = state, isRefreshing = isRefreshing)
+    }
+}
+
+// -----------------------------------------------------------------------------
+// 5. Logic Helpers (Data Classes, Cache)
+// -----------------------------------------------------------------------------
+
 data class ReleaseMetadata(val tagName: String, val name: String, val date: String, val imageUrl: String?)
-data class CachedChangelogData(val changelog: String, val image: String?, val description: String?, val warning: String?)
+data class CachedChangelogData(
+    val changelog: String,
+    val image: String?,
+    val description: String?,
+    val warning: String?,
+)
 
 private fun cleanupOldChangelogCache(context: Context, currentVersionTag: String) {
     try {
-        context.filesDir.listFiles { file -> file.name.startsWith("changelog_cache_") && file.name.endsWith(".json") }?.forEach { file ->
+        context.filesDir.listFiles { file ->
+            file.name.startsWith("changelog_cache_") && file.name.endsWith(".json")
+        }?.forEach { file ->
             if (file.name != "changelog_cache_$currentVersionTag.json") file.delete()
         }
-    } catch (e: Exception) { Log.e("ChangelogCache", "Error cleaning up cache", e) }
+    } catch (e: Exception) {
+        Log.e("ChangelogCache", "Error cleaning up cache", e)
+    }
 }
 
-private fun saveChangelogToCache(context: Context, versionTag: String, changelog: String, image: String?, description: String?, warning: String?) {
+private fun saveChangelogToCache(
+    context: Context,
+    versionTag: String,
+    changelog: String,
+    image: String?,
+    description: String?,
+    warning: String?,
+) {
     try {
         val cacheData = JSONObject().apply {
             put("changelog", changelog)
@@ -454,20 +595,27 @@ private fun saveChangelogToCache(context: Context, versionTag: String, changelog
             put("description", description ?: "")
             put("warning", warning ?: "")
         }
-        context.openFileOutput("changelog_cache_$versionTag.json", Context.MODE_PRIVATE).use { it.write(cacheData.toString().toByteArray()) }
-    } catch (e: Exception) { Log.e("ChangelogCache", "Error saving cache", e) }
+        context.openFileOutput("changelog_cache_$versionTag.json", Context.MODE_PRIVATE).use {
+            it.write(cacheData.toString().toByteArray())
+        }
+    } catch (e: Exception) {
+        Log.e("ChangelogCache", "Error saving cache", e)
+    }
 }
 
 private fun loadChangelogFromCache(context: Context, versionTag: String): CachedChangelogData? {
     return try {
         val cacheFile = File(context.filesDir, "changelog_cache_$versionTag.json")
         if (!cacheFile.exists()) return null
-        val cacheData = JSONObject(context.openFileInput("changelog_cache_$versionTag.json").use { it.bufferedReader().readText() })
+        val cacheData =
+            JSONObject(context.openFileInput("changelog_cache_$versionTag.json").use { it.bufferedReader().readText() })
         CachedChangelogData(
             changelog = cacheData.getString("changelog"),
-            image = cacheData.optString("image", null).takeIf { !it.isNullOrBlank() },
-            description = cacheData.optString("description", null).takeIf { !it.isNullOrBlank() },
-            warning = cacheData.optString("warning", null).takeIf { !it.isNullOrBlank() }
+            image = cacheData.optString("image").takeIf { !it.isNullOrBlank() },
+            description = cacheData.optString("description").takeIf { !it.isNullOrBlank() },
+            warning = cacheData.optString("warning").takeIf { !it.isNullOrBlank() }
         )
-    } catch (e: Exception) { null }
+    } catch (e: Exception) {
+        null
+    }
 }

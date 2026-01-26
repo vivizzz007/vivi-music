@@ -19,6 +19,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
+/**
+ * A dialog for importing a playlist from a list of songs.
+ * Prompts the user for a playlist name.
+ */
 @Composable
 fun ImportPlaylistDialog(
     isVisible: Boolean,

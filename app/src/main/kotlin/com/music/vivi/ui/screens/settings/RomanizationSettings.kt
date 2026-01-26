@@ -23,8 +23,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -36,11 +36,15 @@ import com.music.vivi.R
 import com.music.vivi.constants.*
 import com.music.vivi.ui.component.*
 import com.music.vivi.ui.utils.backToMain
-import com.music.vivi.utils.rememberPreference
-import com.music.vivi.utils.rememberEnumPreference
-import com.music.vivi.update.settingstyle.ModernInfoItem
 import com.music.vivi.update.mordernswitch.ModernSwitch
+import com.music.vivi.update.settingstyle.ModernInfoItem
+import com.music.vivi.utils.rememberEnumPreference
+import com.music.vivi.utils.rememberPreference
 
+/**
+ * Screen for configuring lyrics romanization settings.
+ * Allows users to enable romanization for various languages (Japanese, Korean, Cyrillic, etc.).
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RomanizationSettings(
@@ -78,23 +82,60 @@ fun RomanizationSettings(
         )
     }
 
-    val (lyricsRomanizeJapanese, onLyricsRomanizeJapaneseChange) = rememberPreference(LyricsRomanizeJapaneseKey, defaultValue = true)
-    val (lyricsRomanizeKorean, onLyricsRomanizeKoreanChange) = rememberPreference(LyricsRomanizeKoreanKey, defaultValue = true)
-    val (lyricsRomanizeDevanagari, onLyricsRomanizeDevangariChange) = rememberPreference(LyricsRomanizeDevanagariKey, defaultValue = true)
-    val (lyricsRomanizeRussian, onLyricsRomanizeRussianChange) = rememberPreference(LyricsRomanizeRussianKey, defaultValue = true)
-    val (lyricsRomanizeUkrainian, onLyricsRomanizeUkrainianChange) = rememberPreference(LyricsRomanizeUkrainianKey, defaultValue = true)
-    val (lyricsRomanizeSerbian, onLyricsRomanizeSerbianChange) = rememberPreference(LyricsRomanizeSerbianKey, defaultValue = true)
-    val (lyricsRomanizeBulgarian, onLyricsRomanizeBulgarianChange) = rememberPreference(LyricsRomanizeBulgarianKey, defaultValue = true)
-    val (lyricsRomanizeBelarusian, onLyricsRomanizeBelarusianChange) = rememberPreference(LyricsRomanizeBelarusianKey, defaultValue = true)
-    val (lyricsRomanizeKyrgyz, onLyricsRomanizeKyrgyzChange) = rememberPreference(LyricsRomanizeKyrgyzKey, defaultValue = true)
-    val (lyricsRomanizeMacedonian, onLyricsRomanizeMacedonianChange) = rememberPreference(LyricsRomanizeMacedonianKey, defaultValue = true)
-    val (lyricsRomanizeCyrillicByLine, onLyricsRomanizeCyrillicByLineChange) = rememberPreference(LyricsRomanizeCyrillicByLineKey, defaultValue = false)
+    val (lyricsRomanizeJapanese, onLyricsRomanizeJapaneseChange) = rememberPreference(
+        LyricsRomanizeJapaneseKey,
+        defaultValue = true
+    )
+    val (lyricsRomanizeKorean, onLyricsRomanizeKoreanChange) = rememberPreference(
+        LyricsRomanizeKoreanKey,
+        defaultValue = true
+    )
+    val (lyricsRomanizeDevanagari, onLyricsRomanizeDevangariChange) = rememberPreference(
+        LyricsRomanizeDevanagariKey,
+        defaultValue = true
+    )
+    val (lyricsRomanizeRussian, onLyricsRomanizeRussianChange) = rememberPreference(
+        LyricsRomanizeRussianKey,
+        defaultValue = true
+    )
+    val (lyricsRomanizeUkrainian, onLyricsRomanizeUkrainianChange) = rememberPreference(
+        LyricsRomanizeUkrainianKey,
+        defaultValue = true
+    )
+    val (lyricsRomanizeSerbian, onLyricsRomanizeSerbianChange) = rememberPreference(
+        LyricsRomanizeSerbianKey,
+        defaultValue = true
+    )
+    val (lyricsRomanizeBulgarian, onLyricsRomanizeBulgarianChange) = rememberPreference(
+        LyricsRomanizeBulgarianKey,
+        defaultValue = true
+    )
+    val (lyricsRomanizeBelarusian, onLyricsRomanizeBelarusianChange) = rememberPreference(
+        LyricsRomanizeBelarusianKey,
+        defaultValue = true
+    )
+    val (lyricsRomanizeKyrgyz, onLyricsRomanizeKyrgyzChange) = rememberPreference(
+        LyricsRomanizeKyrgyzKey,
+        defaultValue = true
+    )
+    val (lyricsRomanizeMacedonian, onLyricsRomanizeMacedonianChange) = rememberPreference(
+        LyricsRomanizeMacedonianKey,
+        defaultValue = true
+    )
+    val (lyricsRomanizeCyrillicByLine, onLyricsRomanizeCyrillicByLineChange) = rememberPreference(
+        LyricsRomanizeCyrillicByLineKey,
+        defaultValue = false
+    )
     val (showDialog, setShowDialog) = remember { mutableStateOf(false) }
 
     Column(
         Modifier
-            .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
-            .verticalScroll(rememberScrollState()),
+            .windowInsetsPadding(
+                LocalPlayerAwareWindowInsets.current.only(
+                    WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
+                )
+            )
+            .verticalScroll(rememberScrollState())
     ) {
         Spacer(
             Modifier.windowInsetsPadding(
@@ -119,7 +160,13 @@ fun RomanizationSettings(
             Column(modifier = Modifier.padding(vertical = 8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     ModernInfoItem(
-                        icon = { Icon(painterResource(R.drawable.language_japanese_latin), null, modifier = Modifier.size(22.dp)) },
+                        icon = {
+                            Icon(
+                                painterResource(R.drawable.language_japanese_latin),
+                                null,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        },
                         title = stringResource(R.string.lyrics_romanize_japanese),
                         subtitle = stringResource(R.string.romanize_japanese_lyrics_subtitle),
                         iconBackgroundColor = iconBgColor,
@@ -140,7 +187,13 @@ fun RomanizationSettings(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     ModernInfoItem(
-                        icon = { Icon(painterResource(R.drawable.language_korean_latin), null, modifier = Modifier.size(22.dp)) },
+                        icon = {
+                            Icon(
+                                painterResource(R.drawable.language_korean_latin),
+                                null,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        },
                         title = stringResource(R.string.lyrics_romanize_korean),
                         subtitle = stringResource(R.string.romanize_korean_lyrics_subtitle),
                         iconBackgroundColor = iconBgColor,
@@ -161,7 +214,13 @@ fun RomanizationSettings(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     ModernInfoItem(
-                        icon = { Icon(painterResource(R.drawable.language_korean_latin), null, modifier = Modifier.size(22.dp)) },
+                        icon = {
+                            Icon(
+                                painterResource(R.drawable.language_korean_latin),
+                                null,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        },
                         title = stringResource(R.string.lyrics_romanize_devanagari),
                         subtitle = "Romanize devanagari lyrics",
                         iconBackgroundColor = iconBgColor,
@@ -192,18 +251,40 @@ fun RomanizationSettings(
             Column(modifier = Modifier.padding(vertical = 8.dp)) {
                 val cyrillicItems = listOf(
                     Triple(R.string.lyrics_romanize_russian, lyricsRomanizeRussian, onLyricsRomanizeRussianChange),
-                    Triple(R.string.lyrics_romanize_ukrainian, lyricsRomanizeUkrainian, onLyricsRomanizeUkrainianChange),
+                    Triple(
+                        R.string.lyrics_romanize_ukrainian,
+                        lyricsRomanizeUkrainian,
+                        onLyricsRomanizeUkrainianChange
+                    ),
                     Triple(R.string.lyrics_romanize_serbian, lyricsRomanizeSerbian, onLyricsRomanizeSerbianChange),
-                    Triple(R.string.lyrics_romanize_bulgarian, lyricsRomanizeBulgarian, onLyricsRomanizeBulgarianChange),
-                    Triple(R.string.lyrics_romanize_belarusian, lyricsRomanizeBelarusian, onLyricsRomanizeBelarusianChange),
+                    Triple(
+                        R.string.lyrics_romanize_bulgarian,
+                        lyricsRomanizeBulgarian,
+                        onLyricsRomanizeBulgarianChange
+                    ),
+                    Triple(
+                        R.string.lyrics_romanize_belarusian,
+                        lyricsRomanizeBelarusian,
+                        onLyricsRomanizeBelarusianChange
+                    ),
                     Triple(R.string.lyrics_romanize_kyrgyz, lyricsRomanizeKyrgyz, onLyricsRomanizeKyrgyzChange),
-                    Triple(R.string.lyrics_romanize_macedonian, lyricsRomanizeMacedonian, onLyricsRomanizeMacedonianChange),
+                    Triple(
+                        R.string.lyrics_romanize_macedonian,
+                        lyricsRomanizeMacedonian,
+                        onLyricsRomanizeMacedonianChange
+                    )
                 )
 
                 cyrillicItems.forEachIndexed { index, (titleRes, checked, onCheckedChange) ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         ModernInfoItem(
-                            icon = { Icon(painterResource(R.drawable.alphabet_cyrillic), null, modifier = Modifier.size(22.dp)) },
+                            icon = {
+                                Icon(
+                                    painterResource(R.drawable.alphabet_cyrillic),
+                                    null,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            },
                             title = stringResource(titleRes),
                             subtitle = stringResource(R.string.romanize_cyrillic_lyrics_subtitle),
                             iconBackgroundColor = iconBgColor,
@@ -285,11 +366,11 @@ fun RomanizationSettings(
         navigationIcon = {
             IconButton(
                 onClick = { onBack?.invoke() ?: navController.navigateUp() },
-                onLongClick = navController::backToMain,
+                onLongClick = navController::backToMain
             ) {
                 Icon(
                     painterResource(R.drawable.arrow_back),
-                    contentDescription = null,
+                    contentDescription = null
                 )
             }
         }

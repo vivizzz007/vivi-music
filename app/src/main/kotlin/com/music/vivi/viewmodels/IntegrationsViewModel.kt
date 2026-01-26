@@ -1,53 +1,49 @@
 package com.music.vivi.viewmodels
 
-import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.music.lastfm.LastFM
 import com.music.vivi.constants.DiscordTokenKey
 import com.music.vivi.constants.LastFMSessionKey
 import com.music.vivi.constants.LastFMUsernameKey
-import com.music.vivi.utils.dataStore
+import com.music.vivi.utils.get
 import com.my.kizzy.rpc.KizzyRPC
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class DiscordState(
+public data class DiscordState(
     val token: String = "",
     val username: String = "",
     val name: String = "",
-    val isLoggedIn: Boolean = false
+    val isLoggedIn: Boolean = false,
 )
 
-data class LastFMState(
-    val sessionKey: String = "",
-    val username: String = "",
-    val isLoggedIn: Boolean = false
-)
+public data class LastFMState(val sessionKey: String = "", val username: String = "", val isLoggedIn: Boolean = false)
 
+/**
+ * ViewModel for managing 3rd party integrations (Discord RPC, Last.fm).
+ * Observes datastore keys for tokens/sessions and updates connection state.
+ */
 @HiltViewModel
-class IntegrationsViewModel @Inject constructor(
-    @ApplicationContext private val context: Context
-) : ViewModel() {
+public class IntegrationsViewModel @Inject constructor(private val dataStore: DataStore<Preferences>) : ViewModel() {
 
     private val _discordState = MutableStateFlow(DiscordState())
-    val discordState = _discordState.asStateFlow()
+    public val discordState: StateFlow<DiscordState> = _discordState.asStateFlow()
 
     private val _lastFmState = MutableStateFlow(LastFMState())
-    val lastFmState = _lastFmState.asStateFlow()
+    public val lastFmState: StateFlow<LastFMState> = _lastFmState.asStateFlow()
 
     init {
         // Observe Discord
         viewModelScope.launch {
-            context.dataStore.data
+            dataStore.data
                 .map { it[DiscordTokenKey] ?: "" }
                 .distinctUntilChanged()
                 .collect { token ->
@@ -73,15 +69,15 @@ class IntegrationsViewModel @Inject constructor(
 
         // Observe LastFM
         viewModelScope.launch {
-            context.dataStore.data
+            dataStore.data
                 .map { (it[LastFMSessionKey] ?: "") to (it[LastFMUsernameKey] ?: "") }
                 .distinctUntilChanged()
                 .collect { (session, username) ->
-                     _lastFmState.value = LastFMState(
-                         sessionKey = session,
-                         username = username,
-                         isLoggedIn = session.isNotEmpty()
-                     )
+                    _lastFmState.value = LastFMState(
+                        sessionKey = session,
+                        username = username,
+                        isLoggedIn = session.isNotEmpty()
+                    )
                 }
         }
     }

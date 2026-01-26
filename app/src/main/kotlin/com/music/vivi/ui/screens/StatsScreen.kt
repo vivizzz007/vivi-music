@@ -1,6 +1,5 @@
 package com.music.vivi.ui.screens
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -35,19 +34,23 @@ import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.StatPeriod
-import com.music.vivi.extensions.togglePlayPause
+import com.music.vivi.db.entities.Album
+import com.music.vivi.db.entities.Artist
+import com.music.vivi.db.entities.Song
+import com.music.vivi.db.entities.SongWithStats
 import com.music.vivi.extensions.toMediaItem
+import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.playback.queues.ListQueue
 import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.ui.component.ChoiceChipsRow
 import com.music.vivi.ui.component.HideOnScrollFAB
 import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.component.LocalAlbumsGrid
-import com.music.vivi.ui.component.LocalArtistsGrid
 import com.music.vivi.ui.component.LocalMenuState
-import com.music.vivi.ui.component.LocalSongsGrid
 import com.music.vivi.ui.component.NavigationTitle
+import com.music.vivi.ui.component.media.local.LocalAlbumsGrid
+import com.music.vivi.ui.component.media.local.LocalArtistsGrid
+import com.music.vivi.ui.component.media.local.LocalSongsGrid
 import com.music.vivi.ui.menu.AlbumMenu
 import com.music.vivi.ui.menu.ArtistMenu
 import com.music.vivi.ui.menu.SongMenu
@@ -58,12 +61,17 @@ import com.music.vivi.viewmodels.StatsViewModel
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+/**
+ * Screen displaying User Statistics (Most Played, etc.).
+ *
+ * Features:
+ * - Time period tabs (Weeks, Months, Years, Continuous).
+ * - Horizontal lists for Top Songs, Artists, Albums.
+ * - FAB to shuffle "Most Played Songs".
+ */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StatsScreen(
-    navController: NavController,
-    viewModel: StatsViewModel = hiltViewModel(),
-) {
+public fun StatsScreen(navController: NavController, viewModel: StatsViewModel = hiltViewModel()) {
     val menuState = LocalMenuState.current
     val haptic = LocalHapticFeedback.current
     val playerConnection = LocalPlayerConnection.current ?: return
@@ -72,10 +80,10 @@ fun StatsScreen(
     val context = LocalContext.current
 
     val indexChips by viewModel.indexChips.collectAsState()
-    val mostPlayedSongs by viewModel.mostPlayedSongs.collectAsState()
-    val mostPlayedSongsStats by viewModel.mostPlayedSongsStats.collectAsState()
-    val mostPlayedArtists by viewModel.mostPlayedArtists.collectAsState()
-    val mostPlayedAlbums by viewModel.mostPlayedAlbums.collectAsState()
+    val mostPlayedSongs: List<Song> by viewModel.mostPlayedSongs.collectAsState()
+    val mostPlayedSongsStats: List<SongWithStats> by viewModel.mostPlayedSongsStats.collectAsState()
+    val mostPlayedArtists: List<Artist> by viewModel.mostPlayedArtists.collectAsState()
+    val mostPlayedAlbums: List<Album> by viewModel.mostPlayedAlbums.collectAsState()
     val firstEvent by viewModel.firstEvent.collectAsState()
     val currentDate = LocalDateTime.now()
 
@@ -86,7 +94,7 @@ fun StatsScreen(
     val weeklyDates =
         if (currentDate != null && firstEvent != null) {
             generateSequence(currentDate) { it.minusWeeks(1) }
-                .takeWhile { it.isAfter(firstEvent?.event?.timestamp?.minusWeeks(1)) }
+                .takeWhile { it.isAfter(firstEvent?.timestamp?.minusWeeks(1)) }
                 .mapIndexed { index, date ->
                     val endDate = date.plusWeeks(1).minusDays(1).coerceAtMost(currentDate)
                     val formatter = DateTimeFormatter.ofPattern("dd MMM")
@@ -119,9 +127,8 @@ fun StatsScreen(
                 .takeWhile {
                     it.isAfter(
                         firstEvent
-                            ?.event
                             ?.timestamp
-                            ?.withDayOfMonth(1),
+                            ?.withDayOfMonth(1)
                     )
                 }.mapIndexed { index, date ->
                     val formatter = DateTimeFormatter.ofPattern("MMM")
@@ -144,13 +151,12 @@ fun StatsScreen(
                 currentDate
                     .plusYears(1)
                     .withDayOfYear(1)
-                    .minusDays(1),
+                    .minusDays(1)
             ) { it.minusYears(1) }
                 .takeWhile {
                     it.isAfter(
                         firstEvent
-                            ?.event
-                            ?.timestamp,
+                            ?.timestamp
                     )
                 }.mapIndexed { index, date ->
                     Pair(index, "${date.year}")
@@ -203,7 +209,7 @@ fun StatsScreen(
                                     1,
                                     1
                                 ),
-                                StatPeriod.ALL.ordinal to stringResource(R.string.filter_all),
+                                StatPeriod.ALL.ordinal to stringResource(R.string.filter_all)
                             )
                         }
                     },
@@ -212,7 +218,7 @@ fun StatsScreen(
                         OptionStats.CONTINUOUS to stringResource(id = R.string.continuous),
                         OptionStats.WEEKS to stringResource(R.string.weeks),
                         OptionStats.MONTHS to stringResource(R.string.months),
-                        OptionStats.YEARS to stringResource(R.string.years),
+                        OptionStats.YEARS to stringResource(R.string.years)
                     ),
                     selectedOption = selectedOption,
                     onSelectionChange = {
@@ -220,22 +226,22 @@ fun StatsScreen(
                         viewModel.indexChips.value = 0
                     },
                     currentValue = indexChips,
-                    onValueUpdate = { viewModel.indexChips.value = it },
+                    onValueUpdate = { viewModel.indexChips.value = it }
                 )
             }
 
             item(key = "mostPlayedSongs") {
                 NavigationTitle(
                     title = "${mostPlayedSongsStats.size} ${stringResource(id = R.string.songs)}",
-                    modifier = Modifier.animateItem(),
+                    modifier = Modifier.animateItem()
                 )
 
                 LazyRow(
-                    modifier = Modifier.animateItem(),
+                    modifier = Modifier.animateItem()
                 ) {
                     itemsIndexed(
                         items = mostPlayedSongsStats,
-                        key = { _, song -> song.id },
+                        key = { _, song -> song.id }
                     ) { index, song ->
                         LocalSongsGrid(
                             title = "${index + 1}. ${song.title}",
@@ -244,9 +250,9 @@ fun StatsScreen(
                                 pluralStringResource(
                                     R.plurals.n_time,
                                     song.songCountListened,
-                                    song.songCountListened,
+                                    song.songCountListened
                                 ),
-                                makeTimeString(song.timeListened),
+                                makeTimeString(song.timeListened)
                             ),
                             thumbnailUrl = song.thumbnailUrl,
                             isActive = song.id == mediaMetadata?.id,
@@ -262,8 +268,8 @@ fun StatsScreen(
                                             playerConnection.playQueue(
                                                 YouTubeQueue(
                                                     endpoint = WatchEndpoint(song.id),
-                                                    preloadItem = mostPlayedSongs[index].toMediaMetadata(),
-                                                ),
+                                                    preloadItem = mostPlayedSongs[index].toMediaMetadata()
+                                                )
                                             )
                                         }
                                     },
@@ -273,12 +279,12 @@ fun StatsScreen(
                                             SongMenu(
                                                 originalSong = mostPlayedSongs[index],
                                                 navController = navController,
-                                                onDismiss = menuState::dismiss,
+                                                onDismiss = menuState::dismiss
                                             )
                                         }
-                                    },
+                                    }
                                 )
-                                .animateItem(),
+                                .animateItem()
                         )
                     }
                 }
@@ -287,15 +293,15 @@ fun StatsScreen(
             item(key = "mostPlayedArtists") {
                 NavigationTitle(
                     title = "${mostPlayedArtists.size} ${stringResource(id = R.string.artists)}",
-                    modifier = Modifier.animateItem(),
+                    modifier = Modifier.animateItem()
                 )
 
                 LazyRow(
-                    modifier = Modifier.animateItem(),
+                    modifier = Modifier.animateItem()
                 ) {
                     itemsIndexed(
                         items = mostPlayedArtists,
-                        key = { _, artist -> artist.id },
+                        key = { _, artist -> artist.id }
                     ) { index, artist ->
                         LocalArtistsGrid(
                             title = "${index + 1}. ${artist.artist.name}",
@@ -306,7 +312,7 @@ fun StatsScreen(
                                     artist.songCount,
                                     artist.songCount
                                 ),
-                                makeTimeString(artist.timeListened?.toLong()),
+                                makeTimeString(artist.timeListened?.toLong())
                             ),
                             thumbnailUrl = artist.artist.thumbnailUrl,
                             modifier =
@@ -321,12 +327,12 @@ fun StatsScreen(
                                             ArtistMenu(
                                                 originalArtist = artist,
                                                 coroutineScope = coroutineScope,
-                                                onDismiss = menuState::dismiss,
+                                                onDismiss = menuState::dismiss
                                             )
                                         }
-                                    },
+                                    }
                                 )
-                                .animateItem(),
+                                .animateItem()
                         )
                     }
                 }
@@ -335,16 +341,16 @@ fun StatsScreen(
             item(key = "mostPlayedAlbums") {
                 NavigationTitle(
                     title = "${mostPlayedAlbums.size} ${stringResource(id = R.string.albums)}",
-                    modifier = Modifier.animateItem(),
+                    modifier = Modifier.animateItem()
                 )
 
                 if (mostPlayedAlbums.isNotEmpty()) {
                     LazyRow(
-                        modifier = Modifier.animateItem(),
+                        modifier = Modifier.animateItem()
                     ) {
                         itemsIndexed(
                             items = mostPlayedAlbums,
-                            key = { _, album -> album.id },
+                            key = { _, album -> album.id }
                         ) { index, album ->
                             LocalAlbumsGrid(
                                 title = "${index + 1}. ${album.album.title}",
@@ -355,7 +361,7 @@ fun StatsScreen(
                                         album.songCountListened!!,
                                         album.songCountListened
                                     ),
-                                    makeTimeString(album.timeListened?.toLong()),
+                                    makeTimeString(album.timeListened?.toLong())
                                 ),
                                 thumbnailUrl = album.album.thumbnailUrl,
                                 isActive = album.id == mediaMetadata?.album?.id,
@@ -373,12 +379,12 @@ fun StatsScreen(
                                                 AlbumMenu(
                                                     originalAlbum = album,
                                                     navController = navController,
-                                                    onDismiss = menuState::dismiss,
+                                                    onDismiss = menuState::dismiss
                                                 )
                                             }
-                                        },
+                                        }
                                     )
-                                    .animateItem(),
+                                    .animateItem()
                             )
                         }
                     }
@@ -408,14 +414,14 @@ fun StatsScreen(
             navigationIcon = {
                 IconButton(
                     onClick = navController::navigateUp,
-                    onLongClick = navController::backToMain,
+                    onLongClick = navController::backToMain
                 ) {
                     Icon(
                         painterResource(R.drawable.arrow_back),
-                        contentDescription = null,
+                        contentDescription = null
                     )
                 }
-            },
+            }
         )
     }
 }

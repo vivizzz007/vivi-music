@@ -355,4 +355,9 @@
     <string name="lyrics_line_spacing">Espaçamento das linhas das letras</string>
     <string name="lyrics_style">Estilo das Letras</string>
     <string name="login_required_premium">YouTube Premium necessário para Muito Alta Qualidade</string>
+    <!-- Power Saver -->
+
+    <string name="estimated_power_saved">Economia de energia estimada</string>
+    <string name="disable_animations">Desativar animações</string>
+    <string name="disable_animations_desc">Reduz o uso da bateria desativando efeitos visuais</string>
 </resources>

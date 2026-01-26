@@ -5,12 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.music.innertube.YouTube
 import com.music.innertube.pages.HistoryPage
 import com.music.vivi.constants.HistorySource
-import com.music.vivi.utils.reportException
 import com.music.vivi.db.MusicDatabase
+import com.music.vivi.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -19,21 +20,24 @@ import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 
+/**
+ * ViewModel for the History screen.
+ * Groups playback history by Date (Today, Yesterday, This Week, etc.).
+ * Supports determining history source (Local Database vs Remote YouTube History).
+ */
 @HiltViewModel
-class HistoryViewModel
+public class HistoryViewModel
 @Inject
-constructor(
-    val database: MusicDatabase,
-) : ViewModel() {
-    var historySource = MutableStateFlow(HistorySource.LOCAL)
+constructor(public val database: MusicDatabase) : ViewModel() {
+    public var historySource: MutableStateFlow<HistorySource> = MutableStateFlow(HistorySource.LOCAL)
 
     private val today = LocalDate.now()
     private val thisMonday = today.with(DayOfWeek.MONDAY)
     private val lastMonday = thisMonday.minusDays(7)
 
-    val historyPage = MutableStateFlow<HistoryPage?>(null)
+    public val historyPage: MutableStateFlow<HistoryPage?> = MutableStateFlow(null)
 
-    val events =
+    public val events: StateFlow<Map<DateAgo, List<com.music.vivi.db.entities.EventWithSong>>> =
         database
             .events()
             .map { events ->
@@ -57,7 +61,7 @@ constructor(
                                 DateAgo.LastWeek -> 3L
                                 is DateAgo.Other -> ChronoUnit.DAYS.between(dateAgo.date, today)
                             }
-                        },
+                        }
                     ).mapValues { entry ->
                         entry.value.distinctBy { it.song.id }
                     }
@@ -67,7 +71,7 @@ constructor(
         fetchRemoteHistory()
     }
 
-    fun fetchRemoteHistory() {
+    public fun fetchRemoteHistory() {
         viewModelScope.launch(Dispatchers.IO) {
             YouTube.musicHistory().onSuccess {
                 historyPage.value = it
@@ -78,18 +82,16 @@ constructor(
     }
 }
 
-sealed class DateAgo {
-    data object Today : DateAgo()
+public sealed class DateAgo {
+    public data object Today : DateAgo()
 
-    data object Yesterday : DateAgo()
+    public data object Yesterday : DateAgo()
 
-    data object ThisWeek : DateAgo()
+    public data object ThisWeek : DateAgo()
 
-    data object LastWeek : DateAgo()
+    public data object LastWeek : DateAgo()
 
-    class Other(
-        val date: LocalDate,
-    ) : DateAgo() {
+    public class Other(public val date: LocalDate) : DateAgo() {
         override fun equals(other: Any?): Boolean {
             if (other is Other) return date == other.date
             return super.equals(other)

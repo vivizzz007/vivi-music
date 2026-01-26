@@ -1,23 +1,20 @@
 package com.music.vivi.update.downloadmanager
 
 import android.content.Context
-import android.os.Build
 import android.os.Environment
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import com.music.vivi.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
-import com.music.vivi.R
 
-class UpdateDownloadWorker(
-    private val context: Context,
-    workerParams: WorkerParameters
-) : CoroutineWorker(context, workerParams) {
+class UpdateDownloadWorker(private val context: Context, workerParams: WorkerParameters) :
+    CoroutineWorker(context, workerParams) {
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val apkUrl = inputData.getString("apk_url") ?: return@withContext Result.failure()
@@ -35,7 +32,10 @@ class UpdateDownloadWorker(
             connection.connect()
 
             if (connection.responseCode != HttpURLConnection.HTTP_OK) {
-                DownloadNotificationManager.showDownloadFailed(version, context.getString(R.string.server_error, connection.responseCode))
+                DownloadNotificationManager.showDownloadFailed(
+                    version,
+                    context.getString(R.string.server_error, connection.responseCode)
+                )
                 return@withContext Result.failure()
             }
 
@@ -83,10 +83,13 @@ class UpdateDownloadWorker(
             connection.disconnect()
 
             DownloadNotificationManager.showDownloadComplete(version, outputFile.absolutePath)
-            
+
             Result.success(workDataOf("file_path" to outputFile.absolutePath))
         } catch (e: Exception) {
-            DownloadNotificationManager.showDownloadFailed(version, e.message ?: context.getString(R.string.download_failed))
+            DownloadNotificationManager.showDownloadFailed(
+                version,
+                e.message ?: context.getString(R.string.download_failed)
+            )
             Result.failure()
         }
     }

@@ -95,6 +95,17 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
+/**
+ * A comprehensive menu for a single song (local/library).
+ * Features:
+ * - Song info header with favorite toggle
+ * - Play/Pause/Queue actions
+ * - Download/Remove Download
+ * - Navigation to Artist/Album
+ * - Add to Playlist
+ * - Edit Song metadata
+ * - Share
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SongMenu(
@@ -123,7 +134,7 @@ fun SongMenu(
     val rotationAnimation by animateFloatAsState(
         targetValue = refetchIconDegree,
         animationSpec = tween(durationMillis = 800),
-        label = "",
+        label = ""
     )
 
     val orderedArtists by produceState(initialValue = emptyList<ArtistEntity>(), song) {
@@ -161,40 +172,65 @@ fun SongMenu(
     val cornerRadius = remember { 24.dp }
     val albumArtShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentTR = 60
         )
     }
     val playButtonShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentTR = 60
         )
     }
 
     // Android 16 grouped shapes
     val topShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
-            cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentBR = 0,
+            cornerRadiusBR = 0.dp,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentBL = 0,
+            cornerRadiusBL = 0.dp,
+            smoothnessAsPercentTR = 60
         )
     }
     val middleShape = remember { RectangleShape }
     val bottomShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-            smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
+            cornerRadiusTR = 0.dp,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 0,
+            cornerRadiusTL = 0.dp,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentTR = 0
         )
     }
     val singleShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentTR = 60
         )
     }
 
@@ -203,15 +239,18 @@ fun SongMenu(
 
     val favoriteButtonCornerRadius by animateDpAsState(
         targetValue = if (isFavorite) cornerRadius else 60.dp,
-        animationSpec = tween(durationMillis = 300), label = "FavoriteCornerAnimation"
+        animationSpec = tween(durationMillis = 300),
+        label = "FavoriteCornerAnimation"
     )
     val favoriteButtonContainerColor by animateColorAsState(
         targetValue = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-        animationSpec = tween(durationMillis = 300), label = "FavoriteContainerColorAnimation"
+        animationSpec = tween(durationMillis = 300),
+        label = "FavoriteContainerColorAnimation"
     )
     val favoriteButtonContentColor by animateColorAsState(
         targetValue = if (isFavorite) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-        animationSpec = tween(durationMillis = 300), label = "FavoriteContentColorAnimation"
+        animationSpec = tween(durationMillis = 300),
+        label = "FavoriteContentColorAnimation"
     )
 
     val favoriteButtonShape = remember(favoriteButtonCornerRadius) {
@@ -310,7 +349,13 @@ fun SongMenu(
                     painter = painterResource(
                         if (isFavorite) R.drawable.favorite else R.drawable.favorite_border
                     ),
-                    contentDescription = if (isFavorite) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites),
+                    contentDescription = if (isFavorite) {
+                        stringResource(
+                            R.string.remove_from_favorites
+                        )
+                    } else {
+                        stringResource(R.string.add_to_favorites)
+                    },
                     tint = if (isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -353,13 +398,25 @@ fun SongMenu(
                         painter = painterResource(
                             if (isCurrentSongPlaying && isPlaying) R.drawable.pause else R.drawable.play
                         ),
-                        contentDescription = if (isCurrentSongPlaying && isPlaying) stringResource(R.string.pause) else stringResource(R.string.play)
+                        contentDescription = if (isCurrentSongPlaying &&
+                            isPlaying
+                        ) {
+                            stringResource(R.string.pause)
+                        } else {
+                            stringResource(R.string.play)
+                        }
                     )
                 },
                 text = {
                     Text(
                         modifier = Modifier.padding(end = 10.dp),
-                        text = if (isCurrentSongPlaying && isPlaying) stringResource(R.string.pause) else stringResource(R.string.play),
+                        text = if (isCurrentSongPlaying &&
+                            isPlaying
+                        ) {
+                            stringResource(R.string.pause)
+                        } else {
+                            stringResource(R.string.play)
+                        },
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         softWrap = false
@@ -391,7 +448,13 @@ fun SongMenu(
                     painter = painterResource(
                         if (isFavorite) R.drawable.favorite else R.drawable.favorite_border
                     ),
-                    contentDescription = if (isFavorite) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites),
+                    contentDescription = if (isFavorite) {
+                        stringResource(
+                            R.string.remove_from_favorites
+                        )
+                    } else {
+                        stringResource(R.string.add_to_favorites)
+                    },
                     tint = if (isFavorite) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -436,12 +499,18 @@ fun SongMenu(
                 when (download?.state) {
                     Download.STATE_COMPLETED -> {
                         DownloadService.sendRemoveDownload(
-                            context, ExoDownloadService::class.java, song.id, false
+                            context,
+                            ExoDownloadService::class.java,
+                            song.id,
+                            false
                         )
                     }
                     Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
                         DownloadService.sendRemoveDownload(
-                            context, ExoDownloadService::class.java, song.id, false
+                            context,
+                            ExoDownloadService::class.java,
+                            song.id,
+                            false
                         )
                     }
                     else -> {
@@ -450,7 +519,10 @@ fun SongMenu(
                             .setData(song.song.title.toByteArray())
                             .build()
                         DownloadService.sendAddDownload(
-                            context, ExoDownloadService::class.java, downloadRequest, false
+                            context,
+                            ExoDownloadService::class.java,
+                            downloadRequest,
+                            false
                         )
                     }
                 }
@@ -761,21 +833,36 @@ fun SongMenu(
             ) {
                 Icon(
                     painter = painterResource(
-                        if (song.song.inLibrary == null) R.drawable.library_add
-                        else R.drawable.library_add_check
+                        if (song.song.inLibrary == null) {
+                            R.drawable.library_add
+                        } else {
+                            R.drawable.library_add_check
+                        }
                     ),
                     contentDescription = stringResource(R.string.library_icon)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        if (song.song.inLibrary == null) stringResource(R.string.add_to_library) else stringResource(R.string.remove_from_library),
+                        if (song.song.inLibrary ==
+                            null
+                        ) {
+                            stringResource(R.string.add_to_library)
+                        } else {
+                            stringResource(R.string.remove_from_library)
+                        },
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        if (song.song.inLibrary == null) stringResource(R.string.save_to_your_music) else stringResource(R.string.remove_from_your_music),
+                        if (song.song.inLibrary ==
+                            null
+                        ) {
+                            stringResource(R.string.save_to_your_music)
+                        } else {
+                            stringResource(R.string.remove_from_your_music)
+                        },
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -850,7 +937,9 @@ fun SongMenu(
                                             playlistBrowseId?.let { playlistId ->
                                                 if (playlistSong!!.map.setVideoId != null) {
                                                     YouTube.removeFromPlaylist(
-                                                        playlistId, playlistSong.map.songId, playlistSong.map.setVideoId
+                                                        playlistId,
+                                                        playlistSong.map.songId,
+                                                        playlistSong.map.setVideoId
                                                     )
                                                 }
                                             }
@@ -1026,8 +1115,11 @@ fun SongMenu(
                 stringResource(R.string.artist_name) to artistField
             ),
             onTextFieldsChange = { index, newValue ->
-                if (index == 0) titleField = newValue
-                else artistField = newValue
+                if (index == 0) {
+                    titleField = newValue
+                } else {
+                    artistField = newValue
+                }
             },
             onDoneMultiple = { values ->
                 coroutineScope.launch {
@@ -1072,14 +1164,14 @@ fun SongMenu(
                             showSelectArtistDialog = false
                             onDismiss()
                         }
-                        .padding(horizontal = 12.dp),
+                        .padding(horizontal = 12.dp)
                 ) {
                     AsyncImage(
                         model = artist.thumbnailUrl,
                         contentDescription = null,
                         modifier = Modifier
                             .size(ListThumbnailSize)
-                            .clip(CircleShape),
+                            .clip(CircleShape)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
@@ -1087,7 +1179,7 @@ fun SongMenu(
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }

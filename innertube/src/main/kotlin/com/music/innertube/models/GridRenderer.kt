@@ -3,19 +3,11 @@ package com.music.innertube.models
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class GridRenderer(
-    val header: Header?,
-    val items: List<Item>,
-    val continuations: List<Continuation>?,
-) {
+data class GridRenderer(val header: Header?, val items: List<Item>, val continuations: List<Continuation>?) {
     @Serializable
-    data class Header(
-        val gridHeaderRenderer: GridHeaderRenderer,
-    ) {
+    data class Header(val gridHeaderRenderer: GridHeaderRenderer) {
         @Serializable
-        data class GridHeaderRenderer(
-            val title: Runs,
-        )
+        data class GridHeaderRenderer(val title: Runs)
     }
 
     @Serializable

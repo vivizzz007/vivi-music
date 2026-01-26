@@ -11,17 +11,11 @@ data class SectionListRenderer(
     val continuations: List<Continuation>?,
 ) {
     @Serializable
-    data class Header(
-        val chipCloudRenderer: ChipCloudRenderer?,
-    ) {
+    data class Header(val chipCloudRenderer: ChipCloudRenderer?) {
         @Serializable
-        data class ChipCloudRenderer(
-            val chips: List<Chip>,
-        ) {
+        data class ChipCloudRenderer(val chips: List<Chip>) {
             @Serializable
-            data class Chip(
-                val chipCloudChipRenderer: ChipCloudChipRenderer,
-            ) {
+            data class Chip(val chipCloudChipRenderer: ChipCloudChipRenderer) {
                 @Serializable
                 data class ChipCloudChipRenderer(
                     val isSelected: Boolean,

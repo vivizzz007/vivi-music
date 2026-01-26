@@ -8,10 +8,37 @@ import androidx.room.PrimaryKey
 import com.music.innertube.YouTube
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 
+/**
+ * Represents a Song stored in the local database.
+ * The central entity for all music media.
+ *
+ * @property id Unique identifier (YouTube Video ID).
+ * @property title Song title.
+ * @property duration Duration in seconds.
+ * @property thumbnailUrl Thumbnail URL.
+ * @property albumId Associated Album ID.
+ * @property albumName Denormalized Album Name (for quick access).
+ * @property explicit Explicit content flag.
+ * @property year Release year.
+ * @property date ID3 tag date.
+ * @property dateModified File modification date.
+ * @property liked User's like status.
+ * @property likedDate Timestamp of like.
+ * @property totalPlayTime Total milliseconds played.
+ * @property inLibrary Timestamp if added to library.
+ * @property dateDownload Timestamp when downloaded.
+ * @property isLocal Whether the file is local.
+ * @property libraryAddToken YouTube library add token.
+ * @property libraryRemoveToken YouTube library remove token.
+ * @property lyricsOffset Offset for synced lyrics.
+ * @property romanizeLyrics Preference for lyrics romanization.
+ * @property isDownloaded Whether the song is downloaded (cached).
+ * @property isUploaded Whether it's an uploaded song.
+ * @property isVideo Whether this is a music video.
+ */
 @Immutable
 @Entity(
     tableName = "song",
@@ -51,11 +78,11 @@ data class SongEntity(
     @ColumnInfo(name = "isUploaded", defaultValue = false.toString())
     val isUploaded: Boolean = false,
     @ColumnInfo(name = "isVideo", defaultValue = false.toString())
-    val isVideo: Boolean = false
+    val isVideo: Boolean = false,
 ) {
     fun localToggleLike() = copy(
         liked = !liked,
-        likedDate = if (!liked) LocalDateTime.now() else null,
+        likedDate = if (!liked) LocalDateTime.now() else null
     )
 
     fun toggleLike() = copy(

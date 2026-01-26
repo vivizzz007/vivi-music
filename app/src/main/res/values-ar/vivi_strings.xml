@@ -30,6 +30,7 @@
     <string name="download_album">تنزيل الألبوم</string>
     <string name="download_playlist">تنزيل قائمة التشغيل</string>
 
+    <string name="spotify_login">تسجيل دخول Spotify</string>
     <string name="connect_with_discord">الاتصال بـ Discord</string>
     
     <string name="about_subtitle">معلومات التطبيق والمطور</string>

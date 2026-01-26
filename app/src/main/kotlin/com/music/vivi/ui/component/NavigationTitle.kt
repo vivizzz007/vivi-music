@@ -23,8 +23,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.music.vivi.R
 
+/**
+ * A header title with optional navigation arrow.
+ * Used as a section header that can be clicked to view more.
+ */
 @Composable
-fun NavigationTitle(
+public fun NavigationTitle(
     title: String,
     modifier: Modifier = Modifier,
     label: String? = null,
@@ -52,7 +56,7 @@ fun NavigationTitle(
                 Text(
                     text = label,
                     style = MaterialTheme.typography.labelLarge,
-                    overflow = TextOverflow.Ellipsis,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
 
@@ -62,7 +66,7 @@ fun NavigationTitle(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
                 overflow = TextOverflow.Ellipsis,
-                maxLines = 1,
+                maxLines = 1
             )
         }
 

@@ -14,7 +14,7 @@ fun isBluetoothHeadphoneConnected(context: Context): Boolean {
         val audioDevices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
         audioDevices.any { device ->
             device.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
-                    device.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
+                device.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
         }
     } else {
         // For older Android versions, use deprecated method
@@ -22,4 +22,3 @@ fun isBluetoothHeadphoneConnected(context: Context): Boolean {
         audioManager.isBluetoothA2dpOn || audioManager.isBluetoothScoOn
     }
 }
-

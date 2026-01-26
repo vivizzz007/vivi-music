@@ -3,23 +3,13 @@ package com.music.innertube.models
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class MusicQueueRenderer(
-    val content: Content?,
-    val header: Header?,
-) {
+data class MusicQueueRenderer(val content: Content?, val header: Header?) {
     @Serializable
-    data class Content(
-        val playlistPanelRenderer: PlaylistPanelRenderer,
-    )
+    data class Content(val playlistPanelRenderer: PlaylistPanelRenderer)
 
     @Serializable
-    data class Header(
-        val musicQueueHeaderRenderer: MusicQueueHeaderRenderer?,
-    ) {
+    data class Header(val musicQueueHeaderRenderer: MusicQueueHeaderRenderer?) {
         @Serializable
-        data class MusicQueueHeaderRenderer(
-            val title: Runs?,
-            val subtitle: Runs?,
-        )
+        data class MusicQueueHeaderRenderer(val title: Runs?, val subtitle: Runs?)
     }
 }

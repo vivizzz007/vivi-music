@@ -1,6 +1,7 @@
 package com.music.vivi.ui.player
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.*
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -34,15 +35,18 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -50,8 +54,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -59,11 +61,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
-import com.music.vivi.extensions.metadata
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -71,36 +73,26 @@ import androidx.compose.ui.util.fastForEach
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import coil3.compose.AsyncImage
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialShapes
-import androidx.compose.material3.toShape
-import androidx.compose.ui.text.style.TextOverflow
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
+import com.music.vivi.constants.HidePlayerThumbnailKey
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PlayerBackgroundStyleKey
 import com.music.vivi.constants.PlayerHorizontalPadding
+import com.music.vivi.constants.RotatingThumbnailKey
 import com.music.vivi.constants.SeekExtraSeconds
+import com.music.vivi.constants.ShowNowPlayingAppleMusicKey
 import com.music.vivi.constants.SwipeThumbnailKey
 import com.music.vivi.constants.ThumbnailCornerRadius
-import com.music.vivi.constants.HidePlayerThumbnailKey
+import com.music.vivi.extensions.metadata
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.delay
 import kotlin.math.abs
-import androidx.compose.animation.core.*
-import com.music.vivi.constants.RotatingThumbnailKey
-import com.music.vivi.constants.ShowNowPlayingAppleMusicKey
-import androidx.compose.foundation.layout.Arrangement
-
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun Thumbnail(
-    sliderPositionProvider: () -> Long?,
-    modifier: Modifier = Modifier,
-    isPlayerExpanded: Boolean = true,
-) {
+fun Thumbnail(sliderPositionProvider: () -> Long?, modifier: Modifier = Modifier, isPlayerExpanded: Boolean = true) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val context = LocalContext.current
     val currentView = LocalView.current
@@ -148,9 +140,15 @@ fun Thumbnail(
         if (previousIndex != C.INDEX_UNSET) {
             try {
                 playerConnection.player.getMediaItemAt(previousIndex)
-            } catch (e: Exception) { null }
-        } else null
-    } else null
+            } catch (e: Exception) {
+                null
+            }
+        } else {
+            null
+        }
+    } else {
+        null
+    }
 
     val nextMediaMetadata = if (swipeThumbnail && !timeline.isEmpty) {
         val nextIndex = timeline.getNextWindowIndex(
@@ -161,13 +159,21 @@ fun Thumbnail(
         if (nextIndex != C.INDEX_UNSET) {
             try {
                 playerConnection.player.getMediaItemAt(nextIndex)
-            } catch (e: Exception) { null }
-        } else null
-    } else null
+            } catch (e: Exception) {
+                null
+            }
+        } else {
+            null
+        }
+    } else {
+        null
+    }
 
     val currentMediaItem = try {
         playerConnection.player.currentMediaItem
-    } catch (e: Exception) { null }
+    } catch (e: Exception) {
+        null
+    }
 
     val mediaItems = listOfNotNull(previousMediaMetadata, currentMediaItem, nextMediaMetadata)
     val currentMediaIndex = mediaItems.indexOf(currentMediaItem)
@@ -190,7 +196,13 @@ fun Thumbnail(
 
     // Handle swipe to change song
     LaunchedEffect(itemScrollOffset) {
-        if (!thumbnailLazyGridState.isScrollInProgress || !swipeThumbnail || itemScrollOffset != 0 || currentMediaIndex < 0) return@LaunchedEffect
+        if (!thumbnailLazyGridState.isScrollInProgress ||
+            !swipeThumbnail ||
+            itemScrollOffset != 0 ||
+            currentMediaIndex < 0
+        ) {
+            return@LaunchedEffect
+        }
 
         if (currentItem > currentMediaIndex && canSkipNext) {
             playerConnection.player.seekToNext()
@@ -231,12 +243,12 @@ fun Thumbnail(
             exit = fadeOut(),
             modifier = Modifier
                 .padding(32.dp)
-                .align(Alignment.Center),
+                .align(Alignment.Center)
         ) {
             error?.let { playbackError ->
                 PlaybackError(
                     error = playbackError,
-                    retry = playerConnection.player::prepare,
+                    retry = playerConnection.player::prepare
                 )
             }
         }
@@ -248,7 +260,7 @@ fun Thumbnail(
             exit = fadeOut(),
             modifier = Modifier
                 .fillMaxSize()
-                .statusBarsPadding(),
+                .statusBarsPadding()
         ) {
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -339,12 +351,19 @@ fun Thumbnail(
                                                         (currentPosition - skipAmount).coerceAtLeast(0)
                                                     )
                                                     seekDirection =
-                                                        context.getString(R.string.seek_backward_dynamic, skipAmount / 1000)
+                                                        context.getString(
+                                                            R.string.seek_backward_dynamic,
+                                                            skipAmount / 1000
+                                                        )
                                                 } else {
                                                     playerConnection.player.seekTo(
                                                         (currentPosition + skipAmount).coerceAtMost(duration)
                                                     )
-                                                    seekDirection = context.getString(R.string.seek_forward_dynamic, skipAmount / 1000)
+                                                    seekDirection =
+                                                        context.getString(
+                                                            R.string.seek_forward_dynamic,
+                                                            skipAmount / 1000
+                                                        )
                                                 }
 
                                                 showSeekEffect = true
@@ -512,50 +531,52 @@ fun SnapLayoutInfoProvider(
         (layoutSize / 2f - itemSize / 2f)
     },
     velocityThreshold: Float = 1000f,
-): androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider = object : androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider {
-    private val layoutInfo: LazyGridLayoutInfo
-        get() = lazyGridState.layoutInfo
+): androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider =
+    object : androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider {
+        private val layoutInfo: LazyGridLayoutInfo
+            get() = lazyGridState.layoutInfo
 
-    override fun calculateApproachOffset(velocity: Float, decayOffset: Float): Float = 0f
-    override fun calculateSnapOffset(velocity: Float): Float {
-        val bounds = calculateSnappingOffsetBounds()
+        override fun calculateApproachOffset(velocity: Float, decayOffset: Float): Float = 0f
+        override fun calculateSnapOffset(velocity: Float): Float {
+            val bounds = calculateSnappingOffsetBounds()
 
-        // Only snap when velocity exceeds threshold
-        if (abs(velocity) < velocityThreshold) {
-            if (abs(bounds.start) < abs(bounds.endInclusive))
-                return bounds.start
+            // Only snap when velocity exceeds threshold
+            if (abs(velocity) < velocityThreshold) {
+                if (abs(bounds.start) < abs(bounds.endInclusive)) {
+                    return bounds.start
+                }
 
-            return bounds.endInclusive
-        }
-
-        return when {
-            velocity < 0 -> bounds.start
-            velocity > 0 -> bounds.endInclusive
-            else -> 0f
-        }
-    }
-
-    fun calculateSnappingOffsetBounds(): ClosedFloatingPointRange<Float> {
-        var lowerBoundOffset = Float.NEGATIVE_INFINITY
-        var upperBoundOffset = Float.POSITIVE_INFINITY
-
-        layoutInfo.visibleItemsInfo.fastForEach { item ->
-            val offset = calculateDistanceToDesiredSnapPosition(layoutInfo, item, positionInLayout)
-
-            // Find item that is closest to the center
-            if (offset <= 0 && offset > lowerBoundOffset) {
-                lowerBoundOffset = offset
+                return bounds.endInclusive
             }
 
-            // Find item that is closest to center, but after it
-            if (offset >= 0 && offset < upperBoundOffset) {
-                upperBoundOffset = offset
+            return when {
+                velocity < 0 -> bounds.start
+                velocity > 0 -> bounds.endInclusive
+                else -> 0f
             }
         }
 
-        return lowerBoundOffset.rangeTo(upperBoundOffset)
+        fun calculateSnappingOffsetBounds(): ClosedFloatingPointRange<Float> {
+            var lowerBoundOffset = Float.NEGATIVE_INFINITY
+            var upperBoundOffset = Float.POSITIVE_INFINITY
+
+            layoutInfo.visibleItemsInfo.fastForEach { item ->
+                val offset = calculateDistanceToDesiredSnapPosition(layoutInfo, item, positionInLayout)
+
+                // Find item that is closest to the center
+                if (offset <= 0 && offset > lowerBoundOffset) {
+                    lowerBoundOffset = offset
+                }
+
+                // Find item that is closest to center, but after it
+                if (offset >= 0 && offset < upperBoundOffset) {
+                    upperBoundOffset = offset
+                }
+            }
+
+            return lowerBoundOffset.rangeTo(upperBoundOffset)
+        }
     }
-}
 
 fun calculateDistanceToDesiredSnapPosition(
     layoutInfo: LazyGridLayoutInfo,

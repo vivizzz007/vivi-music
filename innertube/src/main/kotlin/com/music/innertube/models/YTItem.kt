@@ -10,15 +10,9 @@ sealed class YTItem {
     abstract val shareLink: String
 }
 
-data class Artist(
-    val name: String,
-    val id: String?,
-)
+data class Artist(val name: String, val id: String?)
 
-data class Album(
-    val name: String,
-    val id: String,
-)
+data class Album(val name: String, val id: String)
 
 data class SongItem(
     override val id: String,
@@ -35,7 +29,7 @@ data class SongItem(
     val setVideoId: String? = null,
     val libraryAddToken: String? = null,
     val libraryRemoveToken: String? = null,
-    val historyRemoveToken: String? = null
+    val historyRemoveToken: String? = null,
 ) : YTItem() {
 
     val isVideoSong: Boolean
@@ -83,7 +77,7 @@ data class ArtistItem(
     val playEndpoint: WatchEndpoint? = null,
     val shuffleEndpoint: WatchEndpoint?,
     val radioEndpoint: WatchEndpoint?,
-    val subscriberCountText: String? = null,  // ADD THIS if not already added
+    val subscriberCountText: String? = null, // ADD THIS if not already added
 ) : YTItem() {
     override val explicit: Boolean
         get() = false
@@ -91,15 +85,13 @@ data class ArtistItem(
         get() = "https://music.youtube.com/channel/$id"
 }
 
-fun <T : YTItem> List<T>.filterExplicit(enabled: Boolean = true) =
-    if (enabled) {
-        filter { !it.explicit }
-    } else {
-        this
-    }
-fun <T : YTItem> List<T>.filterVideoSongs(disableVideos: Boolean = false) =
-    if (disableVideos) {
-        filterNot { it is SongItem && it.isVideoSong }
-    } else {
-        this
-    }
+fun <T : YTItem> List<T>.filterExplicit(enabled: Boolean = true) = if (enabled) {
+    filter { !it.explicit }
+} else {
+    this
+}
+fun <T : YTItem> List<T>.filterVideoSongs(disableVideos: Boolean = false) = if (disableVideos) {
+    filterNot { it is SongItem && it.isVideoSong }
+} else {
+    this
+}

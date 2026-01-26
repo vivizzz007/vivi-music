@@ -1,6 +1,5 @@
 package com.music.vivi.ui.screens.settings
 
-
 import android.os.Build
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -11,6 +10,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,7 +27,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ButtonGroupDefaults
@@ -47,7 +46,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberSliderState
-import com.music.vivi.ui.component.RoundedCheckbox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -78,15 +76,15 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.music.vivi.R
 import com.music.vivi.constants.AccentColorKey
+import com.music.vivi.constants.AppleMusicLyricsBlurKey
 import com.music.vivi.constants.ChipSortTypeKey
 import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.DefaultOpenTabKey
 import com.music.vivi.constants.DynamicThemeKey
-import com.music.vivi.constants.AppleMusicLyricsBlurKey
-import com.music.vivi.constants.EnableBetterLyricsKey
 import com.music.vivi.constants.GridItemSize
 import com.music.vivi.constants.GridItemsSizeKey
 import com.music.vivi.constants.HidePlayerThumbnailKey
+import com.music.vivi.constants.HighRefreshRateKey
 import com.music.vivi.constants.LibraryFilter
 import com.music.vivi.constants.LyricsClickKey
 import com.music.vivi.constants.LyricsLetterByLetterAnimationKey
@@ -96,19 +94,18 @@ import com.music.vivi.constants.LyricsTextPositionKey
 import com.music.vivi.constants.LyricsTextSizeKey
 import com.music.vivi.constants.LyricsVerticalPositionKey
 import com.music.vivi.constants.LyricsWordForWordKey
-import com.music.vivi.constants.MiniPlayerGradientKey
+import com.music.vivi.constants.Material3ExpressiveKey
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PlayerBackgroundStyleKey
 import com.music.vivi.constants.PlayerButtonsStyle
 import com.music.vivi.constants.PlayerButtonsStyleKey
-import com.music.vivi.constants.ShowNowPlayingAppleMusicKey
 import com.music.vivi.constants.PureBlackKey
-import com.music.vivi.constants.Material3ExpressiveKey
 import com.music.vivi.constants.RotatingThumbnailKey
 import com.music.vivi.constants.SettingsShapeColorTertiaryKey
 import com.music.vivi.constants.ShowCachedPlaylistKey
 import com.music.vivi.constants.ShowDownloadedPlaylistKey
 import com.music.vivi.constants.ShowLikedPlaylistKey
+import com.music.vivi.constants.ShowNowPlayingAppleMusicKey
 import com.music.vivi.constants.ShowTopPlaylistKey
 import com.music.vivi.constants.ShowUploadedPlaylistKey
 import com.music.vivi.constants.SliderStyle
@@ -120,12 +117,12 @@ import com.music.vivi.constants.SwipeToRemoveSongKey
 import com.music.vivi.constants.SwipeToSongKey
 import com.music.vivi.constants.UseNewMiniPlayerDesignKey
 import com.music.vivi.constants.UseNewPlayerDesignKey
-import com.music.vivi.constants.HighRefreshRateKey
 import com.music.vivi.playback.MusicService
-
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.PlayerSliderTrack
+import com.music.vivi.ui.component.RoundedCheckbox
+import com.music.vivi.ui.component.WavySlider
 import com.music.vivi.ui.theme.DefaultThemeColor
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.update.mordernswitch.ModernSwitch
@@ -134,10 +131,12 @@ import com.music.vivi.update.settingstyle.ModernInfoItem
 import com.music.vivi.update.widget.MusicPlayerWidgetReceiver
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
-import com.music.vivi.ui.component.WavySlider
 import kotlin.math.roundToInt
 
-
+/**
+ * Screen for customizing the app's visual appearance.
+ * Includes settings for themes, player design, lyrics style, and more.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AppearanceSettings(
@@ -203,7 +202,7 @@ fun AppearanceSettings(
         defaultValue = true
     )
 
-//switch for thumbnail
+// switch for thumbnail
     val (rotatingThumbnail, onRotatingThumbnailChange) = rememberPreference(
         RotatingThumbnailKey,
         defaultValue = false
@@ -224,7 +223,7 @@ fun AppearanceSettings(
     )
     val (playerBackground, onPlayerBackgroundChange) = rememberEnumPreference(
         PlayerBackgroundStyleKey,
-        defaultValue = PlayerBackgroundStyle.GRADIENT,
+        defaultValue = PlayerBackgroundStyle.GRADIENT
     )
     val (showNowPlayingAppleMusic, onShowNowPlayingAppleMusicChange) = rememberPreference(
         ShowNowPlayingAppleMusicKey,
@@ -302,7 +301,6 @@ fun AppearanceSettings(
         defaultValue = LibraryFilter.LIBRARY
     )
 
-
     val (lyricsTextSize, onLyricsTextSizeChange) = rememberPreference(
         LyricsTextSizeKey,
         defaultValue = 28f
@@ -337,7 +335,10 @@ fun AppearanceSettings(
     var showDefaultChipDialog by rememberSaveable { mutableStateOf(false) }
     var showLyricsTextSizeDialog by rememberSaveable { mutableStateOf(false) }
     var showLyricsLineSpacingDialog by rememberSaveable { mutableStateOf(false) }
-    val (accentColorInt, onAccentColorChange) = rememberPreference(AccentColorKey, defaultValue = DefaultThemeColor.toArgb())
+    val (accentColorInt, onAccentColorChange) = rememberPreference(
+        AccentColorKey,
+        defaultValue = DefaultThemeColor.toArgb()
+    )
 
     // Lyrics Text Size Dialog
     if (showLyricsTextSizeDialog) {
@@ -488,7 +489,13 @@ fun AppearanceSettings(
                             .clip(RoundedCornerShape(16.dp))
                             .border(
                                 1.dp,
-                                if (sliderStyle == SliderStyle.DEFAULT) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                                if (sliderStyle ==
+                                    SliderStyle.DEFAULT
+                                ) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.outlineVariant
+                                },
                                 RoundedCornerShape(16.dp)
                             )
                             .clickable {
@@ -513,7 +520,13 @@ fun AppearanceSettings(
                             .clip(RoundedCornerShape(16.dp))
                             .border(
                                 1.dp,
-                                if (sliderStyle == SliderStyle.WAVY) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                                if (sliderStyle ==
+                                    SliderStyle.WAVY
+                                ) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.outlineVariant
+                                },
                                 RoundedCornerShape(16.dp)
                             )
                             .clickable {
@@ -543,7 +556,13 @@ fun AppearanceSettings(
                             .clip(RoundedCornerShape(16.dp))
                             .border(
                                 1.dp,
-                                if (sliderStyle == SliderStyle.SLIM) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                                if (sliderStyle ==
+                                    SliderStyle.SLIM
+                                ) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.outlineVariant
+                                },
                                 RoundedCornerShape(16.dp)
                             )
                             .clickable {
@@ -645,8 +664,6 @@ fun AppearanceSettings(
         )
     }
 
-
-
     // Player Background Dialog
     if (showPlayerBackgroundDialog) {
         DefaultDialog(
@@ -729,8 +746,6 @@ fun AppearanceSettings(
             }
         )
     }
-
-
 
     // Default Chip Dialog
     if (showDefaultChipDialog) {
@@ -864,158 +879,9 @@ fun AppearanceSettings(
                 }
 
                 item {
-                    val themeItems = remember(useDarkTheme, dynamicTheme, darkMode, pureBlack, material3Expressive, settingsShapeTertiary, iconBgColor, iconStyleColor, highRefreshRate) {
-                        buildList<@Composable () -> Unit> {
-                            add {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Box(modifier = Modifier.weight(1f)) {
-                                        ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.palette), null, modifier = Modifier.size(22.dp)) },
-                                            title = stringResource(R.string.enable_dynamic_theme),
-                                            subtitle = stringResource(R.string.dynamic_color_theming_subtitle),
-                                            iconBackgroundColor = iconBgColor,
-                                            iconContentColor = iconStyleColor
-                                        )
-                                    }
-                                    ModernSwitch(
-                                        checked = dynamicTheme,
-                                        onCheckedChange = { checked ->
-                                            onDynamicThemeChange(checked)
-                                            if (!checked) {
-                                                onAccentColorChange(Color(0xFF4285F4).toArgb())
-                                            }
-                                        },
-                                        modifier = Modifier.padding(end = 20.dp)
-                                    )
-                                }
-                            }
-                            add {
-                                Column(modifier = Modifier.fillMaxWidth()) {
-                                    ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.palette), null, modifier = Modifier.size(22.dp)) },
-                                        title = stringResource(R.string.accent_color),
-                                        subtitle = stringResource(R.string.select_static_theme_color),
-                                        iconBackgroundColor = iconBgColor,
-                                        iconContentColor = iconStyleColor
-                                    )
-
-                                    val presetColors = remember {
-                                        listOf(
-                                            Color(0xFF4285F4), // Blue
-                                            Color(0xFFDB4437), // Red
-                                            Color(0xFFF4B400), // Yellow
-                                            Color(0xFF0F9D58), // Green
-                                            Color(0xFF673AB7), // Purple
-                                            Color(0xFFE91E63), // Pink
-                                            Color(0xFFFF9800), // Orange
-                                            Color(0xFF00BCD4), // Cyan
-                                            Color(0xFF009688), // Teal
-                                        )
-                                    }
-
-                                    LazyRow(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(start = 64.dp, bottom = 12.dp, end = 20.dp),
-                                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                                    ) {
-                                        items(presetColors) { color ->
-                                            val isSelected = accentColorInt == color.toArgb() && !dynamicTheme
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(42.dp)
-                                                    .background(color, CircleShape)
-                                                    .clip(CircleShape)
-                                                    .clickable {
-                                                        onAccentColorChange(color.toArgb())
-                                                        onDynamicThemeChange(false)
-                                                    },
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                val scale by animateFloatAsState(targetValue = if (isSelected) 1f else 0f)
-                                                if (scale > 0f) {
-                                                    Icon(
-                                                        imageVector = Icons.Default.Check,
-                                                        contentDescription = null,
-                                                        tint = Color.White,
-                                                        modifier = Modifier.size(24.dp).scale(scale)
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            add {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 20.dp, vertical = 14.dp),
-                                    verticalAlignment = Alignment.Top
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(44.dp)
-                                            .background(iconBgColor, RoundedCornerShape(12.dp))
-                                            .clip(RoundedCornerShape(12.dp)),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        CompositionLocalProvider(LocalContentColor provides iconStyleColor) {
-                                            Icon(painterResource(R.drawable.dark_mode), null, modifier = Modifier.size(22.dp))
-                                        }
-                                    }
-
-                                    Spacer(modifier = Modifier.width(16.dp))
-
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = stringResource(R.string.dark_theme),
-                                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                        Text(
-                                            text = stringResource(R.string.select_theme_preference),
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        Spacer(modifier = Modifier.height(12.dp))
-                                        val options = listOf(DarkMode.AUTO, DarkMode.ON, DarkMode.OFF)
-                                        val labels = listOf(stringResource(R.string.dark_theme_follow_system), stringResource(R.string.dark_theme_on), stringResource(R.string.dark_theme_off))
-
-                                        FlowRow(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-                                            verticalArrangement = Arrangement.spacedBy(2.dp),
-                                        ) {
-                                            options.forEachIndexed { index, value ->
-                                                ToggleButton(
-                                                    checked = darkMode == value,
-                                                    onCheckedChange = { onDarkModeChange(value) },
-                                                    colors = ToggleButtonDefaults.toggleButtonColors(
-                                                        checkedContainerColor = MaterialTheme.colorScheme.primary,
-                                                        checkedContentColor = MaterialTheme.colorScheme.onPrimary,
-                                                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                                    ),
-                                                    shapes = when (index) {
-                                                        0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                                                        options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                                                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                                                    },
-                                                    modifier = Modifier.weight(1f).semantics { role = Role.RadioButton },
-                                                ) {
-                                                    Text(labels[index], style = MaterialTheme.typography.labelSmall)
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            if (useDarkTheme) {
+                    val themeItems =
+                        remember(useDarkTheme, dynamicTheme, darkMode, pureBlack, material3Expressive, settingsShapeTertiary, iconBgColor, iconStyleColor, highRefreshRate) {
+                            buildList<@Composable () -> Unit> {
                                 add {
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
@@ -1023,86 +889,289 @@ fun AppearanceSettings(
                                     ) {
                                         Box(modifier = Modifier.weight(1f)) {
                                             ModernInfoItem(
-                                                icon = { Icon(painterResource(R.drawable.contrast), null, modifier = Modifier.size(22.dp)) },
-                                                title = stringResource(R.string.pure_black),
-                                                subtitle = stringResource(R.string.use_pure_black_dark_theme),
+                                                icon = {
+                                                    Icon(
+                                                        painterResource(R.drawable.palette),
+                                                        null,
+                                                        modifier = Modifier.size(22.dp)
+                                                    )
+                                                },
+                                                title = stringResource(R.string.enable_dynamic_theme),
+                                                subtitle = stringResource(R.string.dynamic_color_theming_subtitle),
                                                 iconBackgroundColor = iconBgColor,
                                                 iconContentColor = iconStyleColor
                                             )
                                         }
                                         ModernSwitch(
-                                            checked = pureBlack,
-                                            onCheckedChange = onPureBlackChange,
+                                            checked = dynamicTheme,
+                                            onCheckedChange = { checked ->
+                                                onDynamicThemeChange(checked)
+                                                if (!checked) {
+                                                    onAccentColorChange(Color(0xFF4285F4).toArgb())
+                                                }
+                                            },
+                                            modifier = Modifier.padding(end = 20.dp)
+                                        )
+                                    }
+                                }
+                                add {
+                                    Column(modifier = Modifier.fillMaxWidth()) {
+                                        ModernInfoItem(
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.palette),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
+                                            title = stringResource(R.string.accent_color),
+                                            subtitle = stringResource(R.string.select_static_theme_color),
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+
+                                        val presetColors = remember {
+                                            listOf(
+                                                Color(0xFF4285F4), // Blue
+                                                Color(0xFFDB4437), // Red
+                                                Color(0xFFF4B400), // Yellow
+                                                Color(0xFF0F9D58), // Green
+                                                Color(0xFF673AB7), // Purple
+                                                Color(0xFFE91E63), // Pink
+                                                Color(0xFFFF9800), // Orange
+                                                Color(0xFF00BCD4), // Cyan
+                                                Color(0xFF009688) // Teal
+                                            )
+                                        }
+
+                                        LazyRow(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(start = 64.dp, bottom = 12.dp, end = 20.dp),
+                                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                        ) {
+                                            items(presetColors) { color ->
+                                                val isSelected = accentColorInt == color.toArgb() && !dynamicTheme
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(42.dp)
+                                                        .background(color, CircleShape)
+                                                        .clip(CircleShape)
+                                                        .clickable {
+                                                            onAccentColorChange(color.toArgb())
+                                                            onDynamicThemeChange(false)
+                                                        },
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    val scale by animateFloatAsState(
+                                                        targetValue = if (isSelected) 1f else 0f
+                                                    )
+                                                    if (scale > 0f) {
+                                                        Icon(
+                                                            imageVector = Icons.Default.Check,
+                                                            contentDescription = null,
+                                                            tint = Color.White,
+                                                            modifier = Modifier.size(24.dp).scale(scale)
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                add {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 20.dp, vertical = 14.dp),
+                                        verticalAlignment = Alignment.Top
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(44.dp)
+                                                .background(iconBgColor, RoundedCornerShape(12.dp))
+                                                .clip(RoundedCornerShape(12.dp)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            CompositionLocalProvider(LocalContentColor provides iconStyleColor) {
+                                                Icon(
+                                                    painterResource(R.drawable.dark_mode),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            }
+                                        }
+
+                                        Spacer(modifier = Modifier.width(16.dp))
+
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = stringResource(R.string.dark_theme),
+                                                style = MaterialTheme.typography.bodyLarge.copy(
+                                                    fontWeight = FontWeight.Medium
+                                                ),
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                            Text(
+                                                text = stringResource(R.string.select_theme_preference),
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                            Spacer(modifier = Modifier.height(12.dp))
+                                            val options = listOf(DarkMode.AUTO, DarkMode.ON, DarkMode.OFF)
+                                            val labels =
+                                                listOf(
+                                                    stringResource(R.string.dark_theme_follow_system),
+                                                    stringResource(R.string.dark_theme_on),
+                                                    stringResource(R.string.dark_theme_off)
+                                                )
+
+                                            FlowRow(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.spacedBy(
+                                                    ButtonGroupDefaults.ConnectedSpaceBetween
+                                                ),
+                                                verticalArrangement = Arrangement.spacedBy(2.dp)
+                                            ) {
+                                                options.forEachIndexed { index, value ->
+                                                    ToggleButton(
+                                                        checked = darkMode == value,
+                                                        onCheckedChange = { onDarkModeChange(value) },
+                                                        colors = ToggleButtonDefaults.toggleButtonColors(
+                                                            checkedContainerColor = MaterialTheme.colorScheme.primary,
+                                                            checkedContentColor = MaterialTheme.colorScheme.onPrimary,
+                                                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                                        ),
+                                                        shapes = when (index) {
+                                                            0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                                            options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                                            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                                                        },
+                                                        modifier = Modifier.weight(1f).semantics {
+                                                            role = Role.RadioButton
+                                                        }
+                                                    ) {
+                                                        Text(labels[index], style = MaterialTheme.typography.labelSmall)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (useDarkTheme) {
+                                    add {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Box(modifier = Modifier.weight(1f)) {
+                                                ModernInfoItem(
+                                                    icon = {
+                                                        Icon(
+                                                            painterResource(R.drawable.contrast),
+                                                            null,
+                                                            modifier = Modifier.size(22.dp)
+                                                        )
+                                                    },
+                                                    title = stringResource(R.string.pure_black),
+                                                    subtitle = stringResource(R.string.use_pure_black_dark_theme),
+                                                    iconBackgroundColor = iconBgColor,
+                                                    iconContentColor = iconStyleColor
+                                                )
+                                            }
+                                            ModernSwitch(
+                                                checked = pureBlack,
+                                                onCheckedChange = onPureBlackChange,
+                                                modifier = Modifier.padding(end = 20.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                                add {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Box(modifier = Modifier.weight(1f)) {
+                                            ModernInfoItem(
+                                                icon = {
+                                                    Icon(
+                                                        painterResource(R.drawable.palette),
+                                                        null,
+                                                        modifier = Modifier.size(22.dp)
+                                                    )
+                                                },
+                                                title = "Material 3 Expressive",
+                                                subtitle = "Use expressive shapes and layout",
+                                                iconBackgroundColor = iconBgColor,
+                                                iconContentColor = iconStyleColor
+                                            )
+                                        }
+                                        ModernSwitch(
+                                            checked = material3Expressive,
+                                            onCheckedChange = onMaterial3ExpressiveChange,
+                                            modifier = Modifier.padding(end = 20.dp)
+                                        )
+                                    }
+                                }
+                                add {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Box(modifier = Modifier.weight(1f)) {
+                                            ModernInfoItem(
+                                                icon = {
+                                                    Icon(
+                                                        painterResource(R.drawable.palette),
+                                                        null,
+                                                        modifier = Modifier.size(22.dp)
+                                                    )
+                                                },
+                                                title = stringResource(R.string.settings_shape_tertiary_color),
+                                                subtitle = stringResource(R.string.use_tertiary_color_icon_backgrounds),
+                                                iconBackgroundColor = iconBgColor,
+                                                iconContentColor = iconStyleColor
+                                            )
+                                        }
+                                        ModernSwitch(
+                                            checked = settingsShapeTertiary,
+                                            onCheckedChange = onSettingsShapeTertiaryChange,
+                                            modifier = Modifier.padding(end = 20.dp)
+                                        )
+                                    }
+                                }
+                                add {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Box(modifier = Modifier.weight(1f)) {
+                                            ModernInfoItem(
+                                                icon = {
+                                                    Icon(
+                                                        painterResource(R.drawable.palette),
+                                                        null,
+                                                        modifier = Modifier.size(22.dp)
+                                                    )
+                                                },
+                                                title = stringResource(R.string.high_refresh_rate),
+                                                subtitle = stringResource(R.string.high_refresh_rate_desc),
+                                                iconBackgroundColor = iconBgColor,
+                                                iconContentColor = iconStyleColor
+                                            )
+                                        }
+                                        ModernSwitch(
+                                            checked = highRefreshRate,
+                                            onCheckedChange = onHighRefreshRateChange,
                                             modifier = Modifier.padding(end = 20.dp)
                                         )
                                     }
                                 }
                             }
-                            add {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Box(modifier = Modifier.weight(1f)) {
-                                        ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.palette), null, modifier = Modifier.size(22.dp)) },
-                                            title = "Material 3 Expressive",
-                                            subtitle = "Use expressive shapes and layout",
-                                            iconBackgroundColor = iconBgColor,
-                                            iconContentColor = iconStyleColor
-                                        )
-                                    }
-                                    ModernSwitch(
-                                        checked = material3Expressive,
-                                        onCheckedChange = onMaterial3ExpressiveChange,
-                                        modifier = Modifier.padding(end = 20.dp)
-                                    )
-                                }
-                            }
-                            add {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Box(modifier = Modifier.weight(1f)) {
-                                        ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.palette), null, modifier = Modifier.size(22.dp)) },
-                                            title = stringResource(R.string.settings_shape_tertiary_color),
-                                            subtitle = stringResource(R.string.use_tertiary_color_icon_backgrounds),
-                                            iconBackgroundColor = iconBgColor,
-                                            iconContentColor = iconStyleColor
-                                        )
-                                    }
-                                    ModernSwitch(
-                                        checked = settingsShapeTertiary,
-                                        onCheckedChange = onSettingsShapeTertiaryChange,
-                                        modifier = Modifier.padding(end = 20.dp)
-                                    )
-                                }
-                            }
-                            add {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Box(modifier = Modifier.weight(1f)) {
-                                        ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.palette), null, modifier = Modifier.size(22.dp)) },
-                                            title = stringResource(R.string.high_refresh_rate),
-                                            subtitle = stringResource(R.string.high_refresh_rate_desc),
-                                            iconBackgroundColor = iconBgColor,
-                                            iconContentColor = iconStyleColor
-                                        )
-                                    }
-                                    ModernSwitch(
-                                        checked = highRefreshRate,
-                                        onCheckedChange = onHighRefreshRateChange,
-                                        modifier = Modifier.padding(end = 20.dp)
-                                    )
-                                }
-                            }
                         }
-                    }
                     Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -1125,89 +1194,9 @@ fun AppearanceSettings(
                 }
 
                 item {
-                    val playerItems = remember(useNewPlayerDesign, useNewMiniPlayerDesign, rotatingThumbnail, playerBackground, showNowPlayingAppleMusic, hidePlayerThumbnail, playerButtonsStyle, sliderStyle, swipeThumbnail, swipeSensitivity, iconBgColor, iconStyleColor) {
-                        buildList<@Composable () -> Unit> {
-                            add {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Box(modifier = Modifier.weight(1f)) {
-                                        ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.palette), null, modifier = Modifier.size(22.dp)) },
-                                            title = stringResource(R.string.new_player_design),
-                                            subtitle = stringResource(R.string.modern_player_interface),
-                                            iconBackgroundColor = iconBgColor,
-                                            iconContentColor = iconStyleColor
-                                        )
-                                    }
-                                    ModernSwitch(
-                                        checked = useNewPlayerDesign,
-                                        onCheckedChange = onUseNewPlayerDesignChange,
-                                        modifier = Modifier.padding(end = 20.dp)
-                                    )
-                                }
-                            }
-                            add {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Box(modifier = Modifier.weight(1f)) {
-                                        ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.nav_bar), null, modifier = Modifier.size(22.dp)) },
-                                            title = stringResource(R.string.new_mini_player_design),
-                                            subtitle = stringResource(R.string.modern_mini_player),
-                                            iconBackgroundColor = iconBgColor,
-                                            iconContentColor = iconStyleColor
-                                        )
-                                    }
-                                    ModernSwitch(
-                                        checked = useNewMiniPlayerDesign,
-                                        onCheckedChange = onUseNewMiniPlayerDesignChange,
-                                        modifier = Modifier.padding(end = 20.dp)
-                                    )
-                                }
-                            }
-                            add {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Box(modifier = Modifier.weight(1f)) {
-                                        ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.cycle_rotation), null, modifier = Modifier.size(22.dp)) },
-                                            title = stringResource(R.string.rotating_thumbnail),
-                                            subtitle = stringResource(R.string.enable_rotating_clover_thumbnail),
-                                            iconBackgroundColor = iconBgColor,
-                                            iconContentColor = iconStyleColor
-                                        )
-                                    }
-                                    ModernSwitch(
-                                        checked = rotatingThumbnail,
-                                        onCheckedChange = onRotatingThumbnailChange,
-                                        modifier = Modifier.padding(end = 20.dp)
-                                    )
-                                }
-                            }
-                            add {
-                                ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.gradient), null, modifier = Modifier.size(22.dp)) },
-                                    title = stringResource(R.string.player_background_style),
-                                    subtitle = when (playerBackground) {
-                                        PlayerBackgroundStyle.GRADIENT -> stringResource(R.string.gradient)
-                                        PlayerBackgroundStyle.DEFAULT -> stringResource(R.string.follow_theme)
-                                        PlayerBackgroundStyle.BLUR -> stringResource(R.string.player_background_blur)
-                                        PlayerBackgroundStyle.APPLE_MUSIC -> "Apple Music"
-                                    },
-                                    onClick = { showPlayerBackgroundDialog = true },
-                                    showArrow = true,
-                                    showSettingsIcon = true,
-                                    iconBackgroundColor = iconBgColor,
-                                    iconContentColor = iconStyleColor
-                                )
-                            }
-                            if (playerBackground == PlayerBackgroundStyle.APPLE_MUSIC) {
+                    val playerItems =
+                        remember(useNewPlayerDesign, useNewMiniPlayerDesign, rotatingThumbnail, playerBackground, showNowPlayingAppleMusic, hidePlayerThumbnail, playerButtonsStyle, sliderStyle, swipeThumbnail, swipeSensitivity, iconBgColor, iconStyleColor) {
+                            buildList<@Composable () -> Unit> {
                                 add {
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
@@ -1215,111 +1204,264 @@ fun AppearanceSettings(
                                     ) {
                                         Box(modifier = Modifier.weight(1f)) {
                                             ModernInfoItem(
-                                                icon = { Icon(painterResource(R.drawable.play_arrow), null, modifier = Modifier.size(22.dp)) },
-                                                title = stringResource(R.string.show_now_playing),
-                                                subtitle = stringResource(R.string.enable_now_playing_text_on_player_background),
+                                                icon = {
+                                                    Icon(
+                                                        painterResource(R.drawable.palette),
+                                                        null,
+                                                        modifier = Modifier.size(22.dp)
+                                                    )
+                                                },
+                                                title = stringResource(R.string.new_player_design),
+                                                subtitle = stringResource(R.string.modern_player_interface),
                                                 iconBackgroundColor = iconBgColor,
                                                 iconContentColor = iconStyleColor
                                             )
                                         }
                                         ModernSwitch(
-                                            checked = showNowPlayingAppleMusic,
-                                            onCheckedChange = onShowNowPlayingAppleMusicChange,
+                                            checked = useNewPlayerDesign,
+                                            onCheckedChange = onUseNewPlayerDesignChange,
                                             modifier = Modifier.padding(end = 20.dp)
                                         )
                                     }
                                 }
-                            }
-                            add {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Box(modifier = Modifier.weight(1f)) {
-                                        ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.hide_image), null, modifier = Modifier.size(22.dp)) },
-                                            title = stringResource(R.string.hide_player_thumbnail),
-                                            subtitle = stringResource(R.string.hide_player_thumbnail_desc),
-                                            iconBackgroundColor = iconBgColor,
-                                            iconContentColor = iconStyleColor
+                                add {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Box(modifier = Modifier.weight(1f)) {
+                                            ModernInfoItem(
+                                                icon = {
+                                                    Icon(
+                                                        painterResource(R.drawable.nav_bar),
+                                                        null,
+                                                        modifier = Modifier.size(22.dp)
+                                                    )
+                                                },
+                                                title = stringResource(R.string.new_mini_player_design),
+                                                subtitle = stringResource(R.string.modern_mini_player),
+                                                iconBackgroundColor = iconBgColor,
+                                                iconContentColor = iconStyleColor
+                                            )
+                                        }
+                                        ModernSwitch(
+                                            checked = useNewMiniPlayerDesign,
+                                            onCheckedChange = onUseNewMiniPlayerDesignChange,
+                                            modifier = Modifier.padding(end = 20.dp)
                                         )
                                     }
-                                    ModernSwitch(
-                                        checked = hidePlayerThumbnail,
-                                        onCheckedChange = onHidePlayerThumbnailChange,
-                                        modifier = Modifier.padding(end = 20.dp)
-                                    )
                                 }
-                            }
-                            add {
-                                ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.palette), null, modifier = Modifier.size(22.dp)) },
-                                    title = stringResource(R.string.player_buttons_style),
-                                    subtitle = when (playerButtonsStyle) {
-                                        PlayerButtonsStyle.DEFAULT -> stringResource(R.string.default_style)
-                                        PlayerButtonsStyle.SECONDARY -> stringResource(R.string.secondary_color_style)
-                                        PlayerButtonsStyle.TERTIARY -> stringResource(R.string.tertiary_color_style)
-                                    },
-                                    onClick = { showPlayerButtonsStyleDialog = true },
-                                    showArrow = true,
-                                    showSettingsIcon = true,
-                                    iconBackgroundColor = iconBgColor,
-                                    iconContentColor = iconStyleColor
-                                )
-                            }
-                            add {
-                                ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.sliders), null, modifier = Modifier.size(22.dp)) },
-                                    title = stringResource(R.string.player_slider_style),
-                                    subtitle = when (sliderStyle) {
-                                        SliderStyle.DEFAULT -> stringResource(R.string.default_)
-                                        SliderStyle.WAVY -> stringResource(R.string.wavy)
-                                        SliderStyle.SLIM -> stringResource(R.string.slim)
-                                    },
-                                    onClick = { showSliderOptionDialog = true },
-                                    showArrow = true,
-                                    showSettingsIcon = true,
-                                    iconBackgroundColor = iconBgColor,
-                                    iconContentColor = iconStyleColor
-                                )
-                            }
-                            add {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Box(modifier = Modifier.weight(1f)) {
-                                        ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.swipe), null, modifier = Modifier.size(22.dp)) },
-                                            title = stringResource(R.string.enable_swipe_thumbnail),
-                                            subtitle = stringResource(R.string.swipe_on_player_thumbnail),
-                                            iconBackgroundColor = iconBgColor,
-                                            iconContentColor = iconStyleColor
+                                add {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Box(modifier = Modifier.weight(1f)) {
+                                            ModernInfoItem(
+                                                icon = {
+                                                    Icon(
+                                                        painterResource(R.drawable.cycle_rotation),
+                                                        null,
+                                                        modifier = Modifier.size(22.dp)
+                                                    )
+                                                },
+                                                title = stringResource(R.string.rotating_thumbnail),
+                                                subtitle = stringResource(R.string.enable_rotating_clover_thumbnail),
+                                                iconBackgroundColor = iconBgColor,
+                                                iconContentColor = iconStyleColor
+                                            )
+                                        }
+                                        ModernSwitch(
+                                            checked = rotatingThumbnail,
+                                            onCheckedChange = onRotatingThumbnailChange,
+                                            modifier = Modifier.padding(end = 20.dp)
                                         )
                                     }
-                                    ModernSwitch(
-                                        checked = swipeThumbnail,
-                                        onCheckedChange = onSwipeThumbnailChange,
-                                        modifier = Modifier.padding(end = 20.dp)
-                                    )
                                 }
-                            }
-                            if (swipeThumbnail) {
                                 add {
                                     ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.tune), null, modifier = Modifier.size(22.dp)) },
-                                        title = stringResource(R.string.swipe_sensitivity),
-                                        subtitle = stringResource(R.string.sensitivity_percentage, (swipeSensitivity * 100).roundToInt()),
-                                        onClick = { showSensitivityDialog = true },
+                                        icon = {
+                                            Icon(
+                                                painterResource(R.drawable.gradient),
+                                                null,
+                                                modifier = Modifier.size(22.dp)
+                                            )
+                                        },
+                                        title = stringResource(R.string.player_background_style),
+                                        subtitle = when (playerBackground) {
+                                            PlayerBackgroundStyle.GRADIENT -> stringResource(R.string.gradient)
+                                            PlayerBackgroundStyle.DEFAULT -> stringResource(R.string.follow_theme)
+                                            PlayerBackgroundStyle.BLUR -> stringResource(
+                                                R.string.player_background_blur
+                                            )
+                                            PlayerBackgroundStyle.APPLE_MUSIC -> "Apple Music"
+                                        },
+                                        onClick = { showPlayerBackgroundDialog = true },
                                         showArrow = true,
                                         showSettingsIcon = true,
                                         iconBackgroundColor = iconBgColor,
                                         iconContentColor = iconStyleColor
                                     )
                                 }
+                                if (playerBackground == PlayerBackgroundStyle.APPLE_MUSIC) {
+                                    add {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Box(modifier = Modifier.weight(1f)) {
+                                                ModernInfoItem(
+                                                    icon = {
+                                                        Icon(
+                                                            painterResource(R.drawable.play_arrow),
+                                                            null,
+                                                            modifier = Modifier.size(22.dp)
+                                                        )
+                                                    },
+                                                    title = stringResource(R.string.show_now_playing),
+                                                    subtitle = stringResource(
+                                                        R.string.enable_now_playing_text_on_player_background
+                                                    ),
+                                                    iconBackgroundColor = iconBgColor,
+                                                    iconContentColor = iconStyleColor
+                                                )
+                                            }
+                                            ModernSwitch(
+                                                checked = showNowPlayingAppleMusic,
+                                                onCheckedChange = onShowNowPlayingAppleMusicChange,
+                                                modifier = Modifier.padding(end = 20.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                                add {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Box(modifier = Modifier.weight(1f)) {
+                                            ModernInfoItem(
+                                                icon = {
+                                                    Icon(
+                                                        painterResource(R.drawable.hide_image),
+                                                        null,
+                                                        modifier = Modifier.size(22.dp)
+                                                    )
+                                                },
+                                                title = stringResource(R.string.hide_player_thumbnail),
+                                                subtitle = stringResource(R.string.hide_player_thumbnail_desc),
+                                                iconBackgroundColor = iconBgColor,
+                                                iconContentColor = iconStyleColor
+                                            )
+                                        }
+                                        ModernSwitch(
+                                            checked = hidePlayerThumbnail,
+                                            onCheckedChange = onHidePlayerThumbnailChange,
+                                            modifier = Modifier.padding(end = 20.dp)
+                                        )
+                                    }
+                                }
+                                add {
+                                    ModernInfoItem(
+                                        icon = {
+                                            Icon(
+                                                painterResource(R.drawable.palette),
+                                                null,
+                                                modifier = Modifier.size(22.dp)
+                                            )
+                                        },
+                                        title = stringResource(R.string.player_buttons_style),
+                                        subtitle = when (playerButtonsStyle) {
+                                            PlayerButtonsStyle.DEFAULT -> stringResource(R.string.default_style)
+                                            PlayerButtonsStyle.SECONDARY -> stringResource(
+                                                R.string.secondary_color_style
+                                            )
+                                            PlayerButtonsStyle.TERTIARY -> stringResource(R.string.tertiary_color_style)
+                                        },
+                                        onClick = { showPlayerButtonsStyleDialog = true },
+                                        showArrow = true,
+                                        showSettingsIcon = true,
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
+                                    )
+                                }
+                                add {
+                                    ModernInfoItem(
+                                        icon = {
+                                            Icon(
+                                                painterResource(R.drawable.sliders),
+                                                null,
+                                                modifier = Modifier.size(22.dp)
+                                            )
+                                        },
+                                        title = stringResource(R.string.player_slider_style),
+                                        subtitle = when (sliderStyle) {
+                                            SliderStyle.DEFAULT -> stringResource(R.string.default_)
+                                            SliderStyle.WAVY -> stringResource(R.string.wavy)
+                                            SliderStyle.SLIM -> stringResource(R.string.slim)
+                                        },
+                                        onClick = { showSliderOptionDialog = true },
+                                        showArrow = true,
+                                        showSettingsIcon = true,
+                                        iconBackgroundColor = iconBgColor,
+                                        iconContentColor = iconStyleColor
+                                    )
+                                }
+                                add {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Box(modifier = Modifier.weight(1f)) {
+                                            ModernInfoItem(
+                                                icon = {
+                                                    Icon(
+                                                        painterResource(R.drawable.swipe),
+                                                        null,
+                                                        modifier = Modifier.size(22.dp)
+                                                    )
+                                                },
+                                                title = stringResource(R.string.enable_swipe_thumbnail),
+                                                subtitle = stringResource(R.string.swipe_on_player_thumbnail),
+                                                iconBackgroundColor = iconBgColor,
+                                                iconContentColor = iconStyleColor
+                                            )
+                                        }
+                                        ModernSwitch(
+                                            checked = swipeThumbnail,
+                                            onCheckedChange = onSwipeThumbnailChange,
+                                            modifier = Modifier.padding(end = 20.dp)
+                                        )
+                                    }
+                                }
+                                if (swipeThumbnail) {
+                                    add {
+                                        ModernInfoItem(
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.tune),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
+                                            title = stringResource(R.string.swipe_sensitivity),
+                                            subtitle = stringResource(
+                                                R.string.sensitivity_percentage,
+                                                (
+                                                    swipeSensitivity *
+                                                        100
+                                                    ).roundToInt()
+                                            ),
+                                            onClick = { showSensitivityDialog = true },
+                                            showArrow = true,
+                                            showSettingsIcon = true,
+                                            iconBackgroundColor = iconBgColor,
+                                            iconContentColor = iconStyleColor
+                                        )
+                                    }
+                                }
                             }
                         }
-                    }
                     Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -1342,7 +1484,7 @@ fun AppearanceSettings(
                 }
 
                 item {
-                  Material3ExpressiveSettingsGroup(
+                    Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
@@ -1362,7 +1504,11 @@ fun AppearanceSettings(
                                         contentAlignment = Alignment.Center
                                     ) {
                                         CompositionLocalProvider(LocalContentColor provides iconStyleColor) {
-                                            Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp))
+                                            Icon(
+                                                painterResource(R.drawable.lyrics),
+                                                null,
+                                                modifier = Modifier.size(22.dp)
+                                            )
                                         }
                                     }
 
@@ -1371,7 +1517,9 @@ fun AppearanceSettings(
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
                                             text = stringResource(R.string.lyrics_text_position),
-                                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                                            style = MaterialTheme.typography.bodyLarge.copy(
+                                                fontWeight = FontWeight.Medium
+                                            ),
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
                                         Text(
@@ -1381,12 +1529,19 @@ fun AppearanceSettings(
                                         )
                                         Spacer(modifier = Modifier.height(12.dp))
                                         val options = LyricsPosition.entries
-                                        val labels = listOf(stringResource(R.string.left), stringResource(R.string.center), stringResource(R.string.right))
+                                        val labels =
+                                            listOf(
+                                                stringResource(R.string.left),
+                                                stringResource(R.string.center),
+                                                stringResource(R.string.right)
+                                            )
 
                                         FlowRow(
                                             modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-                                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                                            horizontalArrangement = Arrangement.spacedBy(
+                                                ButtonGroupDefaults.ConnectedSpaceBetween
+                                            ),
+                                            verticalArrangement = Arrangement.spacedBy(2.dp)
                                         ) {
                                             options.forEachIndexed { index, value ->
                                                 ToggleButton(
@@ -1403,7 +1558,9 @@ fun AppearanceSettings(
                                                         options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
                                                         else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                                                     },
-                                                    modifier = Modifier.weight(1f).semantics { role = Role.RadioButton },
+                                                    modifier = Modifier.weight(1f).semantics {
+                                                        role = Role.RadioButton
+                                                    }
                                                 ) {
                                                     Text(labels[index], style = MaterialTheme.typography.labelSmall)
                                                 }
@@ -1427,7 +1584,11 @@ fun AppearanceSettings(
                                         contentAlignment = Alignment.Center
                                     ) {
                                         CompositionLocalProvider(LocalContentColor provides iconStyleColor) {
-                                            Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp))
+                                            Icon(
+                                                painterResource(R.drawable.lyrics),
+                                                null,
+                                                modifier = Modifier.size(22.dp)
+                                            )
                                         }
                                     }
 
@@ -1436,7 +1597,9 @@ fun AppearanceSettings(
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
                                             text = stringResource(R.string.lyrics_position),
-                                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                                            style = MaterialTheme.typography.bodyLarge.copy(
+                                                fontWeight = FontWeight.Medium
+                                            ),
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
                                         Text(
@@ -1446,12 +1609,15 @@ fun AppearanceSettings(
                                         )
                                         Spacer(modifier = Modifier.height(12.dp))
                                         val options = LyricsVerticalPosition.entries
-                                        val labels = listOf(stringResource(R.string.top), stringResource(R.string.center_option))
+                                        val labels =
+                                            listOf(stringResource(R.string.top), stringResource(R.string.center_option))
 
                                         FlowRow(
                                             modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-                                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                                            horizontalArrangement = Arrangement.spacedBy(
+                                                ButtonGroupDefaults.ConnectedSpaceBetween
+                                            ),
+                                            verticalArrangement = Arrangement.spacedBy(2.dp)
                                         ) {
                                             options.forEachIndexed { index, value ->
                                                 ToggleButton(
@@ -1468,7 +1634,9 @@ fun AppearanceSettings(
                                                         options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
                                                         else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                                                     },
-                                                    modifier = Modifier.weight(1f).semantics { role = Role.RadioButton },
+                                                    modifier = Modifier.weight(1f).semantics {
+                                                        role = Role.RadioButton
+                                                    }
                                                 ) {
                                                     Text(labels[index], style = MaterialTheme.typography.labelSmall)
                                                 }
@@ -1484,7 +1652,13 @@ fun AppearanceSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.lyrics),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.lyrics_click_change),
                                             subtitle = stringResource(R.string.click_change_lyrics_position),
                                             iconBackgroundColor = iconBgColor,
@@ -1505,7 +1679,13 @@ fun AppearanceSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.lyrics),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.lyrics_auto_scroll),
                                             subtitle = stringResource(R.string.auto_scroll_lyrics_subtitle),
                                             iconBackgroundColor = iconBgColor,
@@ -1521,7 +1701,9 @@ fun AppearanceSettings(
                             },
                             {
                                 ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.tune), null, modifier = Modifier.size(22.dp)) },
+                                    icon = {
+                                        Icon(painterResource(R.drawable.tune), null, modifier = Modifier.size(22.dp))
+                                    },
                                     title = stringResource(R.string.lyrics_text_size),
                                     subtitle = "${lyricsTextSize.roundToInt()} sp",
                                     onClick = { showLyricsTextSizeDialog = true },
@@ -1533,7 +1715,9 @@ fun AppearanceSettings(
                             },
                             {
                                 ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.tune), null, modifier = Modifier.size(22.dp)) },
+                                    icon = {
+                                        Icon(painterResource(R.drawable.tune), null, modifier = Modifier.size(22.dp))
+                                    },
                                     title = stringResource(R.string.lyrics_line_spacing),
                                     subtitle = "${lyricsLineSpacing.roundToInt()} dp",
                                     onClick = { showLyricsLineSpacingDialog = true },
@@ -1550,7 +1734,13 @@ fun AppearanceSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(id = R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(id = R.drawable.lyrics),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.apple_lyrics),
                                             subtitle = stringResource(R.string.highlight_words_discretely),
                                             iconBackgroundColor = iconBgColor,
@@ -1577,7 +1767,13 @@ fun AppearanceSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(id = R.drawable.blur_on), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(id = R.drawable.blur_on),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.apple_music_lyrics_blur),
                                             subtitle = stringResource(R.string.apple_music_lyrics_blur_desc),
                                             iconBackgroundColor = iconBgColor,
@@ -1598,7 +1794,13 @@ fun AppearanceSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(id = R.drawable.lyrics), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(id = R.drawable.lyrics),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.letter_by_letter_animation),
                                             subtitle = stringResource(R.string.animate_lyrics_letter_by_letter),
                                             iconBackgroundColor = iconBgColor,
@@ -1635,7 +1837,7 @@ fun AppearanceSettings(
                 }
 
                 item {
-                 Material3ExpressiveSettingsGroup(
+                    Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
@@ -1643,7 +1845,13 @@ fun AppearanceSettings(
                             {
                                 Column(modifier = Modifier.fillMaxWidth()) {
                                     ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.nav_bar), null, modifier = Modifier.size(22.dp)) },
+                                        icon = {
+                                            Icon(
+                                                painterResource(R.drawable.nav_bar),
+                                                null,
+                                                modifier = Modifier.size(22.dp)
+                                            )
+                                        },
                                         title = stringResource(R.string.default_open_tab),
                                         subtitle = stringResource(R.string.select_default_tab),
                                         iconBackgroundColor = iconBgColor,
@@ -1661,8 +1869,10 @@ fun AppearanceSettings(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .padding(start = 64.dp, bottom = 12.dp, end = 20.dp),
-                                        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-                                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(
+                                            ButtonGroupDefaults.ConnectedSpaceBetween
+                                        ),
+                                        verticalArrangement = Arrangement.spacedBy(2.dp)
                                     ) {
                                         options.forEachIndexed { index, value ->
                                             ToggleButton(
@@ -1679,7 +1889,7 @@ fun AppearanceSettings(
                                                     options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
                                                     else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                                                 },
-                                                modifier = Modifier.weight(1f).semantics { role = Role.RadioButton },
+                                                modifier = Modifier.weight(1f).semantics { role = Role.RadioButton }
                                             ) {
                                                 Text(labels[index], style = MaterialTheme.typography.labelSmall)
                                             }
@@ -1689,7 +1899,9 @@ fun AppearanceSettings(
                             },
                             {
                                 ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.tab), null, modifier = Modifier.size(22.dp)) },
+                                    icon = {
+                                        Icon(painterResource(R.drawable.tab), null, modifier = Modifier.size(22.dp))
+                                    },
                                     title = stringResource(R.string.default_lib_chips),
                                     subtitle = when (defaultChip) {
                                         LibraryFilter.SONGS -> stringResource(R.string.songs)
@@ -1712,7 +1924,13 @@ fun AppearanceSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.swipe), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.swipe),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.swipe_song_to_add),
                                             subtitle = stringResource(R.string.swipe_add_songs_queue),
                                             iconBackgroundColor = iconBgColor,
@@ -1733,7 +1951,13 @@ fun AppearanceSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.nav_bar), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.nav_bar),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.slim_navbar),
                                             subtitle = stringResource(R.string.compact_navigation_bar),
                                             iconBackgroundColor = iconBgColor,
@@ -1754,7 +1978,13 @@ fun AppearanceSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.swipe), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.swipe),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.swipe_song_to_remove),
                                             subtitle = stringResource(R.string.swipe_remove_songs),
                                             iconBackgroundColor = iconBgColor,
@@ -1771,7 +2001,13 @@ fun AppearanceSettings(
                             {
                                 Column(modifier = Modifier.fillMaxWidth()) {
                                     ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.grid_view), null, modifier = Modifier.size(22.dp)) },
+                                        icon = {
+                                            Icon(
+                                                painterResource(R.drawable.grid_view),
+                                                null,
+                                                modifier = Modifier.size(22.dp)
+                                            )
+                                        },
                                         title = stringResource(R.string.grid_cell_size),
                                         subtitle = stringResource(R.string.change_size_items_library),
                                         iconBackgroundColor = iconBgColor,
@@ -1785,8 +2021,10 @@ fun AppearanceSettings(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .padding(start = 64.dp, bottom = 12.dp, end = 20.dp),
-                                        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-                                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(
+                                            ButtonGroupDefaults.ConnectedSpaceBetween
+                                        ),
+                                        verticalArrangement = Arrangement.spacedBy(2.dp)
                                     ) {
                                         options.forEachIndexed { index, value ->
                                             ToggleButton(
@@ -1803,7 +2041,7 @@ fun AppearanceSettings(
                                                     options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
                                                     else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                                                 },
-                                                modifier = Modifier.weight(1f).semantics { role = Role.RadioButton },
+                                                modifier = Modifier.weight(1f).semantics { role = Role.RadioButton }
                                             ) {
                                                 Text(labels[index], style = MaterialTheme.typography.labelSmall)
                                             }
@@ -1829,7 +2067,7 @@ fun AppearanceSettings(
                 }
 
                 item {
-          Material3ExpressiveSettingsGroup(
+                    Material3ExpressiveSettingsGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
@@ -1841,7 +2079,13 @@ fun AppearanceSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.favorite), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.favorite),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.show_liked_playlist),
                                             subtitle = stringResource(R.string.display_liked_songs_playlist),
                                             iconBackgroundColor = iconBgColor,
@@ -1862,7 +2106,13 @@ fun AppearanceSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.offline), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.offline),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.show_downloaded_playlist),
                                             subtitle = stringResource(R.string.display_downloaded_playlist),
                                             iconBackgroundColor = iconBgColor,
@@ -1883,7 +2133,13 @@ fun AppearanceSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.trending_up), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.trending_up),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.show_top_playlist),
                                             subtitle = stringResource(R.string.display_top_songs_playlist),
                                             iconBackgroundColor = iconBgColor,
@@ -1904,7 +2160,13 @@ fun AppearanceSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.cached), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.cached),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.show_cached_playlist),
                                             subtitle = stringResource(R.string.display_cached_playlist),
                                             iconBackgroundColor = iconBgColor,
@@ -1925,7 +2187,13 @@ fun AppearanceSettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.backup), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.backup),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.show_uploaded_playlist),
                                             subtitle = stringResource(R.string.display_uploaded_playlist),
                                             iconBackgroundColor = iconBgColor,

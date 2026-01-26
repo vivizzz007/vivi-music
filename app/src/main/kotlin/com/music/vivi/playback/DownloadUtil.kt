@@ -61,18 +61,28 @@ constructor(
     private val client = okHttpClient.newBuilder()
         .proxy(YouTube.proxy)
         .proxyAuthenticator { _, response ->
-             YouTube.proxyAuth?.let { auth ->
-                 response.request.newBuilder()
-                     .header("Proxy-Authorization", auth)
-                     .build()
-             } ?: response.request
+            YouTube.proxyAuth?.let { auth ->
+                response.request.newBuilder()
+                    .header("Proxy-Authorization", auth)
+                    .build()
+            } ?: response.request
         }
         .build()
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    /**
+     * A flow emitting the current status of all downloads.
+     * Key: Media ID (Song ID). Value: [Download] object containing state and progress.
+     */
     val downloads = MutableStateFlow<Map<String, Download>>(emptyMap())
 
+    /**
+     * Custom DataSource Factory that prioritizes:
+     * 1. **Cache**: Checks if the content is fully or partially downloaded in [playerCache].
+     * 2. **Expired Stream Handling**: Checks [songUrlCache] for valid stream URLs.
+     * 3. **Network Fetch**: Fetches new playback data via [YTPlayerUtils] if needed, updating the database.
+     */
     private val dataSourceFactory =
         ResolvingDataSource.Factory(
             CacheDataSource
@@ -80,9 +90,9 @@ constructor(
                 .setCache(playerCache)
                 .setUpstreamDataSourceFactory(
                     OkHttpDataSource.Factory(
-                        client,
-                    ),
-                ),
+                        client
+                    )
+                )
         ) { dataSpec ->
             val mediaId = dataSpec.key ?: error("No media id")
             val length = if (dataSpec.length >= 0) dataSpec.length else 1
@@ -100,7 +110,7 @@ constructor(
                     mediaId,
                     audioQuality = audioQuality,
                     connectivityManager = connectivityManager,
-                    httpClient = client,
+                    httpClient = client
                 )
             }.getOrThrow()
             val format = playbackData.format
@@ -117,7 +127,7 @@ constructor(
                         contentLength = format.contentLength!!,
                         loudnessDb = playbackData.audioConfig?.loudnessDb,
                         playbackUrl = playbackData.playbackTracking?.videostatsPlaybackUrl?.baseUrl
-                    ),
+                    )
                 )
 
                 val now = LocalDateTime.now()
@@ -144,7 +154,7 @@ constructor(
             }
 
             val streamUrl = playbackData.streamUrl.let {
-                "${it}&range=0-${format.contentLength ?: 10000000}"
+                "$it&range=0-${format.contentLength ?: 10000000}"
             }
 
             songUrlCache[mediaId] = streamUrl to playbackData.streamExpiresInSeconds * 1000L
@@ -184,7 +194,8 @@ constructor(
                                 }
                                 Download.STATE_FAILED,
                                 Download.STATE_STOPPED,
-                                Download.STATE_REMOVING -> {
+                                Download.STATE_REMOVING,
+                                -> {
                                     database.updateDownloadedInfo(download.request.id, false, null)
                                 }
                                 else -> {
@@ -206,6 +217,11 @@ constructor(
         downloads.value = result
     }
 
+    /**
+     * Returns a flow emitting the download status for a specific song.
+     *
+     * @param songId The unique ID of the song.
+     */
     fun getDownload(songId: String): Flow<Download?> = downloads.map { it[songId] }
 
     fun release() {

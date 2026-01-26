@@ -18,23 +18,24 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.graphics.RectangleShape
-import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -43,8 +44,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
@@ -73,35 +76,30 @@ import com.music.vivi.constants.SearchFilterHeight
 import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.playback.queues.YouTubeQueue
-import com.music.vivi.ui.component.ChipsRow
 import com.music.vivi.ui.component.EmptyPlaceholder
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.NavigationTitle
-import com.music.vivi.ui.component.YouTubeListItem
-import com.music.vivi.ui.component.shimmer.ListItemPlaceHolder
-import com.music.vivi.ui.component.shimmer.ShimmerHost
+import com.music.vivi.ui.component.media.youtube.YouTubeListItem
 import com.music.vivi.ui.menu.YouTubeAlbumMenu
 import com.music.vivi.ui.menu.YouTubeArtistMenu
 import com.music.vivi.ui.menu.YouTubePlaylistMenu
 import com.music.vivi.ui.menu.YouTubeSongMenu
 import com.music.vivi.viewmodels.OnlineSearchViewModel
 import kotlinx.coroutines.launch
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.Text
-import androidx.compose.ui.Alignment
+import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class,
+/**
+ * Component that displays the results of an online (YouTube Music) search.
+ * Shows a list of items (Songs, Videos, Albums, Artists, Playlists) matching the query.
+ * Supports filtering by type.
+ */
+@OptIn(
+    ExperimentalFoundationApi::class,
+    ExperimentalMaterial3Api::class,
     ExperimentalMaterial3ExpressiveApi::class
 )
 @Composable
-fun OnlineSearchResult(
-    navController: NavController,
-    viewModel: OnlineSearchViewModel = hiltViewModel(),
-) {
+public fun OnlineSearchResult(navController: NavController, viewModel: OnlineSearchViewModel = hiltViewModel()) {
     val menuState = LocalMenuState.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val haptic = LocalHapticFeedback.current
@@ -133,7 +131,11 @@ fun OnlineSearchResult(
         }
     }
 
-    val ytItemContent: @Composable (YTItem, Boolean, Boolean) -> Unit = { item: YTItem, isFirst: Boolean, isLast: Boolean ->
+    val ytItemContent: @Composable (YTItem, Boolean, Boolean) -> Unit = {
+            item: YTItem,
+            isFirst: Boolean,
+            isLast: Boolean,
+        ->
         val longClick = {
             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             menuState.show {
@@ -142,27 +144,27 @@ fun OnlineSearchResult(
                         YouTubeSongMenu(
                             song = item,
                             navController = navController,
-                            onDismiss = menuState::dismiss,
+                            onDismiss = menuState::dismiss
                         )
 
                     is AlbumItem ->
                         YouTubeAlbumMenu(
                             albumItem = item,
                             navController = navController,
-                            onDismiss = menuState::dismiss,
+                            onDismiss = menuState::dismiss
                         )
 
                     is ArtistItem ->
                         YouTubeArtistMenu(
                             artist = item,
-                            onDismiss = menuState::dismiss,
+                            onDismiss = menuState::dismiss
                         )
 
                     is PlaylistItem ->
                         YouTubePlaylistMenu(
                             playlist = item,
                             coroutineScope = coroutineScope,
-                            onDismiss = menuState::dismiss,
+                            onDismiss = menuState::dismiss
                         )
                 }
             }
@@ -178,24 +180,39 @@ fun OnlineSearchResult(
 
         val topShape = remember(cornerRadius) {
             AbsoluteSmoothCornerShape(
-                cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
-                smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
-                cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+                cornerRadiusTR = cornerRadius,
+                smoothnessAsPercentBR = 0,
+                cornerRadiusBR = 0.dp,
+                smoothnessAsPercentTL = 60,
+                cornerRadiusTL = cornerRadius,
+                smoothnessAsPercentBL = 0,
+                cornerRadiusBL = 0.dp,
+                smoothnessAsPercentTR = 60
             )
         }
         val middleShape = remember { RectangleShape }
         val bottomShape = remember(cornerRadius) {
             AbsoluteSmoothCornerShape(
-                cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-                smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
-                cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
+                cornerRadiusTR = 0.dp,
+                smoothnessAsPercentBR = 60,
+                cornerRadiusBR = cornerRadius,
+                smoothnessAsPercentTL = 0,
+                cornerRadiusTL = 0.dp,
+                smoothnessAsPercentBL = 60,
+                cornerRadiusBL = cornerRadius,
+                smoothnessAsPercentTR = 0
             )
         }
         val singleShape = remember(cornerRadius) {
             AbsoluteSmoothCornerShape(
-                cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-                smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-                cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+                cornerRadiusTR = cornerRadius,
+                smoothnessAsPercentBR = 60,
+                cornerRadiusBR = cornerRadius,
+                smoothnessAsPercentTL = 60,
+                cornerRadiusTL = cornerRadius,
+                smoothnessAsPercentBL = 60,
+                cornerRadiusBL = cornerRadius,
+                smoothnessAsPercentTR = 60
             )
         }
 
@@ -214,8 +231,11 @@ fun OnlineSearchResult(
                 .height(ListItemHeight)
                 .clip(shape)
                 .background(
-                    if (isActive) MaterialTheme.colorScheme.secondaryContainer
-                    else MaterialTheme.colorScheme.surfaceContainer
+                    if (isActive) {
+                        MaterialTheme.colorScheme.secondaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.surfaceContainer
+                    }
                 )
         ) {
             YouTubeListItem(
@@ -225,11 +245,11 @@ fun OnlineSearchResult(
                 drawHighlight = false,
                 trailingContent = {
                     IconButton(
-                        onClick = longClick,
+                        onClick = longClick
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.more_vert),
-                            contentDescription = null,
+                            contentDescription = null
                         )
                     }
                 },
@@ -256,8 +276,8 @@ fun OnlineSearchResult(
                                 is PlaylistItem -> navController.navigate("online_playlist/${item.id}")
                             }
                         },
-                        onLongClick = longClick,
-                    ),
+                        onLongClick = longClick
+                    )
             )
         }
     }
@@ -265,10 +285,10 @@ fun OnlineSearchResult(
     LazyColumn(
         state = lazyListState,
         contentPadding =
-            LocalPlayerAwareWindowInsets.current
-                .add(WindowInsets(top = SearchFilterHeight + 25.dp))
-                .add(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
-                .asPaddingValues(),
+        LocalPlayerAwareWindowInsets.current
+            .add(WindowInsets(top = SearchFilterHeight + 25.dp))
+            .add(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
+            .asPaddingValues()
     ) {
         if (searchFilter == null) {
             searchSummary?.summaries?.forEach { summary ->
@@ -308,7 +328,7 @@ fun OnlineSearchResult(
                 item {
                     EmptyPlaceholder(
                         icon = R.drawable.search,
-                        text = stringResource(R.string.no_results_found),
+                        text = stringResource(R.string.no_results_found)
                     )
                 }
             }
@@ -354,13 +374,19 @@ fun OnlineSearchResult(
                 item {
                     EmptyPlaceholder(
                         icon = R.drawable.search,
-                        text = stringResource(R.string.no_results_found),
+                        text = stringResource(R.string.no_results_found)
                     )
                 }
             }
         }
 
-        if (isLoading && searchFilter == null && searchSummary == null || isLoading && searchFilter != null && itemsPage == null) {
+        if (isLoading &&
+            searchFilter == null &&
+            searchSummary == null ||
+            isLoading &&
+            searchFilter != null &&
+            itemsPage == null
+        ) {
             item {
                 Box(
                     modifier = Modifier
@@ -416,7 +442,7 @@ fun OnlineSearchResult(
             FILTER_ALBUM to stringResource(R.string.filter_albums),
             FILTER_ARTIST to stringResource(R.string.filter_artists),
             FILTER_COMMUNITY_PLAYLIST to stringResource(R.string.filter_community_playlists),
-            FILTER_FEATURED_PLAYLIST to stringResource(R.string.filter_featured_playlists),
+            FILTER_FEATURED_PLAYLIST to stringResource(R.string.filter_featured_playlists)
         ).forEach { (filter, label) ->
             FilterChip(
                 selected = searchFilter == filter,
@@ -434,7 +460,7 @@ fun OnlineSearchResult(
                         Icon(
                             imageVector = Icons.Filled.Done,
                             contentDescription = null,
-                            modifier = Modifier.size(FilterChipDefaults.IconSize),
+                            modifier = Modifier.size(FilterChipDefaults.IconSize)
                         )
                     }
                 } else {

@@ -17,9 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -40,17 +37,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -67,24 +63,29 @@ import com.music.vivi.db.entities.Playlist
 import com.music.vivi.db.entities.PlaylistSong
 import com.music.vivi.db.entities.Song
 import com.music.vivi.extensions.toMediaItem
+import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.playback.ExoDownloadService
 import com.music.vivi.playback.queues.ListQueue
 import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.ui.component.DefaultDialog
-import com.music.vivi.ui.component.PlaylistListItem
 import com.music.vivi.ui.component.TextFieldDialog
+import com.music.vivi.ui.component.media.playlists.PlaylistListItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
-import com.music.vivi.models.toMediaMetadata
 import java.time.LocalDateTime
 
 
+
+/**
+ * The bottom sheet menu for a playlist.
+ * Provides actions like Play, Shuffle, Add to Queue, Edit (if editable), Download, Share, Delete, etc.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PlaylistMenu(
@@ -126,8 +127,8 @@ fun PlaylistMenu(
                     Download.STATE_COMPLETED
                 } else if (songs.all {
                         downloads[it.id]?.state == Download.STATE_QUEUED ||
-                                downloads[it.id]?.state == Download.STATE_DOWNLOADING ||
-                                downloads[it.id]?.state == Download.STATE_COMPLETED
+                            downloads[it.id]?.state == Download.STATE_DOWNLOADING ||
+                            downloads[it.id]?.state == Download.STATE_COMPLETED
                     }
                 ) {
                     Download.STATE_DOWNLOADING
@@ -149,40 +150,65 @@ fun PlaylistMenu(
     val cornerRadius = remember { 24.dp }
     val playlistArtShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentTR = 60
         )
     }
     val playButtonShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentTR = 60
         )
     }
 
     // Android 16 grouped shapes
     val topShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
-            cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentBR = 0,
+            cornerRadiusBR = 0.dp,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentBL = 0,
+            cornerRadiusBL = 0.dp,
+            smoothnessAsPercentTR = 60
         )
     }
     val middleShape = remember { RectangleShape }
     val bottomShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-            smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
+            cornerRadiusTR = 0.dp,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 0,
+            cornerRadiusTL = 0.dp,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentTR = 0
         )
     }
     val singleShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentTR = 60
         )
     }
 
@@ -191,15 +217,18 @@ fun PlaylistMenu(
 
     val favoriteButtonCornerRadius by animateDpAsState(
         targetValue = if (isFavorite) cornerRadius else 60.dp,
-        animationSpec = tween(durationMillis = 300), label = "FavoriteCornerAnimation"
+        animationSpec = tween(durationMillis = 300),
+        label = "FavoriteCornerAnimation"
     )
     val favoriteButtonContainerColor by animateColorAsState(
         targetValue = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-        animationSpec = tween(durationMillis = 300), label = "FavoriteContainerColorAnimation"
+        animationSpec = tween(durationMillis = 300),
+        label = "FavoriteContainerColorAnimation"
     )
     val favoriteButtonContentColor by animateColorAsState(
         targetValue = if (isFavorite) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-        animationSpec = tween(durationMillis = 300), label = "FavoriteContentColorAnimation"
+        animationSpec = tween(durationMillis = 300),
+        label = "FavoriteContentColorAnimation"
     )
 
     val favoriteButtonShape = remember(favoriteButtonCornerRadius) {
@@ -237,13 +266,27 @@ fun PlaylistMenu(
                         }
                     ) {
                         Icon(
-                            painter = painterResource(if (dbPlaylist?.playlist?.bookmarkedAt != null) R.drawable.favorite else R.drawable.favorite_border),
-                            tint = if (dbPlaylist?.playlist?.bookmarkedAt != null) MaterialTheme.colorScheme.error else LocalContentColor.current,
+                            painter = painterResource(
+                                if (dbPlaylist?.playlist?.bookmarkedAt !=
+                                    null
+                                ) {
+                                    R.drawable.favorite
+                                } else {
+                                    R.drawable.favorite_border
+                                }
+                            ),
+                            tint = if (dbPlaylist?.playlist?.bookmarkedAt !=
+                                null
+                            ) {
+                                MaterialTheme.colorScheme.error
+                            } else {
+                                LocalContentColor.current
+                            },
                             contentDescription = null
                         )
                     }
                 }
-            },
+            }
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -279,7 +322,7 @@ fun PlaylistMenu(
                 icon = {
                     Icon(
                         painter = painterResource(R.drawable.play),
-                        contentDescription = stringResource(R.string.play_content_desc),
+                        contentDescription = stringResource(R.string.play_content_desc)
                     )
                 },
                 text = {
@@ -315,7 +358,13 @@ fun PlaylistMenu(
                         painter = painterResource(
                             if (isFavorite) R.drawable.favorite else R.drawable.favorite_border
                         ),
-                        contentDescription = if (isFavorite) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites),
+                        contentDescription = if (isFavorite) {
+                            stringResource(
+                                R.string.remove_from_favorites
+                            )
+                        } else {
+                            stringResource(R.string.add_to_favorites)
+                        },
                         tint = if (isFavorite) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -341,7 +390,7 @@ fun PlaylistMenu(
                     Icon(
                         modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
                         painter = painterResource(R.drawable.shuffle),
-                        contentDescription = stringResource(R.string.shuffle_content_desc),
+                        contentDescription = stringResource(R.string.shuffle_content_desc)
                     )
                 }
             }
@@ -367,7 +416,7 @@ fun PlaylistMenu(
                 Icon(
                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
                     painter = painterResource(R.drawable.share),
-                    contentDescription = stringResource(R.string.share_playlist_content_desc),
+                    contentDescription = stringResource(R.string.share_playlist_content_desc)
                 )
             }
         }
@@ -400,7 +449,10 @@ fun PlaylistMenu(
                                     .setData(song.song.title.toByteArray())
                                     .build()
                                 DownloadService.sendAddDownload(
-                                    context, ExoDownloadService::class.java, downloadRequest, false
+                                    context,
+                                    ExoDownloadService::class.java,
+                                    downloadRequest,
+                                    false
                                 )
                             }
                         }
@@ -421,14 +473,16 @@ fun PlaylistMenu(
                                 else -> R.drawable.download
                             }
                         ),
-                        contentDescription = stringResource(R.string.action_download),
+                        contentDescription = stringResource(R.string.action_download)
                     )
                 }
                 Spacer(Modifier.width(8.dp))
                 Text(
                     text = when (downloadState) {
                         Download.STATE_COMPLETED -> stringResource(R.string.remove_offline)
-                        Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> stringResource(R.string.downloading_ellipsis)
+                        Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> stringResource(
+                            R.string.downloading_ellipsis
+                        )
                         else -> stringResource(R.string.download_playlist_text)
                     },
                     maxLines = 1,
@@ -466,7 +520,7 @@ fun PlaylistMenu(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.radio),
-                        contentDescription = stringResource(R.string.radio_icon_content_desc),
+                        contentDescription = stringResource(R.string.radio_icon_content_desc)
                     )
                     Spacer(Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -505,7 +559,7 @@ fun PlaylistMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.playlist_play),
-                    contentDescription = stringResource(R.string.play_next_icon_content_desc),
+                    contentDescription = stringResource(R.string.play_next_icon_content_desc)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -539,7 +593,7 @@ fun PlaylistMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.queue_music),
-                    contentDescription = stringResource(R.string.add_to_queue_icon_content_desc),
+                    contentDescription = stringResource(R.string.add_to_queue_icon_content_desc)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -572,7 +626,7 @@ fun PlaylistMenu(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.edit),
-                        contentDescription = stringResource(R.string.edit_icon_content_desc),
+                        contentDescription = stringResource(R.string.edit_icon_content_desc)
                     )
                     Spacer(Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -623,13 +677,25 @@ fun PlaylistMenu(
                         )
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                if (isFavorite) stringResource(R.string.remove_from_favorites_menu) else stringResource(R.string.add_to_favorites_menu),
+                                if (isFavorite) {
+                                    stringResource(
+                                        R.string.remove_from_favorites_menu
+                                    )
+                                } else {
+                                    stringResource(R.string.add_to_favorites_menu)
+                                },
                                 style = MaterialTheme.typography.bodyLarge,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
                             Text(
-                                if (isFavorite) stringResource(R.string.remove_bookmark) else stringResource(R.string.bookmark_playlist),
+                                if (isFavorite) {
+                                    stringResource(
+                                        R.string.remove_bookmark
+                                    )
+                                } else {
+                                    stringResource(R.string.bookmark_playlist)
+                                },
                                 style = MaterialTheme.typography.bodySmall,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
@@ -657,7 +723,7 @@ fun PlaylistMenu(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.delete),
-                        contentDescription = stringResource(R.string.delete_icon_content_desc),
+                        contentDescription = stringResource(R.string.delete_icon_content_desc)
                     )
                     Spacer(Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -687,7 +753,7 @@ fun PlaylistMenu(
             onDismiss = { showEditDialog = false },
             initialTextFieldValue = TextFieldValue(
                 playlist.playlist.name,
-                TextRange(playlist.playlist.name.length),
+                TextRange(playlist.playlist.name.length)
             ),
             onDone = { name ->
                 onDismiss()
@@ -702,7 +768,7 @@ fun PlaylistMenu(
                 coroutineScope.launch(Dispatchers.IO) {
                     playlist.playlist.browseId?.let { YouTube.renamePlaylist(it, name) }
                 }
-            },
+            }
         )
     }
 
@@ -716,7 +782,7 @@ fun PlaylistMenu(
                         playlist.playlist.name
                     ),
                     style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(horizontal = 18.dp),
+                    modifier = Modifier.padding(horizontal = 18.dp)
                 )
             },
             buttons = {
@@ -734,14 +800,14 @@ fun PlaylistMenu(
                                 context,
                                 ExoDownloadService::class.java,
                                 song.id,
-                                false,
+                                false
                             )
                         }
                     }
                 ) {
                     Text(text = stringResource(android.R.string.ok))
                 }
-            },
+            }
         )
     }
 
@@ -801,33 +867,53 @@ fun AutoPlaylistMenu(
     val cornerRadius = remember { 24.dp }
     val playButtonShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentTR = 60
         )
     }
 
     // Android 16 grouped shapes
     val topShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
-            cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentBR = 0,
+            cornerRadiusBR = 0.dp,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentBL = 0,
+            cornerRadiusBL = 0.dp,
+            smoothnessAsPercentTR = 60
         )
     }
     val middleShape = remember { RectangleShape }
     val bottomShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-            smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
+            cornerRadiusTR = 0.dp,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 0,
+            cornerRadiusTL = 0.dp,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentTR = 0
         )
     }
     val singleShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentTR = 60
         )
     }
 
@@ -869,7 +955,7 @@ fun AutoPlaylistMenu(
                 icon = {
                     Icon(
                         painter = painterResource(R.drawable.play),
-                        contentDescription = stringResource(R.string.play_content_desc),
+                        contentDescription = stringResource(R.string.play_content_desc)
                     )
                 },
                 text = {
@@ -904,7 +990,7 @@ fun AutoPlaylistMenu(
                 Icon(
                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
                     painter = painterResource(R.drawable.shuffle),
-                    contentDescription = stringResource(R.string.shuffle_content_desc),
+                    contentDescription = stringResource(R.string.shuffle_content_desc)
                 )
             }
         }
@@ -942,7 +1028,7 @@ fun AutoPlaylistMenu(
                             else -> R.drawable.download
                         }
                     ),
-                    contentDescription = stringResource(R.string.action_download),
+                    contentDescription = stringResource(R.string.action_download)
                 )
             }
             Spacer(Modifier.width(8.dp))
@@ -979,7 +1065,7 @@ fun AutoPlaylistMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.radio),
-                    contentDescription = stringResource(R.string.radio_icon_content_desc),
+                    contentDescription = stringResource(R.string.radio_icon_content_desc)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -1013,7 +1099,7 @@ fun AutoPlaylistMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.playlist_play),
-                    contentDescription = stringResource(R.string.play_next_icon_content_desc),
+                    contentDescription = stringResource(R.string.play_next_icon_content_desc)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -1047,7 +1133,7 @@ fun AutoPlaylistMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.queue_music),
-                    contentDescription = stringResource(R.string.add_to_queue_icon_content_desc),
+                    contentDescription = stringResource(R.string.add_to_queue_icon_content_desc)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {

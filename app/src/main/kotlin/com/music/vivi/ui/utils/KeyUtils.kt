@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicLong
  */
 object KeyUtils {
     private val counter = AtomicLong(0)
-    
+
     /**
      * Generates a unique key by combining a base identifier with a unique counter
      * This prevents duplicate keys in LazyColumn/LazyRow implementations
@@ -20,7 +20,7 @@ object KeyUtils {
             "${baseId}_$uniqueId"
         }
     }
-    
+
     /**
      * Generates a unique key for items in a list with their index
      * Useful for preventing duplicate keys when items might have the same ID
@@ -33,7 +33,7 @@ object KeyUtils {
             "${baseId}_${index}_$uniqueId"
         }
     }
-    
+
     /**
      * Generates a timestamp-based unique key for dynamic content
      * Useful for content that changes frequently

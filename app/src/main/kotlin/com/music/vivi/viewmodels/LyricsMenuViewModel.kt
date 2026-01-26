@@ -1,56 +1,60 @@
 package com.music.vivi.viewmodels
 
+import android.content.Context
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.music.vivi.constants.SwipeGestureEnabledKey
 import com.music.vivi.db.MusicDatabase
 import com.music.vivi.db.entities.LyricsEntity
 import com.music.vivi.db.entities.Song
+import com.music.vivi.db.entities.SongEntity
 import com.music.vivi.lyrics.LyricsHelper
 import com.music.vivi.lyrics.LyricsResult
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.utils.NetworkConnectivityObserver
+import com.music.vivi.utils.dataStore
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import androidx.datastore.preferences.core.edit
-import com.music.vivi.constants.SwipeGestureEnabledKey
-import com.music.vivi.utils.dataStore
-import dagger.hilt.android.qualifiers.ApplicationContext
-import android.content.Context
-import com.music.vivi.db.entities.SongEntity
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+/**
+ * ViewModel for the Lyrics screen/bottom sheet.
+ * Handles searching for lyrics, Romanization toggles, and Swipe-to-Seek settings.
+ */
 @HiltViewModel
-class LyricsMenuViewModel
+public class LyricsMenuViewModel
 @Inject
 constructor(
     private val lyricsHelper: LyricsHelper,
-    val database: MusicDatabase,
+    public val database: MusicDatabase,
     private val networkConnectivity: NetworkConnectivityObserver,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
     private var job: Job? = null
-    val results = MutableStateFlow(emptyList<LyricsResult>())
-    val isLoading = MutableStateFlow(false)
+    public val results: MutableStateFlow<List<LyricsResult>> = MutableStateFlow(emptyList<LyricsResult>())
+    public val isLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     private val _isNetworkAvailable = MutableStateFlow(false)
-    val isNetworkAvailable: StateFlow<Boolean> = _isNetworkAvailable.asStateFlow()
+    public val isNetworkAvailable: StateFlow<Boolean> = _isNetworkAvailable.asStateFlow()
 
     private val _currentSong = mutableStateOf<Song?>(null)
-    val currentSong: State<Song?> = _currentSong
+    public val currentSong: State<Song?> = _currentSong
 
-    val swipeGestureEnabled: StateFlow<Boolean> = context.dataStore.data
+    public val swipeGestureEnabled: StateFlow<Boolean> = context.dataStore.data
         .map { it[SwipeGestureEnabledKey] ?: true }
         .stateIn(
             scope = viewModelScope,
@@ -58,7 +62,7 @@ constructor(
             initialValue = true
         )
 
-    fun toggleSwipeGesture() {
+    public fun toggleSwipeGesture() {
         viewModelScope.launch {
             context.dataStore.edit { settings ->
                 val current = settings[SwipeGestureEnabledKey] ?: true
@@ -67,7 +71,7 @@ constructor(
         }
     }
 
-    fun setSwipeGesture(enabled: Boolean) {
+    public fun setSwipeGesture(enabled: Boolean) {
         viewModelScope.launch {
             context.dataStore.edit { settings ->
                 settings[SwipeGestureEnabledKey] = enabled
@@ -89,16 +93,11 @@ constructor(
         }
     }
 
-    fun setCurrentSong(song: Song) {
+    public fun setCurrentSong(song: Song) {
         _currentSong.value = song
     }
 
-    fun search(
-        mediaId: String,
-        title: String,
-        artist: String,
-        duration: Int,
-    ) {
+    public fun search(mediaId: String, title: String, artist: String, duration: Int) {
         isLoading.value = true
         results.value = emptyList()
         job?.cancel()
@@ -113,12 +112,12 @@ constructor(
             }
     }
 
-    fun cancelSearch() {
+    public fun cancelSearch() {
         job?.cancel()
         job = null
     }
 
-    fun toggleRomanization(song: SongEntity) {
+    public fun toggleRomanization(song: SongEntity) {
         viewModelScope.launch {
             database.query {
                 upsert(song.copy(romanizeLyrics = !song.romanizeLyrics))
@@ -126,7 +125,7 @@ constructor(
         }
     }
 
-    fun setRomanization(song: SongEntity, enabled: Boolean) {
+    public fun setRomanization(song: SongEntity, enabled: Boolean) {
         viewModelScope.launch {
             database.query {
                 upsert(song.copy(romanizeLyrics = enabled))
@@ -134,7 +133,7 @@ constructor(
         }
     }
 
-    fun updateLyrics(mediaId: String, lyrics: String) {
+    public fun updateLyrics(mediaId: String, lyrics: String) {
         viewModelScope.launch {
             database.query {
                 upsert(LyricsEntity(id = mediaId, lyrics = lyrics))
@@ -142,10 +141,7 @@ constructor(
         }
     }
 
-    fun refetchLyrics(
-        mediaMetadata: MediaMetadata,
-        lyricsEntity: LyricsEntity?,
-    ) {
+    public fun refetchLyrics(mediaMetadata: MediaMetadata, lyricsEntity: LyricsEntity?) {
         viewModelScope.launch {
             val lyrics = withContext(Dispatchers.IO) {
                 lyricsHelper.getLyrics(mediaMetadata)

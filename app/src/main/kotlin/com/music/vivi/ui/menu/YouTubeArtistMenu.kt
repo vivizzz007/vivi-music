@@ -55,55 +55,81 @@ import com.music.vivi.db.entities.ArtistEntity
 import com.music.vivi.playback.queues.YouTubeQueue
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
+/**
+ * Menu for a YouTube Artist (online).
+ * Allows subscribing, starting radio/shuffle (if available), and sharing.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun YouTubeArtistMenu(
-    artist: ArtistItem,
-    onDismiss: () -> Unit,
-) {
+fun YouTubeArtistMenu(artist: ArtistItem, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val libraryArtist by database.artist(artist.id).collectAsState(initial = null)
 
     // Design variables
-    val cornerRadius =remember { 24.dp }
+    val cornerRadius = remember { 24.dp }
     val artistArtShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentTR = 60
         )
     }
     val playButtonShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentTR = 60
         )
     }
 
     // Android 16 grouped shapes
     val topShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
-            cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentBR = 0,
+            cornerRadiusBR = 0.dp,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentBL = 0,
+            cornerRadiusBL = 0.dp,
+            smoothnessAsPercentTR = 60
         )
     }
     val middleShape = remember { RectangleShape }
     val bottomShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-            smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
+            cornerRadiusTR = 0.dp,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 0,
+            cornerRadiusTL = 0.dp,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentTR = 0
         )
     }
     val singleShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentTR = 60
         )
     }
 
@@ -112,15 +138,18 @@ fun YouTubeArtistMenu(
 
     val subscribeButtonCornerRadius by animateDpAsState(
         targetValue = if (isSubscribed) cornerRadius else 60.dp,
-        animationSpec = tween(durationMillis = 300), label = "SubscribeCornerAnimation"
+        animationSpec = tween(durationMillis = 300),
+        label = "SubscribeCornerAnimation"
     )
     val subscribeButtonContainerColor by animateColorAsState(
         targetValue = if (isSubscribed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-        animationSpec = tween(durationMillis = 300), label = "SubscribeContainerColorAnimation"
+        animationSpec = tween(durationMillis = 300),
+        label = "SubscribeContainerColorAnimation"
     )
     val subscribeButtonContentColor by animateColorAsState(
         targetValue = if (isSubscribed) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-        animationSpec = tween(durationMillis = 300), label = "SubscribeContentColorAnimation"
+        animationSpec = tween(durationMillis = 300),
+        label = "SubscribeContentColorAnimation"
     )
 
     val subscribeButtonShape = remember(subscribeButtonCornerRadius) {
@@ -209,7 +238,7 @@ fun YouTubeArtistMenu(
                                     id = artist.id,
                                     name = artist.title,
                                     channelId = artist.channelId,
-                                    thumbnailUrl = artist.thumbnail,
+                                    thumbnailUrl = artist.thumbnail
                                 ).toggleLike()
                             )
                         }
@@ -221,7 +250,13 @@ fun YouTubeArtistMenu(
                     painter = painterResource(
                         if (isSubscribed) R.drawable.subscribed else R.drawable.subscribe
                     ),
-                    contentDescription = if (isSubscribed) stringResource(R.string.unsubscribe) else stringResource(R.string.subscribe),
+                    contentDescription = if (isSubscribed) {
+                        stringResource(
+                            R.string.unsubscribe
+                        )
+                    } else {
+                        stringResource(R.string.subscribe)
+                    },
                     tint = if (isSubscribed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -261,7 +296,7 @@ fun YouTubeArtistMenu(
                     icon = {
                         Icon(
                             painter = painterResource(iconRes),
-                            contentDescription = stringResource(textRes),
+                            contentDescription = stringResource(textRes)
                         )
                     },
                     text = {
@@ -293,7 +328,7 @@ fun YouTubeArtistMenu(
                     Icon(
                         modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
                         painter = painterResource(R.drawable.shuffle),
-                        contentDescription = stringResource(R.string.shuffle_content_desc),
+                        contentDescription = stringResource(R.string.shuffle_content_desc)
                     )
                 }
             } else {
@@ -315,7 +350,7 @@ fun YouTubeArtistMenu(
                                         id = artist.id,
                                         name = artist.title,
                                         channelId = artist.channelId,
-                                        thumbnailUrl = artist.thumbnail,
+                                        thumbnailUrl = artist.thumbnail
                                     ).toggleLike()
                                 )
                             }
@@ -332,7 +367,13 @@ fun YouTubeArtistMenu(
                         painter = painterResource(
                             if (isSubscribed) R.drawable.subscribed else R.drawable.subscribe
                         ),
-                        contentDescription = if (isSubscribed) stringResource(R.string.unsubscribe) else stringResource(R.string.subscribe),
+                        contentDescription = if (isSubscribed) {
+                            stringResource(
+                                R.string.unsubscribe
+                            )
+                        } else {
+                            stringResource(R.string.subscribe)
+                        },
                         tint = if (isSubscribed) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -357,7 +398,7 @@ fun YouTubeArtistMenu(
                 Icon(
                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
                     painter = painterResource(R.drawable.share),
-                    contentDescription = stringResource(R.string.share_artist_content_desc),
+                    contentDescription = stringResource(R.string.share_artist_content_desc)
                 )
             }
         }
@@ -382,7 +423,7 @@ fun YouTubeArtistMenu(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.radio),
-                        contentDescription = stringResource(R.string.radio_icon_content_desc),
+                        contentDescription = stringResource(R.string.radio_icon_content_desc)
                     )
                     Spacer(Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -420,7 +461,7 @@ fun YouTubeArtistMenu(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.shuffle),
-                        contentDescription = stringResource(R.string.shuffle_icon_content_desc),
+                        contentDescription = stringResource(R.string.shuffle_icon_content_desc)
                     )
                     Spacer(Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -464,7 +505,7 @@ fun YouTubeArtistMenu(
                                     id = artist.id,
                                     name = artist.title,
                                     channelId = artist.channelId,
-                                    thumbnailUrl = artist.thumbnail,
+                                    thumbnailUrl = artist.thumbnail
                                 ).toggleLike()
                             )
                         }
@@ -475,7 +516,7 @@ fun YouTubeArtistMenu(
                     painter = painterResource(
                         if (isSubscribed) R.drawable.subscribed else R.drawable.subscribe
                     ),
-                    contentDescription = stringResource(R.string.subscribe_icon_content_desc),
+                    contentDescription = stringResource(R.string.subscribe_icon_content_desc)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -486,7 +527,13 @@ fun YouTubeArtistMenu(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        if (isSubscribed) stringResource(R.string.following_this_artist) else stringResource(R.string.follow_this_artist),
+                        if (isSubscribed) {
+                            stringResource(
+                                R.string.following_this_artist
+                            )
+                        } else {
+                            stringResource(R.string.follow_this_artist)
+                        },
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -514,7 +561,7 @@ fun YouTubeArtistMenu(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.share),
-                    contentDescription = stringResource(R.string.share_icon_content_desc),
+                    contentDescription = stringResource(R.string.share_icon_content_desc)
                 )
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -534,5 +581,4 @@ fun YouTubeArtistMenu(
             }
         }
     }
-
 }

@@ -7,21 +7,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
-import androidx.compose.ui.draw.clip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -45,25 +39,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.music.vivi.LocalDatabase
-import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
+import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.DisableScreenshotKey
 import com.music.vivi.constants.PauseListenHistoryKey
 import com.music.vivi.constants.PauseSearchHistoryKey
+import com.music.vivi.constants.SettingsShapeColorTertiaryKey
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.component.PreferenceEntry
-import com.music.vivi.ui.component.PreferenceGroupTitle
-import com.music.vivi.ui.component.SwitchPreference
+import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.update.mordernswitch.ModernSwitch
+import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
 import com.music.vivi.update.settingstyle.ModernInfoItem
-import com.music.vivi.utils.rememberPreference
 import com.music.vivi.utils.rememberEnumPreference
-import com.music.vivi.constants.SettingsShapeColorTertiaryKey
-import com.music.vivi.constants.DarkModeKey
-import com.music.vivi.ui.screens.settings.DarkMode
+import com.music.vivi.utils.rememberPreference
 
+/**
+ * Screen for managing privacy settings.
+ * Includes options to pause/clear listening and search history, and disable screenshots.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrivacySettings(
@@ -126,12 +121,12 @@ fun PrivacySettings(
                 Text(
                     text = stringResource(R.string.clear_listen_history_confirm),
                     style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(horizontal = 18.dp),
+                    modifier = Modifier.padding(horizontal = 18.dp)
                 )
             },
             buttons = {
                 TextButton(
-                    onClick = { showClearListenHistoryDialog = false },
+                    onClick = { showClearListenHistoryDialog = false }
                 ) {
                     Text(text = stringResource(android.R.string.cancel))
                 }
@@ -142,11 +137,11 @@ fun PrivacySettings(
                         database.query {
                             clearListenHistory()
                         }
-                    },
+                    }
                 ) {
                     Text(text = stringResource(android.R.string.ok))
                 }
-            },
+            }
         )
     }
 
@@ -161,12 +156,12 @@ fun PrivacySettings(
                 Text(
                     text = stringResource(R.string.clear_search_history_confirm),
                     style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(horizontal = 18.dp),
+                    modifier = Modifier.padding(horizontal = 18.dp)
                 )
             },
             buttons = {
                 TextButton(
-                    onClick = { showClearSearchHistoryDialog = false },
+                    onClick = { showClearSearchHistoryDialog = false }
                 ) {
                     Text(text = stringResource(android.R.string.cancel))
                 }
@@ -177,11 +172,11 @@ fun PrivacySettings(
                         database.query {
                             clearSearchHistory()
                         }
-                    },
+                    }
                 ) {
                     Text(text = stringResource(android.R.string.ok))
                 }
-            },
+            }
         )
     }
 
@@ -281,7 +276,13 @@ fun PrivacySettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.history), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.history),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.pause_listen_history),
                                             subtitle = stringResource(R.string.stop_recording_listening_activity),
                                             iconBackgroundColor = iconBgColor,
@@ -298,7 +299,13 @@ fun PrivacySettings(
                             {
                                 // Clear Listen History
                                 ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.delete_history), null, modifier = Modifier.size(22.dp)) },
+                                    icon = {
+                                        Icon(
+                                            painterResource(R.drawable.delete_history),
+                                            null,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    },
                                     title = stringResource(R.string.clear_listen_history),
                                     subtitle = stringResource(R.string.delete_all_listening_history),
                                     onClick = { showClearListenHistoryDialog = true },
@@ -339,7 +346,13 @@ fun PrivacySettings(
                                 ) {
                                     Box(modifier = Modifier.weight(1f)) {
                                         ModernInfoItem(
-                                            icon = { Icon(painterResource(R.drawable.search_off), null, modifier = Modifier.size(22.dp)) },
+                                            icon = {
+                                                Icon(
+                                                    painterResource(R.drawable.search_off),
+                                                    null,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            },
                                             title = stringResource(R.string.pause_search_history),
                                             subtitle = stringResource(R.string.stop_recording_search_queries),
                                             iconBackgroundColor = iconBgColor,
@@ -356,7 +369,13 @@ fun PrivacySettings(
                             {
                                 // Clear Search History
                                 ModernInfoItem(
-                                    icon = { Icon(painterResource(R.drawable.clear_all), null, modifier = Modifier.size(22.dp)) },
+                                    icon = {
+                                        Icon(
+                                            painterResource(R.drawable.clear_all),
+                                            null,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    },
                                     title = stringResource(R.string.clear_search_history),
                                     subtitle = stringResource(R.string.delete_all_search_history),
                                     onClick = { showClearSearchHistoryDialog = true },
@@ -396,7 +415,13 @@ fun PrivacySettings(
                             ) {
                                 Box(modifier = Modifier.weight(1f)) {
                                     ModernInfoItem(
-                                        icon = { Icon(painterResource(R.drawable.screenshot), null, modifier = Modifier.size(22.dp)) },
+                                        icon = {
+                                            Icon(
+                                                painterResource(R.drawable.screenshot),
+                                                null,
+                                                modifier = Modifier.size(22.dp)
+                                            )
+                                        },
                                         title = stringResource(R.string.disable_screenshot),
                                         subtitle = stringResource(R.string.disable_screenshot_desc),
                                         iconBackgroundColor = iconBgColor,

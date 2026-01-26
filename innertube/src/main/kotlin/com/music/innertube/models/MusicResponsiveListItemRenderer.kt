@@ -28,15 +28,22 @@ data class MusicResponsiveListItemRenderer(
     val navigationEndpoint: NavigationEndpoint?,
 ) {
     val isSong: Boolean
-        get() = navigationEndpoint == null || navigationEndpoint.watchEndpoint != null || navigationEndpoint.watchPlaylistEndpoint != null
+        get() = navigationEndpoint == null ||
+            navigationEndpoint.watchEndpoint != null ||
+            navigationEndpoint.watchPlaylistEndpoint != null
     val isPlaylist: Boolean
-        get() = navigationEndpoint?.browseEndpoint?.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType == MUSIC_PAGE_TYPE_PLAYLIST
+        get() = navigationEndpoint?.browseEndpoint?.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType ==
+            MUSIC_PAGE_TYPE_PLAYLIST
     val isAlbum: Boolean
-        get() = navigationEndpoint?.browseEndpoint?.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType == MUSIC_PAGE_TYPE_ALBUM ||
-                navigationEndpoint?.browseEndpoint?.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType == MUSIC_PAGE_TYPE_AUDIOBOOK
+        get() = navigationEndpoint?.browseEndpoint?.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType ==
+            MUSIC_PAGE_TYPE_ALBUM ||
+            navigationEndpoint?.browseEndpoint?.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType ==
+            MUSIC_PAGE_TYPE_AUDIOBOOK
     val isArtist: Boolean
-        get() = navigationEndpoint?.browseEndpoint?.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType == MUSIC_PAGE_TYPE_ARTIST
-                || navigationEndpoint?.browseEndpoint?.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType == MUSIC_PAGE_TYPE_LIBRARY_ARTIST
+        get() = navigationEndpoint?.browseEndpoint?.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType ==
+            MUSIC_PAGE_TYPE_ARTIST ||
+            navigationEndpoint?.browseEndpoint?.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType ==
+            MUSIC_PAGE_TYPE_LIBRARY_ARTIST
 
     val musicVideoType: String?
         get() =
@@ -48,40 +55,26 @@ data class MusicResponsiveListItemRenderer(
                 ?.musicVideoType
                 ?: navigationEndpoint?.musicVideoType
 
-
     @Serializable
     data class FlexColumn(
         @JsonNames("musicResponsiveListItemFixedColumnRenderer")
         val musicResponsiveListItemFlexColumnRenderer: MusicResponsiveListItemFlexColumnRenderer,
     ) {
         @Serializable
-        data class MusicResponsiveListItemFlexColumnRenderer(
-            val text: Runs?,
-        )
+        data class MusicResponsiveListItemFlexColumnRenderer(val text: Runs?)
     }
 
     @Serializable
-    data class PlaylistItemData(
-        val playlistSetVideoId: String?,
-        val videoId: String,
-    )
+    data class PlaylistItemData(val playlistSetVideoId: String?, val videoId: String)
 
     @Serializable
-    data class Overlay(
-        val musicItemThumbnailOverlayRenderer: MusicItemThumbnailOverlayRenderer,
-    ) {
+    data class Overlay(val musicItemThumbnailOverlayRenderer: MusicItemThumbnailOverlayRenderer) {
         @Serializable
-        data class MusicItemThumbnailOverlayRenderer(
-            val content: Content,
-        ) {
+        data class MusicItemThumbnailOverlayRenderer(val content: Content) {
             @Serializable
-            data class Content(
-                val musicPlayButtonRenderer: MusicPlayButtonRenderer,
-            ) {
+            data class Content(val musicPlayButtonRenderer: MusicPlayButtonRenderer) {
                 @Serializable
-                data class MusicPlayButtonRenderer(
-                    val playNavigationEndpoint: NavigationEndpoint?,
-                )
+                data class MusicPlayButtonRenderer(val playNavigationEndpoint: NavigationEndpoint?)
             }
         }
     }

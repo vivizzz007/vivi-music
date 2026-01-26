@@ -1,13 +1,8 @@
 package com.music.vivi.ui.component
 
-import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
-
-import androidx.compose.foundation.background
-import androidx.compose.runtime.remember
-import androidx.compose.ui.draw.clip
-
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,43 +14,48 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
-import androidx.compose.material3.LocalContentColor
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
 // Enhanced Action Button - Material 3 Expressive Design (Box-based)
+/**
+ * An enhanced action button used in the new grid-style menus.
+ * Features a large icon, marquee text, and smooth background animation.
+ */
 @Composable
-fun NewActionButton(
+public fun NewActionButton(
     icon: @Composable () -> Unit,
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     backgroundColor: Color = MaterialTheme.colorScheme.secondaryContainer,
-    contentColor: Color = MaterialTheme.colorScheme.onSecondaryContainer
+    contentColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
 ) {
     val animatedBackground by animateColorAsState(
         targetValue = if (enabled) backgroundColor else backgroundColor.copy(alpha = 0.5f),
         animationSpec = tween(200),
         label = "background"
     )
-    
+
     val animatedContent by animateColorAsState(
         targetValue = if (enabled) contentColor else contentColor.copy(alpha = 0.5f),
         animationSpec = tween(200),
@@ -63,7 +63,7 @@ fun NewActionButton(
     )
 
     val shape = remember { AbsoluteSmoothCornerShape(28.dp, 60) }
-    
+
     Box(
         modifier = modifier
             .clip(shape)
@@ -84,9 +84,9 @@ fun NewActionButton(
                     icon()
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(6.dp))
-            
+
             Text(
                 text = text,
                 style = MaterialTheme.typography.labelMedium,
@@ -100,24 +100,41 @@ fun NewActionButton(
     }
 }
 
-enum class MenuGroupPosition {
-    Top, Middle, Bottom, Single
+public enum class MenuGroupPosition {
+    Top,
+    Middle,
+    Bottom,
+    Single,
 }
 
 @Composable
-fun getGroupShape(position: MenuGroupPosition, cornerRadius: androidx.compose.ui.unit.Dp = 28.dp): AbsoluteSmoothCornerShape {
-    return remember(position, cornerRadius) {
-        when (position) {
-            MenuGroupPosition.Top -> AbsoluteSmoothCornerShape(cornerRadiusTL = cornerRadius, cornerRadiusTR = cornerRadius, smoothnessAsPercentTL = 60, smoothnessAsPercentTR = 60)
-            MenuGroupPosition.Middle -> AbsoluteSmoothCornerShape(0.dp, 0)
-            MenuGroupPosition.Bottom -> AbsoluteSmoothCornerShape(cornerRadiusBL = cornerRadius, cornerRadiusBR = cornerRadius, smoothnessAsPercentBL = 60, smoothnessAsPercentBR = 60)
-            MenuGroupPosition.Single -> AbsoluteSmoothCornerShape(cornerRadius, 60)
-        }
+public fun getGroupShape(
+    position: MenuGroupPosition,
+    cornerRadius: androidx.compose.ui.unit.Dp = 28.dp,
+): AbsoluteSmoothCornerShape = remember(position, cornerRadius) {
+    when (position) {
+        MenuGroupPosition.Top -> AbsoluteSmoothCornerShape(
+            cornerRadiusTL = cornerRadius,
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentTL = 60,
+            smoothnessAsPercentTR = 60
+        )
+        MenuGroupPosition.Middle -> AbsoluteSmoothCornerShape(0.dp, 0)
+        MenuGroupPosition.Bottom -> AbsoluteSmoothCornerShape(
+            cornerRadiusBL = cornerRadius,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentBL = 60,
+            smoothnessAsPercentBR = 60
+        )
+        MenuGroupPosition.Single -> AbsoluteSmoothCornerShape(cornerRadius, 60)
     }
 }
 
+/**
+ * An enhanced list item for menus, supporting grouping (top, middle, bottom, single) with rounded corners.
+ */
 @Composable
-fun NewMenuItem(
+public fun NewMenuItem(
     headlineContent: @Composable () -> Unit,
     leadingContent: @Composable (() -> Unit)? = null,
     trailingContent: @Composable (() -> Unit)? = null,
@@ -125,7 +142,7 @@ fun NewMenuItem(
     onClick: (() -> Unit)? = null,
     enabled: Boolean = true,
     position: MenuGroupPosition = MenuGroupPosition.Single,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     androidx.compose.material3.ListItem(
         headlineContent = headlineContent,
@@ -148,11 +165,11 @@ fun NewMenuItem(
 }
 
 // Enhanced Menu Section Header - Material 3 Expressive Design
+/**
+ * header for sections within the new menu design.
+ */
 @Composable
-fun NewMenuSectionHeader(
-    text: String,
-    modifier: Modifier = Modifier
-) {
+public fun NewMenuSectionHeader(text: String, modifier: Modifier = Modifier) {
     Text(
         text = text,
         style = MaterialTheme.typography.titleMedium.copy(
@@ -165,14 +182,13 @@ fun NewMenuSectionHeader(
 }
 
 // Enhanced Action Grid - Material 3 Expressive Design
+/**
+ * A grid of action buttons for the top of menus.
+ */
 @Composable
-fun NewActionGrid(
-    actions: List<NewAction>,
-    modifier: Modifier = Modifier,
-    columns: Int = 3
-) {
+public fun NewActionGrid(actions: List<NewAction>, modifier: Modifier = Modifier, columns: Int = 3) {
     val rows = actions.chunked(columns)
-    
+
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -188,11 +204,23 @@ fun NewActionGrid(
                         onClick = action.onClick,
                         modifier = Modifier.weight(1f),
                         enabled = action.enabled,
-                        backgroundColor = if (action.backgroundColor != Color.Unspecified) action.backgroundColor else MaterialTheme.colorScheme.surfaceVariant,
-                        contentColor = if (action.contentColor != Color.Unspecified) action.contentColor else MaterialTheme.colorScheme.onSurfaceVariant
+                        backgroundColor = if (action.backgroundColor !=
+                            Color.Unspecified
+                        ) {
+                            action.backgroundColor
+                        } else {
+                            MaterialTheme.colorScheme.surfaceVariant
+                        },
+                        contentColor = if (action.contentColor !=
+                            Color.Unspecified
+                        ) {
+                            action.contentColor
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        }
                     )
                 }
-                
+
                 // Fill remaining space if row is not full
                 repeat(columns - row.size) {
                     Spacer(modifier = Modifier.weight(1f))
@@ -203,22 +231,25 @@ fun NewActionGrid(
 }
 
 // Enhanced Action Data Class
-data class NewAction(
+public data class NewAction(
     val icon: @Composable () -> Unit,
     val text: String,
     val onClick: () -> Unit,
     val enabled: Boolean = true,
     val backgroundColor: Color = Color.Unspecified,
-    val contentColor: Color = Color.Unspecified
+    val contentColor: Color = Color.Unspecified,
 )
 
 // Enhanced Menu Content - Material 3 Expressive Design
+/**
+ * A container for menu content that organizes headers, action grids, and list items.
+ */
 @Composable
-fun NewMenuContent(
+public fun NewMenuContent(
     headerContent: @Composable (() -> Unit)? = null,
     actionGrid: @Composable (() -> Unit)? = null,
     menuItems: @Composable (() -> Unit)? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier,
@@ -226,10 +257,10 @@ fun NewMenuContent(
     ) {
         // Header
         headerContent?.invoke()
-        
+
         // Action Grid
         actionGrid?.invoke()
-        
+
         // Divider if both header and actions exist
         if (headerContent != null && actionGrid != null) {
             HorizontalDivider(
@@ -237,28 +268,31 @@ fun NewMenuContent(
                 color = MaterialTheme.colorScheme.outlineVariant
             )
         }
-        
+
         // Menu Items
         menuItems?.invoke()
     }
 }
 
 // Enhanced Icon Button - Material 3 Expressive Design
+/**
+ * A square icon button with a background card, used in menus.
+ */
 @Composable
-fun NewIconButton(
+public fun NewIconButton(
     icon: @Composable () -> Unit,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     backgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant,
-    contentColor: Color = MaterialTheme.colorScheme.onSurfaceVariant
+    contentColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
 ) {
     val animatedBackground by animateColorAsState(
         targetValue = if (enabled) backgroundColor else backgroundColor.copy(alpha = 0.5f),
         animationSpec = tween(200),
         label = "background"
     )
-    
+
     val animatedContent by animateColorAsState(
         targetValue = if (enabled) contentColor else contentColor.copy(alpha = 0.5f),
         animationSpec = tween(200),
@@ -291,11 +325,11 @@ fun NewIconButton(
 }
 
 // Enhanced Menu Container - Material 3 Expressive Design
+/**
+ * A standard container for the new menu design, ensuring consistent padding and layout.
+ */
 @Composable
-fun NewMenuContainer(
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
-) {
+public fun NewMenuContainer(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     Column(
         modifier = modifier
             .fillMaxWidth()

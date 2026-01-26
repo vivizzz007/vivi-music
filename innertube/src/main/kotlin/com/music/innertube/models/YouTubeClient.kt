@@ -39,7 +39,7 @@ data class YouTubeClient(
         ),
         user = Context.User(
             onBehalfOfUser = if (loginSupported) dataSyncId else null
-        ),
+        )
     )
 
     companion object {
@@ -56,7 +56,7 @@ data class YouTubeClient(
             clientName = "WEB",
             clientVersion = "2.20250312.04.00",
             clientId = "1",
-            userAgent = USER_AGENT_WEB,
+            userAgent = USER_AGENT_WEB
         )
 
         val WEB_REMIX = YouTubeClient(
@@ -65,7 +65,7 @@ data class YouTubeClient(
             clientId = "67",
             userAgent = USER_AGENT_WEB,
             loginSupported = true,
-            useSignatureTimestamp = true,
+            useSignatureTimestamp = true
         )
 
         val WEB_CREATOR = YouTubeClient(
@@ -75,7 +75,7 @@ data class YouTubeClient(
             userAgent = USER_AGENT_WEB,
             loginSupported = true,
             loginRequired = true,
-            useSignatureTimestamp = true,
+            useSignatureTimestamp = true
         )
 
         val TVHTML5 = YouTubeClient(
@@ -96,7 +96,7 @@ data class YouTubeClient(
             loginSupported = true,
             loginRequired = true,
             useSignatureTimestamp = true,
-            isEmbedded = true,
+            isEmbedded = true
         )
 
         val IOS = YouTubeClient(
@@ -104,7 +104,7 @@ data class YouTubeClient(
             clientVersion = "20.10.4",
             clientId = "5",
             userAgent = "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)",
-            osVersion = "18.3.2.22D82",
+            osVersion = "18.3.2.22D82"
         )
 
         val MOBILE = YouTubeClient(

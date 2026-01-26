@@ -10,9 +10,7 @@ data class MusicCarouselShelfRenderer(
     val numItemsPerColumn: Int?,
 ) {
     @Serializable
-    data class Header(
-        val musicCarouselShelfBasicHeaderRenderer: MusicCarouselShelfBasicHeaderRenderer,
-    ) {
+    data class Header(val musicCarouselShelfBasicHeaderRenderer: MusicCarouselShelfBasicHeaderRenderer) {
         @Serializable
         data class MusicCarouselShelfBasicHeaderRenderer(
             val strapline: Runs?,

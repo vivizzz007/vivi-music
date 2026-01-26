@@ -12,16 +12,23 @@ import androidx.room.ForeignKey
             entity = SongEntity::class,
             parentColumns = ["id"],
             childColumns = ["songId"],
-            onDelete = ForeignKey.CASCADE,
+            onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
             entity = AlbumEntity::class,
             parentColumns = ["id"],
             childColumns = ["albumId"],
-            onDelete = ForeignKey.CASCADE,
-        ),
-    ],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
 )
+/**
+ * Map connecting Songs to Albums.
+ *
+ * @property songId ID of the song.
+ * @property albumId ID of the album.
+ * @property index Track number/index of the song in the album.
+ */
 data class SongAlbumMap(
     @ColumnInfo(index = true) val songId: String,
     @ColumnInfo(index = true) val albumId: String,

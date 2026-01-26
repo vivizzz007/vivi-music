@@ -375,4 +375,12 @@
     <string name="lyrics_line_spacing">Междустрочный интервал</string>
     <string name="lyrics_style">Стиль текста</string>
     <string name="login_required_premium">Для очень высокого качества требуется YouTube Premium</string>
+    <!-- Power Saver -->
+    <string name="power_saver">Энергосбережение</string>
+    <string name="power_saver_description">Включите режим энергосбережения, чтобы продлить срок службы батареи за счет снижения производительности и отключения фоновых функций.</string>
+    <string name="enable_power_saver">Включить энергосбережение</string>
+    <string name="power_saver_subtitle">Уменьшает визуальные эффекты и фоновую активность</string>
+    <string name="estimated_power_saved">Оценка экономии энергии</string>
+    <string name="disable_animations">Отключить анимацию</string>
+    <string name="disable_animations_desc">Снижает потребление батареи за счет отключения визуальных эффектов</string>
 </resources>

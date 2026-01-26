@@ -1,6 +1,5 @@
 package com.music.vivi.update.updatenotification
 
-
 import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
@@ -19,27 +18,23 @@ import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
 import androidx.work.WorkerParameters
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.withContext
-import java.net.HttpURLConnection
-import java.net.URL
-import java.util.concurrent.TimeUnit
-import kotlinx.coroutines.withTimeout
-import com.music.vivi.R
 import com.music.vivi.BuildConfig
+import com.music.vivi.R
 import com.music.vivi.constants.CheckForUpdatesKey
+import com.music.vivi.constants.KEY_SHOW_UPDATE_NOTIFICATION
 import com.music.vivi.update.experiment.getUpdateCheckInterval
 import com.music.vivi.update.isNewerVersion
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.get
-import com.music.vivi.constants.KEY_SHOW_UPDATE_NOTIFICATION
-
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.net.HttpURLConnection
+import java.net.URL
+import java.util.concurrent.TimeUnit
 
 object UpdateNotificationManager {
     private const val CHANNEL_ID = "app_update_channel"
@@ -50,39 +45,45 @@ object UpdateNotificationManager {
     fun initialize(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val importance = NotificationManager.IMPORTANCE_HIGH
-            val channel = NotificationChannel(CHANNEL_ID, context.getString(R.string.app_updates_channel), importance).apply {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                context.getString(R.string.app_updates_channel),
+                importance
+            ).apply {
                 description = context.getString(R.string.app_updates_description)
                 lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             }
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
         }
-        
+
         // Schedule periodic check on initialization
         schedulePeriodicUpdateCheck(context)
     }
 
     fun schedulePeriodicUpdateCheck(context: Context) {
         val workManager = WorkManager.getInstance(context)
-        
+
         // Check if update checks are enabled
         val sharedPrefs = context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
         val checkForUpdatesEnabled = context.dataStore.get(CheckForUpdatesKey, true)
-        
+
         if (!checkForUpdatesEnabled) {
             workManager.cancelUniqueWork("periodic_update_check")
             return
         }
 
         val intervalHours = getUpdateCheckInterval(context).toLong()
-        
+
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
         val updateRequest = PeriodicWorkRequestBuilder<UpdateCheckWorker>(
-            intervalHours, TimeUnit.HOURS,
-            15, TimeUnit.MINUTES // Flexible interval
+            intervalHours,
+            TimeUnit.HOURS,
+            15,
+            TimeUnit.MINUTES // Flexible interval
         )
             .setConstraints(constraints)
             .setBackoffCriteria(
@@ -227,16 +228,15 @@ object UpdateNotificationManager {
         }
     }
 
-    public fun showUpdateNotification(
-        context: Context,
-        version: String,
-        releaseName: String,
-        downloadUrl: String
-    ) {
+    public fun showUpdateNotification(context: Context, version: String, releaseName: String, downloadUrl: String) {
         // Ensure channel exists (in case it wasn't initialized or app was restored)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val importance = NotificationManager.IMPORTANCE_HIGH
-            val channel = NotificationChannel(CHANNEL_ID, context.getString(R.string.app_updates_channel), importance).apply {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                context.getString(R.string.app_updates_channel),
+                importance
+            ).apply {
                 description = context.getString(R.string.app_updates_description)
                 lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             }
@@ -304,19 +304,17 @@ object UpdateNotificationManager {
         val name: String,
         val htmlUrl: String,
         val downloadUrl: String,
-        val body: String
+        val body: String,
     )
 }
 
-class UpdateCheckWorker(
-    private val context: Context,
-    workerParams: WorkerParameters
-) : CoroutineWorker(context, workerParams) {
+class UpdateCheckWorker(private val context: Context, workerParams: WorkerParameters) :
+    CoroutineWorker(context, workerParams) {
 
     override suspend fun doWork(): Result {
         val currentVersionName = BuildConfig.VERSION_NAME
         val currentVersionCode = BuildConfig.VERSION_CODE
-        
+
         try {
             UpdateNotificationManager.checkForUpdates(context, currentVersionName, currentVersionCode)
             return Result.success()

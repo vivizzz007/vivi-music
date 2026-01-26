@@ -13,11 +13,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 
+/**
+ * Animated breathing dots indicator for instrumental tracks.
+ * Mimics Apple Music's instrumental visualizer.
+ */
 @Composable
-fun InstrumentalDots(
+public fun InstrumentalDots(
     modifier: Modifier = Modifier,
     dotColor: Color = Color.White,
-    horizontalArrangement: Arrangement.Horizontal = Arrangement.Center
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.Center,
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "instrumental_dots")
 
@@ -31,10 +35,10 @@ fun InstrumentalDots(
         // They wave in sequence (scale and alpha)
         val dotSize = 10.dp
         val spacing = 8.dp
-        
+
         repeat(3) { index ->
             val delay = index * 200 // Staggered wave
-            
+
             val animationProgress by infiniteTransition.animateFloat(
                 initialValue = 0f,
                 targetValue = 1f,
@@ -60,7 +64,7 @@ fun InstrumentalDots(
                     }
                     .background(dotColor, CircleShape)
             )
-            
+
             if (index < 2) {
                 Spacer(modifier = Modifier.width(spacing))
             }

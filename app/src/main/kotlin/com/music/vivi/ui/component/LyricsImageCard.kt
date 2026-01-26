@@ -26,11 +26,15 @@ import androidx.compose.ui.unit.*
 import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.music.vivi.models.MediaMetadata
 import com.music.vivi.R
+import com.music.vivi.models.MediaMetadata
 
+/**
+ * Calculates the optimal font size to fit text within a given width and height.
+ * Uses a binary search approach to find the best fit.
+ */
 @Composable
-fun rememberAdjustedFontSize(
+public fun rememberAdjustedFontSize(
     text: String,
     maxWidth: Dp,
     maxHeight: Dp,
@@ -38,7 +42,7 @@ fun rememberAdjustedFontSize(
     initialFontSize: TextUnit = 20.sp,
     minFontSize: TextUnit = 14.sp,
     style: TextStyle = TextStyle.Default,
-    textMeasurer: androidx.compose.ui.text.TextMeasurer? = null
+    textMeasurer: androidx.compose.ui.text.TextMeasurer? = null,
 ): TextUnit {
     val measurer = textMeasurer ?: rememberTextMeasurer()
 
@@ -111,15 +115,18 @@ fun rememberAdjustedFontSize(
     return calculatedFontSize
 }
 
+/**
+ * A card displaying lyrics with the song's cover art, typically for sharing.
+ */
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
-fun LyricsImageCard(
+public fun LyricsImageCard(
     lyricText: String,
     mediaMetadata: MediaMetadata,
     darkBackground: Boolean = true,
     backgroundColor: Color? = null,
     textColor: Color? = null,
-    secondaryTextColor: Color? = null
+    secondaryTextColor: Color? = null,
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
@@ -134,7 +141,8 @@ fun LyricsImageCard(
 
     val backgroundGradient = backgroundColor ?: if (darkBackground) Color(0xFF121212) else Color(0xFFF5F5F5)
     val mainTextColor = textColor ?: if (darkBackground) Color.White else Color.Black
-    val secondaryColor = secondaryTextColor ?: if (darkBackground) Color.White.copy(alpha = 0.7f) else Color.Black.copy(alpha = 0.7f)
+    val secondaryColor =
+        secondaryTextColor ?: if (darkBackground) Color.White.copy(alpha = 0.7f) else Color.Black.copy(alpha = 0.7f)
 
     val painter = rememberAsyncImagePainter(
         ImageRequest.Builder(context)
@@ -217,7 +225,7 @@ fun LyricsImageCard(
                         color = mainTextColor,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
-                        letterSpacing = 0.005.em,
+                        letterSpacing = 0.005.em
                     )
 
                     val textMeasurer = rememberTextMeasurer()
@@ -270,7 +278,6 @@ fun LyricsImageCard(
                                 .size(16.dp),
                             colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(backgroundGradient)
                         )
-
                     }
 
                     Spacer(modifier = Modifier.width(8.dp))

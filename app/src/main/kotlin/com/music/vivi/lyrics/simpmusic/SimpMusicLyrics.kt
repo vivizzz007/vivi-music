@@ -5,9 +5,9 @@ import com.music.vivi.lyrics.simpmusic.models.SimpMusicApiResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
-import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
@@ -27,7 +27,7 @@ object SimpMusicLyrics {
                         isLenient = true
                         ignoreUnknownKeys = true
                         explicitNulls = false
-                    },
+                    }
                 )
             }
 
@@ -50,7 +50,7 @@ object SimpMusicLyrics {
 
     suspend fun getLyricsByVideoId(videoId: String): List<LyricsData> = runCatching {
         val response = client.get(BASE_URL + videoId)
-        
+
         if (response.status == HttpStatusCode.OK) {
             val apiResponse = response.body<SimpMusicApiResponse>()
             if (apiResponse.success) {
@@ -63,12 +63,9 @@ object SimpMusicLyrics {
         }
     }.getOrDefault(emptyList())
 
-    suspend fun getLyrics(
-        videoId: String,
-        duration: Int = 0,
-    ): Result<String> = runCatching {
+    suspend fun getLyrics(videoId: String, duration: Int = 0): Result<String> = runCatching {
         val tracks = getLyricsByVideoId(videoId)
-        
+
         if (tracks.isEmpty()) {
             throw IllegalStateException("Lyrics unavailable")
         }
@@ -83,15 +80,11 @@ object SimpMusicLyrics {
 
         val lyrics = bestMatch?.syncedLyrics ?: bestMatch?.plainLyrics
             ?: throw IllegalStateException("Lyrics unavailable")
-        
+
         lyrics
     }
 
-    suspend fun getAllLyrics(
-        videoId: String,
-        duration: Int = 0,
-        callback: (String) -> Unit,
-    ) {
+    suspend fun getAllLyrics(videoId: String, duration: Int = 0, callback: (String) -> Unit) {
         val tracks = getLyricsByVideoId(videoId)
         var count = 0
         var plain = 0

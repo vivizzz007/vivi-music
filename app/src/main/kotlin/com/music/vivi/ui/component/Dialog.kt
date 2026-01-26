@@ -54,8 +54,11 @@ import com.music.vivi.R
 import com.music.vivi.ui.screens.settings.AccountSettings
 import kotlinx.coroutines.delay
 
+/**
+ * A standard dialog wrapper with consistent styling (icon, title, content, buttons).
+ */
 @Composable
-fun DefaultDialog(
+public fun DefaultDialog(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
     icon: (@Composable () -> Unit)? = null,
@@ -127,12 +130,12 @@ fun DefaultDialog(
     }
 }
 
+/**
+ * Dialog displaying account settings/profile.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AccountSettingsDialog(
-    navController: NavController,
-    onDismiss: () -> Unit
-) {
+public fun AccountSettingsDialog(navController: NavController, onDismiss: () -> Unit) {
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(
@@ -169,26 +172,29 @@ fun AccountSettingsDialog(
     }
 }
 
+/**
+ * A dialog for prompting the user for an action (Confirm/Cancel/Reset).
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ActionPromptDialog(
+public fun ActionPromptDialog(
     title: String? = null,
     titleBar: @Composable (RowScope.() -> Unit)? = null,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
     onReset: (() -> Unit)? = null,
     onCancel: (() -> Unit)? = null,
-    content: @Composable ColumnScope.() -> Unit = {}
+    content: @Composable ColumnScope.() -> Unit = {},
 ) {
     Dialog(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false),
+        properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
         Surface(
             modifier = Modifier.padding(24.dp),
             shape = AlertDialogDefaults.shape,
             color = AlertDialogDefaults.containerColor,
-            tonalElevation = AlertDialogDefaults.TonalElevation,
+            tonalElevation = AlertDialogDefaults.TonalElevation
         ) {
             Column(
                 modifier = Modifier.padding(24.dp)
@@ -204,7 +210,7 @@ fun ActionPromptDialog(
                             text = title,
                             overflow = TextOverflow.Ellipsis,
                             maxLines = 1,
-                            style = MaterialTheme.typography.headlineSmall,
+                            style = MaterialTheme.typography.headlineSmall
                         )
                         Spacer(Modifier.height(16.dp))
                     }
@@ -219,7 +225,7 @@ fun ActionPromptDialog(
                     if (onReset != null) {
                         Row(modifier = Modifier.weight(1f)) {
                             TextButton(
-                                onClick = { onReset() },
+                                onClick = { onReset() }
                             ) {
                                 Text(stringResource(R.string.reset))
                             }
@@ -245,25 +251,24 @@ fun ActionPromptDialog(
     }
 }
 
+/**
+ * A dialog displaying a list of items.
+ */
 @Composable
-fun ListDialog(
-    onDismiss: () -> Unit,
-    modifier: Modifier = Modifier,
-    content: LazyListScope.() -> Unit,
-) {
+public fun ListDialog(onDismiss: () -> Unit, modifier: Modifier = Modifier, content: LazyListScope.() -> Unit) {
     Dialog(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false),
+        properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
         Surface(
             modifier = Modifier.padding(24.dp),
             shape = AlertDialogDefaults.shape,
             color = AlertDialogDefaults.containerColor,
-            tonalElevation = AlertDialogDefaults.TonalElevation,
+            tonalElevation = AlertDialogDefaults.TonalElevation
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = modifier.padding(vertical = 24.dp),
+                modifier = modifier.padding(vertical = 24.dp)
             ) {
                 LazyColumn(content = content)
             }
@@ -271,10 +276,11 @@ fun ListDialog(
     }
 }
 
+/**
+ * A small label with an info icon, used within dialogs to provide hints.
+ */
 @Composable
-fun InfoLabel(
-    text: String
-) = Row(
+public fun InfoLabel(text: String): Unit = Row(
     verticalAlignment = Alignment.CenterVertically,
     modifier = Modifier.padding(horizontal = 8.dp)
 ) {
@@ -291,8 +297,11 @@ fun InfoLabel(
     )
 }
 
+/**
+ * A dialog with one or more text input fields.
+ */
 @Composable
-fun TextFieldDialog(
+public fun TextFieldDialog(
     modifier: Modifier = Modifier,
     icon: (@Composable () -> Unit)? = null,
     title: (@Composable () -> Unit)? = null,

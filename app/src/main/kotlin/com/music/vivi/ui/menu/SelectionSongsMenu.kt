@@ -1,43 +1,28 @@
 package com.music.vivi.ui.menu
 
 import android.annotation.SuppressLint
-import android.content.res.Configuration
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumExtendedFloatingActionButton
 import androidx.compose.material3.Text
@@ -56,14 +41,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
@@ -85,8 +68,6 @@ import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.playback.ExoDownloadService
 import com.music.vivi.playback.queues.ListQueue
 import com.music.vivi.ui.component.DefaultDialog
-import com.music.vivi.ui.component.NewAction
-import com.music.vivi.ui.component.NewActionGrid
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -94,6 +75,10 @@ import kotlinx.coroutines.withContext
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 import java.time.LocalDateTime
 
+/**
+ * Menu for a selection of songs (local/library).
+ * Provides bulk actions like Play, Shuffle, Add to Playlist, Download, Queue, Library management, Like, and Delete.
+ */
 @SuppressLint("MutableCollectionMutableState")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -114,15 +99,16 @@ fun SelectionSongMenu(
         mutableStateOf(
             songSelection.all {
                 it.song.inLibrary != null
-            },
+            }
         )
     }
 
     val allLiked by remember(songSelection) {
         mutableStateOf(
-            songSelection.isNotEmpty() && songSelection.all {
-                it.song.liked
-            },
+            songSelection.isNotEmpty() &&
+                songSelection.all {
+                    it.song.liked
+                }
         )
     }
 
@@ -138,8 +124,8 @@ fun SelectionSongMenu(
                     Download.STATE_COMPLETED
                 } else if (songSelection.all {
                         downloads[it.id]?.state == Download.STATE_QUEUED ||
-                                downloads[it.id]?.state == Download.STATE_DOWNLOADING ||
-                                downloads[it.id]?.state == Download.STATE_COMPLETED
+                            downloads[it.id]?.state == Download.STATE_DOWNLOADING ||
+                            downloads[it.id]?.state == Download.STATE_COMPLETED
                     }
                 ) {
                     Download.STATE_DOWNLOADING
@@ -168,7 +154,7 @@ fun SelectionSongMenu(
         },
         onDismiss = {
             showChoosePlaylistDialog = false
-        },
+        }
     )
 
     var showRemoveDownloadDialog by remember {
@@ -182,14 +168,14 @@ fun SelectionSongMenu(
                 Text(
                     text = stringResource(R.string.remove_download_playlist_confirm, "selection"),
                     style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(horizontal = 18.dp),
+                    modifier = Modifier.padding(horizontal = 18.dp)
                 )
             },
             buttons = {
                 TextButton(
                     onClick = {
                         showRemoveDownloadDialog = false
-                    },
+                    }
                 ) {
                     Text(text = stringResource(android.R.string.cancel))
                 }
@@ -202,14 +188,14 @@ fun SelectionSongMenu(
                                 context,
                                 ExoDownloadService::class.java,
                                 song.song.id,
-                                false,
+                                false
                             )
                         }
-                    },
+                    }
                 ) {
                     Text(text = stringResource(android.R.string.ok))
                 }
-            },
+            }
         )
     }
 
@@ -217,40 +203,65 @@ fun SelectionSongMenu(
     val cornerRadius = remember { 24.dp }
     val albumArtShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentTR = 60
         )
     }
     val playButtonShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentTR = 60
         )
     }
 
     // Android 16 grouped shapes
     val topShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
-            cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentBR = 0,
+            cornerRadiusBR = 0.dp,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentBL = 0,
+            cornerRadiusBL = 0.dp,
+            smoothnessAsPercentTR = 60
         )
     }
     val middleShape = remember { RectangleShape }
     val bottomShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-            smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
+            cornerRadiusTR = 0.dp,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 0,
+            cornerRadiusTL = 0.dp,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentTR = 0
         )
     }
     val singleShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentTR = 60
         )
     }
 
@@ -329,7 +340,7 @@ fun SelectionSongMenu(
                     playerConnection.playQueue(
                         ListQueue(
                             title = context.getString(R.string.selection),
-                            items = songSelection.map { it.toMediaItem() },
+                            items = songSelection.map { it.toMediaItem() }
                         )
                     )
                     clearAction()
@@ -363,7 +374,7 @@ fun SelectionSongMenu(
                     playerConnection.playQueue(
                         ListQueue(
                             title = context.getString(R.string.selection),
-                            items = songSelection.shuffled().map { it.toMediaItem() },
+                            items = songSelection.shuffled().map { it.toMediaItem() }
                         )
                     )
                     clearAction()
@@ -418,7 +429,10 @@ fun SelectionSongMenu(
                                 .setData(song.song.title.toByteArray())
                                 .build()
                             DownloadService.sendAddDownload(
-                                context, ExoDownloadService::class.java, downloadRequest, false
+                                context,
+                                ExoDownloadService::class.java,
+                                downloadRequest,
+                                false
                             )
                         }
                     }
@@ -531,10 +545,15 @@ fun SelectionSongMenu(
 
         // Library Action
         libraryItems.add {
-            val shape = if (libraryItems.size == 0 && songPosition?.isNotEmpty() != true) singleShape 
-                       else if (libraryItems.size == 0) topShape 
-                       else if (songPosition?.isNotEmpty() != true) bottomShape
-                       else middleShape
+            val shape = if (libraryItems.size == 0 && songPosition?.isNotEmpty() != true) {
+                singleShape
+            } else if (libraryItems.size == 0) {
+                topShape
+            } else if (songPosition?.isNotEmpty() != true) {
+                bottomShape
+            } else {
+                middleShape
+            }
 
             FilledTonalButton(
                 modifier = Modifier
@@ -580,17 +599,25 @@ fun SelectionSongMenu(
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        if (allInLibrary) stringResource(R.string.remove_from_library) else stringResource(
-                            R.string.add_to_library
-                        ),
+                        if (allInLibrary) {
+                            stringResource(R.string.remove_from_library)
+                        } else {
+                            stringResource(
+                                R.string.add_to_library
+                            )
+                        },
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        if (allInLibrary) stringResource(R.string.remove_from_your_music) else stringResource(
-                            R.string.save_to_your_music
-                        ),
+                        if (allInLibrary) {
+                            stringResource(R.string.remove_from_your_music)
+                        } else {
+                            stringResource(
+                                R.string.save_to_your_music
+                            )
+                        },
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -647,17 +674,25 @@ fun SelectionSongMenu(
                 Spacer(Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        if (allInLibrary) stringResource(R.string.remove_from_library) else stringResource(
-                            R.string.add_to_library
-                        ),
+                        if (allInLibrary) {
+                            stringResource(R.string.remove_from_library)
+                        } else {
+                            stringResource(
+                                R.string.add_to_library
+                            )
+                        },
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        if (allInLibrary) stringResource(R.string.remove_from_your_music) else stringResource(
-                            R.string.save_to_your_music
-                        ),
+                        if (allInLibrary) {
+                            stringResource(R.string.remove_from_your_music)
+                        } else {
+                            stringResource(
+                                R.string.save_to_your_music
+                            )
+                        },
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -747,6 +782,10 @@ fun SelectionSongMenu(
     }
 }
 
+/**
+ * Menu for a selection of MediaMetadata (used in some contexts).
+ * Provides bulk actions similar to SelectionSongMenu but for MediaMetadata objects.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @SuppressLint("MutableCollectionMutableState")
 @Composable
@@ -802,8 +841,8 @@ fun SelectionMediaMetadataMenu(
                     Download.STATE_COMPLETED
                 } else if (songSelection.all {
                         downloads[it.id]?.state == Download.STATE_QUEUED ||
-                                downloads[it.id]?.state == Download.STATE_DOWNLOADING ||
-                                downloads[it.id]?.state == Download.STATE_COMPLETED
+                            downloads[it.id]?.state == Download.STATE_DOWNLOADING ||
+                            downloads[it.id]?.state == Download.STATE_COMPLETED
                     }
                 ) {
                     Download.STATE_DOWNLOADING
@@ -824,14 +863,14 @@ fun SelectionMediaMetadataMenu(
                 Text(
                     text = stringResource(R.string.remove_download_playlist_confirm, "selection"),
                     style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(horizontal = 18.dp),
+                    modifier = Modifier.padding(horizontal = 18.dp)
                 )
             },
             buttons = {
                 TextButton(
                     onClick = {
                         showRemoveDownloadDialog = false
-                    },
+                    }
                 ) {
                     Text(text = stringResource(android.R.string.cancel))
                 }
@@ -844,14 +883,14 @@ fun SelectionMediaMetadataMenu(
                                 context,
                                 ExoDownloadService::class.java,
                                 song.id,
-                                false,
+                                false
                             )
                         }
-                    },
+                    }
                 ) {
                     Text(text = stringResource(android.R.string.ok))
                 }
-            },
+            }
         )
     }
 
@@ -859,40 +898,65 @@ fun SelectionMediaMetadataMenu(
     val cornerRadius = remember { 24.dp }
     val albumArtShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentTR = 60
         )
     }
     val playButtonShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentTR = 60
         )
     }
 
     // Android 16 grouped shapes
     val topShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 0, cornerRadiusBR = 0.dp,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 0,
-            cornerRadiusBL = 0.dp, smoothnessAsPercentTR = 60
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentBR = 0,
+            cornerRadiusBR = 0.dp,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentBL = 0,
+            cornerRadiusBL = 0.dp,
+            smoothnessAsPercentTR = 60
         )
     }
     val middleShape = remember { RectangleShape }
     val bottomShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = 0.dp, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-            smoothnessAsPercentTL = 0, cornerRadiusTL = 0.dp, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 0
+            cornerRadiusTR = 0.dp,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 0,
+            cornerRadiusTL = 0.dp,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentTR = 0
         )
     }
     val singleShape = remember(cornerRadius) {
         AbsoluteSmoothCornerShape(
-            cornerRadiusTR = cornerRadius, smoothnessAsPercentBR = 60, cornerRadiusBR = cornerRadius,
-            smoothnessAsPercentTL = 60, cornerRadiusTL = cornerRadius, smoothnessAsPercentBL = 60,
-            cornerRadiusBL = cornerRadius, smoothnessAsPercentTR = 60
+            cornerRadiusTR = cornerRadius,
+            smoothnessAsPercentBR = 60,
+            cornerRadiusBR = cornerRadius,
+            smoothnessAsPercentTL = 60,
+            cornerRadiusTL = cornerRadius,
+            smoothnessAsPercentBL = 60,
+            cornerRadiusBL = cornerRadius,
+            smoothnessAsPercentTR = 60
         )
     }
 
@@ -971,7 +1035,7 @@ fun SelectionMediaMetadataMenu(
                     playerConnection.playQueue(
                         ListQueue(
                             title = context.getString(R.string.selection),
-                            items = songSelection.map { it.toMediaItem() },
+                            items = songSelection.map { it.toMediaItem() }
                         )
                     )
                     clearAction()
@@ -1005,7 +1069,7 @@ fun SelectionMediaMetadataMenu(
                     playerConnection.playQueue(
                         ListQueue(
                             title = context.getString(R.string.selection),
-                            items = songSelection.shuffled().map { it.toMediaItem() },
+                            items = songSelection.shuffled().map { it.toMediaItem() }
                         )
                     )
                     clearAction()
@@ -1060,7 +1124,10 @@ fun SelectionMediaMetadataMenu(
                                 .setData(song.title.toByteArray())
                                 .build()
                             DownloadService.sendAddDownload(
-                                context, ExoDownloadService::class.java, downloadRequest, false
+                                context,
+                                ExoDownloadService::class.java,
+                                downloadRequest,
+                                false
                             )
                         }
                     }

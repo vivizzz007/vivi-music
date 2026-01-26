@@ -1,7 +1,5 @@
 package com.music.vivi.bluetooth.slider
 
-
-
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -14,19 +12,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlin.math.*
 
-
-
 @Composable
-
 fun WaveSlider(
     value: Float,
     valueRange: ClosedFloatingPointRange<Float>,
@@ -40,7 +33,7 @@ fun WaveSlider(
     ),
     radius: Dp = 72.dp,
     strokeWidth: Dp = 4.dp,
-    isPlaying: Boolean = false
+    isPlaying: Boolean = false,
 ) {
     var isDragging by remember { mutableStateOf(false) }
     val transition = rememberInfiniteTransition()
@@ -74,7 +67,7 @@ fun WaveSlider(
                         ).let { if (it < 0) it + 2 * PI.toFloat() else it }
 
                         val newValue = valueRange.start +
-                                (angle / (2 * PI.toFloat())) * (valueRange.endInclusive - valueRange.start)
+                            (angle / (2 * PI.toFloat())) * (valueRange.endInclusive - valueRange.start)
                         onValueChange(newValue.coerceIn(valueRange))
                     }
                 }

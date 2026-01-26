@@ -1,6 +1,5 @@
 package com.music.vivi.support
 
-import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
@@ -8,71 +7,52 @@ import android.os.Build
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Coffee
-import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material3.*
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.runtime.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.music.vivi.LocalPlayerAwareWindowInsets
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.outlined.Email
+import com.music.vivi.BuildConfig
 import com.music.vivi.R
 import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.utils.backToMain
-
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import java.util.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import com.music.vivi.BuildConfig
-import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.OutlinedButton
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ViviIssueScreen(
-    navController: NavController,
-    scrollBehavior: TopAppBarScrollBehavior,
-) {
+fun ViviIssueScreen(navController: NavController, scrollBehavior: TopAppBarScrollBehavior) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
 
@@ -167,18 +147,28 @@ fun ViviIssueScreen(
                                 val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
                                     data = Uri.parse("mailto:")
                                     putExtra(Intent.EXTRA_EMAIL, arrayOf("mkmdevilmi@gmail.com"))
-                                    putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.vivi_music_issue_report, BuildConfig.VERSION_NAME))
-                                    putExtra(Intent.EXTRA_TEXT, """
+                                    putExtra(
+                                        Intent.EXTRA_SUBJECT,
+                                        context.getString(R.string.vivi_music_issue_report, BuildConfig.VERSION_NAME)
+                                    )
+                                    putExtra(
+                                        Intent.EXTRA_TEXT,
+                                        """
                                         [Please describe your issue here]
                                         
                                         ----------------------------------
                                         $deviceInfo
-                                    """.trimIndent())
+                                        """.trimIndent()
+                                    )
                                 }
                                 try {
                                     context.startActivity(Intent.createChooser(emailIntent, "Send email via..."))
                                 } catch (e: ActivityNotFoundException) {
-                                    Toast.makeText(context, context.getString(R.string.no_email_app_found), Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context,
+                                        context.getString(R.string.no_email_app_found),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             },
                             modifier = Modifier.fillMaxWidth(),
@@ -203,7 +193,9 @@ fun ViviIssueScreen(
                         // GitHub Option
                         FilledTonalButton(
                             onClick = {
-                                uriHandler.openUri("https://github.com/vivizzz007/vivi-music/issues/new?template=bug_report.yml")
+                                uriHandler.openUri(
+                                    "https://github.com/vivizzz007/vivi-music/issues/new?template=bug_report.yml"
+                                )
                             },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),

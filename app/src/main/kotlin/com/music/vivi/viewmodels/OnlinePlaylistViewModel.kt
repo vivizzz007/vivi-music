@@ -21,6 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -29,33 +30,42 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel for displaying an Online (YouTube Music) Playlist.
+ *
+ * Features:
+ * - Fetches initial playlist songs.
+ * - **Proactive Loading**: Automatically fetches continuation tokens in the background to load the full playlist.
+ * - Handles manual pagination (Load More) which pauses the proactive loader.
+ * - Checks local DB for bookmark status (to show Heart icon).
+ */
 @HiltViewModel
-class OnlinePlaylistViewModel @Inject constructor(
+public class OnlinePlaylistViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     savedStateHandle: SavedStateHandle,
-    database: MusicDatabase
+    database: MusicDatabase,
 ) : ViewModel() {
     private val _playlistId = MutableStateFlow(savedStateHandle.get<String>("playlistId"))
-    
-    val playlist = MutableStateFlow<PlaylistItem?>(null)
-    val playlistSongs = MutableStateFlow<List<SongItem>>(emptyList())
-    val relatedItems = MutableStateFlow<List<YTItem>>(emptyList())
+
+    public val playlist: MutableStateFlow<PlaylistItem?> = MutableStateFlow(null)
+    public val playlistSongs: MutableStateFlow<List<SongItem>> = MutableStateFlow(emptyList())
+    public val relatedItems: MutableStateFlow<List<YTItem>> = MutableStateFlow(emptyList())
 
     private val _isLoading = MutableStateFlow(true)
-    val isLoading = _isLoading.asStateFlow()
+    public val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     private val _error = MutableStateFlow<String?>(null)
-    val error = _error.asStateFlow()
+    public val error: StateFlow<String?> = _error.asStateFlow()
 
     private val _isLoadingMore = MutableStateFlow(false)
-    val isLoadingMore = _isLoadingMore.asStateFlow()
+    public val isLoadingMore: StateFlow<Boolean> = _isLoadingMore.asStateFlow()
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
-    val dbPlaylist = _playlistId.filterNotNull().flatMapLatest { id ->
+    public val dbPlaylist: StateFlow<com.music.vivi.db.entities.Playlist?> = _playlistId.filterNotNull().flatMapLatest { id ->
         database.playlistByBrowseId(id)
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    var continuation: String? = null
+    public var continuation: String? = null
         private set
 
     private var proactiveLoadJob: Job? = null
@@ -104,7 +114,7 @@ class OnlinePlaylistViewModel @Inject constructor(
                 if (_isLoadingMore.value) {
                     // Wait until manual load is finished, then re-evaluate
                     // This simple break and restart strategy from loadMoreSongs is preferred
-                    break 
+                    break
                 }
 
                 YouTube.playlistContinuation(currentProactiveToken)
@@ -114,7 +124,7 @@ class OnlinePlaylistViewModel @Inject constructor(
                         playlistSongs.value = applySongFilters(currentSongs)
                         currentProactiveToken = playlistContinuationPage.continuation
                         // Update the class-level continuation for manual loadMore if needed
-                        this@OnlinePlaylistViewModel.continuation = currentProactiveToken 
+                        this@OnlinePlaylistViewModel.continuation = currentProactiveToken
                     }.onFailure { throwable ->
                         reportException(throwable)
                         currentProactiveToken = null // Stop proactive loading on error
@@ -124,9 +134,9 @@ class OnlinePlaylistViewModel @Inject constructor(
         }
     }
 
-    fun loadMoreSongs() {
+    public fun loadMoreSongs() {
         if (_isLoadingMore.value) return // Already loading more (manually)
-        
+
         val tokenForManualLoad = continuation ?: return // No more songs to load
 
         proactiveLoadJob?.cancel() // Cancel proactive loading to prioritize manual scroll
@@ -152,11 +162,10 @@ class OnlinePlaylistViewModel @Inject constructor(
         }
     }
 
-    fun retry() {
+    public fun retry() {
         proactiveLoadJob?.cancel()
         fetchInitialPlaylistData() // This will also restart proactive loading if applicable
     }
-
 
     private fun applySongFilters(songs: List<SongItem>): List<SongItem> {
         val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
@@ -170,7 +179,7 @@ class OnlinePlaylistViewModel @Inject constructor(
         proactiveLoadJob?.cancel()
     }
 
-    fun setPlaylistId(id: String) {
+    public fun setPlaylistId(id: String) {
         if (_playlistId.value != id) {
             _playlistId.value = id
         }

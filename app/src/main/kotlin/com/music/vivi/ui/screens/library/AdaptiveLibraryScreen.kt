@@ -4,8 +4,8 @@ import android.os.Parcelable
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
+import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
 import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
@@ -31,19 +31,22 @@ sealed class LibraryRoute : Parcelable {
     data class TopPlaylist(val topParam: String) : LibraryRoute()
 }
 
+/**
+ * A Master-Detail adaptive layout for the Library screen.
+ * Uses [ListDetailPaneScaffold] to show the list of library items on the left/top
+ * and the details (Artist, Album, Playlist) on the right/bottom or as a separate screen depending on window size.
+ */
 @OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun AdaptiveLibraryScreen(
-    navController: NavController,
-) {
+fun AdaptiveLibraryScreen(navController: NavController) {
     // FIX: Changed generic type to Any to satisfy compiler expectation
     val navigator = rememberListDetailPaneScaffoldNavigator<Any>()
 
     // Communicate detail pane visibility to MainActivity via savedStateHandle
     // We only hide the global top bar if the detail pane is active AND the list pane is hidden (single pane mode)
-    val isDetailShown = navigator.currentDestination != null && 
-                       navigator.scaffoldValue[ListDetailPaneScaffoldRole.List] == PaneAdaptedValue.Hidden
-    
+    val isDetailShown = navigator.currentDestination != null &&
+        navigator.scaffoldValue[ListDetailPaneScaffoldRole.List] == PaneAdaptedValue.Hidden
+
     LaunchedEffect(isDetailShown) {
         navController.currentBackStackEntry?.savedStateHandle?.set("is_detail_shown", isDetailShown)
     }
@@ -95,7 +98,7 @@ fun AdaptiveLibraryScreen(
             val content = navigator.currentDestination?.content as? LibraryRoute
             // Use pinned scroll behavior for the detail pane to avoid conflict with list pane
             val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-            
+
             when (content) {
                 is LibraryRoute.Artist -> {
                     ArtistScreen(

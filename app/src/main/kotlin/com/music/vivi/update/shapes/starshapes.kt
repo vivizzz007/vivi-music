@@ -1,20 +1,20 @@
-//package com.music.vivi.update.shapes
+// package com.music.vivi.update.shapes
 //
-//import androidx.graphics.shapes.RoundedPolygon
-//import androidx.graphics.shapes.CornerRounding
-//import androidx.graphics.shapes.star
-//import androidx.compose.ui.graphics.Shape
-//import androidx.graphics.shapes.toPath
-//import androidx.compose.ui.geometry.Size
-//import androidx.compose.ui.graphics.Outline
-//import androidx.compose.ui.graphics.asAndroidPath
-//import androidx.compose.ui.graphics.asComposePath
-//import androidx.compose.ui.unit.Density
-//import androidx.compose.ui.unit.LayoutDirection
+// import androidx.graphics.shapes.RoundedPolygon
+// import androidx.graphics.shapes.CornerRounding
+// import androidx.graphics.shapes.star
+// import androidx.compose.ui.graphics.Shape
+// import androidx.graphics.shapes.toPath
+// import androidx.compose.ui.geometry.Size
+// import androidx.compose.ui.graphics.Outline
+// import androidx.compose.ui.graphics.asAndroidPath
+// import androidx.compose.ui.graphics.asComposePath
+// import androidx.compose.ui.unit.Density
+// import androidx.compose.ui.unit.LayoutDirection
 //
 //
-//// Create a custom shape class for the star
-//class MorphPolygonShape(private val polygon: RoundedPolygon) : Shape {
+// // Create a custom shape class for the star
+// class MorphPolygonShape(private val polygon: RoundedPolygon) : Shape {
 //    override fun createOutline(
 //        size: Size,
 //        layoutDirection: LayoutDirection,
@@ -30,15 +30,15 @@
 //        path.asAndroidPath().transform(matrix)
 //        return Outline.Generic(path)
 //    }
-//}
+// }
 //
-//// Create the star shape - bigger and more prominent
-//val starShape = RoundedPolygon.star(
+// // Create the star shape - bigger and more prominent
+// val starShape = RoundedPolygon.star(
 //    numVerticesPerRadius = 4,
 //    innerRadius = 0.45f,  // Increased from 0.352f for less pronounced points
 //    rounding = CornerRounding(0.25f),  // Reduced from 0.32f for sharper edges
 //    innerRounding = CornerRounding(0.25f)  // Reduced from 0.32f
-//)
+// )
 //
 //
 //

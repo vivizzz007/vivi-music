@@ -11,12 +11,11 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import kotlin.math.floor
 
+/**
+ * A custom Checkbox with rounded corners.
+ */
 @Composable
-fun RoundedCheckbox(
-    checked: Boolean,
-    onCheckedChange: ((Boolean) -> Unit)?,
-    modifier: Modifier = Modifier
-) {
+public fun RoundedCheckbox(checked: Boolean, onCheckedChange: ((Boolean) -> Unit)?, modifier: Modifier = Modifier) {
     val strokeWidthPx = with(LocalDensity.current) { floor(CheckboxDefaults.StrokeWidth.toPx()) }
     val checkmarkStroke = remember(strokeWidthPx) {
         Stroke(width = strokeWidthPx, cap = StrokeCap.Round, join = StrokeJoin.Round)

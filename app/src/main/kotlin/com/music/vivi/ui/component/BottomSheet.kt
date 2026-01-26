@@ -33,7 +33,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -55,7 +54,7 @@ import kotlin.math.pow
  * Modified from [ViMusic](https://github.com/vfsfitvnm/ViMusic)
  */
 @Composable
-fun BottomSheet(
+public fun BottomSheet(
     state: BottomSheetState,
     modifier: Modifier = Modifier,
     background: @Composable (BoxScope.() -> Unit) = { },
@@ -142,12 +141,12 @@ fun BottomSheet(
 }
 
 @Stable
-class BottomSheetState(
+public class BottomSheetState(
     draggableState: DraggableState,
     private val coroutineScope: CoroutineScope,
     private val animatable: Animatable<Dp, AnimationVector1D>,
     private val onAnchorChanged: (Int) -> Unit,
-    val collapsedBound: Dp,
+    public val collapsedBound: Dp,
 ) : DraggableState by draggableState {
     val dismissedBound: Dp
         get() = animatable.lowerBound!!
@@ -266,11 +265,7 @@ class BottomSheetState(
                 }
             }
 
-            override fun onPostScroll(
-                consumed: Offset,
-                available: Offset,
-                source: NestedScrollSource,
-            ): Offset {
+            override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
                 if (!isTopReached) {
                     isTopReached = consumed.y == 0f && available.y > 0
                 }
@@ -283,15 +278,13 @@ class BottomSheetState(
                 }
             }
 
-            override suspend fun onPreFling(available: Velocity): Velocity {
-                return if (isTopReached) {
-                    val velocity = -available.y
-                    performFling(velocity, null)
+            override suspend fun onPreFling(available: Velocity): Velocity = if (isTopReached) {
+                val velocity = -available.y
+                performFling(velocity, null)
 
-                    available
-                } else {
-                    Velocity.Zero
-                }
+                available
+            } else {
+                Velocity.Zero
             }
 
             override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
@@ -301,12 +294,12 @@ class BottomSheetState(
         }
 }
 
-const val expandedAnchor = 2
-const val collapsedAnchor = 1
-const val dismissedAnchor = 0
+public const val expandedAnchor: Int = 2
+public const val collapsedAnchor: Int = 1
+public const val dismissedAnchor: Int = 0
 
 @Composable
-fun rememberBottomSheetState(
+public fun rememberBottomSheetState(
     dismissedBound: Dp,
     expandedBound: Dp,
     collapsedBound: Dp = dismissedBound,

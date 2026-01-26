@@ -28,13 +28,14 @@ import java.util.zip.ZipEntry
 import javax.inject.Inject
 import kotlin.system.exitProcess
 
-
-
+/**
+ * ViewModel for Backup and Restore operations.
+ * Handles exporting the Database and Settings to a ZIP file, and restoring from it.
+ * Also supports importing Playlists from CSV and M3U files.
+ */
 @HiltViewModel
-class BackupRestoreViewModel @Inject constructor(
-    val database: MusicDatabase,
-) : ViewModel() {
-    fun backup(context: Context, uri: Uri) {
+public class BackupRestoreViewModel @Inject constructor(public val database: MusicDatabase) : ViewModel() {
+    public fun backup(context: Context, uri: Uri) {
         var backupSuccessful = false
         var tempBackupCreated = false
 
@@ -141,7 +142,6 @@ class BackupRestoreViewModel @Inject constructor(
             } ?: throw IllegalStateException("Cannot verify backup file")
 
             backupSuccessful = true
-
         }.onSuccess {
             Toast.makeText(context, R.string.backup_create_success, Toast.LENGTH_SHORT).show()
         }.onFailure { error ->
@@ -171,7 +171,7 @@ class BackupRestoreViewModel @Inject constructor(
         }
     }
 
-    fun restore(context: Context, uri: Uri) {
+    public fun restore(context: Context, uri: Uri) {
         runCatching {
             // Validate input stream can be opened
             val inputStream = context.applicationContext.contentResolver.openInputStream(uri)
@@ -291,7 +291,9 @@ class BackupRestoreViewModel @Inject constructor(
             }
 
             if (!restoredDatabase) {
-                throw IllegalStateException("Backup file is missing required data. This app cannot restore from this file")
+                throw IllegalStateException(
+                    "Backup file is missing required data. This app cannot restore from this file"
+                )
             }
 
             // Show success message
@@ -326,7 +328,7 @@ class BackupRestoreViewModel @Inject constructor(
         }
     }
 
-    fun importPlaylistFromCsv(context: Context, uri: Uri): ArrayList<Song> {
+    public fun importPlaylistFromCsv(context: Context, uri: Uri): ArrayList<Song> {
         val songs = arrayListOf<Song>()
         runCatching {
             context.contentResolver.openInputStream(uri)?.use { stream ->
@@ -356,14 +358,15 @@ class BackupRestoreViewModel @Inject constructor(
                         }
 
                         val title = parts.getOrNull(0)?.takeIf { it.isNotBlank() } ?: return@forEachIndexed
-                        val artistStr = parts.getOrNull(1)?.takeIf { it.isNotBlank() } ?: context.getString(R.string.unknown_artist)
+                        val artistStr =
+                            parts.getOrNull(1)?.takeIf { it.isNotBlank() } ?: context.getString(R.string.unknown_artist)
 
                         val artists = artistStr.split(";").map { it.trim() }
                             .filter { it.isNotBlank() }
                             .map {
                                 ArtistEntity(
                                     id = "",
-                                    name = it,
+                                    name = it
                                 )
                             }
 
@@ -377,9 +380,9 @@ class BackupRestoreViewModel @Inject constructor(
                         val mockSong = Song(
                             song = SongEntity(
                                 id = "",
-                                title = title,
+                                title = title
                             ),
-                            artists = finalArtists,
+                            artists = finalArtists
                         )
                         songs.add(mockSong)
                     } catch (e: Exception) {
@@ -407,10 +410,7 @@ class BackupRestoreViewModel @Inject constructor(
         return songs
     }
 
-    fun loadM3UOnline(
-        context: Context,
-        uri: Uri,
-    ): ArrayList<Song> {
+    public fun loadM3UOnline(context: Context, uri: Uri): ArrayList<Song> {
         val songs = ArrayList<Song>()
 
         runCatching {
@@ -455,9 +455,9 @@ class BackupRestoreViewModel @Inject constructor(
                                 val mockSong = Song(
                                     song = SongEntity(
                                         id = "",
-                                        title = info.trim(),
+                                        title = info.trim()
                                     ),
-                                    artists = listOf(ArtistEntity("", "Unknown Artist")),
+                                    artists = listOf(ArtistEntity("", "Unknown Artist"))
                                 )
                                 songs.add(mockSong)
                                 return@forEachIndexed
@@ -489,9 +489,9 @@ class BackupRestoreViewModel @Inject constructor(
                             val mockSong = Song(
                                 song = SongEntity(
                                     id = "",
-                                    title = title,
+                                    title = title
                                 ),
-                                artists = finalArtists,
+                                artists = finalArtists
                             )
                             songs.add(mockSong)
                         } catch (e: Exception) {
@@ -520,7 +520,7 @@ class BackupRestoreViewModel @Inject constructor(
         return songs
     }
 
-    companion object {
-        const val SETTINGS_FILENAME = "settings.preferences_pb"
+    public companion object {
+        public const val SETTINGS_FILENAME: String = "settings.preferences_pb"
     }
 }

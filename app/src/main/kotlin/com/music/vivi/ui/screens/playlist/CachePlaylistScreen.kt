@@ -1,6 +1,5 @@
 package com.music.vivi.ui.screens.playlist
 
-
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -17,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.union
@@ -25,10 +23,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -54,13 +50,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.BlurredEdgeTreatment
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
@@ -79,7 +71,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -97,9 +88,9 @@ import com.music.vivi.playback.queues.ListQueue
 import com.music.vivi.ui.component.DraggableScrollbar
 import com.music.vivi.ui.component.EmptyPlaceholder
 import com.music.vivi.ui.component.IconButton
+import com.music.vivi.ui.component.LibrarySongListItem
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.RoundedCheckbox
-import com.music.vivi.ui.component.SongListItem
 import com.music.vivi.ui.component.SortHeader
 import com.music.vivi.ui.menu.SelectionSongMenu
 import com.music.vivi.ui.menu.SongMenu
@@ -110,8 +101,11 @@ import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.CachePlaylistViewModel
 import java.time.LocalDateTime
 
-
-
+/**
+ * Screen displaying the "Cached" playlist.
+ * Shows songs that are currently cached on the device but not necessarily fully downloaded/pinned.
+ * This is effectively a "Recently Played / Cached" list.
+ */
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CachePlaylistScreen(
@@ -174,11 +168,14 @@ fun CachePlaylistScreen(
     }
 
     val filteredSongs = remember(wrappedSongs, query.text) {
-        if (query.text.isEmpty()) wrappedSongs
-        else wrappedSongs.filter { wrapper ->
-            val song = wrapper.item
-            song.title.contains(query.text, true) ||
+        if (query.text.isEmpty()) {
+            wrappedSongs
+        } else {
+            wrappedSongs.filter { wrapper ->
+                val song = wrapper.item
+                song.title.contains(query.text, true) ||
                     song.artists.any { it.name.contains(query.text, true) }
+            }
         }
     }
 
@@ -195,7 +192,7 @@ fun CachePlaylistScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             state = lazyListState,
-            contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
+            contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
         ) {
             if (filteredSongs.isEmpty() && !isSearching) {
                 item(key = "empty_placeholder") {
@@ -283,7 +280,7 @@ fun CachePlaylistScreen(
                                         playerConnection.playQueue(
                                             ListQueue(
                                                 title = context.getString(R.string.cache_songs),
-                                                items = filteredSongs.map { it.item.toMediaItem() },
+                                                items = filteredSongs.map { it.item.toMediaItem() }
                                             )
                                         )
                                     },
@@ -317,7 +314,7 @@ fun CachePlaylistScreen(
                                         playerConnection.playQueue(
                                             ListQueue(
                                                 title = context.getString(R.string.cache_songs),
-                                                items = filteredSongs.shuffled().map { it.item.toMediaItem() },
+                                                items = filteredSongs.shuffled().map { it.item.toMediaItem() }
                                             )
                                         )
                                     },
@@ -351,7 +348,9 @@ fun CachePlaylistScreen(
                             // Playlist Info
                             Text(
                                 text = buildString {
-                                    append(pluralStringResource(R.plurals.n_song, filteredSongs.size, filteredSongs.size))
+                                    append(
+                                        pluralStringResource(R.plurals.n_song, filteredSongs.size, filteredSongs.size)
+                                    )
                                     val hours = totalDuration / 3600
                                     val minutes = (totalDuration % 3600) / 60
                                     if (hours > 0) {
@@ -386,17 +385,17 @@ fun CachePlaylistScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 32.dp),
-                                horizontalArrangement = Arrangement.Center,
+                                horizontalArrangement = Arrangement.Center
                             ) {
                                 // Add to Queue Button
                                 ToggleButton(
                                     checked = false,
                                     onCheckedChange = {
                                         playerConnection.addToQueue(
-                                            items = filteredSongs.map { it.item.toMediaItem() },
+                                            items = filteredSongs.map { it.item.toMediaItem() }
                                         )
                                     },
-                                    modifier = Modifier.fillMaxWidth().semantics { role = Role.Button },
+                                    modifier = Modifier.fillMaxWidth().semantics { role = Role.Button }
                                 ) {
                                     Icon(
                                         painter = painterResource(R.drawable.queue_music),
@@ -404,7 +403,10 @@ fun CachePlaylistScreen(
                                         modifier = Modifier.size(20.dp)
                                     )
                                     Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                                    Text(stringResource(R.string.queue_label), style = MaterialTheme.typography.labelMedium)
+                                    Text(
+                                        stringResource(R.string.queue_label),
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
                                 }
                             }
 
@@ -417,7 +419,7 @@ fun CachePlaylistScreen(
                     item(key = "sort_header") {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp),
+                            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
                         ) {
                             SortHeader(
                                 sortType = sortType,
@@ -467,11 +469,14 @@ fun CachePlaylistScreen(
                                         )
                                     )
                                     .background(
-                                        if (isActive) MaterialTheme.colorScheme.secondaryContainer
-                                        else MaterialTheme.colorScheme.surfaceContainer
+                                        if (isActive) {
+                                            MaterialTheme.colorScheme.secondaryContainer
+                                        } else {
+                                            MaterialTheme.colorScheme.surfaceContainer
+                                        }
                                     )
                             ) {
-                                SongListItem(
+                                LibrarySongListItem(
                                     song = songWrapper.item,
                                     isActive = isActive,
                                     isPlaying = isPlaying,
@@ -485,20 +490,20 @@ fun CachePlaylistScreen(
                                                         originalSong = songWrapper.item,
                                                         navController = navController,
                                                         onDismiss = menuState::dismiss,
-                                                        isFromCache = true,
+                                                        isFromCache = true
                                                     )
                                                 }
-                                            },
+                                            }
                                         ) {
                                             Icon(
                                                 painter = painterResource(R.drawable.more_vert),
-                                                contentDescription = null,
+                                                contentDescription = null
                                             )
                                         }
                                     },
                                     isSelected = songWrapper.isSelected,
-                                inSelectionMode = selection,
-                                onSelectionChange = { songWrapper.isSelected = it },
+                                    inSelectionMode = selection,
+                                    onSelectionChange = { songWrapper.isSelected = it },
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .combinedClickable(
@@ -511,7 +516,10 @@ fun CachePlaylistScreen(
                                                             ListQueue(
                                                                 title = context.getString(R.string.cache_songs),
                                                                 items = cachedSongs.map { it.toMediaItem() },
-                                                                startIndex = cachedSongs.indexOfFirst { it.id == songWrapper.item.id }
+                                                                startIndex = cachedSongs.indexOfFirst {
+                                                                    it.id ==
+                                                                        songWrapper.item.id
+                                                                }
                                                             )
                                                         )
                                                     }
@@ -526,8 +534,8 @@ fun CachePlaylistScreen(
                                                 }
                                                 wrappedSongs.forEach { it.isSelected = false }
                                                 songWrapper.isSelected = true
-                                            },
-                                        ),
+                                            }
+                                        )
                                 )
                             }
                             // Add 3dp spacer between items (except after last)
@@ -582,7 +590,7 @@ fun CachePlaylistScreen(
                                 unfocusedContainerColor = Color.Transparent,
                                 focusedIndicatorColor = Color.Transparent,
                                 unfocusedIndicatorColor = Color.Transparent,
-                                disabledIndicatorColor = Color.Transparent,
+                                disabledIndicatorColor = Color.Transparent
                             ),
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -652,7 +660,7 @@ fun CachePlaylistScreen(
                                     clearAction = { selection = false }
                                 )
                             }
-                        },
+                        }
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.more_vert),

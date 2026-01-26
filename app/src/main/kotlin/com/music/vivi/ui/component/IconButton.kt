@@ -30,8 +30,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 
+/**
+ * An icon button that allows resizing and custom indication.
+ */
 @Composable
-fun ResizableIconButton(
+public fun ResizableIconButton(
     @DrawableRes icon: Int,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.onSurface,
@@ -48,15 +51,18 @@ fun ResizableIconButton(
                 indication = indication ?: ripple(bounded = false),
                 interactionSource = remember { MutableInteractionSource() },
                 enabled = enabled,
-                onClick = onClick,
+                onClick = onClick
             )
-            .alpha(if (enabled) 1f else 0.5f),
+            .alpha(if (enabled) 1f else 0.5f)
     )
 }
 
+/**
+ * A standard circular icon button with a minimum touch target size.
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun IconButton(
+public fun IconButton(
     onClick: () -> Unit,
     onLongClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -80,9 +86,9 @@ fun IconButton(
                 indication = ripple(
                     bounded = false,
                     radius = 24.dp
-                ),
+                )
             ),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         val contentColor = colors.contentColor
         CompositionLocalProvider(LocalContentColor provides contentColor, content = content)

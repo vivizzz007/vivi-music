@@ -29,8 +29,12 @@ import java.text.Collator
 import java.util.Locale
 import javax.inject.Inject
 
+/**
+ * ViewModel for a User-created Local Playlist.
+ * Handles fetching playlist details and sorting its songs based on user preference.
+ */
 @HiltViewModel
-class LocalPlaylistViewModel
+public class LocalPlaylistViewModel
 @Inject
 constructor(
     @ApplicationContext context: Context,
@@ -38,22 +42,25 @@ constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val _playlistId = MutableStateFlow(savedStateHandle.get<String>("playlistId"))
-    val playlistId = _playlistId.asStateFlow()
+    public val playlistId: StateFlow<String?> = _playlistId.asStateFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val playlist = _playlistId.filterNotNull().flatMapLatest { id ->
+    public val playlist: StateFlow<com.music.vivi.db.entities.Playlist?> = _playlistId.filterNotNull().flatMapLatest { id ->
         database.playlist(id)
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val playlistSongs: StateFlow<List<PlaylistSong>> =
+    public val playlistSongs: StateFlow<List<PlaylistSong>> =
         combine(
             _playlistId.filterNotNull(),
             context.dataStore.data
                 .map {
-                    it[PlaylistSongSortTypeKey].toEnum(PlaylistSongSortType.CUSTOM) to (it[PlaylistSongSortDescendingKey]
-                        ?: true)
-                }.distinctUntilChanged(),
+                    it[PlaylistSongSortTypeKey].toEnum(PlaylistSongSortType.CUSTOM) to
+                        (
+                            it[PlaylistSongSortDescendingKey]
+                                ?: true
+                            )
+                }.distinctUntilChanged()
         ) { id, sortOptions ->
             Triple(id, sortOptions.first, sortOptions.second)
         }.flatMapLatest { (id, sortType, sortDescending) ->
@@ -62,36 +69,38 @@ constructor(
             }
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    private fun sortSongs(songs: List<PlaylistSong>, sortType: PlaylistSongSortType, sortDescending: Boolean): List<PlaylistSong> {
-        return when (sortType) {
-            PlaylistSongSortType.CUSTOM -> songs
-            PlaylistSongSortType.CREATE_DATE -> songs.sortedBy { it.map.id }
-            PlaylistSongSortType.NAME -> {
-                val collator = Collator.getInstance(Locale.getDefault())
-                collator.strength = Collator.PRIMARY
-                songs.sortedWith(compareBy(collator) { it.song.song.title })
-            }
-            PlaylistSongSortType.ARTIST -> {
-                val collator = Collator.getInstance(Locale.getDefault())
-                collator.strength = Collator.PRIMARY
-                songs
-                    .sortedWith(compareBy(collator) { song -> song.song.artists.joinToString("") { it.name } })
-                    .groupBy { it.song.album?.title }
-                    .flatMap { (_, songsByAlbum) ->
-                        songsByAlbum.sortedBy {
-                            it.song.artists.joinToString(
-                                ""
-                            ) { it.name }
-                        }
+    private fun sortSongs(
+        songs: List<PlaylistSong>,
+        sortType: PlaylistSongSortType,
+        sortDescending: Boolean,
+    ): List<PlaylistSong> = when (sortType) {
+        PlaylistSongSortType.CUSTOM -> songs
+        PlaylistSongSortType.CREATE_DATE -> songs.sortedBy { it.map.id }
+        PlaylistSongSortType.NAME -> {
+            val collator = Collator.getInstance(Locale.getDefault())
+            collator.strength = Collator.PRIMARY
+            songs.sortedWith(compareBy(collator) { it.song.song.title })
+        }
+        PlaylistSongSortType.ARTIST -> {
+            val collator = Collator.getInstance(Locale.getDefault())
+            collator.strength = Collator.PRIMARY
+            songs
+                .sortedWith(compareBy(collator) { song -> song.song.artists.joinToString("") { it.name } })
+                .groupBy { it.song.album?.title }
+                .flatMap { (_, songsByAlbum) ->
+                    songsByAlbum.sortedBy {
+                        it.song.artists.joinToString(
+                            ""
+                        ) { it.name }
                     }
-            }
-            PlaylistSongSortType.PLAY_TIME -> songs.sortedBy { it.song.song.totalPlayTime }
-        }.reversed(sortDescending && sortType != PlaylistSongSortType.CUSTOM)
-    }
+                }
+        }
+        PlaylistSongSortType.PLAY_TIME -> songs.sortedBy { it.song.song.totalPlayTime }
+    }.reversed(sortDescending && sortType != PlaylistSongSortType.CUSTOM)
 
-    fun setPlaylistId(id: String) {
+    public fun setPlaylistId(id: String) {
         if (_playlistId.value != id) {
-             _playlistId.value = id
+            _playlistId.value = id
         }
     }
 }

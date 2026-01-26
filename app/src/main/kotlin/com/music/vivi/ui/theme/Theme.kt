@@ -23,6 +23,18 @@ import com.materialkolor.score.Score
 
 val DefaultThemeColor = Color(0xFFED5564)
 
+/**
+ * Main theme composable for the Music Application.
+ * Configures the MaterialTheme with dynamic colors, typography, and shapes.
+ *
+ * @param darkTheme Whether to use the dark theme (defaults to system setting).
+ * @param pureBlack Whether to use pure black for background in dark mode (OLED optimization).
+ * @param themeColor The seed color for generating the color scheme.
+ * @param enableDynamicTheme Whether to use Android 12+ dynamic system colors if available.
+ * @param overrideColorScheme Optional specific color scheme to use, overriding generation logic.
+ * @param expressive Whether to use the expressive design system (typography and shapes).
+ * @param content The content to display within the theme.
+ */
 @Composable
 fun MusicTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -35,7 +47,11 @@ fun MusicTheme(
 ) {
     val context = LocalContext.current
     // Determine if system dynamic colors should be used (Android S+ and default theme color)
-    val useSystemDynamicColor = (enableDynamicTheme && themeColor == DefaultThemeColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+    val useSystemDynamicColor = (
+        enableDynamicTheme &&
+            themeColor == DefaultThemeColor &&
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+        )
 
     // Select the appropriate color scheme generation method
     val baseColorScheme = if (overrideColorScheme != null) {
@@ -71,6 +87,10 @@ fun MusicTheme(
     )
 }
 
+/**
+ * Extracts a dominant theme color from the Bitmap using Palette API.
+ * Uses scoring to find the most suitable color.
+ */
 fun Bitmap.extractThemeColor(): Color {
     val colorsToPopulation = Palette.from(this)
         .maximumColorCount(8)
@@ -81,6 +101,10 @@ fun Bitmap.extractThemeColor(): Color {
     return Color(rankedColors.first())
 }
 
+/**
+ * Extracts a list of colors suitable for a gradient from the Bitmap.
+ * Returns at least two colors (primary and secondary/background).
+ */
 fun Bitmap.extractGradientColors(): List<Color> {
     val extractedColors = Palette.from(this)
         .maximumColorCount(64)
@@ -91,17 +115,21 @@ fun Bitmap.extractGradientColors(): List<Color> {
     val orderedColors = Score.score(extractedColors, 2, 0xff4285f4.toInt(), true)
         .sortedByDescending { Color(it).luminance() }
 
-    return if (orderedColors.size >= 2)
+    return if (orderedColors.size >= 2) {
         listOf(Color(orderedColors[0]), Color(orderedColors[1]))
-    else
+    } else {
         listOf(Color(0xFF595959), Color(0xFF0D0D0D))
+    }
 }
 
-fun ColorScheme.pureBlack(apply: Boolean) =
-    if (apply) copy(
+fun ColorScheme.pureBlack(apply: Boolean) = if (apply) {
+    copy(
         surface = Color.Black,
         background = Color.Black
-    ) else this
+    )
+} else {
+    this
+}
 
 val ColorSaver = object : Saver<Color, Int> {
     override fun restore(value: Int): Color = Color(value)

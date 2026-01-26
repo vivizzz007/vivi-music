@@ -358,4 +358,12 @@
     <string name="lyrics_line_spacing">Zeilenabstand</string>
     <string name="lyrics_style">Textstil</string>
     <string name="login_required_premium">YouTube Premium für sehr hohe Qualität erforderlich</string>
+    <!-- Power Saver -->
+    <string name="power_saver">Energiesparmodus</string>
+    <string name="power_saver_description">Aktivieren Sie den Energiesparmodus, um die Akkulaufzeit zu verlängern, indem Sie die Leistung reduzieren und Hintergrundfunktionen deaktivieren.</string>
+    <string name="enable_power_saver">Energiesparmodus aktivieren</string>
+    <string name="power_saver_subtitle">Reduziert visuelle Effekte und Hintergrundaktivitäten</string>
+    <string name="estimated_power_saved">Geschätzte Energieeinsparung</string>
+    <string name="disable_animations">Animationen deaktivieren</string>
+    <string name="disable_animations_desc">Reduziert den Akkuverbrauch durch Deaktivieren visueller Effekte</string>
 </resources>
