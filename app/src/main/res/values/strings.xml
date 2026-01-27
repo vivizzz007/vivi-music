@@ -798,6 +798,20 @@
     <string name="manage_account_preferences">Manage your account and preferences</string>
     <string name="signed_in">Signed in</string>
     <string name="not_signed_in">Not signed in</string>
+
+    <string name="player_design">Player Design</string>
+    <string name="ui_interface">UI Interface</string>
+    <string name="on">On</string>
+    <string name="off">Off</string>
+    <string name="customize_player_layout">Customize player layout</string>
+    <string name="customize_lyrics_style">Customize lyrics style</string>
+    <string name="customize_grid_navigation">Customize grid navigation</string>
+    <string name="grid_item_size">Grid item size</string>
+    <string name="player_background">Player background</string>
+    <string name="rotate_artwork_when_playing">Rotate artwork when playing</string>
+    <string name="lyrics_word_by_word">Word by word lyrics</string>
+    <string name="highlight_lyrics_word_by_word">Highlight lyrics word by word</string>
+
     <string name="tap_to_sign_in">Tap to sign in</string>
     <string name="token_shown_title">Token shown</string>
     <string name="token_hidden_title">Token hidden</string>

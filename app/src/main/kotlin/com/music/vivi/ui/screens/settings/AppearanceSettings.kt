@@ -245,7 +245,7 @@ private fun AppearanceMainScreen(
                     },
                     {
                         ModernInfoItem(
-                            icon = { Icon(painterResource(R.drawable.play_circle), null, modifier = Modifier.size(22.dp)) },
+                            icon = { Icon(painterResource(R.drawable.play), null, modifier = Modifier.size(22.dp)) },
                             title = stringResource(R.string.player_design),
                             subtitle = stringResource(R.string.customize_player_layout),
                             onClick = { onNavigate(AppearanceScreenType.PLAYER) },
@@ -408,7 +408,7 @@ private fun ThemeSettingsScreen(
                     },
                     {
                         ModernInfoItem(
-                            icon = { Icon(painterResource(R.drawable.brush), null, Modifier.size(22.dp)) },
+                            icon = { Icon(painterResource(R.drawable.edit), null, Modifier.size(22.dp)) },
                             title = "Shape Style",
                             subtitle = appShape.name,
                             onClick = { showShapeDialog = true },
@@ -433,7 +433,7 @@ private fun ThemeSettingsScreen(
                     },
                     {
                         ModernInfoItem(
-                            icon = { Icon(painterResource(R.drawable.text_fields), null, Modifier.size(22.dp)) },
+                            icon = { Icon(painterResource(R.drawable.short_text), null, Modifier.size(22.dp)) },
                             title = "App Font",
                             subtitle = appFont,
                             onClick = { showFontDialog = true },
