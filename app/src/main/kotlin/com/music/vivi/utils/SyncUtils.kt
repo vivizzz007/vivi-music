@@ -356,8 +356,8 @@ public class SyncUtils @Inject constructor(private val database: MusicDatabase) 
                 val likedResult = likedJob.await()
                 val createdResult = createdJob.await()
 
-                likedResult.onFailure { reportException(it) }
-                createdResult.onFailure { reportException(it) }
+                likedResult.onFailure { it.printStackTrace() }
+                createdResult.onFailure { it.printStackTrace() }
 
                 val remotePlaylists = (likedResult.getOrNull()?.items.orEmpty() + createdResult.getOrNull()?.items.orEmpty())
                     .filterIsInstance<PlaylistItem>()
@@ -399,6 +399,7 @@ public class SyncUtils @Inject constructor(private val database: MusicDatabase) 
                     database.update(playlistEntity, playlist)
                 }
                 syncPlaylist(playlist.id, playlistEntity.id)
+            }
             }
         } catch (e: Exception) {
             e.printStackTrace()
