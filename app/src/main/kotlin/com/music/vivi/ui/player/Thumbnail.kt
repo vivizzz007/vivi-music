@@ -73,8 +73,12 @@ import androidx.compose.ui.util.fastForEach
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import com.music.vivi.extensions.metadata
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
+import com.music.vivi.constants.CDCoverModeKey
 import com.music.vivi.constants.HidePlayerThumbnailKey
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PlayerBackgroundStyleKey
@@ -83,6 +87,7 @@ import com.music.vivi.constants.RotatingThumbnailKey
 import com.music.vivi.constants.SeekExtraSeconds
 import com.music.vivi.constants.ShowNowPlayingAppleMusicKey
 import com.music.vivi.constants.SwipeThumbnailKey
+import com.music.vivi.ui.component.CDPlayerCover
 import com.music.vivi.constants.ThumbnailCornerRadius
 import com.music.vivi.extensions.metadata
 import com.music.vivi.utils.rememberEnumPreference
@@ -107,6 +112,7 @@ fun Thumbnail(sliderPositionProvider: () -> Long?, modifier: Modifier = Modifier
     val swipeThumbnail by rememberPreference(SwipeThumbnailKey, true)
     val hidePlayerThumbnail by rememberPreference(HidePlayerThumbnailKey, false)
     val rotatingThumbnail by rememberPreference(RotatingThumbnailKey, false) // NEW: Add this
+    val cdCoverMode by rememberPreference(CDCoverModeKey, false)
     val canSkipPrevious by playerConnection.canSkipPrevious.collectAsState()
     val canSkipNext by playerConnection.canSkipNext.collectAsState()
     val showNowPlayingAppleMusic by rememberPreference(ShowNowPlayingAppleMusicKey, false)
@@ -390,6 +396,18 @@ fun Thumbnail(sliderPositionProvider: () -> Long?, modifier: Modifier = Modifier
                                 if (playerBackground == PlayerBackgroundStyle.APPLE_MUSIC) {
                                     // No foreground thumbnail for Apple Music style
                                     Box(modifier = Modifier.size(containerMaxWidth - (PlayerHorizontalPadding * 2)))
+                                } else if (cdCoverMode) {
+                                    // CD Cover Mode
+                                    Box(
+                                        modifier = Modifier
+                                            .size(containerMaxWidth - (PlayerHorizontalPadding * 2))
+                                            .padding(horizontal = 12.dp) // Add some padding so it doesn't touch edges
+                                    ) {
+                                        CDPlayerCover(
+                                            mediaMetadata = item.metadata,
+                                            isPlaying = isPlaying && isCurrentItem
+                                        )
+                                    }
                                 } else if (rotatingThumbnail) {
                                     // Rotating clover shape thumbnail
                                     @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -428,11 +446,9 @@ fun Thumbnail(sliderPositionProvider: () -> Long?, modifier: Modifier = Modifier
 
                                             // Main image
                                             AsyncImage(
-                                                model = coil3.request.ImageRequest.Builder(LocalContext.current)
+                                                model = ImageRequest.Builder(LocalContext.current)
                                                     .data(item.mediaMetadata.artworkUri?.toString())
-                                                    .memoryCachePolicy(coil3.request.CachePolicy.ENABLED)
-                                                    .diskCachePolicy(coil3.request.CachePolicy.ENABLED)
-                                                    .networkCachePolicy(coil3.request.CachePolicy.ENABLED)
+                                                    .crossfade(true)
                                                     .build(),
                                                 contentDescription = null,
                                                 contentScale = ContentScale.Fit,
@@ -470,11 +486,9 @@ fun Thumbnail(sliderPositionProvider: () -> Long?, modifier: Modifier = Modifier
                                             )
                                             // Main image
                                             AsyncImage(
-                                                model = coil3.request.ImageRequest.Builder(LocalContext.current)
+                                                model = ImageRequest.Builder(LocalContext.current)
                                                     .data(item.mediaMetadata.artworkUri?.toString())
-                                                    .memoryCachePolicy(coil3.request.CachePolicy.ENABLED)
-                                                    .diskCachePolicy(coil3.request.CachePolicy.ENABLED)
-                                                    .networkCachePolicy(coil3.request.CachePolicy.ENABLED)
+                                                    .crossfade(true)
                                                     .build(),
                                                 contentDescription = null,
                                                 contentScale = ContentScale.Fit,

@@ -190,7 +190,7 @@ fun PlayerSettings(
     )
     val (smartPause, onSmartPauseChange) = rememberPreference(
         PauseOnHeadphonesDisconnectKey,
-        defaultValue = false
+        defaultValue = true
     )
 
     val scrollState = rememberLazyListState()
