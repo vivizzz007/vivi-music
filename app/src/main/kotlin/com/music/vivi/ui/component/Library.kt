@@ -195,6 +195,7 @@ public fun LibraryAlbumGridItem(
                 }
             }
         },
+        fillMaxWidth = true,
         modifier = modifier
             .fillMaxWidth()
             .combinedClickable(
