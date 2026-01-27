@@ -94,6 +94,7 @@ public class ArtistViewModel @Inject constructor(
 
     public fun setArtistId(id: String) {
         if (_artistId.value != id) {
+            artistPage = null  // Reset to show loading indicator
             _artistId.value = id
             fetchArtistsFromYTM()
         }
@@ -102,6 +103,7 @@ public class ArtistViewModel @Inject constructor(
     public fun fetchArtistsFromYTM() {
         viewModelScope.launch {
             val id = _artistId.value ?: return@launch
+            artistPage = null  // Reset to show loading indicator
             val hideExplicit = context.dataStore.get(HideExplicitKey, false)
             val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
             YouTube.artist(id)
