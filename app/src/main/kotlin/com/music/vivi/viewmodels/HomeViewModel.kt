@@ -426,6 +426,8 @@ constructor(
                                                                 accountImageUrl.value =
                                                                         info.thumbnailUrl
                                                                 isLoggedIn.value = true
+                                                                // Trigger refresh to load account-specific home sections
+                                                                refresh()
                                                         }
                                                         .onFailure {
                                                                 if (it.message !=
@@ -434,8 +436,8 @@ constructor(
                                                                         reportException(it)
                                                                 }
                                                                 // Keep generic logged in state if
-                                                                // we have a valid cookie, even
-                                                                // if info fetch fails?
+                                                                // we have a valid cookie, but info
+                                                                // fetch fails?
                                                                 // Better to assume logged in if we
                                                                 // have a cookie, but verified
                                                                 // by info fetch is better.
@@ -443,12 +445,15 @@ constructor(
                                                                 // cookie was valid enough to
                                                                 // try.
                                                                 isLoggedIn.value = true
+                                                                refresh()
                                                         }
                                         } else {
                                                 accountName.value = "Guest"
                                                 accountImageUrl.value = null
                                                 _accountPlaylists.value = null
                                                 isLoggedIn.value = false
+                                                // Trigger refresh to load guest home sections
+                                                refresh()
                                         }
                                 } finally {
                                         isProcessingAccountData = false

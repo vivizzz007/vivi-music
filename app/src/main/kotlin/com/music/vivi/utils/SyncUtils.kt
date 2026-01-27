@@ -401,7 +401,11 @@ public class SyncUtils @Inject constructor(private val database: MusicDatabase) 
             val remoteIds = remotePlaylists.map { it.id }.toSet()
             val localPlaylists = database.playlistsByNameAsc().first()
 
-            if (!isFastSync && likedPage?.continuation == null && createdPage?.continuation == null && corpusPage?.continuation == null) {
+            // Only reconcile (remove from library local) if all jobs succeeded and we have the full remote lists
+            if (!isFastSync && 
+                likedResult.isSuccess && likedPage?.continuation == null && 
+                createdResult.isSuccess && createdPage?.continuation == null && 
+                corpusResult.isSuccess && corpusPage?.continuation == null) {
                 localPlaylists
                         .filterNot { it.playlist.browseId in remoteIds }
                         .filterNot { it.playlist.browseId == null }
