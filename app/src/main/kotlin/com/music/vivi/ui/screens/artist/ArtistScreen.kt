@@ -78,6 +78,14 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
+import androidx.compose.foundation.text.ClickableText
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -125,6 +133,9 @@ import com.music.vivi.ui.utils.fadingEdge
 import com.music.vivi.ui.utils.resize
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.ArtistViewModel
+
+
+
 /**
  * The Main Artist Page Screen.
  *
@@ -135,6 +146,7 @@ import com.music.vivi.viewmodels.ArtistViewModel
  * - Sections for Songs, Albums, Videos, and "Fans also like".
  * - Supports both Local (Library) and Remote (Online) artist views.
  */
+
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 public fun ArtistScreen(
@@ -343,26 +355,49 @@ public fun ArtistScreen(
 
 // Build the display text - only show full text, let maxLines handle truncation
                                 val displayText = description
+                                val linkColor = MaterialTheme.colorScheme.primary
+                                val annotatedDisplayText = remember(displayText, linkColor) {
+                                    parseTextWithLinks(displayText, linkColor)
+                                }
 
-                                Text(
-                                    text = displayText,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    textAlign = TextAlign.Start,
+                                ClickableText(
+                                    text = annotatedDisplayText,
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        textAlign = TextAlign.Start
+                                    ),
                                     modifier = Modifier
-                                        .padding(bottom = 16.dp)
-                                        .combinedClickable(
-                                            onClick = {
-                                                if (isDescriptionTruncated) {
-                                                    showDescriptionDialog = true
-                                                }
-                                            }
-                                        ),
+                                        .padding(bottom = 16.dp),
                                     maxLines = 3,
                                     overflow = TextOverflow.Ellipsis,
                                     onTextLayout = { textLayoutResult ->
                                         // Check if text is actually truncated by the maxLines constraint
                                         isDescriptionTruncated = textLayoutResult.hasVisualOverflow
+                                    },
+                                    onClick = { offset ->
+                                        // First check if clicked on a URL
+                                        val urlClicked = annotatedDisplayText.getStringAnnotations(
+                                            tag = "URL",
+                                            start = offset,
+                                            end = offset
+                                        ).firstOrNull()
+                                        
+                                        if (urlClicked != null) {
+                                            // Open the URL
+                                            try {
+                                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(urlClicked.item))
+                                                context.startActivity(intent)
+                                            } catch (e: Exception) {
+                                                Toast.makeText(
+                                                    context,
+                                                    context.getString(R.string.error_opening_link),
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        } else if (isDescriptionTruncated) {
+                                            // If not clicked on URL and text is truncated, show dialog
+                                            showDescriptionDialog = true
+                                        }
                                     }
                                 )
 
@@ -405,11 +440,36 @@ public fun ArtistScreen(
                                             }
                                         },
                                         text = {
+                                            val linkColor = MaterialTheme.colorScheme.primary
+                                            val annotatedDescription = remember(description, linkColor) {
+                                                parseTextWithLinks(description, linkColor)
+                                            }
+
                                             LazyColumn {
                                                 item {
-                                                    Text(
-                                                        text = description,
-                                                        style = MaterialTheme.typography.bodyMedium
+                                                    ClickableText(
+                                                        text = annotatedDescription,
+                                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                                            color = MaterialTheme.colorScheme.onSurface
+                                                        ),
+                                                        onClick = { offset ->
+                                                            annotatedDescription.getStringAnnotations(
+                                                                tag = "URL",
+                                                                start = offset,
+                                                                end = offset
+                                                            ).firstOrNull()?.let { annotation ->
+                                                                try {
+                                                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(annotation.item))
+                                                                    context.startActivity(intent)
+                                                                } catch (e: Exception) {
+                                                                    Toast.makeText(
+                                                                        context,
+                                                                        context.getString(R.string.error_opening_link),
+                                                                        Toast.LENGTH_SHORT
+                                                                    ).show()
+                                                                }
+                                                            }
+                                                        }
                                                     )
                                                 }
                                             }
