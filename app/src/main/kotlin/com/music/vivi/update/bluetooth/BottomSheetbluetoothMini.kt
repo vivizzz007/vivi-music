@@ -588,13 +588,12 @@ fun AudioQualitySelector(context: Context) {
             stringResource(R.string.audio_quality_auto),
             stringResource(R.string.audio_quality_very_high),
             stringResource(R.string.audio_quality_high),
-            stringResource(R.string.audio_quality_very_high),
             stringResource(R.string.audio_quality_low)
         )
         val selectedIndex = when (audioQuality) {
             AudioQuality.AUTO -> 0
-            AudioQuality.HIGH -> 1
-            AudioQuality.VERY_HIGH -> 2
+            AudioQuality.VERY_HIGH -> 1
+            AudioQuality.HIGH -> 2
             AudioQuality.LOW -> 3
         }
 
@@ -611,8 +610,8 @@ fun AudioQualitySelector(context: Context) {
                     onCheckedChange = {
                         val newQuality = when (index) {
                             0 -> AudioQuality.AUTO
-                            1 -> AudioQuality.HIGH
-                            2 -> AudioQuality.VERY_HIGH
+                            1 -> AudioQuality.VERY_HIGH
+                            2 -> AudioQuality.HIGH
                             else -> AudioQuality.LOW
                         }
                         onAudioQualityChange(newQuality)
