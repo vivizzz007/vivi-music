@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.application")
-
+    kotlin("android")
     id("kotlin-parcelize")
 
     alias(libs.plugins.hilt)
