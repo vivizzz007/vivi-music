@@ -83,6 +83,7 @@ import java.util.UUID
 fun LibraryPlaylistsScreen(
     navController: NavController,
     filterContent: @Composable () -> Unit,
+    onNavigate: ((String) -> Unit)? = null,
     viewModel: LibraryPlaylistsViewModel = hiltViewModel(),
     initialTextFieldValue: String? = null,
     allowSyncing: Boolean = true,
@@ -293,7 +294,8 @@ fun LibraryPlaylistsScreen(
                                     .fillMaxWidth()
                                     
                                     .clickable {
-                                        navController.navigate("auto_playlist/liked")
+                                        val route = "auto_playlist/liked"
+                                        if (onNavigate != null) onNavigate(route) else navController.navigate(route)
                                     },
                             )
                         }
@@ -311,7 +313,8 @@ fun LibraryPlaylistsScreen(
                                 Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        navController.navigate("auto_playlist/downloaded")
+                                        val route = "auto_playlist/downloaded"
+                                        if (onNavigate != null) onNavigate(route) else navController.navigate(route)
                                     },
                             )
                         }
@@ -329,7 +332,8 @@ fun LibraryPlaylistsScreen(
                                 Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        navController.navigate("top_playlist/$topSize")
+                                        val route = "top_playlist/$topSize"
+                                        if (onNavigate != null) onNavigate(route) else navController.navigate(route)
                                     },
                             )
                         }
@@ -347,7 +351,8 @@ fun LibraryPlaylistsScreen(
                                 Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        navController.navigate("cache_playlist/cached")
+                                        val route = "cache_playlist/cached"
+                                        if (onNavigate != null) onNavigate(route) else navController.navigate(route)
                                     },
                             )
                         }
@@ -365,7 +370,8 @@ fun LibraryPlaylistsScreen(
                                     Modifier
                                         .fillMaxWidth()
                                         .clickable {
-                                            navController.navigate("auto_playlist/uploaded")
+                                            val route = "auto_playlist/uploaded"
+                                            if (onNavigate != null) onNavigate(route) else navController.navigate(route)
                                         },
                             )
                         }
@@ -387,7 +393,15 @@ fun LibraryPlaylistsScreen(
                                 menuState = menuState,
                                 coroutineScope = coroutineScope,
                                 playlist = playlist,
-                                modifier = Modifier
+                                modifier = Modifier,
+                                onItemClick = onNavigate?.let { navigate ->
+                                    {
+                                        if (!playlist.playlist.isEditable && playlist.songCount == 0 && playlist.playlist.remoteSongCount != 0)
+                                            navigate("online_playlist/${playlist.playlist.browseId}")
+                                        else
+                                            navigate("local_playlist/${playlist.id}")
+                                    }
+                                }
                             )
                         }
                     }
@@ -441,7 +455,8 @@ fun LibraryPlaylistsScreen(
                                     .fillMaxWidth()
                                     .combinedClickable(
                                         onClick = {
-                                            navController.navigate("auto_playlist/liked")
+                                            val route = "auto_playlist/liked"
+                                            if (onNavigate != null) onNavigate(route) else navController.navigate(route)
                                         },
                                     ),
                             )
@@ -462,7 +477,8 @@ fun LibraryPlaylistsScreen(
                                     .fillMaxWidth()
                                     .combinedClickable(
                                         onClick = {
-                                            navController.navigate("auto_playlist/downloaded")
+                                            val route = "auto_playlist/downloaded"
+                                            if (onNavigate != null) onNavigate(route) else navController.navigate(route)
                                         },
                                     ),
                             )
@@ -483,7 +499,8 @@ fun LibraryPlaylistsScreen(
                                     .fillMaxWidth()
                                     .combinedClickable(
                                         onClick = {
-                                            navController.navigate("top_playlist/$topSize")
+                                            val route = "top_playlist/$topSize"
+                                            if (onNavigate != null) onNavigate(route) else navController.navigate(route)
                                         },
                                     ),
                             )
@@ -504,7 +521,8 @@ fun LibraryPlaylistsScreen(
                                     .fillMaxWidth()
                                     .combinedClickable(
                                         onClick = {
-                                            navController.navigate("cache_playlist/cached")
+                                            val route = "cache_playlist/cached"
+                                            if (onNavigate != null) onNavigate(route) else navController.navigate(route)
                                         },
                                     ),
                             )
@@ -524,7 +542,8 @@ fun LibraryPlaylistsScreen(
                                     Modifier
                                         .fillMaxWidth()
                                         .clickable {
-                                            navController.navigate("auto_playlist/uploaded")
+                                            val route = "auto_playlist/uploaded"
+                                            if (onNavigate != null) onNavigate(route) else navController.navigate(route)
                                         },
                             )
                         }
@@ -546,7 +565,15 @@ fun LibraryPlaylistsScreen(
                                 menuState = menuState,
                                 coroutineScope = coroutineScope,
                                 playlist = playlist,
-                                modifier = Modifier
+                                modifier = Modifier,
+                                onItemClick = onNavigate?.let { navigate ->
+                                    {
+                                        if (!playlist.playlist.isEditable && playlist.songCount == 0 && playlist.playlist.remoteSongCount != 0)
+                                            navigate("online_playlist/${playlist.playlist.browseId}")
+                                        else
+                                            navigate("local_playlist/${playlist.id}")
+                                    }
+                                }
                             )
                         }
                     }

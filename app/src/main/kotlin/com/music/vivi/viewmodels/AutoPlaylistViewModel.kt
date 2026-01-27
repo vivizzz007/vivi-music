@@ -17,8 +17,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -34,7 +38,8 @@ constructor(
     savedStateHandle: SavedStateHandle,
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
-    val playlist = savedStateHandle.get<String>("playlist")!!
+    private val _playlist = MutableStateFlow(savedStateHandle.get<String>("playlist"))
+    val playlist = _playlist.asStateFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val likedSongs =
@@ -49,20 +54,29 @@ constructor(
             .distinctUntilChanged()
             .flatMapLatest { (sortDesc, hideExplicit) ->
                 val (sortType, descending) = sortDesc
-                when (playlist) {
-                    "liked" -> database.likedSongs(sortType, descending)
-                        .map { it.filterExplicit(hideExplicit) }
+                
+                _playlist.filterNotNull().flatMapLatest { playlistName ->
+                     when (playlistName) {
+                        "liked" -> database.likedSongs(sortType, descending)
+                            .map { it.filterExplicit(hideExplicit) }
 
-                    "downloaded" -> database.downloadedSongs(sortType, descending)
-                        .map { it.filterExplicit(hideExplicit) }
+                        "downloaded" -> database.downloadedSongs(sortType, descending)
+                            .map { it.filterExplicit(hideExplicit) }
 
-                    "uploaded" -> database.uploadedSongs(sortType, descending)
-                        .map { it.filterExplicit(hideExplicit) }
+                        "uploaded" -> database.uploadedSongs(sortType, descending)
+                            .map { it.filterExplicit(hideExplicit) }
 
-                    else -> kotlinx.coroutines.flow.flowOf(emptyList())
+                        else -> flowOf(emptyList())
+                    }
                 }
             }
             .stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.Lazily, emptyList())
+
+    fun setPlaylist(playlistParam: String) {
+        if (_playlist.value != playlistParam) {
+            _playlist.value = playlistParam
+        }
+    }
 
     fun syncLikedSongs() {
         viewModelScope.launch(Dispatchers.IO) { syncUtils.syncLikedSongs() }

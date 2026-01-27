@@ -126,9 +126,16 @@ import com.music.vivi.viewmodels.AlbumViewModel
 fun AlbumScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    albumId: String? = null,
     viewModel: AlbumViewModel = hiltViewModel(),
-    onDismiss: () -> Unit = {}
+    onDismiss: () -> Unit = {},
+    onBack: () -> Unit = { navController.navigateUp() },
 ) {
+    if (albumId != null) {
+        LaunchedEffect(albumId) {
+            viewModel.setAlbumId(albumId)
+        }
+    }
     val context = LocalContext.current
     val menuState = LocalMenuState.current
     val database = LocalDatabase.current
@@ -925,7 +932,7 @@ fun AlbumScreen(
                         if (selection) {
                             selection = false
                         } else {
-                            navController.navigateUp()
+                            onBack()
                         }
                     },
                     onLongClick = {

@@ -163,6 +163,10 @@ class NewsRepository @Inject constructor(
                 return prefs.getString(contentKey, "") ?: ""
             }
             
+            if (responseCode == 403) {
+                 throw Exception("GitHub wants money but doesn't get any; this is the error for it!")
+            }
+            
             if (responseCode !in 200..299) {
                  throw Exception("HTTP $responseCode: $responseMessage")
             }

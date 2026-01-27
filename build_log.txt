@@ -1,0 +1,79 @@
+Reusing configuration cache.
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :kizzy:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :betterlyrics:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :lrclib:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:preBuild UP-TO-DATE
+> Task :innertube:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :lastfm:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :kugou:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :lrclib:processResources NO-SOURCE
+> Task :lastfm:processResources NO-SOURCE
+> Task :kizzy:processResources NO-SOURCE
+> Task :innertube:processResources NO-SOURCE
+> Task :betterlyrics:processResources NO-SOURCE
+> Task :kugou:processResources NO-SOURCE
+> Task :app:preArm64FossDebugBuild UP-TO-DATE
+> Task :app:createArm64FossDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:generateArm64FossDebugBuildConfig UP-TO-DATE
+> Task :app:generateArm64FossDebugResValues UP-TO-DATE
+> Task :app:extractDeepLinksArm64FossDebug UP-TO-DATE
+> Task :app:extractArm64FossDebugSupportedLocales UP-TO-DATE
+> Task :app:generateArm64FossDebugResources UP-TO-DATE
+> Task :kizzy:compileKotlin UP-TO-DATE
+> Task :betterlyrics:compileKotlin UP-TO-DATE
+> Task :kugou:compileKotlin UP-TO-DATE
+> Task :lastfm:compileKotlin UP-TO-DATE
+> Task :lastfm:compileJava NO-SOURCE
+> Task :betterlyrics:compileJava NO-SOURCE
+> Task :kizzy:compileJava NO-SOURCE
+> Task :kizzy:classes UP-TO-DATE
+> Task :kugou:compileJava NO-SOURCE
+> Task :lastfm:classes UP-TO-DATE
+> Task :app:checkArm64FossDebugAarMetadata UP-TO-DATE
+> Task :lrclib:compileKotlin UP-TO-DATE
+> Task :innertube:compileKotlin UP-TO-DATE
+> Task :kugou:classes UP-TO-DATE
+> Task :betterlyrics:classes UP-TO-DATE
+> Task :app:processArm64FossDebugNavigationResources UP-TO-DATE
+> Task :lastfm:jar UP-TO-DATE
+> Task :lrclib:compileJava NO-SOURCE
+> Task :kugou:jar UP-TO-DATE
+> Task :innertube:compileJava NO-SOURCE
+> Task :lrclib:classes UP-TO-DATE
+> Task :innertube:classes UP-TO-DATE
+> Task :kizzy:jar UP-TO-DATE
+> Task :betterlyrics:jar UP-TO-DATE
+> Task :app:compileArm64FossDebugNavigationResources UP-TO-DATE
+> Task :app:mapArm64FossDebugSourceSetPaths UP-TO-DATE
+> Task :lrclib:jar UP-TO-DATE
+> Task :innertube:jar UP-TO-DATE
+> Task :app:processArm64FossDebugMainManifest UP-TO-DATE
+> Task :app:generateArm64FossDebugLocaleConfig UP-TO-DATE
+> Task :app:processArm64FossDebugManifest UP-TO-DATE
+> Task :app:mergeArm64FossDebugResources UP-TO-DATE
+> Task :app:processArm64FossDebugManifestForPackage UP-TO-DATE
+> Task :app:processArm64FossDebugResources UP-TO-DATE
+> Task :app:kspArm64FossDebugKotlin UP-TO-DATE
+
+> Task :app:compileArm64FossDebugKotlin FAILED
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/lyrics/LyricsHelper.kt:150:56 Unresolved reference 'PowerSaverLyricsKey'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/playback/MusicService.kt:1786:28 Unresolved reference 'stop'.
+e: file:///D:/DEV/vivi/vivi-music/app/src/main/kotlin/com/music/vivi/playback/managers/IntegrationManager.kt:238:2 Syntax error: Missing '}.
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileArm64FossDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 11s
+30 actionable tasks: 1 executed, 29 up-to-date
+Configuration cache entry reused.

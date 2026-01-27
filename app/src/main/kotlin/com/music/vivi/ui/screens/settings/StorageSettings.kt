@@ -78,6 +78,7 @@ import kotlinx.coroutines.launch
 fun StorageSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    onBack: (() -> Unit)? = null,
 ) {
     val (settingsShapeTertiary, _) = rememberPreference(SettingsShapeColorTertiaryKey, false)
     val (darkMode, _) = rememberEnumPreference(
@@ -212,7 +213,7 @@ fun StorageSettings(
                     title = { /* Text(stringResource(R.string.storage)) */ },
                     navigationIcon = {
                         IconButton(
-                            onClick = navController::navigateUp,
+                            onClick = { onBack?.invoke() ?: navController.navigateUp() },
                             onLongClick = navController::backToMain,
                         ) {
                             Icon(

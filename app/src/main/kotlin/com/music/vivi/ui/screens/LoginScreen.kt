@@ -72,7 +72,9 @@ fun LoginScreen(
                                     accountEmail = it.email.orEmpty()
                                     accountChannelHandle = it.channelHandle.orEmpty()
                                 }.onFailure {
-                                    reportException(it)
+                                    if (it.message != "Active account info not found in header") {
+                                        reportException(it)
+                                    }
                                 }
                             }
                         }

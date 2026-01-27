@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="explore">Jelajahi</string>
+    <string name="charts">Tangga Lagu</string>
+    <string name="trending">Sedang Tren</string>
+    
+    <string name="back_button_desc">Kembali</string>
+    <string name="retry_button">Coba lagi</string>
+    <string name="cancel">Batal</string>
+    <string name="close">Tutup</string>
+    <string name="done">Selesai</string>
+    
+    <string name="enable_squiggly_slider">Aktifkan slider berlekuk</string>
+    <string name="enable_swipe_thumbnail">Geser untuk ganti lagu</string>
+    
+    <string name="settings_title">Pengaturan</string>
+    <string name="settings_section_ui">Antarmuka</string>
+    <string name="settings_section_privacy">Privasi &amp; Keamanan</string>
+    <string name="settings_section_player">Pemutar &amp; Media</string>
+    <string name="settings_section_storage">Penyimpanan &amp; Data</string>
+    <string name="settings_section_system">Sistem &amp; Tentang</string>
+
+    <string name="player_background_style">Gaya latar belakang pemutar</string>
+    <string name="modern_player_interface">Antarmuka pemutar modern</string>
+    
+    <string name="lyrics">Lirik</string>
+    <string name="share_lyrics">Bagikan lirik</string>
+
+    <string name="download_song">Unduh lagu</string>
+    <string name="download_album">Unduh album</string>
+    <string name="download_playlist">Unduh playlist</string>
+
+    <string name="connect_with_discord">Hubungkan dengan Discord</string>
+    
+    <string name="about_subtitle">Info aplikasi &amp; pengembang</string>
+    <string name="developer">Pengembang</string>
+    <string name="app_developer">Pengembang Aplikasi</string>
+    
+    <string name="update_available">Pembaruan tersedia</string>
+    <string name="check_for_updates">Periksa pembaruan</string>
+
+    <string name="reset_app">Atur ulang aplikasi</string>
+    <string name="send_feedback">Kirim masukan</string>
+    <string name="report_issue_title">Laporkan masalah</string>
+</resources>

@@ -69,6 +69,7 @@ import com.music.vivi.ui.screens.settings.DarkMode
 fun PrivacySettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    onBack: (() -> Unit)? = null,
 ) {
     val (settingsShapeTertiary, _) = rememberPreference(SettingsShapeColorTertiaryKey, false)
     val (darkMode, _) = rememberEnumPreference(
@@ -204,7 +205,7 @@ fun PrivacySettings(
                     title = {},
                     navigationIcon = {
                         IconButton(
-                            onClick = navController::navigateUp,
+                            onClick = { onBack?.invoke() ?: navController.navigateUp() },
                             onLongClick = navController::backToMain
                         ) {
                             Icon(

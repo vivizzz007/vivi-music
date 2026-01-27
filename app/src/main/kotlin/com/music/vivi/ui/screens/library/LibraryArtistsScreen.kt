@@ -83,6 +83,7 @@ import kotlinx.coroutines.withContext
 fun LibraryArtistsScreen(
     navController: NavController,
     onDeselect: () -> Unit,
+    onNavigate: ((String) -> Unit)? = null,
     viewModel: LibraryArtistsViewModel = hiltViewModel(),
 ) {
     val menuState = LocalMenuState.current
@@ -289,7 +290,8 @@ fun LibraryArtistsScreen(
                                             menuState = menuState,
                                             coroutineScope = coroutineScope,
                                             modifier = Modifier.fillMaxSize(),
-                                            artist = artist
+                                            artist = artist,
+                                            onItemClick = onNavigate?.let { navigate -> { navigate("artist/${artist.id}") } }
                                         )
                                     }
 
@@ -349,7 +351,8 @@ fun LibraryArtistsScreen(
                                 menuState = menuState,
                                 coroutineScope = coroutineScope,
                                 modifier = Modifier,
-                                artist = artist
+                                artist = artist,
+                                onItemClick = onNavigate?.let { navigate -> { navigate("artist/${artist.id}") } }
                             )
                         }
                     }

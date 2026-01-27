@@ -253,7 +253,10 @@
     <string name="right">Droite</string>
     <string name="player_slider_style">Style de curseur du lecteur</string>
     <string name="default_">Défaut</string>
+    <string name="wavy">Ondulé</string>
     <string name="squiggly">Ondulations</string>
+    <string name="slim">Fin</string>
+
     <string name="misc">Divers</string>
     <string name="default_open_tab">Onglet ouvert par défaut</string>
     <string name="grid_cell_size">Taille des cellules de la grille</string>
@@ -353,4 +356,5 @@
     <string name="lyrics_text_size">Taille du texte des paroles</string>
     <string name="lyrics_line_spacing">Espacement des lignes des paroles</string>
     <string name="lyrics_style">Style des paroles</string>
+    <string name="login_required_premium">YouTube Premium requis pour la très haute qualité</string>
 </resources>

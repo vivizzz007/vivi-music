@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="explore">استكشاف</string>
+    <string name="charts">القوائم</string>
+    <string name="trending">الشائع</string>
+    
+    <string name="back_button_desc">رجوع</string>
+    <string name="retry_button">إعادة المحاولة</string>
+    <string name="cancel">إلغاء</string>
+    <string name="close">إغلاق</string>
+    <string name="done">تم</string>
+    
+    <string name="enable_squiggly_slider">تفعيل الشريط المتعرج</string>
+    <string name="enable_swipe_thumbnail">السحب لتغيير الأغنية</string>
+    
+    <string name="settings_title">الإعدادات</string>
+    <string name="settings_section_ui">الواجهة</string>
+    <string name="settings_section_privacy">الخصوصية والأمان</string>
+    <string name="settings_section_player">المشغل والوسائط</string>
+    <string name="settings_section_storage">التخزين والبيانات</string>
+    <string name="settings_section_system">النظام وحول</string>
+
+    <string name="player_background_style">نمط خلفية المشغل</string>
+    <string name="modern_player_interface">واجهة المشغل الحديثة</string>
+    
+    <string name="lyrics">كلمات الأغنية</string>
+    <string name="share_lyrics">مشاركة الكلمات</string>
+
+    <string name="download_song">تنزيل الأغنية</string>
+    <string name="download_album">تنزيل الألبوم</string>
+    <string name="download_playlist">تنزيل قائمة التشغيل</string>
+
+    <string name="connect_with_discord">الاتصال بـ Discord</string>
+    
+    <string name="about_subtitle">معلومات التطبيق والمطور</string>
+    <string name="developer">المطور</string>
+    <string name="app_developer">مطور التطبيق</string>
+    
+    <string name="update_available">تحديث متاح</string>
+    <string name="check_for_updates">التحقق من التحديثات</string>
+
+    <string name="reset_app">إعادة تعيين التطبيق</string>
+    <string name="send_feedback">إرسال ملاحظات</string>
+    <string name="report_issue_title">الإبلاغ عن مشكلة</string>
+</resources>

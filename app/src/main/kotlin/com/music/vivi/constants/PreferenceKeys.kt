@@ -11,6 +11,14 @@ import java.time.ZoneOffset
 val DynamicThemeKey = booleanPreferencesKey("dynamicTheme")
 val DarkModeKey = stringPreferencesKey("darkMode")
 val PureBlackKey = booleanPreferencesKey("pureBlack")
+val Material3ExpressiveKey = booleanPreferencesKey("material3_expressive")
+val PowerSaverKey = booleanPreferencesKey("power_saver")
+val PowerSaverPureBlackKey = booleanPreferencesKey("power_saver_pure_black")
+val PowerSaverHighRefreshRateKey = booleanPreferencesKey("power_saver_high_refresh_rate")
+val PowerSaverDiscordKey = booleanPreferencesKey("power_saver_discord")
+val PowerSaverLastFMKey = booleanPreferencesKey("power_saver_lastfm")
+val PowerSaverLyricsKey = booleanPreferencesKey("power_saver_lyrics")
+val PowerSaverPauseOnZeroVolumeKey = booleanPreferencesKey("power_saver_pause_on_zero_volume")
 val DefaultOpenTabKey = stringPreferencesKey("defaultOpenTab")
 val SlimNavBarKey = booleanPreferencesKey("slimNavBar")
 val GridItemsSizeKey = stringPreferencesKey("gridItemSize")
@@ -22,6 +30,7 @@ val HidePlayerThumbnailKey = booleanPreferencesKey("hidePlayerThumbnail")
 val SeekExtraSeconds = booleanPreferencesKey("seekExtraSeconds")
 val ShowNowPlayingAppleMusicKey = booleanPreferencesKey("show_now_playing_apple_music")
 val HighRefreshRateKey = booleanPreferencesKey("high_refresh_rate")
+val ShowMonthlyListenersKey = booleanPreferencesKey("show_monthly_listeners")
 
 
 val HideVideoSongsKey = booleanPreferencesKey("hideVideoSongs")
@@ -41,6 +50,7 @@ val ContentCountryKey = stringPreferencesKey("contentCountry")
 val EnableKugouKey = booleanPreferencesKey("enableKugou")
 val EnableLrcLibKey = booleanPreferencesKey("enableLrclib")
 val EnableBetterLyricsKey = booleanPreferencesKey("enable_better_lyrics")
+val EnableSimpMusicKey = booleanPreferencesKey("enable_simpmusic")
 val EnableYouTubeLyricsKey = booleanPreferencesKey("enable_youtube_lyrics")
 val EnableYouTubeSubtitleKey = booleanPreferencesKey("enable_youtube_subtitle")
 val HideExplicitKey = booleanPreferencesKey("hideExplicit")
@@ -64,6 +74,7 @@ enum class AudioQuality {
     AUTO,
     HIGH,
     LOW,
+    VERY_HIGH,
 }
 val AudioOffload = booleanPreferencesKey("enableOffload")
 
@@ -294,6 +305,7 @@ enum class PreferredLyricsProvider {
     BETTERLYRICS,
     LRCLIB,
     KUGOU,
+    SIMPMUSIC,
 }
 
 enum class PlayerButtonsStyle {

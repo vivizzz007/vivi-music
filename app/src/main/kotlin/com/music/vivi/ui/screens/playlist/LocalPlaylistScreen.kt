@@ -186,8 +186,15 @@ import com.music.vivi.ui.component.RoundedCheckbox
 fun LocalPlaylistScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    playlistId: String? = null,
     viewModel: LocalPlaylistViewModel = hiltViewModel(),
+    onBack: () -> Unit = { navController.navigateUp() },
 ) {
+    if (playlistId != null) {
+        LaunchedEffect(playlistId) {
+            viewModel.setPlaylistId(playlistId)
+        }
+    }
     val context = LocalContext.current
     val menuState = LocalMenuState.current
     val database = LocalDatabase.current
@@ -420,12 +427,12 @@ fun LocalPlaylistScreen(
         if (!reorderableState.isAnyItemDragging) {
             dragInfo?.let { (from, to) ->
                 database.transaction {
-                    move(viewModel.playlistId, from, to)
+                    move(viewModel.playlistId.value!!, from, to)
                 }
 
                 if (viewModel.playlist.value?.playlist?.browseId != null) {
                     viewModel.viewModelScope.launch(Dispatchers.IO) {
-                        val playlistSongMap = database.playlistSongMaps(viewModel.playlistId, 0)
+                        val playlistSongMap = database.playlistSongMaps(viewModel.playlistId.value!!, 0)
                         val successorIndex = if (from > to) to else to + 1
                         val successorSetVideoId = playlistSongMap.getOrNull(successorIndex)?.setVideoId
 
@@ -1494,7 +1501,7 @@ fun LocalPlaylistScreen(
                         } else if (selection) {
                             selection = false
                         } else {
-                            navController.navigateUp()
+                            onBack()
                         }
                     },
                     onLongClick = {
