@@ -3,6 +3,7 @@ package com.music.vivi.playback
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import coil3.request.*
 import android.util.Log
 import androidx.media3.session.MediaButtonReceiver
 
@@ -19,7 +20,8 @@ import androidx.media3.session.MediaButtonReceiver
 class SafeMediaButtonReceiver : BroadcastReceiver() {
     private val delegate = MediaButtonReceiver()
 
-    override fun onReceive(context: Context, intent: Intent) {
+    override fun onReceive(context: Context?, intent: Intent?) {
+        if (context == null || intent == null) return
         try {
             delegate.onReceive(context, intent)
         } catch (e: Exception) {
