@@ -73,6 +73,8 @@ import androidx.compose.ui.util.fastForEach
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.CDCoverModeKey
@@ -401,7 +403,7 @@ fun Thumbnail(sliderPositionProvider: () -> Long?, modifier: Modifier = Modifier
                                             .padding(horizontal = 12.dp) // Add some padding so it doesn't touch edges
                                     ) {
                                         CDPlayerCover(
-                                            mediaMetadata = item.mediaMetadata,
+                                            mediaMetadata = item.metadata,
                                             isPlaying = isPlaying && isCurrentItem
                                         )
                                     }

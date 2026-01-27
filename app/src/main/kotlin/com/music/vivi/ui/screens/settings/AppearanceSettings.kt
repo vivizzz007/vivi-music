@@ -378,7 +378,7 @@ private fun ThemeSettingsScreen(
                             Box(Modifier.weight(1f)) {
                                 ModernInfoItem(
                                     icon = { Icon(painterResource(R.drawable.dark_mode), null, Modifier.size(22.dp)) },
-                                    title = stringResource(R.string.dark_mode),
+                                    title = stringResource(R.string.dark_theme),
                                     subtitle = when (darkModePref) {
                                         DarkMode.ON -> stringResource(R.string.on)
                                         DarkMode.OFF -> stringResource(R.string.off)

@@ -1,5 +1,6 @@
 package com.music.vivi.playback
 
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
@@ -15,10 +16,12 @@ import androidx.media3.session.MediaButtonReceiver
  *
  * This class catches that exception to prevent the app from crashing.
  */
-class SafeMediaButtonReceiver : MediaButtonReceiver() {
+class SafeMediaButtonReceiver : BroadcastReceiver() {
+    private val delegate = MediaButtonReceiver()
+
     override fun onReceive(context: Context, intent: Intent) {
         try {
-            super.onReceive(context, intent)
+            delegate.onReceive(context, intent)
         } catch (e: Exception) {
             // This catches ForegroundServiceStartNotAllowedException (Android 12+)
             // and other potential service start failures.
