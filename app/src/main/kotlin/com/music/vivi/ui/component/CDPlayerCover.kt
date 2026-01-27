@@ -1,11 +1,7 @@
 package com.music.vivi.ui.component
 
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -13,38 +9,32 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import androidx.compose.ui.res.painterResource
 
 import com.music.vivi.R
-// Explicit FQN used in signature, import removed to avoid ambiguity
-// import com.music.vivi.models.MediaMetadata
+// import com.music.vivi.models.MediaMetadata // Explicit usage in signature to avoid ambiguity
 
 /**
  * A CD-Style Player Cover.
@@ -82,35 +72,58 @@ fun CDPlayerCover(
         }
 
         // Slide out animation for the disc
-        val density = androidx.compose.ui.platform.LocalDensity.current
-        val translationXPx = with(density) { 60.dp.toPx() } // Responsive offset
+        val density = LocalDensity.current
+        val translationXPx = remember(density) { with(density) { 60.dp.toPx() } }
 
-        val translationX by animateFloatAsState(
+        // Use state object directly to avoid recomposition on every frame
+        val translationXState = animateFloatAsState(
             targetValue = if (isPlaying) translationXPx else 0f,
             animationSpec = tween(1000, easing = androidx.compose.animation.core.FastOutSlowInEasing),
             label = "slide"
         )
 
+        val context = LocalContext.current
+
+        // Remember the ImageRequest to avoid rebuilding it on every recomposition
+        val imageRequest = remember(mediaMetadata?.thumbnailUrl, context) {
+            if (mediaMetadata != null) {
+                ImageRequest.Builder(context)
+                    .data(mediaMetadata.thumbnailUrl)
+                    .crossfade(true)
+                    .build()
+            } else null
+        }
+
+        // Remember expensive Brush creation
+        val cdReflectionBrush = remember {
+             Brush.radialGradient(
+                colors = listOf(
+                    Color.Transparent,
+                    Color.White.copy(alpha = 0.15f),
+                    Color.Transparent,
+                    Color.White.copy(alpha = 0.1f),
+                    Color.Transparent
+                )
+            )
+        }
+
         // Disc (Behind)
         Box(
             modifier = Modifier
-                .fillMaxSize(0.95f) // Slightly smaller than full case
+                .fillMaxSize(0.95f)
                 .graphicsLayer {
-                    this.translationX = translationX // Apply sliding
-                    rotationZ = currentRotation.value // Apply smooth rotation
+                    translationX = translationXState.value // Read state inside graphicsLayer
+                    rotationZ = currentRotation.value // Read Animatable value inside graphicsLayer
                 }
                 .shadow(8.dp, CircleShape)
                 .clip(CircleShape)
                 .background(Color.DarkGray)
         ) {
             // Disc texture (Crop of Album Art)
-            if (mediaMetadata != null) {
+            if (imageRequest != null) {
                 AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(mediaMetadata.thumbnailUrl)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = null,
+                    model = imageRequest,
+                    contentDescription = mediaMetadata?.title ?: "Album Art",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = androidx.compose.ui.layout.ContentScale.Crop
                 )
@@ -129,17 +142,8 @@ fun CDPlayerCover(
                 )
 
                 // 2. Subtle radial gradients to simulate CD reflection
-                // (Simplified "gloss" effect)
                 drawCircle(
-                    brush = Brush.radialGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            Color.White.copy(alpha = 0.15f),
-                            Color.Transparent,
-                            Color.White.copy(alpha = 0.1f),
-                            Color.Transparent
-                        )
-                    ),
+                    brush = cdReflectionBrush,
                     radius = radius,
                     center = center
                 )
@@ -158,23 +162,24 @@ fun CDPlayerCover(
         // Stays static, square.
         Box(
             modifier = Modifier
-                .fillMaxSize(0.95f) // Match size of disc visually (square vs circle)
+                .fillMaxSize(0.95f) // Match size of disc visually
                 .shadow(12.dp, RoundedCornerShape(4.dp))
                 .clip(RoundedCornerShape(4.dp))
                 .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
-            if (mediaMetadata != null) {
+            if (imageRequest != null) {
                 AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(mediaMetadata.thumbnailUrl)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = null,
+                    model = imageRequest,
+                    contentDescription = mediaMetadata?.title ?: "Album Art",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = androidx.compose.ui.layout.ContentScale.Crop
                 )
 
                 // Glossy overlay for "Plastic Case" feel
+                // Creating this gradient is cheap enough, but could be remembered if desired.
+                // Keeping inline for now as it depends on size (though LinearGradient doesn't strictly depend on size unless using shader, Brush does).
+                // Actually Brush.linearGradient depends on Start/End coordinates which depend on size.
+                // Canvas 'drawRect' with Brush handles this.
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     drawRect(
                         brush = Brush.linearGradient(
@@ -200,7 +205,7 @@ fun CDPlayerCover(
                  // Placeholder
                  Image(
                      painter = painterResource(R.drawable.music_note),
-                     contentDescription = null,
+                     contentDescription = "No Album Art",
                      modifier = Modifier.fillMaxSize().padding(32.dp),
                      colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant)
                  )
