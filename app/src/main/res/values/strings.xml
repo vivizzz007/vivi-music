@@ -32,6 +32,7 @@
     <string name="similar_to">Similar to</string>
     <string name="new_release_albums">New release albums</string>
     <string name="you_might_also_like">You might also like</string>
+    <string name="related_playlists">Related playlists</string>
 
     <!-- History -->
     <string name="today">Today</string>

@@ -24,18 +24,23 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -117,14 +122,20 @@ import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import com.music.innertube.YouTube
+import com.music.innertube.models.AlbumItem
+import com.music.innertube.models.ArtistItem
+import com.music.innertube.models.PlaylistItem
 import com.music.innertube.models.SongItem
+import com.music.innertube.models.WatchEndpoint
 import com.music.innertube.utils.completed
 import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalDownloadUtil
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
+import com.music.vivi.constants.AlbumThumbnailSize
 import com.music.vivi.constants.DarkModeKey
+import com.music.vivi.constants.GridThumbnailHeight
 import com.music.vivi.constants.ListItemHeight
 import com.music.vivi.constants.PlaylistEditLockKey
 import com.music.vivi.constants.PlaylistSongSortDescendingKey
@@ -140,6 +151,7 @@ import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.playback.ExoDownloadService
 import com.music.vivi.playback.queues.ListQueue
+import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.ui.component.ActionPromptDialog
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.DraggableScrollbar
@@ -147,7 +159,9 @@ import com.music.vivi.ui.component.EmptyPlaceholder
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.LibrarySongListItem
 import com.music.vivi.ui.component.LocalMenuState
+import com.music.vivi.ui.component.NavigationTitle
 import com.music.vivi.ui.component.OverlayEditButton
+import com.music.vivi.ui.component.media.youtube.YouTubeGridItem
 import com.music.vivi.ui.component.RoundedCheckbox
 import com.music.vivi.ui.component.SortHeader
 import com.music.vivi.ui.component.TextFieldDialog
@@ -155,6 +169,10 @@ import com.music.vivi.ui.menu.CustomThumbnailMenu
 import com.music.vivi.ui.menu.PlaylistMenu
 import com.music.vivi.ui.menu.SelectionSongMenu
 import com.music.vivi.ui.menu.SongMenu
+import com.music.vivi.ui.menu.YouTubeAlbumMenu
+import com.music.vivi.ui.menu.YouTubeArtistMenu
+import com.music.vivi.ui.menu.YouTubePlaylistMenu
+import com.music.vivi.ui.menu.YouTubeSongMenu
 import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.utils.ItemWrapper
 import com.music.vivi.ui.utils.backToMain
@@ -203,6 +221,7 @@ fun LocalPlaylistScreen(
 
     val playlist by viewModel.playlist.collectAsState()
     val songs by viewModel.playlistSongs.collectAsState()
+    val relatedItems by viewModel.relatedItems.collectAsState()
     val mutableSongs = remember { mutableStateListOf<PlaylistSong>() }
     val playlistLength = remember(songs) {
         songs.fastSumBy { it.song.song.duration }
@@ -1615,11 +1634,107 @@ fun LocalPlaylistScreen(
                                         }
 
                                         if (!isLast) {
-                                            Spacer(modifier = Modifier.height(3.dp))
+                                            Spacer(modifier = Modifier.height(20.dp))
                                         }
                                     }
                                 }
                             }
+                        }
+                    }
+
+//recommendation for playlist,album,songs
+                    if (relatedItems.isNotEmpty()) {
+                        item(key = "related_header") {
+                            Column {
+                                NavigationTitle(
+                                    title = stringResource(R.string.related_playlists),
+                                    modifier = Modifier.animateItem()
+                                )
+                                Spacer(modifier = Modifier.height(3.dp))
+                            }
+                        }
+
+                        item(key = "related_list") {
+                            LazyRow(
+                                contentPadding = WindowInsets.systemBars.only(
+                                    WindowInsetsSides.Horizontal
+                                ).asPaddingValues()
+                            ) {
+                                items(
+                                    items = relatedItems,
+                                    key = { "related_${it.id}" }
+                                ) { item ->
+                                    YouTubeGridItem(
+                                        item = item,
+                                        isActive = when (item) {
+                                            is SongItem -> mediaMetadata?.id == item.id
+                                            is AlbumItem -> mediaMetadata?.album?.id == item.id
+                                            else -> false
+                                        },
+                                        isPlaying = isPlaying,
+                                        coroutineScope = coroutineScope,
+                                        modifier = Modifier
+                                            .width(AlbumThumbnailSize)
+                                            .combinedClickable(
+                                                onClick = {
+                                                    when (item) {
+                                                        is SongItem ->
+                                                            playerConnection.playQueue(
+                                                                YouTubeQueue(
+                                                                    WatchEndpoint(videoId = item.id),
+                                                                    item.toMediaMetadata()
+                                                                )
+                                                            )
+
+                                                        is AlbumItem -> navController.navigate("album/${item.id}")
+                                                        is ArtistItem -> navController.navigate("artist/${item.id}")
+                                                        is PlaylistItem -> navController.navigate(
+                                                            "online_playlist/${item.id}"
+                                                        )
+                                                    }
+                                                },
+                                                onLongClick = {
+                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                    menuState.show {
+                                                        when (item) {
+                                                            is SongItem ->
+                                                                YouTubeSongMenu(
+                                                                    song = item,
+                                                                    navController = navController,
+                                                                    onDismiss = menuState::dismiss
+                                                                )
+
+                                                            is AlbumItem ->
+                                                                YouTubeAlbumMenu(
+                                                                    albumItem = item,
+                                                                    navController = navController,
+                                                                    onDismiss = menuState::dismiss
+                                                                )
+
+                                                            is ArtistItem ->
+                                                                YouTubeArtistMenu(
+                                                                    artist = item,
+                                                                    onDismiss = menuState::dismiss
+                                                                )
+
+                                                            is PlaylistItem ->
+                                                                YouTubePlaylistMenu(
+                                                                    playlist = item,
+                                                                    coroutineScope = coroutineScope,
+                                                                    onDismiss = menuState::dismiss
+                                                                )
+                                                        }
+                                                    }
+                                                }
+                                            )
+                                            .animateItem()
+                                    )
+                                }
+                            }
+                        }
+
+                        item(key = "related_end") {
+                            Spacer(modifier = Modifier.height(24.dp))
                         }
                     }
 

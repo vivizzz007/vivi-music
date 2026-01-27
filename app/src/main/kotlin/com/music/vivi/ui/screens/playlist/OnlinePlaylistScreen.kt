@@ -115,6 +115,8 @@ import com.music.vivi.LocalDownloadUtil
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
+import com.music.vivi.constants.AlbumThumbnailSize
+import com.music.vivi.constants.GridThumbnailHeight
 import com.music.vivi.constants.HideExplicitKey
 import com.music.vivi.constants.ListItemHeight
 import com.music.vivi.db.entities.PlaylistEntity
@@ -1009,6 +1011,7 @@ fun OnlinePlaylistScreen(
                                         isPlaying = isPlaying,
                                         coroutineScope = coroutineScope,
                                         modifier = Modifier
+                                            .width(AlbumThumbnailSize)
                                             .combinedClickable(
                                                 onClick = {
                                                     when (item) {
