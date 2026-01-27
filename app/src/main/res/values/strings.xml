@@ -214,6 +214,10 @@
     <string name="error_no_internet">No network connection</string>
     <string name="error_timeout">Timeout</string>
     <string name="error_unknown">Unknown error</string>
+    <string name="error_playback_failed">Playback failed</string>
+    <string name="error_opening_link">Failed to open link</string>
+    <string name="copy_error">Copy error</string>
+    <string name="error_copy_hint">Include the error report for troubleshooting</string>
 
     <!-- Player action -->
     <string name="action_like">Like</string>
@@ -611,7 +615,11 @@
     <string name="line_by_line_option_title">EXPERIMENTAL: Detect language line by line</string>
     <string name="line_by_line_option_desc">The Cyrillic language will be detected line by line instead of the entire song.</string>
     <string name="line_by_line_dialog_title">Are you sure?</string>
-    <string name="line_by_line_dialog_desc">This is a hit or miss experimental feature. \n\nBy default, language is determined from the whole song, but with this option on, it will be determined line by line instead. This will allow multi-language songs to work BUT the language might not always be correct (for example if there is a Ukrainian lyric that doesn\'t contain any Ukrainian-specific letters, it might be romanized as Russian instead). \n\nIf you do not have issues, it is recommended to keep this option off.</string>
+    <string name="line_by_line_dialog_desc">This is a hit or miss experimental feature. 
+
+By default, language is determined from the whole song, but with this option on, it will be determined line by line instead. This will allow multi-language songs to work BUT the language might not always be correct (for example if there is a Ukrainian lyric that doesn\'t contain any Ukrainian-specific letters, it might be romanized as Russian instead). 
+
+If you do not have issues, it is recommended to keep this option off.</string>
     <string name="line_by_line_dialog_enable">Enable</string>
     <string name="romanize_current_track">Romanize current track</string>
 
@@ -1193,7 +1201,12 @@
     <string name="check_out_playlist_share">Check out %1$s on YouTube Music: %2$s</string>
     <string name="check_out_album_share">Check out %1$s by %2$s on YouTube Music: %3$s</string>
     <string name="vivi_music_crash_report">ViVi Music Crash Report</string>
-    <string name="crash_log_email_body">Crash Log (also copied to clipboard):\n\n%1$s\n\nDevice Info:\n%2$s</string>
+    <string name="crash_log_email_body">Crash Log (also copied to clipboard):
+
+%1$s
+
+Device Info:
+%2$s</string>
     <string name="feedback_for_vivi_music_app">Feedback for Vivi Music App</string>
     <string name="please_write_feedback">Please write your feedback here...</string>
     <string name="crash_log_subject">Crash Log: %1$s</string>
