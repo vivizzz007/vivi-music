@@ -260,7 +260,7 @@ fun AboutScreen(navController: NavController, scrollBehavior: TopAppBarScrollBeh
                                 .padding(horizontal = 16.dp, vertical = 8.dp)
                         ) {
                             Text(
-                                text = "v${BuildConfig.VERSION_NAME} • Van Halen • Stable",
+                                text = "v${BuildConfig.VERSION_NAME} • VengaBoys • Alpha",
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.primary
                             )
@@ -393,18 +393,20 @@ fun AboutScreen(navController: NavController, scrollBehavior: TopAppBarScrollBeh
                         items = listOf {
                             ModernInfoItem(
                                 icon = {
-                                    Icon(
-                                        painter = painterResource(R.drawable.person),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(28.dp)
+                                    Image(
+                                        painter = painterResource(R.drawable.collaborator),
+                                        contentDescription = stringResource(R.string.collaborator_tboyke),
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
                                     )
                                 },
                                 title = stringResource(R.string.collaborator_tboyke),
                                 subtitle = stringResource(R.string.collaborator_role),
                                 onClick = { uriHandler.openUri("https://github.com/T-Boyke") },
                                 showArrow = true,
-                                iconBackgroundColor = iconBgColor,
-                                iconContentColor = iconStyleColor
+                                iconBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                                iconShape = MaterialShapes.Circle.toShape(),
+                                iconSize = 48.dp
                             )
                         }
                     )
