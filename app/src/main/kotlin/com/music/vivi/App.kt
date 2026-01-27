@@ -26,6 +26,7 @@ import com.music.vivi.di.ApplicationScope
 import com.music.vivi.extensions.toEnum
 import com.music.vivi.extensions.toInetSocketAddress
 import com.music.vivi.update.experiment.CrashLogHandler
+import com.music.vivi.utils.SyncUtils
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.get
 import com.music.vivi.utils.reportException
@@ -68,6 +69,9 @@ class App :
     @Inject
     @ApplicationScope
     lateinit var applicationScope: CoroutineScope
+
+    @Inject
+    lateinit var syncUtils: SyncUtils
 
     /**
      * Initializes the application.
@@ -179,6 +183,14 @@ class App :
 
                 // InnerTube Cookie
                 val cookie = settings[InnerTubeCookieKey]
+                if (cookie != null && YouTube.cookie == null) {
+                    // User just logged in
+                    syncUtils.runAllSyncs(isFastSync = true)
+                    applicationScope.launch(Dispatchers.IO) {
+                        kotlinx.coroutines.delay(5000) // Delay full sync slightly
+                        syncUtils.runAllSyncs(isFastSync = false)
+                    }
+                }
                 try {
                     YouTube.cookie = cookie
                 } catch (e: Exception) {

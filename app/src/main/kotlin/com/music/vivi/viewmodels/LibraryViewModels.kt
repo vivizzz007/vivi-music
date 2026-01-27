@@ -319,13 +319,9 @@ constructor(
     database: MusicDatabase,
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
-    public val syncAllLibrary: () -> Unit = {
+    public val syncAllLibrary: (Boolean) -> Unit = { isFastSync ->
         viewModelScope.launch(Dispatchers.IO) {
-            syncUtils.syncLikedSongs()
-            syncUtils.syncLibrarySongs()
-            syncUtils.syncArtistsSubscriptions()
-            syncUtils.syncLikedAlbums()
-            syncUtils.syncSavedPlaylists()
+            syncUtils.runAllSyncs(isFastSync)
         }
     }
     public val topValue: kotlinx.coroutines.flow.Flow<String> =

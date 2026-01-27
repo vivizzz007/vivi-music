@@ -12,7 +12,7 @@ suspend fun Result<PlaylistPage>.completed(): Result<PlaylistPage> = runCatching
     var continuation = page.songsContinuation
     val seenContinuations = mutableSetOf<String>()
     var requestCount = 0
-    val maxRequests = 50 // Prevent excessive API calls
+    val maxRequests = 500 // Prevent excessive API calls
 
     while (continuation != null && requestCount < maxRequests) {
         // Prevent infinite loops by tracking seen continuations
@@ -41,7 +41,7 @@ suspend fun Result<LibraryPage>.completed(): Result<LibraryPage> = runCatching {
     var continuation = page.continuation
     val seenContinuations = mutableSetOf<String>()
     var requestCount = 0
-    val maxRequests = 50 // Prevent excessive API calls
+    val maxRequests = 500 // Prevent excessive API calls
 
     while (continuation != null && requestCount < maxRequests) {
         // Prevent infinite loops by tracking seen continuations

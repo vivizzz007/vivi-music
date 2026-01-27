@@ -40,7 +40,11 @@ object Wikipedia {
             .body<WikiSummary>()
             .extract
     }.onFailure {
-        Timber.e(it, "Failed to fetch Wikipedia summary for: $title")
+        if (it is io.ktor.client.plugins.ResponseException && it.response.status == HttpStatusCode.NotFound) {
+            Timber.d("No Wikipedia summary found for: $title")
+        } else {
+            Timber.w("Failed to fetch Wikipedia summary for: $title (${it.message})")
+        }
     }.getOrNull()
 
     /**
