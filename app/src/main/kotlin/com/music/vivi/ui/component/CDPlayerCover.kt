@@ -40,7 +40,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
-
+import coil3.request.crossfade
 
 import com.music.vivi.R
 import com.music.vivi.models.MediaMetadata
