@@ -36,14 +36,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import androidx.compose.ui.res.painterResource
 
 import com.music.vivi.R
-import com.music.vivi.models.MediaMetadata
+// Explicit FQN used in signature, import removed to avoid ambiguity
+// import com.music.vivi.models.MediaMetadata
 
 /**
  * A CD-Style Player Cover.
@@ -53,7 +54,7 @@ import com.music.vivi.models.MediaMetadata
  */
 @Composable
 fun CDPlayerCover(
-    mediaMetadata: MediaMetadata?,
+    mediaMetadata: com.music.vivi.models.MediaMetadata?,
     isPlaying: Boolean,
     modifier: Modifier = Modifier
 ) {
