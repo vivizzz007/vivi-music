@@ -21,10 +21,9 @@ import androidx.media3.session.MediaButtonReceiver
 class SafeMediaButtonReceiver : BroadcastReceiver() {
     private val delegate = MediaButtonReceiver()
 
-    override fun onReceive(context: Context?, intent: Intent?) {
-        if (context == null || intent == null) return
+    override fun onReceive(context: Context, intent: Intent) {
         try {
-            delegate.onReceive(context!!, intent!!)
+            delegate.onReceive(context, intent)
         } catch (e: Exception) {
             // This catches ForegroundServiceStartNotAllowedException (Android 12+)
             // and other potential service start failures.

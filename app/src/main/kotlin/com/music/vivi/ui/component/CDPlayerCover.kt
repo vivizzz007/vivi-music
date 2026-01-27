@@ -53,7 +53,7 @@ import com.music.vivi.models.MediaMetadata
  */
 @Composable
 fun CDPlayerCover(
-    mediaMetadata: MediaMetadata?,
+    mediaMetadata: com.music.vivi.models.MediaMetadata?,
     isPlaying: Boolean,
     modifier: Modifier = Modifier
 ) {
