@@ -794,6 +794,7 @@ If you do not have issues, it is recommended to keep this option off.</string>
 
     <string name="top_playlist_description">Your most played tracks based on your listening history. This dynamic playlist updates as you discover new music.</string>
     <string name="cache_playlist_description">Your cached songs stored locally on your device. These tracks are available for offline playback and don\'t require an internet connection.</string>
+    <string name="modern_playlist_description">A collection of feel-good tracks sourced directly from youtube. Guaranteed to lift your spirits!</string>
 
     <string name="artist_description_fallback">%1$s is a music artist.</string>
     <string name="about_artist">About Artist</string>

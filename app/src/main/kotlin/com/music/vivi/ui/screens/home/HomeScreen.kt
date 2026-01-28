@@ -12,10 +12,15 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ContainedLoadingIndicator
@@ -57,11 +62,20 @@ import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.playback.queues.LocalAlbumRadio
 import com.music.vivi.playback.queues.YouTubeAlbumRadio
 import com.music.vivi.playback.queues.YouTubeQueue
+import com.music.vivi.playback.queues.ListQueue
+import com.music.vivi.extensions.toMediaItem
 import com.music.vivi.ui.component.HideOnScrollFAB
 import com.music.vivi.ui.component.LocalBottomSheetPageState
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.home.*
+import com.music.vivi.ui.menu.YouTubeSongMenu
 import com.music.vivi.ui.utils.GridSnapLayoutInfoProvider
+import com.music.innertube.models.WatchEndpoint
+import com.music.innertube.YouTube
+import com.music.innertube.utils.completed
+import com.music.vivi.db.entities.PlaylistEntity
+import com.music.vivi.db.entities.PlaylistSongMap
+import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.update.networkmoniter.NetworkConnectivityObserver
 import com.music.vivi.utils.ImmutableList
 import com.music.vivi.utils.rememberPreference
@@ -71,6 +85,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.random.Random
+import kotlinx.coroutines.flow.map
 
 @OptIn(
     ExperimentalFoundationApi::class,
@@ -155,6 +170,20 @@ internal fun HomeScreen(navController: NavController, viewModel: HomeViewModel =
     val backStackEntry by navController.currentBackStackEntryAsState()
     val scrollToTop =
         backStackEntry?.savedStateHandle?.getStateFlow("scrollToTop", false)?.collectAsState()
+
+    // Modern Playlist Card Section (Targeting ONLY "Mixed" for you sections)
+    val availableSections = remember(homePage) {
+        homePage?.sections?.filter { section ->
+            section.title?.contains("Mixed", ignoreCase = true) == true
+        }?.filter { it.items.any { item -> item is PlaylistItem } }
+            ?.distinctBy { section ->
+                section.items.filterIsInstance<PlaylistItem>().firstOrNull()?.id
+            }
+            .orEmpty()
+    }
+
+    // Persistent cache for carousel tracks to avoid re-fetching on swipe
+    val carouselTracksCache = remember { mutableMapOf<String, List<SongItem>>() }
 
     LaunchedEffect(scrollToTop?.value) {
         if (scrollToTop?.value == true) {
@@ -289,6 +318,7 @@ internal fun HomeScreen(navController: NavController, viewModel: HomeViewModel =
                 }
             }
 
+//the mordern card for the playlist showing
             similarRecommendations?.let {
                 homeSimilarRecommendations(
                     similarRecommendations = ImmutableList(it),
@@ -300,9 +330,103 @@ internal fun HomeScreen(navController: NavController, viewModel: HomeViewModel =
                 )
             }
 
-            homePage?.sections?.let {
+            if (availableSections.isNotEmpty()) {
+                item(key = "modern_playlist_carousel") {
+                    val pagerState = rememberPagerState(pageCount = { availableSections.size })
+
+                    Column {
+                        HorizontalPager(
+                            state = pagerState,
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                            contentPadding = PaddingValues(horizontal = 24.dp),
+                            pageSpacing = 16.dp,
+                            verticalAlignment = Alignment.Top
+                        ) { page ->
+                            val section = availableSections[page]
+                            val playlist = section.items.filterIsInstance<PlaylistItem>().firstOrNull() ?: return@HorizontalPager
+
+                            // Use cached songs if available, otherwise use what's in the section
+                            val sectionSongs = section.items.filterIsInstance<SongItem>().take(3)
+                            val cachedSongs = carouselTracksCache[playlist.id] ?: emptyList()
+                            val songs = if (sectionSongs.isNotEmpty()) sectionSongs else cachedSongs
+
+                            val dbPlaylist by database.playlistByBrowseId(playlist.id).collectAsState(initial = null)
+                            val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+                            val isPaused by playerConnection.isPlaying.map { !it }.collectAsState(initial = true)
+
+                            ModernPlaylistCard(
+                                playlist = playlist,
+                                tracks = songs,
+                                 isPlaying = isPlaying && mediaMetadata?.album?.id == playlist.id,
+                                activeMediaId = mediaMetadata?.id,
+                                isPaused = isPaused,
+                                 onPlayClick = {
+                                     val isPlaylistPlaying = isPlaying && mediaMetadata?.album?.id == playlist.id
+                                     if (isPlaylistPlaying) {
+                                         playerConnection.player.togglePlayPause()
+                                     } else {
+                                         if (songs.isNotEmpty()) {
+                                             playerConnection.playQueue(
+                                                 ListQueue(
+                                                     title = playlist.title,
+                                                     items = songs.map { it.toMediaItem() }
+                                                 )
+                                             )
+                                         } else {
+                                             playlist.playEndpoint?.let {
+                                                 playerConnection.playQueue(YouTubeQueue(it))
+                                             }
+                                         }
+                                     }
+                                 },
+                                 onRadioClick = {
+                                     val endpoint = playlist.radioEndpoint
+                                         ?: playlist.shuffleEndpoint
+                                         ?: playlist.playEndpoint
+
+                                     if (endpoint != null) {
+                                         playerConnection.playQueue(YouTubeQueue(endpoint))
+                                     } else if (songs.isNotEmpty()) {
+                                         playerConnection.playQueue(YouTubeQueue.radio(songs.random().toMediaMetadata()))
+                                     } else {
+                                         playerConnection.playQueue(YouTubeQueue(WatchEndpoint(playlistId = playlist.id)))
+                                     }
+                                },
+                                onTrackClick = { track ->
+                                    playerConnection.playQueue(
+                                        YouTubeQueue(
+                                            track.endpoint ?: WatchEndpoint(videoId = track.id),
+                                            track.toMediaMetadata()
+                                        )
+                                    )
+                                },
+                                onTrackMenuClick = { track ->
+                                    menuState.show {
+                                        YouTubeSongMenu(
+                                            song = track,
+                                            navController = navController,
+                                            onDismiss = menuState::dismiss
+                                        )
+                                    }
+                                },
+                                onHeaderClick = {
+                                    navController.navigate("online_playlist/${playlist.id}")
+                                },
+                                onTracksFetched = { fetched ->
+                                    carouselTracksCache[playlist.id] = fetched
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
+            homePage?.sections?.let { sections ->
                 homeInnertubeSections(
-                    sections = ImmutableList(it),
+                    sections = ImmutableList(sections),
                     activeId = mediaMetadata?.id,
                     activeAlbumId = mediaMetadata?.album?.id,
                     isPlaying = isPlaying,
