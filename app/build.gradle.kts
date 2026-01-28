@@ -21,8 +21,8 @@ configure<com.android.build.api.dsl.ApplicationExtension> {
         applicationId = "com.vivi.vivimusic"
         minSdk = 26
         targetSdk = 36
-        versionCode = 22
-        versionName = "5.0.4 Alpha"
+        versionCode = 62 //61 //22
+        versionName = "5.0.4"
 
         testInstrumentationRunner = "com.music.vivi.CustomTestRunner"
         vectorDrawables.useSupportLibrary = true
@@ -243,6 +243,7 @@ dependencies {
     implementation(project(":kizzy"))
     implementation(project(":lastfm"))
     implementation(project(":betterlyrics"))
+//    implementation(project(":deezer"))
 
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
@@ -271,6 +272,19 @@ dependencies {
     implementation("androidx.graphics:graphics-shapes:1.0.0-alpha05")
     implementation("androidx.glance:glance-appwidget:1.0.0")
     implementation("androidx.glance:glance-material3:1.0.0")
+
+
+    // Core Media3 library
+    implementation("androidx.media3:media3-exoplayer:1.2.1")
+
+    // UI components (includes AspectRatioFrameLayout)
+    implementation("androidx.media3:media3-ui:1.2.1")
+
+    // Optional: DASH support
+    implementation("androidx.media3:media3-exoplayer-dash:1.2.1")
+
+    // Optional: HLS support
+    implementation("androidx.media3:media3-exoplayer-hls:1.2.1")
 
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
