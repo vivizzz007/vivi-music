@@ -345,6 +345,8 @@ class MainActivity : ComponentActivity() {
         DownloadNotificationManager.initialize(this)
         // new download manager and update manager
         UpdateNotificationManager.initialize(this)
+        // Initialize video cache for faster video loading
+        com.music.vivi.playback.VideoCacheManager.initialize(this)
         // Check for updates on app start (pass VERSION_NAME, not VERSION_CODE)
 // crash log when appp crash
         if (savedInstanceState == null) {

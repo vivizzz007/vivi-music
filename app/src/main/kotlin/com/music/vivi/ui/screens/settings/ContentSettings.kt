@@ -31,6 +31,7 @@ import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -86,12 +87,15 @@ import com.music.vivi.constants.QuickPicksKey
 import com.music.vivi.constants.SYSTEM_DEFAULT
 import com.music.vivi.constants.SettingsShapeColorTertiaryKey
 import com.music.vivi.constants.TopSize
+import com.music.vivi.constants.VideoQuality
+import com.music.vivi.constants.VideoQualityKey
+import com.music.vivi.constants.VideoQualityDefaultValue
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.RoundedCheckbox
-import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.update.mordernswitch.ModernSwitch
+import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
 import com.music.vivi.update.settingstyle.Material3ExpressiveSettingsGroup
 import com.music.vivi.update.settingstyle.ModernInfoItem
 import com.music.vivi.utils.rememberEnumPreference
@@ -173,6 +177,12 @@ fun ContentSettings(
     val (enableYouTubeSubtitle, onEnableYouTubeSubtitleChange) = rememberPreference(
         key = EnableYouTubeSubtitleKey,
         defaultValue = true
+    )
+
+    // Video Quality Settings
+    val (videoQuality, onVideoQualityChange) = rememberEnumPreference(
+        key = VideoQualityKey,
+        defaultValue = VideoQuality.valueOf(VideoQualityDefaultValue)
     )
     val (hideVideoSongs, onHideVideoSongsChange) = rememberPreference(key = HideVideoSongsKey, defaultValue = false)
     val (preferredProvider, onPreferredProviderChange) = rememberEnumPreference(
@@ -840,6 +850,45 @@ fun ContentSettings(
                                     modifier = Modifier.padding(end = 20.dp)
                                 )
                             }
+                        }
+                    )
+                }
+
+                // Video Quality Section
+                item {
+                    Text(
+                        text = stringResource(R.string.video_quality).uppercase(),
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp)
+                    )
+                }
+
+                item {
+                    Material3ExpressiveSettingsGroup(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        items = listOf {
+                            ModernInfoItem(
+                                icon = {
+                                    Icon(
+                                        painterResource(R.drawable.settings),
+                                        null,
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                },
+                                title = stringResource(R.string.video_quality),
+                                subtitle = videoQuality.name,
+                                onClick = { navController.navigate("settings/content/video_quality") },
+                                showArrow = true,
+                                showSettingsIcon = true,
+                                iconBackgroundColor = iconBgColor,
+                                iconContentColor = iconStyleColor
+                            )
                         }
                     )
                 }

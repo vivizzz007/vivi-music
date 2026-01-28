@@ -149,6 +149,14 @@ import com.music.vivi.ui.utils.ShowMediaInfo
 import com.music.vivi.utils.makeTimeString
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
+import com.music.vivi.utils.YTPlayerUtils
+import com.music.vivi.constants.VideoQuality
+import com.music.vivi.constants.VideoQualityDefaultValue
+import com.music.vivi.constants.VideoQualityKey
+import com.music.vivi.constants.EnableVideoModeKey
+import com.music.vivi.constants.EnableVideoModeDefaultValue
+import com.music.vivi.constants.WiFiFastModeKey
+import com.music.vivi.constants.WiFiFastModeDefaultValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -256,6 +264,60 @@ fun BottomSheetPlayer(
     val playbackState by playerConnection.playbackState.collectAsState()
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+
+    // Video mode state
+    var isVideoMode by rememberSaveable { mutableStateOf(false) }
+    var videoUrl by remember { mutableStateOf<String?>(null) }
+    var isLoadingVideo by remember { mutableStateOf(false) }
+
+    // Video quality preference
+    val (videoQuality, onVideoQualityChange) = rememberEnumPreference(
+        key = VideoQualityKey,
+        defaultValue = VideoQuality.valueOf(VideoQualityDefaultValue)
+    )
+    val (enableVideoMode, onEnableVideoModeChange) = rememberPreference(
+        key = EnableVideoModeKey,
+        defaultValue = EnableVideoModeDefaultValue
+    )
+    val (wifiFastMode, onWiFiFastModeChange) = rememberPreference(
+        key = WiFiFastModeKey,
+        defaultValue = WiFiFastModeDefaultValue
+    )
+
+    // Preload video URL in background when song starts (YouTube-style preloading)
+    // This ensures instant playback when user switches to video mode
+    LaunchedEffect(mediaMetadata?.id, enableVideoMode) {
+        val currentMetadata = mediaMetadata
+        
+        // AUTO-RESET: If song doesn't have a video, switch back to song mode
+        if (currentMetadata != null && !currentMetadata.isVideoSong) {
+            isVideoMode = false
+        }
+
+        // Only preload if video mode is enabled in settings and we have a valid song
+        if (enableVideoMode && currentMetadata?.id != null && currentMetadata.isVideoSong) {
+            isLoadingVideo = true
+            withContext(Dispatchers.IO) {
+                // FAST PRELOAD: Always use 360p for instant loading
+                // User's selected quality will be used when they actually switch to video mode
+                YTPlayerUtils.getVideoStreamUrl(currentMetadata.id, VideoQuality.P360, wifiFastMode)
+                    .onSuccess { url ->
+                        videoUrl = url
+                        isLoadingVideo = false
+                        timber.log.Timber.d("Video preloaded at 360p: ${currentMetadata.title}")
+                    }
+                    .onFailure { error ->
+                        videoUrl = null
+                        isLoadingVideo = false
+                        timber.log.Timber.w(error, "Failed to preload video")
+                    }
+            }
+        } else {
+            videoUrl = null
+            isLoadingVideo = false
+        }
+    }
+
     val currentSong by playerConnection.currentSong.collectAsState(initial = null)
     val automix by playerConnection.service.automixItems.collectAsState()
     val repeatMode by playerConnection.repeatMode.collectAsState()
@@ -1440,7 +1502,11 @@ fun BottomSheetPlayer(
                         Thumbnail(
                             sliderPositionProvider = { sliderPosition },
                             modifier = Modifier.size(thumbnailSize),
-                            isPlayerExpanded = state.isExpanded
+                            isPlayerExpanded = state.isExpanded,
+                            isVideoMode = isVideoMode,
+                            videoUrl = videoUrl,
+                            enableVideoMode = enableVideoMode,
+                            onVideoModeChange = { isVideoMode = it }
                         )
                     }
                     Column(
@@ -1476,7 +1542,11 @@ fun BottomSheetPlayer(
                         Thumbnail(
                             sliderPositionProvider = { sliderPosition },
                             modifier = Modifier.nestedScroll(state.preUpPostDownNestedScrollConnection),
-                            isPlayerExpanded = state.isExpanded
+                            isPlayerExpanded = state.isExpanded,
+                            isVideoMode = isVideoMode,
+                            videoUrl = videoUrl,
+                            enableVideoMode = enableVideoMode,
+                            onVideoModeChange = { isVideoMode = it }
                         )
                     }
 

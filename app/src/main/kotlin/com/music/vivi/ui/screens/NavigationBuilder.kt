@@ -41,6 +41,8 @@ import com.music.vivi.ui.screens.settings.PlayerSettings
 import com.music.vivi.ui.screens.settings.PowerSaverSettings
 import com.music.vivi.ui.screens.settings.PrivacySettings
 import com.music.vivi.ui.screens.settings.RomanizationSettings
+import com.music.vivi.ui.screens.settings.VideoQualitySetting
+
 import com.music.vivi.ui.screens.settings.StorageSettings
 import com.music.vivi.update.account.FunAccountViviSetting
 import com.music.vivi.update.betaupdate.ViviDpiSettings
@@ -278,6 +280,9 @@ public fun NavGraphBuilder.navigationBuilder(
     }
     composable("settings/content/romanization") {
         RomanizationSettings(navController, scrollBehavior)
+    }
+    composable("settings/content/video_quality") {
+        VideoQualitySetting(navController, scrollBehavior)
     }
     composable("settings/player") {
         PlayerSettings(navController, scrollBehavior)

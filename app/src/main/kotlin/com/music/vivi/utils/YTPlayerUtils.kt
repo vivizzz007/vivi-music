@@ -385,4 +385,108 @@ object YTPlayerUtils {
             }
             .getOrNull()
     }
+
+    /**
+     * Fetches video stream URL for playing music videos.
+     * Returns the best quality video format available with audio.
+     *
+     * @param videoId The YouTube video ID.
+     * @param videoQuality The desired video quality.
+     * @param wifiFastMode Whether to enable ultra-fast loading on WiFi.
+     * @return A [Result] containing the video stream URL, or null if not available.
+     */
+    suspend fun getVideoStreamUrl(videoId: String, videoQuality: com.music.vivi.constants.VideoQuality = com.music.vivi.constants.VideoQuality.AUTO, wifiFastMode: Boolean = false): Result<String?> = runCatching {
+        Timber.tag(logTag).d("Fetching video stream for videoId: $videoId")
+        
+        val signatureTimestamp = getSignatureTimestampOrNull(videoId)
+        
+        // Try main client first
+        var playerResponse = YouTube.player(videoId, null, MAIN_CLIENT, signatureTimestamp).getOrNull()
+        
+        // Fallback to WEB_REMIX if main client fails
+        if (playerResponse == null || playerResponse.playabilityStatus?.status != "OK") {
+            Timber.tag(logTag).d("Main client failed, trying WEB_REMIX")
+            playerResponse = YouTube.player(videoId, null, WEB_REMIX, signatureTimestamp).getOrNull()
+        }
+        
+        if (playerResponse?.playabilityStatus?.status != "OK") {
+            Timber.tag(logTag).d("Video not available: ${playerResponse?.playabilityStatus?.reason}")
+            return@runCatching null
+        }
+        
+        // Filter video formats based on selected quality
+        fun filterFormatsByQuality(formats: List<com.music.innertube.models.response.PlayerResponse.StreamingData.Format>?): List<com.music.innertube.models.response.PlayerResponse.StreamingData.Format>? {
+            if (videoQuality == com.music.vivi.constants.VideoQuality.AUTO) return formats
+            
+            return formats?.filter { format ->
+                when (videoQuality) {
+                    com.music.vivi.constants.VideoQuality.P144 -> format.qualityLabel?.contains("144p", ignoreCase = true) == true
+                    com.music.vivi.constants.VideoQuality.P240 -> format.qualityLabel?.contains("240p", ignoreCase = true) == true
+                    com.music.vivi.constants.VideoQuality.P360 -> format.qualityLabel?.contains("360p", ignoreCase = true) == true
+                    com.music.vivi.constants.VideoQuality.P480 -> format.qualityLabel?.contains("480p", ignoreCase = true) == true
+                    com.music.vivi.constants.VideoQuality.P720 -> format.qualityLabel?.contains("720p", ignoreCase = true) == true
+                    com.music.vivi.constants.VideoQuality.P1080 -> format.qualityLabel?.contains("1080p", ignoreCase = true) == true
+                    com.music.vivi.constants.VideoQuality.P1440 -> format.qualityLabel?.contains("1440p", ignoreCase = true) == true
+                    com.music.vivi.constants.VideoQuality.P2160 -> format.qualityLabel?.contains("2160p", ignoreCase = true) == true
+                    else -> true
+                }
+            }
+        }
+        
+        // Get video+audio formats (muxed streams) or best video format
+        val videoFormats = filterFormatsByQuality(playerResponse.streamingData?.formats?.filter { format ->
+            format.mimeType?.startsWith("video/") == true
+        })
+        
+        val adaptiveVideoFormats = playerResponse.streamingData?.adaptiveFormats?.filter { format ->
+            format.mimeType?.startsWith("video/") == true
+        }
+        
+        // Prefer muxed streams (video+audio in one) for simplicity
+        val bestFormat = if (wifiFastMode) {
+            // When WiFi fast mode is enabled, prioritize higher quality formats even if they have higher bitrate
+            val allFormats = videoFormats?.filter { it.mimeType?.contains("mp4") == true } ?: emptyList()
+            val adaptiveFormats = adaptiveVideoFormats?.filter { it.mimeType?.contains("mp4") == true } ?: emptyList()
+            
+            // Combine all formats and select the highest quality available
+            (allFormats + adaptiveFormats)
+                .maxByOrNull { format ->
+                    // Prioritize quality label first, then bitrate
+                    val qualityPriority = when {
+                        format.qualityLabel?.contains("1080p", ignoreCase = true) == true -> 10
+                        format.qualityLabel?.contains("720p", ignoreCase = true) == true -> 9
+                        format.qualityLabel?.contains("480p", ignoreCase = true) == true -> 8
+                        format.qualityLabel?.contains("360p", ignoreCase = true) == true -> 7
+                        format.qualityLabel?.contains("240p", ignoreCase = true) == true -> 6
+                        format.qualityLabel?.contains("144p", ignoreCase = true) == true -> 5
+                        else -> 0
+                    }
+                    qualityPriority * 1000000 + (format.bitrate ?: 0)
+                }
+        } else {
+            // Normal mode - prefer muxed streams first
+            videoFormats
+                ?.filter { it.mimeType?.contains("mp4") == true }
+                ?.maxByOrNull { it.bitrate ?: 0 }
+                ?: adaptiveVideoFormats
+                    ?.filter { it.mimeType?.contains("mp4") == true }
+                    ?.maxByOrNull { it.bitrate ?: 0 }
+        }
+        
+        if (bestFormat == null) {
+            Timber.tag(logTag).d("No suitable video format found")
+            return@runCatching null
+        }
+        
+        Timber.tag(logTag).d("Selected video format: ${bestFormat.mimeType}, quality: ${bestFormat.qualityLabel}, bitrate: ${bestFormat.bitrate}")
+        
+        val videoUrl = findUrlOrNull(bestFormat, videoId)
+        if (videoUrl != null) {
+            Timber.tag(logTag).d("Successfully obtained video stream URL")
+        } else {
+            Timber.tag(logTag).d("Failed to extract video URL from format")
+        }
+        
+        videoUrl
+    }
 }

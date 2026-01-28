@@ -1469,4 +1469,12 @@ Device Info:
     <string name="use_system_monet_colors">Use system Monet colors</string>
     <string name="pitch_black_background_for_oled_displays">Pitch black background for OLED displays</string>
 
+    <!-- Video Quality Settings -->
+    <string name="video_quality">Video Quality</string>
+    <string name="video_quality_description">Select the preferred video quality for playback</string>
+    <string name="enable_video_mode">Enable Video Mode</string>
+    <string name="enable_video_mode_description">Enable video playback for music videos</string>
+    <string name="wifi_fast_mode">WiFi Fast Mode</string>
+    <string name="wifi_fast_mode_description">Enable ultra-fast loading when connected to WiFi</string>
+
 </resources>

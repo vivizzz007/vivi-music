@@ -19,6 +19,7 @@ import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -26,6 +27,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridItemInfo
 import androidx.compose.foundation.lazy.grid.LazyGridLayoutInfo
@@ -34,10 +36,14 @@ import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
@@ -97,7 +103,16 @@ import kotlin.math.abs
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun Thumbnail(sliderPositionProvider: () -> Long?, modifier: Modifier = Modifier, isPlayerExpanded: Boolean = true) {
+
+fun Thumbnail(
+    sliderPositionProvider: () -> Long?,
+    modifier: Modifier = Modifier,
+    isPlayerExpanded: Boolean = true,
+    isVideoMode: Boolean = false,
+    videoUrl: String? = null,
+    enableVideoMode: Boolean = true, // New parameter to control visibility of video toggle
+    onVideoModeChange: (Boolean) -> Unit = {}
+) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val context = LocalContext.current
     val currentView = LocalView.current
@@ -296,6 +311,126 @@ fun Thumbnail(sliderPositionProvider: () -> Long?, modifier: Modifier = Modifier
                                 modifier = Modifier.basicMarquee()
                             )
                         }
+
+                        Spacer(modifier = Modifier.height(9.dp))
+                        // Video/Song Toggle Button Group
+                        if (enableVideoMode) { // Only show if video mode is enabled in settings
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // Dynamic colors for buttons
+                            val activeContainerColor = textBackgroundColor
+                            val activeContentColor = if (playerBackground == PlayerBackgroundStyle.DEFAULT) MaterialTheme.colorScheme.surface else Color.Black
+                            val inactiveContentColor = textBackgroundColor
+                            val inactiveBorderColor = textBackgroundColor.copy(alpha = 0.5f)
+                            
+                            val isVideoAvailable = mediaMetadata?.isVideoSong == true
+
+                            FlowRow(
+                                modifier = Modifier.padding(horizontal = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(0.dp),
+                                verticalArrangement = Arrangement.spacedBy(2.dp),
+                            ) {
+                                // Song button
+                                if (!isVideoMode) {
+                                    FilledTonalButton(
+                                        onClick = { /* Already in song mode */ },
+                                        shape = RoundedCornerShape(
+                                            topStart = 16.dp,
+                                            bottomStart = 16.dp,
+                                            topEnd = 4.dp,
+                                            bottomEnd = 4.dp
+                                        ),
+                                        colors = ButtonDefaults.filledTonalButtonColors(
+                                            containerColor = activeContainerColor,
+                                            contentColor = activeContentColor
+                                        ),
+                                        modifier = Modifier.height(36.dp)
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.music_note),
+                                            contentDescription = "Song mode",
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(Modifier.width(6.dp))
+                                        Text("Song", style = MaterialTheme.typography.bodySmall)
+                                    }
+                                } else {
+                                    OutlinedButton(
+                                        onClick = { onVideoModeChange(false) },
+                                        shape = RoundedCornerShape(
+                                            topStart = 16.dp,
+                                            bottomStart = 16.dp,
+                                            topEnd = 4.dp,
+                                            bottomEnd = 4.dp
+                                        ),
+                                        colors = ButtonDefaults.outlinedButtonColors(
+                                            contentColor = inactiveContentColor
+                                        ),
+                                        border = BorderStroke(1.dp, inactiveBorderColor),
+                                        modifier = Modifier.height(36.dp)
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.music_note),
+                                            contentDescription = "Song mode",
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(Modifier.width(6.dp))
+                                        Text("Song", style = MaterialTheme.typography.bodySmall)
+                                    }
+                                }
+
+                                // Video button
+                                if (isVideoMode) {
+                                    FilledTonalButton(
+                                        onClick = { /* Already in video mode */ },
+                                        enabled = isVideoAvailable,
+                                        shape = RoundedCornerShape(
+                                            topStart = 4.dp,
+                                            bottomStart = 4.dp,
+                                            topEnd = 16.dp,
+                                            bottomEnd = 16.dp
+                                        ),
+                                        colors = ButtonDefaults.filledTonalButtonColors(
+                                            containerColor = activeContainerColor,
+                                            contentColor = activeContentColor
+                                        ),
+                                        modifier = Modifier.height(36.dp)
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.videocam),
+                                            contentDescription = "Video mode",
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(Modifier.width(6.dp))
+                                        Text("Video", style = MaterialTheme.typography.bodySmall)
+                                    }
+                                } else {
+                                    OutlinedButton(
+                                        onClick = { onVideoModeChange(true) },
+                                        enabled = isVideoAvailable,
+                                        shape = RoundedCornerShape(
+                                            topStart = 4.dp,
+                                            bottomStart = 4.dp,
+                                            topEnd = 16.dp,
+                                            bottomEnd = 16.dp
+                                        ),
+                                        colors = ButtonDefaults.outlinedButtonColors(
+                                            contentColor = inactiveContentColor
+                                        ),
+                                        border = BorderStroke(1.dp, inactiveBorderColor),
+                                        modifier = Modifier.height(36.dp)
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.videocam),
+                                            contentDescription = "Video mode",
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(Modifier.width(6.dp))
+                                        Text("Video", style = MaterialTheme.typography.bodySmall)
+                                    }
+                                }
+                            }
+                        }
                     }
                 } else {
                     // Spacer to maintain layout consistency if needed, but here we want it cleaner
@@ -393,7 +528,25 @@ fun Thumbnail(sliderPositionProvider: () -> Long?, modifier: Modifier = Modifier
                                 )
 
                                 // Conditional rendering based on player background and preference
-                                if (playerBackground == PlayerBackgroundStyle.APPLE_MUSIC) {
+                                // Guard: Only show video player if video is mode is ON, enabled in settings, AND video is available
+                                if (isVideoMode && enableVideoMode && mediaMetadata?.isVideoSong == true) {
+                                    // Video mode - show video player
+                                    Box(
+                                        modifier = Modifier
+                                            .size(containerMaxWidth - (PlayerHorizontalPadding * 2))
+                                            .clip(RoundedCornerShape(ThumbnailCornerRadius * 2))
+                                    ) {
+                                        VideoPlayerView(
+                                            videoUrl = videoUrl,
+                                            isPlayerExpanded = isPlayerExpanded,
+                                            modifier = Modifier.fillMaxSize(),
+                                            onError = { error ->
+                                                // Handle video error
+                                                timber.log.Timber.e(error, "Video playback error")
+                                            }
+                                        )
+                                    }
+                                } else if (playerBackground == PlayerBackgroundStyle.APPLE_MUSIC) {
                                     // No foreground thumbnail for Apple Music style
                                     Box(modifier = Modifier.size(containerMaxWidth - (PlayerHorizontalPadding * 2)))
                                 } else if (cdCoverMode) {
