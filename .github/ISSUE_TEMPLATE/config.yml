@@ -1,1 +1,11 @@
 blank_issues_enabled: false
+contact_links:
+  - name: 💬 Join the Community (Telegram)
+    url: https://t.me/+Nen-QpiY0tk1OTE9
+    about: Ask questions, chat with developers, or share your setups.
+  - name: ❓ GitHub Discussions
+    url: https://github.com/vivizzz007/vivi-music/discussions
+    about: Use this for Q&A and general ideas that are not yet feature requests.
+  - name: 🔒 Security Vulnerability
+    url: https://github.com/vivizzz007/vivi-music/security/policy
+    about: Please strictly report security issues here.
