@@ -1198,8 +1198,8 @@ fun AppearanceSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.palette),
-                    title = { Text(stringResource(R.string.archivetune_canvas)) },
-                    description = { Text(stringResource(R.string.archivetune_canvas_desc)) },
+                    title = { Text(stringResource(R.string.vivimusic_canvas)) },
+                    description = { Text(stringResource(R.string.vivimusic_canvas_desc)) },
                     trailingContent = {
                         Switch(
                             checked = canvasThumbnailAnimation,
