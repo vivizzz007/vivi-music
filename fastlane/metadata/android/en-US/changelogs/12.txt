@@ -1,0 +1,11 @@
+• Optimized notification system  
+• Optimized updater  
+• Added new Notification Control Center  
+• Updated Account screen  
+• Updated Lyrics menu  
+• Updated Playlist screen  
+• Added Playlist menu  
+• Optimized Main Activity (fixed freezing issue)  
+• Optimized App.kt (removed unwanted code affecting performance)  
+• Added new update notification  
+• Updated About screen

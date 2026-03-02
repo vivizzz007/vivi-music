@@ -1,0 +1,21 @@
+Changelog v3.0.4
+
+(Bumped to match the OTA GitHub release)
+
+    Updated Artist and Album screens
+
+    Updated Settings page and all settings sections
+
+    Pushed new screenshots
+
+    Updated the website: vivi-music-web-com.vercel.app
+
+    Refreshed overall UI
+
+    Fixed source error
+
+    Updated UI of the player
+
+    Note: F-Droid build will not receive OTA updates
+
+    Improved overall stability

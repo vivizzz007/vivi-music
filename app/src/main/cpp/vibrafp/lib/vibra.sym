@@ -1,0 +1,6 @@
+{
+  global:
+    Java_com_vivimusic_music_recognition_VibraSignature_*;
+  local:
+    *;
+};

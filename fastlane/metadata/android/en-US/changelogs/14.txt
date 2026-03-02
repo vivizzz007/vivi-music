@@ -1,0 +1,5 @@
+Fixed crashing issue in volume slider
+
+Fixed crashing issue in old backup
+
+Minor fixes and improvements

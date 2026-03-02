@@ -1,0 +1,12 @@
+ Updated all visual players
+ Updated local playlist
+ Improved updater
+ Updated updater for latest version compatibility
+ Added crash log collector (by @rkxspace)
+ Fixed time issue in player (by @optionmishra)
+ Added shuffle button in player
+ Added switch to new design in player (default: old thumbnail)
+ Added new minplayer to support gradient color
+ Removed changelog sheet (now uses changelog.json)
+ Fixed updater settings page (removed lineage indicator)
+ Minor fixes and improvements

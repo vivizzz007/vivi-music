@@ -1,0 +1,9 @@
+Reverted to old album
+
+Fixed crash caused by audio normalization
+
+Updated updater with new animation
+
+Added beta option for updater in the experimental screen
+
+Other minor improvements

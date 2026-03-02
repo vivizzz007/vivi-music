@@ -1,0 +1,1 @@
+ Updates: New Settings , redesigned Player , fresh Album screen , crash fix , new animations , updated libraries . Menus (Album, Artist, Player, YT etc.) upgraded to Material 3 Expressive . Notification receiver improved for latest Android .added download button in player,fixed crashing in v4.0.1

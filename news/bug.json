@@ -1,0 +1,19 @@
+{
+    "title": "Bug Report & Fixes",
+    "date": "2026-01-08",
+    "type": "bug_report",
+    "description": "We are aware of some bugs and have fixed many of them!",
+    "image": "",
+    "version": "v1.0.1",
+    "content": "Here is the list of recent bug interactions.",
+    "reported_bugs": [
+        "Crash on startup for some Samsung devices",
+        "Playlist grid alignment issue",
+        "Lyrics not syncing occasionally"
+    ],
+    "fixed_bugs": [
+        "Fixed navigation bar overlapping content",
+        "Resolved memory leak in player service",
+        "Corrected artist image aspect ratio"
+    ]
+}

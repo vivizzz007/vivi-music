@@ -1,0 +1,1 @@
+Added Android Auto search, NavigationRail, uploaded content, Discord login, YT Music sync, playlist options, custom thumbnails, new album/artist screens, swipe gestures, audio offload, proxy support, updater screen, and update notifications. Fixed playback, queue, lyrics, UI bugs. Improved performance and visuals.

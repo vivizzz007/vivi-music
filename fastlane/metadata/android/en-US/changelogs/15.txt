@@ -1,0 +1,43 @@
+Improved overall app performance
+
+Updated album screen to M3E design
+
+Updated artist screen
+
+Artist details now shown from Wikipedia
+
+Updated online playlist screen
+
+Removed duplicated artist button
+
+Added animation when removing songs
+
+Added new sleep timer in player
+
+Added new player artwork design
+
+Added new icons across the app
+
+Added audio selecting chip in Bluetooth sheet
+
+Updated experimental screen
+
+Added changelog button on home screen
+
+Added changelog inside main screen
+
+Added update warning indicator
+
+Introduced new M3E chip design
+
+Added new updater downloader
+
+Redesigned VIVI MUSIC updater
+
+Updated updater to Android 16 style
+
+Enabled Android 16 live notifications
+
+Fixed Last.fm not working
+
+Improved stability and consistency throughout the app

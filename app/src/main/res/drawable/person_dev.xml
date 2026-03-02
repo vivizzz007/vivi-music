@@ -1,0 +1,24 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Outer circle ring -->
+    <path
+        android:strokeColor="@android:color/white"
+        android:strokeWidth="1.2"
+        android:fillColor="#00000000"
+        android:pathData="M12,2 A10,10 0,1 1,11.999 2 Z"/>
+
+    <!-- Head -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M12,6 m-2.8,0 a2.8,2.8 0,1 0,5.6 0 a2.8,2.8 0,1 0,-5.6 0"/>
+
+    <!-- Shoulders / body shape -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M5.5,19.5 C5.5,15.36 8.46,12 12,12 C15.54,12 18.5,15.36 18.5,19.5 Q15.5,21.5 12,21.5 Q8.5,21.5 5.5,19.5 Z"/>
+
+</vector>

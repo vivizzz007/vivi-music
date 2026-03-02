@@ -1,0 +1,26 @@
+{
+    "title": "Welcome to Dynamic News!",
+    "subtitle": "Now with Multi-Content Support",
+    "date": "2026-01-08",
+    "type": "news",
+    "description": "We have moved to a dynamic news system. Now updates can be pushed without an app update!",
+    "image": "",
+    "version": "v1.0.0",
+    "content": "This is the main content area. But now look below for structured blocks!",
+    "blocks": [
+        {
+            "subtitle": "Section 1: The Beginning",
+            "image": "",
+            "content": "Here is an image with some text explaining it. This block has all three: subtitle, image, and text."
+        },
+        {
+            "subtitle": "Section 2: Text Only",
+            "content": "This block just has a subtitle and text. Useful for long paragraphs."
+        },
+        {
+            "subtitle": "Section 3: Text Only",
+            "image": "",
+            "content": "This block has an image and text, but no subtitle."
+        }
+    ]
+}

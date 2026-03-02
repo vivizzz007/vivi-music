@@ -1,0 +1,9 @@
+
+UI & Design
+- Better overall UI
+- Redesigned Artist Screen
+- Added sub info and view info in Artist Screen
+- Redesigned Music Player
+- Redesigned Lyrics Screen
+- Redesigned whole Playlist Screen
+- Redesigned Settings Page

@@ -1,0 +1,15 @@
+Music App - Version 3.0.7
+
+What's New:
+
+    Added crossfade support for smoother transitions between songs
+
+    Introduced Apple Music-style synced lyrics
+
+    Reverted to the old appearance screen based on user feedback
+
+    Set gradient player background as the default look
+
+    Updated internal libraries to the latest versions
+
+    Various under-the-hood improvements and performance enhancements
