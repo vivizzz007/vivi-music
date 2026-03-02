@@ -23,11 +23,12 @@ import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.AspectRatioFrameLayout
-import androidx.media3.ui.PlayerView
 import com.music.innertube.YouTube
 import com.music.innertube.models.YouTubeClient
 import okhttp3.OkHttpClient
 import java.util.Locale
+import android.view.ViewGroup
+import android.view.TextureView
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 
 @Composable
@@ -187,16 +188,20 @@ fun CanvasArtworkPlayer(
 
     AndroidView(
         factory = { viewContext ->
-            PlayerView(viewContext).apply {
-                layoutParams = android.view.ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
-                player = exoPlayer
-                useController = false
+            AspectRatioFrameLayout(viewContext).apply {
+                layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
                 resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-                setShutterBackgroundColor(android.graphics.Color.TRANSPARENT)
+                
+                val textureView = TextureView(viewContext).apply {
+                    layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+                }
+                addView(textureView)
+                exoPlayer.setVideoTextureView(textureView)
+                setBackgroundColor(android.graphics.Color.TRANSPARENT)
             }
         },
-        update = { view: PlayerView ->
-            if (view.player !== exoPlayer) view.player = exoPlayer
+        update = { view ->
+            // AspectRatioFrameLayout handles itself, no specific update needed here
         },
         modifier = modifier.alpha(alpha),
     )
