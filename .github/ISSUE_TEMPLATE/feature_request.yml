@@ -1,40 +1,48 @@
-name: Feature request
-description: Suggest an idea for vivimusic
-labels: [enhancement]
+name: 🚀 Feature Request
+description: Have an idea? Pitch it!
+title: "[Feat]: "
+labels: ["enhancement", "triage"]
 body:
-  - type: checkboxes
-    id: checklist
+  - type: markdown
     attributes:
-      label: Checklist
-      description: You should ensure the completion of the task before proceeding to check it off the checklist. Neglecting to do so may impede the efficiency of the issue resolution process. The developer has the right to delete the issue directly if you check the list blindly.
+      value: |
+        ### 💡 Feature Proposal
+        Help us make Vivi Music even more awesome.
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: 🏷️ Category
       options:
-        - label: I've checked that there is no other issue about this feature request.
-          required: true
-        - label: This issue contains only one feature request.
-          required: true
-        - label: The title of this issue accurately describes the feature request.
-          required: true
-
-  - type: textarea
-    id: feature-description
-    attributes:
-      label: Feature description
-      description: What feature you want the app to have? Provide detailed description about what it should look like or where it should be added.
+        - ✨ New Feature
+        - 🎨 UI / Design Improvement
+        - ⚡ Performance / Optimization
+        - 🎧 Audio Experience
+        - 🌐 Translation / Localization
+        - 🔧 Other
     validations:
       required: true
 
   - type: textarea
-    id: why-is-the-feature-requested
+    id: description
     attributes:
-      label: Why do you want this feature?
-      description: Describe the problem or limitation that motivates you to want this feature to be added.
+      label: 📝 The Pitch
+      description: Describe your idea clearly. How should it work?
+      placeholder: "I would love to see..."
     validations:
       required: true
 
   - type: textarea
-    id: additional-information
+    id: problem
     attributes:
-      label: Additional information
-      description: Add any other context or screenshots about the feature request here.
-      placeholder: |
-        Additional details and attachments.
+      label: 🤝 Problem Solved
+      description: Why is this feature necessary? What problem does it solve for you?
+      placeholder: "Currently, it is difficult to..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: 🎨 Mockups / Screenshots / Extras
+      description: Drop images or sketches here if you have them!

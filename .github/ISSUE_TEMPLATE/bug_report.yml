@@ -1,119 +1,113 @@
-name: Bug report
-description: Create a bug report to help us improve
-labels: [ bug ]
+name: 🐛 Bug Report
+description: Something is broken? Help us fix it!
+title: "[Bug]: "
+labels: ["bug", "triage"]
 body:
   - type: markdown
     attributes:
       value: |
-        ## ⚠️ IMPORTANT WARNING
-        
-        **Duplicate or incomplete issues will be closed immediately without any response from developers.**
-        
-        - Check existing issues before opening a new one
-        - All required checkboxes below must be checked
-        - Duplicate issues will be closed instantly with no response
+        ### 🛠️ Bug Report
+        Thank you for reporting! Please fill out the form below.
 
   - type: checkboxes
     id: checklist
     attributes:
-      label: "⚠️ Checklist - Required"
-      description: |
-        **READ CAREFULLY:** You must complete these checks before submitting. Failing to do so will result in your issue being closed immediately without any response from developers.
-        
-        **Duplicate issues = Instant closure with no response**
+      label: Pre-flight Checklist
       options:
-        - label: " I am able to reproduce the bug with the [latest debug version](https://github.com/vivimusicGroup/vivimusic/actions)."
+        - label: I am running the [latest debug version](https://github.com/vivizzz007/vivi-music/actions).
           required: true
-        - label: " I've checked that there is NO open or closed issue about this bug. (Duplicate issues will be closed immediately without response)"
-          required: true
-        - label: " This issue contains only ONE bug."
-          required: true
-        - label: " The title of this issue accurately describes the bug."
+        - label: I checked for duplicate issues.
           required: true
 
-  - type: markdown
+  - type: dropdown
+    id: component
     attributes:
-      value: |
-        ---
-        ## Bug Details
+      label: 📍 Where does the bug happen?
+      description: Select the area of the app.
+      options:
+        - 🎵 Music Player (Now Playing)
+        - 📚 Library / Playlists
+        - 🔍 Search
+        - ⚙️ Settings
+        - 📥 Downloads
+        - 🎨 UI / Visuals
+        - 🔌 Integrations (Discord/LastFM)
+        - 📱 Widgets / Notification
+        - ❓ Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: 📉 How often does it happen?
+      options:
+        - 🔴 Every time (100%)
+        - 🟠 Often (> 50%)
+        - 🟡 Sometimes (< 50%)
+        - 🟢 Rarely (Once or twice)
+    validations:
+      required: true
 
   - type: textarea
     id: reproduce-steps
     attributes:
-      label: Steps to reproduce the bug
-      description: What did you do for the bug to show up?
+      label: 🔄 Steps to Reproduce
+      description: clear steps lead to a faster fix!
       placeholder: |
-        Example:
-          1. Go to '...'
-          2. Click on '....'
-          3. Scroll down to '....'
-          4. See error
+        1. Go to ...
+        2. Tap on ...
+        3. See error
+      value: |
+        1. 
+        2. 
+        3. 
     validations:
       required: true
 
   - type: textarea
-    id: expected-behavior
+    id: expected-actual
     attributes:
-      label: Expected behavior
+      label: 🆚 Expected vs. Actual
+      description: What happened vs. what should have happened.
       placeholder: |
-        Example:
-          "This should happen..."
+        Expected: Music starts playing.
+        Actual: App crashes immediately.
     validations:
       required: true
 
-  - type: textarea
-    id: actual-behavior
+  - type: markdown
     attributes:
-      label: Actual behavior
-      placeholder: |
-        Example:
-          "This happened instead..."
-    validations:
-      required: true
+      value: "---"
 
-  - type: textarea
-    id: sreen-media
+  - type: dropdown
+    id: android-version
     attributes:
-      label: Screenshots/Screen recordings
-      description: |
-        A picture or video helps us understand the bug more.
-
-        You can upload them directly in the text box.
-
-  - type: textarea
-    id: logs
-    attributes:
-      label: Logs
-      description: |
-        Please use `adb logcat` or other ways to provide logs. This field is strongly recommended to be filled. Without this information, it's likely that the developer is unable to take any meaningful action or provide further assistance.
+      label: 🤖 Android Version
+      options:
+        - Android 16 (Preview)
+        - Android 15
+        - Android 14
+        - Android 13
+        - Android 12
+        - Android 11
+        - Android 10
+        - Android 9 or older
+        - Custom ROM
     validations:
       required: true
 
   - type: input
     id: app-version
     attributes:
-      label: vivimusic version
-      description: |
-        You can find your vivimusic version in **Settings**.
-      placeholder: |
-        Example: "1.5.0"
-    validations:
-      required: true
-
-  - type: input
-    id: android-version
-    attributes:
-      label: Android version
-      description: |
-        You can find this somewhere in your Android settings.
-      placeholder: |
-        Example: "Android 12"
+      label: 📦 App Version
+      placeholder: e.g. 5.0.3 (Check Settings -> About)
     validations:
       required: true
 
   - type: textarea
-    id: additional-information
+    id: logs
     attributes:
-      label: Additional information
-      placeholder: |
-        Additional details and attachments.
+      label: 📄 Logs / Screenshots
+      description: Paste logs or drag & drop screenshots here.
+      render: shell
