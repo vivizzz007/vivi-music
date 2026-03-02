@@ -37,19 +37,8 @@ android {
 
         buildConfigField("String", "LASTFM_API_KEY", "\"$lastFmKey\"")
         buildConfigField("String", "LASTFM_SECRET", "\"$lastFmSecret\"")
-        
-        // NDK configuration for vibra_fp library
-        ndk {
-            abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64", "x86")
-        }
     }
     
-    externalNativeBuild {
-        cmake {
-            path("src/main/cpp/vibrafp/lib/CMakeLists.txt")
-            version = "3.22.1"
-        }
-    }
 
     flavorDimensions += listOf("abi", "variant")
     productFlavors {
@@ -68,29 +57,22 @@ android {
         
         create("universal") {
             dimension = "abi"
-            ndk {
-                abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
-            }
             buildConfigField("String", "ARCHITECTURE", "\"universal\"")
         }
         create("arm64") {
             dimension = "abi"
-            ndk { abiFilters += "arm64-v8a" }
             buildConfigField("String", "ARCHITECTURE", "\"arm64\"")
         }
         create("armeabi") {
             dimension = "abi"
-            ndk { abiFilters += "armeabi-v7a" }
             buildConfigField("String", "ARCHITECTURE", "\"armeabi\"")
         }
         create("x86") {
             dimension = "abi"
-            ndk { abiFilters += "x86" }
             buildConfigField("String", "ARCHITECTURE", "\"x86\"")
         }
         create("x86_64") {
             dimension = "abi"
-            ndk { abiFilters += "x86_64" }
             buildConfigField("String", "ARCHITECTURE", "\"x86_64\"")
         }
     }
@@ -126,33 +108,13 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            externalNativeBuild {
-                cmake {
-                    arguments += listOf(
-                        "-DENABLE_LTO=ON",
-                        "-DCMAKE_BUILD_TYPE=Release"
-                    )
-                }
-            }
-            ndk {
-                debugSymbolLevel = "NONE"
-            }
+            buildConfigField("String", "ARCHITECTURE", "\"release\"")
         }
         debug {
             applicationIdSuffix = ".debug"
             isDebuggable = true
             signingConfig = signingConfigs.getByName("debug")
-            externalNativeBuild {
-                cmake {
-                    arguments += listOf(
-                        "-DENABLE_LTO=OFF",
-                        "-DCMAKE_BUILD_TYPE=Debug"
-                    )
-                }
-            }
-            ndk {
-                debugSymbolLevel = "FULL"
-            }
+            buildConfigField("String", "ARCHITECTURE", "\"debug\"")
         }
     }
 
@@ -324,28 +286,3 @@ dependencies {
     implementation(libs.work.runtime.ktx)
 }
 
-// Custom task to download FFTW3 source if FetchContent fails or is blocked
-val downloadFFTW = tasks.register("downloadFFTW") {
-    val fftwUrl = "http://www.fftw.org/fftw-3.3.10.tar.gz"
-    val destFile = file("src/main/cpp/vibrafp/third_party/fftw-3.3.10.tar.gz")
-    
-    outputs.file(destFile)
-    
-    doLast {
-        if (!destFile.exists()) {
-            println("Downloading FFTW from $fftwUrl...")
-            destFile.parentFile.mkdirs()
-            URL(fftwUrl).openStream().use { input ->
-                destFile.outputStream().use { output ->
-                    input.copyTo(output)
-                }
-            }
-            println("Downloaded FFTW to ${destFile.absolutePath}")
-        }
-    }
-}
-
-// Hook it into the build process
-tasks.named("preBuild") {
-    dependsOn(downloadFFTW)
-}

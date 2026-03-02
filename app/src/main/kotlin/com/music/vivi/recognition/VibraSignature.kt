@@ -6,10 +6,6 @@ package com.music.vivi.recognition
  */
 object VibraSignature {
 
-    init {
-        System.loadLibrary("vibra_fp")
-    }
-
     const val REQUIRED_SAMPLE_RATE = 16_000
 
     /**
@@ -20,5 +16,5 @@ object VibraSignature {
      * @throws RuntimeException if signature generation fails
      */
     @JvmStatic
-    external fun fromI16(samples: ByteArray): String
+    fun fromI16(samples: ByteArray): String = ShazamSignatureGenerator.fromI16(samples)
 }
