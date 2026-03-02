@@ -119,8 +119,8 @@ fun AccountSettingsScreen(
                                         modifier = Modifier
                                             .size(40.dp)
                                             .clip(CircleShape)
-                                            .padding(end = 12.dp)
                                     )
+                                    Spacer(modifier = Modifier.width(12.dp))
                                 }
                                 Text(
                                     text = if (isLoggedIn) accountName else stringResource(R.string.login),
