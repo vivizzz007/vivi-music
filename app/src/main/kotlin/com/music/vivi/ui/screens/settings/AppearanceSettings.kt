@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
+import com.music.vivi.constants.CanvasThumbnailAnimationKey
 import com.music.vivi.constants.ChipSortTypeKey
 import com.music.vivi.constants.CropAlbumArtKey
 import com.music.vivi.constants.DefaultOpenTabKey
@@ -234,6 +235,10 @@ fun AppearanceSettings(
     val (swipeSensitivity, onSwipeSensitivityChange) = rememberPreference(
         SwipeSensitivityKey,
         defaultValue = 0.73f
+    )
+    val (canvasThumbnailAnimation, onCanvasThumbnailAnimationChange) = rememberPreference(
+        CanvasThumbnailAnimationKey,
+        defaultValue = false
     )
     val (gridItemSize, onGridItemSizeChange) = rememberEnumPreference(
         GridItemsSizeKey,
@@ -1190,6 +1195,27 @@ fun AppearanceSettings(
                         )
                     },
                     onClick = { onSwipeThumbnailChange(!swipeThumbnail) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.palette),
+                    title = { Text(stringResource(R.string.archivetune_canvas)) },
+                    description = { Text(stringResource(R.string.archivetune_canvas_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = canvasThumbnailAnimation,
+                            onCheckedChange = onCanvasThumbnailAnimationChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (canvasThumbnailAnimation) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onCanvasThumbnailAnimationChange(!canvasThumbnailAnimation) }
                 )
             ) + if (swipeThumbnail) listOf(
                 Material3SettingsItem(

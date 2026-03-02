@@ -85,8 +85,14 @@ import com.music.vivi.constants.ThumbnailCornerRadius
 import com.music.vivi.listentogether.RoomRole
 import com.music.vivi.ui.component.CastButton
 import com.music.vivi.utils.rememberEnumPreference
+import com.music.vivi.constants.CanvasThumbnailAnimationKey
+import com.music.vivi.canvas.ArchiveTuneCanvas
+import com.music.vivi.canvas.CanvasArtwork
 import com.music.vivi.utils.rememberPreference
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.delay
+import java.util.Locale
 
 /**
  * Pre-calculated thumbnail dimensions to avoid repeated calculations during recomposition.
@@ -191,6 +197,57 @@ private fun getTextColor(playerBackground: PlayerBackgroundStyle): Color {
     return when (playerBackground) {
         PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.onBackground
         PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.GLOW_ANIMATED -> Color.White
+    }
+}
+
+
+object CanvasArtworkPlaybackCache {
+    private const val defaultMaxSize = 256
+    private val map = LinkedHashMap<String, CanvasArtwork>(defaultMaxSize, 0.75f, true)
+    @Volatile private var maxSize = defaultMaxSize
+
+    @Synchronized
+    fun get(mediaId: String): CanvasArtwork? {
+        if (maxSize <= 0) return null
+        return map[mediaId]
+    }
+
+    @Synchronized
+    fun put(mediaId: String, artwork: CanvasArtwork) {
+        val limit = maxSize
+        if (limit <= 0) return
+        if (mediaId.isBlank()) return
+        map[mediaId] = artwork
+        while (map.size > limit) {
+            val it = map.entries.iterator()
+            if (it.hasNext()) {
+                it.next()
+                it.remove()
+            }
+        }
+    }
+
+    @Synchronized
+    fun clear() {
+        map.clear()
+    }
+
+    @Synchronized
+    fun setMaxSize(value: Int) {
+        maxSize = value.coerceAtLeast(0)
+        if (maxSize == 0) {
+            map.clear()
+            return
+        }
+        while (map.size > maxSize) {
+            val it = map.entries.iterator()
+            if (it.hasNext()) {
+                it.next()
+                it.remove()
+            } else {
+                break
+            }
+        }
     }
 }
 
@@ -516,6 +573,9 @@ private fun ThumbnailItem(
     var skipMultiplier by remember { mutableIntStateOf(1) }
     var lastTapTime by remember { mutableLongStateOf(0L) }
 
+    val canvasThumbnailAnimation by rememberPreference(CanvasThumbnailAnimationKey, defaultValue = false)
+    val isPlaying by playerConnection.isPlaying.collectAsState()
+
     Box(
         modifier = modifier
             .then(
@@ -530,7 +590,7 @@ private fun ThumbnailItem(
             .padding(horizontal = PlayerHorizontalPadding)
             .graphicsLayer {
                 // Render entire thumbnail item on separate hardware layer for smooth animations
-                compositingStrategy = CompositingStrategy.Offscreen
+                // Offscreen compositing removed to prevent interference with AndroidView
             }
             .pointerInput(Unit) {
                 detectTapGestures(
@@ -584,6 +644,59 @@ private fun ThumbnailItem(
                     cropArtwork = cropAlbumArt
                 )
             }
+            
+            if (canvasThumbnailAnimation && item.mediaId == currentMediaId) {
+                var canvasArtwork by remember(item.mediaId) { mutableStateOf<CanvasArtwork?>(null) }
+                var canvasFetchInFlight by remember(item.mediaId) { mutableStateOf(false) }
+                val storefront = remember {
+                    val country = Locale.getDefault().country
+                    if (country.length == 2) country.lowercase(Locale.ROOT) else "us"
+                }
+
+                LaunchedEffect(item.mediaId) {
+                    CanvasArtworkPlaybackCache.get(item.mediaId)?.let { cached ->
+                        canvasArtwork = cached
+                        return@LaunchedEffect
+                    }
+
+                    if (canvasFetchInFlight) return@LaunchedEffect
+                    canvasFetchInFlight = true
+
+                    val fetched = withContext(Dispatchers.IO) {
+                        val songTitleRaw = item.mediaMetadata.title?.toString() ?: ""
+                        val artistNameRaw = item.mediaMetadata.artist?.toString() ?: ""
+                        
+                        val songTitle = normalizeCanvasSongTitle(songTitleRaw)
+                        val artistName = normalizeCanvasArtistName(artistNameRaw)
+                        
+                        linkedSetOf(
+                            songTitle to artistName,
+                            songTitleRaw to artistName,
+                            songTitle to artistNameRaw,
+                            songTitleRaw to artistNameRaw,
+                        ).filter { (s, a) -> s.isNotBlank() && a.isNotBlank() }
+                            .firstNotNullOfOrNull { (s, a) ->
+                                ArchiveTuneCanvas.getBySongArtist(s, a, storefront)
+                                    ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                            }
+                    }
+                    
+                    canvasArtwork = fetched
+                    if (fetched != null) {
+                        CanvasArtworkPlaybackCache.put(item.mediaId, fetched)
+                    }
+                    canvasFetchInFlight = false
+                }
+
+                canvasArtwork?.let { artwork ->
+                    CanvasArtworkPlayer(
+                        primaryUrl = artwork.animated,
+                        fallbackUrl = artwork.videoUrl,
+                        isPlaying = isPlaying,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            }
         }
     }
 }
@@ -623,10 +736,6 @@ private fun ThumbnailImage(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .graphicsLayer {
-                // Use offscreen compositing for hardware acceleration during animations
-                compositingStrategy = CompositingStrategy.Offscreen
-            }
             .background(MaterialTheme.colorScheme.surfaceVariant)
     ) {
         AsyncImage(
@@ -661,4 +770,52 @@ private fun SeekEffectOverlay(
             .background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
             .padding(8.dp)
     )
+}
+
+private fun normalizeCanvasSongTitle(raw: String): String {
+    val stripped =
+        raw
+            .replace(Regex("\\s*\\[[^]]*]"), "")
+            .replace(
+                Regex(
+                    "\\s*\\((?:feat\\.?|ft\\.?|featuring|with)\\b[^)]*\\)",
+                    RegexOption.IGNORE_CASE,
+                ),
+                "",
+            )
+            .replace(
+                Regex(
+                    "\\s*\\((?:official\\s*)?(?:music\\s*)?(?:video|mv|lyrics?|audio|visualizer|live|remaster(?:ed)?|version|edit|mix|remix)[^)]*\\)",
+                    RegexOption.IGNORE_CASE,
+                ),
+                "",
+            )
+            .replace(
+                Regex(
+                    "\\s*-\\s*(?:official\\s*)?(?:music\\s*)?(?:video|mv|lyrics?|audio|visualizer|live|remaster(?:ed)?|version|edit|mix|remix)\\b.*$",
+                    RegexOption.IGNORE_CASE,
+                ),
+                "",
+            )
+            .replace(Regex("\\s+"), " ")
+            .trim()
+
+    return stripped
+        .trim('-')
+        .replace(Regex("\\s+"), " ")
+        .trim()
+}
+
+private fun normalizeCanvasArtistName(raw: String): String {
+    val first =
+        raw
+            .split(
+                Regex(
+                    "(?:\\s*,\\s*|\\s*&\\s*|\\s+×\\s+|\\s+x\\s+|\\bfeat\\.?\\b|\\bft\\.?\\b|\\bfeaturing\\b|\\bwith\\b)",
+                    RegexOption.IGNORE_CASE,
+                ),
+                limit = 2,
+            ).firstOrNull().orEmpty()
+
+    return first.replace(Regex("\\s+"), " ").trim()
 }

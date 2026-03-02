@@ -92,6 +92,8 @@
     <string name="thumbnail_corner_radius_desc">Change the corner radius of the album cover thumbnail</string>
     <string name="crop_album_art">Crop Album Art</string>
     <string name="crop_album_art_desc">Force a square aspect ratio by cropping video thumbnails</string>
+    <string name="archivetune_canvas">ArchiveTune Canvas</string>
+    <string name="archivetune_canvas_desc">Show animated album covers when available</string>
 
     <string name="already_in_playlist">Already in playlist:</string>
 

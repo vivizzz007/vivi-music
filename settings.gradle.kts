@@ -18,6 +18,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "vivimusic"
 include(":app")
+include(":canvas")
 include(":innertube")
 include(":kugou")
 include(":lrclib")
