@@ -88,6 +88,7 @@ import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.constants.CanvasThumbnailAnimationKey
 import com.music.vivi.canvas.ArchiveTuneCanvas
 import com.music.vivi.canvas.CanvasArtwork
+import com.music.vivi.extensions.metadata
 import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -663,6 +664,10 @@ private fun ThumbnailItem(
                     canvasFetchInFlight = true
 
                     val fetched = withContext(Dispatchers.IO) {
+                        val metadata = item.metadata
+                        val albumName = (metadata?.album?.title ?: item.mediaMetadata.albumTitle)?.toString()
+                        val duration = metadata?.duration
+                        
                         val songTitleRaw = item.mediaMetadata.title?.toString() ?: ""
                         val artistNameRaw = item.mediaMetadata.artist?.toString() ?: ""
                         
@@ -676,8 +681,13 @@ private fun ThumbnailItem(
                             songTitleRaw to artistNameRaw,
                         ).filter { (s, a) -> s.isNotBlank() && a.isNotBlank() }
                             .firstNotNullOfOrNull { (s, a) ->
-                                ArchiveTuneCanvas.getBySongArtist(s, a, storefront)
-                                    ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                                ArchiveTuneCanvas.getBySongArtist(
+                                    song = s,
+                                    artist = a,
+                                    album = albumName,
+                                    duration = duration,
+                                    storefront = storefront
+                                )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                             }
                     }
                     

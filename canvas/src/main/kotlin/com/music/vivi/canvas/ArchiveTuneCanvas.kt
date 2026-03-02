@@ -56,9 +56,11 @@ object ArchiveTuneCanvas {
     suspend fun getBySongArtist(
         song: String,
         artist: String,
+        album: String? = null,
+        duration: Int? = null,
         storefront: String = "us",
     ): CanvasArtwork? {
-        val key = cacheKey("sa", song, artist, storefront)
+        val key = cacheKey("sa", song, artist, album.orEmpty(), duration?.toString().orEmpty(), storefront)
         cache[key]?.let { entry ->
             if (entry.expiresAtMs > System.currentTimeMillis()) return entry.value
             cache.remove(key)
@@ -69,6 +71,8 @@ object ArchiveTuneCanvas {
                 client.get {
                     parameter("s", song)
                     parameter("a", artist)
+                    if (album != null) parameter("al", album)
+                    if (duration != null && duration > 0) parameter("d", duration)
                     parameter("storefront", storefront)
                 }
             }.getOrNull()
