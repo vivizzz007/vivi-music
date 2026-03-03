@@ -62,6 +62,7 @@ import com.music.vivi.constants.EnableBetterLyricsKey
 import com.music.vivi.constants.EnableKugouKey
 import com.music.vivi.constants.EnableLrcLibKey
 import com.music.vivi.constants.EnableSimpMusicKey
+import com.music.vivi.constants.EnableYouLyPlusKey
 import com.music.vivi.constants.HideExplicitKey
 import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.constants.HideYoutubeShortsKey
@@ -120,6 +121,7 @@ fun ContentSettings(
     val (enableLrclib, onEnableLrclibChange) = rememberPreference(key = EnableLrcLibKey, defaultValue = true)
     val (enableBetterLyrics, onEnableBetterLyricsChange) = rememberPreference(key = EnableBetterLyricsKey, defaultValue = true)
     val (enableSimpMusic, onEnableSimpMusicChange) = rememberPreference(key = EnableSimpMusicKey, defaultValue = true)
+    val (enableYouLyPlus, onEnableYouLyPlusChange) = rememberPreference(key = EnableYouLyPlusKey, defaultValue = true)
     val (preferredProvider, onPreferredProviderChange) =
         rememberEnumPreference(
             key = PreferredLyricsProviderKey,
@@ -134,12 +136,13 @@ fun ContentSettings(
     )
 
     // Auto-switch preferred provider if current one is disabled
-    LaunchedEffect(enableLrclib, enableKugou, enableBetterLyrics, enableSimpMusic, preferredProvider) {
+    LaunchedEffect(enableLrclib, enableKugou, enableBetterLyrics, enableSimpMusic, enableYouLyPlus, preferredProvider) {
         val isPreferredProviderEnabled = when (preferredProvider) {
             PreferredLyricsProvider.LRCLIB -> enableLrclib
             PreferredLyricsProvider.KUGOU -> enableKugou
             PreferredLyricsProvider.BETTER_LYRICS -> enableBetterLyrics
             PreferredLyricsProvider.SIMPMUSIC -> enableSimpMusic
+            PreferredLyricsProvider.YOULYPLUS -> enableYouLyPlus
         }
         
         if (!isPreferredProviderEnabled) {
@@ -149,6 +152,7 @@ fun ContentSettings(
                     PreferredLyricsProvider.KUGOU -> enableKugou
                     PreferredLyricsProvider.BETTER_LYRICS -> enableBetterLyrics
                     PreferredLyricsProvider.SIMPMUSIC -> enableSimpMusic
+                    PreferredLyricsProvider.YOULYPLUS -> enableYouLyPlus
                 }
             }
             firstEnabledProvider?.let { onPreferredProviderChange(it) }
@@ -156,7 +160,7 @@ fun ContentSettings(
     }
 
     // Calculate enabled providers count for UI logic
-    val enabledProvidersCount = listOf(enableLrclib, enableKugou, enableBetterLyrics, enableSimpMusic).count { it }
+    val enabledProvidersCount = listOf(enableLrclib, enableKugou, enableBetterLyrics, enableSimpMusic, enableYouLyPlus).count { it }
 
     var showProxyConfigurationDialog by rememberSaveable {
         mutableStateOf(false)
@@ -360,6 +364,7 @@ fun ContentSettings(
                     PreferredLyricsProvider.KUGOU -> enableKugou
                     PreferredLyricsProvider.BETTER_LYRICS -> enableBetterLyrics
                     PreferredLyricsProvider.SIMPMUSIC -> enableSimpMusic
+                    PreferredLyricsProvider.YOULYPLUS -> enableYouLyPlus
                 }
             },
             valueText = {
@@ -368,6 +373,7 @@ fun ContentSettings(
                     PreferredLyricsProvider.KUGOU -> "KuGou"
                     PreferredLyricsProvider.BETTER_LYRICS -> "Better Lyrics"
                     PreferredLyricsProvider.SIMPMUSIC -> "SimpMusic"
+                    PreferredLyricsProvider.YOULYPLUS -> "YouLyPlus"
                 }
             }
         )
@@ -755,6 +761,27 @@ fun ContentSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
+                    title = { Text("YouLyPlus") },
+                    description = { Text("LyricsPlus multi-server provider (YouLy+ extension backend)") },
+                    trailingContent = {
+                        Switch(
+                            checked = enableYouLyPlus,
+                            onCheckedChange = onEnableYouLyPlusChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (enableYouLyPlus) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onEnableYouLyPlusChange(!enableYouLyPlus) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.lyrics),
                     title = { Text(stringResource(R.string.set_first_lyrics_provider)) },
                     description = {
                         Text(
@@ -763,6 +790,7 @@ fun ContentSettings(
                                 PreferredLyricsProvider.KUGOU -> "KuGou"
                                 PreferredLyricsProvider.BETTER_LYRICS -> "Better Lyrics"
                                 PreferredLyricsProvider.SIMPMUSIC -> "SimpMusic"
+                                PreferredLyricsProvider.YOULYPLUS -> "YouLyPlus"
                             }
                         )
                     },

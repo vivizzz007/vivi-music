@@ -266,6 +266,7 @@ dependencies {
     implementation(project(":lastfm"))
     implementation(project(":betterlyrics"))
     implementation(project(":simpmusic"))
+    implementation(project(":youlyplus"))
     implementation(project(":canvas"))
     implementation(project(":shazamkit"))
 
