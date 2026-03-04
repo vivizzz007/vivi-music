@@ -91,8 +91,18 @@ fun UpdateSettings(
                         navController.navigate("update")
                     }
                 ),
-
-
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.info),
+                    title = {
+                        Text(stringResource(R.string.version, BuildConfig.VERSION_NAME))
+                    },
+                    description = {
+                        val arch = BuildConfig.ARCHITECTURE
+                        val variant = if (BuildConfig.CAST_AVAILABLE) "GMS" else "FOSS"
+                        Text("$arch - $variant")
+                    }
+                ),
+                
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.update),
                     title = { Text(stringResource(R.string.auto_update_check)) },
