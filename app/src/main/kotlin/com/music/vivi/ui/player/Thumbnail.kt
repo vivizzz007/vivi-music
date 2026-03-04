@@ -87,6 +87,7 @@ import com.music.vivi.ui.component.CastButton
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.constants.CanvasThumbnailAnimationKey
 import com.music.vivi.canvas.ArchiveTuneCanvas
+import com.music.vivi.canvas.MonochromeApiCanvas
 import com.music.vivi.canvas.CanvasArtwork
 import com.music.vivi.extensions.metadata
 import com.music.vivi.utils.rememberPreference
@@ -688,6 +689,11 @@ private fun ThumbnailItem(
                                     duration = duration,
                                     storefront = storefront
                                 )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                                    ?: MonochromeApiCanvas.getBySongArtist(
+                                        song = s,
+                                        artist = a,
+                                        album = albumName
+                                    )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                             }
                     }
                     
