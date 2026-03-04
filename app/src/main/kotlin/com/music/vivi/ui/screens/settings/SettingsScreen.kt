@@ -50,7 +50,7 @@ fun SettingsScreen(
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
     val isAndroid12OrLater = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-    val isUpdateAvailable = getUpdateAvailableState(context)
+    val isUpdateAvailable = getUpdateAvailableState(context) && com.music.vivi.vivimusic.updater.getAutoUpdateCheckSetting(context)
 
     Column(
         Modifier

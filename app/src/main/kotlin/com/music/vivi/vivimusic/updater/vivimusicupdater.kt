@@ -869,8 +869,7 @@ fun UpdateScreen(navController: NavHostController) {
                                 when {
                                     updateAvailable && !isDownloading && !isDownloadComplete -> {
                                         // Start download with WorkManager
-                                        val tagForUrl = if (updateMessageVersion.startsWith("b")) updateMessageVersion else "v$updateMessageVersion"
-                                        val apkUrl = "https://github.com/vivizzz007/vivi-music/releases/download/$tagForUrl/vivi.apk"
+                                        val apkUrl = "https://github.com/vivizzz007/vivi-music/releases/download/$updateMessageVersion/vivi.apk"
 
                                         val downloadRequest = OneTimeWorkRequestBuilder<UpdateDownloadWorker>()
                                             .setInputData(
@@ -1096,8 +1095,12 @@ suspend fun checkForUpdate(
                 val tagName = release.getString("tag_name")
                 val isBeta = tagName.startsWith("b")
                 
-                // If beta is NOT enabled, skip beta releases
-                if (!betaEnabled && isBeta) continue
+                // If beta is enabled, ONLY fetch 'b' tags. If disabled, ONLY fetch 'v' tags.
+                if (betaEnabled) {
+                    if (!isBeta) continue
+                } else {
+                    if (isBeta) continue
+                }
                 
                 val versionStr = tagName.removePrefix("v").removePrefix("b")
                 if (!versionStr.matches(Regex("""\d+(\.\d+){1,2}"""))) continue
@@ -1113,10 +1116,8 @@ suspend fun checkForUpdate(
 
             if (foundRelease != null) {
                 val tagWithPrefix = foundRelease.getString("tag_name")
-                val tag = tagWithPrefix.removePrefix("v") // Keep 'b' if it's there? 
-                // The user said: "update will be showing b5.0.1"
-                // So let's keep the 'b' if it starts with 'b'
-                val displayTag = if (tagWithPrefix.startsWith("v")) tagWithPrefix.removePrefix("v") else tagWithPrefix
+                // Pass the full tag (vX.X.X or bX.X.X) for display and URL construction
+                val displayTag = tagWithPrefix
 
                 // FETCH CHANGELOG.JSON FROM RELEASE ASSETS
                 var changelog = ""

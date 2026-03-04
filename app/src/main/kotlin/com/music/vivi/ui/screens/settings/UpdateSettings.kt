@@ -41,7 +41,7 @@ import com.music.vivi.vivimusic.updater.saveUpdateNotificationsSetting
 import com.music.vivi.vivimusic.updater.getBetaUpdatesSetting
 import com.music.vivi.vivimusic.updater.saveBetaUpdatesSetting
 import androidx.compose.material3.MaterialTheme
-
+import com.music.vivi.BuildConfig
 
 //here b5.0.1 must be used for the beta tag
 
@@ -63,7 +63,7 @@ fun UpdateSettings(
     var autoUpdateEnabled by remember { mutableStateOf(getAutoUpdateCheckSetting(context)) }
     var updateNotificationsEnabled by remember { mutableStateOf(getUpdateNotificationsSetting(context)) }
     var betaUpdatesEnabled by remember { mutableStateOf(getBetaUpdatesSetting(context)) }
-    val isUpdateAvailable = getUpdateAvailableState(context)
+    val isUpdateAvailable = getUpdateAvailableState(context) && autoUpdateEnabled
 
     Column(
         Modifier
@@ -182,6 +182,13 @@ fun UpdateSettings(
                         saveBetaUpdatesSetting(context, betaUpdatesEnabled)
                     }
                 )
+
+//                Material3SettingsItem(
+//                    icon = painterResource(R.drawable.info),
+//                    title = { Text(stringResource(R.string.namespace)) },
+//                    description = { Text(BuildConfig.APPLICATION_ID) }
+//                )
+
             )
         )
         

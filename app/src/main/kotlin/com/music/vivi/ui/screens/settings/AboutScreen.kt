@@ -313,11 +313,6 @@ fun AboutScreen(
                     description = { Text("GPL-3.0 • Free Open Source Software") },
                     onClick = { uriHandler.openUri("https://github.com/vivizzz007/vivi-music/blob/main/LICENSE") }
                 ),
-//                Material3SettingsItem(
-//                    icon = painterResource(R.drawable.info),
-//                    title = { Text(stringResource(R.string.namespace)) },
-//                    description = { Text(BuildConfig.APPLICATION_ID) }
-//                )
             )
         )
         Spacer(modifier = Modifier.height(16.dp))

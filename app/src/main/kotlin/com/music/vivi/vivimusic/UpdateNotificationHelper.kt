@@ -30,8 +30,8 @@ object UpdateNotificationHelper {
             nm.createNotificationChannel(channel)
         }
 
-        // Direct download URL format from vivimusicupdater
-        val apkUrl = "https://github.com/vivizzz007/vivi-music/releases/download/v$versionName/vivi.apk"
+        // Direct download URL format from vivimusicupdater - use the full tag (vX.X.X or bX.X.X)
+        val apkUrl = "https://github.com/vivizzz007/vivi-music/releases/download/$versionName/vivi.apk"
         val intent = Intent(Intent.ACTION_VIEW, apkUrl.toUri())
 
         val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
