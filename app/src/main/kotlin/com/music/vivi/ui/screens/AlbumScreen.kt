@@ -140,7 +140,6 @@ fun AlbumScreen(
     val releasesForYou by viewModel.releasesForYou.collectAsState()
     val description by viewModel.description.collectAsState()
     val descriptionRuns by viewModel.descriptionRuns.collectAsState()
-    val isDescriptionLoading by viewModel.isDescriptionLoading.collectAsState()
     val hideExplicit by rememberPreference(key = HideExplicitKey, defaultValue = false)
     val hideVideoSongs by rememberPreference(key = HideVideoSongsKey, defaultValue = false)
 
@@ -486,27 +485,16 @@ fun AlbumScreen(
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
 
-                        if (isDescriptionLoading && description.isNullOrEmpty() && descriptionRuns.isNullOrEmpty()) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 16.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                ContainedLoadingIndicator()
-                            }
-                        } else {
-                            ExpandableText(
-                                text = description ?: staticDescription,
-                                runs = descriptionRuns?.map {
-                                    LinkSegment(
-                                        text = it.text,
-                                        url = it.navigationEndpoint?.urlEndpoint?.url
-                                    )
-                                },
-                                collapsedMaxLines = 3
-                            )
-                        }
+                        ExpandableText(
+                            text = description ?: staticDescription,
+                            runs = descriptionRuns?.map {
+                                LinkSegment(
+                                    text = it.text,
+                                    url = it.navigationEndpoint?.urlEndpoint?.url
+                                )
+                            },
+                            collapsedMaxLines = 3
+                        )
                     }
 
                     Spacer(Modifier.height(16.dp))

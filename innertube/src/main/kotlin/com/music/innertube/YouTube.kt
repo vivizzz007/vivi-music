@@ -197,15 +197,37 @@ object YouTube {
             )
         }
 
-        val descriptionRuns = response.contents?.twoColumnBrowseResultsRenderer?.tabs?.firstOrNull()
-            ?.tabRenderer?.content?.sectionListRenderer?.contents
-            ?.firstOrNull { it.musicDescriptionShelfRenderer != null }
-            ?.musicDescriptionShelfRenderer?.description?.runs
-            ?.let(::mapRuns)
-            ?: response.header?.musicDetailHeaderRenderer?.description?.runs?.let(::mapRuns)
-            ?: response.contents?.twoColumnBrowseResultsRenderer?.tabs?.firstOrNull()
-                ?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()
-                ?.musicResponsiveHeaderRenderer?.description?.runs?.let(::mapRuns)
+        val descriptionRuns = sequence {
+            // Check all tabs in twoColumnBrowseResultsRenderer
+            response.contents?.twoColumnBrowseResultsRenderer?.tabs?.forEach { tab ->
+                tab?.tabRenderer?.content?.sectionListRenderer?.contents?.forEach { content ->
+                    content.musicDescriptionShelfRenderer?.description?.runs?.let { yield(it) }
+                }
+            }
+            // Check all tabs in singleColumnBrowseResultsRenderer
+            response.contents?.singleColumnBrowseResultsRenderer?.tabs?.forEach { tab ->
+                tab.tabRenderer?.content?.sectionListRenderer?.contents?.forEach { content ->
+                    content.musicDescriptionShelfRenderer?.description?.runs?.let { yield(it) }
+                }
+            }
+            // Check headers
+            response.header?.musicDetailHeaderRenderer?.description?.runs?.let { yield(it) }
+            response.header?.musicImmersiveHeaderRenderer?.description?.runs?.let { yield(it) }
+            response.header?.musicEditablePlaylistDetailHeaderRenderer?.header?.musicDetailHeaderRenderer?.description?.runs?.let { yield(it) }
+            response.header?.musicEditablePlaylistDetailHeaderRenderer?.header?.musicResponsiveHeaderRenderer?.description?.runs?.let { yield(it) }
+            
+            // Check musicResponsiveHeaderRenderer in contents
+            response.contents?.twoColumnBrowseResultsRenderer?.tabs?.forEach { tab ->
+                tab?.tabRenderer?.content?.sectionListRenderer?.contents?.forEach { content ->
+                    content.musicResponsiveHeaderRenderer?.description?.runs?.let { yield(it) }
+                }
+            }
+            response.contents?.singleColumnBrowseResultsRenderer?.tabs?.forEach { tab ->
+                tab.tabRenderer?.content?.sectionListRenderer?.contents?.forEach { content ->
+                    content.musicResponsiveHeaderRenderer?.description?.runs?.let { yield(it) }
+                }
+            }
+        }.firstOrNull()?.let(::mapRuns)
 
         val description = descriptionRuns?.joinToString(separator = "") { it.text }
 

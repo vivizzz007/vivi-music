@@ -1359,6 +1359,7 @@ interface DatabaseDao {
                     songCount = albumPage.songs.size,
                     duration = albumPage.songs.sumOf { it.duration ?: 0 },
                     explicit = albumPage.album.explicit || albumPage.songs.any { it.explicit },
+                    description = albumPage.description,
                 ),
             ) == -1L
         ) {
@@ -1478,6 +1479,7 @@ interface DatabaseDao {
                 songCount = albumPage.songs.size,
                 duration = albumPage.songs.sumOf { it.duration ?: 0 },
                 explicit = albumPage.album.explicit || albumPage.songs.any { it.explicit },
+                description = albumPage.description ?: album.description,
             ),
         )
         if (artists?.size != albumPage.album.artists?.size) {

@@ -39,7 +39,6 @@ constructor(
     var releasesForYou = MutableStateFlow<List<AlbumItem>>(emptyList())
     var description = MutableStateFlow<String?>(null)
     var descriptionRuns = MutableStateFlow<List<com.music.innertube.models.Run>?>(null)
-    var isDescriptionLoading = MutableStateFlow(false)
 
     init {
         viewModelScope.launch {
@@ -53,7 +52,9 @@ constructor(
                     playlistId.value = it.album.playlistId
                     otherVersions.value = it.otherVersions
                     releasesForYou.value = it.releasesForYou
-                    description.value = it.description
+                    if (it.description != null) {
+                        description.value = it.description
+                    }
                     descriptionRuns.value = it.descriptionRuns
                     database.transaction {
                         if (album == null) {
@@ -65,7 +66,6 @@ constructor(
                     
                     if (description.value == null && descriptionRuns.value == null) {
                         viewModelScope.launch(Dispatchers.IO) {
-                            isDescriptionLoading.value = true
                             val artistName = album?.artists?.firstOrNull()?.name 
                                 ?: database.albumWithSongs(albumId).first()?.artists?.firstOrNull()?.name
                             val wikiDescription = Wikipedia.fetchAlbumInfo(it.album.title, artistName)
@@ -78,7 +78,6 @@ constructor(
                                     }
                                 }
                             }
-                            isDescriptionLoading.value = false
                         }
                     }
                 }.onFailure {
