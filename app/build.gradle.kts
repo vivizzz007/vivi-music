@@ -25,7 +25,7 @@ android {
         applicationId = "com.vivi.vivimusic"
         minSdk = 26
         targetSdk = 36
-        versionCode = 141
+        versionCode = 63
         versionName = "5.0.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
