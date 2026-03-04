@@ -298,7 +298,7 @@ fun AboutScreen(
             title = stringResource(R.string.app_info_section),
             items = listOf(
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.info),
+                    icon = painterResource(R.drawable.deployed_app_update),
                     title = { Text(stringResource(R.string.installed_date_title)) },
                     description = { Text(installedDate) }
                 ),
@@ -308,7 +308,7 @@ fun AboutScreen(
                     description = { Text(BuildConfig.VERSION_CODE.toString()) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.info),
+                    icon = painterResource(R.drawable.license_vivi),
                     title = { Text(stringResource(R.string.license)) },
                     description = { Text("GPL-3.0 • Free Open Source Software") },
                     onClick = { uriHandler.openUri("https://github.com/vivizzz007/vivi-music/blob/main/LICENSE") }
