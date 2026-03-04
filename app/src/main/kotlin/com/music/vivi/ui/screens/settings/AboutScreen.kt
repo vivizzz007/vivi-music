@@ -244,7 +244,7 @@ fun AboutScreen(
                     onClick = { uriHandler.openUri("https://github.com/vivizzz007") }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.globe),
+                    icon = painterResource(R.drawable.web_link),
                     title = { Text(stringResource(R.string.website)) },
                     description = { Text("vivimusic.vercel.app") },
                     onClick = { uriHandler.openUri("https://vivimusic.vercel.app/") }
