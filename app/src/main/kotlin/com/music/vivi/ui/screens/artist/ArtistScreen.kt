@@ -346,27 +346,29 @@ fun ArtistScreen(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                                     modifier = Modifier.padding(bottom = 16.dp)
                                 ) {
-                                    artistPage?.subscriberCountText?.let { subscribers ->
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier
-                                                .clip(RoundedCornerShape(12.dp))
-                                                .background(MaterialTheme.colorScheme.secondaryContainer)
-                                                .padding(horizontal = 12.dp, vertical = 6.dp)
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.person),
-                                                contentDescription = null,
-                                                modifier = Modifier.size(16.dp),
-                                                tint = MaterialTheme.colorScheme.onSecondaryContainer
-                                            )
-                                            Spacer(modifier = Modifier.width(6.dp))
-                                            Text(
-                                                text = "${subscribers.split(' ').firstOrNull() ?: ""} ${stringResource(R.string.subscribers)}",
-                                                style = MaterialTheme.typography.labelLarge,
-                                                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                                fontWeight = FontWeight.Medium
-                                            )
+                                    if (showArtistSubscriberCount) {
+                                        artistPage?.subscriberCountText?.let { subscribers ->
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                modifier = Modifier
+                                                    .clip(RoundedCornerShape(12.dp))
+                                                    .background(MaterialTheme.colorScheme.secondaryContainer)
+                                                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.person),
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(16.dp),
+                                                    tint = MaterialTheme.colorScheme.onSecondaryContainer
+                                                )
+                                                Spacer(modifier = Modifier.width(6.dp))
+                                                Text(
+                                                    text = "${subscribers.split(' ').firstOrNull() ?: ""} ${stringResource(R.string.subscribers)}",
+                                                    style = MaterialTheme.typography.labelLarge,
+                                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                                    fontWeight = FontWeight.Medium
+                                                )
+                                            }
                                         }
                                     }
 
