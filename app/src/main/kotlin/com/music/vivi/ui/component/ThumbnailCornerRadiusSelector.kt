@@ -71,8 +71,7 @@ fun ThumbnailCornerRadiusModal(
                 modifier = Modifier
                     .fillMaxWidth(dialogWidth)
                     .wrapContentHeight()
-                    .clip(RoundedCornerShape(30.dp))
-                    .padding(16.dp),
+                    .clip(RoundedCornerShape(30.dp)),
                 shape = MaterialTheme.shapes.large,
                 color = MaterialTheme.colorScheme.surface,
                 tonalElevation = 6.dp
@@ -274,9 +273,25 @@ fun ThumbnailCornerRadiusModal(
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.End),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        TextButton(
+                            onClick = {
+                                thumbnailCornerRadius = 3f
+                                customValue = "3"
+                                isCustomSelected = true
+                            },
+                            modifier = Modifier.heightIn(min = 48.dp)
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.reset),
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.weight(1f))
+
                         TextButton(
                             onClick = onDismiss,
                             modifier = Modifier.heightIn(min = 48.dp)
@@ -300,12 +315,12 @@ fun ThumbnailCornerRadiusModal(
                             )
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    painter = painterResource(R.drawable.check),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
+//                                Icon(
+//                                    painter = painterResource(R.drawable.check),
+//                                    contentDescription = null,
+//                                    modifier = Modifier.size(18.dp)
+//                                )
+//                                Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = stringResource(id = android.R.string.ok),
                                     style = MaterialTheme.typography.labelLarge
@@ -327,7 +342,7 @@ private fun ChipsGrid(
     selectedValue: Float?,
     onValueSelected: (Float) -> Unit
 ) {
-    val chunkedValues = values.chunked(3)
+    val chunkedValues = values.chunked(2)
     Column(
         modifier = modifier,          // ← use passed-in modifier
         horizontalAlignment = Alignment.CenterHorizontally,
