@@ -753,23 +753,34 @@ private fun OnlinePlaylistHeader(
 
         Spacer(Modifier.height(24.dp))
 
-        // Explicit Label
+        // Explicit Label — only shown when playlist contains explicit songs
         if (hasExplicitContent) {
             Surface(
-                shape = RoundedCornerShape(4.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                modifier = Modifier.padding(horizontal = 32.dp)
+                shape = RoundedCornerShape(6.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant
             ) {
-                Text(
-                    text = "E",
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.explicit),
+                        contentDescription = "Explicit",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Text(
+                        text = stringResource(R.string.explicit),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
             }
             Spacer(Modifier.height(16.dp))
         }
+
 
         // Metadata Info
         val totalDuration = songs.sumOf { it.duration ?: 0 }
