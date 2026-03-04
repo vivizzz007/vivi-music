@@ -326,6 +326,10 @@ fun CachePlaylistScreen(
                             .animateItem()
                     )
                 }
+
+                item(key = "bottom_spacer") {
+                    Spacer(Modifier.height(50.dp))
+                }
             }
         }
 
