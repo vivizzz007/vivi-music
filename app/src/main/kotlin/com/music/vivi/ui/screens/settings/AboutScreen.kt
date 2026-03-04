@@ -151,7 +151,7 @@ fun AboutScreen(
         ) {
             // PayPal Badge
             Surface(
-                onClick = { uriHandler.openUri("https://www.paypal.me/vivizzz007") },
+                onClick = { uriHandler.openUri("") },
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
                 modifier = Modifier.height(36.dp)
@@ -205,7 +205,7 @@ fun AboutScreen(
 
             // Coffee Badge
             Surface(
-                onClick = { uriHandler.openUri("https://www.buymeacoffee.com/vivizzz007") },
+                onClick = { uriHandler.openUri("") },
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
                 modifier = Modifier.height(36.dp)
@@ -310,7 +310,7 @@ fun AboutScreen(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.license_vivi),
                     title = { Text(stringResource(R.string.license)) },
-                    description = { Text("GPL-3.0 • Free Open Source Software") },
+                    description = { Text("Licensed under GNU — free to use, modify & distribute") },
                     onClick = { uriHandler.openUri("https://github.com/vivizzz007/vivi-music/blob/main/LICENSE") }
                 ),
             )
