@@ -1,0 +1,3 @@
+﻿• Improved playlist import feature
+• Fixed duplicate songs in library
+• Minor bug fixes

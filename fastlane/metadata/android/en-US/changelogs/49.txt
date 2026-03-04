@@ -1,0 +1,3 @@
+﻿• Added recently played section
+• Fixed crash on network loss
+• Various bug fixes

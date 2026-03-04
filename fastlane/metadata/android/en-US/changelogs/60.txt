@@ -1,0 +1,3 @@
+﻿• Added Bluetooth AVRCP improvements
+• Fixed audio routing issues
+• Minor fixes

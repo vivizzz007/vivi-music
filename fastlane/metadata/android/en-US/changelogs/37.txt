@@ -1,0 +1,3 @@
+﻿• Improved lyrics display formatting
+• Fixed account sync issues
+• Reduced app size

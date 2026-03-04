@@ -1,0 +1,3 @@
+﻿• New grid layout for library view
+• Fixed like button sync with server
+• Performance optimizations

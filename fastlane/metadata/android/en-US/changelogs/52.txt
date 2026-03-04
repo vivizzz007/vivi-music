@@ -1,0 +1,3 @@
+﻿• Added pitch control for playback
+• Fixed audio normalization toggle
+• UI enhancements

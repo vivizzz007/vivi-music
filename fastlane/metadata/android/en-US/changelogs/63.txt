@@ -1,0 +1,1 @@
+﻿Added new language support, new lyrics provider, swipe gesture to lyrics, new settings page, and a new app icon. Improved stability, album screen, and animations. Removed Apple background and updated updater to QPR2.

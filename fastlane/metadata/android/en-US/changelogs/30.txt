@@ -1,0 +1,3 @@
+﻿• Added artist radio feature
+• Fixed buffering issues on slow networks
+• UI polish and refinements

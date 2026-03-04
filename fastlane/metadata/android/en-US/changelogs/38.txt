@@ -1,0 +1,3 @@
+﻿• Added queue save and restore
+• Fixed playlist not updating after edit
+• UI improvements

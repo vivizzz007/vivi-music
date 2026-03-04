@@ -1,0 +1,3 @@
+﻿• Improved related songs algorithm
+• Fixed playback stopping on screen off
+• Bug fixes

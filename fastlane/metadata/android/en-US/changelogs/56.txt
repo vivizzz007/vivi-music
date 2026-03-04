@@ -1,0 +1,3 @@
+﻿• Improved error recovery on stream fail
+• Fixed mini player album art
+• UI refinements

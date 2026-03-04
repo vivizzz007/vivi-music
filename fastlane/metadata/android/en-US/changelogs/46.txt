@@ -1,0 +1,3 @@
+﻿• Added smart auto-play feature
+• Fixed album shuffle behavior
+• Bug fixes and polish

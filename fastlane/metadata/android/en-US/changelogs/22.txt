@@ -1,0 +1,3 @@
+﻿• Added support for offline lyrics caching
+• Fixed crash on startup for some devices
+• Performance improvements throughout the app

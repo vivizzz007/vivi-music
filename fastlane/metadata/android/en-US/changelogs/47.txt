@@ -1,0 +1,3 @@
+﻿• New trending charts section
+• Fixed settings not saving on exit
+• Performance boost

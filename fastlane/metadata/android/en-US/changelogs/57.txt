@@ -1,0 +1,3 @@
+﻿• Added playback speed control
+• Fixed progress bar seeking
+• Various improvements

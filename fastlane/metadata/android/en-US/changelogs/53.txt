@@ -1,0 +1,3 @@
+﻿• Better caching for thumbnails
+• Fixed album year not displaying
+• Performance improvements

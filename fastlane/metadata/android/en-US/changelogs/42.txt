@@ -1,0 +1,3 @@
+﻿• Improved offline mode reliability
+• Fixed search not finding local files
+• UI refinements

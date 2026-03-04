@@ -1,0 +1,3 @@
+﻿• Improved background audio session
+• Fixed lyrics provider fallback
+• UI tweaks

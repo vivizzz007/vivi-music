@@ -1,0 +1,3 @@
+﻿• Support for high-res audio playback
+• Fixed history not saving correctly
+• Improved accessibility support

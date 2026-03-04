@@ -1,0 +1,3 @@
+﻿• Added gapless playback support
+• Fixed crash when opening large playlists
+• Minor improvements

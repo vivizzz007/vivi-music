@@ -1,0 +1,3 @@
+﻿• Improved search results accuracy
+• Fixed album art not loading on slow connections
+• Optimized memory usage

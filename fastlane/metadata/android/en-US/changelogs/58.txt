@@ -1,0 +1,3 @@
+﻿• New dark AMOLED theme option
+• Fixed home screen layout bug
+• Bug fixes

@@ -1,0 +1,3 @@
+﻿• New animated splash screen
+• Fixed library sort order
+• Performance improvements

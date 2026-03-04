@@ -1,0 +1,3 @@
+﻿• Faster app startup time
+• Fixed playlist reordering bug
+• Improved download reliability
