@@ -116,15 +116,24 @@ fun AboutScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Box(
+            Row(
                 modifier = Modifier
                     .border(
                         width = 1.5.dp,
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
                         shape = CircleShape
                     )
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                Image(
+                    painter = painterResource(R.drawable.vivimusicnotification),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                )
+
                 Text(
                     text = "v${BuildConfig.VERSION_NAME} • BETA",
                     style = MaterialTheme.typography.titleMedium,
@@ -297,6 +306,12 @@ fun AboutScreen(
                     icon = painterResource(R.drawable.info),
                     title = { Text(stringResource(R.string.version_code)) },
                     description = { Text(BuildConfig.VERSION_CODE.toString()) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.info),
+                    title = { Text(stringResource(R.string.license)) },
+                    description = { Text("GPL-3.0 • Free Open Source Software") },
+                    onClick = { uriHandler.openUri("https://github.com/vivizzz007/vivi-music/blob/main/LICENSE") }
                 ),
 //                Material3SettingsItem(
 //                    icon = painterResource(R.drawable.info),

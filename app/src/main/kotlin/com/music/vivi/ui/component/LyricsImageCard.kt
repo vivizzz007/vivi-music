@@ -408,7 +408,7 @@ fun LyricsImageCard(
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.vivi_music_icon),
+                            painter = painterResource(id = R.drawable.vivimusicnotification),
                             contentDescription = null,
                             modifier = Modifier
                                 .size(16.dp),
