@@ -204,7 +204,7 @@ fun AlbumScreen(
     }
 
     val hasExplicitContent = remember(albumWithSongs) {
-        albumWithSongs?.songs?.any { it.song.explicit } == true
+        albumWithSongs?.album?.explicit == true
     }
 
     LazyColumn(
@@ -265,7 +265,10 @@ fun AlbumScreen(
                                 text = albumWithSongs.album.title,
                                 style = MaterialTheme.typography.headlineMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f, fill = false)
                             )
                         }
 
@@ -320,7 +323,7 @@ fun AlbumScreen(
                                 )
                                 Spacer(Modifier.width(8.dp))
                                 Text(
-                                    text = if (albumWithSongs.album.bookmarkedAt != null) stringResource(R.string.save) else stringResource(R.string.saved),
+                                    text = if (albumWithSongs.album.bookmarkedAt != null) stringResource(R.string.saved) else stringResource(R.string.save),
                                     style = MaterialTheme.typography.labelLarge
                                 )
                             }
@@ -415,16 +418,27 @@ fun AlbumScreen(
                         // Explicit Label
                         if (hasExplicitContent) {
                             Surface(
-                                shape = RoundedCornerShape(4.dp),
+                                shape = RoundedCornerShape(6.dp),
                                 color = MaterialTheme.colorScheme.surfaceVariant
                             ) {
-                                Text(
-                                    text = "E " + stringResource(R.string.explicit),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.explicit),
+                                        contentDescription = "Explicit",
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.explicit),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                }
                             }
                             Spacer(Modifier.height(16.dp))
                         }
@@ -495,7 +509,7 @@ fun AlbumScreen(
                         }
                     }
 
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(16.dp))
 
                     // Artist Names (clickable)
                     Text(
@@ -518,7 +532,7 @@ fun AlbumScreen(
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 32.dp),
+                            .padding(horizontal = 20.dp),
                         textAlign = TextAlign.Start
                     )
 
