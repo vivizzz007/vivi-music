@@ -25,6 +25,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import android.content.Intent
+import android.net.Uri
 import androidx.navigation.NavController
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
@@ -88,7 +90,13 @@ fun UpdateSettings(
                         }
                     },
                     onClick = {
-                        navController.navigate("update")
+                        val isFoss = !BuildConfig.CAST_AVAILABLE
+                        if (isFoss) {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/vivizzz007/vivi-music"))
+                            context.startActivity(intent)
+                        } else {
+                            navController.navigate("update")
+                        }
                     }
                 ),
                 Material3SettingsItem(
