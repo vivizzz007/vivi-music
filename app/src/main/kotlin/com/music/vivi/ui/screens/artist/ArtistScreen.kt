@@ -356,7 +356,7 @@ fun ArtistScreen(
                                                     .padding(horizontal = 12.dp, vertical = 6.dp)
                                             ) {
                                                 Icon(
-                                                    painter = painterResource(R.drawable.person),
+                                                    painter = painterResource(R.drawable.artist_screen),
                                                     contentDescription = null,
                                                     modifier = Modifier.size(16.dp),
                                                     tint = MaterialTheme.colorScheme.onSecondaryContainer

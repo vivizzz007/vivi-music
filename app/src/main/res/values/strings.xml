@@ -372,5 +372,5 @@
     <string name="done">Done</string>
     <string name="audio_devices">Audio devices</string>
     <string name="bluetooth_headphones">Bluetooth headphones</string>
-    <string name="license">License</string>
+    <string name="license">GNU General Public License v3.0</string>
 </resources>
