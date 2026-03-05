@@ -1257,7 +1257,7 @@ fun ListenTogetherDialog(
                             if (isHost) {
                                 Spacer(modifier = Modifier.height(12.dp))
                                 val inviteLink = remember(room.roomCode) {
-                                    "https://vivimusic.meowery.eu/listen?code=${room.roomCode}"
+                                    "https://vivimusic-listen-together.onrender.com/listen?code=${room.roomCode}"
                                 }
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
