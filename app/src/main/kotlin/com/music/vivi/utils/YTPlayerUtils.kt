@@ -45,7 +45,20 @@ object YTPlayerUtils {
 
     private val poTokenGenerator = PoTokenGenerator()
 
+    /**
+     * Client used for fast, low-latency stream resolution.
+     * ANDROID_VR clients don't require PoToken and start instantly.
+     * Note: ANDROID_VR has loginSupported=false, so metadata like audioConfig and
+     * playbackTracking must be supplemented from an authenticated client (WEB_REMIX)
+     * when the user is logged in.
+     */
     private val MAIN_CLIENT: YouTubeClient = ANDROID_VR_1_43_32
+
+    /**
+     * Client used to fetch metadata (audioConfig, playbackTracking) when the user is
+     * logged in. This ensures remote YouTube history is correctly updated.
+     */
+    private val METADATA_CLIENT: YouTubeClient = WEB_REMIX
 
     private val STREAM_FALLBACK_CLIENTS: Array<YouTubeClient> = arrayOf(
         ANDROID_VR_1_61_48,
@@ -70,8 +83,9 @@ object YTPlayerUtils {
     )
     /**
      * Custom player response intended to use for playback.
-     * Metadata like audioConfig and videoDetails are from [MAIN_CLIENT].
-     * Format & stream can be from [MAIN_CLIENT] or [STREAM_FALLBACK_CLIENTS].
+     * Stream URLs come from [MAIN_CLIENT] or [STREAM_FALLBACK_CLIENTS] for fast loading.
+     * Metadata (audioConfig, playbackTracking) come from [METADATA_CLIENT] (WEB_REMIX)
+     * when the user is logged in, to ensure remote history recording works correctly.
      */
     suspend fun playerResponseForPlayback(
         videoId: String,
@@ -107,9 +121,36 @@ object YTPlayerUtils {
             }
         }
 
-        // Try MAIN_CLIENT with signature timestamp and poToken
+        // Try MAIN_CLIENT (ANDROID_VR) for fast stream resolution
         Timber.tag(logTag).d("Attempting to get player response using MAIN_CLIENT: ${MAIN_CLIENT.clientName}")
         var mainPlayerResponse = YouTube.player(videoId, playlistId, MAIN_CLIENT, signatureTimestamp.timestamp, poToken?.playerRequestPoToken).getOrThrow()
+
+        // Fetch authenticated metadata from WEB_REMIX when logged in.
+        // ANDROID_VR has loginSupported=false, so its playbackTracking URL won't update
+        // remote history. WEB_REMIX (authenticated) provides proper playbackTracking.
+        var metadataResponse: PlayerResponse? = null
+        if (isLoggedIn) {
+            Timber.tag(logTag).d("Fetching metadata from METADATA_CLIENT (WEB_REMIX) for authenticated tracking")
+            try {
+                // Only generate PoToken for web client metadata fetch
+                var metaPoToken: PoTokenResult? = null
+                val metaSessionId = YouTube.dataSyncId
+                if (METADATA_CLIENT.useWebPoTokens && metaSessionId != null) {
+                    try {
+                        metaPoToken = poTokenGenerator.getWebClientPoToken(videoId, metaSessionId)
+                    } catch (e: Exception) {
+                        Timber.tag(logTag).e(e, "Metadata PoToken generation failed")
+                    }
+                }
+                metadataResponse = YouTube.player(
+                    videoId, playlistId, METADATA_CLIENT,
+                    signatureTimestamp.timestamp, metaPoToken?.playerRequestPoToken
+                ).getOrNull()
+                Timber.tag(logTag).d("Metadata response obtained: ${metadataResponse?.playabilityStatus?.status}")
+            } catch (e: Exception) {
+                Timber.tag(logTag).e(e, "Failed to fetch metadata from METADATA_CLIENT")
+            }
+        }
 
         // Debug uploaded track response
         if (isUploadedTrack || playlistId?.contains("MLPT") == true) {
@@ -145,9 +186,11 @@ object YTPlayerUtils {
             throw Exception("Failed to get player response")
         }
 
-        val audioConfig = mainPlayerResponse.playerConfig?.audioConfig
-        val videoDetails = mainPlayerResponse.videoDetails
-        val playbackTracking = mainPlayerResponse.playbackTracking
+        // Fetch audioConfig and playbackTracking from the metadata client if available (authenticated)
+        // Fall back to mainPlayerResponse values if metadata fetch failed or user is not logged in
+        val audioConfig = metadataResponse?.playerConfig?.audioConfig ?: mainPlayerResponse.playerConfig?.audioConfig
+        val videoDetails = metadataResponse?.videoDetails ?: mainPlayerResponse.videoDetails
+        val playbackTracking = metadataResponse?.playbackTracking ?: mainPlayerResponse.playbackTracking
         var format: PlayerResponse.StreamingData.Format? = null
         var streamUrl: String? = null
         var streamExpiresInSeconds: Int? = null
