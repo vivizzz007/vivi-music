@@ -77,6 +77,7 @@ import kotlin.math.roundToInt
 fun LastFMSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    highlightKey: String? = null
 ) { 
     val coroutineScope = rememberCoroutineScope()
 

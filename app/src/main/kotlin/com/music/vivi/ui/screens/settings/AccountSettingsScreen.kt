@@ -49,7 +49,8 @@ import com.music.vivi.R
 @Composable
 fun AccountSettingsScreen(
     navController: NavController,
-    scrollBehavior: TopAppBarScrollBehavior
+    scrollBehavior: TopAppBarScrollBehavior,
+    highlightKey: String? = null
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -94,18 +95,26 @@ fun AccountSettingsScreen(
             )
         }
     ) { padding ->
+
+        val scrollState = rememberScrollState()
+
+        val (_, onHighlightPosition) = rememberHighlightScrollHandler(scrollState, highlightKey)
+
+
         Column(
             modifier = Modifier
                 .padding(padding)
                 .windowInsetsPadding(
                     LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
                 )
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .padding(horizontal = 16.dp)
         ) {
             // Account Profile Section
             Material3SettingsGroup(
-                title = stringResource(R.string.settings),
+                highlightKey = highlightKey,
+            onHighlightPositionFound = onHighlightPosition,
+            title = stringResource(R.string.settings),
                 items = listOf(
                     Material3SettingsItem(
                         icon = if (isLoggedIn && !accountImageUrl.isNullOrBlank()) null else painterResource(R.drawable.login),
@@ -158,7 +167,9 @@ fun AccountSettingsScreen(
 
             // Token / Advanced Login Section
             Material3SettingsGroup(
-                title = stringResource(R.string.advanced_login),
+                highlightKey = highlightKey,
+            onHighlightPositionFound = onHighlightPosition,
+            title = stringResource(R.string.advanced_login),
                 items = listOf(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.token),
@@ -185,9 +196,12 @@ fun AccountSettingsScreen(
             // Sync & Content Section
             if (isLoggedIn) {
                 Material3SettingsGroup(
-                    title = stringResource(R.string.settings_section_player_content),
+                    highlightKey = highlightKey,
+            onHighlightPositionFound = onHighlightPosition,
+            title = stringResource(R.string.settings_section_player_content),
                     items = listOf(
                         Material3SettingsItem(
+                            settingKey = "more_content",
                             icon = painterResource(R.drawable.add_circle),
                             title = { Text(stringResource(R.string.more_content)) },
                             trailingContent = {
@@ -215,6 +229,7 @@ fun AccountSettingsScreen(
                             }
                         ),
                         Material3SettingsItem(
+                            settingKey = "yt_sync",
                             icon = painterResource(R.drawable.cached),
                             title = { Text(stringResource(R.string.yt_sync)) },
                             trailingContent = {
@@ -242,10 +257,13 @@ fun AccountSettingsScreen(
 
             // Quick Links Section
             Material3SettingsGroup(
-                title = stringResource(R.string.integrations),
+                highlightKey = highlightKey,
+            onHighlightPositionFound = onHighlightPosition,
+            title = stringResource(R.string.integrations),
                 items = buildList {
                     add(
                         Material3SettingsItem(
+                            settingKey = "integrations",
                             icon = painterResource(R.drawable.integration),
                             title = { Text(stringResource(R.string.integrations)) },
                             onClick = { navController.navigate("settings/integrations") }

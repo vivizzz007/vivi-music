@@ -33,6 +33,8 @@ import com.music.vivi.R
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.Material3SettingsGroup
 import com.music.vivi.ui.component.Material3SettingsItem
+import com.music.vivi.ui.screens.settings.rememberHighlightScrollHandler
+
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.vivimusic.updater.getAutoUpdateCheckSetting
 import com.music.vivi.vivimusic.updater.saveAutoUpdateCheckSetting
@@ -59,7 +61,8 @@ import com.music.vivi.BuildConfig
 @Composable
 fun UpdateSettings(
     navController: NavController,
-    scrollBehavior: TopAppBarScrollBehavior
+    scrollBehavior: TopAppBarScrollBehavior,
+    highlightKey: String? = null
 ) {
     val context = LocalContext.current
     var autoUpdateEnabled by remember { mutableStateOf(getAutoUpdateCheckSetting(context)) }
@@ -67,16 +70,27 @@ fun UpdateSettings(
     var betaUpdatesEnabled by remember { mutableStateOf(getBetaUpdatesSetting(context)) }
     val isUpdateAvailable = getUpdateAvailableState(context) && autoUpdateEnabled
 
+
+    val scrollState = rememberScrollState()
+
+
+    val (_, onHighlightPosition) = rememberHighlightScrollHandler(scrollState, highlightKey)
+
+
+
     Column(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scrollState)
             .padding(horizontal = 16.dp),
     ) {
         Material3SettingsGroup(
+            highlightKey = highlightKey,
+            onHighlightPositionFound = onHighlightPosition,
             title = stringResource(R.string.app_updates_title),
             items = listOf(
                 Material3SettingsItem(
+                    settingKey = "system_update",
                     icon = painterResource(R.drawable.network_update),
                     title = { Text(stringResource(R.string.system_update)) },
                     description = {
@@ -112,6 +126,7 @@ fun UpdateSettings(
                 ),
                 
                 Material3SettingsItem(
+                    settingKey = "auto_update_check",
                     icon = painterResource(R.drawable.update),
                     title = { Text(stringResource(R.string.auto_update_check)) },
                     description = { Text(stringResource(R.string.auto_update_check_subtitle)) },
@@ -146,6 +161,7 @@ fun UpdateSettings(
                 ),
 
                 Material3SettingsItem(
+                    settingKey = "update_notifications",
                     icon = painterResource(R.drawable.notification),
                     title = { Text(stringResource(R.string.update_notifications)) },
                     description = { Text(stringResource(R.string.update_notifications_subtitle)) },
@@ -174,6 +190,7 @@ fun UpdateSettings(
                 ),
 
                 Material3SettingsItem(
+                    settingKey = "beta_updates",
                     icon = painterResource(R.drawable.biotech),
                     title = { Text(stringResource(R.string.beta_updates)) },
                     description = { Text(stringResource(R.string.beta_updates_subtitle)) },
@@ -202,6 +219,7 @@ fun UpdateSettings(
                 )
 
 //                Material3SettingsItem(
+//                    settingKey = "namespace",
 //                    icon = painterResource(R.drawable.info),
 //                    title = { Text(stringResource(R.string.namespace)) },
 //                    description = { Text(BuildConfig.APPLICATION_ID) }
@@ -212,15 +230,19 @@ fun UpdateSettings(
         
         Spacer(modifier = Modifier.height(16.dp))
         Material3SettingsGroup(
+            highlightKey = highlightKey,
+            onHighlightPositionFound = onHighlightPosition,
             title = stringResource(R.string.changelog),
             items = listOf(
                 Material3SettingsItem(
+                    settingKey = "changelog",
                     icon = painterResource(R.drawable.history),
                     title = { Text(stringResource(R.string.changelog)) },
                     description = { Text(stringResource(R.string.view_version_history)) },
                     onClick = { navController.navigate("settings/changelog") }
                 ),
                 Material3SettingsItem(
+                    settingKey = "commits",
                     icon = painterResource(R.drawable.commit),
                     title = { Text(stringResource(R.string.commits)) },
                     description = { Text(stringResource(R.string.view_commit_history)) },

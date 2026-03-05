@@ -43,6 +43,8 @@ import com.music.vivi.db.entities.Song
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.Material3SettingsGroup
 import com.music.vivi.ui.component.Material3SettingsItem
+import com.music.vivi.ui.screens.settings.rememberHighlightScrollHandler
+import androidx.compose.foundation.rememberScrollState
 import com.music.vivi.ui.menu.AddToPlaylistDialogOnline
 import com.music.vivi.ui.menu.CsvColumnMappingDialog
 import com.music.vivi.ui.menu.CsvImportProgressDialog
@@ -62,6 +64,7 @@ import java.time.format.DateTimeFormatter
 fun BackupAndRestore(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    highlightKey: String? = null,
     viewModel: BackupRestoreViewModel = hiltViewModel(),
 ) {
     var importedTitle by remember { mutableStateOf("") }
@@ -137,6 +140,7 @@ fun BackupAndRestore(
         Material3SettingsGroup(
             items = listOf(
                 Material3SettingsItem(
+                    settingKey = "action_backup",
                     title = { Text(stringResource(R.string.action_backup)) },
                     icon = painterResource(R.drawable.backup),
                     onClick = {
@@ -149,6 +153,7 @@ fun BackupAndRestore(
                     },
                 ),
                 Material3SettingsItem(
+                    settingKey = "action_restore",
                     title = { Text(stringResource(R.string.action_restore)) },
                     icon = painterResource(R.drawable.restore),
                     onClick = {
@@ -156,6 +161,7 @@ fun BackupAndRestore(
                     },
                 ),
                 Material3SettingsItem(
+                    settingKey = "import_online",
                     title = { Text(stringResource(R.string.import_online)) },
                     icon = painterResource(R.drawable.playlist_add),
                     onClick = {
@@ -163,6 +169,7 @@ fun BackupAndRestore(
                     }
                 ),
                 Material3SettingsItem(
+                    settingKey = "import_csv",
                     title = { Text(stringResource(R.string.import_csv)) },
                     icon = painterResource(R.drawable.playlist_add),
                     onClick = {

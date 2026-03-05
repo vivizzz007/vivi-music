@@ -62,6 +62,8 @@ import com.music.vivi.R
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.Material3SettingsGroup
 import com.music.vivi.ui.component.Material3SettingsItem
+import com.music.vivi.ui.screens.settings.rememberHighlightScrollHandler
+import androidx.compose.foundation.rememberScrollState
 import com.music.vivi.ui.utils.backToMain
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -72,6 +74,7 @@ import java.util.Locale
 fun AboutScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    highlightKey: String? = null,
     onBack: (() -> Unit)? = null,
 ) {
     val uriHandler = LocalUriHandler.current
@@ -91,13 +94,27 @@ fun AboutScreen(
         }
     }
 
+
+    val scrollState = rememberScrollState()
+
+
+    val (_, onHighlightPosition) = rememberHighlightScrollHandler(scrollState, highlightKey)
+
+
+
     Column(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scrollState)
             .padding(horizontal = 16.dp),
     ) {
         // Header
+
+        val scrollState = rememberScrollState()
+
+        val (_, onHighlightPosition) = rememberHighlightScrollHandler(scrollState, highlightKey)
+
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -233,9 +250,12 @@ fun AboutScreen(
 
         // Developer Section
         Material3SettingsGroup(
+            highlightKey = highlightKey,
+            onHighlightPositionFound = onHighlightPosition,
             title = stringResource(R.string.developer_section),
             items = listOf(
                 Material3SettingsItem(
+                    settingKey = "developer_name",
                     icon = painterResource(R.drawable.dev),
                     title = { Text(stringResource(R.string.developer_name)) },
                     description = { Text(stringResource(R.string.app_developer)) },
@@ -244,6 +264,7 @@ fun AboutScreen(
                     onClick = { uriHandler.openUri("https://github.com/vivizzz007") }
                 ),
                 Material3SettingsItem(
+                    settingKey = "website",
                     icon = painterResource(R.drawable.web_link),
                     title = { Text(stringResource(R.string.website)) },
                     description = { Text("vivimusic.vercel.app") },
@@ -256,9 +277,12 @@ fun AboutScreen(
 
         // Collaborator Section
         Material3SettingsGroup(
+            highlightKey = highlightKey,
+            onHighlightPositionFound = onHighlightPosition,
             title = stringResource(R.string.collaborator_section),
             items = listOf(
                 Material3SettingsItem(
+                    settingKey = "collaborator_tboyke",
                     icon = painterResource(R.drawable.collab),
                     title = { Text(stringResource(R.string.collaborator_tboyke)) },
                     description = { Text(stringResource(R.string.collaborator_role)) },
@@ -274,15 +298,19 @@ fun AboutScreen(
 
         // Community Section
         Material3SettingsGroup(
+            highlightKey = highlightKey,
+            onHighlightPositionFound = onHighlightPosition,
             title = stringResource(R.string.community_section),
             items = listOf(
                 Material3SettingsItem(
+                    settingKey = "github_repository",
                     icon = painterResource(R.drawable.github),
                     title = { Text(stringResource(R.string.github_repository)) },
                     description = { Text(stringResource(R.string.view_source_code)) },
                     onClick = { uriHandler.openUri("https://github.com/vivizzz007/vivi-music") }
                 ),
                 Material3SettingsItem(
+                    settingKey = "telegram_channel",
                     icon = painterResource(R.drawable.telegram), // add a telegram icon drawable
                     title = { Text(stringResource(R.string.telegram_channel)) },
                     description = { Text(stringResource(R.string.join_telegram)) },
@@ -295,19 +323,24 @@ fun AboutScreen(
 
         // App Information Section
         Material3SettingsGroup(
+            highlightKey = highlightKey,
+            onHighlightPositionFound = onHighlightPosition,
             title = stringResource(R.string.app_info_section),
             items = listOf(
                 Material3SettingsItem(
+                    settingKey = "installed_date_title",
                     icon = painterResource(R.drawable.deployed_app_update),
                     title = { Text(stringResource(R.string.installed_date_title)) },
                     description = { Text(installedDate) }
                 ),
                 Material3SettingsItem(
+                    settingKey = "version_code",
                     icon = painterResource(R.drawable.info),
                     title = { Text(stringResource(R.string.version_code)) },
                     description = { Text(BuildConfig.VERSION_CODE.toString()) }
                 ),
                 Material3SettingsItem(
+                    settingKey = "license",
                     icon = painterResource(R.drawable.license_vivi),
                     title = { Text(stringResource(R.string.license)) },
                     description = { Text("GPL-3.0 • Free Open Source Software") },

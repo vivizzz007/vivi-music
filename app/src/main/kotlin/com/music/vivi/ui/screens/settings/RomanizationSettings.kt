@@ -49,6 +49,8 @@ import com.music.vivi.ui.component.ActionPromptDialog
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.Material3SettingsGroup
 import com.music.vivi.ui.component.Material3SettingsItem
+import com.music.vivi.ui.screens.settings.rememberHighlightScrollHandler
+import androidx.compose.foundation.rememberScrollState
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.utils.rememberPreference
 
@@ -57,6 +59,7 @@ import com.music.vivi.utils.rememberPreference
 fun RomanizationSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    highlightKey: String? = null
 ) {
     val context = LocalContext.current
 
@@ -76,16 +79,27 @@ fun RomanizationSettings(
     val (lyricsRomanizeCyrillicByLine, onLyricsRomanizeCyrillicByLineChange) = rememberPreference(LyricsRomanizeCyrillicByLineKey, defaultValue = false)
     val (showDialog, setShowDialog) = remember { mutableStateOf(false) }
 
+
+    val scrollState = rememberScrollState()
+
+
+    val (_, onHighlightPosition) = rememberHighlightScrollHandler(scrollState, highlightKey)
+
+
+
     Column(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scrollState)
             .padding(horizontal = 16.dp),
     ) {
         Material3SettingsGroup(
+            highlightKey = highlightKey,
+            onHighlightPositionFound = onHighlightPosition,
             title = stringResource(R.string.general),
             items = listOf(
                 Material3SettingsItem(
+                    settingKey = "lyrics_romanize_as_main",
                     icon = painterResource(R.drawable.lyrics),
                     title = { Text(stringResource(R.string.lyrics_romanize_as_main)) },
                     trailingContent = {
@@ -106,6 +120,7 @@ fun RomanizationSettings(
                     onClick = { onLyricsRomanizeAsMainChange(!lyricsRomanizeAsMain) }
                 ),
                 Material3SettingsItem(
+                    settingKey = "lyrics_romanize_japanese",
                     icon = painterResource(R.drawable.language_japanese_latin),
                     title = { Text(stringResource(R.string.lyrics_romanize_japanese)) },
                     trailingContent = {
@@ -126,6 +141,7 @@ fun RomanizationSettings(
                     onClick = { onLyricsRomanizeJapaneseChange(!lyricsRomanizeJapanese) }
                 ),
                 Material3SettingsItem(
+                    settingKey = "lyrics_romanize_korean",
                     icon = painterResource(R.drawable.language_korean_latin),
                     title = { Text(stringResource(R.string.lyrics_romanize_korean)) },
                     trailingContent = {
@@ -146,6 +162,7 @@ fun RomanizationSettings(
                     onClick = { onLyricsRomanizeKoreanChange(!lyricsRomanizeKorean) }
                 ),
                 Material3SettingsItem(
+                    settingKey = "lyrics_romanize_chinese",
                     icon = painterResource(R.drawable.language),
                     title = { Text(stringResource(R.string.lyrics_romanize_chinese)) },
                     trailingContent = {
@@ -166,6 +183,7 @@ fun RomanizationSettings(
                     onClick = { onLyricsRomanizeChineseChange(!lyricsRomanizeChinese) }
                 ),
                 Material3SettingsItem(
+                    settingKey = "lyrics_romanize_hindi",
                     icon = painterResource(R.drawable.language),
                     title = { Text(stringResource(R.string.lyrics_romanize_hindi)) },
                     trailingContent = {
@@ -186,6 +204,7 @@ fun RomanizationSettings(
                     onClick = { onLyricsRomanizeHindiChange(!lyricsRomanizeHindi) }
                 ),
                 Material3SettingsItem(
+                    settingKey = "lyrics_romanize_punjabi",
                     icon = painterResource(R.drawable.language),
                     title = { Text(stringResource(R.string.lyrics_romanize_punjabi)) },
                     trailingContent = {
@@ -211,9 +230,12 @@ fun RomanizationSettings(
         Spacer(modifier = Modifier.height(27.dp))
 
         Material3SettingsGroup(
+            highlightKey = highlightKey,
+            onHighlightPositionFound = onHighlightPosition,
             title = stringResource(R.string.lyrics_romanization_cyrillic),
             items = listOf(
                 Material3SettingsItem(
+                    settingKey = "lyrics_romanize_russian",
                     icon = painterResource(R.drawable.alphabet_cyrillic),
                     title = { Text(stringResource(R.string.lyrics_romanize_russian)) },
                     trailingContent = {
@@ -234,6 +256,7 @@ fun RomanizationSettings(
                     onClick = { onLyricsRomanizeRussianChange(!lyricsRomanizeRussian) }
                 ),
                 Material3SettingsItem(
+                    settingKey = "lyrics_romanize_ukrainian",
                     icon = painterResource(R.drawable.alphabet_cyrillic),
                     title = { Text(stringResource(R.string.lyrics_romanize_ukrainian)) },
                     trailingContent = {
@@ -254,6 +277,7 @@ fun RomanizationSettings(
                     onClick = { onLyricsRomanizeUkrainianChange(!lyricsRomanizeUkrainian) }
                 ),
                 Material3SettingsItem(
+                    settingKey = "lyrics_romanize_serbian",
                     icon = painterResource(R.drawable.alphabet_cyrillic),
                     title = { Text(stringResource(R.string.lyrics_romanize_serbian)) },
                     trailingContent = {
@@ -274,6 +298,7 @@ fun RomanizationSettings(
                     onClick = { onLyricsRomanizeSerbianChange(!lyricsRomanizeSerbian) }
                 ),
                 Material3SettingsItem(
+                    settingKey = "lyrics_romanize_bulgarian",
                     icon = painterResource(R.drawable.alphabet_cyrillic),
                     title = { Text(stringResource(R.string.lyrics_romanize_bulgarian)) },
                     trailingContent = {
@@ -294,6 +319,7 @@ fun RomanizationSettings(
                     onClick = { onLyricsRomanizeBulgarianChange(!lyricsRomanizeBulgarian) }
                 ),
                 Material3SettingsItem(
+                    settingKey = "lyrics_romanize_belarusian",
                     icon = painterResource(R.drawable.alphabet_cyrillic),
                     title = { Text(stringResource(R.string.lyrics_romanize_belarusian)) },
                     trailingContent = {
@@ -314,6 +340,7 @@ fun RomanizationSettings(
                     onClick = { onLyricsRomanizeBelarusianChange(!lyricsRomanizeBelarusian) }
                 ),
                 Material3SettingsItem(
+                    settingKey = "lyrics_romanize_kyrgyz",
                     icon = painterResource(R.drawable.alphabet_cyrillic),
                     title = { Text(stringResource(R.string.lyrics_romanize_kyrgyz)) },
                     trailingContent = {
@@ -334,6 +361,7 @@ fun RomanizationSettings(
                     onClick = { onLyricsRomanizeKyrgyzChange(!lyricsRomanizeKyrgyz) }
                 ),
                 Material3SettingsItem(
+                    settingKey = "lyrics_romanize_macedonian",
                     icon = painterResource(R.drawable.alphabet_cyrillic),
                     title = { Text(stringResource(R.string.lyrics_romanize_macedonian)) },
                     trailingContent = {
@@ -354,6 +382,7 @@ fun RomanizationSettings(
                     onClick = { onLyricsRomanizeMacedonianChange(!lyricsRomanizeMacedonian) }
                 ),
                 Material3SettingsItem(
+                    settingKey = "line_by_line_option_title",
                     icon = painterResource(R.drawable.warning),
                     title = { Text(stringResource(R.string.line_by_line_option_title)) },
                     description = { Text(stringResource(R.string.line_by_line_option_desc)) },

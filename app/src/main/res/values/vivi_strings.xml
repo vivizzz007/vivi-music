@@ -792,4 +792,8 @@
     <string name="error_loading_commits">Failed to load commits becoz you didnt pay me ?</string>
     <string name="commits">Commits</string>
     <string name="view_commit_history">Browse recent changes on main branch</string>
+
+    <!-- Settings Search -->
+    <string name="search_settings">Search settings</string>
+    <string name="no_settings_found">No settings found</string>
 </resources>

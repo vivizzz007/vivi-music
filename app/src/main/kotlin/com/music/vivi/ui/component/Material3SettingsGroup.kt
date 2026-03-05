@@ -6,6 +6,9 @@
 package com.music.vivi.ui.component
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import kotlinx.coroutines.delay
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,8 +23,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Badge
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -29,23 +32,28 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 
-/**
- * A Material 3 Expressive style settings group component
- * @param title The title of the settings group
- * @param items List of settings items to display
- */
 @Composable
 fun Material3SettingsGroup(
     title: String? = null,
-    items: List<Material3SettingsItem>
+    items: List<Material3SettingsItem>,
+    highlightKey: String? = null,
+    onHighlightPositionFound: ((Float) -> Unit)? = null
 ) {
     Column(
         modifier = Modifier
@@ -74,13 +82,41 @@ fun Material3SettingsGroup(
                     else -> RoundedCornerShape(6.dp)
                 }
 
+                val shouldHighlight = highlightKey != null && item.settingKey == highlightKey
+                var highlightActive by remember { mutableStateOf(shouldHighlight) }
+
+                // Pulse animation: 3 pulses then stop
+                val highlightAlpha = remember { Animatable(0f) }
+                if (highlightActive) {
+                    LaunchedEffect(Unit) {
+                        delay(400) // Wait for scroll to finish
+                        repeat(3) {
+                            highlightAlpha.animateTo(0.3f, animationSpec = tween(350))
+                            highlightAlpha.animateTo(0.05f, animationSpec = tween(350))
+                        }
+                        // Snap back to normal color immediately — no fade to transparent
+                        highlightActive = false
+                    }
+                }
+
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .animateContentSize(),
+                        .animateContentSize()
+                        .then(
+                            if (shouldHighlight) {
+                                Modifier.onGloballyPositioned { coords ->
+                                    onHighlightPositionFound?.invoke(coords.positionInRoot().y)
+                                }
+                            } else Modifier
+                        ),
                     shape = shape,
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                        containerColor = if (highlightActive) {
+                            MaterialTheme.colorScheme.primary.copy(alpha = highlightAlpha.value)
+                        } else {
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                        }
                     ),
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
@@ -234,5 +270,6 @@ data class Material3SettingsItem(
     val tintIcon: Boolean = true,
     val iconShape: Shape? = null,
     val enabled: Boolean = true,
-    val onClick: (() -> Unit)? = null
+    val onClick: (() -> Unit)? = null,
+    val settingKey: String? = null
 )

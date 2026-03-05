@@ -315,72 +315,114 @@ fun NavGraphBuilder.navigationBuilder(
         SettingsScreen(navController, scrollBehavior)
     }
 
-    composable("settings/update") {
-       UpdateSettings(navController, scrollBehavior)
+    composable(
+        route = "settings/update?highlight={highlightKey}",
+        arguments = listOf(navArgument("highlightKey") { type = NavType.StringType; nullable = true; defaultValue = null })
+    ) {
+        UpdateSettings(navController, scrollBehavior, highlightKey = it.arguments?.getString("highlightKey"))
     }
 
-    composable("settings/account") {
-        AccountSettingsScreen(navController, scrollBehavior)
+    composable(
+        route = "settings/account?highlight={highlightKey}",
+        arguments = listOf(navArgument("highlightKey") { type = NavType.StringType; nullable = true; defaultValue = null })
+    ) {
+        AccountSettingsScreen(navController, scrollBehavior, highlightKey = it.arguments?.getString("highlightKey"))
     }
 
-    composable("settings/appearance") {
-        AppearanceSettings(navController, scrollBehavior, activity, snackbarHostState)
+    composable(
+        route = "settings/appearance?highlight={highlightKey}",
+        arguments = listOf(navArgument("highlightKey") { type = NavType.StringType; nullable = true; defaultValue = null })
+    ) {
+        AppearanceSettings(navController, scrollBehavior, activity, snackbarHostState, highlightKey = it.arguments?.getString("highlightKey"))
     }
 
     composable("settings/appearance/theme") {
         ThemeScreen(navController)
     }
 
-    composable("settings/content") {
-        ContentSettings(navController, scrollBehavior)
+    composable(
+        route = "settings/content?highlight={highlightKey}",
+        arguments = listOf(navArgument("highlightKey") { type = NavType.StringType; nullable = true; defaultValue = null })
+    ) {
+        ContentSettings(navController, scrollBehavior, highlightKey = it.arguments?.getString("highlightKey"))
     }
 
-    composable("settings/content/romanization") {
-        RomanizationSettings(navController, scrollBehavior)
+    composable(
+        route = "settings/content/romanization?highlight={highlightKey}",
+        arguments = listOf(navArgument("highlightKey") { type = NavType.StringType; nullable = true; defaultValue = null })
+    ) {
+        RomanizationSettings(navController, scrollBehavior, highlightKey = it.arguments?.getString("highlightKey"))
     }
 
-    composable("settings/ai") {
-        AiSettings(navController, scrollBehavior)
+    composable(
+        route = "settings/ai?highlight={highlightKey}",
+        arguments = listOf(navArgument("highlightKey") { type = NavType.StringType; nullable = true; defaultValue = null })
+    ) {
+        AiSettings(navController, scrollBehavior, highlightKey = it.arguments?.getString("highlightKey"))
     }
     
-    composable("settings/player") {
-        PlayerSettings(navController, scrollBehavior)
+    composable(
+        route = "settings/player?highlight={highlightKey}",
+        arguments = listOf(navArgument("highlightKey") { type = NavType.StringType; nullable = true; defaultValue = null })
+    ) {
+        PlayerSettings(navController, scrollBehavior, highlightKey = it.arguments?.getString("highlightKey"))
     }
 
-    composable("settings/storage") {
-        StorageSettings(navController, scrollBehavior)
+    composable(
+        route = "settings/storage?highlight={highlightKey}",
+        arguments = listOf(navArgument("highlightKey") { type = NavType.StringType; nullable = true; defaultValue = null })
+    ) {
+        StorageSettings(navController, scrollBehavior, highlightKey = it.arguments?.getString("highlightKey"))
     }
 
-    composable("settings/privacy") {
-        PrivacySettings(navController, scrollBehavior)
+    composable(
+        route = "settings/privacy?highlight={highlightKey}",
+        arguments = listOf(navArgument("highlightKey") { type = NavType.StringType; nullable = true; defaultValue = null })
+    ) {
+        PrivacySettings(navController, scrollBehavior, highlightKey = it.arguments?.getString("highlightKey"))
     }
 
-    composable("settings/backup_restore") {
-        BackupAndRestore(navController, scrollBehavior)
+    composable(
+        route = "settings/backup_restore?highlight={highlightKey}",
+        arguments = listOf(navArgument("highlightKey") { type = NavType.StringType; nullable = true; defaultValue = null })
+    ) {
+        BackupAndRestore(navController, scrollBehavior, highlightKey = it.arguments?.getString("highlightKey"))
     }
 
     composable("settings/integrations") {
         IntegrationScreen(navController, scrollBehavior)
     }
 
-    composable("settings/integrations/discord") {
-        DiscordSettings(navController, scrollBehavior, snackbarHostState)
+    composable(
+        route = "settings/integrations/discord?highlight={highlightKey}",
+        arguments = listOf(navArgument("highlightKey") { type = NavType.StringType; nullable = true; defaultValue = null })
+    ) {
+        DiscordSettings(navController, scrollBehavior, snackbarHostState, highlightKey = it.arguments?.getString("highlightKey"))
     }
 
-    composable("settings/integrations/lastfm") {
-        LastFMSettings(navController, scrollBehavior)
+    composable(
+        route = "settings/integrations/lastfm?highlight={highlightKey}",
+        arguments = listOf(navArgument("highlightKey") { type = NavType.StringType; nullable = true; defaultValue = null })
+    ) {
+        LastFMSettings(navController, scrollBehavior, highlightKey = it.arguments?.getString("highlightKey"))
     }
 
-    composable(route = "settings/integrations/listen_together") {
-        ListenTogetherSettings(navController, scrollBehavior)
+    composable(
+        route = "settings/integrations/listen_together?highlight={highlightKey}",
+        arguments = listOf(navArgument("highlightKey") { type = NavType.StringType; nullable = true; defaultValue = null })
+    ) {
+        ListenTogetherSettings(navController, scrollBehavior, highlightKey = it.arguments?.getString("highlightKey"))
     }
 
     composable("settings/discord/login") {
         DiscordLoginScreen(navController)
     }
 
-    composable("settings/about") {
-        AboutScreen(navController, scrollBehavior)
+    composable(
+        route = "settings/about?highlight={highlightKey}",
+        arguments = listOf(navArgument("highlightKey") { type = NavType.StringType; nullable = true; defaultValue = null })
+    ) {
+        AboutScreen(navController, scrollBehavior, highlightKey = it.arguments?.getString("highlightKey"))
     }
 
     composable("update") {

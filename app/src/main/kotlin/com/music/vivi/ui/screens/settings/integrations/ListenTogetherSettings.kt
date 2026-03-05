@@ -91,6 +91,7 @@ import kotlinx.coroutines.flow.collectLatest
 fun ListenTogetherSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    highlightKey: String? = null,
     viewModel: ListenTogetherViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current

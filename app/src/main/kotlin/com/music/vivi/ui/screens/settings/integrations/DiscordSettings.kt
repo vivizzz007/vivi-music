@@ -93,6 +93,8 @@ import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.InfoLabel
 import com.music.vivi.ui.component.Material3SettingsGroup
 import com.music.vivi.ui.component.Material3SettingsItem
+import com.music.vivi.ui.screens.settings.rememberHighlightScrollHandler
+import androidx.compose.foundation.rememberScrollState
 import com.music.vivi.ui.component.TextFieldDialog
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.utils.DiscordRPC
@@ -114,6 +116,7 @@ fun DiscordSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
     snackbarHostState: SnackbarHostState,
+    highlightKey: String? = null
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val song by playerConnection.currentSong.collectAsState(null)
@@ -348,6 +351,14 @@ fun DiscordSettings(
         )
     }
 
+
+    val scrollState = rememberScrollState()
+
+
+    val (_, onHighlightPosition) = rememberHighlightScrollHandler(scrollState, highlightKey)
+
+
+
     Column(
         modifier = Modifier
             .windowInsetsPadding(
@@ -355,7 +366,7 @@ fun DiscordSettings(
                     WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
                 )
             )
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scrollState)
             .padding(horizontal = 16.dp)
     ) {
         Spacer(
@@ -531,9 +542,12 @@ fun DiscordSettings(
 
         // Options section (card-based)
         Material3SettingsGroup(
+            highlightKey = highlightKey,
+            onHighlightPositionFound = onHighlightPosition,
             title = stringResource(R.string.options),
             items = listOf(
                 Material3SettingsItem(
+                    settingKey = "enable_discord_rpc",
                     title = { Text(stringResource(R.string.enable_discord_rpc)) },
                     trailingContent = {
                         Switch(
@@ -546,6 +560,7 @@ fun DiscordSettings(
                     onClick = { if (isLoggedIn) onDiscordRPCChange(!discordRPC) },
                 ),
                 Material3SettingsItem(
+                    settingKey = "discord_use_details",
                     title = { Text(stringResource(R.string.discord_use_details)) },
                     description = {
                         Text(stringResource(R.string.discord_use_details_description))
@@ -563,6 +578,7 @@ fun DiscordSettings(
                     },
                 ),
                 Material3SettingsItem(
+                    settingKey = "discord_advanced_mode",
                     title = { Text(stringResource(R.string.discord_advanced_mode)) },
                     description = {
                         Text(stringResource(R.string.discord_advanced_mode_description))
@@ -589,9 +605,12 @@ fun DiscordSettings(
             Column(modifier = Modifier.animateContentSize()) {
                 // Presence settings
                 Material3SettingsGroup(
-                    title = stringResource(R.string.discord_presence),
+                    highlightKey = highlightKey,
+            onHighlightPositionFound = onHighlightPosition,
+            title = stringResource(R.string.discord_presence),
                     items = listOf(
                         Material3SettingsItem(
+                            settingKey = "discord_status",
                             title = { Text(stringResource(R.string.discord_status)) },
                             description = {
                                 Text(
@@ -608,6 +627,7 @@ fun DiscordSettings(
                             onClick = { showStatusDialog = true },
                         ),
                         Material3SettingsItem(
+                            settingKey = "discord_activity_type",
                             title = { Text(stringResource(R.string.discord_activity_type)) },
                             description = {
                                 Text(
@@ -626,6 +646,7 @@ fun DiscordSettings(
                             onClick = { showActivityTypeDialog = true },
                         ),
                         Material3SettingsItem(
+                            settingKey = "discord_activity_name",
                             title = { Text(stringResource(R.string.discord_activity_name)) },
                             description = {
                                 Text(
@@ -643,9 +664,12 @@ fun DiscordSettings(
 
                 // Button customization
                 Material3SettingsGroup(
-                    title = stringResource(R.string.discord_buttons),
+                    highlightKey = highlightKey,
+            onHighlightPositionFound = onHighlightPosition,
+            title = stringResource(R.string.discord_buttons),
                     items = listOf(
                         Material3SettingsItem(
+                            settingKey = "discord_button_1",
                             title = { Text(stringResource(R.string.discord_button_1)) },
                             description = {
                                 Text(button1Text.ifEmpty { "Listen on YouTube Music" })
@@ -659,6 +683,7 @@ fun DiscordSettings(
                             onClick = { showButton1TextDialog = true },
                         ),
                         Material3SettingsItem(
+                            settingKey = "discord_button_2",
                             title = { Text(stringResource(R.string.discord_button_2)) },
                             description = {
                                 Text(button2Text.ifEmpty { "Visit vivimusic" })
@@ -831,6 +856,7 @@ fun RichPresence(
                         }
                     }
                 }
+
 
                 Column(
                     modifier = Modifier

@@ -110,6 +110,8 @@ import com.music.vivi.ui.component.EnumDialog
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.Material3SettingsGroup
 import com.music.vivi.ui.component.Material3SettingsItem
+import com.music.vivi.ui.screens.settings.rememberHighlightScrollHandler
+import androidx.compose.foundation.rememberScrollState
 import com.music.vivi.ui.component.PlayerSliderTrack
 import com.music.vivi.ui.component.SquigglySlider
 import com.music.vivi.ui.component.WavySlider
@@ -129,6 +131,7 @@ fun AppearanceSettings(
     scrollBehavior: TopAppBarScrollBehavior,
     activity: Activity,
     snackbarHostState: SnackbarHostState,
+    highlightKey: String? = null
 ) {
     val (dynamicTheme, onDynamicThemeChange) = rememberPreference(
         DynamicThemeKey,
@@ -895,17 +898,28 @@ fun AppearanceSettings(
         }
     }
 
+
+    val scrollState = rememberScrollState()
+
+
+    val (_, onHighlightPosition) = rememberHighlightScrollHandler(scrollState, highlightKey)
+
+
+
     Column(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scrollState)
             .padding(horizontal = 16.dp),
     ) {
         Material3SettingsGroup(
+            highlightKey = highlightKey,
+            onHighlightPositionFound = onHighlightPosition,
             title = stringResource(R.string.theme),
             items = buildList {
 //                add(
 //                    Material3SettingsItem(
+//                    settingKey = "enable_dynamic_icon",
 //                        icon = painterResource(R.drawable.ic_dynamic_icon),
 //                        title = { Text(stringResource(R.string.enable_dynamic_icon)) },
 //                        trailingContent = {
@@ -928,6 +942,7 @@ fun AppearanceSettings(
 //                )
                 add(
                     Material3SettingsItem(
+                        settingKey = "theme",
                         icon = painterResource(R.drawable.palette),
                         title = { Text(stringResource(R.string.theme)) },
                         description = { Text(stringResource(R.string.theme_desc)) },
@@ -936,6 +951,7 @@ fun AppearanceSettings(
                 )
                 add(
                     Material3SettingsItem(
+                        settingKey = "enable_high_refresh_rate",
                         icon = painterResource(R.drawable.speed),
                         title = { Text(stringResource(R.string.enable_high_refresh_rate)) },
                         description = { Text(stringResource(R.string.enable_high_refresh_rate_desc)) },
@@ -962,6 +978,7 @@ fun AppearanceSettings(
                 if (!isUsingCustomColor) {
                     add(
                         Material3SettingsItem(
+                            settingKey = "enable_dynamic_theme",
                             icon = painterResource(R.drawable.palette),
                             title = { Text(stringResource(R.string.enable_dynamic_theme)) },
                             trailingContent = {
@@ -994,10 +1011,13 @@ fun AppearanceSettings(
         )
 
         Material3SettingsGroup(
+            highlightKey = highlightKey,
+            onHighlightPositionFound = onHighlightPosition,
             title = stringResource(id = R.string.mini_player),
             items = buildList {
                 add(
                     Material3SettingsItem(
+                        settingKey = "new_mini_player_design",
                         icon = painterResource(R.drawable.nav_bar),
                         title = { Text(stringResource(R.string.new_mini_player_design)) },
                         trailingContent = {
@@ -1020,6 +1040,7 @@ fun AppearanceSettings(
                 )
                 add(
                     Material3SettingsItem(
+                        settingKey = "pure_black_mini_player",
                         icon = painterResource(R.drawable.contrast),
                         title = { Text(stringResource(R.string.pure_black_mini_player)) },
                         trailingContent = {
@@ -1054,9 +1075,12 @@ fun AppearanceSettings(
         var showThumbnailCornerRadiusDialog by rememberSaveable { mutableStateOf(false) }
 
         Material3SettingsGroup(
+            highlightKey = highlightKey,
+            onHighlightPositionFound = onHighlightPosition,
             title = stringResource(R.string.player),
             items = listOf(
                 Material3SettingsItem(
+                    settingKey = "new_player_design",
                     icon = painterResource(R.drawable.palette),
                     title = { Text(stringResource(R.string.new_player_design)) },
                     trailingContent = {
@@ -1077,6 +1101,7 @@ fun AppearanceSettings(
                     onClick = { onUseNewPlayerDesignChange(!useNewPlayerDesign) }
                 ),
                 Material3SettingsItem(
+                    settingKey = "player_background_style",
                     icon = painterResource(R.drawable.gradient),
                     title = { Text(stringResource(R.string.player_background_style)) },
                     description = {
@@ -1092,6 +1117,7 @@ fun AppearanceSettings(
                     onClick = { showPlayerBackgroundDialog = true }
                 ),
                 Material3SettingsItem(
+                    settingKey = "hide_player_thumbnail",
                     icon = painterResource(R.drawable.hide_image),
                     title = { Text(stringResource(R.string.hide_player_thumbnail)) },
                     description = { Text(stringResource(R.string.hide_player_thumbnail_desc)) },
@@ -1113,6 +1139,7 @@ fun AppearanceSettings(
                     onClick = { onHidePlayerThumbnailChange(!hidePlayerThumbnail) }
                 ),
                 Material3SettingsItem(
+                    settingKey = "thumbnail_corner_radius",
                     icon = painterResource(R.drawable.image),
                     title = { Text(stringResource(R.string.thumbnail_corner_radius)) },
                     description = { Text(stringResource(R.string.thumbnail_corner_radius_desc)) },
@@ -1126,6 +1153,7 @@ fun AppearanceSettings(
                     onClick = { showThumbnailCornerRadiusDialog = true }
                 ),
                 Material3SettingsItem(
+                    settingKey = "crop_album_art",
                     icon = painterResource(R.drawable.crop),
                     title = { Text(stringResource(R.string.crop_album_art)) },
                     description = { Text(stringResource(R.string.crop_album_art_desc)) },
@@ -1147,6 +1175,7 @@ fun AppearanceSettings(
                     onClick = { onCropAlbumArtChange(!cropAlbumArt) }
                 ),
                 Material3SettingsItem(
+                    settingKey = "player_buttons_style",
                     icon = painterResource(R.drawable.palette),
                     title = { Text(stringResource(R.string.player_buttons_style)) },
                     description = {
@@ -1161,6 +1190,7 @@ fun AppearanceSettings(
                     onClick = { showPlayerButtonsStyleDialog = true }
                 ),
                 Material3SettingsItem(
+                    settingKey = "player_slider_style",
                     icon = painterResource(R.drawable.sliders),
                     title = { Text(stringResource(R.string.player_slider_style)) },
                     description = {
@@ -1177,6 +1207,7 @@ fun AppearanceSettings(
                     onClick = { showSliderOptionDialog = true }
                 ),
                 Material3SettingsItem(
+                    settingKey = "enable_swipe_thumbnail",
                     icon = painterResource(R.drawable.swipe),
                     title = { Text(stringResource(R.string.enable_swipe_thumbnail)) },
                     trailingContent = {
@@ -1197,6 +1228,7 @@ fun AppearanceSettings(
                     onClick = { onSwipeThumbnailChange(!swipeThumbnail) }
                 ),
                 Material3SettingsItem(
+                    settingKey = "vivimusic_canvas",
                     icon = painterResource(R.drawable.palette),
                     title = { Text(stringResource(R.string.vivimusic_canvas)) },
                     description = { Text(stringResource(R.string.vivimusic_canvas_desc)) },
@@ -1219,6 +1251,7 @@ fun AppearanceSettings(
                 )
             ) + if (swipeThumbnail) listOf(
                 Material3SettingsItem(
+                    settingKey = "swipe_sensitivity",
                     icon = painterResource(R.drawable.tune),
                     title = { Text(stringResource(R.string.swipe_sensitivity)) },
                     description = {
@@ -1314,9 +1347,12 @@ fun AppearanceSettings(
         Spacer(modifier = Modifier.height(27.dp))
 
         Material3SettingsGroup(
+            highlightKey = highlightKey,
+            onHighlightPositionFound = onHighlightPosition,
             title = stringResource(R.string.lyrics),
             items = listOfNotNull(
                 Material3SettingsItem(
+                    settingKey = "lyrics_text_position",
                     icon = painterResource(R.drawable.lyrics),
                     title = { Text(stringResource(R.string.lyrics_text_position)) },
                     description = {
@@ -1331,6 +1367,7 @@ fun AppearanceSettings(
                     onClick = { showLyricsPositionDialog = true }
                 ),
                 Material3SettingsItem(
+                    settingKey = "lyrics_animation_style",
                     icon = painterResource(R.drawable.lyrics),
                     title = { Text(stringResource(R.string.lyrics_animation_style)) },
                     description = {
@@ -1351,6 +1388,7 @@ fun AppearanceSettings(
                     onClick = { showLyricsAnimationStyleDialog = true }
                 ),
                 Material3SettingsItem(
+                    settingKey = "lyrics_glow_effect",
                     icon = painterResource(R.drawable.lyrics),
                     title = { Text(stringResource(R.string.lyrics_glow_effect)) },
                     description = { Text(stringResource(R.string.lyrics_glow_effect_desc)) },
@@ -1373,6 +1411,7 @@ fun AppearanceSettings(
                 ),
                 if (lyricsAnimationStyle == LyricsAnimationStyle.VIVIMUSIC_1) {
                     Material3SettingsItem(
+                        settingKey = "apple_music_lyrics_blur",
                         icon = painterResource(R.drawable.lyrics),
                         title = { Text(stringResource(R.string.apple_music_lyrics_blur)) },
                         description = { Text(stringResource(R.string.apple_music_lyrics_blur_desc)) },
@@ -1395,18 +1434,21 @@ fun AppearanceSettings(
                     )
                 } else null,
                 Material3SettingsItem(
+                    settingKey = "lyrics_text_size",
                     icon = painterResource(R.drawable.lyrics),
                     title = { Text(stringResource(R.string.lyrics_text_size)) },
                     description = { Text("${lyricsTextSize.roundToInt()} sp") },
                     onClick = { showLyricsTextSizeDialog = true }
                 ),
                 Material3SettingsItem(
+                    settingKey = "lyrics_line_spacing",
                     icon = painterResource(R.drawable.lyrics),
                     title = { Text(stringResource(R.string.lyrics_line_spacing)) },
                     description = { Text("${String.format("%.1f", lyricsLineSpacing)}x") },
                     onClick = { showLyricsLineSpacingDialog = true }
                 ),
                 Material3SettingsItem(
+                    settingKey = "lyrics_click_change",
                     icon = painterResource(R.drawable.lyrics),
                     title = { Text(stringResource(R.string.lyrics_click_change)) },
                     trailingContent = {
@@ -1427,6 +1469,7 @@ fun AppearanceSettings(
                     onClick = { onLyricsClickChange(!lyricsClick) }
                 ),
                 Material3SettingsItem(
+                    settingKey = "lyrics_auto_scroll",
                     icon = painterResource(R.drawable.lyrics),
                     title = { Text(stringResource(R.string.lyrics_auto_scroll)) },
                     trailingContent = {
@@ -1447,6 +1490,7 @@ fun AppearanceSettings(
                     onClick = { onLyricsScrollChange(!lyricsScroll) }
                 ),
                 Material3SettingsItem(
+                    settingKey = "lyrics_swipe_to_change_song",
                     icon = painterResource(R.drawable.swipe),
                     title = { Text(stringResource(R.string.lyrics_swipe_to_change_song)) },
                     description = { Text(stringResource(R.string.lyrics_swipe_to_change_song_desc)) },
@@ -1468,6 +1512,7 @@ fun AppearanceSettings(
                     onClick = { onSwipeLyricsChange(!swipeLyrics) }
                 ),
                 Material3SettingsItem(
+                    settingKey = "lyrics_thumbnail_play_pause",
                     icon = painterResource(R.drawable.play),
                     title = { Text(stringResource(R.string.lyrics_thumbnail_play_pause)) },
                     description = { Text(stringResource(R.string.lyrics_thumbnail_play_pause_desc)) },
@@ -1494,9 +1539,12 @@ fun AppearanceSettings(
         Spacer(modifier = Modifier.height(27.dp))
 
         Material3SettingsGroup(
+            highlightKey = highlightKey,
+            onHighlightPositionFound = onHighlightPosition,
             title = stringResource(R.string.misc),
             items = listOf(
                 Material3SettingsItem(
+                    settingKey = "default_open_tab",
                     icon = painterResource(R.drawable.nav_bar),
                     title = { Text(stringResource(R.string.default_open_tab)) },
                     description = {
@@ -1511,6 +1559,7 @@ fun AppearanceSettings(
                     onClick = { showDefaultOpenTabDialog = true }
                 ),
                 Material3SettingsItem(
+                    settingKey = "default_lib_chips",
                     icon = painterResource(R.drawable.tab),
                     title = { Text(stringResource(R.string.default_lib_chips)) },
                     description = {
@@ -1527,6 +1576,7 @@ fun AppearanceSettings(
                     onClick = { showDefaultChipDialog = true }
                 ),
                 Material3SettingsItem(
+                    settingKey = "swipe_song_to_add",
                     icon = painterResource(R.drawable.swipe),
                     title = { Text(stringResource(R.string.swipe_song_to_add)) },
                     trailingContent = {
@@ -1547,6 +1597,7 @@ fun AppearanceSettings(
                     onClick = { onSwipeToSongChange(!swipeToSong) }
                 ),
                 Material3SettingsItem(
+                    settingKey = "swipe_song_to_remove",
                     icon = painterResource(R.drawable.swipe),
                     title = { Text(stringResource(R.string.swipe_song_to_remove)) },
                     trailingContent = {
@@ -1567,6 +1618,7 @@ fun AppearanceSettings(
                     onClick = { onSwipeToRemoveSongChange(!swipeToRemoveSong) }
                 ),
                 Material3SettingsItem(
+                    settingKey = "slim_navbar",
                     icon = painterResource(R.drawable.nav_bar),
                     title = { Text(stringResource(R.string.slim_navbar)) },
                     trailingContent = {
@@ -1587,6 +1639,7 @@ fun AppearanceSettings(
                     onClick = { onSlimNavChange(!slimNav) }
                 ),
                 Material3SettingsItem(
+                    settingKey = "listen_together_in_top_bar",
                     icon = painterResource(R.drawable.group_outlined),
                     title = { Text(stringResource(R.string.listen_together_in_top_bar)) },
                     description = { Text(stringResource(R.string.listen_together_in_top_bar_desc)) },
@@ -1608,6 +1661,7 @@ fun AppearanceSettings(
                     onClick = { onListenTogetherInTopBarChange(!listenTogetherInTopBar) }
                 ),
                 Material3SettingsItem(
+                    settingKey = "grid_cell_size",
                     icon = painterResource(R.drawable.grid_view),
                     title = { Text(stringResource(R.string.grid_cell_size)) },
                     description = {
@@ -1621,6 +1675,7 @@ fun AppearanceSettings(
                     onClick = { showGridSizeDialog = true }
                 ),
                 Material3SettingsItem(
+                    settingKey = "display_density",
                     icon = painterResource(R.drawable.grid_view),
                     title = { Text(stringResource(R.string.display_density)) },
                     description = {
@@ -1634,9 +1689,12 @@ fun AppearanceSettings(
         Spacer(modifier = Modifier.height(27.dp))
 
         Material3SettingsGroup(
+            highlightKey = highlightKey,
+            onHighlightPositionFound = onHighlightPosition,
             title = stringResource(R.string.auto_playlists),
             items = listOf(
                 Material3SettingsItem(
+                    settingKey = "show_liked_playlist",
                     icon = painterResource(R.drawable.favorite),
                     title = { Text(stringResource(R.string.show_liked_playlist)) },
                     trailingContent = {
@@ -1657,6 +1715,7 @@ fun AppearanceSettings(
                     onClick = { onShowLikedPlaylistChange(!showLikedPlaylist) }
                 ),
                 Material3SettingsItem(
+                    settingKey = "show_downloaded_playlist",
                     icon = painterResource(R.drawable.offline),
                     title = { Text(stringResource(R.string.show_downloaded_playlist)) },
                     trailingContent = {
@@ -1677,6 +1736,7 @@ fun AppearanceSettings(
                     onClick = { onShowDownloadedPlaylistChange(!showDownloadedPlaylist) }
                 ),
                 Material3SettingsItem(
+                    settingKey = "show_top_playlist",
                     icon = painterResource(R.drawable.trending_up),
                     title = { Text(stringResource(R.string.show_top_playlist)) },
                     trailingContent = {
@@ -1697,6 +1757,7 @@ fun AppearanceSettings(
                     onClick = { onShowTopPlaylistChange(!showTopPlaylist) }
                 ),
                 Material3SettingsItem(
+                    settingKey = "show_cached_playlist",
                     icon = painterResource(R.drawable.cached),
                     title = { Text(stringResource(R.string.show_cached_playlist)) },
                     trailingContent = {
@@ -1717,6 +1778,7 @@ fun AppearanceSettings(
                     onClick = { onShowCachedPlaylistChange(!showCachedPlaylist) }
                 ),
                 Material3SettingsItem(
+                    settingKey = "show_uploaded_playlist",
                     icon = painterResource(R.drawable.backup),
                     title = { Text(stringResource(R.string.show_uploaded_playlist)) },
                     trailingContent = {

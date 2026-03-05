@@ -55,6 +55,8 @@ import com.music.vivi.ui.component.ActionPromptDialog
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.Material3SettingsGroup
 import com.music.vivi.ui.component.Material3SettingsItem
+import com.music.vivi.ui.screens.settings.rememberHighlightScrollHandler
+import androidx.compose.foundation.rememberScrollState
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.ui.utils.formatFileSize
 import com.music.vivi.utils.rememberPreference
@@ -71,6 +73,7 @@ import kotlin.math.roundToInt
 fun StorageSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    highlightKey: String? = null
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current
@@ -270,6 +273,14 @@ fun StorageSettings(
         )
     }
 
+
+    val scrollState = rememberScrollState()
+
+
+    val (_, onHighlightPosition) = rememberHighlightScrollHandler(scrollState, highlightKey)
+
+
+
     Column(
         Modifier
             .windowInsetsPadding(
@@ -277,7 +288,7 @@ fun StorageSettings(
                     WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
                 )
             )
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scrollState)
             .padding(horizontal = 16.dp)
     ) {
         Spacer(
@@ -288,9 +299,12 @@ fun StorageSettings(
             )
         )
         Material3SettingsGroup(
+            highlightKey = highlightKey,
+            onHighlightPositionFound = onHighlightPosition,
             title = stringResource(R.string.storage),
             items = listOf(
                 Material3SettingsItem(
+                    settingKey = "downloaded_songs",
                     icon = painterResource(R.drawable.storage),
                     title = { Text(stringResource(R.string.downloaded_songs)) },
                     description = {
@@ -298,6 +312,7 @@ fun StorageSettings(
                     }
                 ),
                 Material3SettingsItem(
+                    settingKey = "clear_all_downloads",
                     icon = painterResource(R.drawable.clear_all),
                     title = { Text(stringResource(R.string.clear_all_downloads)) },
                     onClick = {
@@ -308,9 +323,12 @@ fun StorageSettings(
         )
 
         Material3SettingsGroup(
+            highlightKey = highlightKey,
+            onHighlightPositionFound = onHighlightPosition,
             title = stringResource(R.string.song_cache),
             items = listOf(
                 Material3SettingsItem(
+                    settingKey = "max_song_cache_size",
                     icon = painterResource(R.drawable.cached),
                     title = { Text(stringResource(R.string.max_song_cache_size)) },
                     description = {
@@ -368,6 +386,7 @@ fun StorageSettings(
                     }
                 ),
                 Material3SettingsItem(
+                    settingKey = "clear_song_cache",
                     icon = painterResource(R.drawable.clear_all),
                     title = { Text(stringResource(R.string.clear_song_cache)) },
                     onClick = {
@@ -378,9 +397,12 @@ fun StorageSettings(
         )
 
         Material3SettingsGroup(
+            highlightKey = highlightKey,
+            onHighlightPositionFound = onHighlightPosition,
             title = stringResource(R.string.image_cache),
             items = listOf(
                 Material3SettingsItem(
+                    settingKey = "max_image_cache_size",
                     icon = painterResource(R.drawable.manage_search),
                     title = { Text(stringResource(R.string.max_image_cache_size)) },
                     description = {
@@ -429,6 +451,7 @@ fun StorageSettings(
                     }
                 ),
                 Material3SettingsItem(
+                    settingKey = "clear_image_cache",
                     icon = painterResource(R.drawable.clear_all),
                     title = { Text(stringResource(R.string.clear_image_cache)) },
                     onClick = {
