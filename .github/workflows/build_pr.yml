@@ -26,9 +26,6 @@ jobs:
           cache-read-only: true
           cache-cleanup: on-success
 
-      - name: Setup and Generate Protobuf
-        uses: ./.github/actions/setup-protobuf
-
       - name: Setup FFTW for Android
         uses: ./.github/actions/setup-fftw
 

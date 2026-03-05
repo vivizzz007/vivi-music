@@ -56,9 +56,6 @@ jobs:
       - name: Set Up Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Setup and Generate Protobuf
-        uses: ./.github/actions/setup-protobuf
-
       - name: Setup FFTW for Android
         uses: ./.github/actions/setup-fftw
 
