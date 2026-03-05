@@ -20,8 +20,14 @@ object ListenTogetherServers {
     private const val ServersJson = """
         [
           {
+            "name": "ViviMusic Sync Server",
+            "url": "wss://vivimusic-listen-together.onrender.com",
+            "location": "Global",
+            "operator": "Vividh"
+          },
+          {
             "name": "The Meowery",
-            "url": "wss://metroserver.meowery.eu/ws",
+            "url": "wss://metroserverx.meowery.eu/ws",
             "location": "Poland",
             "operator": "Nyx"
           }

@@ -45,13 +45,13 @@ object YTPlayerUtils {
 
     private val poTokenGenerator = PoTokenGenerator()
 
-    private val MAIN_CLIENT: YouTubeClient = WEB_REMIX
+    private val MAIN_CLIENT: YouTubeClient = ANDROID_VR_1_43_32
 
     private val STREAM_FALLBACK_CLIENTS: Array<YouTubeClient> = arrayOf(
+        ANDROID_VR_1_61_48,
+        WEB_REMIX,
         TVHTML5_SIMPLY_EMBEDDED_PLAYER,  // Try embedded player first for age-restricted content
         TVHTML5,
-        ANDROID_VR_1_43_32,
-        ANDROID_VR_1_61_48,
         ANDROID_CREATOR,
         IPADOS,
         ANDROID_VR_NO_AUTH,
@@ -92,11 +92,11 @@ object YTPlayerUtils {
         val signatureTimestamp = getSignatureTimestampOrNull(videoId)
         Timber.tag(logTag).d("Signature timestamp: ${signatureTimestamp.timestamp}")
 
-        // Generate PoToken
+        // Generate PoToken ONLY if MAIN_CLIENT uses it (which it now doesn't since we use ANDROID_VR)
         var poToken: PoTokenResult? = null
         val sessionId = if (isLoggedIn) YouTube.dataSyncId else YouTube.visitorData
         if (MAIN_CLIENT.useWebPoTokens && sessionId != null) {
-            Timber.tag(logTag).d("Generating PoToken for WEB_REMIX with sessionId")
+            Timber.tag(logTag).d("Generating PoToken for MAIN_CLIENT with sessionId")
             try {
                 poToken = poTokenGenerator.getWebClientPoToken(videoId, sessionId)
                 if (poToken != null) {
@@ -107,7 +107,7 @@ object YTPlayerUtils {
             }
         }
 
-        // Try WEB_REMIX with signature timestamp and poToken (same as before)
+        // Try MAIN_CLIENT with signature timestamp and poToken
         Timber.tag(logTag).d("Attempting to get player response using MAIN_CLIENT: ${MAIN_CLIENT.clientName}")
         var mainPlayerResponse = YouTube.player(videoId, playlistId, MAIN_CLIENT, signatureTimestamp.timestamp, poToken?.playerRequestPoToken).getOrThrow()
 
@@ -123,7 +123,7 @@ object YTPlayerUtils {
         var usedAgeRestrictedClient: YouTubeClient? = null
         val wasOriginallyAgeRestricted: Boolean
 
-        // Check if WEB_REMIX response indicates age-restricted
+        // Check if MAIN_CLIENT response indicates age-restricted
         val mainStatus = mainPlayerResponse.playabilityStatus.status
         val isAgeRestrictedFromResponse = mainStatus in listOf("AGE_CHECK_REQUIRED", "AGE_VERIFICATION_REQUIRED", "LOGIN_REQUIRED", "CONTENT_CHECK_REQUIRED")
         wasOriginallyAgeRestricted = isAgeRestrictedFromResponse
@@ -197,6 +197,16 @@ object YTPlayerUtils {
                     // skip client if it requires login but user is not logged in
                     Timber.tag(logTag).d("Skipping client ${client.clientName} - requires login but user is not logged in")
                     continue
+                }
+
+                // Lazily generate PoToken for fallback web clients if we haven't already
+                if (client.useWebPoTokens && poToken == null && sessionId != null) {
+                    Timber.tag(logTag).d("Lazily generating PoToken for fallback web client: ${client.clientName}")
+                    try {
+                        poToken = poTokenGenerator.getWebClientPoToken(videoId, sessionId)
+                    } catch (e: Exception) {
+                        Timber.tag(logTag).e(e, "Lazy PoToken generation failed")
+                    }
                 }
 
                 Timber.tag(logTag).d("Fetching player response for fallback client: ${client.clientName}")
