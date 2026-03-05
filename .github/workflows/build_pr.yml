@@ -32,12 +32,11 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Generate debug.keystore if not exists
+      - name: Generate persistent-debug.keystore if not exists
         run: |
-          if [ ! -f ~/.android/debug.keystore ]; then
-            mkdir -p ~/.android
+          if [ ! -f app/persistent-debug.keystore ]; then
             keytool -genkey -v \
-              -keystore ~/.android/debug.keystore \
+              -keystore app/persistent-debug.keystore \
               -storepass android \
               -alias androiddebugkey \
               -keypass android \
