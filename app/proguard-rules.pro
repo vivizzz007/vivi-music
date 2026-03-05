@@ -172,3 +172,15 @@
 -keepclasseswithmembers class com.music.shazamkit.models.** {
     kotlinx.serialization.KSerializer serializer(...);
 }
+
+## Listen Together Serialization
+-keep class com.music.vivi.listentogether.** { *; }
+-keepclassmembers class com.music.vivi.listentogether.** {
+    *;
+}
+-keepclassmembers class com.music.vivi.listentogether.** {
+    *** Companion;
+}
+-keepclasseswithmembers class com.music.vivi.listentogether.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
