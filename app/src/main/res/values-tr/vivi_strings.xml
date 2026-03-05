@@ -790,7 +790,4 @@
     <string name="commits">Commit\'ler</string>
     <string name="view_commit_history">Ana daldaki son değişikliklere göz atın</string>
 
-    <!-- Extra strings found only in Turkish -->
-    <string name="more_options">Daha fazla seçenek</string>
-    <string name="update_notifications">Güncelleme bildirimlerini etkinleştir</string>
 </resources>
