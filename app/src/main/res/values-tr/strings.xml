@@ -292,7 +292,7 @@
     <string name="enable_proxy">Proxy\'yi etkinleştir</string>
     <string name="proxy_type">Proxy türü</string>
     <string name="proxy_url">Proxy URL\'si</string>
-    <string name="restart_to_take_effect">Etkinleştirmek için yeniden başlatın./string>
+    <string name="restart_to_take_effect">Etkinleştirmek için yeniden başlatın.</string>
 
     <string name="player_and_audio">Müzik çalar ve ses</string>
     <string name="audio_quality">Ses kalitesi</string>
