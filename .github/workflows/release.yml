@@ -19,7 +19,7 @@ jobs:
       version_changed: ${{ steps.check.outputs.changed }}
       new_version: ${{ steps.check.outputs.version }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 2
       - name: Check version change
@@ -43,7 +43,9 @@ jobs:
         abi: [arm64, armeabi, x86, x86_64, universal]
         flavor: [foss, standard]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Set up JDK 21
         uses: actions/setup-java@v5
@@ -92,7 +94,7 @@ jobs:
     needs: [check-version, build-release]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
       - name: Download all APKs
         uses: actions/download-artifact@v4
         with:
