@@ -12,6 +12,10 @@ on:
   pull_request:
     branches: [ '**' ]
 
+concurrency:
+  group: ci-debug-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build_debug:
     name: Build Universal Foss Debug
@@ -42,12 +46,11 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Generate debug.keystore if not exists
+      - name: Generate persistent-debug.keystore if not exists
         run: |
-          if [ ! -f ~/.android/debug.keystore ]; then
-            mkdir -p ~/.android
+          if [ ! -f persistent-debug.keystore ]; then
             keytool -genkey -v \
-              -keystore ~/.android/debug.keystore \
+              -keystore persistent-debug.keystore \
               -storepass android \
               -alias androiddebugkey \
               -keypass android \
@@ -56,6 +59,7 @@ jobs:
               -validity 10000 \
               -dname "CN=Android Debug,O=Android,C=US"
           fi
+          ls -la persistent-debug.keystore
 
       - name: Build Debug APK
         env:
