@@ -45,9 +45,9 @@ jobs:
 
       - name: Generate persistent-debug.keystore if not exists
         run: |
-          if [ ! -f persistent-debug.keystore ]; then
+          if [ ! -f app/persistent-debug.keystore ]; then
             keytool -genkey -v \
-              -keystore persistent-debug.keystore \
+              -keystore app/persistent-debug.keystore \
               -storepass android \
               -alias androiddebugkey \
               -keypass android \
@@ -56,7 +56,7 @@ jobs:
               -validity 10000 \
               -dname "CN=Android Debug,O=Android,C=US"
           fi
-          ls -la persistent-debug.keystore
+          ls -la app/persistent-debug.keystore
 
       - name: Build Debug APK
         env:
