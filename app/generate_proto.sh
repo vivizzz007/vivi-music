@@ -3,12 +3,11 @@
 
 set -e
 
-PROTO_DIR="../metroproto"
+PROTO_DIR="src/main/proto"
 OUT_DIR="src/main/java"
 
 if [ ! -f "$PROTO_DIR/listentogether.proto" ]; then
     echo "Missing proto file at $PROTO_DIR/listentogether.proto"
-    echo "Did you initialize submodules? Try: git submodule update --init --recursive"
     exit 1
 fi
 
