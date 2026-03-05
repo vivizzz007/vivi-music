@@ -20,7 +20,7 @@
     <string name="installing_system_update">Sistem\ngüncellemesi yükleniyor…</string>
     <string name="making_update_ready">Güncelleme hazırlanıyor, bu biraz zaman alabilir</string>
     <string name="your_app_getting_better">Uygulamanız daha da iyiye gidiyor…</string>
-    <string name="update_includes_features">Bu güncelleme, vivi-music %1$s'den yeni özellikler ve en son güncellemeleri içeriyor, bu da uygulamanızı daha da kullanışlı hale getiriyor. Daha fazla bilgi için %2$s adresini ziyaret edin.</string>
+    <string name="update_includes_features">Bu güncelleme, vivi-music %1$s\'den yeni özellikler ve en son güncellemeleri içeriyor, bu da uygulamanızı daha da kullanışlı hale getiriyor. Daha fazla bilgi için %2$s adresini ziyaret edin.</string>
     <string name="whats_new">Yeni neler var?</string>
     <string name="update_available">Güncelleme mevcut</string>
     <string name="checking_for_updates">Güncellemeler kontrol ediliyor…</string>
