@@ -136,7 +136,6 @@ fun <Int> ChoiceChipsRow(
     modifier: Modifier = Modifier,
     containerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
 ) {
-    var expanded by remember { mutableStateOf(false) }
     var menuExpanded by remember { mutableStateOf(false) }
 
     var expandIconDegree by remember { mutableFloatStateOf(0f) }
@@ -147,28 +146,22 @@ fun <Int> ChoiceChipsRow(
     )
 
     Column(modifier = modifier.fillMaxWidth()) {
-        FlowRow(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .wrapContentHeight(align = Alignment.Top)
-                .then(
-                    if (expanded) {
-                        Modifier.verticalScroll(rememberScrollState())
-                    } else {
-                        Modifier.horizontalScroll(rememberScrollState())
-                    }
-                )
+                .horizontalScroll(rememberScrollState())
                 .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal)),
-            horizontalArrangement = Arrangement.Start,
-            verticalArrangement = Arrangement.Center,
-            maxLines = if (!expanded) 1 else Int.MAX_VALUE,
         ) {
+            Spacer(Modifier.width(12.dp))
             Box(contentAlignment = Alignment.Center) {
                 FilterChip(
-                    selected = expanded,
+                    selected = false,
                     modifier = Modifier
                         .padding(horizontal = 4.dp),
-                    onClick = { expanded = !expanded },
+                    onClick = {
+                        menuExpanded = !menuExpanded
+                        expandIconDegree -= 180
+                    },
                     label = {
                         Text(
                             text = when (selectedOption) {
@@ -192,10 +185,6 @@ fun <Int> ChoiceChipsRow(
                             contentDescription = null,
                             modifier = Modifier
                                 .graphicsLayer(rotationZ = rotationAnimation)
-                                .clickable {
-                                    menuExpanded = true
-                                    expandIconDegree -= 180
-                                },
                         )
                     },
                     shape = RoundedCornerShape(16.dp),
@@ -232,6 +221,7 @@ fun <Int> ChoiceChipsRow(
                 Modifier
                     .height(FilterChipDefaults.Height)
                     .padding(horizontal = 4.dp)
+                    .align(Alignment.CenterVertically)
             ) {
                 VerticalDivider()
             }

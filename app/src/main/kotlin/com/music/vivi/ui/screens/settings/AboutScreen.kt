@@ -135,7 +135,7 @@ fun AboutScreen(
                 )
 
                 Text(
-                    text = "v${BuildConfig.VERSION_NAME} • BETA",
+                    text = "v${BuildConfig.VERSION_NAME} • STABLE",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
                 )

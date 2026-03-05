@@ -94,7 +94,7 @@ fun statToPeriod(
         }
 
         OptionStats.CONTINUOUS -> {
-            val index = if (test > StatPeriod.entries.size) 0 else test
+            val index = if (test >= StatPeriod.entries.size) StatPeriod.entries.size - 1 else test
             StatPeriod.entries[index].toTimeMillis()
         }
     }

@@ -76,7 +76,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
 
-            <!-- Listen Together invite link -->
+            <!-- Listen Together invite link (HTTPS App Link - works after APK installation verification) -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
 
@@ -84,8 +84,19 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data android:scheme="https" />
-                <data android:host="vivimusic.meowery.eu" />
+                <data android:host="vivimusic-listen-together.onrender.com" />
                 <data android:pathPrefix="/listen" />
+            </intent-filter>
+
+            <!-- Custom scheme for direct opens from browser (works in ALL browsers) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="vivimusic" />
+                <data android:host="listen" />
             </intent-filter>
 
             <!-- Youtube filter -->
