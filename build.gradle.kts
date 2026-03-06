@@ -10,6 +10,14 @@ buildscript {
         google()
         mavenCentral()
         maven { setUrl("https://jitpack.io") }
+        maven {
+            setUrl("https://maven.aliyun.com/repository/public")
+            content {
+                includeGroup("com.github.promeg")
+                includeGroup("com.github.promeG")
+                includeGroup("com.github.promeG.tinypinyin")
+            }
+        }
     }
     dependencies {
         classpath(libs.gradle)
