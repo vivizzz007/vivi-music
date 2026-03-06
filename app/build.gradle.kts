@@ -22,11 +22,11 @@ android {
     ndkVersion = "27.0.12077973"
 
     defaultConfig {
-        applicationId = "com.vivi.vivimusic"
+        applicationId = "com.mert.vivimusic"
         minSdk = 26
         targetSdk = 36
-        versionCode = 65
-        versionName = "5.0.6"
+        versionCode = 66
+        versionName = "5.0.6.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
