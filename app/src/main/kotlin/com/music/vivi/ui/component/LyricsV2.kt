@@ -66,6 +66,10 @@ fun LyricsLineV2(
         FlowRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = arrangement,
+            verticalArrangement = Arrangement.spacedBy(
+                // Use a capped spacing for internal wrapping to prevent "sentence break-off"
+                with(LocalDensity.current) { (baseFontSize * ( (lineHeight / baseFontSize).coerceAtMost(1.3f) - 1f)).sp.toDp() }
+            )
         ) {
             words.forEachIndexed { wordIndex, word ->
                 AnimatedWordV2(
@@ -76,14 +80,14 @@ fun LyricsLineV2(
                     expressiveAccent = expressiveAccent,
                     inactiveAlpha = inactiveAlpha,
                     fontSize = if (entry.isBackground) baseFontSize * 0.85f else baseFontSize,
-                    lineHeight = lineHeight,
+                    lineHeight = lineHeight.coerceAtMost(baseFontSize * 1.3f),
                     isBackground = entry.isBackground
                 )
                 if (wordIndex < words.size - 1) {
                     Text(
                         text = " ",
                         fontSize = baseFontSize.sp,
-                        lineHeight = lineHeight.sp
+                        lineHeight = lineHeight.coerceAtMost(baseFontSize * 1.3f).sp
                     )
                 }
             }
@@ -96,7 +100,7 @@ fun LyricsLineV2(
                 fontSize = if (entry.isBackground) (baseFontSize * 0.85f).sp else baseFontSize.sp,
                 fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium,
                 fontStyle = if (entry.isBackground) FontStyle.Italic else FontStyle.Normal,
-                lineHeight = lineHeight.sp,
+                lineHeight = lineHeight.coerceAtMost(baseFontSize * 1.3f).sp,
             ),
             color = expressiveAccent.copy(alpha = if (isActive) 1f else inactiveAlpha),
             textAlign = agentTextAlign,

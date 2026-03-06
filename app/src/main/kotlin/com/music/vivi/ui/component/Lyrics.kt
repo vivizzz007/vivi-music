@@ -1058,7 +1058,7 @@ fun Lyrics(
                             )
                             else Color.Transparent
                         )
-                        .padding(horizontal = 24.dp, vertical = 8.dp)
+                        .padding(horizontal = 24.dp, vertical = (8 * lyricsLineSpacing).dp)
                     
                     // Check if this line shares the same time as the currently active line
                     // This enables synchronized word-by-word animation for both main and background vocals
@@ -1183,7 +1183,7 @@ fun Lyrics(
                                 text = styledText,
                                 fontSize = lyricsTextSize.sp,
                                 textAlign = alignment,
-                                lineHeight = (lyricsTextSize * lyricsLineSpacing).sp
+                                lineHeight = (lyricsTextSize * lyricsLineSpacing.coerceAtMost(1.3f)).sp
                             )
                         } else if (hasWordTimings && lyricsAnimationStyle == LyricsAnimationStyle.FADE) {
                             val styledText = buildAnnotatedString {
@@ -1240,7 +1240,7 @@ fun Lyrics(
                                 text = styledText,
                                 fontSize = lyricsTextSize.sp,
                                 textAlign = alignment,
-                                lineHeight = (lyricsTextSize * lyricsLineSpacing).sp
+                                lineHeight = (lyricsTextSize * lyricsLineSpacing.coerceAtMost(1.3f)).sp
                             )
                         } else if (hasWordTimings && lyricsAnimationStyle == LyricsAnimationStyle.GLOW) {
                             val styledText = buildAnnotatedString {
@@ -1287,7 +1287,7 @@ fun Lyrics(
                                 text = styledText,
                                 fontSize = lyricsTextSize.sp,
                                 textAlign = alignment,
-                                lineHeight = (lyricsTextSize * lyricsLineSpacing).sp
+                                lineHeight = (lyricsTextSize * lyricsLineSpacing.coerceAtMost(1.3f)).sp
                             )
                         } else if (hasWordTimings && lyricsAnimationStyle == LyricsAnimationStyle.SLIDE) {
                             val styledText = buildAnnotatedString {
@@ -1406,7 +1406,7 @@ fun Lyrics(
                                     if (wordIndex < (item.words.size ?: 0) - 1) append(" ")
                                 }
                             }
-                            Text(text = styledText, fontSize = lyricsTextSize.sp, textAlign = alignment, lineHeight = (lyricsTextSize * lyricsLineSpacing).sp)
+                            Text(text = styledText, fontSize = lyricsTextSize.sp, textAlign = alignment, lineHeight = (lyricsTextSize * lyricsLineSpacing.coerceAtMost(1.3f)).sp)
                         } else if (hasWordTimings && lyricsAnimationStyle == LyricsAnimationStyle.APPLE) {
                             val styledText = buildAnnotatedString {
                                 item.words?.forEachIndexed { wordIndex, word ->
@@ -1460,7 +1460,7 @@ fun Lyrics(
                                     if (wordIndex < (item.words.size ?: 0) - 1) append(" ")
                                 }
                             }
-                            Text(text = styledText, fontSize = lyricsTextSize.sp, textAlign = alignment, lineHeight = (lyricsTextSize * lyricsLineSpacing).sp)
+                            Text(text = styledText, fontSize = lyricsTextSize.sp, textAlign = alignment, lineHeight = (lyricsTextSize * lyricsLineSpacing.coerceAtMost(1.3f)).sp)
                         } else if (lyricsAnimationStyle == LyricsAnimationStyle.APPLE_V2) {
                             val nextEntryTime = lines.getOrNull(index + 1)?.time
                             val duration = remember(item.time, nextEntryTime) {
@@ -1507,7 +1507,11 @@ fun Lyrics(
                                     Alignment.CenterHorizontally -> Arrangement.Center
                                     Alignment.End -> Arrangement.End
                                     else -> Arrangement.Start
-                                }
+                                },
+                                verticalArrangement = Arrangement.spacedBy(
+                                    // Use a capped spacing for internal wrapping to prevent "sentence break-off"
+                                    with(LocalDensity.current) { (lyricsTextSize * (lyricsLineSpacing.coerceAtMost(1.3f) - 1f)).sp.toDp() }
+                                )
                             ) {
                                 wordData.forEachIndexed { wordIndex, (wordText, startRelative, endRelative) ->
                                     val lineRelTime = (effectivePlaybackPosition - item.time).coerceAtLeast(0L)
@@ -1556,7 +1560,7 @@ fun Lyrics(
                                 expressiveAccent = expressiveAccent,
                                 inactiveAlpha = 0.35f, // Sync with ArchiveTune inactive alpha
                                 baseFontSize = lyricsTextSize,
-                                lineHeight = lyricsTextSize * lyricsLineSpacing,
+                                lineHeight = lyricsTextSize * lyricsLineSpacing.coerceAtMost(1.3f),
                                 agentAlignment = agentAlignment,
                                 agentTextAlign = agentTextAlign
                             )
@@ -1636,7 +1640,7 @@ fun Lyrics(
                                 fontSize = lyricsTextSize.sp,
                                 textAlign = alignment,
                                 fontWeight = FontWeight.ExtraBold,
-                                lineHeight = (lyricsTextSize * lyricsLineSpacing).sp,
+                                lineHeight = (lyricsTextSize * lyricsLineSpacing.coerceAtMost(1.3f)).sp,
                                 modifier = Modifier
                                     .graphicsLayer {
                                         scaleX = bounceScale
@@ -1651,7 +1655,7 @@ fun Lyrics(
                                 color = expressiveAccent,
                                 textAlign = alignment,
                                 fontWeight = FontWeight.ExtraBold,
-                                lineHeight = (lyricsTextSize * lyricsLineSpacing).sp
+                                lineHeight = (lyricsTextSize * lyricsLineSpacing.coerceAtMost(1.3f)).sp
                             )
                         } else {
                             // Inactive line
@@ -1661,7 +1665,7 @@ fun Lyrics(
                                 color = lineColor,
                                 textAlign = alignment,
                                 fontWeight = FontWeight.Bold,
-                                lineHeight = (lyricsTextSize * lyricsLineSpacing).sp
+                                lineHeight = (lyricsTextSize * lyricsLineSpacing.coerceAtMost(1.3f)).sp
                             )
                         }
                         if (currentSong?.romanizeLyrics == true
