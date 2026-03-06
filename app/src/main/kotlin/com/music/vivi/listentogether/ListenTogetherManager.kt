@@ -1091,11 +1091,19 @@ class ListenTogetherManager @Inject constructor(
     }
     
     private fun handleSyncState(state: SyncStatePayload) {
-        Timber.tag(TAG).d("handleSyncState: playing=${state.isPlaying}, pos=${state.position}, track=${state.currentTrack?.id}")
+        val now = System.currentTimeMillis()
+        val adjustedPos = if (state.isPlaying) {
+            state.position + kotlin.math.max(0L, now - state.lastUpdate)
+        } else {
+            state.position
+        }
+
+        Timber.tag(TAG).d("handleSyncState: playing=${state.isPlaying}, pos=${state.position} -> adj=$adjustedPos, track=${state.currentTrack?.id}")
+        
         applyPlaybackState(
             currentTrack = state.currentTrack,
             isPlaying = state.isPlaying,
-            position = state.position,
+            position = adjustedPos,
             queue = state.queue,
             bypassBuffer = true  // Manual sync: bypass buffer
         )
@@ -1652,7 +1660,7 @@ class ListenTogetherManager @Inject constructor(
         if (heartbeatJob?.isActive == true) return
         heartbeatJob = scope.launch {
             while (heartbeatJob?.isActive == true && isInRoom && isHost) {
-                delay(15000L) // 15 seconds
+                delay(10000L) // 10 seconds (increased frequency from 15s to 10s)
                 playerConnection?.player?.let { player ->
                     if (player.playWhenReady && player.playbackState == Player.STATE_READY) {
                         val pos = player.currentPosition
@@ -1662,7 +1670,7 @@ class ListenTogetherManager @Inject constructor(
                 }
             }
         }
-        Timber.tag(TAG).d("Host heartbeat started (15s interval)")
+        Timber.tag(TAG).d("Host heartbeat started (10s interval)")
     }
 
     private fun stopHeartbeat() {
