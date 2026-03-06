@@ -88,6 +88,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.LinearGradientShader
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.asComposeRenderEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -141,6 +142,7 @@ import com.music.vivi.constants.LyricsRomanizeMacedonianKey
 import com.music.vivi.constants.LyricsRomanizeRussianKey
 import com.music.vivi.constants.LyricsRomanizeSerbianKey
 import com.music.vivi.constants.LyricsRomanizeUkrainianKey
+import com.music.vivi.constants.LyricsStandardBlurKey
 import com.music.vivi.constants.LyricsScrollKey
 import com.music.vivi.constants.LyricsTextPositionKey
 import com.music.vivi.constants.LyricsTextSizeKey
@@ -230,6 +232,7 @@ fun Lyrics(
     val lyricsAnimationStyle by rememberEnumPreference(LyricsAnimationStyleKey, LyricsAnimationStyle.VIVIMUSIC_1)
     val lyricsTextSize by rememberPreference(LyricsTextSizeKey, 24f)
     val lyricsLineSpacing by rememberPreference(LyricsLineSpacingKey, 1.3f)
+    val lyricsStandardBlur by rememberPreference(LyricsStandardBlurKey, false)
     
     val openRouterApiKey by rememberPreference(OpenRouterApiKey, "")
     val deeplApiKey by rememberPreference(DeeplApiKey, "")
@@ -1082,6 +1085,27 @@ fun Lyrics(
                         animationSpec = tween(durationMillis = 400)
                     )
 
+                    // Progressive blur logic for Standard / non-word-by-word lyrics
+                    // mirrored from Apple Music animation style for a premium feel
+                    val targetBlur = if (!lyricsStandardBlur || (isSelectionModeActive && isSelected) || isActiveByIndex || isActiveByTime) {
+                        0f
+                    } else {
+                        val distance = kotlin.math.abs(index - (if (displayedCurrentLineIndex >= 0) displayedCurrentLineIndex else currentLineIndex))
+                        when (distance) {
+                            1 -> 0f
+                            2 -> 0f
+                            3 -> 2f
+                            4 -> 4f
+                            else -> 6f
+                        }
+                    }
+
+                    val blurRadius by animateFloatAsState(
+                        targetValue = targetBlur,
+                        animationSpec = tween(durationMillis = 1000),
+                        label = "standard_blur"
+                    )
+
                     // Determine alignment based on agent for multi-singer support
                     val agentAlignment = when {
                         item.isBackground -> Alignment.CenterHorizontally // Background always centered
@@ -1115,6 +1139,13 @@ fun Lyrics(
                             this.alpha = if (item.isBackground) alpha * 0.8f else alpha
                             this.scaleX = scale * bgScale
                             this.scaleY = scale * bgScale
+                            if (blurRadius > 0f) {
+                                this.renderEffect = android.graphics.RenderEffect.createBlurEffect(
+                                    blurRadius * density.density,
+                                    blurRadius * density.density,
+                                    android.graphics.Shader.TileMode.CLAMP
+                                ).asComposeRenderEffect()
+                            }
                         },
                         horizontalAlignment = agentAlignment
                     ) {

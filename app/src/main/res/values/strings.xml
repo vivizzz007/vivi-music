@@ -373,4 +373,5 @@
     <string name="audio_devices">Audio devices</string>
     <string name="bluetooth_headphones">Bluetooth headphones</string>
     <string name="license">GNU General Public License v3.0</string>
+    <string name="standard_lyrics_blur">Standard lyrics blur</string>
 </resources>
