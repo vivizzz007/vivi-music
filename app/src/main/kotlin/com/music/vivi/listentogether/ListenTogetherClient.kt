@@ -453,10 +453,21 @@ class ListenTogetherClient @Inject constructor(
         }
 
         _connectionState.value = ConnectionState.CONNECTING
-        log(LogLevel.INFO, "Connecting to server", getServerUrl())
+        val serverUrl = getServerUrl()
+        log(LogLevel.INFO, "Connecting to server", serverUrl)
+
+        // Meowery servers expect Protocol Buffers with compression
+        // Custom Node.js servers expect JSON without compression
+        if (serverUrl.contains("meowery.eu")) {
+            codec.format = MessageFormat.PROTOBUF
+            codec.compressionEnabled = true
+        } else {
+            codec.format = MessageFormat.JSON
+            codec.compressionEnabled = false
+        }
 
         val request = Request.Builder()
-            .url(getServerUrl())
+            .url(serverUrl)
             .build()
 
         webSocket = client.newWebSocket(request, object : WebSocketListener() {
