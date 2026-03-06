@@ -35,8 +35,8 @@ fun rememberHighlightScrollHandler(
     scrollState: ScrollState,
     highlightKey: String?
 ): Pair<Unit, (Float) -> Unit> {
-    var highlightPosition by remember { mutableIntStateOf(-1) }
-    var hasScrolled by remember { mutableStateOf(false) }
+    var highlightPosition by remember(highlightKey) { mutableIntStateOf(-1) }
+    var hasScrolled by remember(highlightKey) { mutableStateOf(false) }
 
     val onHighlightPosition: (Float) -> Unit = { y ->
         if (!hasScrolled) {

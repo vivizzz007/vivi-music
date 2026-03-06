@@ -83,12 +83,12 @@ fun Material3SettingsGroup(
                 }
 
                 val shouldHighlight = highlightKey != null && item.settingKey == highlightKey
-                var highlightActive by remember { mutableStateOf(shouldHighlight) }
+                var highlightActive by remember(shouldHighlight, highlightKey) { mutableStateOf(shouldHighlight) }
 
                 // Pulse animation: 3 pulses then stop
                 val highlightAlpha = remember { Animatable(0f) }
                 if (highlightActive) {
-                    LaunchedEffect(Unit) {
+                    LaunchedEffect(shouldHighlight, highlightKey) {
                         delay(400) // Wait for scroll to finish
                         repeat(3) {
                             highlightAlpha.animateTo(0.3f, animationSpec = tween(350))

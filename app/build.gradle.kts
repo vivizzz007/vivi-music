@@ -49,8 +49,8 @@ android {
             buildConfigField("Boolean", "CAST_AVAILABLE", "false")
         }
         
-        // GMS variant - with Google Cast support (requires Google Play Services)
-        create("gms") {
+        // Standard variant - with Google Cast support (requires Google Play Services)
+        create("standard") {
             dimension = "variant"
             buildConfigField("Boolean", "CAST_AVAILABLE", "true")
         }
@@ -242,10 +242,10 @@ dependencies {
     implementation(libs.media3.ui)
     implementation(libs.media3.okhttp)
 
-    // Google Cast - only included in GMS flavor (not available in F-Droid/FOSS builds)
-    "gmsImplementation"(libs.media3.cast)
-    "gmsImplementation"(libs.mediarouter)
-    "gmsImplementation"(libs.cast.framework)
+    // Google Cast - only included in Standard flavor (not available in F-Droid/FOSS builds)
+    "standardImplementation"(libs.media3.cast)
+    "standardImplementation"(libs.mediarouter)
+    "standardImplementation"(libs.cast.framework)
 
     implementation(libs.room.runtime)
     implementation(libs.kuromoji.ipadic)
