@@ -218,7 +218,8 @@ fun ViviMusicLyricsLine(
                 else -> Arrangement.Start
             },
             verticalArrangement = Arrangement.spacedBy(
-                with(LocalDensity.current) { (textSize * (lineSpacing - 1f)).sp.toDp() }
+                // Use a capped spacing for internal wrapping to prevent "sentence break-off"
+                with(LocalDensity.current) { (textSize * (lineSpacing.coerceAtMost(1.3f) - 1f)).sp.toDp() }
             )
         ) {
             wordData.forEachIndexed { index, (wordText, startRelative, endRelative) ->
@@ -251,7 +252,8 @@ fun ViviMusicLyricsLine(
                         ),
                         fontWeight = finalFontWeight,
 //                        letterSpacing = (-0.5).sp,
-                        lineHeight = (textSize * lineSpacing).sp,
+                        // Cap internal line height for wrapped words
+                        lineHeight = (textSize * lineSpacing.coerceAtMost(1.3f)).sp,
                         textAlign = agentTextAlign,
                         shadow = androidx.compose.ui.graphics.Shadow(
                             color = textColor.copy(alpha = 0.6f * progress),
@@ -265,7 +267,7 @@ fun ViviMusicLyricsLine(
                         text = " ",
                         fontSize = textSize.sp,
                         color = textColor.copy(alpha = if (lineRelTime >= endRelative) 1f else 0.45f), // Increased from 0.35f
-                        lineHeight = (textSize * lineSpacing).sp,
+                        lineHeight = (textSize * lineSpacing.coerceAtMost(1.3f)).sp,
                         style = TextStyle(
                             shadow = if (lineRelTime >= endRelative) {
                                 androidx.compose.ui.graphics.Shadow(
@@ -292,7 +294,7 @@ fun ViviMusicLyricsLine(
                     fontWeight = FontWeight.SemiBold,
 //                    letterSpacing = (-0.2).sp,
                     modifier = Modifier.padding(top = 2.dp).fillMaxWidth(),
-                    lineHeight = (textSize * 0.65f * lineSpacing).sp
+                    lineHeight = (textSize * 0.65f * lineSpacing.coerceAtMost(1.3f)).sp
                 )
             }
         }

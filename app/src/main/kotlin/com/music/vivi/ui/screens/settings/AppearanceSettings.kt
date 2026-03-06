@@ -74,11 +74,7 @@ import com.music.vivi.constants.LibraryFilter
 import com.music.vivi.constants.ListenTogetherInTopBarKey
 import com.music.vivi.constants.LyricsAnimationStyle
 import com.music.vivi.constants.LyricsAnimationStyleKey
-import com.music.vivi.constants.LyricsClickKey
-import com.music.vivi.constants.AppleMusicLyricsBlurKey
-import com.music.vivi.constants.LyricsGlowEffectKey
-import com.music.vivi.constants.LyricsLineSpacingKey
-import com.music.vivi.constants.LyricsScrollKey
+import com.music.vivi.constants.LyricsStandardBlurKey
 import com.music.vivi.constants.LyricsTextPositionKey
 import com.music.vivi.constants.LyricsTextSizeKey
 import com.music.vivi.constants.PlayerBackgroundStyle
@@ -123,7 +119,11 @@ import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
-
+import com.music.vivi.constants.LyricsClickKey
+import com.music.vivi.constants.AppleMusicLyricsBlurKey
+import com.music.vivi.constants.LyricsGlowEffectKey
+import com.music.vivi.constants.LyricsLineSpacingKey
+import com.music.vivi.constants.LyricsScrollKey
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppearanceSettings(
@@ -220,6 +220,7 @@ fun AppearanceSettings(
     val (lyricsLineSpacing, onLyricsLineSpacingChange) = rememberPreference(LyricsLineSpacingKey, defaultValue = 1.3f)
     val (lyricsGlowEffect, onLyricsGlowEffectChange) = rememberPreference(LyricsGlowEffectKey, defaultValue = false)
     val (appleMusicLyricsBlur, onAppleMusicLyricsBlurChange) = rememberPreference(AppleMusicLyricsBlurKey, defaultValue = true)
+    val (lyricsStandardBlur, onLyricsStandardBlurChange) = rememberPreference(LyricsStandardBlurKey, defaultValue = false)
     val (swipeLyrics, onSwipeLyricsChange) = rememberPreference(SwipeLyricsKey, defaultValue = false)
     val (enableLyricsThumbnailPlayPause, onEnableLyricsThumbnailPlayPauseChange) = rememberPreference(EnableLyricsThumbnailPlayPauseKey, defaultValue = false)
 
@@ -515,8 +516,8 @@ fun AppearanceSettings(
                 Slider(
                     value = tempLineSpacing,
                     onValueChange = { tempLineSpacing = it },
-                    valueRange = 1.0f..2.0f,
-                    steps = 19,
+                    valueRange = 1.0f..4.0f,
+                    steps = 59,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -1435,6 +1436,27 @@ fun AppearanceSettings(
                 } else null,
                 Material3SettingsItem(
                     settingKey = "lyrics_text_size",
+                    icon = painterResource(R.drawable.lyrics),
+                    title = { Text(stringResource(R.string.standard_lyrics_blur)) },
+                    description = { Text(stringResource(R.string.apple_music_lyrics_blur_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = lyricsStandardBlur,
+                            onCheckedChange = onLyricsStandardBlurChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (lyricsStandardBlur) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onLyricsStandardBlurChange(!lyricsStandardBlur) }
+                ),
+                Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
                     title = { Text(stringResource(R.string.lyrics_text_size)) },
                     description = { Text("${lyricsTextSize.roundToInt()} sp") },
