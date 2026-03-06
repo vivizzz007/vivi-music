@@ -8,6 +8,7 @@ package com.music.vivi.ui.player
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -529,16 +530,22 @@ private fun ThumbnailHeader(
                     color = textColor
                 )
             }
-            val playingFrom = queueTitle ?: albumTitle
-            if (!playingFrom.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = playingFrom,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = textColor.copy(alpha = 0.8f),
-                    maxLines = 1,
-                    modifier = Modifier.basicMarquee()
-                )
+            val playingFrom = albumTitle ?: queueTitle // Prioritize album title
+            androidx.compose.animation.AnimatedContent(
+                targetState = playingFrom,
+                transitionSpec = { androidx.compose.animation.fadeIn() togetherWith androidx.compose.animation.fadeOut() },
+                label = "NowPlayingAnimation"
+            ) { text ->
+                if (!text.isNullOrBlank()) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = text,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = textColor.copy(alpha = 0.8f),
+                        maxLines = 1,
+                        modifier = Modifier.basicMarquee()
+                    )
+                }
             }
         }
 
