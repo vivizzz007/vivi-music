@@ -512,8 +512,8 @@ fun AppearanceSettings(
                 Slider(
                     value = tempLineSpacing,
                     onValueChange = { tempLineSpacing = it },
-                    valueRange = 1.0f..2.0f,
-                    steps = 19,
+                    valueRange = 1.0f..4.0f,
+                    steps = 59,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
