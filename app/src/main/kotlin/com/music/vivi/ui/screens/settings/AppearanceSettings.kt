@@ -76,6 +76,7 @@ import com.music.vivi.constants.LyricsAnimationStyle
 import com.music.vivi.constants.LyricsAnimationStyleKey
 import com.music.vivi.constants.LyricsClickKey
 import com.music.vivi.constants.AppleMusicLyricsBlurKey
+import com.music.vivi.constants.StandardLyricsBlurKey
 import com.music.vivi.constants.LyricsGlowEffectKey
 import com.music.vivi.constants.LyricsLineSpacingKey
 import com.music.vivi.constants.LyricsScrollKey
@@ -217,6 +218,7 @@ fun AppearanceSettings(
     val (lyricsLineSpacing, onLyricsLineSpacingChange) = rememberPreference(LyricsLineSpacingKey, defaultValue = 1.3f)
     val (lyricsGlowEffect, onLyricsGlowEffectChange) = rememberPreference(LyricsGlowEffectKey, defaultValue = false)
     val (appleMusicLyricsBlur, onAppleMusicLyricsBlurChange) = rememberPreference(AppleMusicLyricsBlurKey, defaultValue = true)
+    val (standardLyricsBlur, onStandardLyricsBlurChange) = rememberPreference(StandardLyricsBlurKey, defaultValue = false)
     val (swipeLyrics, onSwipeLyricsChange) = rememberPreference(SwipeLyricsKey, defaultValue = false)
     val (enableLyricsThumbnailPlayPause, onEnableLyricsThumbnailPlayPauseChange) = rememberPreference(EnableLyricsThumbnailPlayPauseKey, defaultValue = false)
 
@@ -512,8 +514,8 @@ fun AppearanceSettings(
                 Slider(
                     value = tempLineSpacing,
                     onValueChange = { tempLineSpacing = it },
-                    valueRange = 1.0f..2.0f,
-                    steps = 19,
+                    valueRange = 1.0f..4.0f,
+                    steps = 59,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -1370,6 +1372,25 @@ fun AppearanceSettings(
                         )
                     },
                     onClick = { onLyricsGlowEffectChange(!lyricsGlowEffect) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.lyrics),
+                    title = { Text(stringResource(R.string.standard_lyrics_blur)) },
+                    description = { Text(stringResource(R.string.standard_lyrics_blur_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = standardLyricsBlur,
+                            onCheckedChange = onStandardLyricsBlurChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(if (standardLyricsBlur) R.drawable.check else R.drawable.close),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onStandardLyricsBlurChange(!standardLyricsBlur) }
                 ),
                 if (lyricsAnimationStyle == LyricsAnimationStyle.VIVIMUSIC_1) {
                     Material3SettingsItem(

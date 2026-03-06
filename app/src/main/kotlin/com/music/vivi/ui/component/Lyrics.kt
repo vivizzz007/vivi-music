@@ -81,6 +81,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -142,6 +143,7 @@ import com.music.vivi.constants.LyricsRomanizeRussianKey
 import com.music.vivi.constants.LyricsRomanizeSerbianKey
 import com.music.vivi.constants.LyricsRomanizeUkrainianKey
 import com.music.vivi.constants.LyricsScrollKey
+import com.music.vivi.constants.StandardLyricsBlurKey
 import com.music.vivi.constants.LyricsTextPositionKey
 import com.music.vivi.constants.LyricsTextSizeKey
 import com.music.vivi.constants.PlayerBackgroundStyle
@@ -227,6 +229,7 @@ fun Lyrics(
     val romanizeHindiLyrics by rememberPreference(LyricsRomanizeHindiKey, true)
     val romanizePunjabiLyrics by rememberPreference(LyricsRomanizePunjabiKey, true)
     val lyricsGlowEffect by rememberPreference(LyricsGlowEffectKey, false)
+    val standardLyricsBlur by rememberPreference(StandardLyricsBlurKey, false)
     val lyricsAnimationStyle by rememberEnumPreference(LyricsAnimationStyleKey, LyricsAnimationStyle.VIVIMUSIC_1)
     val lyricsTextSize by rememberPreference(LyricsTextSizeKey, 24f)
     val lyricsLineSpacing by rememberPreference(LyricsLineSpacingKey, 1.3f)
@@ -1077,10 +1080,31 @@ fun Lyrics(
                         },
                         animationSpec = tween(durationMillis = 400)
                     )
+                    
+                    val distanceFromCurrent = kotlin.math.abs(index - displayedCurrentLineIndex)
+                    val targetBlur = if (standardLyricsBlur && isAutoScrollEnabled && !isSelectionModeActive) {
+                        when {
+                            isActiveByIndex || isActiveByTime || distanceFromCurrent <= 2 -> 0f
+                            distanceFromCurrent == 3 -> 2f
+                            distanceFromCurrent == 4 -> 4f
+                            else -> 6f
+                        }
+                    } else {
+                        0f
+                    }
+                    
+                    val animatedBlur by animateFloatAsState(
+                        targetValue = targetBlur,
+                        animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+                        label = "blur"
+                    )
+
                     val scale by animateFloatAsState(
                         targetValue = if (isActiveByIndex || isActiveByTime) 1.05f else 1f,
                         animationSpec = tween(durationMillis = 400)
                     )
+
+                    val finalModifier = itemModifier.then(if (animatedBlur > 0f) Modifier.blur(animatedBlur.dp) else Modifier)
 
                     // Determine alignment based on agent for multi-singer support
                     val agentAlignment = when {
@@ -1111,7 +1135,7 @@ fun Lyrics(
                     val bgScale = if (item.isBackground) 0.85f else 1f
 
                     Column(
-                        modifier = itemModifier.graphicsLayer {
+                        modifier = finalModifier.graphicsLayer {
                             this.alpha = if (item.isBackground) alpha * 0.8f else alpha
                             this.scaleX = scale * bgScale
                             this.scaleY = scale * bgScale

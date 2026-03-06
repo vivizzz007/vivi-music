@@ -155,6 +155,8 @@
     <string name="lyrics_swipe_to_change_song_desc">Swipe left or right in the artist and song name section in full-screen lyrics to change the song</string>
     <string name="lyrics_thumbnail_play_pause">Show play/pause on thumbnail</string>
     <string name="lyrics_thumbnail_play_pause_desc">Show a play/pause button overlay on the song thumbnail in full-screen lyrics</string>
+    <string name="standard_lyrics_blur">Standard lyrics blur</string>
+    <string name="standard_lyrics_blur_desc">Apply a blur effect to inactive lines for line-by-line lyrics</string>
 
     <string name="edit_song">Edit song</string>
     <string name="song_title">Song title</string>
