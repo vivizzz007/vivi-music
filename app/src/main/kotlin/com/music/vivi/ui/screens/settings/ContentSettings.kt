@@ -81,6 +81,7 @@ import com.music.vivi.constants.SYSTEM_DEFAULT
 import com.music.vivi.constants.ShowArtistDescriptionKey
 import com.music.vivi.constants.ShowArtistSubscriberCountKey
 import com.music.vivi.constants.ShowMonthlyListenersKey
+import com.music.vivi.constants.ShowArtistVideoKey
 import com.music.vivi.constants.ShowWrappedCardKey
 import com.music.vivi.constants.TopSize
 import com.music.vivi.ui.component.EnumDialog
@@ -112,6 +113,7 @@ fun ContentSettings(
     val (showArtistDescription, onShowArtistDescriptionChange) = rememberPreference(key = ShowArtistDescriptionKey, defaultValue = true)
     val (showArtistSubscriberCount, onShowArtistSubscriberCountChange) = rememberPreference(key = ShowArtistSubscriberCountKey, defaultValue = true)
     val (showMonthlyListeners, onShowMonthlyListenersChange) = rememberPreference(key = ShowMonthlyListenersKey, defaultValue = true)
+    val (showArtistVideo, onShowArtistVideoChange) = rememberPreference(key = ShowArtistVideoKey, defaultValue = true)
     val (proxyEnabled, onProxyEnabledChange) = rememberPreference(key = ProxyEnabledKey, defaultValue = false)
     val (proxyType, onProxyTypeChange) = rememberEnumPreference(key = ProxyTypeKey, defaultValue = Proxy.Type.HTTP)
     val (proxyUrl, onProxyUrlChange) = rememberPreference(key = ProxyUrlKey, defaultValue = "host:port")
@@ -596,6 +598,27 @@ fun ContentSettings(
                         )
                     },
                     onClick = { onShowMonthlyListenersChange(!showMonthlyListeners) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.slow_motion_video),
+                    title = { Text(stringResource(R.string.show_artist_video)) },
+                    description = { Text(stringResource(R.string.show_artist_video_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = showArtistVideo,
+                            onCheckedChange = onShowArtistVideoChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (showArtistVideo) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onShowArtistVideoChange(!showArtistVideo) }
                 )
             )
         )

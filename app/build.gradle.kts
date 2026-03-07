@@ -269,6 +269,7 @@ dependencies {
     implementation(project(":youlyplus"))
     implementation(project(":canvas"))
     implementation(project(":shazamkit"))
+    implementation(project(":artistvideo"))
 
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
