@@ -41,7 +41,7 @@ jobs:
     strategy:
       matrix:
         abi: [arm64, armeabi, x86, x86_64, universal]
-        flavor: [foss, standard]
+        flavor: [foss, standard, gms]
     steps:
       - uses: actions/checkout@v5
 
@@ -57,29 +57,43 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build and Sign APK
-        id: sign_apk
-        uses: ilharp/sign-android-release@v2.0.0
+      - name: Generate debug.keystore
+        run: |
+          mkdir -p ~/.android
+          keytool -genkey -v \
+            -keystore ~/.android/debug.keystore \
+            -storepass android \
+            -alias androiddebugkey \
+            -keypass android \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+
+      - name: Build APK
         env:
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
           LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
+        run: |
+          ABI_CAP=$(echo "${{ matrix.abi }}" | sed 's/./\U&/')
+          FLAVOR_CAP=$(echo "${{ matrix.flavor }}" | sed 's/./\U&/')
+          ./gradlew assemble${ABI_CAP}${FLAVOR_CAP}Release --no-configuration-cache
+
+      - name: Sign APK
+        id: sign_apk
+        uses: ilharp/sign-android-release@v2.0.0
         with:
-          releaseDir: app/build/outputs/apk/${{ matrix.abi }}/${{ matrix.flavor }}/release/
+          releaseDir: app/build/outputs/apk/${{ matrix.abi }}${{ matrix.flavor }}/release/
           signingKey: ${{ secrets.KEYSTORE }}
           keyAlias: ${{ secrets.KEY_ALIAS }}
           keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
           buildToolsVersion: 35.0.0
-          # We need to build the APK before signing
-          preBuildCommands: |
-            ABI_CAP=$(echo "${{ matrix.abi }}" | sed 's/./\U&/')
-            FLAVOR_CAP=$(echo "${{ matrix.flavor }}" | sed 's/./\U&/')
-            ./gradlew assemble${ABI_CAP}${FLAVOR_CAP}Release --no-configuration-cache
 
       - name: Rename and Move APK
         run: |
           mkdir -p out
-          SIGNED_APK=$(find app/build/outputs/apk/${{ matrix.abi }}/${{ matrix.flavor }}/release/ -name "*-signed.apk" | head -1)
+          SIGNED_APK=$(find app/build/outputs/apk/${{ matrix.abi }}${{ matrix.flavor }}/release/ -name "*-signed.apk" | head -1)
           cp "$SIGNED_APK" "out/vivi-${{ needs.check-version.outputs.new_version }}-${{ matrix.abi }}-${{ matrix.flavor }}.apk"
 
       - name: Upload Artifact
@@ -99,7 +113,7 @@ jobs:
           path: apks
           pattern: vivi-*
           merge-multiple: true
-      
+
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
