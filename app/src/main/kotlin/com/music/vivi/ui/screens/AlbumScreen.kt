@@ -66,6 +66,7 @@ import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -83,6 +84,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.foundation.layout.offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import com.music.vivi.constants.AppBarHeight
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.util.fastForEachReversed
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -99,6 +108,7 @@ import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.db.entities.Album
 import com.music.vivi.playback.ExoDownloadService
 import com.music.vivi.playback.queues.LocalAlbumRadio
+import com.music.vivi.ui.component.AlbumGradient
 import com.music.vivi.ui.component.ExpandableText
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.LinkSegment
@@ -206,21 +216,47 @@ fun AlbumScreen(
         albumWithSongs?.album?.explicit == true
     }
 
+    val lazyListState = rememberLazyListState()
+
+    val transparentAppBar by remember {
+        derivedStateOf {
+            lazyListState.firstVisibleItemIndex == 0 && lazyListState.firstVisibleItemScrollOffset < 100
+        }
+    }
+
     LazyColumn(
+        state = lazyListState,
         contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
     ) {
         val albumWithSongs = albumWithSongs
         if (albumWithSongs != null && albumWithSongs.songs.isNotEmpty()) {
             item(key = "album_header") {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surface),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Spacer(Modifier.height(50.dp)) // Space for top app bar
+                val systemBarsTopPadding = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
+                val headerOffset = with(LocalDensity.current) {
+                    -(systemBarsTopPadding + AppBarHeight).roundToPx()
+                }
 
-                    // Album Artwork - Large and centered
+                Box(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    // Gradient Background
+                  AlbumGradient(
+                        thumbnailUrl = albumWithSongs.album.thumbnailUrl,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1f)
+                            .offset { IntOffset(x = 0, y = headerOffset) }
+                    )
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Spacer(Modifier.height(20.dp)) // Space for top app bar
+
+                        // Album Artwork - Large and centered
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -248,27 +284,74 @@ fun AlbumScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
 
-                        // Album Title with Logo Icon
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.album), // Use album icon
-                                contentDescription = null,
-                                modifier = Modifier.size(30.dp),
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                text = albumWithSongs.album.title,
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f, fill = false)
-                            )
+                        if (albumWithSongs.artists.size == 1) {
+                            val artist = albumWithSongs.artists.first()
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = albumWithSongs.album.title,
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 30.sp,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center,
+                                    modifier = Modifier
+                                        .combinedClickable(
+                                            onClick = {
+                                                navController.navigate("artist/${artist.id}")
+                                            }
+                                        )
+                                ) {
+                                    AsyncImage(
+                                        model = artist.thumbnailUrl,
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .size(28.dp)
+                                            .clip(CircleShape),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(
+                                        text = artist.name,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
+                        } else {
+                            // Album Title with Logo Icon for multiple artists
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.album),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(30.dp),
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    text = albumWithSongs.album.title,
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f, fill = false)
+                                )
+                            }
                         }
 
                     Spacer(Modifier.height(24.dp))
@@ -464,7 +547,7 @@ fun AlbumScreen(
                         )
                     }
 
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(5.dp))
 
                     val staticDescription = remember(albumWithSongs) {
                         "${albumWithSongs.album.title} is an album by ${albumWithSongs.artists.joinToString { it.name }}${
@@ -499,32 +582,34 @@ fun AlbumScreen(
 
                     Spacer(Modifier.height(16.dp))
 
-                    // Artist Names (clickable)
-                    Text(
-                        text = buildAnnotatedString {
-                            append(stringResource(R.string.by_text))
-                            append(" ")
-                            albumWithSongs.artists.fastForEachIndexed { index, artist ->
-                                val link = LinkAnnotation.Clickable(artist.id) {
-                                    navController.navigate("artist/${artist.id}")
+                    if (albumWithSongs.artists.size > 1) {
+                        // Artist Names (clickable) - only for multiple artists
+                        Text(
+                            text = buildAnnotatedString {
+                                append(stringResource(R.string.by_text))
+                                append(" ")
+                                albumWithSongs.artists.fastForEachIndexed { index, artist ->
+                                    val link = LinkAnnotation.Clickable(artist.id) {
+                                        navController.navigate("artist/${artist.id}")
+                                    }
+                                    withLink(link) {
+                                        append(artist.name)
+                                    }
+                                    if (index != albumWithSongs.artists.lastIndex) {
+                                        append(", ")
+                                    }
                                 }
-                                withLink(link) {
-                                    append(artist.name)
-                                }
-                                if (index != albumWithSongs.artists.lastIndex) {
-                                    append(", ")
-                                }
-                            }
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp),
-                        textAlign = TextAlign.Start
-                    )
+                            },
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 20.dp),
+                            textAlign = TextAlign.Start
+                        )
 
-                    Spacer(Modifier.height(24.dp))
+                        Spacer(Modifier.height(24.dp))
+                    }
 
                     // Additional action buttons
                     Row(
@@ -660,7 +745,8 @@ fun AlbumScreen(
                         }
                     }
 
-                    Spacer(Modifier.height(24.dp))
+                        Spacer(Modifier.height(24.dp))
+                    }
                 }
             }
 
@@ -905,6 +991,11 @@ fun AlbumScreen(
                     )
                 }
             }
+        },
+        colors = if (transparentAppBar) {
+            androidx.compose.material3.TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+        } else {
+            androidx.compose.material3.TopAppBarDefaults.topAppBarColors()
         }
     )
 }
