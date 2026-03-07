@@ -41,7 +41,7 @@ jobs:
     strategy:
       matrix:
         abi: [arm64, armeabi, x86, x86_64, universal]
-        flavor: [foss, standard, gms]
+        flavor: [foss, gms]
     steps:
       - uses: actions/checkout@v5
 
@@ -77,13 +77,14 @@ jobs:
         run: |
           ABI_CAP=$(echo "${{ matrix.abi }}" | sed 's/./\U&/')
           FLAVOR_CAP=$(echo "${{ matrix.flavor }}" | sed 's/./\U&/')
+          echo "FLAVOR_CAP=$FLAVOR_CAP" >> $GITHUB_ENV
           ./gradlew assemble${ABI_CAP}${FLAVOR_CAP}Release --no-configuration-cache
 
       - name: Sign APK
         id: sign_apk
         uses: ilharp/sign-android-release@v2.0.0
         with:
-          releaseDir: app/build/outputs/apk/${{ matrix.abi }}${{ matrix.flavor }}/release/
+          releaseDir: app/build/outputs/apk/${{ matrix.abi }}${{ env.FLAVOR_CAP }}/release/
           signingKey: ${{ secrets.KEYSTORE }}
           keyAlias: ${{ secrets.KEY_ALIAS }}
           keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -93,7 +94,7 @@ jobs:
       - name: Rename and Move APK
         run: |
           mkdir -p out
-          SIGNED_APK=$(find app/build/outputs/apk/${{ matrix.abi }}${{ matrix.flavor }}/release/ -name "*-signed.apk" | head -1)
+          SIGNED_APK=$(find app/build/outputs/apk/${{ matrix.abi }}${FLAVOR_CAP}/release/ -name "*-signed.apk" | head -1)
           cp "$SIGNED_APK" "out/vivi-${{ needs.check-version.outputs.new_version }}-${{ matrix.abi }}-${{ matrix.flavor }}.apk"
 
       - name: Upload Artifact
