@@ -22,11 +22,11 @@ android {
     ndkVersion = "27.0.12077973"
 
     defaultConfig {
-        applicationId = "com.mert.vivimusic"
+        applicationId = "com.vivi.vivimusic"
         minSdk = 26
         targetSdk = 36
-        versionCode = 66
-        versionName = "5.0.6.1"
+        versionCode = 67
+        versionName = "5.0.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -49,8 +49,8 @@ android {
             buildConfigField("Boolean", "CAST_AVAILABLE", "false")
         }
         
-        // Standard variant - with Google Cast support (requires Google Play Services)
-        create("standard") {
+        // GMS variant - with Google Cast support (requires Google Play Services)
+        create("gms") {
             dimension = "variant"
             buildConfigField("Boolean", "CAST_AVAILABLE", "true")
         }
@@ -242,10 +242,10 @@ dependencies {
     implementation(libs.media3.ui)
     implementation(libs.media3.okhttp)
 
-    // Google Cast - only included in Standard flavor (not available in F-Droid/FOSS builds)
-    "standardImplementation"(libs.media3.cast)
-    "standardImplementation"(libs.mediarouter)
-    "standardImplementation"(libs.cast.framework)
+    // Google Cast - only included in GMS flavor (not available in F-Droid/FOSS builds)
+    "gmsImplementation"(libs.media3.cast)
+    "gmsImplementation"(libs.mediarouter)
+    "gmsImplementation"(libs.cast.framework)
 
     implementation(libs.room.runtime)
     implementation(libs.kuromoji.ipadic)
@@ -269,6 +269,7 @@ dependencies {
     implementation(project(":youlyplus"))
     implementation(project(":canvas"))
     implementation(project(":shazamkit"))
+    implementation(project(":artistvideo"))
 
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
@@ -286,4 +287,3 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation(libs.work.runtime.ktx)
 }
-
