@@ -29,7 +29,7 @@ dependencies {
     implementation(libs.ktor.serialization.json)
     implementation(libs.ktor.client.encoding)
     implementation(libs.brotli)
-    implementation(libs.newpipeextractor)
+    implementation("com.github.TeamNewPipe:NewPipeExtractor")
     testImplementation(libs.junit)
 
     coreLibraryDesugaring(libs.desugaring)

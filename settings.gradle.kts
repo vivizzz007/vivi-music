@@ -6,7 +6,14 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven { setUrl("https://jitpack.io") }
+        maven { 
+            setUrl("https://jitpack.io") 
+            content {
+                excludeGroup("com.github.promeG")
+                excludeGroup("com.github.promeg")
+                excludeGroup("com.github.promeG.tinypinyin")
+            }
+        }
         maven {
             setUrl("https://maven.aliyun.com/repository/public")
             content {
@@ -19,9 +26,9 @@ dependencyResolutionManagement {
 }
 
 // F-Droid doesn't support foojay-resolver plugin
-// plugins {
-//     id("org.gradle.toolchains.foojay-resolver-convention") version("1.0.0")
-// }
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version("0.4.0")
+}
 
 rootProject.name = "vivimusic"
 include(":app")
@@ -47,8 +54,14 @@ include(":artistvideo")
 //      implementation(libs.newpipe.extractor)
 // To:
 //      implementation("com.github.teamnewpipe:NewPipeExtractor")
-//includeBuild("../NewPipeExtractor") {
-//    dependencySubstitution {
-//        substitute(module("com.github.teamnewpipe:NewPipeExtractor")).using(project(":extractor"))
-//    }
-//}
+includeBuild("../NewPipeExtractor") {
+    dependencySubstitution {
+        substitute(module("com.github.TeamNewPipe:NewPipeExtractor")).using(project(":extractor"))
+    }
+}
+
+includeBuild("../TinyPinyin") {
+    dependencySubstitution {
+        substitute(module("com.github.promeG:tinypinyin")).using(project(":lib"))
+    }
+}

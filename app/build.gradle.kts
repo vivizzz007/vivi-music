@@ -249,7 +249,7 @@ dependencies {
 
     implementation(libs.room.runtime)
     implementation(libs.kuromoji.ipadic)
-    implementation(libs.tinypinyin)
+    implementation("com.github.promeG:tinypinyin")
     ksp(libs.room.compiler)
     implementation(libs.room.ktx)
 
@@ -282,7 +282,6 @@ dependencies {
 
     coreLibraryDesugaring(libs.desugaring)
     implementation(libs.timber)
-    implementation(libs.smoothCorner)
     implementation(libs.lottie.compose)
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation(libs.work.runtime.ktx)
