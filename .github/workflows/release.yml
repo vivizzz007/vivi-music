@@ -42,6 +42,9 @@ jobs:
       matrix:
         abi: [arm64, armeabi, x86, x86_64, universal]
         flavor: [foss, gms]
+    env:
+      LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+      LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -62,14 +65,19 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build and Sign APK
+      - name: Build Release APK
+        id: build_apk
+        run: |
+          ABI_CAP=$(echo "${{ matrix.abi }}" | sed 's/./\U&/')
+          FLAVOR_CAP=$(echo "${{ matrix.flavor }}" | sed 's/./\U&/')
+          ./gradlew assemble${ABI_CAP}${FLAVOR_CAP}Release --no-configuration-cache
+          echo "dir_name=${{ matrix.abi }}${FLAVOR_CAP}" >> $GITHUB_OUTPUT
+
+      - name: Sign APK
         id: sign_apk
         uses: ilharp/sign-android-release@v2.0.0
-        env:
-          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
-          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
         with:
-          releaseDir: app/build/outputs/apk/${{ matrix.abi }}/${{ matrix.flavor }}/release/
+          releaseDir: app/build/outputs/apk/${{ steps.build_apk.outputs.dir_name }}/release/
           signingKey: ${{ secrets.KEYSTORE }}
           keyAlias: ${{ secrets.KEY_ALIAS }}
           keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -79,7 +87,7 @@ jobs:
       - name: Rename and Move APK
         run: |
           mkdir -p out
-          SIGNED_APK=$(find app/build/outputs/apk/${{ matrix.abi }}/${{ matrix.flavor }}/release/ -name "*-signed.apk" | head -1)
+          SIGNED_APK=$(find app/build/outputs/apk/${{ steps.build_apk.outputs.dir_name }}/release/ -name "*-signed.apk" | head -1)
           cp "$SIGNED_APK" "out/vivi-${{ needs.check-version.outputs.new_version }}-${{ matrix.abi }}-${{ matrix.flavor }}.apk"
 
       - name: Upload Artifact
