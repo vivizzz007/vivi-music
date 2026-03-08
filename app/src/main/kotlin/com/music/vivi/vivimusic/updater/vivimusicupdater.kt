@@ -123,6 +123,7 @@ fun UpdateScreen(navController: NavHostController) {
     var downloadedFile by remember { mutableStateOf<File?>(null) }
 
     var appSize by remember { mutableStateOf("") }
+    var apkUrl by remember { mutableStateOf<String?>(null) }
     var isDownloading by remember { mutableStateOf(false) }
     var downloadProgress by remember { mutableStateOf(0f) }
     var isDownloadComplete by remember { mutableStateOf(false) }
@@ -213,18 +214,22 @@ fun UpdateScreen(navController: NavHostController) {
                 context = context,
                 onSuccess = {
                         latestVersion,
+                        isAvailable,
                         latestChangelog,
                         latestSize,
                         latestReleaseDate,
                         latestDescription,
                         latestImage,
+                        latestApkUrl,
                     ->
                     isChecking = false
                     lastCheckedTime = getCurrentTimestamp()
                     saveLastCheckedTime(context, lastCheckedTime)
-                    if (isNewerVersion(latestVersion, currentVersion)) {
-                        updateAvailable = true
-                        saveUpdateAvailableState(context, true)
+                    
+                    updateAvailable = isAvailable
+                    saveUpdateAvailableState(context, isAvailable)
+                    
+                    if (isAvailable) {
                         updateMessage = "New Update Available!"
                         updateMessageVersion = latestVersion
                         changelog = latestChangelog
@@ -232,10 +237,10 @@ fun UpdateScreen(navController: NavHostController) {
                         updateImage = latestImage
                         appSize = latestSize
                         releaseDate = latestReleaseDate
+                        apkUrl = latestApkUrl
                     } else {
-                        updateAvailable = false
-                        saveUpdateAvailableState(context, false)
                         updateMessage = "You're already up to date."
+                        updateMessageVersion = latestVersion
                     }
                 },
                 onError = {
@@ -869,12 +874,12 @@ fun UpdateScreen(navController: NavHostController) {
                                 when {
                                     updateAvailable && !isDownloading && !isDownloadComplete -> {
                                         // Start download with WorkManager
-                                        val apkUrl = "https://github.com/vivizzz007/vivi-music/releases/download/$updateMessageVersion/vivi.apk"
+                                        val urlToDownload = apkUrl ?: "https://github.com/vivizzz007/vivi-music/releases/download/$updateMessageVersion/vivi.apk"
 
                                         val downloadRequest = OneTimeWorkRequestBuilder<UpdateDownloadWorker>()
                                             .setInputData(
                                                 workDataOf(
-                                                    "apk_url" to apkUrl,
+                                                    "apk_url" to urlToDownload,
                                                     "version" to updateMessageVersion,
                                                     "file_size" to appSize
                                                 )
@@ -1077,7 +1082,7 @@ fun isNewerVersion(latestVersion: String, currentVersion: String): Boolean {
 // Fetches ALL releases, finds the latest version > current, and returns its info
 suspend fun checkForUpdate(
     context: Context,
-    onSuccess: (String, String, String, String, String?, String?) -> Unit,
+    onSuccess: (tag: String, isAvailable: Boolean, changelog: String, size: String, date: String, description: String?, imageUrl: String?, apkUrl: String?) -> Unit,
     onError: () -> Unit,
 ) {
     withContext(Dispatchers.IO) {
@@ -1085,105 +1090,124 @@ suspend fun checkForUpdate(
             val url = URL("https://api.github.com/repos/vivizzz007/vivi-music/releases")
             val json = url.openStream().bufferedReader().use { it.readText() }
             val releases = JSONArray(json)
-            var foundRelease: JSONObject? = null
-
+            
             val currentVersion = BuildConfig.VERSION_NAME
             val betaEnabled = getBetaUpdatesSetting(context)
+
+            var bestStableRelease: JSONObject? = null
+            var bestOverallRelease: JSONObject? = null
 
             for (i in 0 until releases.length()) {
                 val release = releases.getJSONObject(i)
                 val tagName = release.getString("tag_name")
                 val isBeta = tagName.startsWith("b")
                 
-                // If beta is enabled, ONLY fetch 'b' tags. If disabled, ONLY fetch 'v' tags.
-                if (betaEnabled) {
-                    if (!isBeta) continue
-                } else {
-                    if (isBeta) continue
+                // Track best stable
+                if (!isBeta) {
+                    if (bestStableRelease == null || isNewerVersion(tagName, bestStableRelease.getString("tag_name"))) {
+                        bestStableRelease = release
+                    }
                 }
                 
-                val versionStr = tagName.removePrefix("v").removePrefix("b")
-                if (!versionStr.matches(Regex("""\d+(\.\d+){1,2}"""))) continue
+                // Track best overall
+                if (bestOverallRelease == null || isNewerVersion(tagName, bestOverallRelease.getString("tag_name"))) {
+                    bestOverallRelease = release
+                }
+            }
+
+            // Select the target release based on user preference
+            val targetRelease = if (betaEnabled) bestOverallRelease else bestStableRelease
+
+            if (targetRelease != null) {
+                val targetTagName = targetRelease.getString("tag_name")
+                val isNewer = isNewerVersion(targetTagName, currentVersion)
                 
-                if (isNewerVersion(tagName, currentVersion)) {
-                    if (foundRelease == null ||
-                        isNewerVersion(tagName, foundRelease.getString("tag_name"))
-                    ) {
-                        foundRelease = release
+                // Track Switch Logic:
+                // If the user has disabled beta updates, we should offer the latest stable release
+                // even if it's technically a lower version number than their current beta/custom build.
+                // This allows users to correctly "roll back" to the stable track.
+                val currentIsBeta = currentVersion.startsWith("b")
+                val targetIsStable = targetTagName.startsWith("v")
+                
+                // Compare version numbers ignoring prefixes
+                val currentClean = currentVersion.removePrefix("b").removePrefix("v")
+                val targetClean = targetTagName.removePrefix("b").removePrefix("v")
+                val isDifferentVersion = currentClean != targetClean
+                
+                var shouldShow = isNewer
+                if (!shouldShow && !betaEnabled) {
+                    // Logic: If I'm on a Beta (b5.0.7) and latest stable is v5.0.6, 
+                    // and I just turned OFF beta, I want to see v5.0.6.
+                    if (currentIsBeta && targetIsStable) {
+                        shouldShow = true
+                    } else if (isDifferentVersion && targetIsStable) {
+                        // Also show if current is a newer unofficial stable (e.g. built locally as 5.0.7)
+                        // but user wants the official stable 5.0.6.
+                        shouldShow = true
+                    }
+                }
+
+                if (shouldShow) {
+                    val tagWithPrefix = targetRelease.getString("tag_name")
+                    val displayTag = tagWithPrefix
+
+                    // FETCH CHANGELOG.JSON FROM RELEASE ASSETS
+                    var changelog = ""
+                    var description: String? = null
+                    var imageUrl: String? = null
+                    try {
+                        val changelogUrl =
+                            URL("https://github.com/vivizzz007/vivi-music/releases/download/$tagWithPrefix/changelog.json")
+                        val changelogJson = changelogUrl.openStream().bufferedReader().use { it.readText() }
+                        val changelogData = JSONObject(changelogJson)
+
+                        description = changelogData.optString("description").takeIf { it.isNotEmpty() }
+                        imageUrl = changelogData.optString("image").takeIf { it.isNotEmpty() }
+
+                        val changelogArray = changelogData.getJSONArray("changelog")
+                        changelog = buildString {
+                            for (j in 0 until changelogArray.length()) {
+                                appendLine(changelogArray.getString(j))
+                            }
+                            val warning = changelogData.optString("warning").takeIf { it.isNotEmpty() }
+                            if (!warning.isNullOrBlank()) {
+                                appendLine("")
+                                appendLine(warning)
+                            }
+                        }.trim()
+                    } catch (e: Exception) {
+                        changelog = targetRelease.optString("body", context.getString(R.string.no_changelog_available))
+                    }
+
+                    val publishedAt = targetRelease.getString("published_at")
+                    val formattedReleaseDate = formatGitHubDate(publishedAt)
+                    val assets = targetRelease.getJSONArray("assets")
+
+                    var apkSizeInMB = ""
+                    var apkDownloadUrl = ""
+                    for (j in 0 until assets.length()) {
+                        val asset = assets.getJSONObject(j)
+                        val assetName = asset.getString("name")
+                        if (assetName.endsWith(".apk")) {
+                            val apkSizeInBytes = asset.getLong("size")
+                            apkSizeInMB = String.format("%.1f", apkSizeInBytes / (1024.0 * 1024.0))
+                            apkDownloadUrl = asset.getString("browser_download_url")
+                            break
+                        }
+                    }
+
+                    if (apkDownloadUrl.isNotEmpty()) {
+                        withContext(Dispatchers.Main) {
+                            onSuccess(displayTag, true, changelog, apkSizeInMB, formattedReleaseDate, description, imageUrl, apkDownloadUrl)
+                        }
+                        return@withContext
                     }
                 }
             }
 
-            if (foundRelease != null) {
-                val tagWithPrefix = foundRelease.getString("tag_name")
-                // Pass the full tag (vX.X.X or bX.X.X) for display and URL construction
-                val displayTag = tagWithPrefix
-
-                // FETCH CHANGELOG.JSON FROM RELEASE ASSETS
-                var changelog = ""
-                var description: String? = null
-                var imageUrl: String? = null
-                try {
-                    val changelogUrl =
-                        URL("https://github.com/vivizzz007/vivi-music/releases/download/$tagWithPrefix/changelog.json")
-                    Log.d("UpdateCheck", "Fetching changelog from: $changelogUrl")
-                    val changelogJson = changelogUrl.openStream().bufferedReader().use { it.readText() }
-                    val changelogData = JSONObject(changelogJson)
-
-                    // Get description (optional)
-                    description = changelogData.optString("description").takeIf { it.isNotEmpty() }
-
-                    // Get image URL (optional)
-                    imageUrl = changelogData.optString("image").takeIf { it.isNotEmpty() }
-
-                    // Get changelog items
-                    val changelogArray = changelogData.getJSONArray("changelog")
-                    changelog = buildString {
-                        for (i in 0 until changelogArray.length()) {
-                            appendLine(changelogArray.getString(i))
-                        }
-
-                        // Add warning if it exists (as a separate line)
-                        val warning = changelogData.optString("warning").takeIf { it.isNotEmpty() }
-                        if (!warning.isNullOrBlank()) {
-                            appendLine("") // Empty line for spacing
-                            appendLine(warning)
-                        }
-                    }.trim()
-                } catch (e: Exception) {
-                    Log.e("UpdateCheck", "Failed to fetch changelog.json: ${e.message}", e)
-                    changelog = foundRelease.optString("body", context.getString(R.string.no_changelog_available))
-                }
-
-                val publishedAt = foundRelease.getString("published_at")
-                val formattedReleaseDate = formatGitHubDate(publishedAt)
-                val assets = foundRelease.getJSONArray("assets")
-
-                // FIND THE APK FILE (NOT THE FIRST ASSET)
-                var apkSizeInMB = ""
-                for (i in 0 until assets.length()) {
-                    val asset = assets.getJSONObject(i)
-                    val assetName = asset.getString("name")
-                    // Look for the APK file specifically
-                    if (assetName.endsWith(".apk")) {
-                        val apkSizeInBytes = asset.getLong("size")
-                        apkSizeInMB = String.format("%.1f", apkSizeInBytes / (1024.0 * 1024.0))
-                        break
-                    }
-                }
-
-                if (apkSizeInMB.isNotEmpty()) {
-                    withContext(Dispatchers.Main) {
-                        onSuccess(displayTag, changelog, apkSizeInMB, formattedReleaseDate, description, imageUrl)
-                    }
-                } else {
-                    withContext(Dispatchers.Main) { onError() }
-                }
-            } else {
-                // App is up to date - return current version info
-                withContext(Dispatchers.Main) {
-                    onSuccess(currentVersion, "", "", "", null, null)
-                }
+            // No update found or APK missing
+            withContext(Dispatchers.Main) {
+                onSuccess(currentVersion, false, "", "", "", null, null, null)
             }
         } catch (e: Exception) {
             Log.e("UpdateCheck", "Error checking for updates: ${e.message}", e)

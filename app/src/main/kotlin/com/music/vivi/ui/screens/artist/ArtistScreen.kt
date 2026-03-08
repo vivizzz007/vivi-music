@@ -36,9 +36,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonGroupDefaults
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -136,6 +134,11 @@ import com.music.vivi.utils.listItemShape
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.ArtistViewModel
 import com.valentinilk.shimmer.shimmer
+import com.music.vivi.artistvideo.ArtistVideo
+import com.music.vivi.constants.ShowArtistVideoKey
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -160,10 +163,13 @@ fun ArtistScreen(
     val libraryArtist by viewModel.libraryArtist.collectAsState()
     val librarySongs by viewModel.librarySongs.collectAsState()
     val libraryAlbums by viewModel.libraryAlbums.collectAsState()
+    val artistVideoUrl by viewModel.artistVideoUrl.collectAsState()
+    val artistVideoSong by viewModel.artistVideoSong.collectAsState()
     val hideExplicit by rememberPreference(key = HideExplicitKey, defaultValue = false)
     val showArtistDescription by rememberPreference(key = ShowArtistDescriptionKey, defaultValue = true)
     val showArtistSubscriberCount by rememberPreference(key = ShowArtistSubscriberCountKey, defaultValue = true)
     val showMonthlyListeners by rememberPreference(key = ShowMonthlyListenersKey, defaultValue = true)
+    val showArtistVideo by rememberPreference(key = ShowArtistVideoKey, defaultValue = true)
 
     val lazyListState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -294,20 +300,25 @@ fun ArtistScreen(
                                         IntOffset(x = 0, y = headerOffset)
                                     }
                             ) {
-                                AsyncImage(
-                                    model = thumbnail.resize(1200, 1200),
-                                    contentDescription = null,
+                                Box(
                                     modifier = Modifier
-                                        .fillMaxWidth()
-                                        .align(Alignment.TopCenter)
+                                        .fillMaxSize()
                                         .fadingEdge(
                                             bottom = 200.dp,
-                                        ),
-                                )
+                                        )
+                                ) {
+                                    AsyncImage(
+                                        model = thumbnail.resize(1200, 1200),
+                                        contentDescription = null,
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                    )
+                                }
                             }
                         }
 
                         // Artist Name and Controls Section - positioned at bottom of image
+
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -330,16 +341,46 @@ fun ArtistScreen(
                                     .fillMaxWidth()
                                     .padding(horizontal = 16.dp)
                             ) {
-                                // Artist Name
-                                Text(
-                                    text = artistName ?: "Unknown",
-                                    style = MaterialTheme.typography.headlineLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    fontSize = 32.sp,
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier.padding(bottom = 16.dp)
-                                )
+                                ) {
+
+                                    //artist video
+                                    if (showArtistVideo) {
+                                        artistVideoUrl?.let { videoUrl ->
+                                            artistPage?.artist?.radioEndpoint?.let { radioEndpoint ->
+                                                Spacer(modifier = Modifier.width(5.dp))
+                                                ArtistVideo(
+                                                    videoUrl = videoUrl,
+                                                    modifier = Modifier
+                                                        .width(45.dp)
+                                                        .height(45.dp),
+                                                    onClick = {
+                                                        val watchEndpoint = artistVideoSong?.endpoint
+                                                            ?: artistPage?.artist?.radioEndpoint
+                                                        watchEndpoint?.let {
+                                                            playerConnection.playQueue(YouTubeQueue(it))
+                                                        }
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    Spacer(modifier = Modifier.width(5.dp))
+
+                                    // Artist Name
+                                    Text(
+                                        text = artistName ?: "Unknown",
+                                        style = MaterialTheme.typography.headlineLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        fontSize = 32.sp,
+                                        modifier = Modifier.weight(1f, fill = false)
+                                    )
+                                }
 
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,

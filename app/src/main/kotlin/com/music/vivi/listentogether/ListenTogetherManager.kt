@@ -10,6 +10,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import com.music.innertube.YouTube
 import com.music.innertube.models.WatchEndpoint
+import com.music.vivi.constants.ListenTogetherSmartResyncKey
 import com.music.vivi.constants.ListenTogetherSyncVolumeKey
 import com.music.vivi.extensions.currentMetadata
 import com.music.vivi.extensions.metadata
@@ -71,6 +72,7 @@ class ListenTogetherManager @Inject constructor(
     private var playerListenerRegistered = false
 
     private val syncHostVolumeEnabled = MutableStateFlow(true)
+    private val smartResyncEnabled = MutableStateFlow(true)
     private var lastSyncedVolume: Float? = null
     private var previousMuteState: Boolean? = null
     private var muteForcedByPreference = false
@@ -332,6 +334,13 @@ class ListenTogetherManager @Inject constructor(
                 .collect { enabled ->
                     syncHostVolumeEnabled.value = enabled
                 }
+
+            context.dataStore.data
+                .map { it[ListenTogetherSmartResyncKey] ?: true }
+                .distinctUntilChanged()
+                .collect { enabled ->
+                    smartResyncEnabled.value = enabled
+                }
         }
     }
 
@@ -586,10 +595,11 @@ class ListenTogetherManager @Inject constructor(
                         applyHostVolumeIfNeeded(event.state.volume)
                         
                         // Immediately request fresh sync after a short delay to catch live position
+                        // but only if smart resync is enabled
                         scope.launch {
-                        delay(1000)
-                            if (isInRoom && !isHost) {
-                                Timber.tag(TAG).d("Requesting fresh sync after reconnect")
+                            delay(1000)
+                            if (isInRoom && !isHost && smartResyncEnabled.value) {
+                                Timber.tag(TAG).d("Requesting fresh sync after reconnect (Smart Resync)")
                                 requestSync()
                             }
                         }

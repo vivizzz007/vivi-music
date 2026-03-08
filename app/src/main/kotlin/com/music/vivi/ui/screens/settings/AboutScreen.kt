@@ -65,6 +65,7 @@ import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.screens.settings.rememberHighlightScrollHandler
 import androidx.compose.foundation.rememberScrollState
 import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.ui.utils.safeOpenUri
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -168,7 +169,7 @@ fun AboutScreen(
         ) {
             // PayPal Badge
             Surface(
-                onClick = { uriHandler.openUri("") },
+                onClick = { uriHandler.safeOpenUri(context, "") },
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
                 modifier = Modifier.height(36.dp)
@@ -195,7 +196,7 @@ fun AboutScreen(
 
             // UPI Badge
             Surface(
-                onClick = { uriHandler.openUri("upi://pay?pa=vividhpashokan@axl&pn=Vividh P Ashokan") },
+                onClick = { uriHandler.safeOpenUri(context, "upi://pay?pa=vividhpashokan@axl&pn=Vividh P Ashokan") },
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
                 modifier = Modifier.height(36.dp)
@@ -222,7 +223,7 @@ fun AboutScreen(
 
             // Coffee Badge
             Surface(
-                onClick = { uriHandler.openUri("") },
+                onClick = { uriHandler.safeOpenUri(context, "") },
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
                 modifier = Modifier.height(36.dp)
@@ -261,14 +262,14 @@ fun AboutScreen(
                     description = { Text(stringResource(R.string.app_developer)) },
                     tintIcon = false,
                     iconShape = cookieShape,
-                    onClick = { uriHandler.openUri("https://github.com/vivizzz007") }
+                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/vivizzz007") }
                 ),
                 Material3SettingsItem(
                     settingKey = "website",
                     icon = painterResource(R.drawable.web_link),
                     title = { Text(stringResource(R.string.website)) },
                     description = { Text("vivimusic.vercel.app") },
-                    onClick = { uriHandler.openUri("https://vivimusic.vercel.app/") }
+                    onClick = { uriHandler.safeOpenUri(context, "https://vivimusic.vercel.app/") }
                 )
             )
         )
@@ -288,7 +289,7 @@ fun AboutScreen(
                     description = { Text(stringResource(R.string.collaborator_role)) },
                     tintIcon = false,
                     iconShape = cloverShape,
-                    onClick = { uriHandler.openUri("https://github.com/T-Boyke") }
+                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/T-Boyke") }
                 )
             )
         )
@@ -307,14 +308,14 @@ fun AboutScreen(
                     icon = painterResource(R.drawable.github),
                     title = { Text(stringResource(R.string.github_repository)) },
                     description = { Text(stringResource(R.string.view_source_code)) },
-                    onClick = { uriHandler.openUri("https://github.com/vivizzz007/vivi-music") }
+                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/vivizzz007/vivi-music") }
                 ),
                 Material3SettingsItem(
                     settingKey = "telegram_channel",
                     icon = painterResource(R.drawable.telegram), // add a telegram icon drawable
                     title = { Text(stringResource(R.string.telegram_channel)) },
                     description = { Text(stringResource(R.string.join_telegram)) },
-                    onClick = { uriHandler.openUri("https://t.me/vivimusicapp") }
+                    onClick = { uriHandler.safeOpenUri(context, "https://t.me/vivimusicapp") }
                 )
             )
         )
@@ -344,7 +345,7 @@ fun AboutScreen(
                     icon = painterResource(R.drawable.license_vivi),
                     title = { Text(stringResource(R.string.license)) },
                     description = { Text("GPL-3.0 • Free Open Source Software") },
-                    onClick = { uriHandler.openUri("https://github.com/vivizzz007/vivi-music/blob/main/LICENSE") }
+                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/vivizzz007/vivi-music/blob/main/LICENSE") }
                 ),
             )
         )

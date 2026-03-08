@@ -410,7 +410,13 @@ class ListenTogetherClient @Inject constructor(
         .build()
 
     private fun getServerUrl(): String {
-        return context.dataStore.get(ListenTogetherServerUrlKey, DEFAULT_SERVER_URL)
+        val savedUrl = context.dataStore.get(ListenTogetherServerUrlKey, DEFAULT_SERVER_URL)
+        // If the saved URL is no longer in our list (e.g. Meowery was removed), revert to ViviMusic default
+        return if (ListenTogetherServers.findByUrl(savedUrl) != null) {
+            savedUrl
+        } else {
+            DEFAULT_SERVER_URL
+        }
     }
     
     /**
@@ -456,15 +462,9 @@ class ListenTogetherClient @Inject constructor(
         val serverUrl = getServerUrl()
         log(LogLevel.INFO, "Connecting to server", serverUrl)
 
-        // Meowery servers expect Protocol Buffers with compression
         // Custom Node.js servers expect JSON without compression
-        if (serverUrl.contains("meowery.eu")) {
-            codec.format = MessageFormat.PROTOBUF
-            codec.compressionEnabled = true
-        } else {
-            codec.format = MessageFormat.JSON
-            codec.compressionEnabled = false
-        }
+        codec.format = MessageFormat.JSON
+        codec.compressionEnabled = false
 
         val request = Request.Builder()
             .url(serverUrl)
