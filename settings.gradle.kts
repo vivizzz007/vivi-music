@@ -54,14 +54,14 @@ include(":artistvideo")
 //      implementation(libs.newpipe.extractor)
 // To:
 //      implementation("com.github.teamnewpipe:NewPipeExtractor")
-includeBuild("../NewPipeExtractor") {
-    dependencySubstitution {
-        substitute(module("com.github.TeamNewPipe:NewPipeExtractor")).using(project(":extractor"))
-    }
-}
+// includeBuild("../NewPipeExtractor") {
+//     dependencySubstitution {
+//         substitute(module("com.github.TeamNewPipe:NewPipeExtractor")).using(project(":extractor"))
+//     }
+// }
 
-includeBuild("../TinyPinyin") {
-    dependencySubstitution {
-        substitute(module("com.github.promeG:tinypinyin")).using(project(":lib"))
-    }
-}
+// includeBuild("../TinyPinyin") {
+//     dependencySubstitution {
+//         substitute(module("com.github.promeG:tinypinyin")).using(project(":lib"))
+//     }
+// }
