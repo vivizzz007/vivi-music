@@ -410,7 +410,13 @@ class ListenTogetherClient @Inject constructor(
         .build()
 
     private fun getServerUrl(): String {
-        return context.dataStore.get(ListenTogetherServerUrlKey, DEFAULT_SERVER_URL)
+        val savedUrl = context.dataStore.get(ListenTogetherServerUrlKey, DEFAULT_SERVER_URL)
+        // If the saved URL is no longer in our list (e.g. Meowery was removed), revert to ViviMusic default
+        return if (ListenTogetherServers.findByUrl(savedUrl) != null) {
+            savedUrl
+        } else {
+            DEFAULT_SERVER_URL
+        }
     }
     
     /**
