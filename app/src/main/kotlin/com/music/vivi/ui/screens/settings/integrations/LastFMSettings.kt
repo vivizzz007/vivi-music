@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -61,9 +62,8 @@ import com.music.vivi.constants.ScrobbleDelaySecondsKey
 import com.music.vivi.constants.ScrobbleMinSongDurationKey
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.component.PreferenceEntry
-import com.music.vivi.ui.component.PreferenceGroupTitle
-import com.music.vivi.ui.component.SwitchPreference
+import com.music.vivi.ui.component.Material3SettingsGroup
+import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.utils.makeTimeString
 import com.music.vivi.utils.rememberPreference
@@ -276,6 +276,7 @@ fun LastFMSettings(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
             .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp)
     ) {
         Spacer(
             Modifier.windowInsetsPadding(
@@ -285,66 +286,113 @@ fun LastFMSettings(
             )
         )
 
-        PreferenceGroupTitle(
+        Material3SettingsGroup(
             title = stringResource(R.string.account),
-        )
-
-        PreferenceEntry(
-            title = {
-                Text(
-                    text = if (isLoggedIn) lastfmUsername else stringResource(R.string.not_logged_in),
-                    modifier = Modifier.alpha(if (isLoggedIn) 1f else 0.5f),
+            items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.music_note),
+                    title = {
+                        Text(
+                            text = if (isLoggedIn) lastfmUsername else stringResource(R.string.not_logged_in),
+                            modifier = Modifier.alpha(if (isLoggedIn) 1f else 0.5f),
+                        )
+                    },
+                    trailingContent = {
+                        if (isLoggedIn) {
+                            OutlinedButton(onClick = {
+                                lastfmSession = ""
+                                lastfmUsername = ""
+                            }) {
+                                Text(stringResource(R.string.action_logout))
+                            }
+                        } else {
+                            OutlinedButton(onClick = {
+                                showLoginDialog = true
+                            }) {
+                                Text(stringResource(R.string.action_login))
+                            }
+                        }
+                    }
                 )
-            },
-            description = null,
-            icon = { Icon(painterResource(R.drawable.music_note), null) },
-            trailingContent = {
-                if (isLoggedIn) {
-                    OutlinedButton(onClick = {
-                        lastfmSession = ""
-                        lastfmUsername = ""
-                    }) {
-                        Text(stringResource(R.string.action_logout))
-                    }
-                } else {
-                    OutlinedButton(onClick = {
-                        showLoginDialog = true
-                    }) {
-                        Text(stringResource(R.string.action_login))
-                    }
-                }
-            },
+            )
         )
 
-        PreferenceGroupTitle(
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Material3SettingsGroup(
             title = stringResource(R.string.options),
+            items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.check),
+                    title = { Text(stringResource(R.string.enable_scrobbling)) },
+                    enabled = isLoggedIn,
+                    trailingContent = {
+                        androidx.compose.material3.Switch(
+                            checked = lastfmScrobbling,
+                            onCheckedChange = onlastfmScrobblingChange,
+                            enabled = isLoggedIn,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (lastfmScrobbling) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(androidx.compose.material3.SwitchDefaults.IconSize),
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onlastfmScrobblingChange(!lastfmScrobbling) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.play),
+                    title = { Text(stringResource(R.string.lastfm_now_playing)) },
+                    enabled = isLoggedIn && lastfmScrobbling,
+                    trailingContent = {
+                        androidx.compose.material3.Switch(
+                            checked = useNowPlaying,
+                            onCheckedChange = onUseNowPlayingChange,
+                            enabled = isLoggedIn && lastfmScrobbling,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (useNowPlaying) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(androidx.compose.material3.SwitchDefaults.IconSize),
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onUseNowPlayingChange(!useNowPlaying) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.thumb_up_like),
+                    title = { Text(stringResource(R.string.last_fm_send_likes)) },
+                    description = { Text(stringResource(R.string.last_fm_send_likes_description)) },
+                    enabled = isLoggedIn,
+                    trailingContent = {
+                        androidx.compose.material3.Switch(
+                            checked = useSendLikes,
+                            onCheckedChange = onUseSendLikes,
+                            enabled = isLoggedIn,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (useSendLikes) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(androidx.compose.material3.SwitchDefaults.IconSize),
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onUseSendLikes(!useSendLikes) }
+                )
+            )
         )
 
-        SwitchPreference(
-            title = { Text(stringResource(R.string.enable_scrobbling)) },
-            checked = lastfmScrobbling,
-            onCheckedChange = onlastfmScrobblingChange,
-            isEnabled = isLoggedIn,
-        )
-
-        SwitchPreference(
-            title = { Text(stringResource(R.string.lastfm_now_playing)) },
-            checked = useNowPlaying,
-            onCheckedChange = onUseNowPlayingChange,
-            isEnabled = isLoggedIn && lastfmScrobbling,
-        )
-
-        SwitchPreference(
-            title = { Text(stringResource(R.string.last_fm_send_likes)) },
-            description = stringResource(R.string.last_fm_send_likes_description),
-            checked = useSendLikes,
-            onCheckedChange = onUseSendLikes,
-            isEnabled = isLoggedIn,
-        )
-
-        PreferenceGroupTitle(
-            title = stringResource(R.string.scrobbling_configuration)
-        )
+        Spacer(modifier = Modifier.height(16.dp))
 
         var showMinTrackDurationDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -391,7 +439,7 @@ fun LastFMSettings(
                 ) {
                     Text(
                         text = stringResource(R.string.scrobble_min_track_duration),
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
 
@@ -410,12 +458,6 @@ fun LastFMSettings(
                 }
             }
         }
-
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.scrobble_min_track_duration)) },
-            description = makeTimeString((minTrackDuration * 1000).toLong()),
-            onClick = { showMinTrackDurationDialog = true }
-        )
 
         var showScrobbleDelayPercentDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -462,7 +504,7 @@ fun LastFMSettings(
                 ) {
                     Text(
                         text = stringResource(R.string.scrobble_delay_percent),
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
 
@@ -481,12 +523,6 @@ fun LastFMSettings(
                 }
             }
         }
-
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.scrobble_delay_percent)) },
-            description = stringResource(R.string.sensitivity_percentage, (scrobbleDelayPercent * 100).roundToInt()),
-            onClick = { showScrobbleDelayPercentDialog = true }
-        )
 
         var showScrobbleDelaySecondsDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -533,7 +569,7 @@ fun LastFMSettings(
                 ) {
                     Text(
                         text = stringResource(R.string.scrobble_delay_minutes),
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
 
@@ -553,11 +589,31 @@ fun LastFMSettings(
             }
         }
 
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.scrobble_delay_minutes)) },
-            description = makeTimeString((scrobbleDelaySeconds * 1000).toLong()),
-            onClick = { showScrobbleDelaySecondsDialog = true }
+        Material3SettingsGroup(
+            title = stringResource(R.string.scrobbling_configuration),
+            items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.timer),
+                    title = { Text(stringResource(R.string.scrobble_min_track_duration)) },
+                    description = { Text(makeTimeString((minTrackDuration * 1000).toLong())) },
+                    onClick = { showMinTrackDurationDialog = true }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.timer),
+                    title = { Text(stringResource(R.string.scrobble_delay_percent)) },
+                    description = { Text(stringResource(R.string.sensitivity_percentage, (scrobbleDelayPercent * 100).roundToInt())) },
+                    onClick = { showScrobbleDelayPercentDialog = true }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.timer),
+                    title = { Text(stringResource(R.string.scrobble_delay_minutes)) },
+                    description = { Text(makeTimeString((scrobbleDelaySeconds * 1000).toLong())) },
+                    onClick = { showScrobbleDelaySecondsDialog = true }
+                )
+            )
         )
+
+        Spacer(modifier = Modifier.height(50.dp))
     }
 
     TopAppBar(
