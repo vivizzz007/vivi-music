@@ -62,10 +62,10 @@
     <string name="no_results_found">Aucun résultat trouvé</string>
 
     <!-- Library -->
-    <string name="library_song_empty">Les titres de la bibliothèque apparaîtront ici</string>
-    <string name="library_artist_empty">Les artistes de la bibliothèque apparaîtront ici</string>
-    <string name="library_album_empty">Les albums de la bibliothèque apparaîtront ici</string>
-    <string name="library_playlist_empty">Vos playlists apparaîtront ici</string>
+    <string name="library_song_empty">Les titres de la bibliothèque apparaîtront ici.</string>
+    <string name="library_artist_empty">Les artistes de la bibliothèque apparaîtront ici.</string>
+    <string name="library_album_empty">Les albums de la bibliothèque apparaîtront ici.</string>
+    <string name="library_playlist_empty">Vos playlists apparaîtront ici.</string>
 
     <!-- Artist screen -->
     <string name="from_your_library">De votre bibliothèque</string>
@@ -77,7 +77,7 @@
     <!-- Playlist -->
     <string name="liked_songs">Titres favoris</string>
     <string name="downloaded_songs">Titres téléchargés</string>
-    <string name="playlist_is_empty">La playlist est vide</string>
+    <string name="playlist_is_empty">La playlist est vide.</string>
     <string name="remove_download_playlist_confirm">Voulez-vous vraiment supprimer tous les titres de la playlist « %s » du stockage des titres téléchargés ?</string>
     <string name="delete_playlist_confirm">Voulez-vous vraiment supprimer la playlist « %s » ?</string>
     <string name="you_might_also_like">Playlist Associée</string>
@@ -132,7 +132,7 @@
     <string name="sort_by_name">Nom</string>
     <string name="sort_by_artist">Artiste</string>
     <string name="sort_by_year">Année</string>
-    <string name="sort_by_song_count">Song count</string>
+    <string name="sort_by_song_count">Nombre de titres</string>
     <string name="sort_by_length">Durée</string>
     <string name="sort_by_play_time">Durée de lecture</string>
     <string name="sort_by_custom">Commande personnalisée</string>
@@ -149,44 +149,44 @@
     <string name="unknown">Inconnu</string>
     <string name="copied">Copié dans le presse-papiers</string>
 
-    <string name="edit_lyrics">Edit lyrics</string>
-    <string name="search_lyrics">Search lyrics</string>
-    <string name="lyrics_swipe_to_change_song">Swipe to change song</string>
-    <string name="lyrics_swipe_to_change_song_desc">Swipe left or right in the artist and song name section in full-screen lyrics to change the song</string>
-    <string name="lyrics_thumbnail_play_pause">Show play/pause on thumbnail</string>
-    <string name="lyrics_thumbnail_play_pause_desc">Show a play/pause button overlay on the song thumbnail in full-screen lyrics</string>
+    <string name="edit_lyrics">Modifier les paroles</string>
+    <string name="search_lyrics">Rechercher les paroles</string>
+    <string name="lyrics_swipe_to_change_song">Balayer pour changer de titre</string>
+    <string name="lyrics_swipe_to_change_song_desc">Faites glisser votre doigt vers la gauche ou la droite dans la section « Artiste et Titre » en mode plein écran pour changer de titre.</string>
+    <string name="lyrics_thumbnail_play_pause">Afficher le bouton Lecture/Pause sur la miniature</string>
+    <string name="lyrics_thumbnail_play_pause_desc">Affichez un bouton Lecture/Pause superposé sur la miniature du titre dans les paroles en plein écran.</string>
 
-    <string name="edit_song">Edit song</string>
-    <string name="song_title">Song title</string>
-    <string name="song_artists">Song artists</string>
-    <string name="error_song_title_empty">Song title cannot be empty.</string>
-    <string name="error_song_artist_empty">Song artist cannot be empty.</string>
-    <string name="save">Save</string>
+    <string name="edit_song">Modifier le titre</string>
+    <string name="song_title">Titre</string>
+    <string name="song_artists">Artiste</string>
+    <string name="error_song_title_empty">Le champ « Titre » ne peut pas être vide.</string>
+    <string name="error_song_artist_empty">Le champ « Artiste » ne peut pas être vide.</string>
+    <string name="save">Enregistrer</string>
 
-    <string name="choose_playlist">Choose playlist</string>
-    <string name="edit_playlist">Edit playlist</string>
-    <string name="create_playlist">Create playlist</string>
-    <string name="playlist_name">Playlist name</string>
-    <string name="error_playlist_name_empty">Playlist name cannot be empty.</string>
+    <string name="choose_playlist">Choisir une playlist</string>
+    <string name="edit_playlist">Modifier une playlist</string>
+    <string name="create_playlist">Créer une playlist</string>
+    <string name="playlist_name">Nom de la playlist</string>
+    <string name="error_playlist_name_empty">Le nom de la playlist ne peut pas être vide.</string>
 
-    <string name="edit_artist">Edit artist</string>
-    <string name="artist_name">Artist name</string>
-    <string name="error_artist_name_empty">Artist name cannot be empty.</string>
+    <string name="edit_artist">Modifier l\'artiste</string>
+    <string name="artist_name">Nom de l\'artiste</string>
+    <string name="error_artist_name_empty">Le nom de l\'artiste ne peut pas être vide.</string>
 
-    <string name="duplicates">Duplicates</string>
-    <string name="skip_duplicates">Skip duplicates</string>
-    <string name="add_anyway">Add anyway</string>
-    <string name="duplicates_description_single">The song is already in your playlist</string>
-    <string name="duplicates_description_multiple">%d songs are already in your playlist</string>
+    <string name="duplicates">Doublons</string>
+    <string name="skip_duplicates">Ignorer les doublons</string>
+    <string name="add_anyway">Ajouter quand même</string>
+    <string name="duplicates_description_single">Le titre est déjà dans votre playlist.</string>
+    <string name="duplicates_description_multiple">%d titres sont déjà dans votre playlist.</string>
 
     <!-- Noun -->
     <plurals name="n_song">
-        <item quantity="one">%d song</item>
-        <item quantity="other">%d songs</item>
+        <item quantity="one">%d titre</item>
+        <item quantity="other">%d titres</item>
     </plurals>
     <plurals name="n_artist">
-        <item quantity="one">%d artist</item>
-        <item quantity="other">%d artists</item>
+        <item quantity="one">%d artiste</item>
+        <item quantity="other">%d artistes</item>
     </plurals>
     <plurals name="n_album">
         <item quantity="one">%d album</item>
@@ -197,54 +197,54 @@
         <item quantity="other">%d playlists</item>
     </plurals>
     <plurals name="n_week">
-        <item quantity="one">%d week</item>
-        <item quantity="other">%d weeks</item>
+        <item quantity="one">%d semaine</item>
+        <item quantity="other">%d semaines</item>
     </plurals>
     <plurals name="n_month">
-        <item quantity="one">%d month</item>
-        <item quantity="other">%d months</item>
+        <item quantity="one">%d mois</item>
+        <item quantity="other">%d mois</item>
     </plurals>
     <plurals name="n_year">
-        <item quantity="one">%d year</item>
-        <item quantity="other">%d years</item>
+        <item quantity="one">%d an</item>
+        <item quantity="other">%d ans</item>
     </plurals>
 
     <!-- Snackbar -->
-    <string name="playlist_imported">Playlist imported</string>
-    <string name="removed_song_from_playlist">Removed \"%s\" from playlist</string>
-    <string name="playlist_synced">Playlist synced</string>
-    <string name="undo">Undo</string>
+    <string name="playlist_imported">Playlist importée</string>
+    <string name="removed_song_from_playlist">« %s » a été supprimé de la playlist</string>
+    <string name="playlist_synced">Playlist synchronisée</string>
+    <string name="undo">Défaire</string>
 
     <!-- Player -->
-    <string name="lyrics_not_found">Lyrics not found</string>
-    <string name="sleep_timer">Sleep timer</string>
-    <string name="end_of_song">End of song</string>
+    <string name="lyrics_not_found">Paroles introuvables</string>
+    <string name="sleep_timer">Minuterie de mise en veille</string>
+    <string name="end_of_song">Fin du titre</string>
     <plurals name="minute">
         <item quantity="one">1 minute</item>
         <item quantity="other">%d minutes</item>
     </plurals>
-    <string name="error_no_stream">No stream available</string>
-    <string name="error_no_internet">No network connection</string>
-    <string name="error_timeout">Timeout</string>
-    <string name="error_unknown">Unknown error</string>
+    <string name="error_no_stream">Aucun flux disponible</string>
+    <string name="error_no_internet">Aucune connexion réseau</string>
+    <string name="error_timeout">Temps mort</string>
+    <string name="error_unknown">Erreur inconnue</string>
 
     <!-- Player action -->
-    <string name="action_like">Like</string>
-    <string name="action_like_all">Like all</string>
-    <string name="action_remove_like">Remove like</string>
-    <string name="action_remove_like_all">Remove all likes</string>
-    <string name="action_shuffle_on">Shuffle on</string>
-    <string name="action_shuffle_off">Shuffle off</string>
-    <string name="repeat_mode_off">Repeat mode off</string>
-    <string name="repeat_mode_one">Repeat current song</string>
-    <string name="repeat_mode_all">Repeat queue</string>
+    <string name="action_like">J\'aime</string>
+    <string name="action_like_all">J\'aime tout</string>
+    <string name="action_remove_like">Supprimer le « J\'aime »</string>
+    <string name="action_remove_like_all">Supprimer tous les « J\'aime »</string>
+    <string name="action_shuffle_on">Lecture aléatoire activée</string>
+    <string name="action_shuffle_off">Lecture aléatoire désactivée</string>
+    <string name="repeat_mode_off">Mode répétition désactivé</string>
+    <string name="repeat_mode_one">Répéter le titre en cours</string>
+    <string name="repeat_mode_all">Répéter la file d\'attente</string>
 
     <!-- Queue Title -->
-    <string name="queue_all_songs">All songs</string>
-    <string name="queue_searched_songs">Searched songs</string>
+    <string name="queue_all_songs">Tous les titres</string>
+    <string name="queue_searched_songs">Titres recherchés</string>
 
     <!-- Notification name -->
-    <string name="music_player">Music Player</string>
+    <string name="music_player">Lecteur de Musique</string>
 
     <!-- Settings -->
     <string name="settings">Settings</string>
