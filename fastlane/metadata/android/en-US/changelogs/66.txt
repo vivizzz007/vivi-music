@@ -1,0 +1,14 @@
+Beta update support added
+Lyrics line spacing up to 4x
+New smart network sync for Listening Together
+New album screen UI
+New background for online playlist screen
+Canvas added to artist screen (plays the canvas song)
+Animated blur for standard lyrics
+New Last.fm design
+Fixed crash in About screen
+Fixed lyrics misalignment caused by line spacing
+Fixed History sync issue
+Listening Together now accepts max stream speed (~1s delay)
+Fixed crash in Stats screen
+Fixed Last.fm sign-in issue
