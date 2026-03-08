@@ -69,6 +69,7 @@ import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
 import com.music.vivi.constants.ListenTogetherAutoApprovalKey
 import com.music.vivi.constants.ListenTogetherServerUrlKey
+import com.music.vivi.constants.ListenTogetherSmartResyncKey
 import com.music.vivi.constants.ListenTogetherSyncVolumeKey
 import com.music.vivi.constants.ListenTogetherUsernameKey
 import com.music.vivi.listentogether.ListenTogetherEvent
@@ -108,6 +109,7 @@ fun ListenTogetherSettings(
     var username by rememberPreference(ListenTogetherUsernameKey, "")
     var autoApproval by rememberPreference(ListenTogetherAutoApprovalKey, false)
     var syncHostVolume by rememberPreference(ListenTogetherSyncVolumeKey, true)
+    var smartResync by rememberPreference(ListenTogetherSmartResyncKey, true)
     
     var showServerUrlDialog by rememberSaveable { mutableStateOf(false) }
     var showUsernameDialog by rememberSaveable { mutableStateOf(false) }
@@ -432,6 +434,29 @@ fun ListenTogetherSettings(
                             )
                         },
                         onClick = { syncHostVolume = !syncHostVolume }
+                    ),
+                    IntegrationCardItem(
+                        icon = painterResource(R.drawable.automation_slow_connecttion),
+                        title = { Text(stringResource(R.string.listen_together_smart_resync)) },
+                        description = {
+                            Text(stringResource(R.string.listen_together_smart_resync_desc))
+                        },
+                        trailingContent = {
+                            Switch(
+                                checked = smartResync,
+                                onCheckedChange = { smartResync = it },
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (smartResync) R.drawable.check else R.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize),
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { smartResync = !smartResync }
                     ),
                     IntegrationCardItem(
                         icon = painterResource(R.drawable.bug_report),

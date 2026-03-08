@@ -374,4 +374,6 @@
     <string name="bluetooth_headphones">Bluetooth headphones</string>
     <string name="license">GNU General Public License v3.0</string>
     <string name="standard_lyrics_blur">Standard lyrics blur</string>
+    <string name="listen_together_smart_resync">Smart Network Resync</string>
+    <string name="listen_together_smart_resync_desc">Automatically catch up with the host after a connection drop</string>
 </resources>
