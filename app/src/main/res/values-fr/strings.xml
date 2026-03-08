@@ -348,30 +348,30 @@
     <string name="backup_create_failed">Impossible de créer une sauvegarde</string>
     <string name="restore_failed">Échec de la restauration de la sauvegarde</string>
 
-    <string name="discord_integration">Discord Integration</string>
-    <string name="discord_information">vivimusic uses the KizzyRPC library to set your Discord account\'s status. This involves using the Discord Gateway connection, which may be considered a violation of Discord\'s TOS. However, there are no known cases of user accounts being suspended for this reason. Use at your own risk.\n\vivimusic will only extract your token, and everything else is stored locally.</string>
-    <string name="dismiss">Dismiss</string>
+    <string name="discord_integration">Intégration Discord</string>
+    <string name="discord_information">Vivi Music utilise la bibliothèque KizzyRPC pour définir le statut de votre compte Discord. Cela implique l\'utilisation de la passerelle Discord, ce qui peut être considéré comme une violation des conditions d\'utilisation de Discord. Cependant, aucun cas de suspension de compte utilisateur pour cette raison n\'a été recensé. Utilisez ce service à vos risques et périls. \n\Vivi Music extraira uniquement votre jeton ; toutes les autres données sont stockées localement.</string>
+    <string name="dismiss">Rejeter</string>
     <string name="options">Options</string>
-    <string name="preview">Preview</string>
-    <string name="enable_discord_rpc">Enable Rich Presence</string>
+    <string name="preview">Aperçu</string>
+    <string name="enable_discord_rpc">Activer la présence enrichie</string>
 
-    <string name="about">About</string>
-    <string name="app_version">App version</string>
+    <string name="about">À propos</string>
+    <string name="app_version">Version de l\'application</string>
 
-    <string name="new_version_available">New version available</string>
-    <string name="translation_models">Translation Models</string>
-    <string name="clear_translation_models">Clear translation models</string>
-    <string name="bluetooth_permission_required">Bluetooth permission is required to discover audio devices.</string>
-    <string name="streaming_to">Streaming to</string>
-    <string name="this_phone">This phone</string>
-    <string name="wired_headphones">Wired headphones</string>
+    <string name="new_version_available">Nouvelle version disponible</string>
+    <string name="translation_models">Modèles de traduction</string>
+    <string name="clear_translation_models">Effacer les modèles de traduction</string>
+    <string name="bluetooth_permission_required">Une autorisation Bluetooth est nécessaire pour détecter les appareils audio.</string>
+    <string name="streaming_to">Diffusion en continu vers</string>
+    <string name="this_phone">Ce téléphone</string>
+    <string name="wired_headphones">Casque filaire</string>
     <string name="hdmi">HDMI</string>
-    <string name="phone_speaker">Phone speaker</string>
-    <string name="audio_quality_title">Audio Quality</string>
-    <string name="battery_content_desc">Battery Level</string>
-    <string name="done">Done</string>
-    <string name="audio_devices">Audio devices</string>
-    <string name="bluetooth_headphones">Bluetooth headphones</string>
-    <string name="license">GNU General Public License v3.0</string>
-    <string name="standard_lyrics_blur">Standard lyrics blur</string>
+    <string name="phone_speaker">Haut-parleur du téléphone</string>
+    <string name="audio_quality_title">Qualité audio</string>
+    <string name="battery_content_desc">Niveau de batterie</string>
+    <string name="done">Terminé</string>
+    <string name="audio_devices">Appareils audio</string>
+    <string name="bluetooth_headphones">Casque Bluetooth</string>
+    <string name="license">Licence publique générale GNU v3.0</string>
+    <string name="standard_lyrics_blur">Paroles standard floues</string>
 </resources>
