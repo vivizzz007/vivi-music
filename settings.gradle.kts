@@ -8,11 +8,7 @@ dependencyResolutionManagement {
         mavenCentral()
         maven { 
             setUrl("https://jitpack.io") 
-            content {
-                excludeGroup("com.github.promeG")
-                excludeGroup("com.github.promeg")
-                excludeGroup("com.github.promeG.tinypinyin")
-            }
+            // Previous exclusion was causing build failure for TinyPinyin 2.0.3
         }
         maven {
             setUrl("https://maven.aliyun.com/repository/public")
