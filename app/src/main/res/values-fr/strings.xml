@@ -328,6 +328,9 @@
     <string name="clear_song_cache">Vider le cache des titres</string>
     <string name="size_used">%s utilisée</string>
 
+    <string name="clear_downloaded_updates">Effacer les mises à jour téléchargées</string>
+    <string name="clear_downloaded_updates_desc">Supprimez les fichiers APK téléchargés pour libérer de l\'espace.</string>
+
     <string name="privacy">Confidentialité</string>
     <string name="listen_history">Historique d\'écoute</string>
     <string name="pause_listen_history">Suspendre l\'historique d\'écoute</string>
