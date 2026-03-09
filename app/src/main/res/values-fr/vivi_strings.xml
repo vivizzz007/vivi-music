@@ -178,19 +178,19 @@
     <string name="token_hidden">Appuyez pour afficher le jeton</string>
     <string name="token_shown">Appuyez à nouveau pour copier ou modifier</string>
     <string name="token_adv_login_description">Il s\'agit d\'une méthode de connexion AVANCÉE. À la place du portail Web, vous pouvez saisir ou mettre à jour directement votre jeton de connexion ici. Cela peut par exemple accélérer la connexion sur plusieurs appareils. Veuillez noter que tout format de jeton invalide que l\'application ne parvient pas à analyser ne sera pas accepté.</string>
-    <string name="ytm_sync">Automatically sync with your YouTube Music account</string>
-    <string name="yt_sync">Auto sync with account</string>
-    <string name="more_content">More content</string>
+    <string name="ytm_sync">Synchronisation automatique avec votre compte YouTube Music</string>
+    <string name="yt_sync">Synchronisation automatique avec le compte</string>
+    <string name="more_content">Plus de contenu</string>
     
     <!-- Playlist cover edit -->
-    <string name="edit_playlist_cover">Edit playlist cover</string>
-    <string name="edit_playlist_cover_note">Note: Your account must be linked to a phone number and verified on YouTube Music to change playlist cover.</string>
-    <string name="edit_playlist_cover_note_wait">After selecting an image, please wait a moment for the new cover to appear in your playlist.</string>
-    <string name="choose_from_library">Choose from library</string>
-    <string name="remove_custom_image">Remove custom image</string>
+    <string name="edit_playlist_cover">Modifier la pochette de la playlist</string>
+    <string name="edit_playlist_cover_note">Remarque : votre compte doit être associé à un numéro de téléphone et vérifié sur YouTube Music pour pouvoir modifier la pochette de la playlist.</string>
+    <string name="edit_playlist_cover_note_wait">Après avoir sélectionné une image, veuillez patienter quelques instants jusqu\'à ce que la nouvelle pochette apparaisse dans votre playlist.</string>
+    <string name="choose_from_library">Choisissez dans la bibliothèque</string>
+    <string name="remove_custom_image">Supprimer l\'image personnalisée</string>
 
     <!-- General -->
-    <string name="general">General</string>
+    <string name="general">Général</string>
     <string name="proxy">Proxy</string>
     <string name="default_lib_chips">Change default library chip</string>
     <string name="set_quick_picks">Set quick picks</string>
