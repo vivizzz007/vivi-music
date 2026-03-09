@@ -167,17 +167,17 @@
     <string name="shuffle_playlist_first_desc">Lors de la lecture aléatoire, jouez d\'abord tous les titres de la playlist/de l\'album d\'origine, puis le contenu similaire.</string>
     <string name="prevent_duplicate_tracks_in_queue">Empêcher les doublons dans la file d\'attente</string>
     <string name="prevent_duplicate_tracks_in_queue_desc">Lorsque vous ajoutez un titre à la file d\'attente, supprimez-le de sa position précédente s\'il y figure déjà.</string>
-    <string name="show_wrapped_card">Show Wrapped card</string>
-    <string name="skip_silence_desc">Fast forward through silent parts of songs</string>
-    <string name="skip_silence_instant">Instantly skip silence</string>
-    <string name="skip_silence_instant_desc">Jump ahead during silent moments instead of speeding up playback</string>
+    <string name="show_wrapped_card">Afficher la carte emballée</string>
+    <string name="skip_silence_desc">Avance rapide pendant les parties silencieuses des titres</string>
+    <string name="skip_silence_instant">Ignorer instantanément les silences</string>
+    <string name="skip_silence_instant_desc">Passez les moments silencieux au lieu d\'accélérer la lecture</string>
 
     <string name="google">Google</string>
     <string name="discord">Discord</string>
-    <string name="advanced_login">Login with token</string>
-    <string name="token_hidden">Tap to show token</string>
-    <string name="token_shown">Tap again to copy or edit</string>
-    <string name="token_adv_login_description">This is an ADVANCED login method. As an alternative to the web portal, you may directly enter or update your login token here. For example, this can speed up logging in on multiple devices. Please note that any invalid token formats the app fails to parse will not be accepted</string>
+    <string name="advanced_login">Connexion avec jeton</string>
+    <string name="token_hidden">Appuyez pour afficher le jeton</string>
+    <string name="token_shown">Appuyez à nouveau pour copier ou modifier</string>
+    <string name="token_adv_login_description">Il s\'agit d\'une méthode de connexion AVANCÉE. À la place du portail Web, vous pouvez saisir ou mettre à jour directement votre jeton de connexion ici. Cela peut par exemple accélérer la connexion sur plusieurs appareils. Veuillez noter que tout format de jeton invalide que l\'application ne parvient pas à analyser ne sera pas accepté.</string>
     <string name="ytm_sync">Automatically sync with your YouTube Music account</string>
     <string name="yt_sync">Auto sync with account</string>
     <string name="more_content">More content</string>
