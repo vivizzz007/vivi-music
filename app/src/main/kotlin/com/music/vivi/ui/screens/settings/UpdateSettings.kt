@@ -40,6 +40,10 @@ import com.music.vivi.vivimusic.updater.getUpdateAvailableState
 import com.music.vivi.vivimusic.updater.saveUpdateAvailableState
 import com.music.vivi.vivimusic.updater.getUpdateNotificationsSetting
 import com.music.vivi.vivimusic.updater.saveUpdateNotificationsSetting
+import android.widget.Toast
+import androidx.compose.ui.res.pluralStringResource
+import com.music.vivi.vivimusic.updater.getDownloadedApkCount
+import com.music.vivi.vivimusic.updater.clearDownloadedApks
 import com.music.vivi.vivimusic.updater.getBetaUpdatesSetting
 import com.music.vivi.vivimusic.updater.saveBetaUpdatesSetting
 import androidx.compose.material3.MaterialTheme
@@ -66,6 +70,7 @@ fun UpdateSettings(
     var updateNotificationsEnabled by remember { mutableStateOf(getUpdateNotificationsSetting(context)) }
     var betaUpdatesEnabled by remember { mutableStateOf(getBetaUpdatesSetting(context)) }
     val isUpdateAvailable = getUpdateAvailableState(context) && autoUpdateEnabled
+    var apkCount by remember { mutableStateOf(getDownloadedApkCount(context)) }
 
     Column(
         Modifier
@@ -198,6 +203,31 @@ fun UpdateSettings(
                     onClick = {
                         betaUpdatesEnabled = !betaUpdatesEnabled
                         saveBetaUpdatesSetting(context, betaUpdatesEnabled)
+                    }
+                ),
+
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.delete),
+                    title = { Text(stringResource(R.string.clear_downloaded_updates)) },
+                    description = { 
+                        Text(
+                            text = if (apkCount == 0) {
+                                stringResource(R.string.clear_downloaded_updates_desc)
+                            } else {
+                                pluralStringResource(R.plurals.n_apk_found, apkCount, apkCount)
+                            }
+                        )
+                    },
+                    onClick = {
+                        if (apkCount > 0) {
+                            if (clearDownloadedApks(context)) {
+                                apkCount = 0
+                                Toast.makeText(context, "Deleted successfully", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(context, "Failed to delete some files", Toast.LENGTH_SHORT).show()
+                                apkCount = getDownloadedApkCount(context)
+                            }
+                        }
                     }
                 )
 
