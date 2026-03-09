@@ -208,6 +208,11 @@
         <item quantity="one">%d an</item>
         <item quantity="other">%d ans</item>
     </plurals>
+    <plurals name="n_apk_found">
+        <item quantity="zero">Aucun fichier APK trouvé</item>
+        <item quantity="one">%d APK trouvé</item>
+        <item quantity="other">%d APK trouvés</item>
+    </plurals>
 
     <!-- Snackbar -->
     <string name="playlist_imported">Playlist importée</string>
