@@ -1087,7 +1087,7 @@ fun Lyrics(
 
                     // Progressive blur logic for Standard / non-word-by-word lyrics
                     // mirrored from Apple Music animation style for a premium feel
-                    val targetBlur = if (!lyricsStandardBlur || (isSelectionModeActive && isSelected) || isActiveByIndex || isActiveByTime) {
+                    val targetBlur = if (!lyricsStandardBlur || !isAutoScrollEnabled || (isSelectionModeActive && isSelected) || isActiveByIndex || isActiveByTime) {
                         0f
                     } else {
                         val distance = kotlin.math.abs(index - (if (displayedCurrentLineIndex >= 0) displayedCurrentLineIndex else currentLineIndex))
