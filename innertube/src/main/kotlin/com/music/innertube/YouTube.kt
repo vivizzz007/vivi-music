@@ -116,6 +116,12 @@ object YouTube {
             innerTube.useLoginForBrowse = value
         }
 
+    var ipVersion: com.music.innertube.models.IpVersion
+        get() = innerTube.ipVersion
+        set(value) {
+            innerTube.ipVersion = value
+        }
+
     suspend fun searchSuggestions(query: String): Result<SearchSuggestions> = runCatching {
         val response = innerTube.getSearchSuggestions(WEB_REMIX, query).body<GetSearchSuggestionsResponse>()
         SearchSuggestions(

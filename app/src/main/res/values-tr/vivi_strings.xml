@@ -790,8 +790,4 @@
     <string name="commits">Commit\'ler</string>
     <string name="view_commit_history">Ana daldaki son değişikliklere göz atın</string>
 
-    <!-- Settings Search -->
-    <string name="search_settings">Ayarlarda ara</string>
-    <string name="no_settings_found">Ayar bulunamadı</string>
-
 </resources>

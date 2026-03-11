@@ -20,6 +20,12 @@ import androidx.media3.exoplayer.offline.DownloadNotificationHelper
 import com.music.innertube.YouTube
 import com.music.vivi.constants.AudioQuality
 import com.music.vivi.constants.AudioQualityKey
+import com.music.vivi.constants.IpVersionKey
+import com.music.innertube.models.IpVersion
+import okhttp3.Dns
+import java.net.InetAddress
+import java.net.Inet4Address
+import java.net.Inet6Address
 import com.music.vivi.db.MusicDatabase
 import com.music.vivi.db.entities.FormatEntity
 import com.music.vivi.db.entities.SongEntity
@@ -58,6 +64,7 @@ constructor(
 ) {
     private val connectivityManager = context.getSystemService<ConnectivityManager>()!!
     private val audioQuality by enumPreference(context, AudioQualityKey, AudioQuality.AUTO)
+    private val ipVersion by enumPreference(context, IpVersionKey, IpVersion.AUTO)
     private val songUrlCache = HashMap<String, Pair<String, Long>>()
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -72,6 +79,16 @@ constructor(
                 .setUpstreamDataSourceFactory(
                     OkHttpDataSource.Factory(
                         OkHttpClient.Builder()
+                            .dns(object : Dns {
+                                override fun lookup(hostname: String): List<InetAddress> {
+                                    val addresses = Dns.SYSTEM.lookup(hostname)
+                                    return when (this@DownloadUtil.ipVersion) {
+                                        IpVersion.IPV4 -> addresses.filter { it is Inet4Address }.ifEmpty { addresses }
+                                        IpVersion.IPV6 -> addresses.filter { it is Inet6Address }.ifEmpty { addresses }
+                                        IpVersion.AUTO -> addresses
+                                    }
+                                }
+                            })
                             .proxy(YouTube.proxy)
                             .proxyAuthenticator { _, response ->
                                 YouTube.proxyAuth?.let { auth ->

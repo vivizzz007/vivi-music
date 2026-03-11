@@ -63,6 +63,7 @@ import com.music.vivi.constants.ShufflePlaylistFirstKey
 import com.music.vivi.constants.SimilarContent
 import com.music.vivi.constants.SkipSilenceInstantKey
 import com.music.vivi.constants.SkipSilenceKey
+import com.music.vivi.constants.IpVersionKey
 import com.music.vivi.constants.StopMusicOnTaskClearKey
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.EnumDialog
@@ -72,6 +73,7 @@ import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
+import com.music.innertube.models.IpVersion
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,6 +85,10 @@ fun PlayerSettings(
     val (audioQuality, onAudioQualityChange) = rememberEnumPreference(
         AudioQualityKey,
         defaultValue = AudioQuality.AUTO
+    )
+    val (ipVersion, onIpVersionChange) = rememberEnumPreference(
+        IpVersionKey,
+        defaultValue = IpVersion.AUTO
     )
     val (crossfadeEnabled, onCrossfadeEnabledChange) = rememberPreference(
         CrossfadeEnabledKey,
@@ -189,6 +195,10 @@ fun PlayerSettings(
         mutableStateOf(false)
     }
 
+    var showIpVersionDialog by remember {
+        mutableStateOf(false)
+    }
+
     if (showAudioQualityDialog) {
         EnumDialog(
             onDismiss = { showAudioQualityDialog = false },
@@ -204,6 +214,26 @@ fun PlayerSettings(
                     AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto)
                     AudioQuality.HIGH -> stringResource(R.string.audio_quality_high)
                     AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
+                }
+            }
+        )
+    }
+
+    if (showIpVersionDialog) {
+        EnumDialog(
+            onDismiss = { showIpVersionDialog = false },
+            onSelect = {
+                onIpVersionChange(it)
+                showIpVersionDialog = false
+            },
+            title = stringResource(R.string.network_ip_version),
+            current = ipVersion,
+            values = IpVersion.entries,
+            valueText = {
+                when (it) {
+                    IpVersion.AUTO -> stringResource(R.string.ip_version_auto)
+                    IpVersion.IPV4 -> stringResource(R.string.ip_version_ipv4)
+                    IpVersion.IPV6 -> stringResource(R.string.ip_version_ipv6)
                 }
             }
         )
@@ -265,6 +295,20 @@ fun PlayerSettings(
                         )
                     },
                     onClick = { showAudioQualityDialog = true }
+                ))
+                add(Material3SettingsItem(
+                    icon = painterResource(R.drawable.network_node),
+                    title = { Text(stringResource(R.string.network_ip_version)) },
+                    description = {
+                        Text(
+                            when (ipVersion) {
+                                IpVersion.AUTO -> stringResource(R.string.ip_version_auto)
+                                IpVersion.IPV4 -> stringResource(R.string.ip_version_ipv4)
+                                IpVersion.IPV6 -> stringResource(R.string.ip_version_ipv6)
+                            }
+                        )
+                    },
+                    onClick = { showIpVersionDialog = true }
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.linear_scale),
