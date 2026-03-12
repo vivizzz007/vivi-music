@@ -192,7 +192,7 @@
     <!-- General -->
     <string name="general">Général</string>
     <string name="proxy">Proxy</string>
-    <string name="default_lib_chips">Change default library chip</string>
+    <string name="default_lib_chips">Modifier la puce de bibliothèque par défaut</string>
     <string name="set_quick_picks">Set quick picks</string>
     <string name="last_song_listened">Based on last song listened</string>
     <string name="app_language">App language</string>
