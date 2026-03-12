@@ -300,6 +300,10 @@
 
     <string name="player_and_audio">Lecteur et Audio</string>
     <string name="audio_quality">Qualité audio</string>
+    <string name="network_ip_version">Version IP du réseau</string>
+    <string name="ip_version_auto">Automatique</string>
+    <string name="ip_version_ipv4">IPv4 forcé</string>
+    <string name="ip_version_ipv6">IPv6 forcé</string>
     <string name="audio_quality_auto">Automatique</string>
     <string name="audio_quality_high">Élevée</string>
     <string name="audio_quality_low">Faible</string>
