@@ -293,32 +293,32 @@
     <string name="romanization">Romanisation</string>
     <string name="lyrics_romanize_japanese">Romaniser les paroles japonaises</string>
     <string name="lyrics_romanize_korean">Romaniser les paroles coréennes</string>
-    <string name="lyrics_romanize_chinese">Romanize Chinese lyrics</string>
-    <string name="lyrics_romanize_hindi">Romanize Hindi lyrics</string>
-    <string name="lyrics_romanize_punjabi">Romanize Punjabi lyrics</string>
-    <string name="lyrics_romanize_russian">Romanize Russian lyrics</string>
-    <string name="lyrics_romanize_ukrainian">Romanize Ukrainian lyrics</string>
-    <string name="lyrics_romanize_belarusian">Romanize Belarusian lyrics</string>
-    <string name="lyrics_romanize_kyrgyz">Romanize Kyrgyz lyrics</string>
-    <string name="lyrics_romanize_serbian">Romanize Serbian lyrics</string>
-    <string name="lyrics_romanize_bulgarian">Romanize Bulgarian lyrics</string>
-    <string name="line_by_line_option_title">EXPERIMENTAL: Detect language line by line</string>
-    <string name="line_by_line_option_desc">The Cyrillic language will be detected line by line instead of the entire song.</string>
-    <string name="line_by_line_dialog_title">Are you sure?</string>
-    <string name="line_by_line_dialog_desc">This is a hit or miss experimental feature. \n\nBy default, language is determined from the whole song, but with this option on, it will be determined line by line instead. This will allow multi-language songs to work BUT the language might not always be correct (for example if there is a Ukrainian lyric that doesn\'t contain any Ukrainian-specific letters, it might be romanized as Russian instead). \n\nIf you do not have issues, it is recommended to keep this option off.</string>
-    <string name="line_by_line_dialog_enable">Enable</string>
-    <string name="romanize_current_track">Romanize current track</string>
+    <string name="lyrics_romanize_chinese">Romaniser les paroles chinoises</string>
+    <string name="lyrics_romanize_hindi">Romaniser les paroles en hindi</string>
+    <string name="lyrics_romanize_punjabi">Romaniser les paroles en pendjabi</string>
+    <string name="lyrics_romanize_russian">Romaniser les paroles russes</string>
+    <string name="lyrics_romanize_ukrainian">Romaniser les paroles ukrainiennes</string>
+    <string name="lyrics_romanize_belarusian">Romaniser les paroles en biélorusse</string>
+    <string name="lyrics_romanize_kyrgyz">Romaniser les paroles en kirghize</string>
+    <string name="lyrics_romanize_serbian">Romaniser les paroles en serbe</string>
+    <string name="lyrics_romanize_bulgarian">Romaniser les paroles bulgares</string>
+    <string name="line_by_line_option_title">EXPÉRIMENTAL : Détecter la langue ligne par ligne</string>
+    <string name="line_by_line_option_desc">La langue cyrillique sera détectée ligne par ligne plutôt que dans l\'ensemble du titre.</string>
+    <string name="line_by_line_dialog_title">Êtes-vous sûr?</string>
+    <string name="line_by_line_dialog_desc">Il s\'agit d\'une fonctionnalité expérimentale qui peut fonctionner ou non. \n\nPar défaut, la langue est déterminée à partir de l\'ensemble du titre, mais lorsque cette option est activée, elle est déterminée ligne par ligne. Cela permet aux titres multilingues de fonctionner, MAIS la langue peut ne pas toujours être correcte (par exemple, si les paroles ukrainiennes ne contiennent pas de lettres spécifiques à l\'ukrainien, elles peuvent être romanisées en russe à la place). \n\nSi vous ne rencontrez pas de problèmes, il est recommandé de désactiver cette option.</string>
+    <string name="line_by_line_dialog_enable">Activer</string>
+    <string name="romanize_current_track">Romaniser le titre actuel</string>
 
     <!-- Lyrics Offset Settings -->
-    <string name="lyrics_offset">Lyrics Offset</string>
+    <string name="lyrics_offset">Paroles Offset</string>
 
     <!-- Material 3 Settings Sections -->
     <string name="settings_section_ui">Interface</string>
-    <string name="settings_section_privacy">Privacy &amp; Security</string>
-    <string name="settings_section_player">Player &amp; Media</string>
-    <string name="settings_section_player_content">Player &amp; Content</string>
-    <string name="settings_section_storage">Storage &amp; Data</string>
-    <string name="settings_section_system">System &amp; About</string>
+    <string name="settings_section_privacy">Confidentialité &amp; Sécurité</string>
+    <string name="settings_section_player">Lecteur &amp; Média</string>
+    <string name="settings_section_player_content">Lecteur &amp; Contenu</string>
+    <string name="settings_section_storage">Stockage &amp; Données</string>
+    <string name="settings_section_system">Système &amp; À propos</string>
 
     <!-- Updater -->
     <string name="updater">Updater</string>
@@ -645,6 +645,7 @@
     <string name="crash_title">App Crashed</string>
     <string name="crash_description">An unexpected error occurred. Please share the crash report to help us fix the issue.</string>
     <string name="crash_share_logs">Share Logs</string>
+	<string name="copy_logs">Copy Logs</string>
     <string name="crash_share_title">Share crash report</string>
     <string name="crash_report_subject">vivimusic Crash Report</string>
     <string name="crash_close">Close</string>
