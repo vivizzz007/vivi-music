@@ -272,27 +272,27 @@
     </plurals>
 
     <!-- Player Settings -->
-    <string name="disable_load_more_when_repeat_all">Disable load more when repeat all</string>
-    <string name="disable_load_more_when_repeat_all_desc">Don\'t auto load more songs and similar content when repeat all mode is enabled</string>
-    <string name="pause_music_when_media_is_muted">Pause music when media is muted</string>
-    <string name="resume_on_bluetooth_connect">Resume on Bluetooth connect</string>
-    <string name="keep_screen_on_when_player_is_expanded">Keep screen on when player is expanded</string>
+    <string name="disable_load_more_when_repeat_all">Désactiver le chargement supplémentaire lors de la répétition de tout</string>
+    <string name="disable_load_more_when_repeat_all_desc">Ne pas charger automatiquement d\'autres titres et contenus similaires lorsque le mode de répétition est activé</string>
+    <string name="pause_music_when_media_is_muted">Mettre la musique en pause lorsque le son est coupé</string>
+    <string name="resume_on_bluetooth_connect">Reprise de la connexion Bluetooth</string>
+    <string name="keep_screen_on_when_player_is_expanded">Garder l\'écran allumé lorsque le lecteur est agrandi</string>
 
-    <string name="crossfade">Crossfade</string>
-    <string name="crossfade_desc">Crossfade between songs</string>
-    <string name="crossfade_duration">Crossfade duration</string>
-    <string name="crossfade_gapless">Disable for gapless albums</string>
-    <string name="crossfade_gapless_desc">Don\'t crossfade if the album is gapless</string>
-    <string name="crossfade_beta_title">Beta Feature</string>
-    <string name="crossfade_beta_message">Crossfade is a new feature and may have bugs. If you experience any issues, please report them.\n\nThis feature disables audio offload due to technical limitations.</string>
+    <string name="crossfade">Fondu enchaîné</string>
+    <string name="crossfade_desc">Fondu enchaîné entre les titres</string>
+    <string name="crossfade_duration">Durée du fondu enchaîné</string>
+    <string name="crossfade_gapless">Désactiver pour les albums sans interruption</string>
+    <string name="crossfade_gapless_desc">Ne pas effectuer de fondu enchaîné si l\'album est sans interruption</string>
+    <string name="crossfade_beta_title">Fonctionnalité Bêta</string>
+    <string name="crossfade_beta_message">Le fondu enchaîné est une nouvelle fonctionnalité qui peut présenter des bugs. Si vous rencontrez des problèmes, veuillez les signaler. \n\nCette fonctionnalité désactive le déchargement audio en raison de limitations techniques.</string>
 
     <!-- Romanization Settings -->
-    <string name="lyrics_romanization_cyrillic">Cyrillic</string>
-    <string name="lyrics_romanize_title">Romanization</string>
-    <string name="lyrics_romanization">Lyrics romanization</string>
-    <string name="romanization">Romanization</string>
-    <string name="lyrics_romanize_japanese">Romanize Japanese lyrics</string>
-    <string name="lyrics_romanize_korean">Romanize Korean lyrics</string>
+    <string name="lyrics_romanization_cyrillic">Cyrillique</string>
+    <string name="lyrics_romanize_title">Romanisation</string>
+    <string name="lyrics_romanization">Romanisation des paroles</string>
+    <string name="romanization">Romanisation</string>
+    <string name="lyrics_romanize_japanese">Romaniser les paroles japonaises</string>
+    <string name="lyrics_romanize_korean">Romaniser les paroles coréennes</string>
     <string name="lyrics_romanize_chinese">Romanize Chinese lyrics</string>
     <string name="lyrics_romanize_hindi">Romanize Hindi lyrics</string>
     <string name="lyrics_romanize_punjabi">Romanize Punjabi lyrics</string>
