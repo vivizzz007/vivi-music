@@ -321,27 +321,27 @@
     <string name="settings_section_system">Système &amp; À propos</string>
 
     <!-- Updater -->
-    <string name="updater">Updater</string>
-    <string name="check_for_updates">Automatically check for updates</string>
-    <string name="update_available_title">Update available</string>
-    <string name="update_channel_name">App updates</string>
-    <string name="update_channel_desc">Notifications about new versions</string>
+    <string name="updater">Mise à jour</string>
+    <string name="check_for_updates">Rechercher automatiquement les mises à jour</string>
+    <string name="update_available_title">Mise à jour disponible</string>
+    <string name="update_channel_name">Mises à jour de l\'application</string>
+    <string name="update_channel_desc">Notifications concernant les nouvelles versions</string>
 
     <!-- Offload -->
-    <string name="audio_offload">Enable offload</string>
-    <string name="audio_offload_description">Use the offload audio path for audio playback. Disabling this may increase power usage but can be useful if you experience issues with audio playback or post processing</string>
-    <string name="audio_offload_disabled_by_crossfade">Disabled because Crossfade is active</string>
+    <string name="audio_offload">Activer le déchargement</string>
+    <string name="audio_offload_description">Utilisez le chemin audio déporté pour la lecture audio. La désactivation de cette option peut augmenter la consommation d\'énergie, mais peut s\'avérer utile en cas de problèmes de lecture ou de post-traitement audio.</string>
+    <string name="audio_offload_disabled_by_crossfade">Désactivé car le fondu enchaîné est activé</string>
 
     <!-- Google Cast -->
     <string name="google_cast">Google Cast</string>
-    <string name="google_cast_description">Enable casting audio to Chromecast and other Cast-enabled devices</string>
+    <string name="google_cast_description">Activer la diffusion audio vers Chromecast et d\'autres appareils compatibles avec Cast</string>
 
-    <string name="lyrics_romanize_macedonian">Romanize Macedonian lyrics</string>
-    <string name="lyrics_romanize_as_main">Show romanized lyrics as main</string>
+    <string name="lyrics_romanize_macedonian">Romaniser les paroles macédoniennes</string>
+    <string name="lyrics_romanize_as_main">Afficher les paroles romanisées en premier plan</string>
 
-    <string name="integrations">Integrations</string>
-    <string name="username">Username</string>
-    <string name="password">Password</string>
+    <string name="integrations">Intégrations</string>
+    <string name="username">Nom d\'utilisateur</string>
+    <string name="password">Mot de passe</string>
 
     <!-- Last.fm -->
     <string name="lastfm_integration">Last.fm Integration</string>
