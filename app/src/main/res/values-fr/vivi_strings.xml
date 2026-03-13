@@ -437,109 +437,109 @@
 
     <!-- Equalizer UI -->
     <plurals name="profiles_count">
-        <item quantity="one">%d Profile</item>
-        <item quantity="other">%d Profiles</item>
+        <item quantity="one">%d profil</item>
+        <item quantity="other">%d profils</item>
     </plurals>
-    <string name="equalizer_header">Equalizer</string>
-    <string name="no_profiles">No equalizer profiles</string>
-    <string name="import_profile">Import Profile</string>
-    <string name="system_equalizer">System Equalizer</string>
-    <string name="eq_disabled">Disabled</string>
+    <string name="equalizer_header">Égaliseur</string>
+    <string name="no_profiles">Aucun profil d\'égaliseur</string>
+    <string name="import_profile">Importer un profil</string>
+    <string name="system_equalizer">Égaliseur système</string>
+    <string name="eq_disabled">Désactivé</string>
     <plurals name="band_count">
-        <item quantity="one">%d band</item>
-        <item quantity="other">%d bands</item>
+        <item quantity="one">%d bande</item>
+        <item quantity="other">%d bandes</item>
     </plurals>
-    <string name="delete_profile_desc">Delete Profile</string>
-    <string name="delete_profile_confirmation">Are you sure you want to delete "%1$s"? This action
-        cannot be undone.
+    <string name="delete_profile_desc">Supprimer le profil</string>
+    <string name="delete_profile_confirmation">Êtes-vous sûr de vouloir supprimer « %1$s » ? Cette action
+est irréversible.
     </string>
-    <string name="error_file_read">Could not read file</string>
-    <string name="error_file_open">Failed to open file: %1$s</string>
-    <string name="import_error_title">Import Error</string>
-    <string name="error_title">Error</string>
-    <string name="error_eq_apply_failed">Failed to apply EQ profile: %1$s</string>
+    <string name="error_file_read">Impossible de lire le fichier</string>
+    <string name="error_file_open">Impossible d\'ouvrir le fichier : %1$s</string>
+    <string name="import_error_title">Erreur d\'importation</string>
+    <string name="error_title">Erreur</string>
+    <string name="error_eq_apply_failed">Échec de l\'application du profil d\'égalisation : %1$s</string>
 
     <!-- Hardcoded strings -->
-    <string name="found_in_settings_content">Found in Settings &gt; Content</string>
-    <string name="plays">plays</string>
-    <string name="casting_to">Casting to %s</string>
-    <string name="progress_percent">Progress %s%%</string>
-    <string name="listening_to_vivimusic">Listening to vivimusic</string>
-    <string name="listen_on_youtube_music">Listen on YouTube Music</string>
-    <string name="visit_vivimusic">Visit vivimusic</string>
-    <string name="open">Open</string>
-    <string name="failed_to_create_image">Failed to create image: %s</string>
-    <string name="copied_title">Copied Title</string>
-    <string name="copied_artist">Copied Artist</string>
-    <string name="error_playing">Error playing</string>
-    <string name="failed_to_parse_proxy">Failed to parse proxy url.</string>
+    <string name="found_in_settings_content">Dans les Paramètres &gt; Contenu</string>
+    <string name="plays">lectures</string>
+    <string name="casting_to">Conversion vers %s</string>
+    <string name="progress_percent">Progression %s%%</string>
+    <string name="listening_to_vivimusic">Écouter Vivi Music</string>
+    <string name="listen_on_youtube_music">Écoutez sur YouTube Music</string>
+    <string name="visit_vivimusic">Rendez-vous sur Vivi Music</string>
+    <string name="open">Ouvrir</string>
+    <string name="failed_to_create_image">Échec de la création de l\'image : %s</string>
+    <string name="copied_title">Titre copié</string>
+    <string name="copied_artist">Artiste copié</string>
+    <string name="error_playing">Erreur lors de la lecture</string>
+    <string name="failed_to_parse_proxy">Échec de l\'analyse de l'URL du proxy</string>
 
     <!-- Playback errors -->
-    <string name="error_playback_failed">Playback failed</string>
-    <string name="error_copied">Error info copied to clipboard</string>
-    <string name="copy_error">Copy error</string>
-    <string name="error_copy_hint">Copy error info to help developers debug the issue</string>
+    <string name="error_playback_failed">Échec de la lecture</string>
+    <string name="error_copied">Informations d\'erreur copiées dans le presse-papiers</string>
+    <string name="copy_error">Erreur de copie</string>
+    <string name="error_copy_hint">Copier les informations relatives à l\'erreur pour aider les développeurs à résoudre le problème</string>
 
     <!-- Widget strings -->
-    <string name="album_art">Album art</string>
-    <string name="no_song_playing">No song playing</string>
-    <string name="tap_to_open">Tap to open vivimusic</string>
-    <string name="previous">Previous</string>
-    <string name="play_pause">Play/Pause</string>
-    <string name="next">Next</string>
-    <string name="like">Like</string>
-    <string name="not_playing">No song playing</string>
-    <string name="tap_to_play">Tap to open vivimusic</string>
-    <string name="widget_description">Music player widget with playback controls</string>
-    <string name="queue_widget_description">Music player with queue preview</string>
-    <string name="turntable_widget_description">Circular music widget with play and like controls</string>
-    <string name="widget_music_player">Music Player</string>
-    <string name="widget_turntable">Turntable</string>
+    <string name="album_art">Pochette d\'album</string>
+    <string name="no_song_playing">Aucun titre n\'est en cours de lecture</string>
+    <string name="tap_to_open">Appuyez pour ouvrir Vivi Music</string>
+    <string name="previous">Précédent</string>
+    <string name="play_pause">Lecture/Pause</string>
+    <string name="next">Suivant</string>
+    <string name="like">J\'aime</string>
+    <string name="not_playing">Aucun titre n\'est en cours de lecture</string>
+    <string name="tap_to_play">Appuyez pour ouvrir Vivi Music</string>
+    <string name="widget_description">Widget de lecteur de musique avec commandes de lecture</string>
+    <string name="queue_widget_description">Lecteur de musique avec aperçu de la file d\'attente</string>
+    <string name="turntable_widget_description">Widget musical circulaire avec boutons de lecture et de « J\'aime »</string>
+    <string name="widget_music_player">Lecteur de Musique</string>
+    <string name="widget_turntable">Platine</string>
 
     <!-- Player Client Settings -->
-    <string name="player_client">Player client</string>
+    <string name="player_client">Lecteur Client</string>
     <string name="player_client_android_vr">Android VR</string>
-    <string name="player_client_android_vr_desc">Fastest option. Direct stream URLs without signature decryption. Recommended for most users.</string>
+    <string name="player_client_android_vr_desc">Option la plus rapide. Accès direct aux URL de flux sans décryptage de signature. Recommandée pour la plupart des utilisateurs.</string>
     <string name="player_client_web_remix">Web Remix</string>
-    <string name="player_client_web_remix_desc">Slower but supports premium formats. Uses JavaScript signature decryption which adds ~5-10 seconds to playback start.</string>
+    <string name="player_client_web_remix_desc">Plus lent, mais compatible avec les formats premium. Utilise le décryptage de signature JavaScript, ce qui ajoute environ 5 à 10 secondes au démarrage de la lecture.</string>
 
     <!-- Decryption Library Settings -->
-    <string name="decryption_library">Decryption library</string>
-    <string name="decryption_library_newpipe">NewPipe Extractor (Official)</string>
-    <string name="decryption_library_newpipe_desc">Official TeamNewPipe library. Most up-to-date with YouTube changes. Recommended as default. Automatic fallback to PipePipe API if fails.</string>
-    <string name="decryption_library_pipepipe_api">PipePipe API</string>
-    <string name="decryption_library_pipepipe_api_desc">API-based decryption using MetroExtractor. Faster but depends on external API. Automatic fallback to NewPipe if fails.</string>
+    <string name="decryption_library">Bibliothèque de décryptage</string>
+    <string name="decryption_library_newpipe">NewPipe Extractor (Officiel)</string>
+    <string name="decryption_library_newpipe_desc">Bibliothèque officielle TeamNewPipe. Elle est parfaitement à jour avec les dernières modifications apportées par YouTube. Recommandée comme option par défaut. Recours automatique à l\'API PipePipe en cas d\'échec.</string>
+    <string name="decryption_library_pipepipe_api">API PipePipe</string>
+    <string name="decryption_library_pipepipe_api_desc">Décryptage via API à l\'aide de MetroExtractor. Plus rapide, mais dépend d\'une API externe. Recours automatique à NewPipe en cas d\'échec.</string>
 
     <!-- Listen Together -->
-    <string name="together">Together</string>
-    <string name="listen_together">Listen Together</string>
-    <string name="listen_together_desc">Listen to music with friends in real-time</string>
-    <string name="listen_together_server_url">Server URL</string>
-    <string name="listen_together_choose_server">Choose server</string>
-    <string name="listen_together_custom_server">Custom server</string>
-    <string name="listen_together_use_custom_server">Use custom server</string>
-    <string name="listen_together_username">Username</string>
-    <string name="listen_together_connected">Connected</string>
-    <string name="listen_together_reconnecting">Reconnecting…</string>
-    <string name="listen_together_disconnected">Disconnected</string>
-    <string name="listen_together_connecting">Connecting…</string>
-    <string name="listen_together_error">Connection error</string>
-    <string name="listen_together_create_room">Create room</string>
-    <string name="listen_together_create_room_desc">Create a room and share the code with friends</string>
-    <string name="listen_together_join_room">Join room</string>
-    <string name="listen_together_room_code">Room code</string>
-    <string name="listen_together_leave_room">Leave room</string>
-    <string name="listen_together_you_are_host">You are the host</string>
-    <string name="listen_together_you_are_guest">You are a guest</string>
-    <string name="mute">Mute</string>
-    <string name="unmute">Unmute</string>
-    <string name="listen_together_users">%d users in room</string>
-    <string name="listen_together_join_requests">Join requests</string>
-    <string name="listen_together_view_logs">View logs</string>
-    <string name="listen_together_view_logs_desc">Debug connection and messages</string>
-    <string name="listen_together_logs">Connection logs</string>
-    <string name="listen_together_no_logs">No logs yet</string>
-    <string name="listen_together_auto_approval">Auto-approve join requests</string>
+    <string name="together">Ensemble</string>
+    <string name="listen_together">Écouter ensemble</string>
+    <string name="listen_together_desc">Écoutez de la musique avec vos amis en temps réel.</string>
+    <string name="listen_together_server_url">URL du serveur</string>
+    <string name="listen_together_choose_server">Choisissez un serveur</string>
+    <string name="listen_together_custom_server">Serveur personnalisé</string>
+    <string name="listen_together_use_custom_server">Utiliser un serveur personnalisé</string>
+    <string name="listen_together_username">Nom d\'utilisateur</string>
+    <string name="listen_together_connected">Connecté</string>
+    <string name="listen_together_reconnecting">Reconnection…</string>
+    <string name="listen_together_disconnected">Déconnecté</string>
+    <string name="listen_together_connecting">Connexion en cours…</string>
+    <string name="listen_together_error">Erreur de connexion</string>
+    <string name="listen_together_create_room">Créer une salle</string>
+    <string name="listen_together_create_room_desc">Créez une salle et partagez le code avec vos amis.</string>
+    <string name="listen_together_join_room">Rejoindre la salle</string>
+    <string name="listen_together_room_code">Code de la salle</string>
+    <string name="listen_together_leave_room">Quitter la salle</string>
+    <string name="listen_together_you_are_host">Vous êtes l\'hôte</string>
+    <string name="listen_together_you_are_guest">Vous êtes un invité</string>
+    <string name="mute">Désactiver le son</string>
+    <string name="unmute">Réactiver le son</string>
+    <string name="listen_together_users">%d utilisateurs dans la salle</string>
+    <string name="listen_together_join_requests">Demandes d\'adhésion</string>
+    <string name="listen_together_view_logs">Afficher les journaux</string>
+    <string name="listen_together_view_logs_desc">Connexion et messages de débogage</string>
+    <string name="listen_together_logs">Journaux de connexion</string>
+    <string name="listen_together_no_logs">Aucun journal d\'activité pour le moment</string>
+    <string name="listen_together_auto_approval">Approuver automatiquement les demandes d\'adhésion</string>
     <string name="listen_together_auto_approval_desc">Automatically approve join requests instead of reviewing them manually</string>
     <string name="listen_together_sync_volume">Sync host volume</string>
     <string name="listen_together_sync_volume_desc">Guests follow the host volume level</string>
