@@ -74,6 +74,7 @@ fun AiSettings(
         "Claude" to "https://api.anthropic.com/v1/messages",
         "Gemini" to "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
         "XAi" to "https://api.x.ai/v1/chat/completions",
+        "Mistral" to "https://api.mistral.ai/v1/chat/completions",
         "DeepL" to "https://api.deepl.com/v2/translate",
         "Custom" to ""
     )
@@ -85,6 +86,7 @@ fun AiSettings(
         "Claude" to stringResource(R.string.ai_provider_claude_help),
         "Gemini" to stringResource(R.string.ai_provider_gemini_help),
         "XAi" to stringResource(R.string.ai_provider_xai_help),
+        "Mistral" to stringResource(R.string.ai_provider_mistral_help),
         "DeepL" to stringResource(R.string.ai_provider_deepl_help),
         "Custom" to ""
     )
@@ -96,6 +98,9 @@ fun AiSettings(
             "x-ai/grok-4.1-fast",
             "deepseek/deepseek-v3.1-terminus:exacto",
             "openai/gpt-4o-mini",
+            "meta-llama/llama-4-scout",
+            "openai/gpt-5-nano",
+            "openai/gpt-oss-120b",
             "google/gemini-3-flash-preview"
         ),
         "OpenAI" to listOf(
@@ -104,14 +109,16 @@ fun AiSettings(
             "gpt-4-turbo"
         ),
         "Claude" to listOf(
-            "claude-3-5-haiku-latest",
-            "claude-3-5-sonnet-latest",
-            "claude-3-opus-latest"
+            "claude-opus-4-6",
+            "claude-sonnet-4-6",
+            "claude-haiku-4-5-20251001"
         ),
         "Gemini" to listOf(
-            "gemini-2.5-flash-lite-latest",
-            "gemini-2.5-flash-latest",
-            "gemini-2.5-pro-latest"
+            "gemini-flash-lite-latest",
+            "gemini-2.5-flash-lite",
+            "gemini-flash-latest",
+            "gemini-2.5-flash",
+            "gemini-3-flash-preview"
         ),
         "Perplexity" to listOf(
             "sonar",
@@ -121,6 +128,12 @@ fun AiSettings(
         "XAi" to listOf(
             "grok-4-1-fast",
             "grok-vision-beta"
+        ),
+        "Mistral" to listOf(
+            "mistral-large-latest",
+            "mistral-medium-latest",
+            "mistral-small-latest",
+            "mistral-tiny-latest"
         ),
         "DeepL" to listOf(),
         "Custom" to listOf()
