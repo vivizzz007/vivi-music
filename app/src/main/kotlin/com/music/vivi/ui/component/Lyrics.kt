@@ -1755,10 +1755,8 @@ fun Lyrics(
                             }
                         }
                         
-                        // Show translated text if available (for styles that don't handle it explicitly)
-                        if (hasActiveTranslations && 
-                            lyricsAnimationStyle != LyricsAnimationStyle.APPLE_V2 &&
-                            lyricsAnimationStyle != LyricsAnimationStyle.LYRICS_V2) {
+                        // Show translated text if available
+                        if (hasActiveTranslations) {
                             val translatedText by item.translatedTextFlow.collectAsState()
                             translatedText?.let { translated ->
                                 Text(

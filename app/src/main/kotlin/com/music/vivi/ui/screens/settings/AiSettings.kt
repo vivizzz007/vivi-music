@@ -98,9 +98,6 @@ fun AiSettings(
             "x-ai/grok-4.1-fast",
             "deepseek/deepseek-v3.1-terminus:exacto",
             "openai/gpt-4o-mini",
-            "meta-llama/llama-4-scout",
-            "openai/gpt-5-nano",
-            "openai/gpt-oss-120b",
             "google/gemini-3-flash-preview"
         ),
         "OpenAI" to listOf(
@@ -109,16 +106,14 @@ fun AiSettings(
             "gpt-4-turbo"
         ),
         "Claude" to listOf(
-            "claude-opus-4-6",
-            "claude-sonnet-4-6",
-            "claude-haiku-4-5-20251001"
+            "claude-3-5-haiku-latest",
+            "claude-3-5-sonnet-latest",
+            "claude-3-opus-latest"
         ),
         "Gemini" to listOf(
-            "gemini-flash-lite-latest",
-            "gemini-2.5-flash-lite",
-            "gemini-flash-latest",
-            "gemini-2.5-flash",
-            "gemini-3-flash-preview"
+            "gemini-2.5-flash-lite-latest",
+            "gemini-2.5-flash-latest",
+            "gemini-2.5-pro-latest"
         ),
         "Perplexity" to listOf(
             "sonar",

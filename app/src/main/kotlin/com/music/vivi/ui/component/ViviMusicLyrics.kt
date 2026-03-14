@@ -306,12 +306,12 @@ fun ViviMusicLyricsLine(
             translatedText?.let { translated ->
                 Text(
                     text = translated,
-                    fontSize = (textSize * 0.65f).sp,
-                    color = textColor.copy(alpha = if (isActive) 0.8f else 0.5f),
+                    fontSize = (textSize * 0.7f).sp,
+                    color = textColor.copy(alpha = 0.8f),
                     textAlign = agentTextAlign,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(top = 2.dp).fillMaxWidth(),
-                    lineHeight = (textSize * 0.65f * lineSpacing.coerceAtMost(1.3f)).sp
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(top = 4.dp).fillMaxWidth(),
+                    lineHeight = (textSize * 0.7f * lineSpacing.coerceAtMost(1.3f)).sp
                 )
             }
         }
