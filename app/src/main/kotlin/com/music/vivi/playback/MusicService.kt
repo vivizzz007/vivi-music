@@ -128,6 +128,12 @@ import com.music.vivi.constants.PreventDuplicateTracksInQueueKey
 import com.music.vivi.constants.SimilarContent
 import com.music.vivi.constants.SkipSilenceInstantKey
 import com.music.vivi.constants.SkipSilenceKey
+import com.music.vivi.constants.IpVersionKey
+import com.music.innertube.models.IpVersion
+import okhttp3.Dns
+import java.net.InetAddress
+import java.net.Inet4Address
+import java.net.Inet6Address
 import com.music.vivi.db.MusicDatabase
 import com.music.vivi.db.entities.Event
 import com.music.vivi.db.entities.FormatEntity
@@ -276,6 +282,7 @@ class MusicService :
     private val isNetworkConnected = MutableStateFlow(false)
 
     private lateinit var audioQuality: com.music.vivi.constants.AudioQuality
+    private lateinit var ipVersion: IpVersion
 
     private var currentQueue: Queue = EmptyQueue
     var queueTitle: String? = null
@@ -522,6 +529,7 @@ class MusicService :
         audioManager.registerAudioDeviceCallback(audioDeviceCallback, null)
 
         audioQuality = dataStore.get(AudioQualityKey).toEnum(com.music.vivi.constants.AudioQuality.AUTO)
+        ipVersion = dataStore.get(IpVersionKey).toEnum(IpVersion.AUTO)
         playerVolume = MutableStateFlow(dataStore.get(PlayerVolumeKey, 1f).coerceIn(0f, 1f))
 
         // Initialize Google Cast
@@ -613,6 +621,38 @@ class MusicService :
                     Timber.tag("MusicService").d("Set bypass cache flag for $mediaId")
 
                     // Reload player at same position
+                    player.stop()
+                    player.seekTo(currentIndex, currentPosition)
+                    player.prepare()
+                    if (wasPlaying) {
+                        player.play()
+                    }
+                }
+        }
+
+        // Watch for IP version changes
+        scope.launch {
+            dataStore.data
+                .map { it[IpVersionKey]?.toEnum(IpVersion.AUTO) ?: IpVersion.AUTO }
+                .distinctUntilChanged()
+                .collect { newIpVersion ->
+                    val oldIpVersion = ipVersion
+                    ipVersion = newIpVersion
+
+                    if (isFirstQualityEmit) return@collect
+
+                    Timber.tag("MusicService").i("IP VERSION CHANGED: $oldIpVersion -> $newIpVersion")
+
+                    // Reload player to apply new DNS filter
+                    val mediaId = player.currentMediaItem?.mediaId ?: return@collect
+                    val currentPosition = player.currentPosition
+                    val currentIndex = player.currentMediaItemIndex
+                    val wasPlaying = player.isPlaying
+
+                    // Clear cached URL
+                    songUrlCache.remove(mediaId)
+
+                    // Reload player
                     player.stop()
                     player.seekTo(currentIndex, currentPosition)
                     player.prepare()
@@ -2550,6 +2590,16 @@ class MusicService :
                             OkHttpDataSource.Factory(
                                 OkHttpClient
                                     .Builder()
+                                    .dns(object : Dns {
+                                        override fun lookup(hostname: String): List<InetAddress> {
+                                            val addresses = Dns.SYSTEM.lookup(hostname)
+                                            return when (this@MusicService.ipVersion) {
+                                                IpVersion.IPV4 -> addresses.filter { it is Inet4Address }.ifEmpty { addresses }
+                                                IpVersion.IPV6 -> addresses.filter { it is Inet6Address }.ifEmpty { addresses }
+                                                IpVersion.AUTO -> addresses
+                                            }
+                                        }
+                                    })
                                     .proxy(YouTube.proxy)
                                     .proxyAuthenticator { _, response ->
                                         YouTube.proxyAuth?.let { auth ->

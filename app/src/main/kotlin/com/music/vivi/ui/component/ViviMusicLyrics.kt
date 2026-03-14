@@ -69,6 +69,7 @@ fun ViviMusicLyricsLine(
     lyricsTextPosition: LyricsPosition,
     textColor: Color,
     showRomanized: Boolean,
+    showTranslated: Boolean,
     textSize: Float,
     lineSpacing: Float,
     onClick: () -> Unit,
@@ -295,6 +296,22 @@ fun ViviMusicLyricsLine(
 //                    letterSpacing = (-0.2).sp,
                     modifier = Modifier.padding(top = 2.dp).fillMaxWidth(),
                     lineHeight = (textSize * 0.65f * lineSpacing.coerceAtMost(1.3f)).sp
+                )
+            }
+        }
+
+        // Translated text support
+        if (showTranslated) {
+            val translatedText by entry.translatedTextFlow.collectAsState()
+            translatedText?.let { translated ->
+                Text(
+                    text = translated,
+                    fontSize = (textSize * 0.7f).sp,
+                    color = textColor.copy(alpha = 0.8f),
+                    textAlign = agentTextAlign,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(top = 4.dp).fillMaxWidth(),
+                    lineHeight = (textSize * 0.7f * lineSpacing.coerceAtMost(1.3f)).sp
                 )
             }
         }

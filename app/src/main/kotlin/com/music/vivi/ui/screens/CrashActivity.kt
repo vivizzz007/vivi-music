@@ -64,10 +64,18 @@ class CrashActivity : ComponentActivity() {
                 CrashScreen(
                     crashLog = crashLog,
                     onClose = { finishAffinity() },
-                    onShare = { shareCrashLog(crashLog) }
+                    onShare = { shareCrashLog(crashLog) },
+                    onCopy = { copyToClipboard(crashLog) }
                 )
             }
         }
+    }
+
+    private fun copyToClipboard(crashLog: String) {
+        val cm = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        val clip = android.content.ClipData.newPlainText("CrashLog", crashLog)
+        cm.setPrimaryClip(clip)
+        android.widget.Toast.makeText(this, R.string.copied_to_clipboard, android.widget.Toast.LENGTH_SHORT).show()
     }
     
     private fun shareCrashLog(crashLog: String) {
@@ -111,7 +119,8 @@ class CrashActivity : ComponentActivity() {
 fun CrashScreen(
     crashLog: String,
     onClose: () -> Unit,
-    onShare: () -> Unit
+    onShare: () -> Unit,
+    onCopy: () -> Unit
 ) {
     val context = LocalContext.current
     
@@ -125,6 +134,12 @@ fun CrashScreen(
                     ) 
                 },
                 actions = {
+                    IconButton(onClick = onCopy) {
+                        Icon(
+                            painter = painterResource(R.drawable.content_copy),
+                            contentDescription = stringResource(R.string.copy_logs)
+                        )
+                    }
                     IconButton(onClick = onClose) {
                         Icon(
                             painter = painterResource(R.drawable.close),

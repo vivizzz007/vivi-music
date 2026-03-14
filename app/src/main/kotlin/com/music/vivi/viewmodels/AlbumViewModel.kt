@@ -63,6 +63,24 @@ constructor(
                             update(album.album, it, album.artists)
                         }
                     }
+
+                    val albumArtists = it.album.artists
+                    if (albumArtists?.size == 1) {
+                        albumArtists.firstOrNull()?.id?.let { artistId ->
+                            viewModelScope.launch(Dispatchers.IO) {
+                                val artistEntity = database.getArtistById(artistId)
+                                if (artistEntity?.thumbnailUrl == null) {
+                                    YouTube.artist(artistId).onSuccess { artistPage ->
+                                        database.query {
+                                            getArtistById(artistId)?.let { currentArtist ->
+                                                update(currentArtist, artistPage)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                     
                     if (description.value == null && descriptionRuns.value == null) {
                         viewModelScope.launch(Dispatchers.IO) {

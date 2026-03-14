@@ -74,6 +74,7 @@ fun AiSettings(
         "Claude" to "https://api.anthropic.com/v1/messages",
         "Gemini" to "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
         "XAi" to "https://api.x.ai/v1/chat/completions",
+        "Mistral" to "https://api.mistral.ai/v1/chat/completions",
         "DeepL" to "https://api.deepl.com/v2/translate",
         "Custom" to ""
     )
@@ -85,6 +86,7 @@ fun AiSettings(
         "Claude" to stringResource(R.string.ai_provider_claude_help),
         "Gemini" to stringResource(R.string.ai_provider_gemini_help),
         "XAi" to stringResource(R.string.ai_provider_xai_help),
+        "Mistral" to stringResource(R.string.ai_provider_mistral_help),
         "DeepL" to stringResource(R.string.ai_provider_deepl_help),
         "Custom" to ""
     )
@@ -121,6 +123,12 @@ fun AiSettings(
         "XAi" to listOf(
             "grok-4-1-fast",
             "grok-vision-beta"
+        ),
+        "Mistral" to listOf(
+            "mistral-large-latest",
+            "mistral-medium-latest",
+            "mistral-small-latest",
+            "mistral-tiny-latest"
         ),
         "DeepL" to listOf(),
         "Custom" to listOf()

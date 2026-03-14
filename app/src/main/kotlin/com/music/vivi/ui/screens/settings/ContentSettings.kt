@@ -91,6 +91,8 @@ import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
+import com.music.innertube.models.IpVersion
+import com.music.vivi.constants.IpVersionKey
 import java.net.Proxy
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -135,6 +137,10 @@ fun ContentSettings(
     val (randomizeHomeOrder, onRandomizeHomeOrderChange) = rememberPreference(
         RandomizeHomeOrderKey,
         defaultValue = true
+    )
+    val (ipVersion, onIpVersionChange) = rememberEnumPreference(
+        IpVersionKey,
+        defaultValue = IpVersion.AUTO
     )
 
     // Auto-switch preferred provider if current one is disabled
@@ -442,6 +448,30 @@ fun ContentSettings(
         )
     }
 
+    var showIpVersionDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    if (showIpVersionDialog) {
+        EnumDialog(
+            onDismiss = { showIpVersionDialog = false },
+            onSelect = {
+                onIpVersionChange(it)
+                showIpVersionDialog = false
+            },
+            title = stringResource(R.string.network_ip_version),
+            current = ipVersion,
+            values = IpVersion.entries,
+            valueText = {
+                when (it) {
+                    IpVersion.AUTO -> stringResource(R.string.ip_version_auto)
+                    IpVersion.IPV4 -> stringResource(R.string.ip_version_ipv4)
+                    IpVersion.IPV6 -> stringResource(R.string.ip_version_ipv6)
+                }
+            }
+        )
+    }
+
     Column(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
@@ -661,6 +691,20 @@ fun ContentSettings(
         Material3SettingsGroup(
             title = stringResource(R.string.proxy),
             items = buildList {
+                add(Material3SettingsItem(
+                    icon = painterResource(R.drawable.network_node),
+                    title = { Text(stringResource(R.string.network_ip_version)) },
+                    description = {
+                        Text(
+                            when (ipVersion) {
+                                IpVersion.AUTO -> stringResource(R.string.ip_version_auto)
+                                IpVersion.IPV4 -> stringResource(R.string.ip_version_ipv4)
+                                IpVersion.IPV6 -> stringResource(R.string.ip_version_ipv6)
+                            }
+                        )
+                    },
+                    onClick = { showIpVersionDialog = true }
+                ))
                 add(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.wifi_proxy),

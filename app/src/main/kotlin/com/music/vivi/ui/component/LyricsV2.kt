@@ -15,9 +15,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +53,7 @@ fun LyricsLineV2(
     inactiveAlpha: Float,
     baseFontSize: Float,
     lineHeight: Float,
+    showTranslated: Boolean,
     agentAlignment: Alignment.Horizontal,
     agentTextAlign: TextAlign,
 ) {
@@ -106,6 +109,22 @@ fun LyricsLineV2(
             textAlign = agentTextAlign,
             modifier = Modifier.fillMaxWidth(),
         )
+    }
+
+    // Translated text support
+    if (showTranslated) {
+        val translatedText by entry.translatedTextFlow.collectAsState()
+        translatedText?.let { translated ->
+            Text(
+                text = translated,
+                fontSize = (baseFontSize * 0.7f).sp,
+                color = expressiveAccent.copy(alpha = if (isActive) 0.8f else inactiveAlpha * 0.8f),
+                textAlign = agentTextAlign,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(top = 4.dp).fillMaxWidth(),
+                lineHeight = (baseFontSize * 0.7f * (lineHeight / baseFontSize).coerceAtMost(1.3f)).sp
+            )
+        }
     }
 }
 

@@ -704,9 +704,23 @@ private fun ThumbnailItem(
                             }
                     }
                     
-                    canvasArtwork = fetched
-                    if (fetched != null) {
-                        CanvasArtworkPlaybackCache.put(item.mediaId, fetched)
+                    // Client-side safety check: ensure the fetched canvas artist matches the requested artist
+                    // This prevents "wrong canvas" if a provider returned a generic match
+                    val requestedArtist = item.mediaMetadata.artist?.toString() ?: ""
+                    val validated = fetched?.let { artwork ->
+                        val resultArtist = artwork.artist
+                        if (resultArtist != null && requestedArtist.isNotBlank()) {
+                            // Basic fuzzy match
+                            if (resultArtist.contains(requestedArtist, ignoreCase = true) || 
+                                requestedArtist.contains(resultArtist, ignoreCase = true)) {
+                                artwork
+                            } else null
+                        } else artwork // fallback if artist info missing
+                    }
+                    
+                    canvasArtwork = validated
+                    if (validated != null) {
+                        CanvasArtworkPlaybackCache.put(item.mediaId, validated)
                     }
                     canvasFetchInFlight = false
                 }
