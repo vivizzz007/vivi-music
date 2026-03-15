@@ -76,7 +76,7 @@
     <string name="beta_updates_subtitle">Enable this if you want to receive beta updates (e.g. b5.0.1)</string>
     <string name="on_latest_version">You\'re on the latest version</string>
     <string name="current_version_v">Current version: %1$s</string>
-    <string name="update_to_v">Update to %1$s</string>
+    <string name="update_to_v">Update available %1$s</string>
     <string name="new_update">New update</string>
     <string name="release_date_v">Released on: %1$s</string>
     <string name="update_size_v">Size: %1$s MB</string>

@@ -115,7 +115,7 @@ sealed class ViviUpdateStatus {
 fun UpdateScreen(navController: NavHostController) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var status by remember { mutableStateOf<ViviUpdateStatus>(ViviUpdateStatus.Idle) }
+    var status by remember { mutableStateOf<ViviUpdateStatus>(ViviUpdateStatus.NoUpdate(BuildConfig.VERSION_NAME)) }
     var isDownloading by remember { mutableStateOf(false) }
     var downloadProgress by remember { mutableStateOf(0f) }
     var isDownloadComplete by remember { mutableStateOf(false) }
