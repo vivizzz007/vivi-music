@@ -96,6 +96,8 @@
     <string name="crop_album_art_desc">Force a square aspect ratio by cropping video thumbnails</string>
     <string name="vivimusic_canvas">Canvas</string>
     <string name="vivimusic_canvas_desc">Show animated album covers when available</string>
+    <string name="show_album_canvas">Show Album Canvas</string>
+    <string name="show_album_canvas_desc">Display animated canvas in album</string>
 
     <string name="already_in_playlist">Already in playlist:</string>
 

@@ -66,6 +66,7 @@ import com.music.vivi.constants.EnableYouLyPlusKey
 import com.music.vivi.constants.HideExplicitKey
 import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.constants.HideYoutubeShortsKey
+import com.music.vivi.constants.AlbumCanvasEnabledKey
 import com.music.vivi.constants.LanguageCodeToName
 import com.music.vivi.constants.PreferredLyricsProvider
 import com.music.vivi.constants.PreferredLyricsProviderKey
@@ -142,6 +143,7 @@ fun ContentSettings(
         IpVersionKey,
         defaultValue = IpVersion.AUTO
     )
+    val (albumCanvasEnabled, onAlbumCanvasEnabledChange) = rememberPreference(key = AlbumCanvasEnabledKey, defaultValue = false)
 
     // Auto-switch preferred provider if current one is disabled
     LaunchedEffect(enableLrclib, enableKugou, enableBetterLyrics, enableSimpMusic, enableYouLyPlus, preferredProvider) {
@@ -649,6 +651,33 @@ fun ContentSettings(
                         )
                     },
                     onClick = { onShowArtistVideoChange(!showArtistVideo) }
+                )
+            )
+        )
+
+        Material3SettingsGroup(
+            title = stringResource(R.string.album_text),
+            items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.slow_motion_video),
+                    title = { Text(stringResource(R.string.show_album_canvas)) },
+                    description = { Text(stringResource(R.string.show_album_canvas_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = albumCanvasEnabled,
+                            onCheckedChange = onAlbumCanvasEnabledChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (albumCanvasEnabled) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onAlbumCanvasEnabledChange(!albumCanvasEnabled) }
                 )
             )
         )
