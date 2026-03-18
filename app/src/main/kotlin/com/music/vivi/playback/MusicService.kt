@@ -172,6 +172,7 @@ import com.music.vivi.utils.DiscordRPC
 import com.music.vivi.utils.NetworkConnectivityObserver
 import com.music.vivi.utils.ScrobbleManager
 import com.music.vivi.utils.SyncUtils
+import com.music.vivi.constants.MonochromeStreamingEnabledKey
 import com.music.vivi.utils.YTPlayerUtils
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.get
@@ -2725,6 +2726,54 @@ class MusicService :
             }
 
             Timber.tag("MusicService").i("FETCHING STREAM: $mediaId | quality=$audioQuality")
+
+            // ---- Monochrome 320 kbps attempt ----------------------------------
+            // If enabled, try to resolve a high-quality Tidal stream first.
+            // Any failure (no match, network error, etc.) falls through to the
+            // standard YTPlayerUtils resolution below.
+            val monochromeEnabled = dataStore.get(MonochromeStreamingEnabledKey, false)
+            if (monochromeEnabled) {
+                Timber.tag("MusicService").d("Monochrome enabled, attempting resolution for $mediaId")
+                runBlocking(Dispatchers.IO) {
+                    val meta = try {
+                        withContext(Dispatchers.Main) {
+                            player.findNextMediaItemById(mediaId)?.metadata
+                        }
+                    } catch (e: Exception) {
+                        Timber.tag("MusicService").e(e, "Error fetching metadata for Monochrome")
+                        null
+                    }
+
+                    val songTitle = meta?.title
+                    val songArtist = meta?.artists?.firstOrNull()?.name
+
+                    Timber.tag("MusicService").d("Metadata for $mediaId: Title='$songTitle', Artist='$songArtist'")
+
+                    if (!songTitle.isNullOrBlank() && !songArtist.isNullOrBlank()) {
+                        val monoUrl = runCatching {
+                            StreamingMonochrome.getStreamForSong(songTitle.toString(), songArtist.toString())
+                        }.onFailure {
+                            Timber.tag("MusicService").e(it, "StreamingMonochrome.getStreamForSong failed")
+                        }.getOrNull()
+
+                        if (monoUrl != null) {
+                            Timber.tag("MusicService").i("Monochrome stream SUCCESS for: $songTitle")
+                            // Cache with a 1-hour TTL (Monochrome CDN links are long-lived)
+                            songUrlCache[mediaId] = monoUrl to (System.currentTimeMillis() + 3_600_000L)
+                            return@runBlocking dataSpec
+                                .withUri(monoUrl.toUri())
+                                .subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
+                        } else {
+                            Timber.tag("MusicService").w("Monochrome failed to find stream for: $songTitle – falling back to YT")
+                        }
+                    } else {
+                        Timber.tag("MusicService").d("Metadata missing for $mediaId, skipping Monochrome")
+                    }
+                    null
+                }?.let { return@Factory it }
+            }
+            // ---- End Monochrome attempt ---------------------------------------
+
             val playbackData = runBlocking(Dispatchers.IO) {
                 YTPlayerUtils.playerResponseForPlayback(
                     mediaId,
@@ -2807,9 +2856,7 @@ class MusicService :
     private fun createMediaSourceFactory() =
         DefaultMediaSourceFactory(
             createDataSourceFactory(),
-            ExtractorsFactory {
-                arrayOf(MatroskaExtractor(), FragmentedMp4Extractor())
-            },
+            androidx.media3.extractor.DefaultExtractorsFactory(),
         )
 
     private fun createRenderersFactory(

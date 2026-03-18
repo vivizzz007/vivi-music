@@ -67,6 +67,7 @@ import com.music.vivi.constants.HideExplicitKey
 import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.constants.HideYoutubeShortsKey
 import com.music.vivi.constants.AlbumCanvasEnabledKey
+import com.music.vivi.constants.MonochromeStreamingEnabledKey
 import com.music.vivi.constants.LanguageCodeToName
 import com.music.vivi.constants.PreferredLyricsProvider
 import com.music.vivi.constants.PreferredLyricsProviderKey
@@ -144,6 +145,7 @@ fun ContentSettings(
         defaultValue = IpVersion.AUTO
     )
     val (albumCanvasEnabled, onAlbumCanvasEnabledChange) = rememberPreference(key = AlbumCanvasEnabledKey, defaultValue = false)
+    val (monochromeStreamingEnabled, onMonochromeStreamingEnabledChange) = rememberPreference(key = MonochromeStreamingEnabledKey, defaultValue = false)
 
     // Auto-switch preferred provider if current one is disabled
     LaunchedEffect(enableLrclib, enableKugou, enableBetterLyrics, enableSimpMusic, enableYouLyPlus, preferredProvider) {
@@ -678,6 +680,35 @@ fun ContentSettings(
                         )
                     },
                     onClick = { onAlbumCanvasEnabledChange(!albumCanvasEnabled) }
+                )
+            )
+        )
+
+        Spacer(modifier = Modifier.height(27.dp))
+
+        Material3SettingsGroup(
+            title = stringResource(R.string.streaming),
+            items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.music_note),
+                    title = { Text(stringResource(R.string.monochrome_streaming)) },
+                    description = { Text(stringResource(R.string.monochrome_streaming_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = monochromeStreamingEnabled,
+                            onCheckedChange = onMonochromeStreamingEnabledChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (monochromeStreamingEnabled) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onMonochromeStreamingEnabledChange(!monochromeStreamingEnabled) }
                 )
             )
         )

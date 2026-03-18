@@ -88,6 +88,7 @@ val SelectedYtmPlaylistsKey = stringPreferencesKey("selectedYtmPlaylists")
 
 val AudioQualityKey = stringPreferencesKey("audioQuality")
 val IpVersionKey = stringPreferencesKey("ipVersion")
+val MonochromeStreamingEnabledKey = booleanPreferencesKey("monochromeStreamingEnabled")
 
 enum class AudioQuality {
     AUTO,

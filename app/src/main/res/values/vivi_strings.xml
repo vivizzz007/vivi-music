@@ -798,4 +798,9 @@
     <string name="error_loading_commits">Failed to load commits becoz you didnt pay me ?</string>
     <string name="commits">Commits</string>
     <string name="view_commit_history">Browse recent changes on main branch</string>
+
+    <!-- Monochrome Streaming -->
+    <string name="streaming">Streaming</string>
+    <string name="monochrome_streaming">Monochrome 320kbps Streaming</string>
+    <string name="monochrome_streaming_desc">Stream high-quality audio from Monochrome (Tidal-backed) first, falling back to YouTube Music if unavailable</string>
 </resources>
