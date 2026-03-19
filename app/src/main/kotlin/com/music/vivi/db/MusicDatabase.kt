@@ -50,7 +50,7 @@ import java.time.ZoneOffset
 import java.util.Date
 
 class MusicDatabase(
-    private val delegate: InternalDatabase,
+    internal val delegate: InternalDatabase,
 ) : DatabaseDao by delegate.dao {
     val speedDialDao: SpeedDialDao
         get() = delegate.speedDialDao
@@ -142,12 +142,6 @@ class MusicDatabase(
         AutoMigration(from = 25, to = 26),
         AutoMigration(from = 26, to = 27),
         AutoMigration(from = 27, to = 28),
-        AutoMigration(from = 28, to = 29),
-        AutoMigration(from = 29, to = 30, spec = Migration29To30::class),
-        AutoMigration(from = 30, to = 31),
-        AutoMigration(from = 31, to = 32),
-        AutoMigration(from = 32, to = 33),
-        AutoMigration(from = 33, to = 34),
     ],
 )
 @TypeConverters(Converters::class)
@@ -168,6 +162,7 @@ abstract class InternalDatabase : RoomDatabase() {
                         MIGRATION_21_24,
                         MIGRATION_22_24,
                         MIGRATION_24_25,
+                        MIGRATION_28_34,
                     )
                     .fallbackToDestructiveMigration(dropAllTables = true)
                     .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
@@ -192,6 +187,148 @@ abstract class InternalDatabase : RoomDatabase() {
 }
 
 // ===== Migrations =====
+
+val MIGRATION_28_34 =
+    object : Migration(28, 34) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // 28 -> 29: isVideo in song
+            safeAddColumn(db, "song", "isVideo", "INTEGER NOT NULL DEFAULT false")
+
+            // 29 -> 30: provider in lyrics
+            safeAddColumn(db, "lyrics", "provider", "TEXT NOT NULL DEFAULT 'Unknown'")
+
+            // 30 -> 31: translatedLyrics, translationLanguage, translationMode in lyrics, recognition_history table
+            safeAddColumn(db, "lyrics", "translatedLyrics", "TEXT NOT NULL DEFAULT ''")
+            safeAddColumn(db, "lyrics", "translationLanguage", "TEXT NOT NULL DEFAULT ''")
+            safeAddColumn(db, "lyrics", "translationMode", "TEXT NOT NULL DEFAULT ''")
+            db.execSQL("CREATE TABLE IF NOT EXISTS `recognition_history` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `trackId` TEXT NOT NULL, `title` TEXT NOT NULL, `artist` TEXT NOT NULL, `album` TEXT, `coverArtUrl` TEXT, `coverArtHqUrl` TEXT, `genre` TEXT, `releaseDate` TEXT, `label` TEXT, `shazamUrl` TEXT, `appleMusicUrl` TEXT, `spotifyUrl` TEXT, `isrc` TEXT, `youtubeVideoId` TEXT, `recognizedAt` INTEGER NOT NULL, `liked` INTEGER NOT NULL)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_recognition_history_trackId` ON `recognition_history` (`trackId`)")
+
+            // 32 -> 33: description in album, speed_dial_item table
+            safeAddColumn(db, "album", "description", "TEXT DEFAULT NULL")
+            db.execSQL("CREATE TABLE IF NOT EXISTS `speed_dial_item` (`id` TEXT NOT NULL, `secondaryId` TEXT, `title` TEXT NOT NULL, `subtitle` TEXT, `thumbnailUrl` TEXT, `type` TEXT NOT NULL, `explicit` INTEGER NOT NULL, `createDate` INTEGER NOT NULL, PRIMARY KEY(`id`))")
+
+            // Fix schema for tables that might have missing default values for Boolean columns
+            fixSchema(
+                db, "song",
+                listOf("isLocal", "romanizeLyrics", "isUploaded", "isVideo", "explicit", "isDownloaded", "lyricsOffset"),
+                "CREATE TABLE IF NOT EXISTS `song` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `duration` INTEGER NOT NULL, `thumbnailUrl` TEXT, `albumId` TEXT, `albumName` TEXT, `explicit` INTEGER NOT NULL DEFAULT 0, `year` INTEGER, `date` INTEGER, `dateModified` INTEGER, `liked` INTEGER NOT NULL, `likedDate` INTEGER, `totalPlayTime` INTEGER NOT NULL, `inLibrary` INTEGER, `dateDownload` INTEGER, `isLocal` INTEGER NOT NULL DEFAULT false, `libraryAddToken` TEXT, `libraryRemoveToken` TEXT, `lyricsOffset` INTEGER NOT NULL DEFAULT 0, `romanizeLyrics` INTEGER NOT NULL DEFAULT true, `isDownloaded` INTEGER NOT NULL DEFAULT 0, `isUploaded` INTEGER NOT NULL DEFAULT false, `isVideo` INTEGER NOT NULL DEFAULT false, PRIMARY KEY(`id`))",
+                listOf("CREATE INDEX IF NOT EXISTS `index_song_albumId` ON `song` (`albumId`)")
+            )
+            fixSchema(
+                db, "artist",
+                listOf("isLocal"),
+                "CREATE TABLE IF NOT EXISTS `artist` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `thumbnailUrl` TEXT, `channelId` TEXT, `lastUpdateTime` INTEGER NOT NULL, `bookmarkedAt` INTEGER, `isLocal` INTEGER NOT NULL DEFAULT false, PRIMARY KEY(`id`))"
+            )
+            fixSchema(
+                db, "album",
+                listOf("isLocal", "explicit", "isUploaded"),
+                "CREATE TABLE IF NOT EXISTS `album` (`id` TEXT NOT NULL, `playlistId` TEXT, `title` TEXT NOT NULL, `year` INTEGER, `thumbnailUrl` TEXT, `themeColor` INTEGER, `songCount` INTEGER NOT NULL, `duration` INTEGER NOT NULL, `explicit` INTEGER NOT NULL DEFAULT 0, `lastUpdateTime` INTEGER NOT NULL, `bookmarkedAt` INTEGER, `likedDate` INTEGER, `inLibrary` INTEGER, `description` TEXT, `isLocal` INTEGER NOT NULL DEFAULT false, `isUploaded` INTEGER NOT NULL DEFAULT false, PRIMARY KEY(`id`))"
+            )
+            fixSchema(
+                db, "playlist",
+                listOf("isLocal", "isEditable", "isAutoSync"),
+                "CREATE TABLE IF NOT EXISTS `playlist` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `browseId` TEXT, `createdAt` INTEGER, `lastUpdateTime` INTEGER, `isEditable` INTEGER NOT NULL DEFAULT true, `bookmarkedAt` INTEGER, `remoteSongCount` INTEGER, `playEndpointParams` TEXT, `thumbnailUrl` TEXT, `shuffleEndpointParams` TEXT, `radioEndpointParams` TEXT, `isLocal` INTEGER NOT NULL DEFAULT false, `isAutoSync` INTEGER NOT NULL DEFAULT false, PRIMARY KEY(`id`))"
+            )
+            fixSchema(
+                db, "lyrics",
+                listOf("provider", "translatedLyrics", "translationLanguage", "translationMode"),
+                "CREATE TABLE IF NOT EXISTS `lyrics` (`id` TEXT NOT NULL, `lyrics` TEXT NOT NULL, `provider` TEXT NOT NULL DEFAULT 'Unknown', `translatedLyrics` TEXT NOT NULL DEFAULT '', `translationLanguage` TEXT NOT NULL DEFAULT '', `translationMode` TEXT NOT NULL DEFAULT '', PRIMARY KEY(`id`))"
+            )
+        }
+    }
+
+private fun safeAddColumn(db: SupportSQLiteDatabase, tableName: String, columnName: String, columnDefinition: String) {
+    var columnExists = false
+    try {
+        db.query("PRAGMA table_info(`$tableName`)".toSQLiteQuery()).use { cursor ->
+            val nameIndex = cursor.getColumnIndex("name")
+            if (nameIndex >= 0) {
+                while (cursor.moveToNext()) {
+                    if (cursor.getString(nameIndex).equals(columnName, ignoreCase = true)) {
+                        columnExists = true
+                        break
+                    }
+                }
+            }
+        }
+    } catch (e: Exception) {
+        Timber.tag("MusicDatabase").w(e, "Failed to check if column $columnName exists in $tableName")
+    }
+
+    if (!columnExists) {
+        try {
+            db.execSQL("ALTER TABLE `$tableName` ADD COLUMN `$columnName` $columnDefinition")
+        } catch (e: Exception) {
+            if (e.message?.contains("duplicate column name", ignoreCase = true) == true) {
+                Timber.tag("MusicDatabase").d("Column $columnName already exists in $tableName (caught exception)")
+            } else {
+                throw e
+            }
+        }
+    }
+}
+
+private fun fixSchema(
+    db: SupportSQLiteDatabase,
+    tableName: String,
+    columnsToCheck: List<String>,
+    createSql: String,
+    indices: List<String> = emptyList()
+) {
+    var needsFix = false
+    try {
+        db.query("PRAGMA table_info(`$tableName`)".toSQLiteQuery()).use { cursor ->
+            val nameIndex = cursor.getColumnIndex("name")
+            val dfltValueIndex = cursor.getColumnIndex("dflt_value")
+            if (nameIndex >= 0 && dfltValueIndex >= 0) {
+                while (cursor.moveToNext()) {
+                    val columnName = cursor.getString(nameIndex)
+                    val dfltValue = cursor.getString(dfltValueIndex)
+                    if (columnsToCheck.contains(columnName) && dfltValue == null) {
+                        needsFix = true
+                        break
+                    }
+                }
+            }
+        }
+    } catch (e: Exception) {
+        Timber.tag("MusicDatabase").w(e, "Failed to check schema for $tableName")
+    }
+
+    if (needsFix) {
+        Timber.tag("MusicDatabase").d("Fixing schema for $tableName due to missing defaults")
+        db.execSQL("ALTER TABLE `$tableName` RENAME TO `${tableName}_old`")
+        db.execSQL(createSql)
+
+        val oldColumns = mutableListOf<String>()
+        db.query("PRAGMA table_info(`${tableName}_old`)".toSQLiteQuery()).use { cursor ->
+            val nameIndex = cursor.getColumnIndex("name")
+            if (nameIndex >= 0) {
+                while (cursor.moveToNext()) {
+                    oldColumns.add(cursor.getString(nameIndex))
+                }
+            }
+        }
+
+        val newColumns = mutableListOf<String>()
+        db.query("PRAGMA table_info(`$tableName`)".toSQLiteQuery()).use { cursor ->
+            val nameIndex = cursor.getColumnIndex("name")
+            if (nameIndex >= 0) {
+                while (cursor.moveToNext()) {
+                    newColumns.add(cursor.getString(nameIndex))
+                }
+            }
+        }
+
+        val commonColumns = oldColumns.intersect(newColumns.toSet()).joinToString(", ") { "`$it`" }
+        if (commonColumns.isNotEmpty()) {
+            db.execSQL("INSERT INTO `$tableName` ($commonColumns) SELECT $commonColumns FROM `${tableName}_old`")
+        }
+        db.execSQL("DROP TABLE `${tableName}_old`")
+        indices.forEach { db.execSQL(it) }
+    }
+}
 
 val MIGRATION_1_2 =
     object : Migration(1, 2) {
@@ -405,43 +542,13 @@ val MIGRATION_21_24 =
             // Combine all changes from 21→22→23→24
             
             // From 21→22: Add columns
-            try {
-                db.execSQL("ALTER TABLE song ADD COLUMN libraryAddToken TEXT DEFAULT ''")
-            } catch (e: Exception) {
-                Timber.tag("Migration").w("Column libraryAddToken may already exist")
-            }
-            try {
-                db.execSQL("ALTER TABLE song ADD COLUMN libraryRemoveToken TEXT DEFAULT ''")
-            } catch (e: Exception) {
-                Timber.tag("Migration").w("Column libraryRemoveToken may already exist")
-            }
-            try {
-                db.execSQL("ALTER TABLE song ADD COLUMN romanizeLyrics INTEGER NOT NULL DEFAULT 1")
-            } catch (e: Exception) {
-                Timber.tag("Migration").w("Column romanizeLyrics may already exist")
-            }
-            try {
-                db.execSQL("ALTER TABLE song ADD COLUMN isDownloaded INTEGER NOT NULL DEFAULT 0")
-            } catch (e: Exception) {
-                Timber.tag("Migration").w("Column isDownloaded may already exist")
-            }
+            safeAddColumn(db, "song", "libraryAddToken", "TEXT")
+            safeAddColumn(db, "song", "libraryRemoveToken", "TEXT")
+            safeAddColumn(db, "song", "romanizeLyrics", "INTEGER NOT NULL DEFAULT true")
+            safeAddColumn(db, "song", "isDownloaded", "INTEGER NOT NULL DEFAULT 0")
 
             // From 23→24: Add isUploaded
-            var hasIsUploaded = false
-            db.query("PRAGMA table_info('song')").use { cursor ->
-                val nameIndex = cursor.getColumnIndex("name")
-                while (cursor.moveToNext()) {
-                    val colName = if (nameIndex >= 0) cursor.getString(nameIndex) else null
-                    if (colName == "isUploaded") {
-                        hasIsUploaded = true
-                        break
-                    }
-                }
-            }
-            
-            if (!hasIsUploaded) {
-                db.execSQL("ALTER TABLE `song` ADD COLUMN `isUploaded` INTEGER NOT NULL DEFAULT 0")
-            }
+            safeAddColumn(db, "song", "isUploaded", "INTEGER NOT NULL DEFAULT false")
         }
     }
 
@@ -449,21 +556,7 @@ val MIGRATION_22_24 =
     object : Migration(22, 24) {
         override fun migrate(db: SupportSQLiteDatabase) {
             // From 23→24: Add isUploaded
-            var hasIsUploaded = false
-            db.query("PRAGMA table_info('song')").use { cursor ->
-                val nameIndex = cursor.getColumnIndex("name")
-                while (cursor.moveToNext()) {
-                    val colName = if (nameIndex >= 0) cursor.getString(nameIndex) else null
-                    if (colName == "isUploaded") {
-                        hasIsUploaded = true
-                        break
-                    }
-                }
-            }
-            
-            if (!hasIsUploaded) {
-                db.execSQL("ALTER TABLE `song` ADD COLUMN `isUploaded` INTEGER NOT NULL DEFAULT 0")
-            }
+            safeAddColumn(db, "song", "isUploaded", "INTEGER NOT NULL DEFAULT false")
         }
     }
 
@@ -619,7 +712,7 @@ class Migration21To22 : AutoMigrationSpec {
             Timber.tag("Migration21To22").w(e, "Column may already exist")
         }
         try {
-            db.execSQL("ALTER TABLE song ADD COLUMN romanizeLyrics INTEGER NOT NULL DEFAULT 1")
+            db.execSQL("ALTER TABLE song ADD COLUMN romanizeLyrics INTEGER NOT NULL DEFAULT true")
         } catch (e: Exception) {
             Timber.tag("Migration21To22").w(e, "Column may already exist")
         }
@@ -652,7 +745,7 @@ class Migration23To24: AutoMigrationSpec {
         }
 
         if (!hasIsUploaded) {
-            db.execSQL("ALTER TABLE `song` ADD COLUMN `isUploaded` INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE `song` ADD COLUMN `isUploaded` INTEGER NOT NULL DEFAULT false")
         }
     }
 }
@@ -661,56 +754,16 @@ val MIGRATION_24_25 =
     object : Migration(24, 25) {
         override fun migrate(db: SupportSQLiteDatabase) {
             // Add perceptualLoudnessDb column to format table for improved audio normalization
-            var columnExists = false
-            db.query("PRAGMA table_info(format)").use { cursor ->
-                val nameIndex = cursor.getColumnIndex("name")
-                while (cursor.moveToNext()) {
-                    if (cursor.getString(nameIndex) == "perceptualLoudnessDb") {
-                        columnExists = true
-                        break
-                    }
-                }
-            }
-
-            if (!columnExists) {
-                // Add the column allowing NULL values (since existing rows won't have this data)
-                db.execSQL("ALTER TABLE format ADD COLUMN perceptualLoudnessDb REAL DEFAULT NULL")
-            }
+            safeAddColumn(db, "format", "perceptualLoudnessDb", "REAL DEFAULT NULL")
         }
     }
 
 class Migration29To30 : AutoMigrationSpec {
     override fun onPostMigrate(db: SupportSQLiteDatabase) {
         // Ensure isVideo column exists (safeguard)
-        var hasIsVideo = false
-        db.query("PRAGMA table_info('song')").use { cursor ->
-            val nameIndex = cursor.getColumnIndex("name")
-            while (cursor.moveToNext()) {
-                val colName = if (nameIndex >= 0) cursor.getString(nameIndex) else null
-                if (colName == "isVideo") {
-                    hasIsVideo = true
-                    break
-                }
-            }
-        }
-        if (!hasIsVideo) {
-            db.execSQL("ALTER TABLE song ADD COLUMN isVideo INTEGER NOT NULL DEFAULT 0")
-        }
+        safeAddColumn(db, "song", "isVideo", "INTEGER NOT NULL DEFAULT false")
 
         // Ensure provider column exists in lyrics table
-        var hasProvider = false
-        db.query("PRAGMA table_info('lyrics')").use { cursor ->
-            val nameIndex = cursor.getColumnIndex("name")
-            while (cursor.moveToNext()) {
-                val colName = if (nameIndex >= 0) cursor.getString(nameIndex) else null
-                if (colName == "provider") {
-                    hasProvider = true
-                    break
-                }
-            }
-        }
-        if (!hasProvider) {
-            db.execSQL("ALTER TABLE lyrics ADD COLUMN provider TEXT NOT NULL DEFAULT 'Unknown'")
-        }
+        safeAddColumn(db, "lyrics", "provider", "TEXT NOT NULL DEFAULT 'Unknown'")
     }
 }
