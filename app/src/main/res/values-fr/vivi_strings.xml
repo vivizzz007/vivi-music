@@ -472,7 +472,7 @@ est irréversible.
     <string name="copied_title">Titre copié</string>
     <string name="copied_artist">Artiste copié</string>
     <string name="error_playing">Erreur lors de la lecture</string>
-    <string name="failed_to_parse_proxy">Échec de l\'analyse de l'URL du proxy</string>
+    <string name="failed_to_parse_proxy">Échec de l\'analyse de l\'URL du proxy</string>
 
     <!-- Playback errors -->
     <string name="error_playback_failed">Échec de la lecture</string>
