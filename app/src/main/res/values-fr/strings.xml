@@ -309,7 +309,7 @@
     <string name="audio_quality_low">Faible</string>
     <string name="queue">File d\'attente</string>
     <string name="persistent_queue">File d\'attente persistante</string>
-    <string name="persistent_queue_desc">Restaurer votre dernière file d\'attente au démarrage de l'application</string>
+    <string name="persistent_queue_desc">Restaurer votre dernière file d\'attente au démarrage de l\'application</string>
     <string name="auto_load_more">Charger automatiquement plus de titres</string>
     <string name="auto_load_more_desc">Ajouter automatiquement d\'autres chansons lorsque la fin de la file d\'attente est atteinte, si possible</string>
     <string name="skip_silence">Ignorer le silence</string>
