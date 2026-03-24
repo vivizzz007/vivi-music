@@ -1757,29 +1757,29 @@ fun BottomSheetPlayer(
                                 .fillMaxWidth()
                                 .padding(horizontal = PlayerHorizontalPadding),
                         ) {
-                            Box(modifier = Modifier.weight(1f)) {
-                                ResizableIconButton(
-                                    icon = when (repeatMode) {
-                                        Player.REPEAT_MODE_OFF, Player.REPEAT_MODE_ALL -> R.drawable.repeat
-                                        Player.REPEAT_MODE_ONE -> R.drawable.repeat_one
-                                        else -> throw IllegalStateException()
-                                    },
-                                    color = TextBackgroundColor,
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                        .padding(4.dp)
-                                        .align(Alignment.Center)
-                                        .alpha(if (isListenTogetherGuest) 0.5f else 1f),
-                                    enabled = !isListenTogetherGuest,
-                                    onClick = {
-                                        playerConnection.player.toggleRepeatMode()
-                                    }
-                                )
-                            }
+//                            Box(modifier = Modifier.weight(1f)) {
+//                                ResizableIconButton(
+//                                    icon = when (repeatMode) {
+//                                        Player.REPEAT_MODE_OFF, Player.REPEAT_MODE_ALL -> R.drawable.repeat
+//                                        Player.REPEAT_MODE_ONE -> R.drawable.repeat_one
+//                                        else -> throw IllegalStateException()
+//                                    },
+//                                    color = TextBackgroundColor,
+//                                    modifier = Modifier
+//                                        .size(32.dp)
+//                                        .padding(4.dp)
+//                                        .align(Alignment.Center)
+//                                        .alpha(if (isListenTogetherGuest) 0.5f else 1f),
+//                                    enabled = !isListenTogetherGuest,
+//                                    onClick = {
+//                                        playerConnection.player.toggleRepeatMode()
+//                                    }
+//                                )
+//                            }
 
                             Box(modifier = Modifier.weight(1f)) {
                                 ResizableIconButton(
-                                    icon = R.drawable.skip_previous,
+                                    icon = R.drawable.apple_skip_previous,
                                     enabled = canSkipPrevious && !isListenTogetherGuest,
                                     color = TextBackgroundColor,
                                     modifier =
@@ -1846,7 +1846,7 @@ fun BottomSheetPlayer(
 
                             Box(modifier = Modifier.weight(1f)) {
                                 ResizableIconButton(
-                                    icon = R.drawable.skip_next,
+                                    icon = R.drawable.apple_skip_next,
                                     enabled = canSkipNext && !isListenTogetherGuest,
                                     color = TextBackgroundColor,
                                     modifier =
@@ -1858,18 +1858,18 @@ fun BottomSheetPlayer(
                                 )
                             }
 
-                            Box(modifier = Modifier.weight(1f)) {
-                                ResizableIconButton(
-                                    icon = if (currentSong?.song?.liked == true) R.drawable.favorite else R.drawable.favorite_border,
-                                    color = if (currentSong?.song?.liked == true) MaterialTheme.colorScheme.error else TextBackgroundColor,
-                                    modifier =
-                                    Modifier
-                                        .size(32.dp)
-                                        .padding(4.dp)
-                                        .align(Alignment.Center),
-                                    onClick = playerConnection::toggleLike,
-                                )
-                            }
+//                            Box(modifier = Modifier.weight(1f)) {
+//                                ResizableIconButton(
+//                                    icon = if (currentSong?.song?.liked == true) R.drawable.favorite else R.drawable.favorite_border,
+//                                    color = if (currentSong?.song?.liked == true) MaterialTheme.colorScheme.error else TextBackgroundColor,
+//                                    modifier =
+//                                    Modifier
+//                                        .size(32.dp)
+//                                        .padding(4.dp)
+//                                        .align(Alignment.Center),
+//                                    onClick = playerConnection::toggleLike,
+//                                )
+//                            }
                         }
                     }
                 }

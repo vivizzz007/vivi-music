@@ -1,0 +1,13 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24.0"
+    android:viewportHeight="24.0">
+    <!-- Double triangles pointing left (Apple Music Style) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M20,5.5 L11,12 L20,18.5 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M13,5.5 L4,12 L13,18.5 Z" />
+</vector>
