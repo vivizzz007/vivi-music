@@ -171,6 +171,7 @@ import com.music.vivi.ui.component.ResizableIconButton
 import com.music.vivi.ui.component.SquigglySlider
 import com.music.vivi.ui.component.WavySlider
 import com.music.vivi.ui.component.rememberBottomSheetState
+import com.music.vivi.ui.menu.OldPlayerMenu
 import com.music.vivi.ui.menu.PlayerMenu
 import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.theme.PlayerColorExtractor
@@ -1319,66 +1320,31 @@ fun BottomSheetPlayer(
                                     .clip(RoundedCornerShape(24.dp))
                                     .background(textButtonColor)
                                     .clickable {
-                                        mediaMetadata?.let { meta ->
-                                            when (download?.state) {
-                                                Download.STATE_COMPLETED, Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
-                                                    DownloadService.sendRemoveDownload(
-                                                        context,
-                                                        ExoDownloadService::class.java,
-                                                        meta.id,
-                                                        false,
-                                                    )
-                                                }
-                                                else -> {
-                                                    database.transaction {
-                                                        insert(meta)
+                                        menuState.show {
+                                            OldPlayerMenu(
+                                                mediaMetadata = mediaMetadata,
+                                                navController = navController,
+                                                playerBottomSheetState = state,
+                                                onShowDetailsDialog = {
+                                                    mediaMetadata.id.let {
+                                                        bottomSheetPageState.show {
+                                                           ShowMediaInfo(it)
+                                                        }
                                                     }
-                                                    val downloadRequest =
-                                                        DownloadRequest
-                                                            .Builder(meta.id, meta.id.toUri())
-                                                            .setCustomCacheKey(meta.id)
-                                                            .setData(meta.title.toByteArray())
-                                                            .build()
-                                                    DownloadService.sendAddDownload(
-                                                        context,
-                                                        ExoDownloadService::class.java,
-                                                        downloadRequest,
-                                                        false,
-                                                    )
-                                                }
-                                            }
+                                                },
+                                                onDismiss = menuState::dismiss
+                                            )
                                         }
                                     },
                             ) {
-                                when (download?.state) {
-                                    Download.STATE_COMPLETED -> {
-                                        Icon(
-                                            painter = painterResource(R.drawable.offline),
-                                            contentDescription = null,
-                                            tint = iconButtonColor,
-                                            modifier = Modifier
-                                                .align(Alignment.Center)
-                                                .size(24.dp)
-                                        )
-                                    }
-                                    Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
-                                        CircularWavyProgressIndicator(
-                                            modifier = Modifier
-                                                .align(Alignment.Center)
-                                                .size(24.dp),
-                                        )
-                                    }
-                                    else -> {
-                                        Icon(
-                                            painter = painterResource(R.drawable.download),
-                                            contentDescription = null,
-                                            tint = iconButtonColor,
-                                            modifier = Modifier
-                                                .align(Alignment.Center)
-                                                .size(24.dp)
-                                        )
-                                    }
-                                }
+                                Icon(
+                                    painter = painterResource(R.drawable.more_vert),
+                                    contentDescription = null,
+                                    tint = iconButtonColor,
+                                    modifier = Modifier
+                                        .align(Alignment.Center)
+                                        .size(24.dp)
+                                )
                             }
                         }
                     }
@@ -1798,7 +1764,6 @@ fun BottomSheetPlayer(
                                 Modifier
                                     .size(72.dp)
                                     .clip(RoundedCornerShape(playPauseRoundness))
-                                    .background(textButtonColor)
                                     .clickable {
                                         if (isListenTogetherGuest) {
                                             playerConnection.toggleMute()
@@ -1834,11 +1799,11 @@ fun BottomSheetPlayer(
                                         },
                                     ),
                                     contentDescription = null,
-                                    colorFilter = ColorFilter.tint(iconButtonColor),
+                                    colorFilter = ColorFilter.tint(TextBackgroundColor),
                                     modifier =
                                     Modifier
                                         .align(Alignment.Center)
-                                        .size(36.dp),
+                                        .size(48.dp),
                                 )
                             }
 
