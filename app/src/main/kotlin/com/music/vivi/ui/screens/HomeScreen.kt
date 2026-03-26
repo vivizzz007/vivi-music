@@ -1334,6 +1334,7 @@ fun HomeScreen(
                         }
                         HomeSection.DailyDiscover -> {
                             dailyDiscover?.takeIf { it.isNotEmpty() }?.let { discoverList ->
+                                //added a tittle 
                                 item(key = "daily_discover_title") {
                                     val title = stringResource(R.string.your_daily_discover)
                                     NavigationTitle(
