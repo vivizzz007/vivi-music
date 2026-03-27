@@ -270,6 +270,7 @@ dependencies {
     implementation(project(":canvas"))
     implementation(project(":shazamkit"))
     implementation(project(":artistvideo"))
+    implementation(project(":applecanvas"))
 
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)

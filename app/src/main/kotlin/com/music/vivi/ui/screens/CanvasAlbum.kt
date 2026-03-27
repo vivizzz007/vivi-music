@@ -11,6 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.music.vivi.applecanvas.AppleMusicCanvasProvider
 import com.music.vivi.canvas.CanvasArtwork
 import com.music.vivi.canvas.MonochromeAlbumCanvas
 import com.music.vivi.canvas.MonochromeApiCanvas
@@ -72,6 +73,11 @@ fun rememberAlbumCanvas(
                         song = s,
                         artist = a,
                         album = albumTitle
+                    )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                    ?: AppleMusicCanvasProvider.getByAlbumArtist(
+                        album = s,
+                        artist = a,
+                        storefront = storefront
                     )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                 }
         }

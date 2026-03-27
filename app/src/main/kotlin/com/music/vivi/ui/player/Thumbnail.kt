@@ -95,6 +95,7 @@ import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.delay
+import com.music.vivi.applecanvas.AppleMusicCanvasProvider
 import java.util.Locale
 
 /**
@@ -700,6 +701,11 @@ private fun ThumbnailItem(
                                         song = s,
                                         artist = a,
                                         album = albumName
+                                    )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                                    ?: AppleMusicCanvasProvider.getBySongArtist(
+                                        song = s,
+                                        artist = a,
+                                        storefront = storefront
                                     )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                             }
                     }
