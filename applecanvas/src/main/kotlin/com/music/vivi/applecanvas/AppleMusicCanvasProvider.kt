@@ -92,12 +92,7 @@ object AppleMusicCanvasProvider {
         val key = cacheKey("sa", album, artist, storefront)
         cache[key]?.takeIf { it.expiresAtMs > System.currentTimeMillis() }?.let { return it.value }
 
-        val albumId = searchItunesAlbumId(album, artist) ?: run {
-            cache[key] = CacheEntry(null, System.currentTimeMillis() + CACHE_TTL_MS)
-            return null
-        }
-
-        val result = fetchMotionArtwork(albumId, storefront, artist)
+        val result = searchAndFetchMotion(album, artist, storefront, "albums")
         cache[key] = CacheEntry(result, System.currentTimeMillis() + CACHE_TTL_MS)
         return result
     }
@@ -110,12 +105,8 @@ object AppleMusicCanvasProvider {
         val key = cacheKey("song", song, artist, storefront)
         cache[key]?.takeIf { it.expiresAtMs > System.currentTimeMillis() }?.let { return it.value }
 
-        val albumId = searchItunesSongAlbumId(song, artist) ?: run {
-            cache[key] = CacheEntry(null, System.currentTimeMillis() + CACHE_TTL_MS)
-            return null
-        }
-
-        val result = fetchMotionArtwork(albumId, storefront, artist)
+        // Use searchAndFetchMotion which can handle song searches by resolving to albums
+        val result = searchAndFetchMotion(song, artist, storefront, "songs")
         cache[key] = CacheEntry(result, System.currentTimeMillis() + CACHE_TTL_MS)
         return result
     }
@@ -132,76 +123,96 @@ object AppleMusicCanvasProvider {
         return result
     }
 
-    private suspend fun searchItunesAlbumId(album: String, artist: String): String? {
-        val queries = linkedSetOf("$artist $album", album, "$artist ${album.replace("'", "")}")
+    /**
+     * Searches via AMP API and tries to fetch motion artwork.
+     * This is faster than iTunes search + AMP lookup.
+     */
+    private suspend fun searchAndFetchMotion(
+        term: String,
+        artist: String,
+        storefront: String,
+        type: String, // "albums" or "songs"
+    ): CanvasArtwork? {
+        return runCatching {
+            val query = if (term.contains(artist, ignoreCase = true)) term else "$artist $term"
+            val url = "$AMP_BASE_URL/v1/catalog/$storefront/search"
+            val response = client.get(url) {
+                header("Authorization", "Bearer $APPLE_MUSIC_TOKEN")
+                header("Origin", "https://music.apple.com")
+                header("Referer", "https://music.apple.com/")
+                header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                parameter("term", query)
+                parameter("types", type)
+                parameter("limit", "5")
+                parameter("extend", "editorialVideo")
+            }
+            if (response.status != HttpStatusCode.OK) return@runCatching null
 
-        for (query in queries) {
-            val id = runCatching {
-                val response = client.get(ITUNES_SEARCH_URL) {
-                    parameter("term", query)
-                    parameter("entity", "album")
-                    parameter("limit", "15")
+            val root = response.body<JsonObject>()
+            val results = root["results"]?.jsonObject?.get(type)?.jsonObject?.get("data")?.jsonArray ?: return@runCatching null
+            
+            // Score results for quality and edition matching
+            val scoredResults = results.mapNotNull { item ->
+                val obj = item.jsonObject
+                val attributes = obj["attributes"]?.jsonObject ?: return@mapNotNull null
+                val resultArtistName = attributes["artistName"]?.jsonPrimitive?.contentOrNull ?: ""
+                val resultName = attributes["name"]?.jsonPrimitive?.contentOrNull ?: ""
+                
+                // Fuzzy artist match to ensure quality
+                if (!resultArtistName.contains(artist, ignoreCase = true) && 
+                    !artist.contains(resultArtistName, ignoreCase = true)) return@mapNotNull null
+                
+                var score = 0
+                if (resultArtistName.equals(artist, ignoreCase = true)) score += 5
+                
+                // Content matching
+                if (resultName.equals(term, ignoreCase = true)) score += 10
+                else if (resultName.contains(term, ignoreCase = true) || term.contains(resultName, ignoreCase = true)) score += 5
+
+                // Special editions handling (Deluxe, Expanded, etc)
+                val editionWords = listOf("deluxe", "expanded", "remastered", "remix", "version", "edition", "bonus")
+                for (word in editionWords) {
+                    val inTerm = term.contains(word, ignoreCase = true)
+                    val inResult = resultName.contains(word, ignoreCase = true)
+                    if (inTerm && inResult) score += 3
+                    else if (inTerm != inResult) score -= 2 
                 }
-                if (response.status != HttpStatusCode.OK) return@runCatching null
+                
+                score to item
+            }.sortedByDescending { it.first }
+            
+            // Try results until we find motion or exhaustion
+            for ((score, item) in scoredResults) {
+                if (score < 4) continue // Skip poor matches
+                val obj = item.jsonObject
+                val attributes = obj["attributes"]?.jsonObject ?: continue
+                val resultArtistName = attributes["artistName"]?.jsonPrimitive?.contentOrNull ?: ""
 
-                val body = response.body<JsonObject>()
-                val results = body["results"]?.jsonArray ?: return@runCatching null
+                // If it's a song, we need the album ID (collectionId or equivalent)
+                val targetAlbumId = if (type == "songs") {
+                    // Try to find album relationship or collectionId
+                    obj["relationships"]?.jsonObject?.get("albums")?.jsonObject?.get("data")?.jsonArray?.firstOrNull()
+                        ?.jsonObject?.get("id")?.jsonPrimitive?.contentOrNull
+                } else {
+                    obj["id"]?.jsonPrimitive?.contentOrNull
+                } ?: continue
 
-                val scored = results.mapNotNull { item ->
-                    val obj = item.jsonObject
-                    val resultArtist = obj["artistName"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
-                    val resultAlbum = obj["collectionName"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
-                    val collectionId = obj["collectionId"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
-
-                    var score = 0
-                    if (resultArtist.contains(artist, ignoreCase = true) || artist.contains(resultArtist, ignoreCase = true)) score += 2
-                    if (resultAlbum.contains(album, ignoreCase = true) || album.contains(resultAlbum, ignoreCase = true)) score += 2
-                    
-                    score to collectionId
+                // Check if motion is already in search attributes (sometimes it's there!)
+                val ev = attributes["editorialVideo"]?.jsonObject
+                if (ev != null) {
+                    val hlsUrl = extractEditorialVideoUrl(ev)
+                    if (!hlsUrl.isNullOrBlank()) {
+                        val name = attributes["name"]?.jsonPrimitive?.contentOrNull
+                        return@runCatching CanvasArtwork(name, resultArtistName, targetAlbumId, animated = hlsUrl)
+                    }
                 }
 
-                scored.filter { it.first >= 2 }.maxByOrNull { it.first }?.second
-            }.getOrNull()
-
-            if (id != null) return id
-        }
-        return null
-    }
-
-    private suspend fun searchItunesSongAlbumId(song: String, artist: String): String? {
-        val queries = linkedSetOf("$artist $song", song)
-
-        for (query in queries) {
-            val id = runCatching {
-                val response = client.get(ITUNES_SEARCH_URL) {
-                    parameter("term", query)
-                    parameter("entity", "song")
-                    parameter("limit", "15")
-                }
-                if (response.status != HttpStatusCode.OK) return@runCatching null
-
-                val body = response.body<JsonObject>()
-                val results = body["results"]?.jsonArray ?: return@runCatching null
-
-                val scored = results.mapNotNull { item ->
-                    val obj = item.jsonObject
-                    val resultArtist = obj["artistName"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
-                    val resultSong = obj["trackName"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
-                    val collectionId = obj["collectionId"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
-
-                    var score = 0
-                    if (resultArtist.contains(artist, ignoreCase = true) || artist.contains(resultArtist, ignoreCase = true)) score += 2
-                    if (resultSong.contains(song, ignoreCase = true) || song.contains(resultSong, ignoreCase = true)) score += 2
-                    
-                    score to collectionId
-                }
-
-                scored.filter { it.first >= 2 }.maxByOrNull { it.first }?.second
-            }.getOrNull()
-
-            if (id != null) return id
-        }
-        return null
+                // If not in search, do the full lookup for this ID
+                val fetched = fetchMotionArtwork(targetAlbumId, storefront, resultArtistName)
+                if (fetched != null) return@runCatching fetched
+            }
+            null
+        }.getOrNull()
     }
 
     private suspend fun fetchMotionArtwork(
