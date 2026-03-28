@@ -154,10 +154,18 @@ fun CanvasArtworkPlayer(
         val normalized = currentUrl.trim()
         val mimeType =
             when {
-                primary != null && currentUrl == primary -> MimeTypes.APPLICATION_M3U8
+                normalized.lowercase(Locale.ROOT).contains(".m3u8") || normalized.lowercase(Locale.ROOT).contains("index.m3u8") -> MimeTypes.APPLICATION_M3U8
+                normalized.lowercase(Locale.ROOT).contains(".mp4") -> MimeTypes.VIDEO_MP4
+                primary != null && currentUrl == primary -> {
+                    // Fallback: if it's the primary URL and we can't tell from extension,
+                    // check if its a known HLS provider or default to HLS for Apple Music compatibility
+                    if (normalized.contains("apple.com") || normalized.contains("music.apple") || !normalized.contains(".mp4")) {
+                        MimeTypes.APPLICATION_M3U8
+                    } else {
+                        MimeTypes.VIDEO_MP4
+                    }
+                }
                 fallback != null && currentUrl == fallback -> MimeTypes.VIDEO_MP4
-                normalized.lowercase(Locale.ROOT).contains("m3u8") -> MimeTypes.APPLICATION_M3U8
-                normalized.lowercase(Locale.ROOT).contains("mp4") -> MimeTypes.VIDEO_MP4
                 else -> MimeTypes.APPLICATION_M3U8
             }
 
