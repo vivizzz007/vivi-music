@@ -154,7 +154,8 @@ fun CanvasArtworkPlayer(
         val normalized = currentUrl.trim()
         val mimeType =
             when {
-                normalized.lowercase(Locale.ROOT).contains(".m3u8") || normalized.lowercase(Locale.ROOT).contains("index.m3u8") -> MimeTypes.APPLICATION_M3U8
+                normalized.contains(".m3u8", ignoreCase = true) || 
+                normalized.lowercase(Locale.ROOT).split('?').first().endsWith(".m3u8") -> MimeTypes.APPLICATION_M3U8
                 normalized.lowercase(Locale.ROOT).contains(".mp4") -> MimeTypes.VIDEO_MP4
                 primary != null && currentUrl == primary -> {
                     // Fallback: if it's the primary URL and we can't tell from extension,

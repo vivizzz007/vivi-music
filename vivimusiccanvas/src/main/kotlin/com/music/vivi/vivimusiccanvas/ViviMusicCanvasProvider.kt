@@ -58,8 +58,8 @@ object ViviMusicCanvasProvider {
     )
 
     private var manifestCache: CacheEntry? = null
-    // Cache TTL 1 hour (re-fetches json index every hour max)
-    private val ttlMs = 3600_000L
+    // Cache TTL 1 minute (re-fetches json index every minute max for instant updates)
+    private val ttlMs = 60_000L
 
     private suspend fun fetchManifest(): ViviMusicCanvasManifest? {
         val currentCache = manifestCache
