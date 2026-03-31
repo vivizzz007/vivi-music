@@ -270,7 +270,6 @@ dependencies {
     implementation(project(":canvas"))
     implementation(project(":shazamkit"))
     implementation(project(":artistvideo"))
-    implementation(project(":applecanvas"))
     implementation(project(":vivimusiccanvas"))
 
 
