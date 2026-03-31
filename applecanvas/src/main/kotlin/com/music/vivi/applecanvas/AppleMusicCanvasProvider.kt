@@ -1,5 +1,6 @@
-package com.music.vivi.canvas
+package com.music.vivi.applecanvas
 
+import com.music.vivi.canvas.CanvasArtwork
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp

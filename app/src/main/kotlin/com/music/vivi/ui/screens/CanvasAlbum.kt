@@ -11,7 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.music.vivi.canvas.AppleMusicCanvasProvider
+import com.music.vivi.applecanvas.AppleMusicCanvasProvider
 import com.music.vivi.vivimusiccanvas.ViviMusicCanvasProvider
 import com.music.vivi.canvas.CanvasArtwork
 import com.music.vivi.canvas.MonochromeAlbumCanvas

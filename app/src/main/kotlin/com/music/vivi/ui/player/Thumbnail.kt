@@ -97,7 +97,7 @@ import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.delay
-import com.music.vivi.canvas.AppleMusicCanvasProvider
+import com.music.vivi.applecanvas.AppleMusicCanvasProvider
 import com.music.vivi.vivimusiccanvas.ViviMusicCanvasProvider
 import java.util.Locale
 

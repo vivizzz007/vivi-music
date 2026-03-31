@@ -29,6 +29,7 @@ include(":simpmusic")
 include(":youlyplus")
 include(":shazamkit")
 include(":artistvideo")
+include(":applecanvas")
 include(":vivimusiccanvas")
 
 
