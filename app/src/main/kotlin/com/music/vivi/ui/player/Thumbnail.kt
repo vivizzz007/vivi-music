@@ -65,6 +65,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.util.Size
+import androidx.activity.compose.BackHandler
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -95,6 +97,8 @@ import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.delay
+import com.music.vivi.applecanvas.AppleMusicCanvasProvider
+import com.music.vivi.vivimusiccanvas.ViviMusicCanvasProvider
 import java.util.Locale
 
 /**
@@ -689,7 +693,11 @@ private fun ThumbnailItem(
                             songTitleRaw to artistNameRaw,
                         ).filter { (s, a) -> s.isNotBlank() && a.isNotBlank() }
                             .firstNotNullOfOrNull { (s, a) ->
-                                ArchiveTuneCanvas.getBySongArtist(
+                                ViviMusicCanvasProvider.getBySongArtist(
+                                    song = s,
+                                    artist = a
+                                )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                                    ?: ArchiveTuneCanvas.getBySongArtist(
                                     song = s,
                                     artist = a,
                                     album = albumName,
@@ -700,6 +708,11 @@ private fun ThumbnailItem(
                                         song = s,
                                         artist = a,
                                         album = albumName
+                                    )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                                    ?: AppleMusicCanvasProvider.getBySongArtist(
+                                        song = s,
+                                        artist = a,
+                                        storefront = storefront
                                     )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                             }
                     }

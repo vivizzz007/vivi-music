@@ -249,7 +249,9 @@
 ## Special Thanks 🙏
 
   <p>A heartfelt thank you to <strong><a href="https://github.com/mostafaalagamy">Mostafa Alagamy</a></strong> for their inspiration and contributions to the open source community.</p>
-
+  <p><strong><a href="https://github.com/koiverse/ArchiveTune">ArchiveTune</a></strong> – For canvas functionality.</p>
+  <p><strong><a href="https://github.com/ibratabian17/YouLyPlus">YouLyPlus</a></strong> – For lyrics functionality.</p>
+  <p><strong><a href="https://github.com/monochrome-music/monochrome">Monochrome</a></strong> – For canvas functionality.</p>
 <hr width="60%">
 ## 🎖️ Credits
   <p>VIVI Music is built upon the foundation of amazing open-source projects:</p>

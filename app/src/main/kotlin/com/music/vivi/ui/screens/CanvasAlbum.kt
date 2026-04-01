@@ -11,6 +11,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.music.vivi.applecanvas.AppleMusicCanvasProvider
+import com.music.vivi.vivimusiccanvas.ViviMusicCanvasProvider
 import com.music.vivi.canvas.CanvasArtwork
 import com.music.vivi.canvas.MonochromeAlbumCanvas
 import com.music.vivi.canvas.MonochromeApiCanvas
@@ -65,13 +67,22 @@ fun rememberAlbumCanvas(
 
             searchTasks.filter { (s, a) -> s.isNotBlank() && a.isNotBlank() }
                 .firstNotNullOfOrNull { (s, a) ->
-                    MonochromeAlbumCanvas.getByAlbumArtist(
+                    ViviMusicCanvasProvider.getBySongArtist(
+                        song = s,
+                        artist = a
+                    )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                    ?: MonochromeAlbumCanvas.getByAlbumArtist(
                         album = s,
                         artist = a
                     ) ?: MonochromeApiCanvas.getBySongArtist(
                         song = s,
                         artist = a,
                         album = albumTitle
+                    )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                    ?: AppleMusicCanvasProvider.getByAlbumArtist(
+                        album = s,
+                        artist = a,
+                        storefront = storefront
                     )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                 }
         }

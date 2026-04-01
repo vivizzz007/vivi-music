@@ -18,6 +18,7 @@ import kotlin.math.abs
 
 object SimpMusicLyrics {
     private const val BASE_URL = "https://api-lyrics.simpmusic.org/v1/"
+    private const val FALLBACK_URL = "https://vivi-yt-music-server.onrender.com/v1/"
 
     private val client by lazy {
         HttpClient(CIO) {
@@ -48,20 +49,42 @@ object SimpMusicLyrics {
         }
     }
 
-    suspend fun getLyricsByVideoId(videoId: String): List<LyricsData> = runCatching {
-        val response = client.get(BASE_URL + videoId)
-        
-        if (response.status == HttpStatusCode.OK) {
-            val apiResponse = response.body<SimpMusicApiResponse>()
-            if (apiResponse.success) {
-                apiResponse.data
+    suspend fun getLyricsByVideoId(videoId: String): List<LyricsData> {
+        val primaryAttempt = runCatching {
+            val response = client.get(BASE_URL + videoId)
+            
+            if (response.status == HttpStatusCode.OK) {
+                val apiResponse = response.body<SimpMusicApiResponse>()
+                if (apiResponse.success) {
+                    apiResponse.data
+                } else {
+                    emptyList() // Successfully responded, but no lyrics
+                }
+            } else {
+                null // Return null to trigger fallback (e.g. 502, 403, etc.)
+            }
+        }.getOrNull()
+
+        if (primaryAttempt != null) {
+            return primaryAttempt
+        }
+
+        // Fallback attempt
+        return runCatching {
+            val response = client.get(FALLBACK_URL + videoId)
+            
+            if (response.status == HttpStatusCode.OK) {
+                val apiResponse = response.body<SimpMusicApiResponse>()
+                if (apiResponse.success) {
+                    apiResponse.data
+                } else {
+                    emptyList()
+                }
             } else {
                 emptyList()
             }
-        } else {
-            emptyList()
-        }
-    }.getOrDefault(emptyList())
+        }.getOrDefault(emptyList())
+    }
 
     suspend fun getLyrics(
         videoId: String,
