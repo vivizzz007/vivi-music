@@ -67,6 +67,8 @@
     <string name="show_artist_monthly_listeners">Afficher les auditeurs mensuels</string>
     <string name="show_artist_video">Afficher la vidéo de l\'artiste sur toile</string>
     <string name="show_artist_video_desc">Afficher une vidéo en boucle à côté du nom de l\'artiste sur la page de l\'artiste</string>
+	<string name="show_artist_background_video">Afficher la vidéo de présentation de l\'artiste</string>
+    <string name="show_artist_background_video_desc">Afficher une vidéo d\'art en boucle derrière l\'image de l\'artiste</string>
 
     <!-- Menu descriptions -->
     <string name="download_playlist_desc">Télécharger tous les titres pour les écouter hors ligne</string>
