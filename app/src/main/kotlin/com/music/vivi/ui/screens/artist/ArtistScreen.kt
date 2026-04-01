@@ -136,11 +136,14 @@ import com.music.vivi.viewmodels.ArtistViewModel
 import com.valentinilk.shimmer.shimmer
 import com.music.vivi.artistvideo.ArtistVideo
 import com.music.vivi.constants.ShowArtistVideoKey
+import com.music.vivi.constants.ShowArtistBackgroundVideoKey
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.music.vivi.canvas.AppleMusicArtistBackgroundProvider
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -170,6 +173,7 @@ fun ArtistScreen(
     val showArtistSubscriberCount by rememberPreference(key = ShowArtistSubscriberCountKey, defaultValue = true)
     val showMonthlyListeners by rememberPreference(key = ShowMonthlyListenersKey, defaultValue = true)
     val showArtistVideo by rememberPreference(key = ShowArtistVideoKey, defaultValue = true)
+    val showArtistBackgroundVideo by rememberPreference(key = ShowArtistBackgroundVideoKey, defaultValue = true)
 
     val lazyListState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -289,9 +293,18 @@ fun ArtistScreen(
                     val thumbnail = artistPage?.artist?.thumbnail ?: libraryArtist?.artist?.thumbnailUrl
                     val artistName = artistPage?.artist?.title ?: libraryArtist?.artist?.name
 
+                    var backgroundVideoUrl by remember { mutableStateOf<String?>(null) }
+                    LaunchedEffect(artistName, showArtistBackgroundVideo) {
+                        if (artistName != null && showArtistBackgroundVideo) {
+                            withContext(Dispatchers.IO) {
+                                backgroundVideoUrl = AppleMusicArtistBackgroundProvider.getByArtistName(artistName)
+                            }
+                        }
+                    }
+
                     Box {
                         // Artist Image with offset
-                        if (thumbnail != null) {
+                        if (thumbnail != null || backgroundVideoUrl != null) {
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -307,12 +320,21 @@ fun ArtistScreen(
                                             bottom = 200.dp,
                                         )
                                 ) {
-                                    AsyncImage(
-                                        model = thumbnail.resize(1200, 1200),
-                                        contentDescription = null,
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentScale = androidx.compose.ui.layout.ContentScale.Crop
-                                    )
+                                    if (thumbnail != null) {
+                                        AsyncImage(
+                                            model = thumbnail.resize(1200, 1200),
+                                            contentDescription = null,
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                        )
+                                    }
+                                    if (backgroundVideoUrl != null && showArtistBackgroundVideo) {
+                                        ArtistVideo(
+                                            videoUrl = backgroundVideoUrl!!,
+                                            modifier = Modifier.fillMaxSize(),
+                                            onClick = { }
+                                        )
+                                    }
                                 }
                             }
                         }

@@ -67,6 +67,8 @@
     <string name="show_artist_monthly_listeners">Show monthly listeners</string>
     <string name="show_artist_video">Show artist canvas video</string>
     <string name="show_artist_video_desc">Display a looping video next to the artist name on the artist page</string>
+    <string name="show_artist_background_video">Show artist background video</string>
+    <string name="show_artist_background_video_desc">Display a looping motion art video behind the artist image</string>
 
     <!-- Menu descriptions -->
     <string name="download_playlist_desc">Download all songs for offline playback</string>

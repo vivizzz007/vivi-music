@@ -83,6 +83,7 @@ import com.music.vivi.constants.ShowArtistDescriptionKey
 import com.music.vivi.constants.ShowArtistSubscriberCountKey
 import com.music.vivi.constants.ShowMonthlyListenersKey
 import com.music.vivi.constants.ShowArtistVideoKey
+import com.music.vivi.constants.ShowArtistBackgroundVideoKey
 import com.music.vivi.constants.ShowWrappedCardKey
 import com.music.vivi.constants.TopSize
 import com.music.vivi.ui.component.EnumDialog
@@ -117,6 +118,7 @@ fun ContentSettings(
     val (showArtistSubscriberCount, onShowArtistSubscriberCountChange) = rememberPreference(key = ShowArtistSubscriberCountKey, defaultValue = true)
     val (showMonthlyListeners, onShowMonthlyListenersChange) = rememberPreference(key = ShowMonthlyListenersKey, defaultValue = true)
     val (showArtistVideo, onShowArtistVideoChange) = rememberPreference(key = ShowArtistVideoKey, defaultValue = true)
+    val (showArtistBackgroundVideo, onShowArtistBackgroundVideoChange) = rememberPreference(key = ShowArtistBackgroundVideoKey, defaultValue = true)
     val (proxyEnabled, onProxyEnabledChange) = rememberPreference(key = ProxyEnabledKey, defaultValue = false)
     val (proxyType, onProxyTypeChange) = rememberEnumPreference(key = ProxyTypeKey, defaultValue = Proxy.Type.HTTP)
     val (proxyUrl, onProxyUrlChange) = rememberPreference(key = ProxyUrlKey, defaultValue = "host:port")
@@ -651,6 +653,27 @@ fun ContentSettings(
                         )
                     },
                     onClick = { onShowArtistVideoChange(!showArtistVideo) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.slow_motion_video),
+                    title = { Text(stringResource(R.string.show_artist_background_video)) },
+                    description = { Text(stringResource(R.string.show_artist_background_video_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = showArtistBackgroundVideo,
+                            onCheckedChange = onShowArtistBackgroundVideoChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (showArtistBackgroundVideo) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onShowArtistBackgroundVideoChange(!showArtistBackgroundVideo) }
                 )
             )
         )
