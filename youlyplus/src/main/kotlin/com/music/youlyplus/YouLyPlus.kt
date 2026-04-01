@@ -22,6 +22,7 @@ import kotlinx.serialization.json.Json
 object YouLyPlus {
 
     /** Mirror of YouLyPlus extension's KPOE_SERVERS constant. */
+    
     private val SERVERS = listOf(
         "https://lyricsplus.prjktla.my.id",       // youly's server
         "https://lyricsplus.atomix.one",          // meow's mirror
