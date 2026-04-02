@@ -66,6 +66,7 @@ import com.music.vivi.constants.EnableYouLyPlusKey
 import com.music.vivi.constants.HideExplicitKey
 import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.constants.HideYoutubeShortsKey
+import com.music.vivi.constants.AlbumCanvasEnabledKey
 import com.music.vivi.constants.LanguageCodeToName
 import com.music.vivi.constants.PreferredLyricsProvider
 import com.music.vivi.constants.PreferredLyricsProviderKey
@@ -82,6 +83,7 @@ import com.music.vivi.constants.ShowArtistDescriptionKey
 import com.music.vivi.constants.ShowArtistSubscriberCountKey
 import com.music.vivi.constants.ShowMonthlyListenersKey
 import com.music.vivi.constants.ShowArtistVideoKey
+import com.music.vivi.constants.ShowArtistBackgroundVideoKey
 import com.music.vivi.constants.ShowWrappedCardKey
 import com.music.vivi.constants.TopSize
 import com.music.vivi.ui.component.EnumDialog
@@ -93,6 +95,8 @@ import androidx.compose.foundation.rememberScrollState
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
+import com.music.innertube.models.IpVersion
+import com.music.vivi.constants.IpVersionKey
 import java.net.Proxy
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -117,6 +121,7 @@ fun ContentSettings(
     val (showArtistSubscriberCount, onShowArtistSubscriberCountChange) = rememberPreference(key = ShowArtistSubscriberCountKey, defaultValue = true)
     val (showMonthlyListeners, onShowMonthlyListenersChange) = rememberPreference(key = ShowMonthlyListenersKey, defaultValue = true)
     val (showArtistVideo, onShowArtistVideoChange) = rememberPreference(key = ShowArtistVideoKey, defaultValue = true)
+    val (showArtistBackgroundVideo, onShowArtistBackgroundVideoChange) = rememberPreference(key = ShowArtistBackgroundVideoKey, defaultValue = true)
     val (proxyEnabled, onProxyEnabledChange) = rememberPreference(key = ProxyEnabledKey, defaultValue = false)
     val (proxyType, onProxyTypeChange) = rememberEnumPreference(key = ProxyTypeKey, defaultValue = Proxy.Type.HTTP)
     val (proxyUrl, onProxyUrlChange) = rememberPreference(key = ProxyUrlKey, defaultValue = "host:port")
@@ -139,6 +144,11 @@ fun ContentSettings(
         RandomizeHomeOrderKey,
         defaultValue = true
     )
+    val (ipVersion, onIpVersionChange) = rememberEnumPreference(
+        IpVersionKey,
+        defaultValue = IpVersion.AUTO
+    )
+    val (albumCanvasEnabled, onAlbumCanvasEnabledChange) = rememberPreference(key = AlbumCanvasEnabledKey, defaultValue = false)
 
     // Auto-switch preferred provider if current one is disabled
     LaunchedEffect(enableLrclib, enableKugou, enableBetterLyrics, enableSimpMusic, enableYouLyPlus, preferredProvider) {
@@ -449,13 +459,29 @@ fun ContentSettings(
         )
     }
 
+    var showIpVersionDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
 
-    val scrollState = rememberScrollState()
-
-
-    val (_, onHighlightPosition) = rememberHighlightScrollHandler(scrollState, highlightKey)
-
-
+    if (showIpVersionDialog) {
+        EnumDialog(
+            onDismiss = { showIpVersionDialog = false },
+            onSelect = {
+                onIpVersionChange(it)
+                showIpVersionDialog = false
+            },
+            title = stringResource(R.string.network_ip_version),
+            current = ipVersion,
+            values = IpVersion.entries,
+            valueText = {
+                when (it) {
+                    IpVersion.AUTO -> stringResource(R.string.ip_version_auto)
+                    IpVersion.IPV4 -> stringResource(R.string.ip_version_ipv4)
+                    IpVersion.IPV6 -> stringResource(R.string.ip_version_ipv6)
+                }
+            }
+        )
+    }
 
     Column(
         Modifier
@@ -646,6 +672,54 @@ fun ContentSettings(
                         )
                     },
                     onClick = { onShowArtistVideoChange(!showArtistVideo) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.slow_motion_video),
+                    title = { Text(stringResource(R.string.show_artist_background_video)) },
+                    description = { Text(stringResource(R.string.show_artist_background_video_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = showArtistBackgroundVideo,
+                            onCheckedChange = onShowArtistBackgroundVideoChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (showArtistBackgroundVideo) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onShowArtistBackgroundVideoChange(!showArtistBackgroundVideo) }
+                )
+            )
+        )
+
+        Material3SettingsGroup(
+            title = stringResource(R.string.album_text),
+            items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.slow_motion_video),
+                    title = { Text(stringResource(R.string.show_album_canvas)) },
+                    description = { Text(stringResource(R.string.show_album_canvas_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = albumCanvasEnabled,
+                            onCheckedChange = onAlbumCanvasEnabledChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (albumCanvasEnabled) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onAlbumCanvasEnabledChange(!albumCanvasEnabled) }
                 )
             )
         )
@@ -694,6 +768,20 @@ fun ContentSettings(
             onHighlightPositionFound = onHighlightPosition,
             title = stringResource(R.string.proxy),
             items = buildList {
+                add(Material3SettingsItem(
+                    icon = painterResource(R.drawable.network_node),
+                    title = { Text(stringResource(R.string.network_ip_version)) },
+                    description = {
+                        Text(
+                            when (ipVersion) {
+                                IpVersion.AUTO -> stringResource(R.string.ip_version_auto)
+                                IpVersion.IPV4 -> stringResource(R.string.ip_version_ipv4)
+                                IpVersion.IPV6 -> stringResource(R.string.ip_version_ipv6)
+                            }
+                        )
+                    },
+                    onClick = { showIpVersionDialog = true }
+                ))
                 add(
                     Material3SettingsItem(
                         settingKey = "enable_proxy",

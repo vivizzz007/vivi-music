@@ -105,6 +105,11 @@ object MonochromeApiCanvas {
                     val trackTitle = track["title"]?.jsonPrimitive?.contentOrNull
                     if (trackTitle != null && !trackTitle.contains(song, ignoreCase = true)) continue
 
+                    // Artist validation to prevent "wrong canvas" for same song title by different artists
+                    val artists = track["artists"]?.jsonArray
+                    val resultArtist = artists?.firstOrNull()?.jsonObject?.get("name")?.jsonPrimitive?.contentOrNull
+                    if (resultArtist != null && !resultArtist.contains(artist, ignoreCase = true) && !artist.contains(resultArtist, ignoreCase = true)) continue
+
                     val albumObj = track["album"]?.jsonObject ?: continue
                     val videoCover = albumObj["videoCover"]?.jsonPrimitive?.contentOrNull
                     
@@ -113,7 +118,7 @@ object MonochromeApiCanvas {
                         if (videoUrl != null) {
                             return CanvasArtwork(
                                 name = trackTitle ?: song,
-                                artist = artist,
+                                artist = resultArtist ?: artist,
                                 videoUrl = videoUrl
                             )
                         }

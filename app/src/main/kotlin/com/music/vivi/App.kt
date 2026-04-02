@@ -22,6 +22,7 @@ import coil3.request.CachePolicy
 import coil3.request.allowHardware
 import coil3.request.crossfade
 import com.music.innertube.YouTube
+import com.music.innertube.models.IpVersion
 import com.music.innertube.models.YouTubeLocale
 import com.music.kugou.KuGou
 import com.music.lastfm.LastFM
@@ -128,6 +129,7 @@ class App : Application(), SingletonImageLoader.Factory {
         }
 
         YouTube.useLoginForBrowse = settings[UseLoginForBrowse] ?: true
+        YouTube.ipVersion = settings[IpVersionKey]?.toEnum(defaultValue = IpVersion.AUTO) ?: IpVersion.AUTO
 
         val channel = NotificationChannel(
             "updates",
@@ -216,6 +218,15 @@ class App : Application(), SingletonImageLoader.Factory {
                             ?: effectiveAppLocale.language.takeIf { it in LanguageCodeToName }
                             ?: "en"
                     )
+                }
+        }
+
+        applicationScope.launch(Dispatchers.IO) {
+            dataStore.data
+                .map { it[IpVersionKey] }
+                .distinctUntilChanged()
+                .collect { ipVersion ->
+                    YouTube.ipVersion = ipVersion?.toEnum(defaultValue = IpVersion.AUTO) ?: IpVersion.AUTO
                 }
         }
     }

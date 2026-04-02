@@ -208,6 +208,11 @@
         <item quantity="one">%d year</item>
         <item quantity="other">%d years</item>
     </plurals>
+    <plurals name="n_apk_found">
+        <item quantity="zero">No APKs found</item>
+        <item quantity="one">%d APK found</item>
+        <item quantity="other">%d APKs found</item>
+    </plurals>
 
     <!-- Snackbar -->
     <string name="playlist_imported">Playlist imported</string>
@@ -295,6 +300,10 @@
 
     <string name="player_and_audio">Player and audio</string>
     <string name="audio_quality">Audio quality</string>
+    <string name="network_ip_version">Network IP Version</string>
+    <string name="ip_version_auto">Automatic</string>
+    <string name="ip_version_ipv4">Forced IPv4</string>
+    <string name="ip_version_ipv6">Forced IPv6</string>
     <string name="audio_quality_auto">Auto</string>
     <string name="audio_quality_high">High</string>
     <string name="audio_quality_low">Low</string>
@@ -322,6 +331,9 @@
     <string name="max_song_cache_size">Max song cache size</string>
     <string name="clear_song_cache">Clear song cache</string>
     <string name="size_used">%s used</string>
+
+    <string name="clear_downloaded_updates">Clear downloaded updates</string>
+    <string name="clear_downloaded_updates_desc">Remove downloaded APK files to free up space</string>
 
     <string name="privacy">Privacy</string>
     <string name="listen_history">Listen history</string>

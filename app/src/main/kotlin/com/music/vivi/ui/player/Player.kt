@@ -171,6 +171,7 @@ import com.music.vivi.ui.component.ResizableIconButton
 import com.music.vivi.ui.component.SquigglySlider
 import com.music.vivi.ui.component.WavySlider
 import com.music.vivi.ui.component.rememberBottomSheetState
+import com.music.vivi.ui.menu.OldPlayerMenu
 import com.music.vivi.ui.menu.PlayerMenu
 import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.theme.PlayerColorExtractor
@@ -1319,66 +1320,31 @@ fun BottomSheetPlayer(
                                     .clip(RoundedCornerShape(24.dp))
                                     .background(textButtonColor)
                                     .clickable {
-                                        mediaMetadata?.let { meta ->
-                                            when (download?.state) {
-                                                Download.STATE_COMPLETED, Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
-                                                    DownloadService.sendRemoveDownload(
-                                                        context,
-                                                        ExoDownloadService::class.java,
-                                                        meta.id,
-                                                        false,
-                                                    )
-                                                }
-                                                else -> {
-                                                    database.transaction {
-                                                        insert(meta)
+                                        menuState.show {
+                                            OldPlayerMenu(
+                                                mediaMetadata = mediaMetadata,
+                                                navController = navController,
+                                                playerBottomSheetState = state,
+                                                onShowDetailsDialog = {
+                                                    mediaMetadata.id.let {
+                                                        bottomSheetPageState.show {
+                                                           ShowMediaInfo(it)
+                                                        }
                                                     }
-                                                    val downloadRequest =
-                                                        DownloadRequest
-                                                            .Builder(meta.id, meta.id.toUri())
-                                                            .setCustomCacheKey(meta.id)
-                                                            .setData(meta.title.toByteArray())
-                                                            .build()
-                                                    DownloadService.sendAddDownload(
-                                                        context,
-                                                        ExoDownloadService::class.java,
-                                                        downloadRequest,
-                                                        false,
-                                                    )
-                                                }
-                                            }
+                                                },
+                                                onDismiss = menuState::dismiss
+                                            )
                                         }
                                     },
                             ) {
-                                when (download?.state) {
-                                    Download.STATE_COMPLETED -> {
-                                        Icon(
-                                            painter = painterResource(R.drawable.offline),
-                                            contentDescription = null,
-                                            tint = iconButtonColor,
-                                            modifier = Modifier
-                                                .align(Alignment.Center)
-                                                .size(24.dp)
-                                        )
-                                    }
-                                    Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
-                                        CircularWavyProgressIndicator(
-                                            modifier = Modifier
-                                                .align(Alignment.Center)
-                                                .size(24.dp),
-                                        )
-                                    }
-                                    else -> {
-                                        Icon(
-                                            painter = painterResource(R.drawable.download),
-                                            contentDescription = null,
-                                            tint = iconButtonColor,
-                                            modifier = Modifier
-                                                .align(Alignment.Center)
-                                                .size(24.dp)
-                                        )
-                                    }
-                                }
+                                Icon(
+                                    painter = painterResource(R.drawable.more_vert),
+                                    contentDescription = null,
+                                    tint = iconButtonColor,
+                                    modifier = Modifier
+                                        .align(Alignment.Center)
+                                        .size(24.dp)
+                                )
                             }
                         }
                     }
@@ -1757,29 +1723,29 @@ fun BottomSheetPlayer(
                                 .fillMaxWidth()
                                 .padding(horizontal = PlayerHorizontalPadding),
                         ) {
-                            Box(modifier = Modifier.weight(1f)) {
-                                ResizableIconButton(
-                                    icon = when (repeatMode) {
-                                        Player.REPEAT_MODE_OFF, Player.REPEAT_MODE_ALL -> R.drawable.repeat
-                                        Player.REPEAT_MODE_ONE -> R.drawable.repeat_one
-                                        else -> throw IllegalStateException()
-                                    },
-                                    color = TextBackgroundColor,
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                        .padding(4.dp)
-                                        .align(Alignment.Center)
-                                        .alpha(if (isListenTogetherGuest) 0.5f else 1f),
-                                    enabled = !isListenTogetherGuest,
-                                    onClick = {
-                                        playerConnection.player.toggleRepeatMode()
-                                    }
-                                )
-                            }
+//                            Box(modifier = Modifier.weight(1f)) {
+//                                ResizableIconButton(
+//                                    icon = when (repeatMode) {
+//                                        Player.REPEAT_MODE_OFF, Player.REPEAT_MODE_ALL -> R.drawable.repeat
+//                                        Player.REPEAT_MODE_ONE -> R.drawable.repeat_one
+//                                        else -> throw IllegalStateException()
+//                                    },
+//                                    color = TextBackgroundColor,
+//                                    modifier = Modifier
+//                                        .size(32.dp)
+//                                        .padding(4.dp)
+//                                        .align(Alignment.Center)
+//                                        .alpha(if (isListenTogetherGuest) 0.5f else 1f),
+//                                    enabled = !isListenTogetherGuest,
+//                                    onClick = {
+//                                        playerConnection.player.toggleRepeatMode()
+//                                    }
+//                                )
+//                            }
 
                             Box(modifier = Modifier.weight(1f)) {
                                 ResizableIconButton(
-                                    icon = R.drawable.skip_previous,
+                                    icon = R.drawable.apple_skip_previous,
                                     enabled = canSkipPrevious && !isListenTogetherGuest,
                                     color = TextBackgroundColor,
                                     modifier =
@@ -1798,7 +1764,6 @@ fun BottomSheetPlayer(
                                 Modifier
                                     .size(72.dp)
                                     .clip(RoundedCornerShape(playPauseRoundness))
-                                    .background(textButtonColor)
                                     .clickable {
                                         if (isListenTogetherGuest) {
                                             playerConnection.toggleMute()
@@ -1834,11 +1799,11 @@ fun BottomSheetPlayer(
                                         },
                                     ),
                                     contentDescription = null,
-                                    colorFilter = ColorFilter.tint(iconButtonColor),
+                                    colorFilter = ColorFilter.tint(TextBackgroundColor),
                                     modifier =
                                     Modifier
                                         .align(Alignment.Center)
-                                        .size(36.dp),
+                                        .size(48.dp),
                                 )
                             }
 
@@ -1846,7 +1811,7 @@ fun BottomSheetPlayer(
 
                             Box(modifier = Modifier.weight(1f)) {
                                 ResizableIconButton(
-                                    icon = R.drawable.skip_next,
+                                    icon = R.drawable.apple_skip_next,
                                     enabled = canSkipNext && !isListenTogetherGuest,
                                     color = TextBackgroundColor,
                                     modifier =
@@ -1858,18 +1823,18 @@ fun BottomSheetPlayer(
                                 )
                             }
 
-                            Box(modifier = Modifier.weight(1f)) {
-                                ResizableIconButton(
-                                    icon = if (currentSong?.song?.liked == true) R.drawable.favorite else R.drawable.favorite_border,
-                                    color = if (currentSong?.song?.liked == true) MaterialTheme.colorScheme.error else TextBackgroundColor,
-                                    modifier =
-                                    Modifier
-                                        .size(32.dp)
-                                        .padding(4.dp)
-                                        .align(Alignment.Center),
-                                    onClick = playerConnection::toggleLike,
-                                )
-                            }
+//                            Box(modifier = Modifier.weight(1f)) {
+//                                ResizableIconButton(
+//                                    icon = if (currentSong?.song?.liked == true) R.drawable.favorite else R.drawable.favorite_border,
+//                                    color = if (currentSong?.song?.liked == true) MaterialTheme.colorScheme.error else TextBackgroundColor,
+//                                    modifier =
+//                                    Modifier
+//                                        .size(32.dp)
+//                                        .padding(4.dp)
+//                                        .align(Alignment.Center),
+//                                    onClick = playerConnection::toggleLike,
+//                                )
+//                            }
                         }
                     }
                 }

@@ -425,20 +425,20 @@ fun Queue(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Icon(
-                                painter = painterResource(id = R.drawable.queue_music),
+                                painter = painterResource(id = R.drawable.apple_queue),
                                 contentDescription = null,
-                                modifier = Modifier.size(20.dp),
+                                modifier = Modifier.size(40.dp),
                                 tint = TextBackgroundColor
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = stringResource(id = R.string.queue),
-                                color = TextBackgroundColor,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.basicMarquee()
-                            )
+//                            Spacer(modifier = Modifier.width(6.dp))
+//                            Text(
+//                                text = stringResource(id = R.string.queue),
+//                                color = TextBackgroundColor,
+//                                maxLines = 1,
+//                                overflow = TextOverflow.Ellipsis,
+//                                textAlign = TextAlign.Center,
+//                                modifier = Modifier.basicMarquee()
+//                            )
                         }
                     }
 
@@ -461,9 +461,9 @@ fun Queue(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Icon(
-                                painter = painterResource(id = R.drawable.bedtime),
+                                painter = painterResource(id = R.drawable.sleep_timer),
                                 contentDescription = null,
-                                modifier = Modifier.size(20.dp),
+                                modifier = Modifier.size(40.dp),
                                 tint = TextBackgroundColor
                             )
                             Spacer(modifier = Modifier.width(6.dp))
@@ -481,14 +481,14 @@ fun Queue(
                                         modifier = Modifier.basicMarquee()
                                     )
                                 } else {
-                                    Text(
-                                        text = stringResource(id = R.string.sleep_timer),
-                                        color = TextBackgroundColor,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        textAlign = TextAlign.Center,
-                                        modifier = Modifier.basicMarquee()
-                                    )
+//                                    Text(
+//                                        text = stringResource(id = R.string.sleep_timer),
+//                                        color = TextBackgroundColor,
+//                                        maxLines = 1,
+//                                        overflow = TextOverflow.Ellipsis,
+//                                        textAlign = TextAlign.Center,
+//                                        modifier = Modifier.basicMarquee()
+//                                    )
                                 }
                             }
                         }
@@ -506,20 +506,20 @@ fun Queue(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Icon(
-                                painter = painterResource(id = R.drawable.lyrics),
+                                painter = painterResource(id = R.drawable.apple_music_me),
                                 contentDescription = null,
-                                modifier = Modifier.size(20.dp),
+                                modifier = Modifier.size(40.dp),
                                 tint = TextBackgroundColor
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = stringResource(R.string.lyrics),
-                                color = TextBackgroundColor,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.basicMarquee()
-                            )
+//                            Spacer(modifier = Modifier.width(6.dp))
+//                            Text(
+//                                text = stringResource(R.string.lyrics),
+//                                color = TextBackgroundColor,
+//                                maxLines = 1,
+//                                overflow = TextOverflow.Ellipsis,
+//                                textAlign = TextAlign.Center,
+//                                modifier = Modifier.basicMarquee()
+//                            )
                         }
                     }
                 }

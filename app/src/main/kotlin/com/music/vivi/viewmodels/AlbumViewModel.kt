@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import com.music.vivi.utils.Wikipedia
+import com.music.vivi.utils.AppleMusicAboutAlbum
 import javax.inject.Inject
 
 @HiltViewModel
@@ -93,6 +94,17 @@ constructor(
                                 if (currentAlbum != null) {
                                     database.query {
                                         update(currentAlbum.album.copy(description = wikiDescription))
+                                    }
+                                }
+                            } else {
+                                val appleDescription = AppleMusicAboutAlbum.fetchAlbumDescription(it.album.title, artistName)
+                                if (appleDescription != null) {
+                                    description.value = appleDescription
+                                    val currentAlbum = database.album(albumId).first()
+                                    if (currentAlbum != null) {
+                                        database.query {
+                                            update(currentAlbum.album.copy(description = appleDescription))
+                                        }
                                     }
                                 }
                             }

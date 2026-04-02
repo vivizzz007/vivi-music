@@ -65,6 +65,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.util.Size
+import androidx.activity.compose.BackHandler
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -95,6 +97,8 @@ import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.delay
+import com.music.vivi.applecanvas.AppleMusicCanvasProvider
+import com.music.vivi.vivimusiccanvas.ViviMusicCanvasProvider
 import java.util.Locale
 
 /**
@@ -689,7 +693,11 @@ private fun ThumbnailItem(
                             songTitleRaw to artistNameRaw,
                         ).filter { (s, a) -> s.isNotBlank() && a.isNotBlank() }
                             .firstNotNullOfOrNull { (s, a) ->
-                                ArchiveTuneCanvas.getBySongArtist(
+                                ViviMusicCanvasProvider.getBySongArtist(
+                                    song = s,
+                                    artist = a
+                                )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                                    ?: ArchiveTuneCanvas.getBySongArtist(
                                     song = s,
                                     artist = a,
                                     album = albumName,
@@ -701,12 +709,31 @@ private fun ThumbnailItem(
                                         artist = a,
                                         album = albumName
                                     )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                                    ?: AppleMusicCanvasProvider.getBySongArtist(
+                                        song = s,
+                                        artist = a,
+                                        storefront = storefront
+                                    )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                             }
                     }
                     
-                    canvasArtwork = fetched
-                    if (fetched != null) {
-                        CanvasArtworkPlaybackCache.put(item.mediaId, fetched)
+                    // Client-side safety check: ensure the fetched canvas artist matches the requested artist
+                    // This prevents "wrong canvas" if a provider returned a generic match
+                    val requestedArtist = item.mediaMetadata.artist?.toString() ?: ""
+                    val validated = fetched?.let { artwork ->
+                        val resultArtist = artwork.artist
+                        if (resultArtist != null && requestedArtist.isNotBlank()) {
+                            // Basic fuzzy match
+                            if (resultArtist.contains(requestedArtist, ignoreCase = true) || 
+                                requestedArtist.contains(resultArtist, ignoreCase = true)) {
+                                artwork
+                            } else null
+                        } else artwork // fallback if artist info missing
+                    }
+                    
+                    canvasArtwork = validated
+                    if (validated != null) {
+                        CanvasArtworkPlaybackCache.put(item.mediaId, validated)
                     }
                     canvasFetchInFlight = false
                 }

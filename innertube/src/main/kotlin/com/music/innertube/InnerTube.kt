@@ -9,6 +9,12 @@ import com.music.innertube.models.body.*
 import com.music.innertube.models.response.NextResponse
 import com.music.innertube.utils.parseCookieString
 import com.music.innertube.utils.sha1
+import com.music.innertube.models.IpVersion
+import okhttp3.Dns
+import java.net.InetAddress
+import java.net.Inet6Address
+import java.net.Inet4Address
+import kotlin.io.encoding.ExperimentalEncodingApi
 import io.ktor.client.*
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.*
@@ -26,7 +32,6 @@ import java.io.IOException
 import kotlinx.coroutines.delay
 import java.util.*
 import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 
 /**
  * Provide access to InnerTube endpoints.
@@ -57,6 +62,13 @@ class InnerTube {
         }
     
     var proxyAuth: String? = null
+
+    var ipVersion: IpVersion = IpVersion.AUTO
+        set(value) {
+            field = value
+            httpClient.close()
+            httpClient = createClient()
+        }
 
     var useLoginForBrowse: Boolean = false
 
@@ -108,6 +120,18 @@ class InnerTube {
                     )
                 )
                 
+                // Apply IP version filtering
+                dns(object : Dns {
+                    override fun lookup(hostname: String): List<InetAddress> {
+                        val addresses = Dns.SYSTEM.lookup(hostname)
+                        return when (this@InnerTube.ipVersion) {
+                            IpVersion.IPV4 -> addresses.filter { it is Inet4Address }.ifEmpty { addresses }
+                            IpVersion.IPV6 -> addresses.filter { it is Inet6Address }.ifEmpty { addresses }
+                            IpVersion.AUTO -> addresses
+                        }
+                    }
+                })
+
                 // Apply proxy configuration
                 this@InnerTube.proxy?.let { proxyConfig ->
                     proxy(proxyConfig)

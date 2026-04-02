@@ -449,6 +449,7 @@ fun Lyrics(
 
     // State for translation status
     val translationStatus by LyricsTranslationHelper.status.collectAsState()
+    val hasActiveTranslations by LyricsTranslationHelper.hasActiveTranslations.collectAsState()
     
     // Track composition lifecycle
     DisposableEffect(Unit) {
@@ -495,6 +496,13 @@ fun Lyrics(
             } else if (effectiveApiKey.isBlank()) {
                 Toast.makeText(context, context.getString(R.string.ai_api_key_required), Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    // Listen for clear translations trigger from helper (authoritative source)
+    LaunchedEffect(Unit) {
+        LyricsTranslationHelper.clearTranslationsTrigger.collect {
+            lines.forEach { it.translatedTextFlow.value = null }
         }
     }
 
@@ -942,6 +950,7 @@ fun Lyrics(
                                             romanizePunjabiLyrics),
                             textSize = lyricsTextSize,
                             lineSpacing = lyricsLineSpacing,
+                            showTranslated = hasActiveTranslations,
                             isAutoScrollActive = isAutoScrollEnabled,
                             isSelectionModeActive = isSelectionModeActive,
                             isSelected = isSelected,
@@ -1087,7 +1096,7 @@ fun Lyrics(
 
                     // Progressive blur logic for Standard / non-word-by-word lyrics
                     // mirrored from Apple Music animation style for a premium feel
-                    val targetBlur = if (!lyricsStandardBlur || (isSelectionModeActive && isSelected) || isActiveByIndex || isActiveByTime) {
+                    val targetBlur = if (!lyricsStandardBlur || !isAutoScrollEnabled || (isSelectionModeActive && isSelected) || isActiveByIndex || isActiveByTime) {
                         0f
                     } else {
                         val distance = kotlin.math.abs(index - (if (displayedCurrentLineIndex >= 0) displayedCurrentLineIndex else currentLineIndex))
@@ -1581,6 +1590,22 @@ fun Lyrics(
                                         }
                                     }
                                 }
+                                
+                                // Translated text support for APPLE_V2
+                                if (hasActiveTranslations) {
+                                    val translatedText by item.translatedTextFlow.collectAsState()
+                                    translatedText?.let { translated ->
+                                        Text(
+                                            text = translated,
+                                            fontSize = (lyricsTextSize * 0.7f).sp,
+                                            color = expressiveAccent.copy(alpha = if (isActiveLine) 0.8f else 0.3f),
+                                            textAlign = agentTextAlign,
+                                            fontWeight = FontWeight.Medium,
+                                            modifier = Modifier.padding(top = 4.dp).fillMaxWidth(),
+                                            lineHeight = (lyricsTextSize * 0.7f * lyricsLineSpacing.coerceAtMost(1.3f)).sp
+                                        )
+                                    }
+                                }
                             }
                         } else if (lyricsAnimationStyle == LyricsAnimationStyle.LYRICS_V2) {
                             LyricsLineV2(
@@ -1592,6 +1617,7 @@ fun Lyrics(
                                 inactiveAlpha = 0.35f, // Sync with ArchiveTune inactive alpha
                                 baseFontSize = lyricsTextSize,
                                 lineHeight = lyricsTextSize * lyricsLineSpacing.coerceAtMost(1.3f),
+                                showTranslated = hasActiveTranslations,
                                 agentAlignment = agentAlignment,
                                 agentTextAlign = agentTextAlign
                             )
@@ -1729,21 +1755,26 @@ fun Lyrics(
                             }
                         }
                         
-                        // Show translated text if available
-                        val translatedText by item.translatedTextFlow.collectAsState()
-                        translatedText?.let { translated ->
-                            Text(
-                                text = translated,
-                                fontSize = 16.sp,
-                                color = expressiveAccent.copy(alpha = 0.5f),
-                                textAlign = when (lyricsTextPosition) {
-                                    LyricsPosition.LEFT -> TextAlign.Left
-                                    LyricsPosition.CENTER -> TextAlign.Center
-                                    LyricsPosition.RIGHT -> TextAlign.Right
-                                },
-                                fontWeight = FontWeight.Normal,
-                                modifier = Modifier.padding(top = 4.dp)
-                            )
+                        // Show translated text if available, unless the animation style handles it intrinsically
+                        if (hasActiveTranslations && 
+                            lyricsAnimationStyle != LyricsAnimationStyle.LYRICS_V2 && 
+                            lyricsAnimationStyle != LyricsAnimationStyle.APPLE_V2) {
+                            val translatedText by item.translatedTextFlow.collectAsState()
+                            translatedText?.let { translated ->
+                                Text(
+                                    text = translated,
+                                    fontSize = (lyricsTextSize * 0.7f).sp,
+                                    color = expressiveAccent.copy(alpha = 0.8f),
+                                    textAlign = when (lyricsTextPosition) {
+                                        LyricsPosition.LEFT -> TextAlign.Left
+                                        LyricsPosition.CENTER -> TextAlign.Center
+                                        LyricsPosition.RIGHT -> TextAlign.Right
+                                    },
+                                    fontWeight = FontWeight.Medium,
+                                    modifier = Modifier.padding(top = 4.dp).fillMaxWidth(),
+                                    lineHeight = (lyricsTextSize * 0.7f * lyricsLineSpacing.coerceAtMost(1.3f)).sp
+                                )
+                            }
                         }
                     }
                 }

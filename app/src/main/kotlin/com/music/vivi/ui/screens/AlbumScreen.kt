@@ -105,6 +105,7 @@ import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.HideExplicitKey
 import com.music.vivi.constants.HideVideoSongsKey
+import com.music.vivi.constants.AlbumCanvasEnabledKey
 import com.music.vivi.db.entities.Album
 import com.music.vivi.playback.ExoDownloadService
 import com.music.vivi.playback.queues.LocalAlbumRadio
@@ -121,6 +122,7 @@ import com.music.vivi.ui.menu.SelectionSongMenu
 import com.music.vivi.ui.menu.SongMenu
 import com.music.vivi.ui.menu.YouTubeAlbumMenu
 import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.ui.player.CanvasArtworkPlayer
 import com.music.vivi.utils.listItemShape
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.AlbumViewModel
@@ -152,6 +154,13 @@ fun AlbumScreen(
     val descriptionRuns by viewModel.descriptionRuns.collectAsState()
     val hideExplicit by rememberPreference(key = HideExplicitKey, defaultValue = false)
     val hideVideoSongs by rememberPreference(key = HideVideoSongsKey, defaultValue = false)
+    val albumCanvasEnabled by rememberPreference(key = AlbumCanvasEnabledKey, defaultValue = false)
+
+    val canvasArtwork = rememberAlbumCanvas(
+        albumTitle = albumWithSongs?.album?.title,
+        artistName = albumWithSongs?.artists?.firstOrNull()?.name,
+        firstSongTitle = albumWithSongs?.songs?.firstOrNull()?.song?.title
+    )
 
     val filteredSongs = remember(albumWithSongs, hideExplicit, hideVideoSongs) {
         var songs = albumWithSongs?.songs ?: emptyList()
@@ -257,21 +266,29 @@ fun AlbumScreen(
                         Spacer(Modifier.height(20.dp)) // Space for top app bar
 
                         // Album Artwork - Large and centered
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 48.dp)
-                    ) {
-                        AsyncImage(
-                            model = albumWithSongs.album.thumbnailUrl,
-                            contentDescription = null,
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .padding(horizontal = 48.dp)
                                 .aspectRatio(1f)
-                                .clip(RoundedCornerShape(8.dp)),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
+                                .clip(RoundedCornerShape(8.dp))
+                        ) {
+                            AsyncImage(
+                                model = albumWithSongs.album.thumbnailUrl,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+
+                            if (albumCanvasEnabled && canvasArtwork != null) {
+                                CanvasArtworkPlayer(
+                                    primaryUrl = canvasArtwork.animated,
+                                    fallbackUrl = canvasArtwork.videoUrl,
+                                    isPlaying = true,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                        }
 
                     Spacer(Modifier.height(32.dp))
 
