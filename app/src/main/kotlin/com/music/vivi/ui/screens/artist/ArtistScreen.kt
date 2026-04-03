@@ -369,7 +369,7 @@ fun ArtistScreen(
                                 ) {
 
                                     //artist video
-                                    if (showArtistVideo) {
+                                    if (showArtistVideo && !(showArtistBackgroundVideo && backgroundVideoUrl != null)) {
                                         artistVideoUrl?.let { videoUrl ->
                                             artistPage?.artist?.radioEndpoint?.let { radioEndpoint ->
                                                 Spacer(modifier = Modifier.width(5.dp))

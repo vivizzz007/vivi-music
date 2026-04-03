@@ -77,9 +77,18 @@ import java.net.URL
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.regex.Pattern
+import com.music.vivi.ui.component.ChangelogItem
+import com.music.vivi.ui.component.leadingItemShape
+import com.music.vivi.ui.component.middleItemShape
+import com.music.vivi.ui.component.endItemShape
+import com.music.vivi.ui.component.detachedItemShape
 import com.music.vivi.ui.component.AnimatedActionButton
 import com.music.vivi.ui.component.ExpressiveIconButton
 import com.music.vivi.ui.component.ErrorSnackbar
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
@@ -93,12 +102,14 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.res.painterResource
 
+data class ChangelogSection(val title: String, val items: List<String>)
+
 sealed class ViviUpdateStatus {
     object Idle : ViviUpdateStatus()
     object Checking : ViviUpdateStatus()
     data class Available(
         val version: String,
-        val changelog: String,
+        val changelog: List<ChangelogSection>,
         val size: String,
         val releaseDate: String,
         val description: String?,
@@ -218,10 +229,22 @@ fun UpdateScreen(navController: NavHostController) {
         topBar = {
             LargeTopAppBar(
                 title = {
-                    Text(
-                        text = if (status is ViviUpdateStatus.Available) stringResource(R.string.new_update) else stringResource(R.string.settings_check_updates_title),
-                        maxLines = 1
-                    )
+                    val titleText = if (status is ViviUpdateStatus.Available) {
+                        buildAnnotatedString {
+                            append(stringResource(R.string.new_update) + " ")
+                            withStyle(
+                                SpanStyle(
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            ) {
+                                append((status as ViviUpdateStatus.Available).version)
+                            }
+                        }
+                    } else {
+                        AnnotatedString(stringResource(R.string.settings_check_updates_title))
+                    }
+                    Text(text = titleText, maxLines = 1)
                 },
                 navigationIcon = {
                     Box(modifier = Modifier.padding(start = 16.dp, end = 16.dp)) {
@@ -277,7 +300,7 @@ fun UpdateScreen(navController: NavHostController) {
                                     enabled = !isDownloading
                                 )
                                 AnimatedActionButton(
-                                    text = if (isDownloading) stringResource(R.string.downloading_update) else if (isDownloadComplete) stringResource(R.string.install) else stringResource(R.string.update_available),
+                                    text = if (isDownloading) "${(downloadProgress * 100).toInt()}%" else if (isDownloadComplete) stringResource(R.string.install) else stringResource(R.string.update_available),
                                     onClick = {
                                         if (isDownloadComplete) {
                                             val file = downloadedFile
@@ -413,12 +436,6 @@ fun UpdateScreen(navController: NavHostController) {
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalAlignment = Alignment.Start
                                 ) {
-                                    Text(
-                                        text = stringResource(R.string.update_to_v, currentStatus.version),
-                                        style = MaterialTheme.typography.headlineSmall,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        fontWeight = FontWeight.Bold
-                                    )
                                     Spacer(modifier = Modifier.height(12.dp))
                                     Text(
                                         text = stringResource(R.string.release_date_v, currentStatus.releaseDate),
@@ -443,27 +460,38 @@ fun UpdateScreen(navController: NavHostController) {
                                         )
                                         Spacer(modifier = Modifier.height(24.dp))
                                     }
-                                    Surface(
-                                        color = Color.Transparent,
-                                        shape = RoundedCornerShape(24.dp),
-                                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        Column(
-                                            modifier = Modifier.padding(24.dp)
-                                        ) {
+                                    if (!currentStatus.description.isNullOrBlank()) {
+                                        Text(
+                                            text = currentStatus.description,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            lineHeight = 20.sp,
+                                            modifier = Modifier.padding(bottom = 24.dp)
+                                        )
+                                    }
+                                    currentStatus.changelog.forEach { section ->
+                                        if (section.title.isNotBlank()) {
                                             Text(
-                                                text = stringResource(R.string.changelog),
+                                                text = section.title,
                                                 style = MaterialTheme.typography.titleMedium,
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                            Spacer(modifier = Modifier.height(12.dp))
-                                            Text(
-                                                text = currentStatus.changelog,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                lineHeight = 20.sp
+                                                fontWeight = FontWeight.Bold,
+                                                modifier = Modifier.padding(start = 4.dp, top = 8.dp, bottom = 8.dp)
                                             )
                                         }
+                                        section.items.forEachIndexed { index, item ->
+                                            val shape = when {
+                                                section.items.size == 1 -> com.music.vivi.ui.component.detachedItemShape()
+                                                index == 0 -> com.music.vivi.ui.component.leadingItemShape()
+                                                index == section.items.size - 1 -> com.music.vivi.ui.component.endItemShape()
+                                                else -> com.music.vivi.ui.component.middleItemShape()
+                                            }
+                                            com.music.vivi.ui.component.ChangelogItem(
+                                                text = item,
+                                                shape = shape,
+                                                modifier = Modifier.padding(vertical = 1.dp)
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.height(16.dp))
                                     }
                                 }
                             }
@@ -577,7 +605,7 @@ fun isNewerVersion(latestVersion: String, currentVersion: String): Boolean {
 // Fetches ALL releases, finds the latest version > current, and returns its info
 suspend fun checkForUpdate(
     context: Context,
-    onSuccess: (tag: String, isAvailable: Boolean, changelog: String, size: String, date: String, description: String?, imageUrl: String?, apkUrl: String?) -> Unit,
+    onSuccess: (tag: String, isAvailable: Boolean, changelog: List<ChangelogSection>, size: String, date: String, description: String?, imageUrl: String?, apkUrl: String?) -> Unit,
     onError: () -> Unit,
 ) {
     withContext(Dispatchers.IO) {
@@ -647,7 +675,7 @@ suspend fun checkForUpdate(
                     val displayTag = tagWithPrefix
 
                     // FETCH CHANGELOG.JSON FROM RELEASE ASSETS
-                    var changelog = ""
+                    val changelogList = mutableListOf<ChangelogSection>()
                     var description: String? = null
                     var imageUrl: String? = null
                     try {
@@ -660,18 +688,21 @@ suspend fun checkForUpdate(
                         imageUrl = changelogData.optString("image").takeIf { it.isNotEmpty() }
 
                         val changelogArray = changelogData.getJSONArray("changelog")
-                        changelog = buildString {
-                            for (j in 0 until changelogArray.length()) {
-                                appendLine(changelogArray.getString(j))
+                        for (j in 0 until changelogArray.length()) {
+                            val sectionObj = changelogArray.getJSONObject(j)
+                            val title = sectionObj.getString("title")
+                            val itemsArray = sectionObj.getJSONArray("items")
+                            val itemsList = mutableListOf<String>()
+                            for (k in 0 until itemsArray.length()) {
+                                itemsList.add(itemsArray.getString(k))
                             }
-                            val warning = changelogData.optString("warning").takeIf { it.isNotEmpty() }
-                            if (!warning.isNullOrBlank()) {
-                                appendLine("")
-                                appendLine(warning)
-                            }
-                        }.trim()
+                            changelogList.add(ChangelogSection(title, itemsList))
+                        }
                     } catch (e: Exception) {
-                        changelog = targetRelease.optString("body", context.getString(R.string.no_changelog_available))
+                        // Fallback: Parse body as a single list if it starts with characters or split by lines
+                        val body = targetRelease.optString("body", context.getString(R.string.no_changelog_available))
+                        val fallbackItems = body.split("\n").filter { it.isNotBlank() }
+                        changelogList.add(ChangelogSection(context.getString(R.string.changelog), fallbackItems))
                     }
 
                     val publishedAt = targetRelease.getString("published_at")
@@ -693,7 +724,7 @@ suspend fun checkForUpdate(
 
                     if (apkDownloadUrl.isNotEmpty()) {
                         withContext(Dispatchers.Main) {
-                            onSuccess(displayTag, true, changelog, apkSizeInMB, formattedReleaseDate, description, imageUrl, apkDownloadUrl)
+                            onSuccess(displayTag, true, changelogList, apkSizeInMB, formattedReleaseDate, description, imageUrl, apkDownloadUrl)
                         }
                         return@withContext
                     }
@@ -702,7 +733,7 @@ suspend fun checkForUpdate(
 
             // No update found or APK missing
             withContext(Dispatchers.Main) {
-                onSuccess(currentVersion, false, "", "", "", null, null, null)
+                onSuccess(currentVersion, false, emptyList(), "", "", null, null, null)
             }
         } catch (e: Exception) {
             Log.e("UpdateCheck", "Error checking for updates: ${e.message}", e)
