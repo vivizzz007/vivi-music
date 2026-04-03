@@ -998,6 +998,84 @@ fun Lyrics(
                             }
                         )
                         return@itemsIndexed
+                    } else if (lyricsAnimationStyle == LyricsAnimationStyle.METRO_LYRICS && item.words?.isNotEmpty() == true) {
+                        val currentLineTime = if (displayedCurrentLineIndex >= 0 && displayedCurrentLineIndex < lines.size) {
+                            lines[displayedCurrentLineIndex].time
+                        } else -1L
+                        val isLineAtSameTime = item.time == currentLineTime
+                        val isActiveByIndex = index == displayedCurrentLineIndex
+                        val isActiveByTime = isLineAtSameTime && displayedCurrentLineIndex >= 0
+
+                        MetroLyricsLine(
+                            entry = item,
+                            nextEntryTime = lines.getOrNull(index + 1)?.time,
+                            effectivePlaybackPosition = effectivePlaybackPosition,
+                            isSynced = isSynced,
+                            isActive = isActiveByIndex || isActiveByTime,
+                            distanceFromCurrent = kotlin.math.abs(index - displayedCurrentLineIndex),
+                            lyricsTextPosition = lyricsTextPosition,
+                            textColor = textColor,
+                            showRomanized = currentSong?.romanizeLyrics == true && (
+                                    romanizeJapaneseLyrics ||
+                                            romanizeKoreanLyrics ||
+                                            romanizeRussianLyrics ||
+                                            romanizeUkrainianLyrics ||
+                                            romanizeSerbianLyrics ||
+                                            romanizeBulgarianLyrics ||
+                                            romanizeBelarusianLyrics ||
+                                            romanizeKyrgyzLyrics ||
+                                            romanizeMacedonianLyrics ||
+                                            romanizeChineseLyrics ||
+                                            romanizeHindiLyrics ||
+                                            romanizePunjabiLyrics),
+                            showTranslated = hasActiveTranslations,
+                            isAutoScrollActive = isAutoScrollEnabled,
+                            isSelectionModeActive = isSelectionModeActive,
+                            isSelected = isSelected,
+                            expressiveAccent = expressiveAccent,
+                            onClick = {
+                                if (isSelectionModeActive) {
+                                    if (isSelected) {
+                                        selectedIndices.remove(index)
+                                        if (selectedIndices.isEmpty()) isSelectionModeActive = false
+                                    } else {
+                                        if (selectedIndices.size < maxSelectionLimit) selectedIndices.add(index)
+                                        else showMaxSelectionToast = true
+                                    }
+                                } else if (isSynced && changeLyrics && !isGuest) {
+                                    val lyricsOffset = currentSong?.song?.lyricsOffset ?: 0
+                                    playerConnection.seekTo((item.time - lyricsOffset).coerceAtLeast(0))
+                                    scope.launch {
+                                        lazyListState.scrollToItem(index = index)
+                                        val itemInfo = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == index }
+                                        if (itemInfo != null) {
+                                            val viewportHeight = lazyListState.layoutInfo.viewportEndOffset - lazyListState.layoutInfo.viewportStartOffset
+                                            val center = lazyListState.layoutInfo.viewportStartOffset + (viewportHeight / 2)
+                                            val itemCenter = itemInfo.offset + itemInfo.size / 2
+                                            val offset = itemCenter - center
+                                            if (kotlin.math.abs(offset) > 10) {
+                                                lazyListState.animateScrollBy(
+                                                    value = offset.toFloat(),
+                                                    animationSpec = tween(durationMillis = 1500)
+                                                )
+                                            }
+                                        }
+                                    }
+                                    lastPreviewTime = 0L
+                                }
+                            },
+                            onLongClick = {
+                                if (!isSelectionModeActive) {
+                                    isSelectionModeActive = true
+                                    selectedIndices.add(index)
+                                } else if (!isSelected && selectedIndices.size < maxSelectionLimit) {
+                                    selectedIndices.add(index)
+                                } else if (!isSelected) {
+                                    showMaxSelectionToast = true
+                                }
+                            }
+                        )
+                        return@itemsIndexed
                     }
                     val itemModifier = Modifier
                         .fillMaxWidth()
