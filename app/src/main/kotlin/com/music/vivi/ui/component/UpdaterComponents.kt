@@ -1,5 +1,11 @@
 package com.music.vivi.ui.component
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
@@ -140,5 +146,57 @@ fun ErrorSnackbar(
             actionContentColor = MaterialTheme.colorScheme.inversePrimary,
             dismissActionContentColor = MaterialTheme.colorScheme.inverseOnSurface
         )
+    }
+}
+
+// Shape utilities for grouped list items
+private const val ConnectedCornerRadius = 4
+private const val EndCornerRadius = 16
+
+fun leadingItemShape(): RoundedCornerShape = RoundedCornerShape(
+    topStart = EndCornerRadius.dp,
+    topEnd = EndCornerRadius.dp,
+    bottomStart = ConnectedCornerRadius.dp,
+    bottomEnd = ConnectedCornerRadius.dp
+)
+
+fun middleItemShape(): RoundedCornerShape = RoundedCornerShape(ConnectedCornerRadius.dp)
+
+fun endItemShape(): RoundedCornerShape = RoundedCornerShape(
+    topStart = ConnectedCornerRadius.dp,
+    topEnd = ConnectedCornerRadius.dp,
+    bottomStart = EndCornerRadius.dp,
+    bottomEnd = EndCornerRadius.dp
+)
+
+fun detachedItemShape(): RoundedCornerShape = RoundedCornerShape(EndCornerRadius.dp)
+
+@Composable
+fun ChangelogItem(
+    text: String,
+    shape: androidx.compose.ui.graphics.Shape,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = shape,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh
+    ) {
+        androidx.compose.foundation.layout.Row(
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(6.dp)
+                    .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(50))
+            )
+            androidx.compose.foundation.layout.Spacer(modifier = Modifier.size(16.dp))
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
     }
 }
