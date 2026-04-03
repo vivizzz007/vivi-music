@@ -396,6 +396,7 @@
     <string name="apple_music_lyrics_blur">Paroles d\'Apple Music floues</string>
     <string name="apple_music_lyrics_blur_desc">Appliquez un effet de flou aux lignes de paroles inactives pour créer un effet de mise au point haut de gamme.</string>
     <string name="lyrics_v2_fluid">Paroles V2 (Fluide)</string>
+	<string name="lyrics_animation_metro">Paroles de Metro</string>
     <string name="lyrics_text_size">Taille du texte des paroles</string>
     <string name="lyrics_line_spacing">Interligne des paroles</string>
     <string name="album_art_for">Pochette de l\'album %s</string>
