@@ -9,6 +9,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -26,7 +27,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -46,7 +46,9 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -57,6 +59,7 @@ import com.music.innertube.models.ArtistItem
 import com.music.innertube.models.PlaylistItem
 import com.music.innertube.models.SongItem
 import com.music.vivi.LocalDatabase
+import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.SuggestionItemHeight
@@ -65,6 +68,10 @@ import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.YouTubeListItem
 import com.music.vivi.utils.listItemShape
+import com.music.vivi.utils.getGroupedShape
+import androidx.compose.material3.Surface
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Shape
 import com.music.vivi.ui.menu.YouTubeAlbumMenu
 import com.music.vivi.ui.menu.YouTubeArtistMenu
 import com.music.vivi.ui.menu.YouTubePlaylistMenu
@@ -118,15 +125,28 @@ fun OnlineSearchScreen(
 
     LazyColumn(
         state = lazyListState,
-        contentPadding = WindowInsets.systemBars.only(WindowInsetsSides.Bottom).asPaddingValues(),
+        contentPadding = LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Bottom).asPaddingValues(),
         modifier = Modifier
             .fillMaxSize()
             .background(if (pureBlack) Color.Black else MaterialTheme.colorScheme.background)
     ) {
-        items(viewState.history, key = { "history_${it.query}" }) { history ->
+        if (viewState.history.isNotEmpty()) {
+            item(key = "history_header") {
+                Text(
+                    text = stringResource(R.string.search_history),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp).animateItem()
+                )
+            }
+        }
+
+        itemsIndexed(viewState.history, key = { _, it -> "history_${it.query}" }) { index, history ->
             SuggestionItem(
                 query = history.query,
                 online = false,
+                shape = getGroupedShape(index, viewState.history.size),
                 onClick = {
                     onSearch(history.query)
                     onDismiss()
@@ -144,10 +164,29 @@ fun OnlineSearchScreen(
             )
         }
 
-        items(viewState.suggestions, key = { "suggestion_$it" }) { query ->
+        if (viewState.history.isNotEmpty() && viewState.suggestions.isNotEmpty()) {
+            item(key = "history_suggestion_spacer") {
+                Spacer(modifier = Modifier.height(16.dp).animateItem())
+            }
+        }
+
+        if (viewState.suggestions.isNotEmpty()) {
+            item(key = "suggestions_header") {
+                Text(
+                    text = stringResource(R.string.suggestions),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp).animateItem()
+                )
+            }
+        }
+
+        itemsIndexed(viewState.suggestions, key = { _, it -> "suggestion_$it" }) { index, query ->
             SuggestionItem(
                 query = query,
                 online = true,
+                shape = getGroupedShape(index, viewState.suggestions.size),
                 onClick = {
                     onSearch(query)
                     onDismiss()
@@ -160,10 +199,20 @@ fun OnlineSearchScreen(
             )
         }
 
+        if (viewState.suggestions.isNotEmpty()) {
+            item(key = "suggestions_bottom_spacer") {
+                Spacer(modifier = Modifier.height(16.dp).animateItem())
+            }
+        }
+
         if (viewState.items.isNotEmpty() && viewState.history.size + viewState.suggestions.size > 0) {
             item(key = "search_divider") {
-                HorizontalDivider(
-                    modifier = Modifier.animateItem()
+                Text(
+                    text = stringResource(R.string.top_result),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 16.dp, top = 8.dp).animateItem()
                 )
             }
             item(key = "search_divider_spacer") {
@@ -306,6 +355,7 @@ fun SuggestionItem(
     modifier: Modifier = Modifier,
     query: String,
     online: Boolean,
+    shape: Shape,
     onClick: () -> Unit,
     onDelete: () -> Unit = {},
     onFillTextField: () -> Unit,
@@ -314,9 +364,11 @@ fun SuggestionItem(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
+            .padding(horizontal = 16.dp, vertical = 1.dp)
             .fillMaxWidth()
             .height(SuggestionItemHeight)
-            .background(if (pureBlack) Color.Black else MaterialTheme.colorScheme.surface)
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             .clickable(onClick = onClick)
             .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal)),
     ) {
