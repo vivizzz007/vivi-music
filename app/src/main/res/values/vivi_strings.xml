@@ -396,6 +396,7 @@
     <string name="apple_music_lyrics_blur">Apple Music Lyrics Blur</string>
     <string name="apple_music_lyrics_blur_desc">Apply blur to inactive lyrics lines for a premium focus effect</string>
     <string name="lyrics_v2_fluid">Lyrics V2 (Fluid)</string>
+    <string name="lyrics_animation_metro">MetroLyrics</string>
     <string name="lyrics_text_size">Lyrics text size</string>
     <string name="lyrics_line_spacing">Lyrics line spacing</string>
     <string name="album_art_for">Album art for %s</string>
