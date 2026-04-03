@@ -122,7 +122,7 @@ fun YouTubeSongMenu(
     AddToPlaylistDialog(  
         isVisible = showChoosePlaylistDialog,  
         onGetSong = { playlist ->  
-            database.transaction {  
+            database.withTransaction {  
                 insert(song.toMediaMetadata())  
             }  
             coroutineScope.launch(Dispatchers.IO) {  

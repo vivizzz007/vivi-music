@@ -665,30 +665,30 @@ private fun OnlinePlaylistHeader(
                 // Save Button
                 Button(
                     onClick = {
-                        if (dbPlaylist != null) {
-                            database.transaction {
-                                val currentPlaylist = dbPlaylist.playlist
-                                update(currentPlaylist, playlist)
-                                update(currentPlaylist.toggleLike())
-                            }
-                        } else {
-                            database.transaction {
-                                val playlistEntity = PlaylistEntity(
-                                    name = playlist.title,
-                                    browseId = playlist.id,
-                                    thumbnailUrl = playlist.thumbnail,
-                                    isEditable = playlist.isEditable,
-                                    remoteSongCount = playlist.songCountText?.let {
-                                        Regex("""\d+""").find(it)?.value?.toIntOrNull()
-                                    },
-                                    playEndpointParams = playlist.playEndpoint?.params,
-                                    shuffleEndpointParams = playlist.shuffleEndpoint?.params,
-                                    radioEndpointParams = playlist.radioEndpoint?.params
-                                ).toggleLike()
-                                insert(playlistEntity)
-                                coroutineScope.launch(Dispatchers.IO) {
+                        coroutineScope.launch(Dispatchers.IO) {
+                            if (dbPlaylist != null) {
+                                database.withTransaction {
+                                    val currentPlaylist = dbPlaylist.playlist
+                                    update(currentPlaylist, playlist)
+                                    update(currentPlaylist.toggleLike())
+                                }
+                            } else {
+                                database.withTransaction {
+                                    val playlistEntity = PlaylistEntity(
+                                        name = playlist.title,
+                                        browseId = playlist.id,
+                                        thumbnailUrl = playlist.thumbnail,
+                                        isEditable = playlist.isEditable,
+                                        remoteSongCount = playlist.songCountText?.let {
+                                            Regex("""\d+""").find(it)?.value?.toIntOrNull()
+                                        },
+                                        playEndpointParams = playlist.playEndpoint?.params,
+                                        shuffleEndpointParams = playlist.shuffleEndpoint?.params,
+                                        radioEndpointParams = playlist.radioEndpoint?.params
+                                    ).toggleLike()
+                                    insert(playlistEntity)
                                     songs.map { it.toMediaMetadata() }
-                                        .onEach(::insert)
+                                        .onEach { insert(it) }
                                         .mapIndexed { index, song ->
                                             PlaylistSongMap(
                                                 songId = song.id,
@@ -697,7 +697,7 @@ private fun OnlinePlaylistHeader(
                                                 setVideoId = song.setVideoId
                                             )
                                         }
-                                        .forEach(::insert)
+                                        .forEach { insert(it) }
                                 }
                             }
                         }
