@@ -19,9 +19,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
@@ -329,31 +327,33 @@ private fun WordLevelCanvasLyrics(
     // Read playerConnection directly — same as Metrolist. This avoids the 8ms polling
     // lag from effectivePlaybackPosition which is only updated by the Lyrics.kt loop.
     val playerConnection = LocalPlayerConnection.current
-    val isPlaying by (playerConnection?.isPlaying?.collectAsState() ?: remember { mutableStateOf(false) })
 
     var smoothPosition by remember { mutableLongStateOf(effectivePlaybackPosition + lyricsOffset) }
     
     LaunchedEffect(isActiveLine) {
         if (isActiveLine && playerConnection != null) {
-            // Mirrors Metrolist exactly: track the last known player position and
-            // use system clock elapsed time to interpolate between updates.
+            // Exact port of Metrolist's timing logic:
+            // Track the last reported player position and use system clock elapsed
+            // time to interpolate between ExoPlayer position updates (~200ms apart).
+            // ExoPlayer's player.currentPosition is computed in real-time, so resume
+            // is handled naturally — no explicit wasPlaying check needed.
             var lastPlayerPos = playerConnection.player.currentPosition
             var lastUpdateTime = System.currentTimeMillis()
-            var wasPlaying = playerConnection.player.isPlaying
             
             while (isActive) {
                 withFrameMillis {
                     val now = System.currentTimeMillis()
-                    // Read directly from the player every frame — zero polling lag
                     val playerPos = playerConnection.player.currentPosition
                     val currentlyPlaying = playerConnection.player.isPlaying
                     
-                    if (playerPos != lastPlayerPos || (currentlyPlaying && !wasPlaying)) {
+                    // Only reset the interpolation clock when ExoPlayer reports a new position.
+                    // On resume, ExoPlayer advances currentPosition naturally within one frame,
+                    // which triggers this condition without needing an explicit pause→play check.
+                    if (playerPos != lastPlayerPos) {
                         lastPlayerPos = playerPos
                         lastUpdateTime = now
                     }
                     
-                    wasPlaying = currentlyPlaying
                     val elapsed = now - lastUpdateTime
                     smoothPosition = lastPlayerPos + lyricsOffset + (if (currentlyPlaying) elapsed else 0L)
                 }
