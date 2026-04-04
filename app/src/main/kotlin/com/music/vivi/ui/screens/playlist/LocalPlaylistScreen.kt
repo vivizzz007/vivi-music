@@ -1123,7 +1123,7 @@ fun LocalPlaylistHeader(
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
                                     .align(alignment)
-                                    .size(120.dp)
+                                    .fillMaxSize(0.5f)
                             )
                         }
                     }

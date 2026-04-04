@@ -181,7 +181,7 @@ fun SearchScreen(
                                     painter = painterResource(
                                         when (searchSource) {
                                             SearchSource.LOCAL -> R.drawable.library_music
-                                            SearchSource.ONLINE -> R.drawable.language
+                                            SearchSource.ONLINE -> R.drawable.globe_search
                                         }
                                     ),
                                     contentDescription = null,
