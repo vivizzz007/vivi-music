@@ -12,7 +12,13 @@ data class NavigationEndpoint(
     val shareEntityEndpoint: ShareEntityEndpoint? = null,
     val feedbackEndpoint: FeedbackEndpoint? = null,
     val urlEndpoint: UrlEndpoint? = null,
+    val continuationCommand: ContinuationCommand? = null,
 ) {
+    @Serializable
+    data class ContinuationCommand(
+        val token: String? = null,
+    )
+
     val endpoint: Endpoint?
         get() =
             watchEndpoint

@@ -1010,6 +1010,7 @@ fun Lyrics(
                             entry = item,
                             nextEntryTime = lines.getOrNull(index + 1)?.time,
                             effectivePlaybackPosition = effectivePlaybackPosition,
+                            lyricsOffset = lyricsOffset,
                             isSynced = isSynced,
                             isActive = isActiveByIndex || isActiveByTime,
                             distanceFromCurrent = kotlin.math.abs(index - displayedCurrentLineIndex),

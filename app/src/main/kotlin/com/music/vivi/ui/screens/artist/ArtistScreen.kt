@@ -252,7 +252,7 @@ fun ArtistScreen(
                                 ButtonPlaceholder(
                                     modifier = Modifier
                                         .width(120.dp)
-                                        .height(40.dp)
+                                        .height(52.dp)
                                 )
 
                                 Spacer(modifier = Modifier.weight(1f))
@@ -266,17 +266,17 @@ fun ArtistScreen(
                                     ButtonPlaceholder(
                                         modifier = Modifier
                                             .width(100.dp)
-                                            .height(40.dp)
+                                            .height(52.dp)
                                     )
 
                                     // Shuffle Button Placeholder
                                     Box(
                                         modifier = Modifier
-                                            .size(48.dp)
+                                            .size(52.dp)
                                             .shimmer()
                                             .background(
                                                 MaterialTheme.colorScheme.onSurface,
-                                                RoundedCornerShape(24.dp)
+                                                RoundedCornerShape(26.dp)
                                             )
                                     )
                                 }
@@ -524,7 +524,10 @@ fun ArtistScreen(
                                                 }
                                             }
                                         },
-                                        modifier = Modifier.weight(1f).semantics { role = Role.Button },
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .height(52.dp)
+                                            .semantics { role = Role.Button },
                                         shapes = ButtonGroupDefaults.connectedLeadingButtonShapes()
                                     ) {
                                         Icon(
@@ -564,7 +567,10 @@ fun ArtistScreen(
                                                 onCheckedChange = {
                                                     playerConnection.playQueue(YouTubeQueue(radioEndpoint))
                                                 },
-                                                modifier = Modifier.weight(1f).semantics { role = Role.Button },
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .height(52.dp)
+                                                    .semantics { role = Role.Button },
                                                 shapes = ButtonGroupDefaults.connectedMiddleButtonShapes()
                                             ) {
                                                 Icon(
@@ -589,7 +595,10 @@ fun ArtistScreen(
                                                 onCheckedChange = {
                                                     playerConnection.playQueue(YouTubeQueue(shuffleEndpoint))
                                                 },
-                                                modifier = Modifier.weight(1f).semantics { role = Role.Button },
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .height(52.dp)
+                                                    .semantics { role = Role.Button },
                                                 shapes = if (artistPage?.artist?.radioEndpoint != null) {
                                                     ButtonGroupDefaults.connectedTrailingButtonShapes()
                                                 } else {
@@ -622,7 +631,10 @@ fun ArtistScreen(
                                                     )
                                                 }
                                             },
-                                            modifier = Modifier.weight(1f).semantics { role = Role.Button },
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .height(52.dp)
+                                                .semantics { role = Role.Button },
                                             shapes = ButtonGroupDefaults.connectedTrailingButtonShapes()
                                         ) {
                                             Icon(

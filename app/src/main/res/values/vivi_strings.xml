@@ -801,4 +801,7 @@
     <string name="error_loading_commits">Failed to load commits becoz you didnt pay me ?</string>
     <string name="commits">Commits</string>
     <string name="view_commit_history">Browse recent changes on main branch</string>
+    <string name="suggestions">Suggestions</string>
+    <string name="comments">Comments</string>
+    <string name="no_comments">No comments found</string>
 </resources>

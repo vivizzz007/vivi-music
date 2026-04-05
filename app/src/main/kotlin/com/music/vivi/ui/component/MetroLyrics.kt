@@ -19,9 +19,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
@@ -94,6 +92,7 @@ fun MetroLyricsLine(
     entry: LyricsEntry,
     nextEntryTime: Long?,
     effectivePlaybackPosition: Long,
+    lyricsOffset: Long = 0L,
     isSynced: Boolean,
     isActive: Boolean,
     distanceFromCurrent: Int,
@@ -258,6 +257,7 @@ fun MetroLyricsLine(
                 words = effectiveWords,
                 isActiveLine = isActive,
                 effectivePlaybackPosition = effectivePlaybackPosition,
+                lyricsOffset = lyricsOffset,
                 lyricStyle = lyricStyle,
                 lineColor = if (isActive && !entry.isBackground) expressiveAccent.copy(alpha = 1f) else baseLineColor,
                 expressiveAccent = expressiveAccent,
@@ -308,6 +308,7 @@ private fun WordLevelCanvasLyrics(
     words: List<MetroWordTimestamp>,
     isActiveLine: Boolean,
     effectivePlaybackPosition: Long,
+    lyricsOffset: Long = 0L,
     lyricStyle: TextStyle,
     lineColor: Color,
     expressiveAccent: Color,
@@ -323,57 +324,43 @@ private fun WordLevelCanvasLyrics(
         }
     }
     
-    // LocalPlayerConnection gives us access to isPlaying without adding parameters to Lyrics.kt
+    // Read playerConnection directly — same as Metrolist. This avoids the 8ms polling
+    // lag from effectivePlaybackPosition which is only updated by the Lyrics.kt loop.
     val playerConnection = LocalPlayerConnection.current
-    val isPlaying by (playerConnection?.isPlaying?.collectAsState() ?: remember { mutableStateOf(false) })
-    
-    // rememberUpdatedState ensures the coroutine always reads the latest playback position
-    val latestPlaybackPosition = rememberUpdatedState(effectivePlaybackPosition)
 
-    // Smooth interpolation logic strictly matching Metrolist's timing routine
-    var smoothPosition by remember { mutableLongStateOf(effectivePlaybackPosition) }
+    var smoothPosition by remember { mutableLongStateOf(effectivePlaybackPosition + lyricsOffset) }
     
     LaunchedEffect(isActiveLine) {
         if (isActiveLine && playerConnection != null) {
-            var lastPlayerPos = latestPlaybackPosition.value
+            // Exact port of Metrolist's timing logic:
+            // Track the last reported player position and use system clock elapsed
+            // time to interpolate between ExoPlayer position updates (~200ms apart).
+            // ExoPlayer's player.currentPosition is computed in real-time, so resume
+            // is handled naturally — no explicit wasPlaying check needed.
+            var lastPlayerPos = playerConnection.player.currentPosition
             var lastUpdateTime = System.currentTimeMillis()
-            var wasPlaying = isPlaying
             
             while (isActive) {
                 withFrameMillis {
                     val now = System.currentTimeMillis()
-                    val playerPos = latestPlaybackPosition.value
-                    val currentlyPlaying = isPlaying
+                    val playerPos = playerConnection.player.currentPosition
+                    val currentlyPlaying = playerConnection.player.isPlaying
                     
-                    if (playerPos != lastPlayerPos || (currentlyPlaying && !wasPlaying)) {
-                        // Reset the interpolation clock if a physical position update arrived,
-                        // OR if playback just restarted (prevents massive elapsed time jumps on resume).
+                    // Only reset the interpolation clock when ExoPlayer reports a new position.
+                    // On resume, ExoPlayer advances currentPosition naturally within one frame,
+                    // which triggers this condition without needing an explicit pause→play check.
+                    if (playerPos != lastPlayerPos) {
                         lastPlayerPos = playerPos
                         lastUpdateTime = now
                     }
                     
-                    wasPlaying = currentlyPlaying
-                    
                     val elapsed = now - lastUpdateTime
-                    val targetPos = lastPlayerPos + (if (currentlyPlaying) elapsed else 0L)
-                    
-                    val diff = targetPos - smoothPosition
-                    if (kotlin.math.abs(diff) > 5000) {
-                        // Instant snap for massive song jumps or initial loads
-                        smoothPosition = targetPos
-                    } else if (kotlin.math.abs(diff) > 5) {
-                        // Gracefully interpolate towards the slider position, simulating 
-                        // the smooth tween from ViviMusicLyrics.kt during tracking
-                        smoothPosition += (diff * 0.15).toLong()
-                    } else {
-                        // Exact zero-latency lock during normal continuous playing
-                        smoothPosition = targetPos
-                    }
+                    smoothPosition = lastPlayerPos + lyricsOffset + (if (currentlyPlaying) elapsed else 0L)
                 }
             }
         }
     }
-    
+
     LaunchedEffect(effectivePlaybackPosition, isActiveLine) {
         if (!isActiveLine) {
             smoothPosition = effectivePlaybackPosition

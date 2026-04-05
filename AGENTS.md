@@ -14,7 +14,7 @@ vivimusic is a 3rd party YouTube Music client written in Kotlin. It follows mate
 3. Always pull the latest changes from `main` before starting your work to minimize merge conflicts.
 4. While working on your feature you should rebase your branch on top of the latest `main` at least once a day to ensure compatibility.
 5. Commit names should be clear and follow the format: `type(scope): short description`. For example: `feat(ui): add dark mode support`. Including the scope is optional.
-6. All string edits should be made to the `vivimusic/app/src/main/res/values/vivimusic_strings.xml` file, NOT `vivimusic/app/src/main/res/values/strings.xml`. Do not touch other `strings.xml` or `vivimusic_strings.xml` files in the project.
+6. All string edits should be made to the `vivimusic/app/src/main/res/values/vivi_strings.xml` file, NOT `vivimusic/app/src/main/res/values/strings.xml`. Do not touch other `strings.xml` or `vivimusic_strings.xml` files in the project.
 7. You are to follow best practices for Kotlin and Android development.
 
 ## AI-only guidelines
