@@ -133,6 +133,7 @@ import com.music.vivi.ui.component.MediaMetadataListItem
 import com.music.vivi.ui.menu.PlayerMenu
 import com.music.vivi.ui.menu.QueueMenu
 import com.music.vivi.ui.menu.SelectionMediaMetadataMenu
+import com.music.vivi.ui.screens.CommentSheet
 import com.music.vivi.ui.utils.ShowMediaInfo
 import com.music.vivi.utils.listItemShape
 import com.music.vivi.utils.makeTimeString
@@ -234,6 +235,7 @@ fun Queue(
         playerConnection.service.sleepTimer.isActive
     }
     var sleepTimerTimeLeft by remember { mutableLongStateOf(0L) }
+    var showCommentSheet by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(sleepTimerEnabled) {
         if (sleepTimerEnabled) {
@@ -321,6 +323,19 @@ fun Queue(
                         icon = R.drawable.lyrics,
                         onClick = { onToggleLyrics() },
                         isActive = showInlineLyrics,
+                        shape = middleShape,
+                        modifier = Modifier.size(buttonSize),
+                        textButtonColor = textButtonColor,
+                        iconButtonColor = iconButtonColor,
+                        iconSize = iconSize,
+                        textBackgroundColor = TextBackgroundColor,
+                        playerBackground = playerBackground
+                    )
+
+                    PlayerQueueButton(
+                        icon = R.drawable.chat_msg,
+                        onClick = { showCommentSheet = true },
+                        isActive = showCommentSheet,
                         shape = middleShape,
                         modifier = Modifier.size(buttonSize),
                         textButtonColor = textButtonColor,
@@ -1329,6 +1344,13 @@ fun Queue(
                 )
             }
         }
+    }
+
+    if (showCommentSheet) {
+        CommentSheet(
+            videoId = mediaMetadata?.id ?: "",
+            onDismiss = { showCommentSheet = false }
+        )
     }
 }
 
