@@ -42,6 +42,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -77,6 +78,7 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
@@ -92,7 +94,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -128,7 +133,7 @@ enum class AudioDeviceType {
     HDMI,
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier) {
     val context = LocalContext.current
@@ -381,34 +386,34 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         if (activeDevice?.type == AudioDeviceType.BLUETOOTH && activeDevice.batteryLevel != null) {
-                            Surface(
-                                shape = RoundedCornerShape(24.dp),
-                                color = MaterialTheme.colorScheme.primaryContainer,
+                            val density = LocalDensity.current
+                            val strokeWidthPx = with(density) { 4.dp.toPx() }
+                            val wavyStroke = remember(strokeWidthPx) {
+                                Stroke(width = strokeWidthPx, cap = StrokeCap.Round)
+                            }
+
+                            Box(
                                 modifier = Modifier
+                                    .padding(start = 8.dp)
+                                    .size(56.dp),
+                                contentAlignment = Alignment.Center
                             ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = when {
-                                            activeDevice.batteryLevel >= 80 -> Icons.Filled.BatteryFull
-                                            activeDevice.batteryLevel >= 50 -> Icons.Filled.Battery6Bar
-                                            activeDevice.batteryLevel >= 30 -> Icons.Filled.Battery4Bar
-                                            activeDevice.batteryLevel >= 10 -> Icons.Filled.Battery2Bar
-                                            else -> Icons.Filled.Battery1Bar
-                                        },
-                                        contentDescription = stringResource(R.string.battery_content_desc),
-                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                    Text(
-                                        text = "${activeDevice.batteryLevel}%",
-                                        style = MaterialTheme.typography.labelLarge,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                                    )
-                                }
+                                CircularWavyProgressIndicator(
+                                    progress = { activeDevice.batteryLevel.toFloat() / 100f },
+                                    modifier = Modifier.fillMaxSize(),
+                                    color = MaterialTheme.colorScheme.primary,
+                                    trackColor = MaterialTheme.colorScheme.primaryContainer,
+                                    stroke = wavyStroke,
+                                    trackStroke = wavyStroke,
+                                    gapSize = 3.dp
+                                )
+                                Text(
+                                    text = "${activeDevice.batteryLevel}%",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    textAlign = TextAlign.Center
+                                )
                             }
                         } else {
                             Spacer(modifier = Modifier.width(1.dp))
