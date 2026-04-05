@@ -37,11 +37,15 @@ data class YouTubeDataPage(
                         val videoSecondaryInfoRenderer: VideoSecondaryInfoRenderer? = null,
                         @SerialName("itemSectionRenderer")
                         val itemSectionRenderer: ItemSectionRenderer? = null,
+                        @SerialName("continuationItemRenderer")
+                        val continuationItemRenderer: ItemSectionRenderer.Content.ContinuationItemRenderer? = null,
                     ) {
                         @Serializable
                         data class ItemSectionRenderer(
                             @SerialName("contents")
                             val contents: List<Content?>? = null,
+                            @SerialName("sectionIdentifier")
+                            val sectionIdentifier: String? = null,
                         ) {
                             @Serializable
                             data class Content(

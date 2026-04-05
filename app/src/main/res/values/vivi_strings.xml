@@ -802,4 +802,6 @@
     <string name="commits">Commits</string>
     <string name="view_commit_history">Browse recent changes on main branch</string>
     <string name="suggestions">Suggestions</string>
+    <string name="comments">Comments</string>
+    <string name="no_comments">No comments found</string>
 </resources>
