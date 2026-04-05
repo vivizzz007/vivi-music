@@ -801,4 +801,8 @@ est irréversible.
     <string name="error_loading_commits">Impossible de charger les engagements car vous ne m\'avez pas payé.</string>
     <string name="commits">Engagements</string>
     <string name="view_commit_history">Consultez les modifications récentes sur la branche principale.</string>
+	<string name="suggestions">Suggestions</string>
+    <string name="comments">Commentaires</string>
+    <string name="no_comments">Aucun commentaire trouvé</string>
+</resources>
 </resources>
