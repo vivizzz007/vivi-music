@@ -82,6 +82,7 @@ import com.music.vivi.constants.PlayerBackgroundStyleKey
 import com.music.vivi.constants.PlayerButtonsStyle
 import com.music.vivi.constants.PlayerButtonsStyleKey
 import com.music.vivi.constants.PureBlackMiniPlayerKey
+import com.music.vivi.constants.RotatingThumbnailKey
 import com.music.vivi.constants.SelectedThemeColorKey
 import com.music.vivi.constants.ShowCachedPlaylistKey
 import com.music.vivi.constants.ShowDownloadedPlaylistKey
@@ -239,6 +240,10 @@ fun AppearanceSettings(
     )
     val (canvasThumbnailAnimation, onCanvasThumbnailAnimationChange) = rememberPreference(
         CanvasThumbnailAnimationKey,
+        defaultValue = false
+    )
+    val (rotatingThumbnail, onRotatingThumbnailChange) = rememberPreference(
+        RotatingThumbnailKey,
         defaultValue = false
     )
     val (gridItemSize, onGridItemSizeChange) = rememberEnumPreference(
@@ -1218,6 +1223,27 @@ fun AppearanceSettings(
                         )
                     },
                     onClick = { onCanvasThumbnailAnimationChange(!canvasThumbnailAnimation) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.image),
+                    title = { Text(stringResource(R.string.rotating_thumbnail)) },
+                    description = { Text(stringResource(R.string.rotating_thumbnail_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = rotatingThumbnail,
+                            onCheckedChange = onRotatingThumbnailChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (rotatingThumbnail) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onRotatingThumbnailChange(!rotatingThumbnail) }
                 )
             ) + if (swipeThumbnail) listOf(
                 Material3SettingsItem(

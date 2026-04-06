@@ -6,6 +6,11 @@
 package com.music.vivi.ui.player
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -32,9 +37,12 @@ import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
@@ -81,6 +89,7 @@ import com.music.vivi.constants.HidePlayerThumbnailKey
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PlayerBackgroundStyleKey
 import com.music.vivi.constants.PlayerHorizontalPadding
+import com.music.vivi.constants.RotatingThumbnailKey
 import com.music.vivi.constants.SeekExtraSeconds
 import com.music.vivi.constants.SwipeThumbnailKey
 import com.music.vivi.constants.ThumbnailCornerRadiusKey
@@ -565,6 +574,7 @@ private fun ThumbnailHeader(
 /**
  * Individual thumbnail item in the carousel.
  */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ThumbnailItem(
     item: MediaItem,
@@ -582,12 +592,26 @@ private fun ThumbnailItem(
     currentMediaThumbnail: String? = null,
     modifier: Modifier = Modifier,
 ) {
+    val rotatingThumbnail by rememberPreference(RotatingThumbnailKey, defaultValue = false)
+    val isPlaying by playerConnection.isPlaying.collectAsState()
+    val isCurrentItem = item.mediaId == currentMediaId
+    
+    val infiniteTransition = rememberInfiniteTransition(label = "ThumbnailRotation")
+    val rotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = if (isPlaying && rotatingThumbnail && isCurrentItem) 360f else 0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(20000, easing = LinearEasing),
+            repeatMode = androidx.compose.animation.core.RepeatMode.Restart
+        ),
+        label = "Rotation"
+    )
+
     val incrementalSeekSkipEnabled by rememberPreference(SeekExtraSeconds, defaultValue = false)
     var skipMultiplier by remember { mutableIntStateOf(1) }
     var lastTapTime by remember { mutableLongStateOf(0L) }
 
     val canvasThumbnailAnimation by rememberPreference(CanvasThumbnailAnimationKey, defaultValue = false)
-    val isPlaying by playerConnection.isPlaying.collectAsState()
 
     Box(
         modifier = modifier
@@ -641,7 +665,19 @@ private fun ThumbnailItem(
         Box(
             modifier = Modifier
                 .size(dimensions.thumbnailSize)
-                .clip(RoundedCornerShape(dimensions.cornerRadius))
+                .graphicsLayer {
+                    rotationZ = rotation
+                }
+                .clip(
+                    if (rotatingThumbnail) {
+                        MaterialShapes.Clover8Leaf.toShape()
+                    } else {
+                        RoundedCornerShape(dimensions.cornerRadius)
+                    }
+                )
+                .graphicsLayer {
+                    rotationZ = -rotation
+                }
         ) {
             if (hidePlayerThumbnail) {
                 HiddenThumbnailPlaceholder(textBackgroundColor = textBackgroundColor)
@@ -658,7 +694,7 @@ private fun ThumbnailItem(
                 )
             }
             
-            if (canvasThumbnailAnimation && item.mediaId == currentMediaId) {
+            if (canvasThumbnailAnimation && item.mediaId == currentMediaId && !rotatingThumbnail) {
                 var canvasArtwork by remember(item.mediaId) { mutableStateOf<CanvasArtwork?>(null) }
                 var canvasFetchInFlight by remember(item.mediaId) { mutableStateOf(false) }
                 val storefront = remember {

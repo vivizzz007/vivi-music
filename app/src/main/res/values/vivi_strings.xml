@@ -100,6 +100,8 @@
     <string name="vivimusic_canvas_desc">Show animated album covers when available</string>
     <string name="show_album_canvas">Show Album Canvas</string>
     <string name="show_album_canvas_desc">Display animated canvas in album</string>
+    <string name="rotating_thumbnail">Rotating thumbnail</string>
+    <string name="rotating_thumbnail_desc">Enable a rotating thumbnail animation effect</string>
 
     <string name="already_in_playlist">Already in playlist:</string>
 
