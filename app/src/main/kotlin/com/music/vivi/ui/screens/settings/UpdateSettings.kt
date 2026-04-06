@@ -209,14 +209,18 @@ fun UpdateSettings(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.delete),
                     title = { Text(stringResource(R.string.clear_downloaded_updates)) },
-                    description = { 
-                        Text(
-                            text = if (apkCount == 0) {
-                                stringResource(R.string.clear_downloaded_updates_desc)
-                            } else {
-                                pluralStringResource(R.plurals.n_apk_found, apkCount, apkCount)
-                            }
-                        )
+                    description = {
+                        if (apkCount == 0) {
+                            Text(
+                                text = stringResource(R.string.clear_downloaded_updates_desc),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        } else {
+                            Text(
+                                text = pluralStringResource(R.plurals.n_apk_found, apkCount, apkCount),
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
                     },
                     onClick = {
                         if (apkCount > 0) {
