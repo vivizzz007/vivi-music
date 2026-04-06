@@ -804,4 +804,9 @@
     <string name="suggestions">Suggestions</string>
     <string name="comments">Comments</string>
     <string name="no_comments">No comments found</string>
+    <string name="clear_downloaded_updates_auto_info">Dynamically it will be deleted after one day.</string>
+    <string name="update_info_badge">Info &amp; Tips</string>
+    <string name="update_info_title">Update Information</string>
+    <string name="manual_delete_hint_title">Manual Cleanup</string>
+    <string name="manual_delete_hint_desc">You can manually also delete. Deleting old apk will improve the updater to update properly.</string>
 </resources>

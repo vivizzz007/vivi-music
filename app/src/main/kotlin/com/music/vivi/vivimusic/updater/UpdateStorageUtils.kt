@@ -33,3 +33,12 @@ fun clearDownloadedApks(context: Context): Boolean {
     }
     return allDeleted
 }
+
+fun autoClearOldApks(context: Context) {
+    val dir = getDownloadedApksDir(context)
+    if (!dir.exists() || !dir.isDirectory) return
+    val oneDayAgo = System.currentTimeMillis() - (24 * 60 * 60 * 1000)
+    dir.listFiles { file ->
+        file.isFile && file.name.endsWith(".apk", ignoreCase = true) && file.lastModified() < oneDayAgo
+    }?.forEach { it.delete() }
+}
