@@ -206,7 +206,7 @@ fun AboutScreen(
 
             // Coffee Badge
             Surface(
-                onClick = { uriHandler.safeOpenUri(context, "") },
+                onClick = { uriHandler.safeOpenUri(context, "https://ko-fi.com/vividhpashokan") },
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
                 modifier = Modifier.height(36.dp)
