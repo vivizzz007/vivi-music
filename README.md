@@ -1,7 +1,7 @@
-<div align="center">
+﻿<div align="center">
  <img src="https://github.com/vivizzz007/vivi-music/blob/main/assets/ic_launcher-playstore.png?raw=true" width="160" height="160" style="display: block; margin: 0 auto"/>
  <h1>VIVI Music</h1>
- <h3>More Than Just Music — Your Ultimate Audio Experience</h3>
+ <h3>More Than Just Music â€” Your Ultimate Audio Experience</h3>
 
  <p>
    <a href="https://github.com/vivizzz007/vivi-music/releases">
@@ -13,23 +13,24 @@
    <a href="LICENSE">
      <img src="https://img.shields.io/github/license/vivizzz007/vivi-music?style=for-the-badge" alt="License">
    </a>
+    <a href="https://ko-fi.com/vividhpashokan"><img src="https://img.shields.io/badge/Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Ko-fi"></a>
  </p>
 
 </div>
 
 <hr>
 
-<h2>🎵 About VIVI</h2>
+<h2>ðŸŽµ About VIVI</h2>
 
-<p><strong>VIVI</strong> isn't just another music player — it's a complete audio experience designed for music lovers who demand more. With a sleek Material You-inspired design, intelligent features, and deep personalization, VIVI redefines how you connect with your music.</p>
+<p><strong>VIVI</strong> isn't just another music player â€” it's a complete audio experience designed for music lovers who demand more. With a sleek Material You-inspired design, intelligent features, and deep personalization, VIVI redefines how you connect with your music.</p>
 
 <p>From stunning visual effects to smooth, intuitive controls, every element is crafted to match your vibe and elevate every beat. Stream from YouTube, enjoy synced lyrics, share songs via QR codes, and experience your music library like never before.</p>
 
-<p><strong>This is your music, your way — only with VIVI.</strong></p>
+<p><strong>This is your music, your way â€” only with VIVI.</strong></p>
 
 <hr>
 
-<h2>📸 Screenshots</h2>
+<h2>ðŸ“¸ Screenshots</h2>
 
 <p align="center">
   <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/1.png?raw=true" width="30%" />
@@ -57,9 +58,9 @@
 
 <hr>
 
-<h2>✨ Features</h2>
+<h2>âœ¨ Features</h2>
 
-<h3>🎨 Modern Design</h3>
+<h3>ðŸŽ¨ Modern Design</h3>
 <ul>
   <li><strong>Material You</strong> inspired UI with dynamic theming</li>
   <li>Smooth animations and transitions</li>
@@ -67,7 +68,7 @@
   <li>Clean, intuitive interface</li>
 </ul>
 
-<h3>🎵 Streaming & Playback</h3>
+<h3>ðŸŽµ Streaming & Playback</h3>
 <ul>
   <li><strong>YouTube & YT Music</strong> integration with ad-free playback</li>
   <li>Background playback support</li>
@@ -75,7 +76,7 @@
   <li>Seamless playback controls</li>
 </ul>
 
-<h3>📥 Offline Experience</h3>
+<h3>ðŸ“¥ Offline Experience</h3>
 <ul>
   <li>Download and cache music for offline listening</li>
   <li>Smart storage management</li>
@@ -83,7 +84,7 @@
   <li>Listen anytime, anywhere without internet</li>
 </ul>
 
-<h3>📝 Enhanced Listening</h3>
+<h3>ðŸ“ Enhanced Listening</h3>
 <ul>
   <li><strong>Synced Lyrics</strong> with karaoke-style highlighting</li>
   <li>Skip silence automatically for uninterrupted flow</li>
@@ -91,7 +92,7 @@
   <li>Equalizer and audio effects</li>
 </ul>
 
-<h3>🔗 Smart Sharing</h3>
+<h3>ðŸ”— Smart Sharing</h3>
 <ul>
   <li><strong>QR Code Sharing</strong> for instant song/playlist transfers</li>
   <li>Share to social media platforms</li>
@@ -99,7 +100,7 @@
   <li>Cross-device music sync</li>
 </ul>
 
-<h3>🚗 Android Auto Support</h3>
+<h3>ðŸš— Android Auto Support</h3>
 <ul>
   <li>Fully optimized car-friendly interface</li>
   <li>Voice command integration</li>
@@ -107,7 +108,7 @@
   <li>Seamless driving experience</li>
 </ul>
 
-<h3>🌐 Global & Accessible</h3>
+<h3>ðŸŒ Global & Accessible</h3>
 <ul>
   <li>Multi-language localization</li>
   <li>Accessibility features</li>
@@ -115,7 +116,7 @@
   <li>Theme customization</li>
 </ul>
 
-<h3>🔄 Built-in Updater</h3>
+<h3>ðŸ”„ Built-in Updater</h3>
 <ul>
   <li>OTA (Over-The-Air) updates</li>
   <li>No need to manually check for updates</li>
@@ -125,10 +126,10 @@
 
 <hr>
 
-<h2 align="center">📥 Download</h2>
+<h2 align="center">ðŸ“¥ Download</h2>
 
 <div align="center">
-  <h3><a href="https://github.com/vivizzz007/vivi-music/releases">🚀 Download Latest Release</a></h3>
+  <h3><a href="https://github.com/vivizzz007/vivi-music/releases">ðŸš€ Download Latest Release</a></h3>
   <p><strong>Current Version:</strong> Check the <a href="https://github.com/vivizzz007/vivi-music/releases">releases page</a> for the latest stable version.</p>
 </div>
 
@@ -136,7 +137,7 @@
 
 <hr>
 
-<h2>🔄 Setting Up OTA Updates</h2>
+<h2>ðŸ”„ Setting Up OTA Updates</h2>
 
 <p>To receive automatic updates within VIVI Music, you need to grant the app permission to install updates:</p>
 
@@ -152,12 +153,12 @@
 </ol>
 
 <blockquote>
-  <p>💡 <strong>Note:</strong> This permission is only used for app updates and follows Android's security guidelines.</p>
+  <p>ðŸ’¡ <strong>Note:</strong> This permission is only used for app updates and follows Android's security guidelines.</p>
 </blockquote>
 
 <hr>
 
-<h2>🚗 Android Auto Setup</h2>
+<h2>ðŸš— Android Auto Setup</h2>
 
 <p>If VIVI Music doesn't appear in Android Auto:</p>
 
@@ -165,7 +166,7 @@
   <li>Open <strong>Android Auto</strong> on your phone</li>
   <li>Tap the <strong>hamburger menu</strong> (three lines) and go to <strong>Settings</strong></li>
   <li>Scroll to the bottom and tap the <strong>version number</strong> multiple times to enable Developer Settings</li>
-  <li>Tap the <strong>three dots menu</strong> (⋮) at the top-right</li>
+  <li>Tap the <strong>three dots menu</strong> (â‹®) at the top-right</li>
   <li>Select <strong>Developer settings</strong></li>
   <li>Enable <strong>Unknown sources</strong></li>
   <li>Restart Android Auto and connect to your car</li>
@@ -173,7 +174,7 @@
 
 <hr>
 
-<h2>🛠️ Technical Details</h2>
+<h2>ðŸ› ï¸ Technical Details</h2>
 
 <ul>
   <li><strong>Platform:</strong> Android 5.0+</li>
@@ -186,19 +187,19 @@
 
 <hr>
 
-<h2>👥 Contributors</h2>
+<h2>ðŸ‘¥ Contributors</h2>
 
 <p>We appreciate everyone who has contributed to making VIVI Music better!</p>
 
 <p>To see all our amazing contributors and learn how you can join them, visit:</p>
 
 <div align="center">
-  <h3><a href="https://vivimusic.vercel.app/contributor.html">🌟 View All Contributors</a></h3>
+  <h3><a href="https://vivimusic.vercel.app/contributor.html">ðŸŒŸ View All Contributors</a></h3>
 </div>
 
 <hr>
 
-<h2>🤝 Contributing</h2>
+<h2>ðŸ¤ Contributing</h2>
 
 <p>Contributions are welcome! Whether it's bug reports, feature requests, or code contributions:</p>
 
@@ -212,7 +213,7 @@
 
 <hr>
 
-<h2>📜 Disclaimer</h2>
+<h2>ðŸ“œ Disclaimer</h2>
 
 <p>This project and its contents are <strong>not affiliated with, funded, authorized, endorsed by, or in any way associated with</strong> YouTube, Google LLC, or any of their affiliates and subsidiaries.</p>
 
@@ -222,12 +223,12 @@
 
 <hr>
 
-<h2>📄 License</h2>
+<h2>ðŸ“„ License</h2>
 <p>This project is licensed under the terms specified in the <a href="LICENSE">LICENSE</a> file.</p>
 
 <hr>
 
-<h2>💬 Support & Community</h2>
+<h2>ðŸ’¬ Support & Community</h2>
 
 <div align="center">
   <a href="https://t.me/+Nen-QpiY0tk1OTE9">
@@ -246,20 +247,20 @@
 
 <div align="center">
 
-## Special Thanks 🙏
+## Special Thanks ðŸ™
 
   <p>A heartfelt thank you to <strong><a href="https://github.com/mostafaalagamy">Mostafa Alagamy</a></strong> for their inspiration and contributions to the open source community.</p>
-  <p><strong><a href="https://github.com/koiverse/ArchiveTune">ArchiveTune</a></strong> – For canvas functionality.</p>
-  <p><strong><a href="https://github.com/ibratabian17/YouLyPlus">YouLyPlus</a></strong> – For lyrics functionality.</p>
-  <p><strong><a href="https://github.com/monochrome-music/monochrome">Monochrome</a></strong> – For canvas functionality.</p>
+  <p><strong><a href="https://github.com/koiverse/ArchiveTune">ArchiveTune</a></strong> â€“ For canvas functionality.</p>
+  <p><strong><a href="https://github.com/ibratabian17/YouLyPlus">YouLyPlus</a></strong> â€“ For lyrics functionality.</p>
+  <p><strong><a href="https://github.com/monochrome-music/monochrome">Monochrome</a></strong> â€“ For canvas functionality.</p>
 <hr width="60%">
-## 🎖️ Credits
+## ðŸŽ–ï¸ Credits
   <p>VIVI Music is built upon the foundation of amazing open-source projects:</p>
-  <p><strong><a href="https://github.com/better-lyrics/better-lyrics">Better Lyrics</a></strong> – For beautiful time-synced lyrics with word-by-word highlighting, and seamless YouTube Music integration.</p>
-  <p><strong><a href="https://github.com/maxrave-dev/SimpMusic">SimpMusic</a></strong> – For lyrics functionality and integration.</p>
+  <p><strong><a href="https://github.com/better-lyrics/better-lyrics">Better Lyrics</a></strong> â€“ For beautiful time-synced lyrics with word-by-word highlighting, and seamless YouTube Music integration.</p>
+  <p><strong><a href="https://github.com/maxrave-dev/SimpMusic">SimpMusic</a></strong> â€“ For lyrics functionality and integration.</p>
   <p align="center">The open-source community for tools, libraries, and APIs that make this project possible.</p>
   <p align="center"><strong>Thank you to all the amazing developers who made this project possible!</strong></p>
   <hr width="60%">
-  <p align="center"><strong>Made with ❤️ for music lovers everywhere</strong></p>
-  <p align="center">⭐ Star this repo if you enjoy VIVI Music!</p>
+  <p align="center"><strong>Made with â¤ï¸ for music lovers everywhere</strong></p>
+  <p align="center">â­ Star this repo if you enjoy VIVI Music!</p>
 </div>
