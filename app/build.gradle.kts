@@ -51,7 +51,7 @@ android {
             isDefault = true
             buildConfigField("Boolean", "CAST_AVAILABLE", "false")
         }
-        
+
         // GMS variant - with Google Cast support (requires Google Play Services)
         create("gms") {
             dimension = "variant"
@@ -295,5 +295,6 @@ dependencies {
     implementation(libs.lottie.compose)
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation(libs.work.runtime.ktx)
+    implementation(libs.androidx.core.splashscreen)
 }
 

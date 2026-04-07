@@ -798,7 +798,51 @@
     <string name="version_code">Version code</string>
     <string name="namespace">Namespace</string>
     <string name="telegram_channel">Telegram</string>
+
+    <!-- Onboarding -->
+    <string name="welcome_to">Welcome to</string>
+    <string name="welcome_preparing_subtitle">Let\'s get everything ready for you.</string>
+    <string name="get_started">Get Started</string>
+
+    <string name="perm_required">Required</string>
+    <string name="perm_permissions">Permissions</string>
+    <string name="perm_intro_text">These permissions are required for ViviMusic to function correctly. Please grant them to proceed.</string>
+
+    <string name="perm_notif_title">Notifications</string>
+    <string name="perm_notif_desc">Know immediately when your music is playing and control it from the notification bar.</string>
+
+    <string name="perm_install_title">App Installation</string>
+    <string name="perm_install_desc">Required to download and install app updates seamlessly.</string>
+
+    <string name="feat_discover">Discover</string>
+    <string name="feat_features">Features</string>
+    <string name="feat_intro">Explore everything ViviMusic has to offer for your music journey.</string>
+
+    <string name="feat_lyrics_title">Smart Lyrics</string>
+    <string name="feat_lyrics_desc">Enjoy synchronized, word-by-word lyrics for millions of songs.</string>
+
+    <string name="feat_download_title">Offline Playback</string>
+    <string name="feat_download_desc">Download your favorite tracks and listen anywhere, anytime.</string>
+
+    <string name="feat_quality_title">Premium Quality</string>
+    <string name="feat_quality_desc">Stream and download.</string>
+
+    <string name="feat_update_title">Dynamic Updates</string>
+    <string name="feat_update_desc">Always stay updated with our built-in updater.</string>
+
+    <string name="feat_license_title">License</string>
+    <string name="feat_license_desc">General Public License v3.0</string>
+    <string name="feat_github_title">GitHub</string>
+    <string name="feat_github_desc">Open source project</string>
+
     <string name="join_telegram">Join our Telegram channel</string>
+    <string name="welcome_update_check">Stay</string>
+    <string name="welcome_update_status">Updated</string>
+    <string name="welcome_update_intro">Ensuring you have the latest features and security improvements.</string>
+    <string name="welcome_checking_updates">Checking for updates…</string>
+    <string name="welcome_up_to_date">ViviMusic is up to date!</string>
+    <string name="welcome_update_available">New version is available: %s</string>
+    <string name="welcome_everything_ready">Everything is now up to date</string>
     <string name="commits_title">Commits</string>
     <string name="error_loading_commits">Failed to load commits becoz you didnt pay me ?</string>
     <string name="commits">Commits</string>

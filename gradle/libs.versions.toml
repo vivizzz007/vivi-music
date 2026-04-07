@@ -40,6 +40,7 @@ protobufPlugin = "0.9.6"
 smoothCorner = "v1.0.0"
 lottie = "6.6.2"
 work = "2.10.0"
+coreSplashscreen = "1.2.0"
 
 
 [libraries]
@@ -130,6 +131,7 @@ protobuf-kotlin-lite = { module = "com.google.protobuf:protobuf-kotlin-lite", ve
 smoothCorner = { module = "com.github.racra:smooth-corner-rect-android-compose", version.ref = "smoothCorner" }
 lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottie" }
 work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
+androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
 
 
 [plugins]
