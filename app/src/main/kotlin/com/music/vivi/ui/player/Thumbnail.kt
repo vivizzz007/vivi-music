@@ -98,7 +98,6 @@ import com.music.vivi.listentogether.RoomRole
 import com.music.vivi.ui.component.CastButton
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.constants.CanvasThumbnailAnimationKey
-import com.music.vivi.canvas.ArchiveTuneCanvas
 import com.music.vivi.canvas.MonochromeApiCanvas
 import com.music.vivi.canvas.CanvasArtwork
 import com.music.vivi.extensions.metadata
@@ -722,6 +721,8 @@ private fun ThumbnailItem(
                         val songTitle = normalizeCanvasSongTitle(songTitleRaw)
                         val artistName = normalizeCanvasArtistName(artistNameRaw)
                         
+                        println("CanvasFetch: Song='$songTitle' (raw='$songTitleRaw'), Artist='$artistName' (raw='$artistNameRaw')")
+                        
                         linkedSetOf(
                             songTitle to artistName,
                             songTitleRaw to artistName,
@@ -732,13 +733,6 @@ private fun ThumbnailItem(
                                 ViviMusicCanvasProvider.getBySongArtist(
                                     song = s,
                                     artist = a
-                                )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
-                                    ?: ArchiveTuneCanvas.getBySongArtist(
-                                    song = s,
-                                    artist = a,
-                                    album = albumName,
-                                    duration = duration,
-                                    storefront = storefront
                                 )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                                     ?: MonochromeApiCanvas.getBySongArtist(
                                         song = s,
@@ -759,9 +753,13 @@ private fun ThumbnailItem(
                     val validated = fetched?.let { artwork ->
                         val resultArtist = artwork.artist
                         if (resultArtist != null && requestedArtist.isNotBlank()) {
-                            // Basic fuzzy match
+                            val normalizedResult = normalizeCanvasArtistName(resultArtist)
+                            val normalizedRequested = normalizeCanvasArtistName(requestedArtist)
+                            // Relaxed fuzzy match: check original contains OR normalized contains
                             if (resultArtist.contains(requestedArtist, ignoreCase = true) || 
-                                requestedArtist.contains(resultArtist, ignoreCase = true)) {
+                                requestedArtist.contains(resultArtist, ignoreCase = true) ||
+                                normalizedResult.contains(normalizedRequested, ignoreCase = true) ||
+                                normalizedRequested.contains(normalizedResult, ignoreCase = true)) {
                                 artwork
                             } else null
                         } else artwork // fallback if artist info missing

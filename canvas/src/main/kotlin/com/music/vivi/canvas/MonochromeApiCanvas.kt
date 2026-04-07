@@ -24,7 +24,6 @@ import java.util.concurrent.ConcurrentHashMap
 
 /**
  * A canvas provider that fetches Tidal video covers via Monochrome API instances.
- * This serves as a fallback when ArchiveTuneCanvas fails to find an artwork.
  */
 object MonochromeApiCanvas {
     private val INSTANCES = listOf(
@@ -75,7 +74,9 @@ object MonochromeApiCanvas {
         cache[key]?.takeIf { it.expiresAtMs > System.currentTimeMillis() }?.let { return it.value }
 
         val result = searchForVideoCover(song, artist, album)
-        cache[key] = CacheEntry(result, System.currentTimeMillis() + CACHE_TTL_MS)
+        if (result != null) {
+            cache[key] = CacheEntry(result, System.currentTimeMillis() + CACHE_TTL_MS)
+        }
         return result
     }
 
