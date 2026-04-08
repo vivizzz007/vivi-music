@@ -466,6 +466,36 @@
     <string name="error_title">Error</string>
     <string name="error_eq_apply_failed">Failed to apply EQ profile: %1$s</string>
 
+    <!-- ViviEqualizer Strings -->
+    <string name="vivi_equalizer">ViviEqualizer</string>
+    <string name="vivi_equalizer_desc">Pro-grade acoustic tuning &amp; effects</string>
+    <string name="eq_simple">Simple</string>
+    <string name="eq_advanced">Advanced</string>
+    <string name="eq_label_bass">Bass</string>
+    <string name="eq_label_mid">Mids</string>
+    <string name="eq_label_treble">Treble</string>
+    <string name="eq_preset_flat">Flat</string>
+    <string name="eq_preset_bass_boost">Bass Boost</string>
+    <string name="eq_preset_pure_clarity">Pure Clarity</string>
+    <string name="eq_preset_soft_bass">Soft Bass</string>
+    <string name="eq_preset_electronic">Electronic</string>
+    <string name="eq_preset_rock">Rock</string>
+    <string name="eq_preset_pop">Pop</string>
+    <string name="eq_preset_jazz">Jazz</string>
+    <string name="eq_preset_voice">Voice</string>
+    <string name="eq_preset_dolby_open">Dolby Open</string>
+    <string name="eq_preset_dolby_rich">Dolby Rich</string>
+    <string name="eq_preset_dolby_focused">Dolby Focused</string>
+    <string name="eq_preset_dirac_music">Dirac Music</string>
+    <string name="eq_preset_dirac_movie">Dirac Movie</string>
+    <string name="eq_preset_dirac_game">Dirac Game</string>
+    <string name="eq_enable_title">ViviEqualizer</string>
+    <string name="eq_enable_summary">Toggle professional audio processing</string>
+    <string name="eq_label_vivi">Vivi Signature</string>
+    <string name="eq_label_dolby">Dolby Atmos</string>
+    <string name="eq_label_dirac">Dirac Audio</string>
+    <string name="eq_reset">Reset</string>
+
     <!-- Hardcoded strings -->
     <string name="found_in_settings_content">Found in Settings &gt; Content</string>
     <string name="plays">plays</string>

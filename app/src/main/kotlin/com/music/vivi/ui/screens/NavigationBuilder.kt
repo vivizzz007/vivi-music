@@ -65,6 +65,7 @@ import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.vivimusic.changelog.ChangelogScreen
 import com.music.vivi.vivimusic.commitscreen.CommitScreen
+import com.music.vivi.ui.screens.equalizer.axion.AxionEqScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 fun NavGraphBuilder.navigationBuilder(
@@ -349,6 +350,10 @@ fun NavGraphBuilder.navigationBuilder(
 
     composable("settings/storage") {
         StorageSettings(navController, scrollBehavior)
+    }
+
+    composable("settings/equalizer") {
+        AxionEqScreen(onBackClick = { navController.navigateUp() })
     }
 
     composable("settings/privacy") {
