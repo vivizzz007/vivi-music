@@ -95,6 +95,9 @@ import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.innertube.models.IpVersion
 import com.music.vivi.constants.IpVersionKey
+import com.music.vivi.utils.PlaybackLogManager
+import com.music.vivi.ui.component.PlaybackLogsDialog
+import androidx.compose.runtime.collectAsState
 import java.net.Proxy
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -146,6 +149,9 @@ fun ContentSettings(
         defaultValue = IpVersion.AUTO
     )
     val (albumCanvasEnabled, onAlbumCanvasEnabledChange) = rememberPreference(key = AlbumCanvasEnabledKey, defaultValue = false)
+
+    var showPlaybackLogsDialog by rememberSaveable { mutableStateOf(false) }
+    val playbackLogs by PlaybackLogManager.logs.collectAsState()
 
     // Auto-switch preferred provider if current one is disabled
     LaunchedEffect(enableLrclib, enableKugou, enableBetterLyrics, enableSimpMusic, enableYouLyPlus, preferredProvider) {
@@ -473,6 +479,14 @@ fun ContentSettings(
                     IpVersion.IPV6 -> stringResource(R.string.ip_version_ipv6)
                 }
             }
+        )
+    }
+
+    if (showPlaybackLogsDialog) {
+        PlaybackLogsDialog(
+            logs = playbackLogs,
+            onClear = { PlaybackLogManager.clearLogs() },
+            onDismiss = { showPlaybackLogsDialog = false }
         )
     }
 
@@ -999,6 +1013,20 @@ fun ContentSettings(
                         )
                     },
                     onClick = { showQuickPicksDialog = true }
+                )
+            )
+        )
+
+        Spacer(modifier = Modifier.height(27.dp))
+
+        Material3SettingsGroup(
+            title = stringResource(R.string.logs_heading),
+            items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.bug_report),
+                    title = { Text(stringResource(R.string.playback_logs)) },
+                    description = { Text(stringResource(R.string.playback_logs_desc)) },
+                    onClick = { showPlaybackLogsDialog = true }
                 )
             )
         )

@@ -12,6 +12,7 @@ import com.music.innertube.NewPipeExtractor
 import com.music.innertube.YouTube
 import com.music.innertube.models.YouTubeClient
 import com.music.innertube.models.YouTubeClient.Companion.ANDROID_CREATOR
+import com.music.vivi.utils.BotDetectionMitigator
 import com.music.innertube.models.YouTubeClient.Companion.ANDROID_VR_1_43_32
 import com.music.innertube.models.YouTubeClient.Companion.ANDROID_VR_1_61_48
 import com.music.innertube.models.YouTubeClient.Companion.ANDROID_VR_NO_AUTH
@@ -32,6 +33,8 @@ import com.music.vivi.utils.YTPlayerUtils.validateStatus
 import com.music.vivi.utils.potoken.PoTokenGenerator
 import com.music.vivi.utils.potoken.PoTokenResult
 import com.music.vivi.utils.sabr.EjsNTransformSolver
+import com.music.vivi.utils.PlaybackLogLevel
+import com.music.vivi.utils.PlaybackLogManager
 import okhttp3.OkHttpClient
 import timber.log.Timber
 
@@ -92,8 +95,29 @@ object YTPlayerUtils {
         playlistId: String? = null,
         audioQuality: AudioQuality,
         connectivityManager: ConnectivityManager,
+    ): Result<PlaybackData> {
+        val firstAttempt = resolvePlaybackData(videoId, playlistId, audioQuality, connectivityManager)
+        
+        if (firstAttempt.isFailure && YouTube.cookie == null) {
+            Timber.tag(TAG).w("Playback failed for guest. Attempting bot detection mitigation...")
+            PlaybackLogManager.log(PlaybackLogLevel.BOT, "Playback failed for guest", "Triggering bot detection mitigation (rotating guest session)")
+            BotDetectionMitigator.rotateGuestSession()
+            return resolvePlaybackData(videoId, playlistId, audioQuality, connectivityManager)
+        }
+        
+        firstAttempt.onSuccess { BotDetectionMitigator.notifyPlaybackSuccess() }
+        return firstAttempt
+    }
+
+    private suspend fun resolvePlaybackData(
+        videoId: String,
+        playlistId: String? = null,
+        audioQuality: AudioQuality,
+        connectivityManager: ConnectivityManager,
     ): Result<PlaybackData> = runCatching {
         Timber.tag(logTag).d("Fetching player response for videoId: $videoId, playlistId: $playlistId")
+        PlaybackLogManager.log(PlaybackLogLevel.INFO, "Resolving playback data", "Video: $videoId")
+        
         // Debug: Log ALL playback attempts
         println("[PLAYBACK_DEBUG] playerResponseForPlayback called: videoId=$videoId, playlistId=$playlistId")
         // Check if this is an uploaded/privately owned track
@@ -123,6 +147,7 @@ object YTPlayerUtils {
 
         // Try MAIN_CLIENT (ANDROID_VR) for fast stream resolution
         Timber.tag(logTag).d("Attempting to get player response using MAIN_CLIENT: ${MAIN_CLIENT.clientName}")
+        PlaybackLogManager.log(PlaybackLogLevel.DEBUG, "Trying ${MAIN_CLIENT.clientName} (Main)")
         var mainPlayerResponse = YouTube.player(videoId, playlistId, MAIN_CLIENT, signatureTimestamp.timestamp, poToken?.playerRequestPoToken).getOrThrow()
 
         // Fetch authenticated metadata from WEB_REMIX when logged in.
@@ -235,6 +260,7 @@ object YTPlayerUtils {
                 // after main client use fallback clients
                 client = STREAM_FALLBACK_CLIENTS[clientIndex]
                 Timber.tag(logTag).d("Trying fallback client ${clientIndex + 1}/${STREAM_FALLBACK_CLIENTS.size}: ${client.clientName}")
+                PlaybackLogManager.log(PlaybackLogLevel.DEBUG, "Trying fallback [${clientIndex + 1}/${STREAM_FALLBACK_CLIENTS.size}]", client.clientName)
 
                 if (client.loginRequired && !isLoggedIn && YouTube.cookie == null) {
                     // skip client if it requires login but user is not logged in
@@ -264,6 +290,7 @@ object YTPlayerUtils {
             // process current client response
             if (streamPlayerResponse?.playabilityStatus?.status == "OK") {
                 Timber.tag(logTag).d("Player response status OK for client: ${if (clientIndex == -1) MAIN_CLIENT.clientName else STREAM_FALLBACK_CLIENTS[clientIndex].clientName}")
+                PlaybackLogManager.log(PlaybackLogLevel.INFO, "Player response OK", if (clientIndex == -1) MAIN_CLIENT.clientName else STREAM_FALLBACK_CLIENTS[clientIndex].clientName)
 
                 // Check if formats have direct URLs (no signatureCipher needed)
                 val hasDirectUrls = streamPlayerResponse.streamingData?.adaptiveFormats
@@ -358,6 +385,7 @@ object YTPlayerUtils {
                 if (validateStatus(streamUrl!!)) {
                     // working stream found
                     Timber.tag(logTag).d("Stream validated successfully with client: ${currentClient.clientName}")
+                    PlaybackLogManager.log(PlaybackLogLevel.INFO, "Stream validated", currentClient.clientName)
                     // Log for release builds
                     Log.i(TAG, "Playback: client=${currentClient.clientName}, videoId=$videoId")
                     break
@@ -388,6 +416,12 @@ object YTPlayerUtils {
                     }
                 }
             } else {
+                val status = streamPlayerResponse?.playabilityStatus?.status ?: "Unknown"
+                val reason = streamPlayerResponse?.playabilityStatus?.reason ?: "No reason"
+                Timber.tag(logTag).d("Player response status not OK: $status, reason: $reason")
+                PlaybackLogManager.log(PlaybackLogLevel.WARNING, "Client failed: ${client.clientName}", "$status: $reason")
+                
+                // Restore original Timber log for Logcat
                 Timber.tag(logTag).d("Player response status not OK: ${streamPlayerResponse?.playabilityStatus?.status}, reason: ${streamPlayerResponse?.playabilityStatus?.reason}")
             }
         }
@@ -441,6 +475,10 @@ object YTPlayerUtils {
             streamExpiresInSeconds,
         )
     }.onFailure { e ->
+        Timber.tag(logTag).e(e, "Playback resolution failed")
+        PlaybackLogManager.log(PlaybackLogLevel.ERROR, "Playback failed", "${e::class.simpleName}: ${e.message}")
+        
+        // Restore original println for Logcat
         println("[PLAYBACK_DEBUG] EXCEPTION during playback for videoId=$videoId: ${e::class.simpleName}: ${e.message}")
         e.printStackTrace()
     }

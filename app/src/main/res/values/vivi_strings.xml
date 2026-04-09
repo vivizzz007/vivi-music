@@ -495,6 +495,14 @@
     <string name="eq_label_dolby">Dolby Atmos</string>
     <string name="eq_label_dirac">Dirac Audio</string>
     <string name="eq_reset">Reset</string>
+    <string name="eq_label_custom">Custom</string>
+    <string name="eq_save">Save</string>
+    <string name="eq_save_dialog_title">Save Preset</string>
+    <string name="eq_save_name_hint">Preset Name</string>
+    <string name="eq_profile_saved">Preset saved</string>
+    <string name="eq_manage_presets">Manage Presets</string>
+    <string name="eq_delete_selected">Delete</string>
+    <string name="eq_no_custom_presets">No custom presets found</string>
 
     <!-- Hardcoded strings -->
     <string name="found_in_settings_content">Found in Settings &gt; Content</string>
@@ -885,4 +893,11 @@
     <string name="update_info_title">Update Information</string>
     <string name="manual_delete_hint_title">Manual Cleanup</string>
     <string name="manual_delete_hint_desc">You can manually also delete. Deleting old apk will improve the updater to update properly.</string>
+
+    <!-- Playback Log -->
+    <string name="logs_heading">Logs</string>
+    <string name="playback_logs">Playback logs</string>
+    <string name="playback_logs_desc">View real-time stream resolution and bot mitigation events</string>
+    <string name="playback_logs_title">Playback logs</string>
+    <string name="no_playback_logs">No playback events recorded yet</string>
 </resources>

@@ -124,6 +124,15 @@ object YouTube {
             innerTube.ipVersion = value
         }
 
+    suspend fun refreshVisitorData(): Result<String> = visitorData().onSuccess {
+        visitorData = it
+    }
+
+    fun clearGuestSession() {
+        visitorData = null
+        dataSyncId = null
+    }
+
     suspend fun searchSuggestions(query: String): Result<SearchSuggestions> = runCatching {
         val response = innerTube.getSearchSuggestions(WEB_REMIX, query).body<GetSearchSuggestionsResponse>()
         SearchSuggestions(
