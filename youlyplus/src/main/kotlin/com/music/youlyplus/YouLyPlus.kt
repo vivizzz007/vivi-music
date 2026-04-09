@@ -126,7 +126,7 @@ object YouLyPlus {
 
     private fun resolveLyrics(response: LyricsResponse): ResolvedLyrics? {
         response.syncedLyrics?.takeIf { it.isNotBlank() }?.let {
-            return ResolvedLyrics(it, it.contains("<") && it.contains(">"))
+            return ResolvedLyrics(it, isWordSyncedLrc(it))
         }
 
         response.lyrics?.convertToLrc()?.takeIf { it.isNotBlank() }?.let {
@@ -138,6 +138,11 @@ object YouLyPlus {
             return ResolvedLyrics(it, false)
         }
         return null
+    }
+
+    private fun isWordSyncedLrc(lyrics: String): Boolean {
+        val wordSyncPattern = Regex("""(?m)^<[^|>]+:[0-9.]+:[0-9.]+(?:\|[^|>]+:[0-9.]+:[0-9.]+)*>$""")
+        return wordSyncPattern.containsMatchIn(lyrics)
     }
 
     /**
@@ -257,7 +262,7 @@ private object AppleTtmlConverter {
                 val minutes = timeMs / 60000
                 val seconds = (timeMs % 60000) / 1000
                 val centiseconds = (timeMs % 1000) / 10
-                appendLine(String.format("[%02d:%02d.%02d]%s", minutes, seconds, centiseconds, line.text))
+                appendLine("[%02d:%02d.%02d]%s".format(minutes, seconds, centiseconds, line.text))
 
                 if (line.words.isNotEmpty()) {
                     val wordsData = line.words.joinToString("|") { word ->
@@ -273,7 +278,7 @@ private object AppleTtmlConverter {
         val factory = DocumentBuilderFactory.newInstance()
         factory.isNamespaceAware = true
         val builder = factory.newDocumentBuilder()
-        val doc = builder.parse(ttml.byteInputStream())
+        val doc = builder.parse(ttml.byteInputStream(Charsets.UTF_8))
         val pElements = doc.getElementsByTagName("p")
         val lines = mutableListOf<ParsedLine>()
 
