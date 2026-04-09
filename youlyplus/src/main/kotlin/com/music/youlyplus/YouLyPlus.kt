@@ -13,6 +13,7 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.w3c.dom.Element
 import org.w3c.dom.Node
+import javax.xml.XMLConstants
 import javax.xml.parsers.DocumentBuilderFactory
 
 /**
@@ -26,6 +27,8 @@ import javax.xml.parsers.DocumentBuilderFactory
  */
 object YouLyPlus {
     private const val BINIMUM_SEARCH_URL = "https://lyrics-api.binimum.org/"
+    private val WORD_SYNC_LRC_PATTERN =
+        Regex("""(?m)^<[^|>]+:[0-9.]+:[0-9.]+(?:\|[^|>]+:[0-9.]+:[0-9.]+)*>$""")
 
     /** Mirror of YouLyPlus extension's KPOE_SERVERS constant. */
     
@@ -141,8 +144,7 @@ object YouLyPlus {
     }
 
     private fun isWordSyncedLrc(lyrics: String): Boolean {
-        val wordSyncPattern = Regex("""(?m)^<[^|>]+:[0-9.]+:[0-9.]+(?:\|[^|>]+:[0-9.]+:[0-9.]+)*>$""")
-        return wordSyncPattern.containsMatchIn(lyrics)
+        return WORD_SYNC_LRC_PATTERN.containsMatchIn(lyrics)
     }
 
     /**
@@ -227,6 +229,7 @@ object YouLyPlus {
             }
         }.body<BinimumSearchResponse>()
 
+        // API returns pre-ranked results; first result is the best candidate.
         val bestResult = response.results.firstOrNull() ?: return@runCatching null
         val lyricsUrl = bestResult.lyricsUrl?.takeIf { it.isNotBlank() } ?: return@runCatching null
         val ttml = client.get(lyricsUrl).bodyAsText().takeIf { it.isNotBlank() } ?: return@runCatching null
@@ -277,6 +280,10 @@ private object AppleTtmlConverter {
     private fun parse(ttml: String): List<ParsedLine> = runCatching {
         val factory = DocumentBuilderFactory.newInstance()
         factory.isNamespaceAware = true
+        factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true)
+        factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
+        factory.setFeature("http://xml.org/sax/features/external-general-entities", false)
+        factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false)
         val builder = factory.newDocumentBuilder()
         val doc = builder.parse(ttml.byteInputStream(Charsets.UTF_8))
         val pElements = doc.getElementsByTagName("p")
