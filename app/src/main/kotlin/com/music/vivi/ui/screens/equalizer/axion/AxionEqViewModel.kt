@@ -13,6 +13,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
@@ -37,6 +40,13 @@ class AxionEqViewModel @Inject constructor(
     private val _mode = MutableStateFlow(prefs.getInt("mode", 0)) // 0: Simple, 1: Advanced
     val mode = _mode.asStateFlow()
 
+    private val _isDirty = MutableStateFlow(false)
+    val isDirty = _isDirty.asStateFlow()
+
+    val customProfiles = eqProfileRepository.profiles.map { profiles ->
+        profiles.filter { it.isCustom && it.id != "vivi_tuning" }
+    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
     init {
         if (_enabled.value) {
             applyToService()
@@ -59,6 +69,7 @@ class AxionEqViewModel @Inject constructor(
     fun setMode(mode: Int) {
         _mode.value = mode
         prefs.edit().putInt("mode", mode).apply()
+        _isDirty.value = false // Reset dirty when switching modes
     }
 
     fun setBandGain(index: Int, gain: Float) {
@@ -66,16 +77,18 @@ class AxionEqViewModel @Inject constructor(
         newGains[index] = gain
         _bandGains.value = newGains
         prefs.edit().putFloat("band_$index", gain).apply()
+        _isDirty.value = true
         if (_enabled.value) {
             applyToService()
         }
     }
 
-    fun setBandsGains(gains: FloatArray) {
+    fun setBandsGains(gains: FloatArray, fromUser: Boolean = false) {
         _bandGains.value = gains
         val editor = prefs.edit()
         gains.forEachIndexed { index, f -> editor.putFloat("band_$index", f) }
         editor.apply()
+        _isDirty.value = fromUser // Only dirty if coming from manual tuner moves
         if (_enabled.value) {
             applyToService()
         }
@@ -84,6 +97,43 @@ class AxionEqViewModel @Inject constructor(
     fun reset() {
         val flat = FloatArray(10) { 0f }
         setBandsGains(flat)
+    }
+
+    fun saveCustomProfile(name: String) {
+        viewModelScope.launch {
+            val bands = _bandGains.value.mapIndexed { index, f ->
+                ParametricEQBand(
+                    frequency = bandFrequencies[index],
+                    gain = f.toDouble() / 50.0,
+                    q = 1.41,
+                    filterType = FilterType.PK,
+                    enabled = true
+                )
+            }
+            
+            val id = "custom_${System.currentTimeMillis()}"
+            val profile = SavedEQProfile(
+                id = id,
+                name = name,
+                deviceModel = "ViviEqualizer",
+                bands = bands,
+                preamp = 0.0,
+                isCustom = true,
+                isActive = true
+            )
+            
+            eqProfileRepository.saveProfile(profile)
+            eqProfileRepository.setActiveProfile(profile.id)
+            _isDirty.value = false
+        }
+    }
+
+    fun deleteProfiles(ids: List<String>) {
+        viewModelScope.launch {
+            ids.forEach { id ->
+                eqProfileRepository.deleteProfile(id)
+            }
+        }
     }
 
     private fun applyToService() {

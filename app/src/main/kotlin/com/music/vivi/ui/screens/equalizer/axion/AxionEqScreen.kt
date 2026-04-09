@@ -7,7 +7,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Replay
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.clickable
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,14 +25,17 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.music.vivi.R
+import com.music.vivi.eq.data.SavedEQProfile
 import com.music.vivi.ui.component.Material3SettingsGroup
 import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.utils.backToMain
 import kotlin.math.abs
+import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -175,7 +183,7 @@ private fun SimpleEqMode(
         newGains[8] = tv * 1.0f
         newGains[9] = tv * 1.15f // Extended high-end sparkle
         
-        viewModel.setBandsGains(newGains)
+        viewModel.setBandsGains(newGains, fromUser = true)
     }
 
     LaunchedEffect(bandGains) {
@@ -206,9 +214,35 @@ private fun SimpleEqMode(
         R.string.eq_preset_dirac_game to floatArrayOf(150f, 250f, 200f, 0f, 80f, 150f, 300f, 450f, 400f, 280f),
     )
 
+    val customProfiles by viewModel.customProfiles.collectAsState()
+    val isDirty by viewModel.isDirty.collectAsState()
+    var showSaveDialog by remember { mutableStateOf(false) }
+    var showManageDialog by remember { mutableStateOf(false) }
+
+    if (showSaveDialog) {
+        SavePresetDialog(
+            onDismiss = { showSaveDialog = false },
+            onSave = { name ->
+                viewModel.saveCustomProfile(name)
+                showSaveDialog = false
+            }
+        )
+    }
+
+    if (showManageDialog) {
+        ManagePresetsDialog(
+            customProfiles = customProfiles,
+            onDismiss = { showManageDialog = false },
+            onDeleteSelected = { ids ->
+                viewModel.deleteProfiles(ids)
+                showManageDialog = false
+            }
+        )
+    }
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(24.dp), // Increased gap between curve and buttons
+        verticalArrangement = Arrangement.spacedBy(16.dp), 
     ) {
         CircularEqControl(
             bass = bass, mid = mid, treble = treble,
@@ -217,10 +251,47 @@ private fun SimpleEqMode(
             onMidChange = { mid = it; applyTriangle() },
             onTrebleChange = { treble = it; applyTriangle() },
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(0.9f)
                 .padding(horizontal = 8.dp)
                 .aspectRatio(1f),
         )
+
+        AnimatedVisibility(
+            visible = isDirty && enabled,
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
+        ) {
+            OutlinedButton(
+                onClick = { showSaveDialog = true },
+                modifier = Modifier.padding(bottom = 8.dp),
+                shape = MaterialTheme.shapes.medium,
+                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp)
+            ) {
+                Icon(
+                    imageVector = androidx.compose.material.icons.Icons.Rounded.Check,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.eq_save),
+                    style = MaterialTheme.typography.labelLarge
+                )
+            }
+        }
+
+        if (customProfiles.isNotEmpty()) {
+            PresetSection(
+                title = stringResource(R.string.eq_label_custom),
+                presets = customProfiles.map { -1 to it.bands.map { it.gain.toFloat() * 50f }.toFloatArray() },
+                presetNames = customProfiles.map { it.name },
+                enabled = enabled,
+                viewModel = viewModel,
+                bandGains = bandGains,
+                onEditClick = { showManageDialog = true }
+            )
+        }
 
         viviPresets.chunked(4).forEach { chunk ->
             PresetSection(
@@ -231,8 +302,8 @@ private fun SimpleEqMode(
                 bandGains = bandGains
             )
         }
-        PresetSection(stringResource(R.string.eq_label_dolby), dolbyPresets, enabled, viewModel, bandGains)
-        PresetSection(stringResource(R.string.eq_label_dirac), diracPresets, enabled, viewModel, bandGains)
+        PresetSection(stringResource(R.string.eq_label_dolby), dolbyPresets, null, enabled, viewModel, bandGains)
+        PresetSection(stringResource(R.string.eq_label_dirac), diracPresets, null, enabled, viewModel, bandGains)
     }
 }
 
@@ -241,21 +312,43 @@ private fun SimpleEqMode(
 private fun PresetSection(
     title: String,
     presets: List<Pair<Int, FloatArray>>,
+    presetNames: List<String>? = null,
     enabled: Boolean,
     viewModel: AxionEqViewModel,
-    bandGains: FloatArray
+    bandGains: FloatArray,
+    onEditClick: (() -> Unit)? = null
 ) {
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         if (title.isNotEmpty()) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
+                )
+                
+                if (onEditClick != null && enabled) {
+                    androidx.compose.material3.IconButton(
+                        onClick = onEditClick,
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Edit,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+            }
         }
 
         Row(
@@ -263,6 +356,7 @@ private fun PresetSection(
             horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
         ) {
             presets.forEachIndexed { index, (nameRes, bands) ->
+                val name = presetNames?.getOrNull(index) ?: stringResource(nameRes)
                 val isSelected = remember(bandGains) {
                     bandGains.size == bands.size && 
                     abs((bandGains[0] + bandGains[1]) - (bands[0] + bands[1])) < 10f &&
@@ -273,19 +367,100 @@ private fun PresetSection(
                     checked = isSelected,
                     onCheckedChange = { if (enabled) viewModel.setBandsGains(bands) },
                     enabled = enabled,
-                    shapes = when (index) {
-                        0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                        presets.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                    shapes = when {
+                        presets.size == 1 || index == 0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                        index == presets.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
                         else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                     },
                     modifier = Modifier.weight(1f).semantics { role = Role.RadioButton },
                     contentPadding = PaddingValues(horizontal = 4.dp)
                 ) {
                     Text(
-                        text = stringResource(nameRes),
+                        text = name,
                         style = MaterialTheme.typography.labelSmall,
                         maxLines = 1
                     )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SavePresetDialog(
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit
+) {
+    var name by remember { mutableStateOf("") }
+    
+    val cardShape = AbsoluteSmoothCornerShape(30.dp, 60)
+    val blockShape = AbsoluteSmoothCornerShape(22.dp, 60)
+    val actionShape = AbsoluteSmoothCornerShape(18.dp, 60)
+
+    BasicAlertDialog(onDismissRequest = onDismiss) {
+        Surface(
+            modifier = Modifier
+                .padding(horizontal = 24.dp)
+                .widthIn(max = 320.dp),
+            shape = cardShape,
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            tonalElevation = 8.dp,
+        ) {
+            Column(
+                modifier = Modifier.padding(18.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                Surface(
+                    shape = blockShape,
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                ) {
+                    Column(
+                        modifier = Modifier.padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        // Header section removed redundant badge
+                        Text(
+                            text = stringResource(R.string.eq_save_dialog_title),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                        
+                        OutlinedTextField(
+                            value = name,
+                            onValueChange = { name = it },
+                            placeholder = { Text(stringResource(R.string.eq_save_name_hint)) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = MaterialTheme.shapes.medium,
+                            textStyle = MaterialTheme.typography.bodyMedium,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                            )
+                        )
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                ) {
+                    TextButton(
+                        onClick = onDismiss,
+                        shape = actionShape,
+                    ) {
+                        Text(text = stringResource(R.string.cancel))
+                    }
+                    
+                    OutlinedButton(
+                        onClick = { if (name.isNotBlank()) onSave(name) },
+                        enabled = name.isNotBlank(),
+                        shape = actionShape,
+                    ) {
+                        Text(text = stringResource(R.string.eq_save))
+                    }
                 }
             }
         }
@@ -330,7 +505,7 @@ private fun AdvancedEqMode(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
         ) {
-            FilledTonalButton(onClick = onReset) {
+            OutlinedButton(onClick = onReset) {
                 Icon(Icons.Rounded.Replay, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(stringResource(R.string.eq_reset))
@@ -397,5 +572,124 @@ private fun EqBandSlider(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ManagePresetsDialog(
+    customProfiles: List<SavedEQProfile>,
+    onDismiss: () -> Unit,
+    onDeleteSelected: (List<String>) -> Unit
+) {
+    val selectedIds = remember { mutableStateListOf<String>() }
+    
+    val cardShape = AbsoluteSmoothCornerShape(30.dp, 60)
+    val blockShape = AbsoluteSmoothCornerShape(22.dp, 60)
+    val actionShape = AbsoluteSmoothCornerShape(18.dp, 60)
+
+    BasicAlertDialog(onDismissRequest = onDismiss) {
+        Surface(
+            modifier = Modifier
+                .padding(horizontal = 24.dp)
+                .widthIn(max = 320.dp),
+            shape = cardShape,
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            tonalElevation = 8.dp,
+        ) {
+            Column(
+                modifier = Modifier.padding(18.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                Surface(
+                    shape = blockShape,
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                ) {
+                    Column(
+                        modifier = Modifier.padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.eq_manage_presets),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 4.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                        )
+
+                        if (customProfiles.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.eq_no_custom_presets),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        } else {
+                            LazyColumn(
+                                modifier = Modifier.heightIn(max = 300.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                items(customProfiles) { profile ->
+                                    val isSelected = selectedIds.contains(profile.id)
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(MaterialTheme.shapes.small)
+                                            .clickable {
+                                                if (isSelected) selectedIds.remove(profile.id)
+                                                else selectedIds.add(profile.id)
+                                            }
+                                            .padding(vertical = 4.dp)
+                                    ) {
+                                        Checkbox(
+                                            checked = isSelected,
+                                            onCheckedChange = {
+                                                if (it == true) selectedIds.add(profile.id)
+                                                else selectedIds.remove(profile.id)
+                                            }
+                                        )
+                                        Spacer(Modifier.width(8.dp))
+                                        Text(
+                                            text = profile.name,
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(bottom = 4.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                ) {
+                    TextButton(onClick = onDismiss, shape = actionShape) {
+                        Text(text = stringResource(R.string.cancel))
+                    }
+                    
+                    if (selectedIds.isNotEmpty()) {
+                        OutlinedButton(
+                            onClick = { onDeleteSelected(selectedIds.toList()) },
+                            shape = actionShape,
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error
+                            )
+                        ) {
+                            Text(text = stringResource(R.string.eq_delete_selected))
+                        }
+                    }
+                }
+            }
+        }
     }
 }
