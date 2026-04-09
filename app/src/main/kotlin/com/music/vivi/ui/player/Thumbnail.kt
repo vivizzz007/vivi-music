@@ -721,7 +721,7 @@ private fun ThumbnailItem(
                         val songTitle = normalizeCanvasSongTitle(songTitleRaw)
                         val artistName = normalizeCanvasArtistName(artistNameRaw)
                         
-                        println("CanvasFetch: Song='$songTitle' (raw='$songTitleRaw'), Artist='$artistName' (raw='$artistNameRaw')")
+                        println("CanvasFetch: Song='$songTitle' (raw='$songTitleRaw'), Artist='$artistName' (raw='$artistNameRaw'), Album='$albumName'")
                         
                         linkedSetOf(
                             songTitle to artistName,
@@ -730,6 +730,16 @@ private fun ThumbnailItem(
                             songTitleRaw to artistNameRaw,
                         ).filter { (s, a) -> s.isNotBlank() && a.isNotBlank() }
                             .firstNotNullOfOrNull { (s, a) ->
+                                // Strategy: If we have an album, prioritize a direct Apple Music album search first
+                                // to avoid song name collisions across different albums.
+                                if (!albumName.isNullOrBlank()) {
+                                    AppleMusicCanvasProvider.getByAlbumArtist(
+                                        album = albumName,
+                                        artist = a,
+                                        storefront = storefront
+                                    )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }?.let { return@firstNotNullOfOrNull it }
+                                }
+
                                 ViviMusicCanvasProvider.getBySongArtist(
                                     song = s,
                                     artist = a
@@ -742,6 +752,7 @@ private fun ThumbnailItem(
                                     ?: AppleMusicCanvasProvider.getBySongArtist(
                                         song = s,
                                         artist = a,
+                                        album = albumName,
                                         storefront = storefront
                                     )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                             }

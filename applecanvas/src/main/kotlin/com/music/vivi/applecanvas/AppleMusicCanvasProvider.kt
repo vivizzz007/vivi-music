@@ -100,10 +100,11 @@ object AppleMusicCanvasProvider {
         artist: String,
         storefront: String = "us",
     ): CanvasArtwork? {
+        AppleCanvasLogger.d("getByAlbumArtist: album='$album', artist='$artist'")
         val key = cacheKey("sa", album, artist, storefront)
         cache[key]?.takeIf { it.expiresAtMs > System.currentTimeMillis() }?.let { return it.value }
 
-        val result = searchAndFetchMotion(album, artist, storefront, "albums")
+        val result = searchAndFetchMotion(album, artist, album, storefront, "albums")
         if (result != null) {
             cache[key] = CacheEntry(result, System.currentTimeMillis() + CACHE_TTL_MS)
         }
@@ -113,13 +114,14 @@ object AppleMusicCanvasProvider {
     suspend fun getBySongArtist(
         song: String,
         artist: String,
+        album: String? = null,
         storefront: String = "us",
     ): CanvasArtwork? {
-        val key = cacheKey("song", song, artist, storefront)
+        val key = cacheKey("song", song, artist, album ?: "", storefront)
         cache[key]?.takeIf { it.expiresAtMs > System.currentTimeMillis() }?.let { return it.value }
 
         // Use searchAndFetchMotion which can handle song searches by resolving to albums
-        val result = searchAndFetchMotion(song, artist, storefront, "songs")
+        val result = searchAndFetchMotion(song, artist, album, storefront, "songs")
         if (result != null) {
             cache[key] = CacheEntry(result, System.currentTimeMillis() + CACHE_TTL_MS)
         }
@@ -145,12 +147,16 @@ object AppleMusicCanvasProvider {
     private suspend fun searchAndFetchMotion(
         term: String,
         artist: String,
+        album: String?,
         storefront: String,
         type: String, // "albums" or "songs"
     ): CanvasArtwork? {
         return runCatching {
-            AppleCanvasLogger.d("searching for $type: $term in $storefront")
-            val query = if (term.contains(artist, ignoreCase = true)) term else "$artist $term"
+            AppleCanvasLogger.d("searching for $type: $term (album: $album) in $storefront")
+            var query = if (term.contains(artist, ignoreCase = true)) term else "$artist $term"
+            if (!album.isNullOrBlank() && !query.contains(album, ignoreCase = true)) {
+                query = "$query $album"
+            }
             val url = "$AMP_BASE_URL/v1/catalog/$storefront/search"
             val response = client.get(url) {
                 header("Authorization", "Bearer $APPLE_MUSIC_TOKEN")
@@ -177,6 +183,7 @@ object AppleMusicCanvasProvider {
                 val attributes = obj["attributes"]?.jsonObject ?: return@mapNotNull null
                 val resultArtistName = attributes["artistName"]?.jsonPrimitive?.contentOrNull ?: ""
                 val resultName = attributes["name"]?.jsonPrimitive?.contentOrNull ?: ""
+                val resultCollectionName = attributes["collectionName"]?.jsonPrimitive?.contentOrNull ?: ""
                 
                 // Fuzzy artist match to ensure quality
                 if (!resultArtistName.contains(artist, ignoreCase = true) && 
@@ -197,7 +204,16 @@ object AppleMusicCanvasProvider {
                     if (inTerm && inResult) score += 3
                     else if (inTerm != inResult) score -= 2 
                 }
+
+                // Album matching
+                if (!album.isNullOrBlank() && resultCollectionName.contains(album, ignoreCase = true)) {
+                    score += 15
+                    if (resultCollectionName.equals(album, ignoreCase = true)) {
+                        score += 10
+                    }
+                }
                 
+                AppleCanvasLogger.d("  - Result: '$resultName' by '$resultArtistName' (Album: '$resultCollectionName') -> Score: $score")
                 score to item
             }.sortedByDescending { it.first }
             
