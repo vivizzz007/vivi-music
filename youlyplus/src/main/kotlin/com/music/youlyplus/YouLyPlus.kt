@@ -6,6 +6,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.client.statement.bodyAsText
@@ -52,6 +53,11 @@ object YouLyPlus {
                         ignoreUnknownKeys = true
                     }
                 )
+            }
+            install(HttpTimeout) {
+                requestTimeoutMillis = 15000
+                connectTimeoutMillis = 10000
+                socketTimeoutMillis = 15000
             }
             expectSuccess = true
         }
@@ -288,7 +294,7 @@ private object AppleTtmlConverter {
         }
     }
 
-    private fun parse(ttml: String): List<ParsedLine> = runCatching {
+    private fun parse(ttml: String): List<ParsedLine> {
         val factory = DocumentBuilderFactory.newInstance()
         factory.isNamespaceAware = true
         val secureParsingEnabled = runCatching {
@@ -298,7 +304,9 @@ private object AppleTtmlConverter {
             factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false)
             true
         }.getOrDefault(false)
-        if (!secureParsingEnabled) return@runCatching emptyList()
+        if (!secureParsingEnabled) {
+            throw IllegalStateException("Secure XML parser features are unavailable")
+        }
         val builder = factory.newDocumentBuilder()
         val doc = builder.parse(ttml.byteInputStream(Charsets.UTF_8))
         val pElements = doc.getElementsByTagName("p")
@@ -338,8 +346,8 @@ private object AppleTtmlConverter {
             }
         }
 
-        lines
-    }.getOrDefault(emptyList())
+        return lines
+    }
 
     private fun parseTime(timeStr: String): Double {
         val normalized = timeStr.trim().removeSuffix("s")
