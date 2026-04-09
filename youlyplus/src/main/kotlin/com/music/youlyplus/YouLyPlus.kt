@@ -9,6 +9,7 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.Url
 import io.ktor.serialization.kotlinx.json.json
 import kotlin.math.roundToLong
 import kotlinx.serialization.json.Json
@@ -233,7 +234,9 @@ object YouLyPlus {
 
         // API returns pre-ranked results; first result is the best candidate.
         val bestResult = response.results.firstOrNull() ?: return@runCatching null
-        val lyricsUrl = bestResult.lyricsUrl?.takeIf { it.isNotBlank() } ?: return@runCatching null
+        val lyricsUrl = bestResult.lyricsUrl
+            ?.takeIf { it.isNotBlank() && isTrustedLyricsUrl(it) }
+            ?: return@runCatching null
         val ttml = client.get(lyricsUrl).bodyAsText().takeIf { it.isNotBlank() } ?: return@runCatching null
         val lrc = AppleTtmlConverter.toLrc(ttml).takeIf { it.isNotBlank() } ?: return@runCatching null
 
@@ -242,6 +245,12 @@ object YouLyPlus {
             isWordSynced = bestResult.timingType.equals("word", ignoreCase = true),
         )
     }.getOrNull()
+
+    private fun isTrustedLyricsUrl(url: String): Boolean = runCatching {
+        val parsed = Url(url)
+        parsed.protocol.name.equals("https", ignoreCase = true) &&
+            parsed.host.equals("lyrics-storage.binimum.org", ignoreCase = true)
+    }.getOrDefault(false)
 }
 
 private object AppleTtmlConverter {
