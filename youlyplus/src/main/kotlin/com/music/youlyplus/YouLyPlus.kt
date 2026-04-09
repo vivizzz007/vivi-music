@@ -10,6 +10,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.client.statement.bodyAsText
 import io.ktor.serialization.kotlinx.json.json
+import kotlin.math.roundToLong
 import kotlinx.serialization.json.Json
 import org.w3c.dom.Element
 import org.w3c.dom.Node
@@ -74,25 +75,26 @@ object YouLyPlus {
         isrc: String? = null,
     ): Result<String> = runCatching {
         val binimumResult = fetchFromBinimumApi(title, artist, duration, album, isrc)
-        var binimumLineFallback: String? = null
-
-        when {
-            binimumResult?.isWordSynced == true -> return@runCatching binimumResult.lyrics
-            binimumResult != null -> binimumLineFallback = binimumResult.lyrics
+        if (binimumResult?.isWordSynced == true) {
+            return@runCatching binimumResult.lyrics
         }
+        val binimumLineFallback = binimumResult?.lyrics
 
-        for (server in SERVERS) {
-            val response = fetchFromServer(server, title, artist, duration, album, id, isrc)
-            if (response != null) {
-                val lyrics = resolveLyrics(response) ?: continue
-                if (binimumLineFallback != null) {
-                    if (lyrics.isWordSynced) return@runCatching lyrics.lyrics
-                    continue
-                }
+        if (binimumLineFallback == null) {
+            for (server in SERVERS) {
+                val response = fetchFromServer(server, title, artist, duration, album, id, isrc)
+                val lyrics = response?.let(::resolveLyrics) ?: continue
                 return@runCatching lyrics.lyrics
             }
+        } else {
+            for (server in SERVERS) {
+                val response = fetchFromServer(server, title, artist, duration, album, id, isrc)
+                val lyrics = response?.let(::resolveLyrics) ?: continue
+                if (lyrics.isWordSynced) return@runCatching lyrics.lyrics
+            }
+            return@runCatching binimumLineFallback
         }
-        if (!binimumLineFallback.isNullOrBlank()) return@runCatching binimumLineFallback
+
         throw IllegalStateException("No lyrics found from any YouLyPlus server")
     }
 
@@ -261,7 +263,7 @@ private object AppleTtmlConverter {
 
         return buildString {
             lines.forEach { line ->
-                val timeMs = (line.startTime * 1000).toLong()
+                val timeMs = (line.startTime * 1000).roundToLong()
                 val minutes = timeMs / 60000
                 val seconds = (timeMs % 60000) / 1000
                 val centiseconds = (timeMs % 1000) / 10
@@ -280,10 +282,14 @@ private object AppleTtmlConverter {
     private fun parse(ttml: String): List<ParsedLine> = runCatching {
         val factory = DocumentBuilderFactory.newInstance()
         factory.isNamespaceAware = true
-        factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true)
-        factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
-        factory.setFeature("http://xml.org/sax/features/external-general-entities", false)
-        factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false)
+        val secureParsingEnabled = runCatching {
+            factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true)
+            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
+            factory.setFeature("http://xml.org/sax/features/external-general-entities", false)
+            factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false)
+            true
+        }.getOrDefault(false)
+        if (!secureParsingEnabled) return@runCatching emptyList()
         val builder = factory.newDocumentBuilder()
         val doc = builder.parse(ttml.byteInputStream(Charsets.UTF_8))
         val pElements = doc.getElementsByTagName("p")
