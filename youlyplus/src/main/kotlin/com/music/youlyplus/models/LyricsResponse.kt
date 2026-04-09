@@ -1,5 +1,6 @@
 package com.music.youlyplus.models
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -40,4 +41,26 @@ data class Syllable(
     val isBackground: Boolean? = null,
 )
 
+@Serializable
+data class BinimumSearchResponse(
+    val total: Int? = null,
+    val source: String? = null,
+    val error: String? = null,
+    val results: List<BinimumSearchResult> = emptyList(),
+)
 
+@Serializable
+data class BinimumSearchResult(
+    val id: String? = null,
+    @SerialName("track_name")
+    val trackName: String? = null,
+    @SerialName("artist_name")
+    val artistName: String? = null,
+    @SerialName("album_name")
+    val albumName: String? = null,
+    val duration: Int? = null,
+    val isrc: String? = null,
+    @SerialName("timing_type")
+    val timingType: String? = null,
+    val lyricsUrl: String? = null,
+)
