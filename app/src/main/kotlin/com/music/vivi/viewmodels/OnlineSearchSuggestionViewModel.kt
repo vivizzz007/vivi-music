@@ -9,9 +9,11 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.music.innertube.YouTube
+import com.music.innertube.models.WatchEndpoint
 import com.music.innertube.models.YTItem
 import com.music.innertube.models.filterExplicit
 import com.music.innertube.models.filterVideoSongs
+import com.music.innertube.utils.YouTubeUrlParser
 import com.music.vivi.constants.HideExplicitKey
 import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.db.MusicDatabase
@@ -51,6 +53,9 @@ constructor(
                             )
                         }
                     } else {
+                        val parsedUrl = YouTubeUrlParser.parse(query)
+                        val parsedItem = if (parsedUrl != null) fetchParsedUrlItem(parsedUrl) else null
+                        
                         val result = YouTube.searchSuggestions(query).getOrNull()
                         val hideExplicit = context.dataStore.get(HideExplicitKey, false)
                         val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
@@ -67,10 +72,11 @@ constructor(
                                         ?.filter { suggestionQuery ->
                                             history.none { it.query == suggestionQuery }
                                         }.orEmpty(),
-                                    items =
+                                    items = listOfNotNull(parsedItem) +
                                     result
                                         ?.recommendedItems
                                         ?.distinctBy { it.id }
+                                        ?.filter { it.id != parsedItem?.id }
                                         ?.filterExplicit(hideExplicit)
                                         ?.filterVideoSongs(hideVideoSongs)
                                         .orEmpty(),
@@ -80,6 +86,27 @@ constructor(
                 }.collect {
                     _viewState.value = it
                 }
+        }
+    }
+
+    private suspend fun fetchParsedUrlItem(parsedUrl: YouTubeUrlParser.ParsedUrl): YTItem? {
+        println("[LINK_PARSE_DEBUG] Fetching metadata for: $parsedUrl")
+        return try {
+            val item = when (parsedUrl) {
+                is YouTubeUrlParser.ParsedUrl.Video -> {
+                    YouTube.next(WatchEndpoint(videoId = parsedUrl.id)).getOrNull()?.items?.find { it.id == parsedUrl.id }
+                }
+
+                is YouTubeUrlParser.ParsedUrl.Artist -> {
+                    YouTube.artist(parsedUrl.id).getOrNull()?.artist
+                }
+            }
+            println("[LINK_PARSE_DEBUG] Fetch successful: ${item?.id} (${item?.javaClass?.simpleName})")
+            item
+        } catch (e: Exception) {
+            println("[LINK_PARSE_DEBUG] Fetch failed: ${e.message}")
+            e.printStackTrace()
+            null
         }
     }
 }

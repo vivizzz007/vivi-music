@@ -47,14 +47,18 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
+import com.music.innertube.models.WatchEndpoint
+import com.music.innertube.utils.YouTubeUrlParser
 import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalIsPlayerExpanded
 import com.music.vivi.LocalPlayerAwareWindowInsets
+import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.PauseSearchHistoryKey
 import com.music.vivi.constants.SearchSource
 import com.music.vivi.constants.SearchSourceKey
 import com.music.vivi.db.entities.SearchHistory
+import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
@@ -73,8 +77,9 @@ fun SearchScreen(
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
     val isPlayerExpanded = LocalIsPlayerExpanded.current
+    val playerConnection = LocalPlayerConnection.current
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
-    
+
     var searchSource by rememberEnumPreference(SearchSourceKey, SearchSource.ONLINE)
     var query by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue())
@@ -86,7 +91,28 @@ fun SearchScreen(
         { searchQuery ->
             if (searchQuery.isNotEmpty()) {
                 focusManager.clearFocus()
-                navController.navigate("search/${URLEncoder.encode(searchQuery, "UTF-8")}")
+                println("[LINK_PARSE_DEBUG] onSearch initiated for: $searchQuery")
+                
+                when (val parsedUrl = YouTubeUrlParser.parse(searchQuery)) {
+                    is YouTubeUrlParser.ParsedUrl.Video -> {
+                        println("[LINK_PARSE_DEBUG] Performing direct playback for Video ID: ${parsedUrl.id}")
+                        playerConnection?.playQueue(
+                            YouTubeQueue(
+                                WatchEndpoint(videoId = parsedUrl.id),
+                            ),
+                        )
+                    }
+
+                    is YouTubeUrlParser.ParsedUrl.Artist -> {
+                        println("[LINK_PARSE_DEBUG] Navigating to Artist: ${parsedUrl.id}")
+                        navController.navigate("artist/${parsedUrl.id}")
+                    }
+
+                    null -> {
+                        println("[LINK_PARSE_DEBUG] No URL detected in search action")
+                        navController.navigate("search/${URLEncoder.encode(searchQuery, "UTF-8")}")
+                    }
+                }
 
                 if (!pauseSearchHistory) {
                     coroutineScope.launch(Dispatchers.IO) {
@@ -103,7 +129,28 @@ fun SearchScreen(
         { searchQuery ->
             if (searchQuery.isNotEmpty()) {
                 focusManager.clearFocus()
-                navController.navigate("search/${URLEncoder.encode(searchQuery, "UTF-8")}")
+                println("[LINK_PARSE_DEBUG] onSearchFromSuggestion initiated for: $searchQuery")
+                
+                when (val parsedUrl = YouTubeUrlParser.parse(searchQuery)) {
+                    is YouTubeUrlParser.ParsedUrl.Video -> {
+                        println("[LINK_PARSE_DEBUG] Performing direct playback from suggestion for Video ID: ${parsedUrl.id}")
+                        playerConnection?.playQueue(
+                            YouTubeQueue(
+                                WatchEndpoint(videoId = parsedUrl.id),
+                            ),
+                        )
+                    }
+
+                    is YouTubeUrlParser.ParsedUrl.Artist -> {
+                        println("[LINK_PARSE_DEBUG] Navigating to Artist from suggestion: ${parsedUrl.id}")
+                        navController.navigate("artist/${parsedUrl.id}")
+                    }
+
+                    null -> {
+                        println("[LINK_PARSE_DEBUG] No URL detected in suggestion action")
+                        navController.navigate("search/${URLEncoder.encode(searchQuery, "UTF-8")}")
+                    }
+                }
 
                 if (!pauseSearchHistory) {
                     coroutineScope.launch(Dispatchers.IO) {
