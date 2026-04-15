@@ -346,9 +346,9 @@ object AppleMusicCanvasProvider {
 
     private fun extractEditorialVideoUrl(ev: JsonObject): String? {
         val assets = listOf(
+            ev["motionDetailRaw"]?.jsonObject,
             ev["motionDetailSquare"]?.jsonObject,
             ev["motionDetailTall"]?.jsonObject,
-            ev["motionDetailRaw"]?.jsonObject,
             ev["motionDetailStatic"]?.jsonObject // Fallback
         ).filterNotNull()
         

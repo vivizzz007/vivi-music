@@ -22,6 +22,7 @@ import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.ui.AspectRatioFrameLayout
 import com.music.innertube.YouTube
 import com.music.innertube.models.YouTubeClient
@@ -107,6 +108,10 @@ fun CanvasArtworkPlayer(
                 .setMediaSourceFactory(mediaSourceFactory)
                 .build()
                 .apply {
+                trackSelectionParameters = trackSelectionParameters
+                    .buildUpon()
+                    .setForceHighestSupportedBitrate(true)
+                    .build()
                 setAudioAttributes(
                     AudioAttributes
                         .Builder()

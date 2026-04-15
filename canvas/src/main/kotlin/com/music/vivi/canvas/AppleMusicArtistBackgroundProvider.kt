@@ -179,7 +179,7 @@ object AppleMusicArtistBackgroundProvider {
     }
 
     private fun extractEditorialVideoUrl(editorialData: JsonObject): String? {
-        val preferredKeys = listOf("motionDetailSquare", "motionDetailTall", "motionSquareVideo1x1", "motionTallVideo3x4")
+        val preferredKeys = listOf("motionDetailRaw", "motionDetailTall", "motionDetailSquare", "motionSquareVideo1x1", "motionTallVideo3x4")
         for (key in preferredKeys) {
             val videoUrl = editorialData[key]?.jsonObject?.get("video")?.jsonPrimitive?.contentOrNull
             if (!videoUrl.isNullOrBlank()) return videoUrl
