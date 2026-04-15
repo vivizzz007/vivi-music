@@ -17,7 +17,7 @@ fun String.resize(
         var h = height
         if (w != null && h == null) h = (w / W) * H
         if (w == null && h != null) w = (h / H) * W
-        return "${split("=w")[0]}=w$w-h$h-p-l90-rj"
+        return "${split("=w")[0]}=w$w-h$h-p-l100-rw"
     }
     if (this matches "https://yt3\\.ggpht\\.com/.*=s(\\d+)".toRegex()) {
         return "$this-s${width ?: height}"

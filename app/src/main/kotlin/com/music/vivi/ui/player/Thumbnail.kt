@@ -78,6 +78,7 @@ import androidx.activity.compose.BackHandler
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import coil3.SingletonImageLoader
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
@@ -101,6 +102,7 @@ import com.music.vivi.constants.CanvasThumbnailAnimationKey
 import com.music.vivi.canvas.MonochromeApiCanvas
 import com.music.vivi.canvas.CanvasArtwork
 import com.music.vivi.extensions.metadata
+import com.music.vivi.ui.utils.resize
 import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -361,6 +363,19 @@ fun Thumbnail(
         val index = mediaItemsData.currentIndex
         if (index >= 0 && index != currentItem) {
             thumbnailLazyGridState.scrollToItem(index)
+        }
+    }
+
+    // Prefetch high-quality thumbnails for the carousel items (previous, current, and next)
+    LaunchedEffect(mediaItems) {
+        mediaItems.forEach { item ->
+            val artworkUri = item.mediaMetadata.artworkUri?.toString()?.resize(1200, 1200) ?: return@forEach
+            val request = ImageRequest.Builder(context)
+                .data(artworkUri)
+                .memoryCachePolicy(CachePolicy.ENABLED)
+                .diskCachePolicy(CachePolicy.ENABLED)
+                .build()
+            SingletonImageLoader.get(context).enqueue(request)
         }
     }
 
@@ -688,7 +703,7 @@ private fun ThumbnailItem(
                 }
 
                 ThumbnailImage(
-                    artworkUri = artworkUriToUse,
+                    artworkUri = artworkUriToUse?.resize(1200, 1200),
                     cropArtwork = cropAlbumArt
                 )
             }

@@ -275,7 +275,7 @@ fun YouTubeSongMenu(
                             },
                             text = stringResource(R.string.play_next),
                             onClick = {
-                                playerConnection.playNext(song.copy(thumbnail = song.thumbnail.resize(544,544)).toMediaItem())
+                                playerConnection.playNext(song.copy(thumbnail = song.thumbnail.resize(1200, 1200)).toMediaItem())
                                 onDismiss()
                             }
                         )

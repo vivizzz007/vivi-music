@@ -229,7 +229,7 @@ fun CommunityPlaylistCard(
                     Column(modifier = Modifier.fillMaxSize()) {
                         Row(modifier = Modifier.weight(1f)) {
                             AsyncImage(
-                                model = item.songs.getOrNull(0)?.thumbnail?.replace(Regex("w\\d+-h\\d+"), "w120-h120"),
+                                model = item.songs.getOrNull(0)?.thumbnail?.replace(Regex("w\\d+-h\\d+"), "w544-h544"),
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
@@ -303,7 +303,7 @@ fun CommunityPlaylistCard(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         AsyncImage(
-                            model = song.thumbnail.replace(Regex("w\\d+-h\\d+"), "w120-h120"),
+                            model = song.thumbnail.replace(Regex("w\\d+-h\\d+"), "w544-h544"),
                             contentDescription = null,
                             modifier = Modifier
                                 .size(56.dp)
@@ -470,7 +470,7 @@ fun DailyDiscoverCard(
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(dailyDiscover.recommendation.thumbnail?.replace(Regex("w\\d+-h\\d+"), "w544-h544"))
+                    .data(dailyDiscover.recommendation.thumbnail?.replace(Regex("w\\d+-h\\d+"), "w1200-h1200"))
                     .crossfade(true)
                     .build(),
                 contentDescription = null,
