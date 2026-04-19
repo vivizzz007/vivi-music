@@ -619,24 +619,4 @@
     <string name="discord_information_warning">Cette fonctionnalité utilise la bibliothèque KizzyRPC pour se connecter à la passerelle Discord et définir votre statut Rich Presence. Bien qu\'aucune suspension de compte n\'ait été signalée suite à une utilisation similaire, cette méthode n\'est pas officiellement prise en charge par Discord et peut être considérée comme une violation des conditions d\'utilisation. Votre jeton est extrait localement et n\'est jamais envoyé à des serveurs tiers. Procédez à votre propre discrétion.</string>
     <string name="discord_activity_type">Type d\'activité</string>
     <string name="discord_activity_playing">Jouer</string>
-    <string name="discord_activity_listening">Écoute</string>
-    <string name="discord_activity_watching">Regarder</string>
-    <string name="discord_activity_competing">En compétition</string>
-    <string name="discord_customization">Personnalisation</string>
-    <string name="discord_button_text_variables">Variables : {song_name}, {artist_name}, {album_name}</string>
-    <string name="discord_rpc_preview">Aperçu de la présence enrichie</string>
-    <string name="discord_presence">Présence</string>
-    <string name="discord_connect_description">Connectez-vous avec Discord pour partager ce que vous écoutez</string>
-    <string name="discord_playing_vivimusic">Jouer à vivimusic</string>
-    <string name="discord_watching_vivimusic">Regarder vivimusic</string>
-    <string name="discord_competing_vivimusic">En compétition dans vivimusic</string>
-    <string name="discord_activity_name">Nom de l\'activité</string>
-    <string name="discord_activity_name_description">Nom personnalisé pour l\'activité (laisser vide pour utiliser le nom par défaut)</string>
-    <string name="discord_advanced_mode">Mode avancé</string>
-    <string name="discord_advanced_mode_description">Afficher les options de personnalisation supplémentaires pour la présence enrichie</string>
-    <string name="player_background_solid">Solide</string>
-    <string name="resume_on_bluetooth_connect">Reprise de la connexion Bluetooth</string>
-    <string name="lyrics_romanize_hindi">Romaniser les paroles en hindi</string>
-    <string name="lyrics_romanize_punjabi">Romaniser les paroles en pendjabi</string>
-    <string name="lyrics_romanize_as_main">Afficher les paroles romanisées comme paroles principales</string>
-</resources>
+    <string name="
