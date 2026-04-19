@@ -288,6 +288,7 @@ class MessageCodec(
             MessageTypes.SUGGESTION_RECEIVED -> json.decodeFromString<SuggestionReceivedPayload>(payloadString)
             MessageTypes.SUGGESTION_APPROVED -> json.decodeFromString<SuggestionApprovedPayload>(payloadString)
             MessageTypes.SUGGESTION_REJECTED -> json.decodeFromString<SuggestionRejectedPayload>(payloadString)
+            MessageTypes.CHAT -> json.decodeFromString<ChatMessagePayload>(payloadString)
             else -> null
         }
     }
@@ -476,6 +477,7 @@ class MessageCodec(
             is RejectSuggestionPayload -> RejectSuggestionPayload.serializer()
             is ReconnectPayload -> ReconnectPayload.serializer()
             is TransferHostPayload -> TransferHostPayload.serializer()
+            is ChatPayload -> ChatPayload.serializer()
             else -> throw IllegalArgumentException("Unknown type: ${value!!::class.simpleName}")
         } as kotlinx.serialization.KSerializer<T>
     }

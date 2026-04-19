@@ -271,7 +271,8 @@ fun ListenTogetherScreen(
                     RoomStatusCard(
                         roomCode = room.roomCode,
                         isHost = isHost,
-                        context = context
+                        context = context,
+                        navController = navController
                     )
                 }
 
@@ -629,7 +630,8 @@ private fun ConnectionStatusCard(
 private fun RoomStatusCard(
     roomCode: String,
     isHost: Boolean,
-    context: Context
+    context: Context,
+    navController: NavController
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -669,6 +671,29 @@ private fun RoomStatusCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = { navController.navigate("listen_together/chat") },
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth(0.8f),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                    contentColor = MaterialTheme.colorScheme.primary
+                )
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.chat_msg),
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.comments),
+                    fontWeight = FontWeight.Bold
+                )
+            }
 
             if (isHost) {
                 Spacer(modifier = Modifier.height(16.dp))

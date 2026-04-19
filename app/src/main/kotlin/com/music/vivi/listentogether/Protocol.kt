@@ -176,6 +176,13 @@ data class TransferHostPayload(
 
 @Serializable
 data class ChatPayload(
+    val message: String,
+    @SerialName("reply_to") val replyTo: RepliedMessage? = null
+)
+
+@Serializable
+data class RepliedMessage(
+    val username: String,
     val message: String
 )
 
@@ -279,7 +286,8 @@ data class ChatMessagePayload(
     @SerialName("user_id") val userId: String,
     val username: String,
     val message: String,
-    val timestamp: Long
+    val timestamp: Long,
+    @SerialName("reply_to") val replyTo: RepliedMessage? = null
 )
 
 @Serializable

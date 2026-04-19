@@ -5,6 +5,7 @@
 
 package com.music.vivi.listentogether
 
+import android.util.Base64
 import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -132,6 +133,12 @@ sealed class ListenTogetherEvent {
 
     // Error events
     data class ServerError(val code: String, val message: String) : ListenTogetherEvent()
+
+    // Chat events
+    data class ChatMessageReceived(val payload: ChatMessagePayload) : ListenTogetherEvent()
+    
+    // Internal state actions
+    data class LocalSuggestionApproved(val payload: SuggestionReceivedPayload) : ListenTogetherEvent()
 }
 
 /**
@@ -1021,7 +1028,15 @@ class ListenTogetherClient @Inject constructor(
 
                         _pendingSuggestions.value += payload
                         log(LogLevel.INFO, "Suggestion received", "${payload.fromUsername}: ${payload.trackInfo.title}")
-                        // Notify the host with actionable notification
+                        // Show immediate in-app Toast so the host always sees it
+                        scope.launch(Dispatchers.Main) {
+                            Toast.makeText(
+                                context,
+                                "${payload.fromUsername} suggested: ${payload.trackInfo.title}",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                        // Also try the actionable system notification if permission granted
                         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
                             showSuggestionNotification(payload)
                         }
@@ -1132,7 +1147,33 @@ class ListenTogetherClient @Inject constructor(
                     log(LogLevel.INFO, "User temporarily disconnected", payload.username)
                     scope.launch { _events.emit(ListenTogetherEvent.UserDisconnected(payload.userId, payload.username)) }
                 }
-                
+
+                MessageTypes.CHAT -> {
+                    var payload = codec.decodePayload(msgType, payloadBytes, detectedFormat) as? ChatMessagePayload ?: return
+                    
+                    // Universal Fix: Extract embedded reply if present
+                    if (payload.message.startsWith("\u200B[RPLY:")) {
+                        try {
+                            val endIdx = payload.message.indexOf("]\u200B")
+                            if (endIdx != -1) {
+                                val encoded = payload.message.substring(7, endIdx)
+                                val decoded = String(Base64.decode(encoded, Base64.NO_WRAP))
+                                val parts = decoded.split("|", limit = 2)
+                                if (parts.size == 2) {
+                                    val replyTo = RepliedMessage(parts[0], parts[1])
+                                    val actualMessage = payload.message.substring(endIdx + 2)
+                                    payload = payload.copy(message = actualMessage, replyTo = replyTo)
+                                }
+                            }
+                        } catch (e: Exception) {
+                            log(LogLevel.WARNING, "Failed to decode embedded reply", e.message)
+                        }
+                    }
+                    
+                    log(LogLevel.INFO, "Chat message received", "From: ${payload.username}")
+                    scope.launch { _events.emit(ListenTogetherEvent.ChatMessageReceived(payload)) }
+                }
+
                 else -> {
                     log(LogLevel.WARNING, "Unknown message type", msgType)
                 }
@@ -1316,6 +1357,27 @@ class ListenTogetherClient @Inject constructor(
     }
 
     /**
+     * Send a chat message to the room
+     */
+    fun sendChatMessage(message: String, replyTo: RepliedMessage? = null) {
+        if (!isInRoom) {
+            log(LogLevel.ERROR, "Cannot send chat message", "Not in room")
+            return
+        }
+        
+        // Universal Fix: Embed reply metadata into message string
+        val finalMessage = if (replyTo != null) {
+            val metadata = "${replyTo.username}|${replyTo.message}"
+            val encoded = Base64.encodeToString(metadata.toByteArray(), Base64.NO_WRAP)
+            "\u200B[RPLY:$encoded]\u200B$message"
+        } else {
+            message
+        }
+        
+        sendMessage(MessageTypes.CHAT, ChatPayload(finalMessage, replyTo))
+    }
+
+    /**
      * Signal that buffering is complete for the current track
      */
     fun sendBufferReady(trackId: String) {
@@ -1348,7 +1410,17 @@ class ListenTogetherClient @Inject constructor(
             log(LogLevel.ERROR, "Cannot approve suggestion", "Not host")
             return
         }
+        
+        // Find the suggestion before removing it
+        val suggestion = _pendingSuggestions.value.find { it.suggestionId == suggestionId }
+        
         sendMessage(MessageTypes.APPROVE_SUGGESTION, ApproveSuggestionPayload(suggestionId))
+        
+        // Emit internal event so manager can update local player
+        if (suggestion != null) {
+            scope.launch { _events.emit(ListenTogetherEvent.LocalSuggestionApproved(suggestion)) }
+        }
+        
         // Remove locally from pending list
         _pendingSuggestions.value = _pendingSuggestions.value.filter { it.suggestionId != suggestionId }
         

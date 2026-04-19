@@ -108,6 +108,10 @@ fun NavGraphBuilder.navigationBuilder(
         ListenTogetherScreen(navController, showTopBar = true)
     }
 
+    composable("listen_together/chat") {
+        CommentTogetherScreen(navController)
+    }
+
     composable("history") {
         HistoryScreen(navController)
     }

@@ -888,6 +888,8 @@
     <string name="suggestions">Suggestions</string>
     <string name="comments">Comments</string>
     <string name="no_comments">No comments found</string>
+    <string name="type_message">Type a message…</string>
+    <string name="send">Send</string>
     <string name="clear_downloaded_updates_auto_info">Dynamically it will be deleted after one day.</string>
     <string name="update_info_badge">Info &amp; Tips</string>
     <string name="update_info_title">Update Information</string>

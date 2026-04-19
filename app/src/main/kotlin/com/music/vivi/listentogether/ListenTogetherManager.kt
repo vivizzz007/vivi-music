@@ -62,6 +62,7 @@ class ListenTogetherManager @Inject constructor(
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     init {
+        initialize()
         observePreferences()
     }
     
@@ -121,6 +122,10 @@ class ListenTogetherManager @Inject constructor(
     val isInRoom: Boolean get() = client.isInRoom
     val isHost: Boolean get() = client.isHost
     val hasPersistedSession: Boolean get() = client.hasPersistedSession
+    
+    // Chat state
+    private val _chatMessages = MutableStateFlow<List<ChatMessagePayload>>(emptyList())
+    val chatMessages = _chatMessages
     
     private val playerListener = object : Player.Listener {
         override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
@@ -656,7 +661,7 @@ class ListenTogetherManager @Inject constructor(
                     // Start the queue and volume sync observations now that we're host
                     startQueueSyncObservation()
                     startVolumeSyncObservation()
-                    
+
                     // Send current player state to guests
                     val metadata = player?.currentMetadata
                     if (metadata != null) {
@@ -673,11 +678,32 @@ class ListenTogetherManager @Inject constructor(
                 }
             }
             
+            is ListenTogetherEvent.JoinRequestReceived -> {
+                Timber.tag(TAG).d("Join request received from ${event.username}")
+                // UI already handles this via pendingJoinRequests flow
+            }
+
+            is ListenTogetherEvent.LocalSuggestionApproved -> {
+                try {
+                    val mediaMetadata = event.payload.trackInfo.toMediaMetadata()
+                    val mediaItem = mediaMetadata.toMediaItem()
+                    playerConnection?.playNext(mediaItem)
+                    Timber.tag(TAG).d("Approved suggestion added to queue: ${mediaMetadata.title}")
+                } catch (e: Exception) {
+                    Timber.tag(TAG).e(e, "Error adding approved suggestion to queue")
+                }
+            }
+            
             is ListenTogetherEvent.ConnectionError -> {
                 Timber.tag(TAG).e("Connection error: ${event.error}")
                 cleanup()
             }
-            
+
+            is ListenTogetherEvent.ChatMessageReceived -> {
+                Timber.tag(TAG).d("Chat message received from ${event.payload.username}")
+                _chatMessages.value = _chatMessages.value + event.payload
+            }
+
             else -> { /* Other events handled by UI */ }
         }
     }
@@ -702,6 +728,7 @@ class ListenTogetherManager @Inject constructor(
         lastRole = RoomRole.NONE
         lastSyncActionTime = 0L  // Reset sync debouncing
         ++currentTrackGeneration  // Increment to invalidate any pending track-change coroutines
+        _chatMessages.value = emptyList() // Clear chat on room leave
     }
 
     private fun updateGuestMuteState() {
@@ -1687,5 +1714,13 @@ class ListenTogetherManager @Inject constructor(
         heartbeatJob?.cancel()
         heartbeatJob = null
         Timber.tag(TAG).d("Host heartbeat stopped")
+    }
+
+    /**
+     * Send a chat message to the room
+     */
+    fun sendChatMessage(message: String, replyTo: RepliedMessage? = null) {
+        if (message.isBlank()) return
+        client.sendChatMessage(message, replyTo)
     }
 }
