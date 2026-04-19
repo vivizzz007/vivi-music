@@ -2781,7 +2781,7 @@ class MusicService :
                             codecs = format.mimeType.split("codecs=")[1].removeSurrounding("\""),
                             bitrate = format.bitrate,
                             sampleRate = format.audioSampleRate,
-                            contentLength = format.contentLength!!,
+                            contentLength = format.contentLength ?: 0L,
                             loudnessDb = loudnessDb,
                             perceptualLoudnessDb = perceptualLoudnessDb,
                             playbackUrl = nonNullPlayback.playbackTracking?.videostatsPlaybackUrl?.baseUrl
