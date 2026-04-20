@@ -158,8 +158,27 @@ fun OldPlayerMenu(
     ) {
         // Share & Playlist Add
         item {
+            val startingRadioText = stringResource(R.string.starting_radio)
             NewActionGrid(
                 actions = listOfNotNull(
+                    if (!isListenTogetherGuest) {
+                        NewAction(
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.radio),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(32.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
+                            text = stringResource(R.string.start_an_radio),
+                            onClick = {
+                                Toast.makeText(context, startingRadioText, Toast.LENGTH_SHORT).show()
+                                playerConnection.startRadioSeamlessly()
+                                onDismiss()
+                            }
+                        )
+                    } else null,
                     NewAction(
                         icon = {
                             Icon(
@@ -196,7 +215,7 @@ fun OldPlayerMenu(
                         }
                     )
                 ),
-                columns = 2,
+                columns = if (isListenTogetherGuest) 2 else 3,
                 modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp)
             )
         }
