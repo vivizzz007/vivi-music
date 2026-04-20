@@ -185,32 +185,45 @@ object AppleMusicCanvasProvider {
                 val resultName = attributes["name"]?.jsonPrimitive?.contentOrNull ?: ""
                 val resultCollectionName = attributes["collectionName"]?.jsonPrimitive?.contentOrNull ?: ""
                 
-                // Fuzzy artist match to ensure quality
-                if (!resultArtistName.contains(artist, ignoreCase = true) && 
-                    !artist.contains(resultArtistName, ignoreCase = true)) return@mapNotNull null
+                // Strict artist check: result must contain requested artist or vice versa
+                val artistMatch = resultArtistName.equals(artist, ignoreCase = true)
+                val artistFuzzy = resultArtistName.contains(artist, ignoreCase = true) || artist.contains(resultArtistName, ignoreCase = true)
+                
+                if (!artistFuzzy) return@mapNotNull null
                 
                 var score = 0
-                if (resultArtistName.equals(artist, ignoreCase = true)) score += 5
+                if (artistMatch) score += 10
+                else score += 5
                 
-                // Content matching
-                if (resultName.equals(term, ignoreCase = true)) score += 10
-                else if (resultName.contains(term, ignoreCase = true) || term.contains(resultName, ignoreCase = true)) score += 5
+                // Name matching (Song or Album title)
+                val nameMatch = resultName.equals(term, ignoreCase = true)
+                val nameFuzzy = resultName.contains(term, ignoreCase = true) || term.contains(resultName, ignoreCase = true)
+                
+                if (nameMatch) {
+                    score += 15
+                } else if (nameFuzzy) {
+                    score += 7
+                } else {
+                    // If name doesn't match at all, this is likely a different song by the same artist
+                    score -= 10
+                }
 
                 // Special editions handling (Deluxe, Expanded, etc)
-                val editionWords = listOf("deluxe", "expanded", "remastered", "remix", "version", "edition", "bonus")
+                val editionWords = listOf("deluxe", "expanded", "remastered", "remix", "version", "edit", "mix", "bonus")
                 for (word in editionWords) {
                     val inTerm = term.contains(word, ignoreCase = true)
                     val inResult = resultName.contains(word, ignoreCase = true)
-                    if (inTerm && inResult) score += 3
-                    else if (inTerm != inResult) score -= 2 
+                    if (inTerm && inResult) score += 5
+                    else if (inTerm != inResult && inResult) score -= 3 // Penalty for unexpected "Deluxe" etc.
                 }
 
-                // Album matching
-                if (!album.isNullOrBlank() && resultCollectionName.contains(album, ignoreCase = true)) {
-                    score += 15
-                    if (resultCollectionName.equals(album, ignoreCase = true)) {
-                        score += 10
-                    }
+                // Album matching - very strong signal
+                if (!album.isNullOrBlank() && resultCollectionName.isNotBlank()) {
+                    val albumMatch = resultCollectionName.equals(album, ignoreCase = true)
+                    val albumFuzzy = resultCollectionName.contains(album, ignoreCase = true) || album.contains(resultCollectionName, ignoreCase = true)
+                    
+                    if (albumMatch) score += 20
+                    else if (albumFuzzy) score += 10
                 }
                 
                 AppleCanvasLogger.d("  - Result: '$resultName' by '$resultArtistName' (Album: '$resultCollectionName') -> Score: $score")
@@ -221,7 +234,10 @@ object AppleMusicCanvasProvider {
             
             // Try results until we find motion or exhaustion
             for ((score, item) in scoredResults) {
-                if (score < 4) continue // Skip poor matches
+                if (score < 12) {
+                    AppleCanvasLogger.d("skipping result with low score: $score")
+                    continue
+                }
                 val obj = item.jsonObject
                 val attributes = obj["attributes"]?.jsonObject ?: continue
                 val resultName = attributes["name"]?.jsonPrimitive?.contentOrNull ?: ""
@@ -269,7 +285,11 @@ object AppleMusicCanvasProvider {
                     val hlsUrl = extractEditorialVideoUrl(ev)
                     if (!hlsUrl.isNullOrBlank()) {
                         val name = attributes["name"]?.jsonPrimitive?.contentOrNull
-                        return@runCatching CanvasArtwork(name, resultArtistName, targetAlbumId, animated = hlsUrl)
+                        val collName = attributes["collectionName"]?.jsonPrimitive?.contentOrNull
+                        // If this is a song result, use song name as name and collection as albumName
+                        // If this is an album result, use album name as both name and albumName
+                        val resolvedAlbumName = if (type == "songs") collName else name
+                        return@runCatching CanvasArtwork(name, resultArtistName, targetAlbumId, albumName = resolvedAlbumName, animated = hlsUrl)
                     }
                 }
 
@@ -323,6 +343,7 @@ object AppleMusicCanvasProvider {
             val albumName = attributes?.get("name")?.jsonPrimitive?.contentOrNull
             val artistName = attributes?.get("artistName")?.jsonPrimitive?.contentOrNull ?: fallbackArtist
             
+            // titleOverride is the song name (when searching by song), albumName is always the album name
             val finalTitle = titleOverride ?: albumName
             val finalArtist = artistOverride ?: artistName
 
@@ -331,8 +352,8 @@ object AppleMusicCanvasProvider {
             if (ev != null) {
                 val url = extractEditorialVideoUrl(ev)
                 if (!url.isNullOrBlank()) {
-                    AppleCanvasLogger.d("found editorialVideo for $finalTitle ($albumId)")
-                    return@runCatching CanvasArtwork(finalTitle, finalArtist, albumId, animated = url)
+                    AppleCanvasLogger.d("found editorialVideo for $finalTitle (album: $albumName, id: $albumId)")
+                    return@runCatching CanvasArtwork(finalTitle, finalArtist, albumId, albumName = albumName, animated = url)
                 }
             }
 

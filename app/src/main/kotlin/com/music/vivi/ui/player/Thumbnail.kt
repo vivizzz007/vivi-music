@@ -773,22 +773,69 @@ private fun ThumbnailItem(
                             }
                     }
                     
-                    // Client-side safety check: ensure the fetched canvas artist matches the requested artist
-                    // This prevents "wrong canvas" if a provider returned a generic match
+                    // Client-side safety check: ensure the fetched canvas matches the requested song
+                    // This prevents "wrong canvas" if a provider returned a generic or incorrect match
                     val requestedArtist = item.mediaMetadata.artist?.toString() ?: ""
+                    val requestedTitle = item.mediaMetadata.title?.toString() ?: ""
+                    
                     val validated = fetched?.let { artwork ->
                         val resultArtist = artwork.artist
-                        if (resultArtist != null && requestedArtist.isNotBlank()) {
+                        val resultName = artwork.name
+                        
+                        // Check artist
+                        val artistMatches = if (resultArtist != null && requestedArtist.isNotBlank()) {
                             val normalizedResult = normalizeCanvasArtistName(resultArtist)
                             val normalizedRequested = normalizeCanvasArtistName(requestedArtist)
-                            // Relaxed fuzzy match: check original contains OR normalized contains
-                            if (resultArtist.contains(requestedArtist, ignoreCase = true) || 
-                                requestedArtist.contains(resultArtist, ignoreCase = true) ||
-                                normalizedResult.contains(normalizedRequested, ignoreCase = true) ||
-                                normalizedRequested.contains(normalizedResult, ignoreCase = true)) {
-                                artwork
-                            } else null
-                        } else artwork // fallback if artist info missing
+                            resultArtist.contains(requestedArtist, ignoreCase = true) || 
+                            requestedArtist.contains(resultArtist, ignoreCase = true) ||
+                            normalizedResult.contains(normalizedRequested, ignoreCase = true) ||
+                            normalizedRequested.contains(normalizedResult, ignoreCase = true)
+                        } else true
+
+                        // --- Album/Title cross-check ---
+                        // The canvas provider always populates albumName with the album the animation
+                        // belongs to. We require this to match the requested track's album (or song
+                        // title) so we never show an animation for the *wrong* album by the same artist.
+                        val requestedAlbum = item.mediaMetadata.albumTitle?.toString() ?: ""
+                        val canvasAlbumName = artwork.albumName
+                        val canvasSongName = artwork.name
+
+                        val titleMatches = when {
+                            // Case 1: canvas has an album name → must match requested album
+                            canvasAlbumName != null && requestedAlbum.isNotBlank() -> {
+                                val normalizedCanvasAlbum = normalizeCanvasSongTitle(canvasAlbumName)
+                                val normalizedRequestedAlbum = normalizeCanvasSongTitle(requestedAlbum)
+                                canvasAlbumName.contains(requestedAlbum, ignoreCase = true) ||
+                                requestedAlbum.contains(canvasAlbumName, ignoreCase = true) ||
+                                normalizedCanvasAlbum.contains(normalizedRequestedAlbum, ignoreCase = true) ||
+                                normalizedRequestedAlbum.contains(normalizedCanvasAlbum, ignoreCase = true)
+                            }
+                            // Case 2: canvas has only a song name → match against song title or album
+                            canvasSongName != null && requestedTitle.isNotBlank() -> {
+                                val normalizedCanvasSong = normalizeCanvasSongTitle(canvasSongName)
+                                val normalizedRequestedTitle = normalizeCanvasSongTitle(requestedTitle)
+                                val normalizedRequestedAlbum = if (requestedAlbum.isNotBlank()) normalizeCanvasSongTitle(requestedAlbum) else ""
+                                canvasSongName.contains(requestedTitle, ignoreCase = true) ||
+                                requestedTitle.contains(canvasSongName, ignoreCase = true) ||
+                                normalizedCanvasSong.contains(normalizedRequestedTitle, ignoreCase = true) ||
+                                normalizedRequestedTitle.contains(normalizedCanvasSong, ignoreCase = true) ||
+                                (requestedAlbum.isNotBlank() && (
+                                    canvasSongName.contains(requestedAlbum, ignoreCase = true) ||
+                                    requestedAlbum.contains(canvasSongName, ignoreCase = true) ||
+                                    normalizedCanvasSong.contains(normalizedRequestedAlbum, ignoreCase = true) ||
+                                    normalizedRequestedAlbum.contains(normalizedCanvasSong, ignoreCase = true)
+                                ))
+                            }
+                            // Case 3: no name info in canvas at all → allow through
+                            else -> true
+                        }
+
+                        if (artistMatches && titleMatches) {
+                            artwork
+                        } else {
+                            println("CanvasFetch: Validation failed artistMatch=$artistMatches, titleMatches=$titleMatches for '${artwork.name}' by '${artwork.artist}'")
+                            null
+                        }
                     }
                     
                     canvasArtwork = validated

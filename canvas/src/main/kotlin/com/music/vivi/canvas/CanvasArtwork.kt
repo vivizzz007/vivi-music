@@ -9,6 +9,7 @@ data class CanvasArtwork(
     val artist: String? = null,
     @SerialName("albumId")
     val albumId: String? = null,
+    val albumName: String? = null,
     val static: String? = null,
     val animated: String? = null,
     val videoUrl: String? = null,
