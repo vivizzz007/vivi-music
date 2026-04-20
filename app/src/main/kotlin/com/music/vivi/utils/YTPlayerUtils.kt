@@ -35,15 +35,49 @@ import com.music.vivi.utils.potoken.PoTokenResult
 import com.music.vivi.utils.sabr.EjsNTransformSolver
 import com.music.vivi.utils.PlaybackLogLevel
 import com.music.vivi.utils.PlaybackLogManager
+import com.music.innertube.models.IpVersion
+import okhttp3.Dns
 import okhttp3.OkHttpClient
 import timber.log.Timber
+import java.net.Inet4Address
+import java.net.Inet6Address
+import java.net.InetAddress
+import java.net.Proxy
+import java.net.ProxySelector
+import java.net.SocketAddress
+import java.net.URI
+import java.io.IOException
 
 object YTPlayerUtils {
     private const val logTag = "YTPlayerUtils"
     private const val TAG = "YTPlayerUtils"
 
-    private val httpClient = OkHttpClient.Builder()
-        .proxy(YouTube.proxy)
+    private val httpClient: OkHttpClient = OkHttpClient.Builder()
+        .dns(object : Dns {
+            override fun lookup(hostname: String): List<InetAddress> {
+                val addresses = Dns.SYSTEM.lookup(hostname)
+                return when (YouTube.ipVersion) {
+                    IpVersion.IPV4 -> addresses.filter { it is Inet4Address }.ifEmpty { addresses }
+                    IpVersion.IPV6 -> addresses.filter { it is Inet6Address }.ifEmpty { addresses }
+                    IpVersion.AUTO -> addresses
+                }
+            }
+        })
+        .proxySelector(object : ProxySelector() {
+            override fun select(uri: URI?): List<Proxy> = listOfNotNull(YouTube.proxy ?: Proxy.NO_PROXY)
+            override fun connectFailed(uri: URI?, sa: SocketAddress?, ioe: IOException?) {
+                Timber.tag(TAG).e(ioe, "Proxy connection failed for URI: $uri")
+            }
+        })
+        .proxyAuthenticator { _, response ->
+            YouTube.proxyAuth?.let { auth ->
+                response.request.newBuilder()
+                    .header("Proxy-Authorization", auth)
+                    .build()
+            } ?: response.request
+        }
+        .connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+        .readTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
         .build()
 
     private val poTokenGenerator = PoTokenGenerator()
