@@ -362,7 +362,7 @@ private fun ChatInputArea(
                 elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp)
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.arrow_forward),
+                    painter = painterResource(R.drawable.send_chat),
                     contentDescription = stringResource(R.string.send),
                     modifier = Modifier.size(24.dp)
                 )
