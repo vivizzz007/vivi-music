@@ -26,6 +26,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
@@ -97,6 +98,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -734,7 +737,7 @@ class MainActivity : ComponentActivity() {
 
                 val currentTitleRes = remember(navBackStackEntry) {
                     when (navBackStackEntry?.destination?.route) {
-                        Screens.Home.route -> R.string.home
+                        Screens.Home.route -> R.string.music
                         Screens.Search.route -> R.string.search
                         Screens.Library.route -> R.string.filter_library
                         Screens.ListenTogether.route -> R.string.together
@@ -773,10 +776,25 @@ class MainActivity : ComponentActivity() {
                             ) {
                                 Row {
                                     TopAppBar(
+                                        navigationIcon = {
+                                            Box(modifier = Modifier.padding(start = 12.dp)) {
+                                                Image(
+                                                    painter = painterResource(R.drawable.icon),
+                                                    contentDescription = null,
+                                                    modifier = Modifier
+                                                        .size(32.dp)
+                                                        .clip(CircleShape),
+                                                    contentScale = ContentScale.Crop
+                                                )
+                                            }
+                                        },
                                         title = {
                                             Text(
                                                 text = currentTitleRes?.let { stringResource(it) } ?: "",
-                                                style = MaterialTheme.typography.titleLarge,
+                                                style = MaterialTheme.typography.titleLarge.copy(
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 24.sp
+                                                ),
                                             )
                                         },
                                         actions = {

@@ -4,6 +4,8 @@ import com.music.innertube.models.YouTubeClient
 import com.music.innertube.models.response.PlayerResponse
 import io.ktor.http.URLBuilder
 import io.ktor.http.parseQueryString
+import com.music.innertube.models.IpVersion
+import okhttp3.Dns
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.schabi.newpipe.extractor.NewPipe
@@ -15,18 +17,36 @@ import org.schabi.newpipe.extractor.exceptions.ReCaptchaException
 import org.schabi.newpipe.extractor.services.youtube.YoutubeJavaScriptPlayerManager
 import org.schabi.newpipe.extractor.stream.StreamInfo
 import java.io.IOException
+import java.net.Inet4Address
+import java.net.Inet6Address
+import java.net.InetAddress
 import java.net.Proxy
+import java.net.ProxySelector
+import java.net.SocketAddress
+import java.net.URI
 
 class NewPipeDownloaderImpl(
     proxy: Proxy?,
     proxyAuth: String? = null,
 ) : Downloader() {
     private val client =
-        OkHttpClient
-            .Builder()
-            .proxy(proxy)
+        OkHttpClient.Builder()
+            .dns(object : Dns {
+                override fun lookup(hostname: String): List<InetAddress> {
+                    val addresses = Dns.SYSTEM.lookup(hostname)
+                    return when (YouTube.ipVersion) {
+                        IpVersion.IPV4 -> addresses.filter { it is Inet4Address }.ifEmpty { addresses }
+                        IpVersion.IPV6 -> addresses.filter { it is Inet6Address }.ifEmpty { addresses }
+                        IpVersion.AUTO -> addresses
+                    }
+                }
+            })
+            .proxySelector(object : ProxySelector() {
+                override fun select(uri: URI?): List<Proxy> = listOfNotNull(YouTube.proxy ?: Proxy.NO_PROXY)
+                override fun connectFailed(uri: URI?, sa: SocketAddress?, ioe: IOException?) {}
+            })
             .proxyAuthenticator { _, response ->
-                proxyAuth?.let { auth ->
+                YouTube.proxyAuth?.let { auth ->
                     response.request.newBuilder()
                         .header("Proxy-Authorization", auth)
                         .build()
