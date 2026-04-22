@@ -1,0 +1,11 @@
+- Added comment section in Listening Together
+- Added new server for Listening Together
+- Added radio button in PlayerMenu
+- New app logo in HomeScreen
+- Fixed streaming issue
+- Implemented IPv4 and IPv6 to fix streaming
+- Implemented high-quality images throughout the app
+- Removed ArchiveTune canvas fully
+- Implemented Apple Music canvas fetching (high quality)
+- Implemented paste link of artist/song to directly play in search
+- Added new equalizer
