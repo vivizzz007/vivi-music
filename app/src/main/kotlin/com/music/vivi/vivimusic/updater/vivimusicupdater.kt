@@ -99,8 +99,11 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.text.ClickableText
+import androidx.compose.ui.text.style.TextDecoration
 
 data class ChangelogSection(val title: String, val items: List<String>)
 
@@ -461,11 +464,33 @@ fun UpdateScreen(navController: NavHostController) {
                                         Spacer(modifier = Modifier.height(24.dp))
                                     }
                                     if (!currentStatus.description.isNullOrBlank()) {
-                                        Text(
-                                            text = currentStatus.description,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            lineHeight = 20.sp,
+                                        val urls = currentStatus.description.extractUrls()
+                                        val annotatedText = buildAnnotatedString {
+                                            append(currentStatus.description.trim())
+                                            urls.forEach { (range, url) ->
+                                                addStringAnnotation("URL", url, range.first, range.last + 1)
+                                                addStyle(
+                                                    SpanStyle(
+                                                        color = MaterialTheme.colorScheme.primary,
+                                                        textDecoration = TextDecoration.Underline
+                                                    ),
+                                                    range.first,
+                                                    range.last + 1
+                                                )
+                                            }
+                                        }
+
+                                        ClickableText(
+                                            text = annotatedText,
+                                            onClick = { offset ->
+                                                annotatedText.getStringAnnotations("URL", offset, offset).firstOrNull()?.let {
+                                                    ContextCompat.startActivity(context, Intent(Intent.ACTION_VIEW, Uri.parse(it.item)), null)
+                                                }
+                                            },
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                lineHeight = 20.sp
+                                            ),
                                             modifier = Modifier.padding(bottom = 24.dp)
                                         )
                                     }
@@ -714,7 +739,7 @@ suspend fun checkForUpdate(
                     for (j in 0 until assets.length()) {
                         val asset = assets.getJSONObject(j)
                         val assetName = asset.getString("name")
-                        if (assetName.endsWith(".apk")) {
+                        if (assetName == "vivi.apk") {
                             val apkSizeInBytes = asset.getLong("size")
                             apkSizeInMB = String.format("%.1f", apkSizeInBytes / (1024.0 * 1024.0))
                             apkDownloadUrl = asset.getString("browser_download_url")
