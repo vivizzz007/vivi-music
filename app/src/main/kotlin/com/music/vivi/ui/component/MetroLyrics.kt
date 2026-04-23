@@ -75,12 +75,33 @@ private data class MetroWordTimestamp(
     val hasTrailingSpace: Boolean
 )
 
-// Helper extension to check for RTL
-fun String.containsRtl(): Boolean {
+// Helper extension to check for RTL and complex scripts (e.g. Indic) that
+// require contextual shaping. These scripts must use the word-level clipping
+// path instead of the per-character canvas loop, or ligatures will break.
+fun String.containsComplexScript(): Boolean {
     for (char in this) {
         val directionality = Character.getDirectionality(char)
         if (directionality == Character.DIRECTIONALITY_RIGHT_TO_LEFT ||
             directionality == Character.DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC) {
+            return true
+        }
+        // Indic and other complex scripts that need glyph shaping
+        val block = Character.UnicodeBlock.of(char)
+        if (block == Character.UnicodeBlock.DEVANAGARI ||
+            block == Character.UnicodeBlock.BENGALI ||
+            block == Character.UnicodeBlock.GURMUKHI ||
+            block == Character.UnicodeBlock.GUJARATI ||
+            block == Character.UnicodeBlock.ORIYA ||
+            block == Character.UnicodeBlock.TAMIL ||
+            block == Character.UnicodeBlock.TELUGU ||
+            block == Character.UnicodeBlock.KANNADA ||
+            block == Character.UnicodeBlock.MALAYALAM ||
+            block == Character.UnicodeBlock.SINHALA ||
+            block == Character.UnicodeBlock.THAI ||
+            block == Character.UnicodeBlock.LAO ||
+            block == Character.UnicodeBlock.TIBETAN ||
+            block == Character.UnicodeBlock.MYANMAR ||
+            block == Character.UnicodeBlock.KHMER) {
             return true
         }
     }
@@ -471,7 +492,7 @@ private fun WordLevelCanvasLyrics(
             mainText.map { textMeasurer.measure(it.toString(), lyricStyle) }
         }
         
-        val isRtlText = remember(mainText) { mainText.containsRtl() }
+        val useSafeRendering = remember(mainText) { mainText.containsComplexScript() }
         
         Canvas(modifier = Modifier
             .fillMaxWidth()
@@ -482,55 +503,173 @@ private fun WordLevelCanvasLyrics(
             if (!isActiveLine) {
                 drawText(layoutResult, color = lineColor)
             } else {
-                if (isRtlText) {
-                    val (wordIdxMap, _, _) = charToWordData
+                if (useSafeRendering) {
+                    // Char-level physics path for complex scripts (Hindi/Devanagari, Thai, etc.).
+                    // This mirrors the LTR path exactly EXCEPT for one key change in rendering:
+                    //   LTR:     drawText(letterLayouts[i])                  -- measures each char alone, breaks shaping
+                    //   Complex: drawText(layoutResult, topLeft=charOffset)  -- clips from the full shaped layout
+                    // By shifting layoutResult so charBounds aligns at (0,0) then clipping to charBounds,
+                    // we extract the correctly-shaped glyph at each character position while still applying
+                    // the full per-character transform stack: wobble, nudge, crescendo, wave, gradient.
+                    // Glow is excluded: it needs native canvas drawText on letterLayouts, which breaks shaping.
+                    val (wordIdxMap, charInWordMap, wordLenMap) = charToWordData
                     val wordFactors = effectiveWords.map { word ->
                         val wStartMs = (word.startTime * 1000).toLong()
-                        val wEndMs = (word.endTime * 1000).toLong()
-                        val isWordSung = smoothPosition > wEndMs
+                        val wEndMs   = (word.endTime   * 1000).toLong()
+                        val isWordSung   = smoothPosition > wEndMs
                         val isWordActive = smoothPosition in wStartMs..wEndMs
-                        val sungFactor = if (isWordSung) 1f 
+                        val sungFactor = if (isWordSung) 1f
                                         else if (isWordActive) ((smoothPosition - wStartMs).toFloat() / (wEndMs - wStartMs).coerceAtLeast(1)).coerceIn(0f, 1f)
                                         else 0f
-                        Triple(sungFactor, isWordSung, isWordActive)
+                        Triple(sungFactor, word, isWordSung)
                     }
 
-                    drawText(layoutResult, color = lineColor.copy(alpha = focusedAlpha))
+                    val wordWobblesCS = FloatArray(words.size)
+                    words.forEachIndexed { wordIdx, word ->
+                        val startMs = (word.startTime * 1000).toLong()
+                        val timeSinceStart = (smoothPosition - startMs).toFloat()
+                        wordWobblesCS[wordIdx] = if (timeSinceStart in 0f..750f) {
+                            if (timeSinceStart < 125f) timeSinceStart / 125f
+                            else (1f - (timeSinceStart - 125f) / 625f).coerceAtLeast(0f)
+                        } else 0f
+                    }
 
-                    effectiveWords.indices.forEach { wIdx ->
-                        val (sungFactor, isWordSung, isWordActive) = wordFactors[wIdx]
-                        
-                        var left = Float.MAX_VALUE
-                        var right = Float.MIN_VALUE
-                        var top = Float.MAX_VALUE
-                        var bottom = Float.MIN_VALUE
-                        var found = false
+                    val lineCurrentPushesCS = FloatArray(layoutResult.lineCount)
+                    val lineTotalPushesCS   = FloatArray(layoutResult.lineCount)
 
-                        for (i in mainText.indices) {
-                            if (wordIdxMap[i] == wIdx) {
-                                val bounds = layoutResult.getBoundingBox(i)
-                                left = minOf(left, bounds.left)
-                                right = maxOf(right, bounds.right)
-                                top = minOf(top, bounds.top)
-                                bottom = maxOf(bottom, bounds.bottom)
-                                found = true
+                    // Pass 1: accumulate total push per line for center/right alignment shift
+                    for (i in mainText.indices) {
+                        val lineIdx = layoutResult.getLineForOffset(i)
+                        val wordIdx = wordIdxMap[i]
+                        val originalWordIdx = if (wordIdx != -1) effectiveToOriginalIdx[wordIdx] else -1
+                        val (sungFactor, wordItem, isWordSung) = if (wordIdx != -1) wordFactors[wordIdx] else Triple(0f, null, false)
+                        val wobble = if (originalWordIdx != -1) wordWobblesCS[originalWordIdx] else 0f
+                        var crescendoDeltaX = 0f
+                        val groupWord = if (wordIdx != -1) hyphenGroupData[wordIdx] else null
+                        if (groupWord != null) {
+                            val p = sungFactor
+                            val pOut = ((smoothPosition - groupWord.groupEndMs).toFloat() / 600f).coerceIn(0f, 1f)
+                            val peakScale = 0.06f; val decay = 2.5f; val freq = 10.0f; val bsps = 0.012f
+                            crescendoDeltaX = when {
+                                pOut > 0f       -> (groupWord.pos * bsps + peakScale) * exp(-decay * pOut) * cos(freq * pOut * PI.toFloat()) * (1f - pOut)
+                                groupWord.isLast -> groupWord.pos * bsps + peakScale * (1f - exp(-decay * p) * cos(freq * p * PI.toFloat()) * (1f - p))
+                                else             -> groupWord.pos * bsps + (if (p > 0f) 0.02f * (1f - p) else 0f)
+                            }
+                        }
+                        val charLp = if (wordItem != null) {
+                            val sMs = wordItem.startTime * 1000
+                            val dur = (wordItem.endTime * 1000 - sMs).coerceAtLeast(100.0)
+                            ((((smoothPosition.toDouble() - sMs) / dur) - charInWordMap[i].toDouble() / wordLenMap[i].toDouble()) * wordLenMap[i].toDouble()).coerceIn(0.0, 1.0).toFloat()
+                        } else 0f
+                        val nudgeScale = if (wordItem != null && !isWordSung && sungFactor > 0f) 0.038f * sin(charLp * PI.toFloat()) * exp(-3f * charLp) else 0f
+                        val charScaleX = 1f + (wobble * 0.025f) + crescendoDeltaX + (nudgeScale * 0.3f)
+                        lineTotalPushesCS[lineIdx] += layoutResult.getBoundingBox(i).width * (charScaleX - 1f)
+                    }
+
+                    // Pass 2: draw each character with full char-level physics
+                    for (i in mainText.indices) {
+                        val lineIdx    = layoutResult.getLineForOffset(i)
+                        val charBounds = layoutResult.getBoundingBox(i)
+                        val wordIdx    = wordIdxMap[i]
+                        val originalWordIdx = if (wordIdx != -1) effectiveToOriginalIdx[wordIdx] else -1
+
+                        val alignShift = when (alignment) {
+                            TextAlign.Center -> -lineTotalPushesCS[lineIdx] / 2f
+                            TextAlign.Right  -> -lineTotalPushesCS[lineIdx]
+                            else             -> 0f
+                        }
+
+                        val (sungFactor, wordItem, isWordSung) = if (wordIdx != -1) wordFactors[wordIdx] else Triple(0f, null, false)
+                        val wobble  = if (originalWordIdx != -1) wordWobblesCS[originalWordIdx] else 0f
+                        val wobbleX = wobble * 0.025f
+                        val wobbleY = wobble * 0.015f
+
+                        val charLp = if (wordItem != null) {
+                            val sMs = wordItem.startTime * 1000
+                            val dur = (wordItem.endTime * 1000 - sMs).coerceAtLeast(100.0)
+                            ((((smoothPosition.toDouble() - sMs) / dur) - charInWordMap[i].toDouble() / wordLenMap[i].toDouble()) * wordLenMap[i].toDouble()).coerceIn(0.0, 1.0).toFloat()
+                        } else 0f
+
+                        var crescendoDeltaX = 0f
+                        var crescendoDeltaY = 0f
+                        val groupWord = if (wordIdx != -1) hyphenGroupData[wordIdx] else null
+                        if (groupWord != null) {
+                            val p = sungFactor
+                            val pOut = ((smoothPosition - groupWord.groupEndMs).toFloat() / 600f).coerceIn(0f, 1f)
+                            val peakScale = 0.06f; val decay = 3.5f; val freq = 5.0f; val bsps = 0.012f
+                            when {
+                                pOut > 0f -> {
+                                    val spring = (groupWord.pos * bsps + peakScale) * exp(-decay * pOut) * cos(freq * pOut * PI.toFloat()) * (1f - pOut)
+                                    crescendoDeltaX = spring; crescendoDeltaY = spring
+                                }
+                                groupWord.isLast -> {
+                                    val v = groupWord.pos * bsps + peakScale * (1f - exp(-decay * p) * cos(freq * p * PI.toFloat()) * (1f - p))
+                                    crescendoDeltaX = v; crescendoDeltaY = v
+                                }
+                                else -> {
+                                    val v = groupWord.pos * bsps + (if (p > 0f) 0.02f * (1f - p) else 0f)
+                                    crescendoDeltaX = v; crescendoDeltaY = v
+                                }
                             }
                         }
 
-                        if (found) {
-                            if (isWordSung) {
-                                clipRect(left = left, top = top, right = right, bottom = bottom) {
-                                    drawText(layoutResult, color = expressiveAccent)
+                        val nudgeScale = if (wordItem != null && !isWordSung && sungFactor > 0f) 0.038f * sin(charLp * PI.toFloat()) * exp(-3f * charLp) else 0f
+                        val charScaleX = 1f + wobbleX + crescendoDeltaX + nudgeScale * 0.3f
+                        val charScaleY = 1f + wobbleY + crescendoDeltaY + nudgeScale
+
+                        // Offset so charBounds.left/top lands at (0,0) inside the transform,
+                        // letting us use clipRect(0,0,w,h) on the full shaped layoutResult.
+                        val layoutOffset = Offset(-charBounds.left, -charBounds.top)
+
+                        withTransform({
+                            var waveOffset = 0f
+                            if (groupWord != null) {
+                                val wallTime = System.currentTimeMillis()
+                                val timeInGroup    = (smoothPosition - groupWord.groupStartMs).toFloat()
+                                val timeToGroupEnd = (groupWord.groupEndMs - smoothPosition).toFloat()
+                                val waveFade = (timeInGroup / 200f).coerceIn(0f, 1f) * (timeToGroupEnd / 200f).coerceIn(0f, 1f)
+                                if (waveFade > 0.01f) {
+                                    waveOffset = sin(wallTime * 0.006f + i * 0.4f) * 3.24f * waveFade
                                 }
-                            } else if (isWordActive && sungFactor > 0f) {
-                                clipRect(left = left, top = top, right = right, bottom = bottom) {
-                                    drawText(layoutResult, color = expressiveAccent.copy(alpha = focusedAlpha + (1f - focusedAlpha) * sungFactor))
+                            }
+                            translate(left = alignShift + lineCurrentPushesCS[lineIdx] + charBounds.left, top = charBounds.top + waveOffset)
+                            if (wordIdx != -1) {
+                                scale(charScaleX, charScaleY, pivot = Offset(charBounds.width / 2f, charBounds.height))
+                            }
+                        }) {
+                            val baseAlpha = if (isWordSung || charLp > 0.99f) 1f else (focusedAlpha + (1f - focusedAlpha) * sungFactor)
+                            // Extract this char's shaped glyph from the full layoutResult via clip+offset
+                            clipRect(left = 0f, top = 0f, right = charBounds.width, bottom = charBounds.height) {
+                                drawText(layoutResult, topLeft = layoutOffset,
+                                    color = expressiveAccent.copy(alpha = if (wordIdx == -1) focusedAlpha else baseAlpha))
+                            }
+                            // 12-step feathered gradient reveal — identical to LTR, in char-local space
+                            if (!isWordSung && charLp > 0f && charLp < 1f) {
+                                val fXL = charBounds.width * charLp
+                                val eW  = (charBounds.width * 0.45f).coerceAtLeast(1f)
+                                val sWL = (fXL - eW).coerceAtLeast(0f)
+                                if (sWL > 0f) {
+                                    clipRect(left = 0f, top = 0f, right = sWL, bottom = charBounds.height) {
+                                        drawText(layoutResult, topLeft = layoutOffset, color = expressiveAccent)
+                                    }
+                                }
+                                for (j in 0 until 12) {
+                                    val start = sWL + (j * eW / 12f)
+                                    val end   = (sWL + ((j + 1) * eW / 12f) + 0.5f).coerceAtMost(fXL)
+                                    if (end > start) {
+                                        clipRect(left = start, top = 0f, right = end, bottom = charBounds.height) {
+                                            drawText(layoutResult, topLeft = layoutOffset,
+                                                color = expressiveAccent.copy(alpha = 1f - (j + 0.5f) / 12f))
+                                        }
+                                    }
                                 }
                             }
                         }
+                        lineCurrentPushesCS[lineIdx] += charBounds.width * (charScaleX - 1f)
                     }
                     return@Canvas
                 }
+
 
                 val (wordIdxMap, charInWordMap, wordLenMap) = charToWordData
                 val wordFactors = effectiveWords.map { word ->
