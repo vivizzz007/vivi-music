@@ -226,10 +226,10 @@ fun MetroLyricsLine(
     }
 
     val lyricStyle = TextStyle(
-        fontSize = if (entry.isBackground) (lyricsTextSize * 0.7f).sp else lyricsTextSize.sp,
+        fontSize = lyricsTextSize.sp,
         fontWeight = FontWeight.Bold,
         fontStyle = if (entry.isBackground) FontStyle.Italic else FontStyle.Normal,
-        lineHeight = if (entry.isBackground) (lyricsTextSize * 0.7f * lyricsLineSpacing).sp else (lyricsTextSize * lyricsLineSpacing).sp,
+        lineHeight = (lyricsTextSize * lyricsLineSpacing).sp,
         letterSpacing = (-0.5).sp,
         textAlign = agentTextAlign,
         platformStyle = PlatformTextStyle(includeFontPadding = false),
@@ -297,12 +297,12 @@ fun MetroLyricsLine(
         if (subText != null) {
             Text(
                 text = subText,
-                fontSize = (lyricsTextSize * 0.65f).sp,
+                fontSize = 18.sp,
                 color = baseLineColor.copy(alpha = 0.6f),
                 textAlign = agentTextAlign,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(top = 2.dp).fillMaxWidth(),
-                lineHeight = (lyricsTextSize * 0.65f * lyricsLineSpacing.coerceAtMost(1.3f)).sp
+                lineHeight = (18 * lyricsLineSpacing.coerceAtMost(1.3f)).sp
             )
         }
 
@@ -311,12 +311,12 @@ fun MetroLyricsLine(
             translatedText?.let { translated ->
                 Text(
                     text = translated,
-                    fontSize = (lyricsTextSize * 0.7f).sp,
+                    fontSize = 16.sp,
                     color = expressiveAccent.copy(alpha = 0.8f),
                     textAlign = agentTextAlign,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.padding(top = 4.dp).fillMaxWidth(),
-                    lineHeight = (lyricsTextSize * 0.7f * lyricsLineSpacing.coerceAtMost(1.3f)).sp
+                    lineHeight = (16 * lyricsLineSpacing.coerceAtMost(1.3f)).sp
                 )
             }
         }
