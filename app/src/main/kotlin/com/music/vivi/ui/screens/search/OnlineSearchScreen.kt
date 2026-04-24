@@ -72,6 +72,7 @@ import com.music.vivi.utils.getGroupedShape
 import androidx.compose.material3.Surface
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Shape
+import com.music.innertube.utils.YouTubeUrlParser
 import com.music.vivi.ui.menu.YouTubeAlbumMenu
 import com.music.vivi.ui.menu.YouTubeArtistMenu
 import com.music.vivi.ui.menu.YouTubePlaylistMenu
@@ -118,8 +119,13 @@ fun OnlineSearchScreen(
     }
 
     LaunchedEffect(query) {
-        snapshotFlow { query }.debounce(300L).collectLatest {
-            viewModel.query.value = it
+        snapshotFlow { query }.collectLatest {
+            if (YouTubeUrlParser.isYouTubeUrl(it)) {
+                viewModel.query.value = it
+            } else {
+                kotlinx.coroutines.delay(300L)
+                viewModel.query.value = it
+            }
         }
     }
 
@@ -205,10 +211,10 @@ fun OnlineSearchScreen(
             }
         }
 
-        if (viewState.items.isNotEmpty() && viewState.history.size + viewState.suggestions.size > 0) {
+        if (viewState.items.isNotEmpty()) {
             item(key = "search_divider") {
                 Text(
-                    text = stringResource(R.string.top_result),
+                    text = stringResource(if (viewState.isFromLink) R.string.parsed_from_link else R.string.top_result),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,

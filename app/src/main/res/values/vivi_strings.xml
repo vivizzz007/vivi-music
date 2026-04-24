@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="explore">Explore</string>
+    <string name="tab_explore">Explore</string>
+    <string name="tab_news">News</string>
+    <string name="tab_album">Album</string>
 
     <string name="local_history">Local</string>
     <string name="remote_history">Remote</string>
@@ -17,6 +20,7 @@
     <string name="trending">Trending</string>
     <string name="top_result">Top result</string>
     <string name="other_results">Other</string>
+    <string name="parsed_from_link">From link</string>
     <string name="album_text">Album</string>
 	<string name="by_text">By </string>
 	<string name="artist">Artist </string>

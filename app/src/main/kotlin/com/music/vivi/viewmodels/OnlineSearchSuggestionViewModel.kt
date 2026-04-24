@@ -56,7 +56,7 @@ constructor(
                         val parsedUrl = YouTubeUrlParser.parse(query)
                         val parsedItem = if (parsedUrl != null) fetchParsedUrlItem(parsedUrl) else null
                         
-                        val result = YouTube.searchSuggestions(query).getOrNull()
+                        val result = if (parsedUrl != null) null else YouTube.searchSuggestions(query).getOrNull()
                         val hideExplicit = context.dataStore.get(HideExplicitKey, false)
                         val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
 
@@ -80,6 +80,7 @@ constructor(
                                         ?.filterExplicit(hideExplicit)
                                         ?.filterVideoSongs(hideVideoSongs)
                                         .orEmpty(),
+                                    isFromLink = parsedUrl != null
                                 )
                             }
                     }
@@ -94,7 +95,7 @@ constructor(
         return try {
             val item = when (parsedUrl) {
                 is YouTubeUrlParser.ParsedUrl.Video -> {
-                    YouTube.next(WatchEndpoint(videoId = parsedUrl.id)).getOrNull()?.items?.find { it.id == parsedUrl.id }
+                    YouTube.queue(listOf(parsedUrl.id)).getOrNull()?.firstOrNull()
                 }
 
                 is YouTubeUrlParser.ParsedUrl.Artist -> {
@@ -115,4 +116,5 @@ data class SearchSuggestionViewState(
     val history: List<SearchHistory> = emptyList(),
     val suggestions: List<String> = emptyList(),
     val items: List<YTItem> = emptyList(),
+    val isFromLink: Boolean = false,
 )
