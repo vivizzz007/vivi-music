@@ -14,8 +14,10 @@ import androidx.core.net.toUri
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.session.LibraryResult
+import androidx.media3.session.MediaConstants
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaLibraryService.MediaLibrarySession
 import androidx.media3.session.MediaSession
@@ -58,6 +60,7 @@ import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.plus
 import javax.inject.Inject
 
+@androidx.annotation.OptIn(UnstableApi::class)
 class MediaLibrarySessionCallback
 @Inject
 constructor(
@@ -122,18 +125,8 @@ constructor(
     ): ListenableFuture<LibraryResult<MediaItem>> =
         Futures.immediateFuture(
             LibraryResult.ofItem(
-                MediaItem
-                    .Builder()
-                    .setMediaId(MusicService.ROOT)
-                    .setMediaMetadata(
-                        MediaMetadata
-                            .Builder()
-                            .setIsPlayable(false)
-                            .setIsBrowsable(false)
-                            .setMediaType(MediaMetadata.MEDIA_TYPE_FOLDER_MIXED)
-                            .build(),
-                    ).build(),
-                params,
+                rootMediaItem(),
+                params.withContentStyleHints(),
             ),
         )
 
@@ -146,39 +139,9 @@ constructor(
         params: MediaLibraryService.LibraryParams?,
     ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> =
         scope.future(Dispatchers.IO) {
-            LibraryResult.ofItemList(
+            val children =
                 when (parentId) {
-                    MusicService.ROOT ->
-                        listOf(
-                            browsableMediaItem(
-                                MusicService.SONG,
-                                context.getString(R.string.songs),
-                                null,
-                                drawableUri(R.drawable.music_note),
-                                MediaMetadata.MEDIA_TYPE_PLAYLIST,
-                            ),
-                            browsableMediaItem(
-                                MusicService.ARTIST,
-                                context.getString(R.string.artists),
-                                null,
-                                drawableUri(R.drawable.artist),
-                                MediaMetadata.MEDIA_TYPE_FOLDER_ARTISTS,
-                            ),
-                            browsableMediaItem(
-                                MusicService.ALBUM,
-                                context.getString(R.string.albums),
-                                null,
-                                drawableUri(R.drawable.album),
-                                MediaMetadata.MEDIA_TYPE_FOLDER_ALBUMS,
-                            ),
-                            browsableMediaItem(
-                                MusicService.PLAYLIST,
-                                context.getString(R.string.playlists),
-                                null,
-                                drawableUri(R.drawable.queue_music),
-                                MediaMetadata.MEDIA_TYPE_FOLDER_PLAYLISTS,
-                            ),
-                        )
+                    MusicService.ROOT -> rootChildren()
 
                     MusicService.SONG -> database.songsByCreateDateAsc().first()
                         .map { it.toMediaItem(parentId) }
@@ -195,6 +158,7 @@ constructor(
                                 ),
                                 artist.artist.thumbnailUrl?.toUri(),
                                 MediaMetadata.MEDIA_TYPE_ARTIST,
+                                singleItemStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_CATEGORY_LIST_ITEM,
                             )
                         }
 
@@ -208,6 +172,7 @@ constructor(
                                 },
                                 album.album.thumbnailUrl?.toUri(),
                                 MediaMetadata.MEDIA_TYPE_ALBUM,
+                                singleItemStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM,
                             )
                         }
 
@@ -224,53 +189,17 @@ constructor(
                             reportException(e)
                             emptyList()
                         }
-                        
+
                         listOf(
-                            browsableMediaItem(
-                                "${MusicService.PLAYLIST}/${PlaylistEntity.LIKED_PLAYLIST_ID}",
-                                context.getString(R.string.liked_songs),
-                                context.resources.getQuantityString(
-                                    R.plurals.n_song,
-                                    likedSongCount,
-                                    likedSongCount
-                                ),
-                                drawableUri(R.drawable.favorite),
-                                MediaMetadata.MEDIA_TYPE_PLAYLIST,
-                            ),
-                            browsableMediaItem(
-                                "${MusicService.PLAYLIST}/${PlaylistEntity.DOWNLOADED_PLAYLIST_ID}",
-                                context.getString(R.string.downloaded_songs),
-                                context.resources.getQuantityString(
-                                    R.plurals.n_song,
-                                    downloadedSongCount,
-                                    downloadedSongCount
-                                ),
-                                drawableUri(R.drawable.download),
-                                MediaMetadata.MEDIA_TYPE_PLAYLIST,
-                            ),
+                            likedSongsMediaItem(likedSongCount),
+                            downloadedSongsMediaItem(downloadedSongCount),
                         ) +
-                        database.playlistsByCreateDateAsc().first().map { playlist ->
-                            browsableMediaItem(
-                                "${MusicService.PLAYLIST}/${playlist.id}",
-                                playlist.playlist.name,
-                                context.resources.getQuantityString(
-                                    R.plurals.n_song,
-                                    playlist.songCount,
-                                    playlist.songCount
-                                ),
-                                playlist.thumbnails.firstOrNull()?.toUri(),
-                                MediaMetadata.MEDIA_TYPE_PLAYLIST,
-                            )
-                        } +
-                        youtubePlaylists.map { ytPlaylist ->
-                            browsableMediaItem(
-                                "${MusicService.YOUTUBE_PLAYLIST}/${ytPlaylist.id}",
-                                ytPlaylist.title,
-                                ytPlaylist.author?.name ?: "YouTube Music",
-                                ytPlaylist.thumbnail?.toUri(),
-                                MediaMetadata.MEDIA_TYPE_PLAYLIST,
-                            )
-                        }
+                            database.playlistsByCreateDateAsc().first().map { playlist ->
+                                playlist.toBrowsableMediaItem()
+                            } +
+                            youtubePlaylists.map { ytPlaylist ->
+                                ytPlaylist.toBrowsableMediaItem()
+                            }
                     }
 
                     else ->
@@ -278,14 +207,14 @@ constructor(
                             parentId.startsWith("${MusicService.ARTIST}/") ->
                                 database.artistSongsByCreateDateAsc(parentId.removePrefix("${MusicService.ARTIST}/"))
                                     .first().map {
-                                    it.toMediaItem(parentId)
-                                }
+                                        it.toMediaItem(parentId)
+                                    }
 
                             parentId.startsWith("${MusicService.ALBUM}/") ->
                                 database.albumSongs(parentId.removePrefix("${MusicService.ALBUM}/"))
                                     .first().map {
-                                    it.toMediaItem(parentId)
-                                }
+                                        it.toMediaItem(parentId)
+                                    }
 
                             parentId.startsWith("${MusicService.PLAYLIST}/") -> {
                                 val playlistId = parentId.removePrefix("${MusicService.PLAYLIST}/")
@@ -318,20 +247,7 @@ constructor(
                                         }
                                 }.first()
 
-                                // Add shuffle item at the top
-                                listOf(
-                                    MediaItem.Builder()
-                                        .setMediaId("$parentId/${MusicService.SHUFFLE_ACTION}")
-                                        .setMediaMetadata(
-                                            MediaMetadata.Builder()
-                                                .setTitle(context.getString(R.string.shuffle))
-                                                .setArtworkUri(drawableUri(R.drawable.shuffle))
-                                                .setIsPlayable(true)
-                                                .setIsBrowsable(false)
-                                                .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
-                                                .build()
-                                        ).build()
-                                ) + songs.map { it.toMediaItem(parentId) }
+                                listOf(shuffleMediaItem(parentId)) + songs.map { it.toMediaItem(parentId) }
                             }
 
                             parentId.startsWith("${MusicService.YOUTUBE_PLAYLIST}/") -> {
@@ -343,35 +259,7 @@ constructor(
                                         ?.filterVideoSongs(context.dataStore.get(HideVideoSongsKey, false))
                                         ?: emptyList()
 
-                                    // Add shuffle item at the top
-                                    listOf(
-                                        MediaItem.Builder()
-                                            .setMediaId("$parentId/${MusicService.SHUFFLE_ACTION}")
-                                            .setMediaMetadata(
-                                                MediaMetadata.Builder()
-                                                    .setTitle(context.getString(R.string.shuffle))
-                                                    .setArtworkUri(drawableUri(R.drawable.shuffle))
-                                                    .setIsPlayable(true)
-                                                    .setIsBrowsable(false)
-                                                    .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
-                                                    .build()
-                                            ).build()
-                                    ) + songs.map { songItem ->
-                                        MediaItem.Builder()
-                                            .setMediaId("$parentId/${songItem.id}")
-                                            .setMediaMetadata(
-                                                MediaMetadata.Builder()
-                                                    .setTitle(songItem.title)
-                                                    .setSubtitle(songItem.artists.joinToString(", ") { it.name })
-                                                    .setArtist(songItem.artists.joinToString(", ") { it.name })
-                                                    .setArtworkUri(songItem.thumbnail.toUri())
-                                                    .setIsPlayable(true)
-                                                    .setIsBrowsable(false)
-                                                    .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
-                                                    .build()
-                                            )
-                                            .build()
-                                    }
+                                    listOf(shuffleMediaItem(parentId)) + songs.map { it.toMediaItem(parentId) }
                                 } catch (e: Exception) {
                                     reportException(e)
                                     emptyList()
@@ -380,8 +268,11 @@ constructor(
 
                             else -> emptyList()
                         }
-                },
-                params,
+                }
+
+            LibraryResult.ofItemList(
+                children.paginate(page, pageSize),
+                params.withContentStyleHints(),
             )
         }
 
@@ -391,7 +282,7 @@ constructor(
         mediaId: String,
     ): ListenableFuture<LibraryResult<MediaItem>> =
         scope.future(Dispatchers.IO) {
-            database.song(mediaId).first()?.toMediaItem()?.let {
+            getMediaItem(mediaId)?.let {
                 LibraryResult.ofItem(it, null)
             } ?: LibraryResult.ofError(SessionError.ERROR_UNKNOWN)
         }
@@ -416,7 +307,7 @@ constructor(
     ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
         return scope.future(Dispatchers.IO) {
             if (query.isEmpty()) {
-                return@future LibraryResult.ofItemList(emptyList(), params)
+                return@future LibraryResult.ofItemList(emptyList(), params.withContentStyleHints())
             }
 
             try {
@@ -447,7 +338,7 @@ constructor(
                     searchResults.add(song.toMediaItem(
                         path = "${MusicService.SEARCH}/$query",
                         isPlayable = true,
-                        isBrowsable = true
+                        isBrowsable = false
                     ))
                 }
 
@@ -476,32 +367,17 @@ constructor(
                         } catch (e: Exception) {
                         }
                         
-                        searchResults.add(
-                            MediaItem.Builder()
-                                .setMediaId("${MusicService.SEARCH}/$query/${songItem.id}")
-                                .setMediaMetadata(
-                                    MediaMetadata.Builder()
-                                        .setTitle(songItem.title)
-                                        .setSubtitle(songItem.artists.joinToString(", ") { it.name })
-                                        .setArtist(songItem.artists.joinToString(", ") { it.name })
-                                        .setArtworkUri(songItem.thumbnail.toUri())
-                                        .setIsPlayable(true)
-                                        .setIsBrowsable(true)
-                                        .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
-                                        .build()
-                                )
-                                .build()
-                        )
+                        searchResults.add(songItem.toMediaItem("${MusicService.SEARCH}/$query"))
                     }
                 } catch (e: Exception) {
                     reportException(e)
                 }
                 
-                LibraryResult.ofItemList(searchResults, params)
+                LibraryResult.ofItemList(searchResults.paginate(page, pageSize), params.withContentStyleHints())
                 
             } catch (e: Exception) {
                 reportException(e)
-                LibraryResult.ofItemList(emptyList(), params)
+                LibraryResult.ofItemList(emptyList(), params.withContentStyleHints())
             }
         }
     }
@@ -623,8 +499,12 @@ constructor(
                 }
 
                 MusicService.SEARCH -> {
-                    val songId = path.getOrNull(2) ?: return@future defaultResult
-                    val searchQuery = path.getOrNull(1) ?: return@future defaultResult
+                    val songId = path.lastOrNull() ?: return@future defaultResult
+                    val searchQuery = mediaItems.firstOrNull()?.mediaId
+                        ?.removePrefix("${MusicService.SEARCH}/")
+                        ?.removeSuffix("/$songId")
+                        ?.takeIf { it.isNotBlank() }
+                        ?: return@future defaultResult
                     
                     val searchResults = mutableListOf<Song>()
 
@@ -710,12 +590,254 @@ constructor(
         .appendPath(context.resources.getResourceEntryName(id))
         .build()
 
+    private fun rootMediaItem() = MediaItem
+        .Builder()
+        .setMediaId(MusicService.ROOT)
+        .setMediaMetadata(
+            MediaMetadata
+                .Builder()
+                .setTitle(context.getString(R.string.app_name))
+                .setIsPlayable(false)
+                .setIsBrowsable(true)
+                .setMediaType(MediaMetadata.MEDIA_TYPE_FOLDER_MIXED)
+                .build(),
+        ).build()
+
+    private fun rootChildren() = listOf(
+        browsableMediaItem(
+            MusicService.SONG,
+            context.getString(R.string.songs),
+            null,
+            drawableUri(R.drawable.music_note),
+            MediaMetadata.MEDIA_TYPE_FOLDER_MIXED,
+            singleItemStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_CATEGORY_GRID_ITEM,
+        ),
+        browsableMediaItem(
+            MusicService.ARTIST,
+            context.getString(R.string.artists),
+            null,
+            drawableUri(R.drawable.artist),
+            MediaMetadata.MEDIA_TYPE_FOLDER_ARTISTS,
+            singleItemStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_CATEGORY_GRID_ITEM,
+        ),
+        browsableMediaItem(
+            MusicService.ALBUM,
+            context.getString(R.string.albums),
+            null,
+            drawableUri(R.drawable.album),
+            MediaMetadata.MEDIA_TYPE_FOLDER_ALBUMS,
+            singleItemStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_CATEGORY_GRID_ITEM,
+        ),
+        browsableMediaItem(
+            MusicService.PLAYLIST,
+            context.getString(R.string.playlists),
+            null,
+            drawableUri(R.drawable.queue_music),
+            MediaMetadata.MEDIA_TYPE_FOLDER_PLAYLISTS,
+            singleItemStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_CATEGORY_GRID_ITEM,
+        ),
+    )
+
+    private suspend fun getMediaItem(mediaId: String): MediaItem? {
+        val path = mediaId.split("/")
+        val type = path.firstOrNull() ?: return null
+
+        return when (type) {
+            MusicService.ROOT -> rootMediaItem()
+
+            MusicService.SONG -> {
+                if (path.size == 1) {
+                    rootChildren().first { it.mediaId == MusicService.SONG }
+                } else {
+                    database.song(path[1]).first()?.toMediaItem(MusicService.SONG)
+                }
+            }
+
+            MusicService.ARTIST -> {
+                val artistId = path.getOrNull(1) ?: return null
+                if (path.size == 2) {
+                    database.artist(artistId).first()?.let { artist ->
+                        browsableMediaItem(
+                            "${MusicService.ARTIST}/${artist.id}",
+                            artist.artist.name,
+                            context.resources.getQuantityString(
+                                R.plurals.n_song,
+                                artist.songCount,
+                                artist.songCount
+                            ),
+                            artist.artist.thumbnailUrl?.toUri(),
+                            MediaMetadata.MEDIA_TYPE_ARTIST,
+                            singleItemStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_CATEGORY_LIST_ITEM,
+                        )
+                    }
+                } else {
+                    val songId = path.lastOrNull() ?: return null
+                    database.song(songId).first()?.toMediaItem("${MusicService.ARTIST}/$artistId")
+                }
+            }
+
+            MusicService.ALBUM -> {
+                val albumId = path.getOrNull(1) ?: return null
+                if (path.size == 2) {
+                    database.album(albumId).first()?.let { album ->
+                        browsableMediaItem(
+                            "${MusicService.ALBUM}/${album.id}",
+                            album.album.title,
+                            album.artists.joinToString { it.name },
+                            album.album.thumbnailUrl?.toUri(),
+                            MediaMetadata.MEDIA_TYPE_ALBUM,
+                            singleItemStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM,
+                        )
+                    }
+                } else {
+                    val songId = path.lastOrNull() ?: return null
+                    database.song(songId).first()?.toMediaItem("${MusicService.ALBUM}/$albumId")
+                }
+            }
+
+            MusicService.PLAYLIST -> {
+                val playlistId = path.getOrNull(1) ?: return null
+                if (path.size == 2) {
+                    playlistMediaItem(playlistId)
+                } else {
+                    val songId = path.lastOrNull() ?: return null
+                    if (songId == MusicService.SHUFFLE_ACTION) {
+                        shuffleMediaItem("${MusicService.PLAYLIST}/$playlistId")
+                    } else {
+                        database.song(songId).first()?.toMediaItem("${MusicService.PLAYLIST}/$playlistId")
+                    }
+                }
+            }
+
+            MusicService.YOUTUBE_PLAYLIST -> {
+                val playlistId = path.getOrNull(1) ?: return null
+                if (path.size == 2) {
+                    youtubePlaylistMediaItem(playlistId)
+                } else {
+                    val songId = path.lastOrNull() ?: return null
+                    if (songId == MusicService.SHUFFLE_ACTION) {
+                        shuffleMediaItem("${MusicService.YOUTUBE_PLAYLIST}/$playlistId")
+                    } else {
+                        database.song(songId).first()?.toMediaItem("${MusicService.YOUTUBE_PLAYLIST}/$playlistId")
+                            ?: youtubePlaylistSongMediaItem(playlistId, songId)
+                    }
+                }
+            }
+
+            MusicService.SEARCH -> {
+                val songId = path.lastOrNull() ?: return null
+                database.song(songId).first()?.toMediaItem(
+                    mediaId.removeSuffix("/$songId")
+                )
+            }
+
+            else -> database.song(mediaId).first()?.toMediaItem()
+        }
+    }
+
+    private suspend fun playlistMediaItem(playlistId: String): MediaItem? =
+        when (playlistId) {
+            PlaylistEntity.LIKED_PLAYLIST_ID -> likedSongsMediaItem(database.likedSongsCount().first())
+            PlaylistEntity.DOWNLOADED_PLAYLIST_ID -> downloadedSongsMediaItem(downloadUtil.downloads.value.size)
+            else -> database.playlist(playlistId).first()?.toBrowsableMediaItem()
+        }
+
+    private suspend fun youtubePlaylistMediaItem(playlistId: String): MediaItem =
+        try {
+            YouTube.playlist(playlistId).getOrNull()?.playlist?.toBrowsableMediaItem()
+        } catch (e: Exception) {
+            reportException(e)
+            null
+        } ?: browsableMediaItem(
+            "${MusicService.YOUTUBE_PLAYLIST}/$playlistId",
+            playlistId,
+            "YouTube Music",
+            null,
+            MediaMetadata.MEDIA_TYPE_PLAYLIST,
+            singleItemStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM,
+        )
+
+    private suspend fun youtubePlaylistSongMediaItem(
+        playlistId: String,
+        songId: String,
+    ): MediaItem? =
+        try {
+            YouTube.playlist(playlistId).getOrNull()?.songs
+                ?.firstOrNull { it.id == songId }
+                ?.toMediaItem("${MusicService.YOUTUBE_PLAYLIST}/$playlistId")
+        } catch (e: Exception) {
+            reportException(e)
+            null
+        }
+
+    private fun likedSongsMediaItem(songCount: Int) = browsableMediaItem(
+        "${MusicService.PLAYLIST}/${PlaylistEntity.LIKED_PLAYLIST_ID}",
+        context.getString(R.string.liked_songs),
+        context.resources.getQuantityString(
+            R.plurals.n_song,
+            songCount,
+            songCount
+        ),
+        drawableUri(R.drawable.favorite),
+        MediaMetadata.MEDIA_TYPE_PLAYLIST,
+        singleItemStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_CATEGORY_LIST_ITEM,
+    )
+
+    private fun downloadedSongsMediaItem(songCount: Int) = browsableMediaItem(
+        "${MusicService.PLAYLIST}/${PlaylistEntity.DOWNLOADED_PLAYLIST_ID}",
+        context.getString(R.string.downloaded_songs),
+        context.resources.getQuantityString(
+            R.plurals.n_song,
+            songCount,
+            songCount
+        ),
+        drawableUri(R.drawable.download),
+        MediaMetadata.MEDIA_TYPE_PLAYLIST,
+        singleItemStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_CATEGORY_LIST_ITEM,
+    )
+
+    private fun com.music.vivi.db.entities.Playlist.toBrowsableMediaItem() = browsableMediaItem(
+        "${MusicService.PLAYLIST}/$id",
+        playlist.name,
+        context.resources.getQuantityString(
+            R.plurals.n_song,
+            songCount,
+            songCount
+        ),
+        thumbnails.firstOrNull()?.toUri(),
+        MediaMetadata.MEDIA_TYPE_PLAYLIST,
+        singleItemStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM,
+    )
+
+    private fun PlaylistItem.toBrowsableMediaItem() = browsableMediaItem(
+        "${MusicService.YOUTUBE_PLAYLIST}/$id",
+        title,
+        author?.name ?: "YouTube Music",
+        thumbnail?.toUri(),
+        MediaMetadata.MEDIA_TYPE_PLAYLIST,
+        singleItemStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM,
+    )
+
+    private fun shuffleMediaItem(parentId: String) = MediaItem.Builder()
+        .setMediaId("$parentId/${MusicService.SHUFFLE_ACTION}")
+        .setMediaMetadata(
+            MediaMetadata.Builder()
+                .setTitle(context.getString(R.string.shuffle))
+                .setArtworkUri(drawableUri(R.drawable.shuffle))
+                .setIsPlayable(true)
+                .setIsBrowsable(false)
+                .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
+                .setExtras(playableMediaItemExtras())
+                .build()
+        ).build()
+
     private fun browsableMediaItem(
         id: String,
         title: String,
         subtitle: String?,
         iconUri: Uri?,
         mediaType: Int = MediaMetadata.MEDIA_TYPE_MUSIC,
+        singleItemStyle: Int = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_CATEGORY_LIST_ITEM,
     ) = MediaItem
         .Builder()
         .setMediaId(id)
@@ -729,6 +851,13 @@ constructor(
                 .setIsPlayable(false)
                 .setIsBrowsable(true)
                 .setMediaType(mediaType)
+                .setExtras(
+                    contentStyleExtras(
+                        browsableStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_LIST_ITEM,
+                        playableStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_LIST_ITEM,
+                        singleItemStyle = singleItemStyle,
+                    )
+                )
                 .build(),
         ).build()
 
@@ -755,7 +884,74 @@ constructor(
                     .setIsPlayable(isPlayable)
                     .setIsBrowsable(isBrowsable)
                     .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
+                    .setExtras(playableMediaItemExtras())
                     .build(),
             ).build()
+    }
+
+    private fun SongItem.toMediaItem(path: String) = MediaItem.Builder()
+        .setMediaId("$path/$id")
+        .setMediaMetadata(
+            MediaMetadata.Builder()
+                .setTitle(title)
+                .setSubtitle(artists.joinToString(", ") { it.name })
+                .setArtist(artists.joinToString(", ") { it.name })
+                .setArtworkUri(thumbnail.toUri())
+                .setIsPlayable(true)
+                .setIsBrowsable(false)
+                .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
+                .setExtras(playableMediaItemExtras())
+                .build()
+        )
+        .build()
+
+    private fun MediaLibraryService.LibraryParams?.withContentStyleHints(): MediaLibraryService.LibraryParams {
+        val extras = Bundle(this?.extras ?: Bundle()).apply {
+            putInt(
+                MediaConstants.EXTRAS_KEY_CONTENT_STYLE_BROWSABLE,
+                MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_LIST_ITEM
+            )
+            putInt(
+                MediaConstants.EXTRAS_KEY_CONTENT_STYLE_PLAYABLE,
+                MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_LIST_ITEM
+            )
+        }
+
+        return MediaLibraryService.LibraryParams.Builder()
+            .setOffline(this?.isOffline ?: false)
+            .setRecent(this?.isRecent ?: false)
+            .setSuggested(this?.isSuggested ?: false)
+            .setExtras(extras)
+            .build()
+    }
+
+    private fun playableMediaItemExtras() = contentStyleExtras(
+        singleItemStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_LIST_ITEM,
+    )
+
+    private fun contentStyleExtras(
+        browsableStyle: Int? = null,
+        playableStyle: Int? = null,
+        singleItemStyle: Int? = null,
+    ) = Bundle().apply {
+        browsableStyle?.let {
+            putInt(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_BROWSABLE, it)
+        }
+        playableStyle?.let {
+            putInt(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_PLAYABLE, it)
+        }
+        singleItemStyle?.let {
+            putInt(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_SINGLE_ITEM, it)
+        }
+    }
+
+    private fun <T> List<T>.paginate(page: Int, pageSize: Int): List<T> {
+        if (page < 0 || pageSize < 1 || isEmpty()) return emptyList()
+        if (pageSize == Int.MAX_VALUE) return this
+
+        val fromIndex = page.toLong() * pageSize
+        if (fromIndex >= size) return emptyList()
+
+        return subList(fromIndex.toInt(), minOf(fromIndex.toInt() + pageSize, size))
     }
 }
