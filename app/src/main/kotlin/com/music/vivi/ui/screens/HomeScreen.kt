@@ -153,6 +153,7 @@ import com.music.vivi.ui.menu.YouTubeArtistMenu
 import com.music.vivi.ui.menu.YouTubePlaylistMenu
 import com.music.vivi.ui.menu.YouTubeSongMenu
 import com.music.vivi.ui.utils.SnapLayoutInfoProvider
+import com.music.vivi.ui.utils.resize
 import com.music.vivi.utils.listItemShape
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
@@ -229,7 +230,7 @@ fun CommunityPlaylistCard(
                     Column(modifier = Modifier.fillMaxSize()) {
                         Row(modifier = Modifier.weight(1f)) {
                             AsyncImage(
-                                model = item.songs.getOrNull(0)?.thumbnail?.replace(Regex("w\\d+-h\\d+"), "w544-h544"),
+                                model = item.songs.getOrNull(0)?.thumbnail?.resize(544, 544),
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
@@ -237,7 +238,7 @@ fun CommunityPlaylistCard(
                                     .fillMaxSize()
                             )
                             AsyncImage(
-                                model = item.songs.getOrNull(1)?.thumbnail?.replace(Regex("w\\d+-h\\d+"), "w120-h120"),
+                                model = item.songs.getOrNull(1)?.thumbnail?.resize(544, 544),
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
@@ -247,7 +248,7 @@ fun CommunityPlaylistCard(
                         }
                         Row(modifier = Modifier.weight(1f)) {
                             AsyncImage(
-                                model = item.songs.getOrNull(2)?.thumbnail?.replace(Regex("w\\d+-h\\d+"), "w120-h120"),
+                                model = item.songs.getOrNull(2)?.thumbnail?.resize(544, 544),
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
@@ -255,7 +256,7 @@ fun CommunityPlaylistCard(
                                     .fillMaxSize()
                             )
                             AsyncImage(
-                                model = item.songs.getOrNull(3)?.thumbnail?.replace(Regex("w\\d+-h\\d+"), "w120-h120"),
+                                model = item.songs.getOrNull(3)?.thumbnail?.resize(544, 544),
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
@@ -303,7 +304,7 @@ fun CommunityPlaylistCard(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         AsyncImage(
-                            model = song.thumbnail.replace(Regex("w\\d+-h\\d+"), "w544-h544"),
+                            model = song.thumbnail.resize(544, 544),
                             contentDescription = null,
                             modifier = Modifier
                                 .size(56.dp)
@@ -470,7 +471,7 @@ fun DailyDiscoverCard(
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(dailyDiscover.recommendation.thumbnail?.replace(Regex("w\\d+-h\\d+"), "w1200-h1200"))
+                    .data(dailyDiscover.recommendation.thumbnail?.resize(1200, 1200))
                     .crossfade(true)
                     .build(),
                 contentDescription = null,
