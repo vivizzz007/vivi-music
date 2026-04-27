@@ -10,17 +10,29 @@ fun String.resize(
     height: Int? = null,
 ): String {
     if (width == null && height == null) return this
-    "https://lh3\\.googleusercontent\\.com/.*=w(\\d+)-h(\\d+).*".toRegex()
-        .matchEntire(this)?.groupValues?.let { group ->
-        val (W, H) = group.drop(1).map { it.toInt() }
-        var w = width
-        var h = height
-        if (w != null && h == null) h = (w / W) * H
-        if (w == null && h != null) w = (h / H) * W
-        return "${split("=w")[0]}=w$w-h$h-p-l100-rw"
+    
+    // googleusercontent.com handling (includes lh3-lh6, yt3, etc.)
+    if (this.contains("googleusercontent.com") && this.contains("=w")) {
+        val baseUrl = this.split("=w")[0]
+        val w = width ?: 0
+        val h = height ?: width ?: 0
+        // Reverting to l90-rj (JPEG) for better compatibility while keeping high resolution
+        return "$baseUrl=w$w-h$h-p-l90-rj"
     }
-    if (this matches "https://yt3\\.ggpht\\.com/.*=s(\\d+)".toRegex()) {
-        return "$this-s${width ?: height}"
+
+    // yt3.ggpht.com handling (avatars)
+    if (this.contains("yt3.ggpht.com")) {
+        // Correctly strip any existing size parameter (=s... or -s...) before appending the new one
+        val baseUrl = this.split("=")[0].split("-s")[0]
+        return "$baseUrl=s${width ?: height}"
     }
+
+    // Fallback for other lh3-style URLs that might not have =w yet
+    "https://lh\\d\\.googleusercontent\\.com/.*".toRegex().matchEntire(this)?.let {
+        val w = width ?: 0
+        val h = height ?: width ?: 0
+        return "${this.split("=")[0]}=w$w-h$h-p-l90-rj"
+    }
+
     return this
 }
