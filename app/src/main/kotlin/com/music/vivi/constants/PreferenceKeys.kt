@@ -67,6 +67,7 @@ const val SYSTEM_DEFAULT = "SYSTEM_DEFAULT"
 val AppLanguageKey = stringPreferencesKey("appLanguage")
 val ContentLanguageKey = stringPreferencesKey("contentLanguage")
 val ContentCountryKey = stringPreferencesKey("contentCountry")
+val BillboardRegionKey = stringPreferencesKey("billboardRegion")
 val EnableKugouKey = booleanPreferencesKey("enableKugou")
 val EnableLrcLibKey = booleanPreferencesKey("enableLrclib")
 val EnableBetterLyricsKey = booleanPreferencesKey("enableBetterLyrics")
@@ -661,4 +662,34 @@ val CountryCodeToName =
         "VN" to "Vietnam",
         "YE" to "Yemen",
         "ZW" to "Zimbabwe",
+    )
+
+val BillboardRegionSlugToName =
+    mapOf(
+        "system" to "System Default",
+        "billboard-global-200" to "Global 200",
+        "billboard-global-excl-us" to "Global Excl. US",
+        "hot-100" to "USA (Hot 100)",
+        "canadian-hot-100" to "Canada",
+        "brazil-songs-hotw" to "Brazil",
+        "mexico-songs-hotw" to "Mexico",
+        "argentina-songs-hotw" to "Argentina",
+        "chile-songs-hotw" to "Chile",
+        "colombia-songs-hotw" to "Colombia",
+        "peru-songs-hotw" to "Peru",
+        "india-songs-hotw" to "India",
+        "japan-hot-100" to "Japan",
+        "south-korea-songs-hotw" to "South Korea",
+        "australia-songs-hotw" to "Australia",
+        "indonesia-songs-hotw" to "Indonesia",
+        "malaysia-songs-hotw" to "Malaysia",
+        "philippines-songs-hotw" to "Philippines",
+        "vietnam-hot-100" to "Vietnam",
+        "u-k-songs-hotw" to "United Kingdom",
+        "germany-songs-hotw" to "Germany",
+        "france-songs-hotw" to "France",
+        "italy-songs-hotw" to "Italy",
+        "spain-songs-hotw" to "Spain",
+        "sweden-songs-hotw" to "Sweden",
+        "south-africa-songs-hotw" to "South Africa"
     )
