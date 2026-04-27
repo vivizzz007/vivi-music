@@ -57,6 +57,9 @@ import com.music.vivi.R
 import com.music.vivi.constants.AppLanguageKey
 import com.music.vivi.constants.ContentCountryKey
 import com.music.vivi.constants.ContentLanguageKey
+import com.music.vivi.constants.BillboardRegionKey
+import com.music.vivi.constants.BillboardRegionSlugToName
+import com.music.vivi.ui.screens.search.suggestions.BillboardSheet
 import com.music.vivi.constants.CountryCodeToName
 import com.music.vivi.constants.EnableBetterLyricsKey
 import com.music.vivi.constants.EnableKugouKey
@@ -114,6 +117,7 @@ fun ContentSettings(
 
     val (contentLanguage, onContentLanguageChange) = rememberPreference(key = ContentLanguageKey, defaultValue = "system")
     val (contentCountry, onContentCountryChange) = rememberPreference(key = ContentCountryKey, defaultValue = "system")
+    val (billboardRegion, onBillboardRegionChange) = rememberPreference(key = BillboardRegionKey, defaultValue = "system")
     val (hideExplicit, onHideExplicitChange) = rememberPreference(key = HideExplicitKey, defaultValue = false)
     val (hideVideoSongs, onHideVideoSongsChange) = rememberPreference(key = HideVideoSongsKey, defaultValue = false)
     val (hideYoutubeShorts, onHideYoutubeShortsChange) = rememberPreference(key = HideYoutubeShortsKey, defaultValue = false)
@@ -151,6 +155,7 @@ fun ContentSettings(
     val (albumCanvasEnabled, onAlbumCanvasEnabledChange) = rememberPreference(key = AlbumCanvasEnabledKey, defaultValue = false)
 
     var showPlaybackLogsDialog by rememberSaveable { mutableStateOf(false) }
+    var showBillboardSheet by rememberSaveable { mutableStateOf(false) }
     val playbackLogs by PlaybackLogManager.logs.collectAsState()
 
     // Auto-switch preferred provider if current one is disabled
@@ -490,6 +495,14 @@ fun ContentSettings(
         )
     }
 
+    if (showBillboardSheet) {
+        BillboardSheet(
+            currentRegionSlug = billboardRegion,
+            onRegionSelected = { onBillboardRegionChange(it) },
+            onDismiss = { showBillboardSheet = false }
+        )
+    }
+
     Column(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
@@ -518,6 +531,16 @@ fun ContentSettings(
                         )
                     },
                     onClick = { showContentCountryDialog = true }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.globe_location_pin),
+                    title = { Text("Billboard Region") },
+                    description = {
+                        Text(
+                            BillboardRegionSlugToName.getOrElse(billboardRegion) { "Global 200" }
+                        )
+                    },
+                    onClick = { showBillboardSheet = true }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.explicit),

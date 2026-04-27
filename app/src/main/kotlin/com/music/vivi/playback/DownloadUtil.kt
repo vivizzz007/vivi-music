@@ -5,6 +5,10 @@
 
 package com.music.vivi.playback
 
+import coil3.SingletonImageLoader
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+
 import android.content.Context
 import android.net.ConnectivityManager
 import androidx.core.content.getSystemService
@@ -31,6 +35,7 @@ import com.music.vivi.db.entities.FormatEntity
 import com.music.vivi.db.entities.SongEntity
 import com.music.vivi.di.DownloadCache
 import com.music.vivi.di.PlayerCache
+import com.music.vivi.ui.utils.resize
 import com.music.vivi.utils.YTPlayerUtils
 import com.music.vivi.utils.enumPreference
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -151,13 +156,23 @@ constructor(
                         id = mediaId,
                         title = playbackData.videoDetails?.title ?: "Unknown",
                         duration = playbackData.videoDetails?.lengthSeconds?.toIntOrNull() ?: 0,
-                        thumbnailUrl = playbackData.videoDetails?.thumbnail?.thumbnails?.lastOrNull()?.url,
+                        thumbnailUrl = playbackData.videoDetails?.thumbnail?.thumbnails?.lastOrNull()?.url?.resize(1200, 1200),
                         dateDownload = now,
                         isDownloaded = false
                     )
                 }
 
                 upsert(updatedSong)
+
+                // Pre-cache the high-res thumbnail immediately when download starts
+                updatedSong.thumbnailUrl?.let { url ->
+                    val request = ImageRequest.Builder(context)
+                        .data(url)
+                        .memoryCachePolicy(CachePolicy.ENABLED)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .build()
+                    SingletonImageLoader.get(context).enqueue(request)
+                }
             }
 
             val streamUrl = playbackData.streamUrl.let {

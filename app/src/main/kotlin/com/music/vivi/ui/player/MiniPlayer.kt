@@ -95,7 +95,6 @@ import com.music.vivi.models.MediaMetadata
 import com.music.vivi.playback.CastConnectionHandler
 import com.music.vivi.playback.PlayerConnection
 import com.music.vivi.ui.screens.settings.DarkMode
-import com.music.vivi.ui.utils.resize
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.vivimusic.AudioDeviceBottomSheet
@@ -462,11 +461,8 @@ private fun NewMiniPlayerPlayButton(
                 }
         ) {
             mediaMetadata?.let { metadata ->
-                val thumbnailUrl = remember(metadata.thumbnailUrl) {
-                    metadata.thumbnailUrl?.resize(120, 120)
-                }
                 AsyncImage(
-                    model = thumbnailUrl,
+                    model = metadata.thumbnailUrl,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize().clip(CircleShape)
@@ -812,11 +808,8 @@ private fun LegacyMiniMediaInfo(
                     .background(MaterialTheme.colorScheme.surfaceVariant)
             )
 
-            val thumbnailUrl = remember(mediaMetadata.thumbnailUrl) {
-                mediaMetadata.thumbnailUrl?.resize(144, 144)
-            }
             AsyncImage(
-                model = thumbnailUrl,
+                model = mediaMetadata.thumbnailUrl,
                 contentDescription = null,
                 contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit,
                 modifier = Modifier
