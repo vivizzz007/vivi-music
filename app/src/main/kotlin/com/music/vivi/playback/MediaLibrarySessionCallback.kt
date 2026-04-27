@@ -25,7 +25,6 @@ import androidx.media3.session.MediaSession.MediaItemsWithStartPosition
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
-import coil3.imageLoader
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -862,15 +861,6 @@ constructor(
         ).build()
 
     private fun Song.toMediaItem(path: String, isPlayable: Boolean = true, isBrowsable: Boolean = false): MediaItem {
-        val artworkUri = song.thumbnailUrl?.let {
-            val snapshot = context.imageLoader.diskCache?.openSnapshot(it)
-            if (snapshot != null) {
-                snapshot.use { snapshot -> snapshot.data.toFile().toUri() }
-            } else {
-                it.toUri()
-            }
-        }
-
         return MediaItem
             .Builder()
             .setMediaId("$path/$id")
@@ -880,7 +870,7 @@ constructor(
                     .setTitle(song.title)
                     .setSubtitle(artists.joinToString { it.name })
                     .setArtist(artists.joinToString { it.name })
-                    .setArtworkUri(artworkUri)
+                    .setArtworkUri(song.thumbnailUrl?.toUri())
                     .setIsPlayable(isPlayable)
                     .setIsBrowsable(isBrowsable)
                     .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
