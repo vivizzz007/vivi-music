@@ -182,14 +182,28 @@ class SuggestionsViewModel @Inject constructor() : ViewModel() {
 
     fun playVideo(video: SuggestionTrack, playerConnection: PlayerConnection?) {
         viewModelScope.launch(Dispatchers.IO) {
-            val query = "${video.title} ${video.artist} official music video"
-            YouTube.search(query, YouTube.SearchFilter.FILTER_VIDEO)
+            val query = "${video.title} ${video.artist}"
+            YouTube.search(query, YouTube.SearchFilter.FILTER_SONG)
                 .onSuccess { searchResult ->
-                    val firstVideo =
-                        searchResult.items.filterIsInstance<SongItem>().firstOrNull()
-                    if (firstVideo != null) {
+                    val songs = searchResult.items.filterIsInstance<SongItem>()
+
+                    // Use the same multi-step matching as playTrack for reliability
+                    val bestMatch = songs.firstOrNull { s ->
+                        s.title.equals(video.title, ignoreCase = true) &&
+                        s.artists.any { a -> video.artist.contains(a.name, ignoreCase = true) }
+                    } ?:
+                    songs.firstOrNull { s ->
+                        s.title.contains(video.title, ignoreCase = true) &&
+                        s.artists.any { a -> video.artist.contains(a.name, ignoreCase = true) }
+                    } ?:
+                    songs.firstOrNull { s ->
+                        s.artists.any { a -> video.artist.contains(a.name, ignoreCase = true) }
+                    } ?:
+                    songs.firstOrNull()
+
+                    if (bestMatch != null) {
                         withContext(Dispatchers.Main) {
-                            playerConnection?.playQueue(YouTubeQueue(WatchEndpoint(videoId = firstVideo.id)))
+                            playerConnection?.playQueue(YouTubeQueue(WatchEndpoint(videoId = bestMatch.id)))
                         }
                     }
                 }
