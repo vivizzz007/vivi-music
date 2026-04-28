@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.coroutineScope
@@ -70,19 +71,43 @@ class SuggestionsViewModel @Inject constructor() : ViewModel() {
             }
 
             try {
-                // Fetch everything in parallel or sequence, but handle failures for each
-                val tracks = try { AppleMusicScraper.fetchTopSongs(resolvedCode) } catch (e: Exception) { emptyList() }
-                val artists = if (tracks.isNotEmpty()) AppleMusicScraper.getTrendingArtists(tracks) else emptyList()
-                val albums = try { AppleMusicScraper.fetchTopAlbums(resolvedCode) } catch (e: Exception) { emptyList() }
-                val videos = try { AppleMusicScraper.fetchTopVideos(resolvedCode) } catch (e: Exception) { emptyList() }
-                
+                coroutineScope {
+                    // Kick off all three network calls simultaneously
+                    val tracksDeferred = async {
+                        try { AppleMusicScraper.fetchTopSongs(resolvedCode) } catch (e: Exception) {
+                            Log.e("SuggestionsViewModel", "Failed to fetch songs", e)
+                            emptyList()
+                        }
+                    }
+                    val albumsDeferred = async {
+                        try { AppleMusicScraper.fetchTopAlbums(resolvedCode) } catch (e: Exception) {
+                            Log.e("SuggestionsViewModel", "Failed to fetch albums", e)
+                            emptyList()
+                        }
+                    }
+                    val videosDeferred = async {
+                        try { AppleMusicScraper.fetchTopVideos(resolvedCode) } catch (e: Exception) {
+                            Log.e("SuggestionsViewModel", "Failed to fetch videos", e)
+                            emptyList()
+                        }
+                    }
+
+                    // Await and publish each result as it arrives
+                    val tracks = tracksDeferred.await()
+                    if (tracks.isNotEmpty()) {
+                        _suggestionTracks.value = tracks
+                        _suggestionArtists.value = AppleMusicScraper.getTrendingArtists(tracks)
+                    }
+
+                    val albums = albumsDeferred.await()
+                    if (albums.isNotEmpty()) _suggestionAlbums.value = albums
+
+                    val videos = videosDeferred.await()
+                    if (videos.isNotEmpty()) _suggestionVideos.value = videos
+                }
+
                 currentLoadedRegion = resolvedCode
-                
-                _suggestionTracks.value = if (tracks.isNotEmpty()) tracks else null
-                _suggestionArtists.value = if (artists.isNotEmpty()) artists else null
-                _suggestionAlbums.value = if (albums.isNotEmpty()) albums else null
-                _suggestionVideos.value = if (videos.isNotEmpty()) videos else null
-                
+
             } catch (e: Exception) {
                 Log.e("SuggestionsViewModel", "Failed to fetch suggestions", e)
             } finally {
@@ -96,11 +121,28 @@ class SuggestionsViewModel @Inject constructor() : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             val query = "${track.title} ${track.artist}"
             YouTube.search(query, YouTube.SearchFilter.FILTER_SONG).onSuccess { searchResult ->
-                // Force it to find the official song track instead of a music video
-                val firstSong = searchResult.items.filterIsInstance<SongItem>().firstOrNull()
-                if (firstSong != null) {
+                val songs = searchResult.items.filterIsInstance<SongItem>()
+                
+                // 1. Try to find an exact title match with at least one matching artist
+                val bestMatch = songs.firstOrNull { s ->
+                    s.title.equals(track.title, ignoreCase = true) &&
+                    s.artists.any { a -> track.artist.contains(a.name, ignoreCase = true) }
+                } ?: 
+                // 2. Try to find a title that contains our target title and matches artist
+                songs.firstOrNull { s ->
+                    s.title.contains(track.title, ignoreCase = true) &&
+                    s.artists.any { a -> track.artist.contains(a.name, ignoreCase = true) }
+                } ?:
+                // 3. Just find the first one that matches the artist
+                songs.firstOrNull { s ->
+                    s.artists.any { a -> track.artist.contains(a.name, ignoreCase = true) }
+                } ?:
+                // 4. Fallback to first song result
+                songs.firstOrNull()
+
+                if (bestMatch != null) {
                     withContext(Dispatchers.Main) {
-                        playerConnection?.playQueue(YouTubeQueue(WatchEndpoint(videoId = firstSong.id)))
+                        playerConnection?.playQueue(YouTubeQueue(WatchEndpoint(videoId = bestMatch.id)))
                     }
                 }
             }
