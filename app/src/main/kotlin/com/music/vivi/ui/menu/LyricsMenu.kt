@@ -28,13 +28,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -291,25 +293,31 @@ fun LyricsMenu(
                             modifier = Modifier.padding(bottom = 4.dp),
                         )
 
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
+                        Surface(
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            shape = RoundedCornerShape(6.dp),
+                            modifier = Modifier.padding(top = 4.dp)
                         ) {
-                            Text(
-                                text = result.providerName,
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.secondary,
-                                maxLines = 1,
-                            )
-                            if (result.lyrics.startsWith("[")) {
-                                Icon(
-                                    painter = painterResource(R.drawable.sync),
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.secondary,
-                                    modifier =
-                                    Modifier
-                                        .padding(start = 4.dp)
-                                        .size(18.dp),
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    text = result.providerName,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    maxLines = 1,
                                 )
+                                if (result.lyrics.startsWith("[")) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.sync),
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        modifier = Modifier
+                                            .padding(start = 4.dp)
+                                            .size(14.dp),
+                                    )
+                                }
                             }
                         }
                     }
@@ -333,7 +341,7 @@ fun LyricsMenu(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        CircularProgressIndicator()
+                        CircularWavyProgressIndicator()
                     }
                 }
             }
