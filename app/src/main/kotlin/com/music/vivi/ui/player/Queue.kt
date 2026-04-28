@@ -118,6 +118,7 @@ import com.music.vivi.R
 import com.music.vivi.constants.ListItemHeight
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.QueueEditLockKey
+import com.music.vivi.constants.ShowCommentButtonKey
 import com.music.vivi.constants.UseNewPlayerDesignKey
 import com.music.vivi.extensions.metadata
 import com.music.vivi.extensions.move
@@ -220,6 +221,10 @@ fun Queue(
 
     val (useNewPlayerDesign, onUseNewPlayerDesignChange) = rememberPreference(
         UseNewPlayerDesignKey,
+        defaultValue = true
+    )
+    val (showCommentButton) = rememberPreference(
+        ShowCommentButtonKey,
         defaultValue = true
     )
 
@@ -332,18 +337,20 @@ fun Queue(
                         playerBackground = playerBackground
                     )
 
-                    PlayerQueueButton(
-                        icon = R.drawable.chat_msg,
-                        onClick = { showCommentSheet = true },
-                        isActive = showCommentSheet,
-                        shape = middleShape,
-                        modifier = Modifier.size(buttonSize),
-                        textButtonColor = textButtonColor,
-                        iconButtonColor = iconButtonColor,
-                        iconSize = iconSize,
-                        textBackgroundColor = TextBackgroundColor,
-                        playerBackground = playerBackground
-                    )
+                    if (showCommentButton) {
+                        PlayerQueueButton(
+                            icon = R.drawable.chat_msg,
+                            onClick = { showCommentSheet = true },
+                            isActive = showCommentSheet,
+                            shape = middleShape,
+                            modifier = Modifier.size(buttonSize),
+                            textButtonColor = textButtonColor,
+                            iconButtonColor = iconButtonColor,
+                            iconSize = iconSize,
+                            textBackgroundColor = TextBackgroundColor,
+                            playerBackground = playerBackground
+                        )
+                    }
 
                     val shuffleModeEnabledInside by playerConnection.shuffleModeEnabled.collectAsState()
                     PlayerQueueButton(

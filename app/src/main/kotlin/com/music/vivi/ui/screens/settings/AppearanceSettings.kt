@@ -123,6 +123,8 @@ import com.music.vivi.constants.AppleMusicLyricsBlurKey
 import com.music.vivi.constants.LyricsGlowEffectKey
 import com.music.vivi.constants.LyricsLineSpacingKey
 import com.music.vivi.constants.LyricsScrollKey
+import com.music.vivi.constants.ShowCommentButtonKey
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppearanceSettings(
@@ -308,6 +310,10 @@ fun AppearanceSettings(
     )
     val (showUploadedPlaylist, onShowUploadedPlaylistChange) = rememberPreference(
         ShowUploadedPlaylistKey,
+        defaultValue = true
+    )
+    val (showCommentButton, onShowCommentButtonChange) = rememberPreference(
+        ShowCommentButtonKey,
         defaultValue = true
     )
 
@@ -1244,6 +1250,27 @@ fun AppearanceSettings(
                         )
                     },
                     onClick = { onRotatingThumbnailChange(!rotatingThumbnail) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.chat_msg),
+                    title = { Text(stringResource(R.string.show_comment_button)) },
+                    description = { Text(stringResource(R.string.show_comment_button_description)) },
+                    trailingContent = {
+                        Switch(
+                            checked = showCommentButton,
+                            onCheckedChange = onShowCommentButtonChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (showCommentButton) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onShowCommentButtonChange(!showCommentButton) }
                 )
             ) + if (swipeThumbnail) listOf(
                 Material3SettingsItem(

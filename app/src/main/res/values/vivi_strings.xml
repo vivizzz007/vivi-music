@@ -909,4 +909,6 @@
     <string name="playback_logs_desc">View real-time stream resolution and bot mitigation events</string>
     <string name="playback_logs_title">Playback logs</string>
     <string name="no_playback_logs">No playback events recorded yet</string>
+    <string name="show_comment_button">Show comment button</string>
+    <string name="show_comment_button_description">Show a button to view comments in the player queue</string>
 </resources>
