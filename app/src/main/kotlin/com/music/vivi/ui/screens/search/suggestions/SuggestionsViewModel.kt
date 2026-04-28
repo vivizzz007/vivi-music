@@ -72,42 +72,43 @@ class SuggestionsViewModel @Inject constructor() : ViewModel() {
 
             try {
                 coroutineScope {
-                    // Kick off all three network calls simultaneously
-                    val tracksDeferred = async {
-                        try { AppleMusicScraper.fetchTopSongs(resolvedCode) } catch (e: Exception) {
+                    // Launch each fetch in its own job so they update the UI independently
+                    launch {
+                        try {
+                            val tracks = AppleMusicScraper.fetchTopSongs(resolvedCode)
+                            if (tracks.isNotEmpty()) {
+                                _suggestionTracks.value = tracks
+                                _suggestionArtists.value = AppleMusicScraper.getTrendingArtists(tracks)
+                            }
+                        } catch (e: Exception) {
                             Log.e("SuggestionsViewModel", "Failed to fetch songs", e)
-                            emptyList()
                         }
                     }
-                    val albumsDeferred = async {
-                        try { AppleMusicScraper.fetchTopAlbums(resolvedCode) } catch (e: Exception) {
+
+                    launch {
+                        try {
+                            val albums = AppleMusicScraper.fetchTopAlbums(resolvedCode)
+                            if (albums.isNotEmpty()) {
+                                _suggestionAlbums.value = albums
+                            }
+                        } catch (e: Exception) {
                             Log.e("SuggestionsViewModel", "Failed to fetch albums", e)
-                            emptyList()
                         }
                     }
-                    val videosDeferred = async {
-                        try { AppleMusicScraper.fetchTopVideos(resolvedCode) } catch (e: Exception) {
+
+                    launch {
+                        try {
+                            val videos = AppleMusicScraper.fetchTopVideos(resolvedCode)
+                            if (videos.isNotEmpty()) {
+                                _suggestionVideos.value = videos
+                            }
+                        } catch (e: Exception) {
                             Log.e("SuggestionsViewModel", "Failed to fetch videos", e)
-                            emptyList()
                         }
                     }
-
-                    // Await and publish each result as it arrives
-                    val tracks = tracksDeferred.await()
-                    if (tracks.isNotEmpty()) {
-                        _suggestionTracks.value = tracks
-                        _suggestionArtists.value = AppleMusicScraper.getTrendingArtists(tracks)
-                    }
-
-                    val albums = albumsDeferred.await()
-                    if (albums.isNotEmpty()) _suggestionAlbums.value = albums
-
-                    val videos = videosDeferred.await()
-                    if (videos.isNotEmpty()) _suggestionVideos.value = videos
                 }
 
                 currentLoadedRegion = resolvedCode
-
             } catch (e: Exception) {
                 Log.e("SuggestionsViewModel", "Failed to fetch suggestions", e)
             } finally {
