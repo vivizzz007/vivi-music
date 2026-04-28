@@ -5,6 +5,7 @@
 
 package com.music.vivi.ui.screens.search.suggestions
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -53,13 +54,14 @@ class SuggestionsViewModel @Inject constructor() : ViewModel() {
             countryCode.lowercase()
         }
 
-        if (_isLoading.value && !force) return
+        // Allow refresh if force is true OR if we are switching regions
+        if (_isLoading.value && !force && currentLoadedRegion == resolvedCode) return
         
         viewModelScope.launch(Dispatchers.IO) {
             _isLoading.value = true
             if (force) _isManualLoading.value = true
             
-            // Clear current data to show fresh loading state
+            // Clear current data if we are switching regions or forcing a fresh load
             if (currentLoadedRegion != resolvedCode || force) {
                 _suggestionTracks.value = null
                 _suggestionArtists.value = null
@@ -68,22 +70,21 @@ class SuggestionsViewModel @Inject constructor() : ViewModel() {
             }
 
             try {
-                coroutineScope {
-                    val tracksJob = launch {
-                        val tracks = AppleMusicScraper.fetchTopSongs(resolvedCode)
-                        _suggestionTracks.value = tracks
-                        _suggestionArtists.value = AppleMusicScraper.getTrendingArtists(tracks)
-                    }
-                    val albumsJob = launch {
-                        _suggestionAlbums.value = AppleMusicScraper.fetchTopAlbums(resolvedCode)
-                    }
-                    val videosJob = launch {
-                        _suggestionVideos.value = AppleMusicScraper.fetchTopVideos(resolvedCode)
-                    }
-                    joinAll(tracksJob, albumsJob, videosJob)
-                }
+                // Fetch everything in parallel or sequence, but handle failures for each
+                val tracks = try { AppleMusicScraper.fetchTopSongs(resolvedCode) } catch (e: Exception) { emptyList() }
+                val artists = if (tracks.isNotEmpty()) AppleMusicScraper.getTrendingArtists(tracks) else emptyList()
+                val albums = try { AppleMusicScraper.fetchTopAlbums(resolvedCode) } catch (e: Exception) { emptyList() }
+                val videos = try { AppleMusicScraper.fetchTopVideos(resolvedCode) } catch (e: Exception) { emptyList() }
                 
                 currentLoadedRegion = resolvedCode
+                
+                _suggestionTracks.value = if (tracks.isNotEmpty()) tracks else null
+                _suggestionArtists.value = if (artists.isNotEmpty()) artists else null
+                _suggestionAlbums.value = if (albums.isNotEmpty()) albums else null
+                _suggestionVideos.value = if (videos.isNotEmpty()) videos else null
+                
+            } catch (e: Exception) {
+                Log.e("SuggestionsViewModel", "Failed to fetch suggestions", e)
             } finally {
                 _isLoading.value = false
                 _isManualLoading.value = false
