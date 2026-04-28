@@ -21,12 +21,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.music.vivi.constants.BillboardRegionSlugToName
+import com.music.vivi.constants.SuggestionRegionSlugToName
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BillboardSheet(
+fun SuggestionRegionSheet(
     currentRegionSlug: String,
     onRegionSelected: (String) -> Unit,
     onDismiss: () -> Unit
@@ -34,7 +34,7 @@ fun BillboardSheet(
     var searchQuery by remember { mutableStateOf("") }
     
     val filteredRegions = remember(searchQuery) {
-        BillboardRegionSlugToName.toList()
+        SuggestionRegionSlugToName.toList()
             .filter { it.first != "system" } // Filter out system from the main list
             .filter { it.second.contains(searchQuery, ignoreCase = true) }
     }
@@ -49,7 +49,7 @@ fun BillboardSheet(
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = "Choose Billboard Region",
+                text = "Choose Suggestions Region",
                 style = MaterialTheme.typography.labelLarge
             )
             
@@ -116,7 +116,7 @@ fun BillboardSheet(
 
                 item {
                     Text(
-                        text = "Other Regions",
+                        text = "Countries & Regions",
                         style = MaterialTheme.typography.titleSmall,
                         modifier = Modifier.padding(
                             top = 14.dp,

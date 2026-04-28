@@ -57,9 +57,9 @@ import com.music.vivi.R
 import com.music.vivi.constants.AppLanguageKey
 import com.music.vivi.constants.ContentCountryKey
 import com.music.vivi.constants.ContentLanguageKey
-import com.music.vivi.constants.BillboardRegionKey
-import com.music.vivi.constants.BillboardRegionSlugToName
-import com.music.vivi.ui.screens.search.suggestions.BillboardSheet
+import com.music.vivi.constants.SuggestionRegionKey
+import com.music.vivi.constants.SuggestionRegionSlugToName
+import com.music.vivi.ui.screens.search.suggestions.SuggestionRegionSheet
 import com.music.vivi.constants.CountryCodeToName
 import com.music.vivi.constants.EnableBetterLyricsKey
 import com.music.vivi.constants.EnableKugouKey
@@ -98,6 +98,7 @@ import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.innertube.models.IpVersion
 import com.music.vivi.constants.IpVersionKey
+
 import com.music.vivi.utils.PlaybackLogManager
 import com.music.vivi.ui.component.PlaybackLogsDialog
 import androidx.compose.runtime.collectAsState
@@ -117,9 +118,10 @@ fun ContentSettings(
 
     val (contentLanguage, onContentLanguageChange) = rememberPreference(key = ContentLanguageKey, defaultValue = "system")
     val (contentCountry, onContentCountryChange) = rememberPreference(key = ContentCountryKey, defaultValue = "system")
-    val (billboardRegion, onBillboardRegionChange) = rememberPreference(key = BillboardRegionKey, defaultValue = "system")
+    val (suggestionRegion, onSuggestionRegionChange) = rememberPreference(key = SuggestionRegionKey, defaultValue = "system")
     val (hideExplicit, onHideExplicitChange) = rememberPreference(key = HideExplicitKey, defaultValue = false)
     val (hideVideoSongs, onHideVideoSongsChange) = rememberPreference(key = HideVideoSongsKey, defaultValue = false)
+
     val (hideYoutubeShorts, onHideYoutubeShortsChange) = rememberPreference(key = HideYoutubeShortsKey, defaultValue = false)
     val (showArtistDescription, onShowArtistDescriptionChange) = rememberPreference(key = ShowArtistDescriptionKey, defaultValue = true)
     val (showArtistSubscriberCount, onShowArtistSubscriberCountChange) = rememberPreference(key = ShowArtistSubscriberCountKey, defaultValue = true)
@@ -155,7 +157,7 @@ fun ContentSettings(
     val (albumCanvasEnabled, onAlbumCanvasEnabledChange) = rememberPreference(key = AlbumCanvasEnabledKey, defaultValue = false)
 
     var showPlaybackLogsDialog by rememberSaveable { mutableStateOf(false) }
-    var showBillboardSheet by rememberSaveable { mutableStateOf(false) }
+    var showSuggestionSheet by rememberSaveable { mutableStateOf(false) }
     val playbackLogs by PlaybackLogManager.logs.collectAsState()
 
     // Auto-switch preferred provider if current one is disabled
@@ -495,11 +497,11 @@ fun ContentSettings(
         )
     }
 
-    if (showBillboardSheet) {
-        BillboardSheet(
-            currentRegionSlug = billboardRegion,
-            onRegionSelected = { onBillboardRegionChange(it) },
-            onDismiss = { showBillboardSheet = false }
+    if (showSuggestionSheet) {
+        SuggestionRegionSheet(
+            currentRegionSlug = suggestionRegion,
+            onRegionSelected = { onSuggestionRegionChange(it) },
+            onDismiss = { showSuggestionSheet = false }
         )
     }
 
@@ -534,13 +536,13 @@ fun ContentSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.globe_location_pin),
-                    title = { Text("Billboard Region") },
+                    title = { Text("Suggestions Region") },
                     description = {
                         Text(
-                            BillboardRegionSlugToName.getOrElse(billboardRegion) { "Global 200" }
+                            SuggestionRegionSlugToName.getOrElse(suggestionRegion) { "Global Charts" }
                         )
                     },
-                    onClick = { showBillboardSheet = true }
+                    onClick = { showSuggestionSheet = true }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.explicit),
@@ -582,6 +584,7 @@ fun ContentSettings(
                     },
                     onClick = { onHideVideoSongsChange(!hideVideoSongs) }
                 ),
+
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.hide_image),
                     title = { Text(stringResource(R.string.hide_youtube_shorts)) },
