@@ -6,23 +6,44 @@
 package com.music.vivi.ui.screens.search.suggestions
 
 import android.util.Log
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.json.JSONObject
-import org.jsoup.Jsoup
 import java.lang.Exception
+import java.util.concurrent.TimeUnit
 
 object AppleMusicScraper {
     private const val TAG = "AppleMusicScraper"
+
+    private val client by lazy {
+        OkHttpClient.Builder()
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(15, TimeUnit.SECONDS)
+            .build()
+    }
+
+    private fun executeGet(url: String): String? {
+        return try {
+            val request = Request.Builder()
+                .url(url)
+                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+                .build()
+            
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return null
+                response.body?.string()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error executing GET request for $url", e)
+            null
+        }
+    }
 
     fun fetchTopSongs(countryCode: String = "us"): List<SuggestionTrack> {
         val tracks = mutableListOf<SuggestionTrack>()
         try {
             val url = "https://rss.applemarketingtools.com/api/v2/$countryCode/music/most-played/100/songs.json"
-            val response = Jsoup.connect(url)
-                .ignoreContentType(true)
-                .timeout(10000)
-                .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
-                .execute()
-                .body()
+            val response = executeGet(url) ?: return tracks
             
             val json = JSONObject(response)
             val results = json.getJSONObject("feed").getJSONArray("results")
@@ -48,12 +69,7 @@ object AppleMusicScraper {
         val albums = mutableListOf<SuggestionAlbum>()
         try {
             val url = "https://rss.applemarketingtools.com/api/v2/$countryCode/music/most-played/20/albums.json"
-            val response = Jsoup.connect(url)
-                .ignoreContentType(true)
-                .timeout(10000)
-                .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
-                .execute()
-                .body()
+            val response = executeGet(url) ?: return albums
             
             val json = JSONObject(response)
             val results = json.getJSONObject("feed").getJSONArray("results")
@@ -79,12 +95,7 @@ object AppleMusicScraper {
         val videos = mutableListOf<SuggestionTrack>()
         try {
             val url = "https://rss.applemarketingtools.com/api/v2/$countryCode/music/most-played/20/music-videos.json"
-            val response = Jsoup.connect(url)
-                .ignoreContentType(true)
-                .timeout(10000)
-                .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
-                .execute()
-                .body()
+            val response = executeGet(url) ?: return videos
             
             val json = JSONObject(response)
             val results = json.getJSONObject("feed").getJSONArray("results")
