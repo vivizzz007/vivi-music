@@ -12,6 +12,12 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.view.WindowManager
 import android.widget.Toast
+import android.content.BroadcastReceiver
+import android.content.IntentFilter
+import android.media.AudioManager
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -23,6 +29,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -72,6 +79,7 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.ProvideTextStyle
+import androidx.compose.runtime.produceState
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
@@ -164,6 +172,10 @@ import com.music.vivi.extensions.toggleRepeatMode
 import com.music.vivi.listentogether.RoomRole
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.playback.ExoDownloadService
+import com.music.vivi.vivimusic.getConnectedBluetoothDeviceName
+import com.music.vivi.vivimusic.isBuds
+import com.music.vivi.vivimusic.isSpeaker
+import com.music.vivi.vivimusic.AudioDeviceBottomSheet
 import com.music.vivi.ui.component.BottomSheet
 import com.music.vivi.ui.component.BottomSheetState
 import com.music.vivi.ui.component.LocalBottomSheetPageState
@@ -350,6 +362,47 @@ fun BottomSheetPlayer(
 
     if (!canSkipNext && automix.isNotEmpty()) {
         playerConnection.service.addToQueueAutomix(automix[0], 0)
+    }
+
+    val bluetoothDeviceName by produceState<String?>(initialValue = getConnectedBluetoothDeviceName(context)) {
+        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                value = getConnectedBluetoothDeviceName(context)
+            }
+        }
+
+        val callback = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            object : android.media.AudioDeviceCallback() {
+                override fun onAudioDevicesAdded(addedDevices: Array<out android.media.AudioDeviceInfo>?) {
+                    value = getConnectedBluetoothDeviceName(context)
+                }
+                override fun onAudioDevicesRemoved(removedDevices: Array<out android.media.AudioDeviceInfo>?) {
+                    value = getConnectedBluetoothDeviceName(context)
+                }
+            }
+        } else null
+
+        val filter = IntentFilter().apply {
+            addAction(AudioManager.ACTION_HEADSET_PLUG)
+            addAction("android.bluetooth.adapter.action.STATE_CHANGED")
+            addAction("android.bluetooth.device.action.ACL_CONNECTED")
+            addAction("android.bluetooth.device.action.ACL_DISCONNECTED")
+            addAction("android.media.AUDIO_BECOMING_NOISY")
+        }
+        
+        context.registerReceiver(receiver, filter)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && callback != null) {
+            audioManager.registerAudioDeviceCallback(callback, Handler(Looper.getMainLooper()))
+        }
+        
+        awaitDispose {
+            context.unregisterReceiver(receiver)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && callback != null) {
+                audioManager.unregisterAudioDeviceCallback(callback)
+            }
+        }
     }
 
     val defaultGradientColors = listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surfaceVariant)
@@ -1932,6 +1985,59 @@ fun BottomSheetPlayer(
                                 tint = textButtonColor,
                                 modifier = Modifier.size(20.dp)
                             )
+                        }
+
+                        val displayBluetoothName = remember(bluetoothDeviceName) {
+                            if (bluetoothDeviceName != null) bluetoothDeviceName else bluetoothDeviceName
+                        }
+                        // Use a persistent state to keep the name during exit animation
+                        var lastNonNullName by remember { mutableStateOf<String?>(null) }
+                        LaunchedEffect(bluetoothDeviceName) {
+                            if (bluetoothDeviceName != null) lastNonNullName = bluetoothDeviceName
+                        }
+
+                        AnimatedVisibility(
+                            visible = !useNewPlayerDesign && bluetoothDeviceName != null,
+                            enter = fadeIn(tween(400)) + expandVertically(tween(400)),
+                            exit = fadeOut(tween(400)) + shrinkVertically(tween(400)),
+                            label = "BluetoothInfoVisibility"
+                        ) {
+                            val nameToShow = bluetoothDeviceName ?: lastNonNullName
+                            Column {
+                                Spacer(Modifier.height(8.dp))
+                                Row(
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Icon(
+                                        painter = painterResource(
+                                            when {
+                                                isSpeaker(nameToShow) -> R.drawable.speaker_applemusic
+                                                isBuds(nameToShow) -> R.drawable.apple_airpods
+                                                else -> R.drawable.apple_headset
+                                            }
+                                        ),
+                                        contentDescription = null,
+                                        tint = textButtonColor.copy(alpha = 0.7f),
+                                        modifier = Modifier.size(
+                                            when {
+                                                isSpeaker(nameToShow) -> 18.dp
+                                                isBuds(nameToShow) -> 20.dp
+                                                else -> 16.dp
+                                            }
+                                        )
+                                    )
+                                    Spacer(Modifier.width(6.dp))
+                                    Text(
+                                        text = nameToShow ?: "",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = textButtonColor.copy(alpha = 0.7f),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
                         }
                     }
                 }
