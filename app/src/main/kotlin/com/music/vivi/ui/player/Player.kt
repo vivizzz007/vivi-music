@@ -38,6 +38,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -402,6 +403,23 @@ fun BottomSheetPlayer(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && callback != null) {
                 audioManager.unregisterAudioDeviceCallback(callback)
             }
+        }
+    }
+
+    val audioManager = remember { context.getSystemService(Context.AUDIO_SERVICE) as AudioManager }
+    val maxSystemVolume = remember { audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC).toFloat() }
+    val systemVolume by produceState(initialValue = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC).toFloat() / maxSystemVolume) {
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                if (intent.action == "android.media.VOLUME_CHANGED_ACTION") {
+                    value = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC).toFloat() / maxSystemVolume
+                }
+            }
+        }
+        val filter = IntentFilter("android.media.VOLUME_CHANGED_ACTION")
+        context.registerReceiver(receiver, filter)
+        awaitDispose {
+            context.unregisterReceiver(receiver)
         }
     }
 
@@ -1575,7 +1593,10 @@ fun BottomSheetPlayer(
 
                     val trackHeight by animateDpAsState(
                         targetValue = if (isTrackActive) 16.dp else 10.dp,
-                        animationSpec = spring(stiffness = Spring.StiffnessLow),
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessMedium
+                        ),
                         label = "trackHeight"
                     )
 
@@ -1933,15 +1954,28 @@ fun BottomSheetPlayer(
                                 .fillMaxWidth()
                                 .padding(horizontal = PlayerHorizontalPadding)
                         ) {
-                            val volume = if (isCasting) castVolume else playerVolume
+                            val targetVolume = if (isCasting) castVolume else systemVolume
                             val volumeInteractionSource = remember { MutableInteractionSource() }
                             val isVolumeDragged by volumeInteractionSource.collectIsDraggedAsState()
                             val isVolumePressed by volumeInteractionSource.collectIsPressedAsState()
                             val isVolumeActive = isVolumeDragged || isVolumePressed
+
+                            // Local state to track the drag value instantly for zero lag
+                            var dragVolume by remember { mutableStateOf<Float?>(null) }
                             
+                            val animatedVolume by animateFloatAsState(
+                                targetValue = targetVolume,
+                                animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+                                label = "animatedVolume"
+                            )
+                            
+                            // Use dragVolume if user is touching, otherwise use animated system volume
                             val volumeTrackHeight by animateDpAsState(
                                 targetValue = if (isVolumeActive) 16.dp else 10.dp,
-                                animationSpec = spring(stiffness = Spring.StiffnessLow),
+                                animationSpec = spring(
+                                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                                    stiffness = Spring.StiffnessMedium
+                                ),
                                 label = "volumeTrackHeight"
                             )
                             Icon(
@@ -1954,13 +1988,18 @@ fun BottomSheetPlayer(
                             Spacer(Modifier.width(12.dp))
 
                             Slider(
-                                value = volume,
+                                value = if (isVolumeActive) (dragVolume ?: targetVolume) else animatedVolume,
                                 onValueChange = { newVolume ->
+                                    dragVolume = newVolume
                                     if (isCasting) {
                                         castHandler?.setVolume(newVolume)
                                     } else {
-                                        playerConnection.service.playerVolume.value = newVolume
+                                        val newStep = (newVolume * maxSystemVolume).roundToInt()
+                                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newStep, 0)
                                     }
+                                },
+                                onValueChangeFinished = {
+                                    dragVolume = null
                                 },
                                 modifier = Modifier.weight(1f),
                                 interactionSource = volumeInteractionSource,
@@ -1987,9 +2026,6 @@ fun BottomSheetPlayer(
                             )
                         }
 
-                        val displayBluetoothName = remember(bluetoothDeviceName) {
-                            if (bluetoothDeviceName != null) bluetoothDeviceName else bluetoothDeviceName
-                        }
                         // Use a persistent state to keep the name during exit animation
                         var lastNonNullName by remember { mutableStateOf<String?>(null) }
                         LaunchedEffect(bluetoothDeviceName) {
