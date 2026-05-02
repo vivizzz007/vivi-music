@@ -1,6 +1,13 @@
 name: Nightly GMS Release Build
 
 on:
+  push:
+    branches: [ 'main' ]
+    paths-ignore:
+      - 'README.md'
+      - 'fastlane/**'
+      - 'assets/**'
+      - '.github/**/*.md'
   schedule:
     - cron: '0 0 * * *' # Every night at 00:00 UTC
   workflow_dispatch: # Allows manual triggering
