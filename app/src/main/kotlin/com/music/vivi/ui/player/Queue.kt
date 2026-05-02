@@ -159,6 +159,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
+import android.widget.Toast
 import coil3.compose.AsyncImage
 import kotlin.math.roundToInt
 
@@ -965,14 +966,12 @@ fun Queue(
                     }
 
                     ToggleButton(
-                        checked = sleepTimerEnabled,
+                        checked = false,
                         onCheckedChange = {
-                            if (sleepTimerEnabled) {
-                                playerConnection.service.sleepTimer.clear()
-                            } else {
-                                showSleepTimerDialog = true
-                            }
+                            Toast.makeText(context, context.getString(R.string.starting_radio), Toast.LENGTH_SHORT).show()
+                            playerConnection.startRadioSeamlessly()
                         },
+                        enabled = !isListenTogetherGuest,
                         shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
                         colors = ToggleButtonDefaults.toggleButtonColors(
                             containerColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -984,33 +983,19 @@ fun Queue(
                             .weight(1f)
                             .height(56.dp),
                     ) {
-                        AnimatedContent(
-                            targetState = sleepTimerEnabled,
-                            label = "sleepTimer"
-                        ) { enabled ->
-                            if (enabled) {
-                                Text(
-                                    text = makeTimeString(sleepTimerTimeLeft),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                            } else {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.bedtime),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(22.dp)
-                                    )
-                                    Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                                    Text(
-                                        text = stringResource(R.string.sleep_timer),
-                                        style = MaterialTheme.typography.labelMedium,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                }
-                            }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                painter = painterResource(R.drawable.radio),
+                                contentDescription = null,
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
+                            Text(
+                                text = stringResource(R.string.start_an_radio),
+                                style = MaterialTheme.typography.labelMedium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
                         }
                     }
                 }
