@@ -96,21 +96,6 @@ fun CircularEqControl(
         }
     }
 
-    fun dispatchDiagonal(pos: Offset, w: Float, h: Float) {
-        val cx = w / 2f
-        val cy = h / 2f
-        val touchAngle = atan2((pos.y - cy).toDouble(), (pos.x - cx).toDouble())
-        for (i in 0..2) {
-            val diff = atan2(sin(touchAngle - angles[i]), cos(touchAngle - angles[i]))
-            val absDiff = kotlin.math.abs(diff)
-            val weight = cos(absDiff * 1.5).toFloat().coerceAtLeast(0f)
-            if (weight > 0.15f) {
-                val v = calcValueForAxis(pos, w, h, i) * weight
-                dispatchToAxis(i, v.coerceIn(-10f, 10f))
-            }
-        }
-    }
-
     Canvas(
         modifier = modifier
             .pointerInput(enabled) {
@@ -121,32 +106,18 @@ fun CircularEqControl(
                     if (axis < 0) return@awaitEachGesture
                     down.consume()
 
-                    val cx = size.width / 2f
-                    val cy = size.height / 2f
-                    val touchAngle = atan2((down.position.y - cy).toDouble(), (down.position.x - cx).toDouble())
-                    val nearestDiff = kotlin.math.abs(atan2(sin(touchAngle - angles[axis]), cos(touchAngle - angles[axis])))
-                    val isDiagonal = nearestDiff > PI / 6
-
-                    if (isDiagonal) {
-                        activeAxis = -1
-                        dispatchDiagonal(down.position, size.width.toFloat(), size.height.toFloat())
-                    } else {
-                        activeAxis = axis
-                        val v = calcValueForAxis(down.position, size.width.toFloat(), size.height.toFloat(), axis)
-                        dispatchToAxis(axis, v)
-                    }
+                    activeAxis = axis
+                    val v = calcValueForAxis(down.position, size.width.toFloat(), size.height.toFloat(), axis)
+                    dispatchToAxis(axis, v)
 
                     while (true) {
                         val event = awaitPointerEvent()
                         val change = event.changes.firstOrNull() ?: break
                         if (!change.pressed) break
                         change.consume()
-                        if (isDiagonal) {
-                            dispatchDiagonal(change.position, size.width.toFloat(), size.height.toFloat())
-                        } else {
-                            val v = calcValueForAxis(change.position, size.width.toFloat(), size.height.toFloat(), axis)
-                            dispatchToAxis(axis, v)
-                        }
+                        
+                        val dragV = calcValueForAxis(change.position, size.width.toFloat(), size.height.toFloat(), axis)
+                        dispatchToAxis(axis, dragV)
                     }
                     activeAxis = -1
                 }
