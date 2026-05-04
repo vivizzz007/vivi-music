@@ -376,7 +376,7 @@
     <string name="license">GNU General Public License v3.0</string>
 
     <string name="create_playlist_or_spotify_hint">Çalma listesi adı veya Spotify çalma listesi bağlantısı</string>
-    <string name="spotify_importing_playlist">Spotify'dan içe aktarılıyor…</string>
+    <string name="spotify_importing_playlist">Spotify\'dan içe aktarılıyor…</string>
     <string name="spotify_import_result">%1$d parça içe aktarıldı. %2$d eşleştirilemedi.</string>
     <string name="spotify_import_failed">Bu Spotify çalma listesi içe aktarılamadı.</string>
     <string name="spotify_import_timeout">İthalat çok uzun sürdü. Ağınızı kontrol edip tekrar deneyin.</string>

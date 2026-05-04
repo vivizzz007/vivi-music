@@ -293,7 +293,7 @@
     <string name="spotify_importing_playlist">Importazione da Spotify…</string>
     <string name="spotify_import_result">%1$d tracce importate. Impossibile far corrispondere %2$d.</string>
     <string name="spotify_import_failed">Impossibile importare questa playlist Spotify.</string>
-    <string name="spotify_import_timeout">L'importazione ha richiesto troppo tempo. Controlla la tua rete e riprova.</string>
+    <string name="spotify_import_timeout">L\'importazione ha richiesto troppo tempo. Controlla la tua rete e riprova.</string>
     <string name="music">Musica</string>
 
 </resources>
