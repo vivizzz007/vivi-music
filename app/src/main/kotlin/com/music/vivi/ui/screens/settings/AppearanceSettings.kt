@@ -569,6 +569,7 @@ fun AppearanceSettings(
                     PlayerBackgroundStyle.GRADIENT -> stringResource(R.string.gradient)
                     PlayerBackgroundStyle.BLUR -> stringResource(R.string.player_background_blur)
                     PlayerBackgroundStyle.GLOW_ANIMATED -> stringResource(R.string.glow_animated)
+                    PlayerBackgroundStyle.APPLE_MUSIC -> stringResource(R.string.apple_music)
                 }
             }
         )
@@ -1099,6 +1100,7 @@ fun AppearanceSettings(
                                 PlayerBackgroundStyle.GRADIENT -> stringResource(R.string.gradient)
                                 PlayerBackgroundStyle.BLUR -> stringResource(R.string.player_background_blur)
                                 PlayerBackgroundStyle.GLOW_ANIMATED -> stringResource(R.string.glow_animated)
+                                PlayerBackgroundStyle.APPLE_MUSIC -> stringResource(R.string.apple_music)
                             }
                         )
                     },

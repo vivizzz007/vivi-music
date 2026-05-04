@@ -213,7 +213,7 @@ private fun getMediaItems(
 private fun getTextColor(playerBackground: PlayerBackgroundStyle): Color {
     return when (playerBackground) {
         PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.onBackground
-        PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.GLOW_ANIMATED -> Color.White
+        PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.GLOW_ANIMATED, PlayerBackgroundStyle.APPLE_MUSIC -> Color.White
     }
 }
 
@@ -409,7 +409,7 @@ fun Thumbnail(
 
         // Main thumbnail view
         AnimatedVisibility(
-            visible = error == null,
+            visible = error == null && !(playerBackground == PlayerBackgroundStyle.APPLE_MUSIC && !isLandscape),
             enter = fadeIn(),
             exit = fadeOut(),
             modifier = Modifier
@@ -492,7 +492,8 @@ fun Thumbnail(
                                 isLandscape = isLandscape,
                                 isListenTogetherGuest = isListenTogetherGuest,
                                 currentMediaId = mediaMetadata?.id,
-                                currentMediaThumbnail = mediaMetadata?.thumbnailUrl
+                                currentMediaThumbnail = mediaMetadata?.thumbnailUrl,
+                                playerBackground = playerBackground
                             )
                         }
                     }
@@ -604,6 +605,7 @@ private fun ThumbnailItem(
     isListenTogetherGuest: Boolean = false,
     currentMediaId: String? = null,
     currentMediaThumbnail: String? = null,
+    playerBackground: PlayerBackgroundStyle = PlayerBackgroundStyle.DEFAULT,
     modifier: Modifier = Modifier,
 ) {
     val rotatingThumbnail by rememberPreference(RotatingThumbnailKey, defaultValue = false)
@@ -708,7 +710,7 @@ private fun ThumbnailItem(
                 )
             }
             
-            if (canvasThumbnailAnimation && item.mediaId == currentMediaId && !rotatingThumbnail) {
+            if (canvasThumbnailAnimation && item.mediaId == currentMediaId && !rotatingThumbnail && playerBackground != PlayerBackgroundStyle.APPLE_MUSIC) {
                 var canvasArtwork by remember(item.mediaId) { mutableStateOf<CanvasArtwork?>(null) }
                 var canvasFetchInFlight by remember(item.mediaId) { mutableStateOf(false) }
                 val storefront = remember {

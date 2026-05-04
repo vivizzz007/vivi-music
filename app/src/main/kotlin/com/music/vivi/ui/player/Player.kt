@@ -23,6 +23,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -38,7 +39,6 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.snap
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -103,13 +103,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
+import coil3.size.Size as CoilSize
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -207,7 +212,7 @@ import kotlinx.coroutines.withContext
 import kotlin.math.max
 import kotlin.math.roundToInt
 import com.music.vivi.ui.component.Icon as MIcon
-
+import androidx.compose.foundation.layout.fillMaxHeight
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun BottomSheetPlayer(
@@ -246,7 +251,7 @@ fun BottomSheetPlayer(
 
     val shouldUseDarkButtonColors = remember(playerBackground, useDarkTheme) {
         when (playerBackground) {
-            PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.GLOW_ANIMATED -> true
+            PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.GLOW_ANIMATED, PlayerBackgroundStyle.APPLE_MUSIC -> true
             PlayerBackgroundStyle.DEFAULT -> useDarkTheme
         }
     }
@@ -263,7 +268,7 @@ fun BottomSheetPlayer(
             val insetsController = WindowCompat.getInsetsController(window, window.decorView)
             
             when (playerBackground) {
-                PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.GLOW_ANIMATED -> {
+                PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.GLOW_ANIMATED, PlayerBackgroundStyle.APPLE_MUSIC -> {
                     insetsController.isAppearanceLightStatusBars = false
                 }
                 PlayerBackgroundStyle.DEFAULT -> {
@@ -485,6 +490,7 @@ fun BottomSheetPlayer(
             PlayerBackgroundStyle.BLUR -> Color.White
             PlayerBackgroundStyle.GRADIENT -> Color.White
             PlayerBackgroundStyle.GLOW_ANIMATED -> Color.White
+            PlayerBackgroundStyle.APPLE_MUSIC -> Color.White
         },
         label = "TextBackgroundColor"
     )
@@ -495,6 +501,7 @@ fun BottomSheetPlayer(
             PlayerBackgroundStyle.BLUR -> Color.Black
             PlayerBackgroundStyle.GRADIENT -> Color.Black
             PlayerBackgroundStyle.GLOW_ANIMATED -> Color.Black
+            PlayerBackgroundStyle.APPLE_MUSIC -> Color.Black
         },
         label = "icBackgroundColor"
     )
@@ -502,7 +509,8 @@ fun BottomSheetPlayer(
     val (textButtonColor, iconButtonColor) = when {
         playerBackground == PlayerBackgroundStyle.BLUR || 
         playerBackground == PlayerBackgroundStyle.GRADIENT ||
-        playerBackground == PlayerBackgroundStyle.GLOW_ANIMATED -> {
+        playerBackground == PlayerBackgroundStyle.GLOW_ANIMATED ||
+        playerBackground == PlayerBackgroundStyle.APPLE_MUSIC -> {
             when (playerButtonsStyle) {
                 PlayerButtonsStyle.DEFAULT -> Pair(Color.White, Color.Black)
                 PlayerButtonsStyle.PRIMARY -> Pair(
@@ -738,7 +746,7 @@ fun BottomSheetPlayer(
     )
 
     val bottomSheetBackgroundColor = when (playerBackground) {
-        PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.GLOW_ANIMATED ->
+        PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.GLOW_ANIMATED, PlayerBackgroundStyle.APPLE_MUSIC ->
             MaterialTheme.colorScheme.surfaceContainer
         else ->
             if (useBlackBackground) Color.Black
@@ -973,6 +981,85 @@ fun BottomSheetPlayer(
                                             }
                                         }
                                 )
+                            }
+                        }
+                    }
+                    PlayerBackgroundStyle.APPLE_MUSIC -> {
+                        AnimatedContent(
+                            targetState = mediaMetadata?.thumbnailUrl,
+                            transitionSpec = {
+                                fadeIn(tween(1200)).togetherWith(fadeOut(tween(1200)))
+                            },
+                            label = "appleMusicBackground"
+                        ) { thumbnailUrl ->
+                            if (thumbnailUrl != null) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .alpha(backgroundAlpha)
+                                ) {
+                                    // Layer 1: Full-Screen Blurred Background
+                                    AsyncImage(
+                                        model = ImageRequest.Builder(context)
+                                            .data(thumbnailUrl)
+                                            .size(CoilSize.ORIGINAL)
+                                            .allowHardware(false)
+                                            .build(),
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .blur(150.dp)
+                                    )
+
+                                    // Layer 2: Clear Artwork (Limited to top 60% of screen)
+                                    // Fades out when lyrics are shown to provide a full-screen blur
+                                    val clearArtworkAlpha by animateFloatAsState(
+                                        targetValue = if (showInlineLyrics) 0f else 1f,
+                                        animationSpec = tween(500),
+                                        label = "clearArtworkAlpha"
+                                    )
+                                    
+                                    AsyncImage(
+                                        model = ImageRequest.Builder(context)
+                                            .data(thumbnailUrl)
+                                            .size(CoilSize.ORIGINAL)
+                                            .build(),
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .fillMaxHeight(0.65f) // Occupies top 65%
+                                            .alpha(clearArtworkAlpha)
+                                            .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
+                                            .drawWithContent {
+                                                drawContent()
+                                                // Fade the bottom edge of the clear box for a cloudy blend
+                                                drawRect(
+                                                    brush = Brush.verticalGradient(
+                                                        0f to Color.Black,
+                                                        0.7f to Color.Black,
+                                                        1.0f to Color.Transparent
+                                                    ),
+                                                    blendMode = BlendMode.DstIn
+                                                )
+                                            }
+                                    )
+                                    
+                                    // Layer 3: Dynamic overlay for depth
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(
+                                                Brush.verticalGradient(
+                                                    listOf(
+                                                        Color.Black.copy(alpha = 0.05f),
+                                                        Color.Black.copy(alpha = 0.4f)
+                                                    )
+                                                )
+                                            )
+                                    )
+                                }
                             }
                         }
                     }
@@ -1954,52 +2041,74 @@ fun BottomSheetPlayer(
                                 .fillMaxWidth()
                                 .padding(horizontal = PlayerHorizontalPadding)
                         ) {
-                            val targetVolume = if (isCasting) castVolume else systemVolume
                             val volumeInteractionSource = remember { MutableInteractionSource() }
                             val isVolumeDragged by volumeInteractionSource.collectIsDraggedAsState()
                             val isVolumePressed by volumeInteractionSource.collectIsPressedAsState()
                             val isVolumeActive = isVolumeDragged || isVolumePressed
 
-                            // Local state to track the drag value instantly for zero lag
-                            var dragVolume by remember { mutableStateOf<Float?>(null) }
+                            // Internal state to track drag value and avoid system feedback lag
+                            var dragVolume by remember { mutableFloatStateOf(systemVolume) }
                             
-                            val animatedVolume by animateFloatAsState(
-                                targetValue = targetVolume,
-                                animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-                                label = "animatedVolume"
+                            // Use a coroutine to update system volume to avoid UI blocking on fast swipes
+                            val scope = rememberCoroutineScope()
+                            
+                            LaunchedEffect(systemVolume) {
+                                if (!isVolumeActive) dragVolume = systemVolume
+                            }
+
+                            // Smoothly animate the volume position when changed via buttons
+                            val animatedSystemVolume by animateFloatAsState(
+                                targetValue = systemVolume,
+                                animationSpec = tween(150, easing = LinearOutSlowInEasing),
+                                label = "animatedSystemVolume"
                             )
                             
-                            // Use dragVolume if user is touching, otherwise use animated system volume
+                            val volume = if (isCasting) castVolume else {
+                                if (isVolumeActive) dragVolume else animatedSystemVolume
+                            }
+                            
                             val volumeTrackHeight by animateDpAsState(
                                 targetValue = if (isVolumeActive) 16.dp else 10.dp,
                                 animationSpec = spring(
-                                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                                    stiffness = Spring.StiffnessMedium
+                                    dampingRatio = 0.7f, // Slightly more stable damping
+                                    stiffness = 600f // Balanced stiffness for high-speed stability
                                 ),
                                 label = "volumeTrackHeight"
                             )
+
+                            val volumeIconScale by animateFloatAsState(
+                                targetValue = if (isVolumeActive) 1.15f else 1f,
+                                animationSpec = spring(
+                                    dampingRatio = 0.7f,
+                                    stiffness = 600f
+                                ),
+                                label = "volumeIconScale"
+                            )
+
                             Icon(
                                 painter = painterResource(R.drawable.volume_mute),
                                 contentDescription = null,
                                 tint = textButtonColor,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .graphicsLayer(scaleX = volumeIconScale, scaleY = volumeIconScale)
                             )
 
                             Spacer(Modifier.width(12.dp))
 
                             Slider(
-                                value = if (isVolumeActive) (dragVolume ?: targetVolume) else animatedVolume,
+                                value = volume,
                                 onValueChange = { newVolume ->
                                     dragVolume = newVolume
                                     if (isCasting) {
                                         castHandler?.setVolume(newVolume)
                                     } else {
-                                        val newStep = (newVolume * maxSystemVolume).roundToInt()
-                                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newStep, 0)
+                                        // Non-blocking update to prevent "fast swipe" lag
+                                        scope.launch(Dispatchers.Default) {
+                                            val newStep = (newVolume * maxSystemVolume).roundToInt()
+                                            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newStep, 0)
+                                        }
                                     }
-                                },
-                                onValueChangeFinished = {
-                                    dragVolume = null
                                 },
                                 modifier = Modifier.weight(1f),
                                 interactionSource = volumeInteractionSource,
@@ -2022,10 +2131,15 @@ fun BottomSheetPlayer(
                                 painter = painterResource(R.drawable.volume_up),
                                 contentDescription = null,
                                 tint = textButtonColor,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .graphicsLayer(scaleX = volumeIconScale, scaleY = volumeIconScale)
                             )
                         }
 
+                        val displayBluetoothName = remember(bluetoothDeviceName) {
+                            if (bluetoothDeviceName != null) bluetoothDeviceName else bluetoothDeviceName
+                        }
                         // Use a persistent state to keep the name during exit animation
                         var lastNonNullName by remember { mutableStateOf<String?>(null) }
                         LaunchedEffect(bluetoothDeviceName) {
