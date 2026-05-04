@@ -288,4 +288,12 @@
     <string name="enable_discord_rpc">Activa \"Rich Presence\"</string>
     <string name="error_no_stream">Cap transmissió disponible</string>
     <string name="sided">Amb vores</string>
+
+    <string name="create_playlist_or_spotify_hint">Nom de la llista de reproducció o enllaç a la llista de reproducció de Spotify</string>
+    <string name="spotify_importing_playlist">S'està important des de Spotify...</string>
+    <string name="spotify_import_result">S'han importat %1$d pistes. No s'ha pogut fer coincidir %2$d.</string>
+    <string name="spotify_import_failed">No s'ha pogut importar aquesta llista de reproducció de Spotify.</string>
+    <string name="spotify_import_timeout">La importació va trigar massa. Comprova la teva xarxa i torna-ho a provar.</string>
+    <string name="music">Música</string>
+
 </resources>

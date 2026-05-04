@@ -1,3 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <string name="create_playlist_or_spotify_hint">Pangalan ng playlist o link ng playlist ng Spotify</string>
+    <string name="spotify_importing_playlist">Ini-import mula sa Spotify…</string>
+    <string name="spotify_import_result">Nag-import ng %1$d track. Hindi maitugma ang %2$d.</string>
+    <string name="spotify_import_failed">Hindi ma-import ang Spotify playlist na ito.</string>
+    <string name="spotify_import_timeout">Masyadong matagal ang pag-import. Suriin ang iyong network at subukang muli.</string>
+    <string name="music">Musika</string>
+
+    <string name="create_playlist_or_spotify_hint">Pangalan ng playlist o link ng playlist ng Spotify</string>
+    <string name="spotify_importing_playlist">Ini-import mula sa Spotify…</string>
+    <string name="spotify_import_result">Nag-import ng %1$d track. Hindi maitugma ang %2$d.</string>
+    <string name="spotify_import_failed">Hindi ma-import ang Spotify playlist na ito.</string>
+    <string name="spotify_import_timeout">Masyadong matagal ang pag-import. Suriin ang iyong network at subukang muli.</string>
+    <string name="music">Musika</string>
 </resources>
