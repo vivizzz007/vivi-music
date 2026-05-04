@@ -286,12 +286,4 @@
     <string name="spotify_import_failed">Nem sikerült importálni ezt a Spotify lejátszási listát.</string>
     <string name="spotify_import_timeout">Az importálás túl sokáig tartott. Ellenőrizze a hálózatot, és próbálja újra.</string>
     <string name="music">Zene</string>
-
-
-    <string name="create_playlist_or_spotify_hint">Lejátszási lista neve vagy Spotify lejátszási lista linkje</string>
-    <string name="spotify_importing_playlist">Importálás a Spotify-ból…</string>
-    <string name="spotify_import_result">%1$d szám importálva. %2$d nem egyeztethető össze.</string>
-    <string name="spotify_import_failed">Nem sikerült importálni ezt a Spotify lejátszási listát.</string>
-    <string name="spotify_import_timeout">Az importálás túl sokáig tartott. Ellenőrizze a hálózatot, és próbálja újra.</string>
-    <string name="music">Zene</string>
 </resources>

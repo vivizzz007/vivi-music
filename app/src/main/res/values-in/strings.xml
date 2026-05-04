@@ -278,11 +278,4 @@
     <string name="spotify_import_timeout">Impor memakan waktu terlalu lama. Periksa jaringan Anda dan coba lagi.</string>
     <string name="music">Musik</string>
 
-
-    <string name="create_playlist_or_spotify_hint">Nama daftar putar atau tautan daftar putar Spotify</string>
-    <string name="spotify_importing_playlist">Mengimpor dari Spotify…</string>
-    <string name="spotify_import_result">Mengimpor %1$d lagu. %2$d tidak dapat dicocokkan.</string>
-    <string name="spotify_import_failed">Tidak dapat mengimpor playlist Spotify ini.</string>
-    <string name="spotify_import_timeout">Impor memakan waktu terlalu lama. Periksa jaringan Anda dan coba lagi.</string>
-    <string name="music">Musik</string>
 </resources>

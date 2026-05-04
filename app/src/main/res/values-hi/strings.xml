@@ -214,12 +214,4 @@
     <string name="spotify_import_failed">इस Spotify प्लेलिस्ट को आयात नहीं किया जा सका.</string>
     <string name="spotify_import_timeout">आयात में बहुत अधिक समय लगा. अपना नेटवर्क जाँचें और पुनः प्रयास करें।</string>
     <string name="music">संगीत</string>
-
-
-    <string name="create_playlist_or_spotify_hint">प्लेलिस्ट का नाम या Spotify प्लेलिस्ट लिंक</string>
-    <string name="spotify_importing_playlist">Spotify से आयात किया जा रहा है…</string>
-    <string name="spotify_import_result">आयातित %1$d ट्रैक. %2$d का मिलान नहीं किया जा सका.</string>
-    <string name="spotify_import_failed">इस Spotify प्लेलिस्ट को आयात नहीं किया जा सका.</string>
-    <string name="spotify_import_timeout">आयात में बहुत अधिक समय लगा. अपना नेटवर्क जाँचें और पुनः प्रयास करें।</string>
-    <string name="music">संगीत</string>
 </resources>

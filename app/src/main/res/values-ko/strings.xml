@@ -277,11 +277,4 @@
     <string name="spotify_import_failed">이 Spotify 재생목록을 가져올 수 없습니다.</string>
     <string name="spotify_import_timeout">가져오기가 너무 오래 걸렸습니다. 네트워크를 확인하고 다시 시도하세요.</string>
     <string name="music">음악</string>
-
-    <string name="create_playlist_or_spotify_hint">재생목록 이름 또는 Spotify 재생목록 링크</string>
-    <string name="spotify_importing_playlist">Spotify에서 가져오는 중…</string>
-    <string name="spotify_import_result">%1$d개의 트랙을 가져왔습니다. %2$d를 일치시킬 수 없습니다.</string>
-    <string name="spotify_import_failed">이 Spotify 재생목록을 가져올 수 없습니다.</string>
-    <string name="spotify_import_timeout">가져오기가 너무 오래 걸렸습니다. 네트워크를 확인하고 다시 시도하세요.</string>
-    <string name="music">음악</string>
 </resources>

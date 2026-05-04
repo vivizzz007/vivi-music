@@ -395,12 +395,4 @@
     <string name="spotify_import_failed">Impossible d'importer cette liste de lecture Spotify.</string>
     <string name="spotify_import_timeout">L'importation a pris trop de temps. Vérifiez votre réseau et réessayez.</string>
     <string name="music">Musique</string>
-
-
-    <string name="create_playlist_or_spotify_hint">Nom de la playlist ou lien de la playlist Spotify</string>
-    <string name="spotify_importing_playlist">Importation depuis Spotify…</string>
-    <string name="spotify_import_result">%1$d pistes importées. %2$d n'a pas pu correspondre.</string>
-    <string name="spotify_import_failed">Impossible d'importer cette liste de lecture Spotify.</string>
-    <string name="spotify_import_timeout">L'importation a pris trop de temps. Vérifiez votre réseau et réessayez.</string>
-    <string name="music">Musique</string>
 </resources>
