@@ -278,6 +278,7 @@ dependencies {
     implementation(project(":artistvideo"))
     implementation(project(":applecanvas"))
     implementation(project(":vivimusiccanvas"))
+    implementation(project(":paxsenixlyrics"))
 
 
     implementation(libs.ktor.client.core)

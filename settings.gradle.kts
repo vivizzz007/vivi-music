@@ -31,6 +31,7 @@ include(":shazamkit")
 include(":artistvideo")
 include(":applecanvas")
 include(":vivimusiccanvas")
+include(":paxsenixlyrics")
 
 
 // Use a local copy of NewPipe Extractor by uncommenting the lines below.

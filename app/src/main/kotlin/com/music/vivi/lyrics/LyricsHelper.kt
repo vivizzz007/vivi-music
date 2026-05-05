@@ -16,13 +16,18 @@ import com.music.vivi.utils.NetworkConnectivityObserver
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.reportException
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -35,6 +40,7 @@ constructor(
     private var lyricsProviders =
         listOf(
             YouLyPlusLyricsProvider,
+            PaxSenixLyricsProvider,
             BetterLyricsProvider,
             SimpMusicLyricsProvider,
             LrcLibLyricsProvider,
@@ -43,17 +49,17 @@ constructor(
             YouTubeLyricsProvider
         )
 
-
     val preferred =
         context.dataStore.data
             .map {
                 it[PreferredLyricsProviderKey].toEnum(PreferredLyricsProvider.YOULYPLUS)
             }.distinctUntilChanged()
-            .map {
-                lyricsProviders = when (it) {
+            .map { enum ->
+                when (enum) {
                     PreferredLyricsProvider.LRCLIB -> listOf(
                         LrcLibLyricsProvider,
                         YouLyPlusLyricsProvider,
+                        PaxSenixLyricsProvider,
                         BetterLyricsProvider,
                         SimpMusicLyricsProvider,
                         KuGouLyricsProvider,
@@ -64,6 +70,7 @@ constructor(
                     PreferredLyricsProvider.KUGOU -> listOf(
                         KuGouLyricsProvider,
                         YouLyPlusLyricsProvider,
+                        PaxSenixLyricsProvider,
                         BetterLyricsProvider,
                         SimpMusicLyricsProvider,
                         LrcLibLyricsProvider,
@@ -74,6 +81,7 @@ constructor(
                     PreferredLyricsProvider.BETTER_LYRICS -> listOf(
                         BetterLyricsProvider,
                         YouLyPlusLyricsProvider,
+                        PaxSenixLyricsProvider,
                         SimpMusicLyricsProvider,
                         LrcLibLyricsProvider,
                         KuGouLyricsProvider,
@@ -84,6 +92,7 @@ constructor(
                     PreferredLyricsProvider.SIMPMUSIC -> listOf(
                         SimpMusicLyricsProvider,
                         YouLyPlusLyricsProvider,
+                        PaxSenixLyricsProvider,
                         BetterLyricsProvider,
                         LrcLibLyricsProvider,
                         KuGouLyricsProvider,
@@ -93,6 +102,7 @@ constructor(
 
                     PreferredLyricsProvider.YOULYPLUS -> listOf(
                         YouLyPlusLyricsProvider,
+                        PaxSenixLyricsProvider,
                         BetterLyricsProvider,
                         SimpMusicLyricsProvider,
                         LrcLibLyricsProvider,
@@ -101,13 +111,40 @@ constructor(
                         YouTubeLyricsProvider
                     )
 
+                    PreferredLyricsProvider.PAXSENIX -> listOf(
+                        PaxSenixLyricsProvider,
+                        YouLyPlusLyricsProvider,
+                        BetterLyricsProvider,
+                        SimpMusicLyricsProvider,
+                        LrcLibLyricsProvider,
+                        KuGouLyricsProvider,
+                        YouTubeSubtitleLyricsProvider,
+                        YouTubeLyricsProvider
+                    )
                 }
             }
+
+    // Persistent scope to keep collecting the preference flow for the lifetime of the helper
+    private val helperScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+
+    // Ensures we wait for the first preference load before fetching lyrics
+    private val initialized = CompletableDeferred<Unit>()
+
+    init {
+        // Actively collect the preferred provider preference so lyricsProviders
+        // is updated immediately whenever the user changes the setting
+        preferred.onEach {
+            lyricsProviders = it
+            initialized.complete(Unit)
+        }.launchIn(helperScope)
+    }
+
 
     private val cache = LruCache<String, List<LyricsResult>>(MAX_CACHE_SIZE)
     private var currentLyricsJob: Job? = null
 
     suspend fun getLyrics(mediaMetadata: MediaMetadata): LyricsWithProvider {
+        initialized.await()
         currentLyricsJob?.cancel()
 
         val cached = cache.get(mediaMetadata.id)?.firstOrNull()
@@ -168,6 +205,7 @@ constructor(
         album: String? = null,
         callback: (LyricsResult) -> Unit,
     ) {
+        initialized.await()
         currentLyricsJob?.cancel()
 
         val cacheKey = "$songArtists-$songTitle".replace(" ", "")
