@@ -2470,8 +2470,9 @@ class MusicService :
             // Clear all caches including decryption caches
             performAggressiveCacheClear(mediaId)
 
-            // Additional delay for page reload errors as they may be rate-limited
-            delay(RETRY_DELAY_MS * 2)
+            // Short delay - the cipher JS is cached after the first attempt, 
+            // so the second attempt resolves quickly.
+            delay(RETRY_DELAY_MS)
 
             // Re-prepare the player
             val currentPosition = player.currentPosition
