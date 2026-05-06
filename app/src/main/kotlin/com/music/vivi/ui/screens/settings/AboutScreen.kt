@@ -136,7 +136,7 @@ fun AboutScreen(
                 )
 
                 Text(
-                    text = "v${BuildConfig.VERSION_NAME} • STABLE",
+                    text = "v${BuildConfig.VERSION_NAME} • ${stringResource(if (BuildConfig.IS_NIGHTLY) R.string.build_nightly else R.string.build_stable)}",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
