@@ -5,8 +5,10 @@
 
 package com.music.vivi.ui.screens.settings
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -45,7 +47,7 @@ import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.AccountSettingsViewModel
 import com.music.vivi.viewmodels.HomeViewModel
 import com.music.vivi.R
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AccountSettingsScreen(
     navController: NavController,
@@ -74,6 +76,7 @@ fun AccountSettingsScreen(
 
     var showToken by remember { mutableStateOf(false) }
     var showTokenEditor by remember { mutableStateOf(false) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -136,7 +139,7 @@ fun AccountSettingsScreen(
 //                                    navController.navigateUp()
 //                                },
                                 onClick = {
-                                    accountSettingsViewModel.logoutAndClearSyncedContent(context, onInnerTubeCookieChange)
+                                    showLogoutDialog = true
                                 },
                                 colors = ButtonDefaults.outlinedButtonColors(
                                     containerColor = MaterialTheme.colorScheme.surfaceContainer,
@@ -310,6 +313,64 @@ fun AccountSettingsScreen(
                     InfoLabel(text = stringResource(R.string.token_adv_login_description))
                 }
             )
+        }
+        if (showLogoutDialog) {
+            DefaultDialog(
+                onDismiss = { showLogoutDialog = false },
+                title = { Text(stringResource(R.string.logout_dialog_title)) },
+                buttons = {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+                        modifier = Modifier.padding(top = 8.dp)
+                    ) {
+                        // Cancel button
+                        ToggleButton(
+                            checked = false,
+                            onCheckedChange = { showLogoutDialog = false },
+                            modifier = Modifier.weight(1f),
+                            shapes = ButtonGroupDefaults.connectedLeadingButtonShapes()
+                        ) {
+                            Text(stringResource(android.R.string.cancel))
+                        }
+
+                        // Clear Data button
+                        ToggleButton(
+                            checked = false,
+                            onCheckedChange = {
+                                accountSettingsViewModel.logoutAndClearSyncedContent(context, onInnerTubeCookieChange)
+                                showLogoutDialog = false
+                            },
+                            modifier = Modifier.weight(1f),
+                            shapes = ButtonGroupDefaults.connectedMiddleButtonShapes(),
+                            colors = ToggleButtonDefaults.toggleButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error
+                            )
+                        ) {
+                            Text(stringResource(R.string.logout_clear_data))
+                        }
+
+                        // Keep Data button (Primary OK)
+                        ToggleButton(
+                            checked = true,
+                            onCheckedChange = {
+                                accountSettingsViewModel.logoutKeepData(context, onInnerTubeCookieChange)
+                                showLogoutDialog = false
+                                navController.navigateUp()
+                            },
+                            modifier = Modifier.weight(1f),
+                            shapes = ButtonGroupDefaults.connectedTrailingButtonShapes()
+                        ) {
+                            Text(stringResource(R.string.logout_keep_data))
+                        }
+                    }
+                }
+            ) {
+                Text(
+                    text = stringResource(R.string.logout_dialog_message),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
         }
     }
 }

@@ -249,6 +249,10 @@
     <string name="clear_song_cache_dialog">  Are you sure you want to clear all cached songs?</string>
     <string name="clear_image_cache_dialog">  Are you sure you want to clear all cached image?</string>
     <string name="clear_downloads_dialog">  Are you sure you want to clear all downloads?</string>
+    <string name="logout_dialog_title">Logout</string>
+    <string name="logout_dialog_message">Do you wish to keep every library and other thing?</string>
+    <string name="logout_keep_data">Keep Data</string>
+    <string name="logout_clear_data">Clear Data</string>
 
     <string name="disable">Disable</string>
 
