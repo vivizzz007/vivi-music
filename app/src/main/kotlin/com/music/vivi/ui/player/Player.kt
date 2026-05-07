@@ -1908,77 +1908,114 @@ fun BottomSheetPlayer(
                                 shape = RoundedCornerShape(4.dp)
                             )
                             .clickable {
-                                menuState.show {
-                                    OldPlayerMenu(
-                                        mediaMetadata = mediaMetadata,
-                                        navController = navController,
-                                        playerBottomSheetState = state,
-                                        onShowDetailsDialog = {
-                                            mediaMetadata.id.let {
-                                                bottomSheetPageState.show {
-                                                    ShowMediaInfo(it)
+                                if (sleepTimerEnabled) {
+                                    showSleepTimerDialog = true
+                                } else {
+                                    menuState.show {
+                                        OldPlayerMenu(
+                                            mediaMetadata = mediaMetadata,
+                                            navController = navController,
+                                            playerBottomSheetState = state,
+                                            onShowDetailsDialog = {
+                                                mediaMetadata.id.let {
+                                                    bottomSheetPageState.show {
+                                                        ShowMediaInfo(it)
+                                                    }
                                                 }
-                                            }
-                                        },
-                                        onDismiss = menuState::dismiss
-                                    )
+                                            },
+                                            onDismiss = menuState::dismiss
+                                        )
+                                    }
                                 }
                             }
                             .padding(horizontal = 6.dp, vertical = 2.dp)
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            val infiniteTransition = rememberInfiniteTransition(label = "QualityIconTransition")
-                            val animatedRotation by infiniteTransition.animateFloat(
-                                initialValue = 0f,
-                                targetValue = 360f,
-                                animationSpec = infiniteRepeatable(
-                                    animation = tween(2000, easing = LinearEasing),
-                                    repeatMode = RepeatMode.Restart
-                                ),
-                                label = "QualityIconRotation"
-                            )
+                        AnimatedContent(
+                            targetState = sleepTimerEnabled,
+                            transitionSpec = {
+                                fadeIn(animationSpec = tween(300)) togetherWith
+                                        fadeOut(animationSpec = tween(300))
+                            },
+                            label = "QualityTimerSwitcher"
+                        ) { isTimerActive ->
+                            if (isTimerActive) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.sleep_timer),
+                                        contentDescription = null,
+                                        tint = TextBackgroundColor.copy(alpha = 0.8f),
+                                        modifier = Modifier.size(12.dp)
+                                    )
+                                    Text(
+                                        text = makeTimeString(sleepTimerTimeLeft.coerceAtLeast(0)),
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            letterSpacing = 1.5.sp
+                                        ),
+                                        color = TextBackgroundColor.copy(alpha = 0.8f),
+                                        maxLines = 1,
+                                    )
+                                }
+                            } else {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    val infiniteTransition = rememberInfiniteTransition(label = "QualityIconTransition")
+                                    val animatedRotation by infiniteTransition.animateFloat(
+                                        initialValue = 0f,
+                                        targetValue = 360f,
+                                        animationSpec = infiniteRepeatable(
+                                            animation = tween(2000, easing = LinearEasing),
+                                            repeatMode = RepeatMode.Restart
+                                        ),
+                                        label = "QualityIconRotation"
+                                    )
 
-                            val iconBrush = Brush.sweepGradient(
-                                colors = listOf(
-                                    Color.Transparent,
-                                    TextBackgroundColor.copy(alpha = 1.0f),
-                                    Color.Transparent
-                                )
-                            )
+                                    val iconBrush = Brush.sweepGradient(
+                                        colors = listOf(
+                                            Color.Transparent,
+                                            TextBackgroundColor.copy(alpha = 1.0f),
+                                            Color.Transparent
+                                        )
+                                    )
 
-                            Icon(
-                                painter = painterResource(R.drawable.stream_old_player),
-                                contentDescription = null,
-                                tint = Color.Unspecified,
-                                modifier = Modifier
-                                    .size(12.dp)
-                                    .graphicsLayer(alpha = 0.99f)
-                                    .drawWithCache {
-                                        onDrawWithContent {
-                                            drawContent()
-                                            rotate(animatedRotation) {
-                                                drawRect(iconBrush, blendMode = BlendMode.SrcIn)
+                                    Icon(
+                                        painter = painterResource(R.drawable.stream_old_player),
+                                        contentDescription = null,
+                                        tint = Color.Unspecified,
+                                        modifier = Modifier
+                                            .size(12.dp)
+                                            .graphicsLayer(alpha = 0.99f)
+                                            .drawWithCache {
+                                                onDrawWithContent {
+                                                    drawContent()
+                                                    rotate(animatedRotation) {
+                                                        drawRect(iconBrush, blendMode = BlendMode.SrcIn)
+                                                    }
+                                                }
                                             }
-                                        }
-                                    }
-                            )
-                            Text(
-                                text = when (audioQuality) {
-                                    AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto)
-                                    AudioQuality.HIGH -> stringResource(R.string.audio_quality_high)
-                                    AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
-                                }.uppercase(),
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontSize = 10.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 1.5.sp
-                                ),
-                                color = TextBackgroundColor.copy(alpha = 0.8f),
-                                maxLines = 1,
-                            )
+                                    )
+                                    Text(
+                                        text = when (audioQuality) {
+                                            AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto)
+                                            AudioQuality.HIGH -> stringResource(R.string.audio_quality_high)
+                                            AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
+                                        }.uppercase(),
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            letterSpacing = 1.5.sp
+                                        ),
+                                        color = TextBackgroundColor.copy(alpha = 0.8f),
+                                        maxLines = 1,
+                                    )
+                                }
+                            }
                         }
                     }
                 }
