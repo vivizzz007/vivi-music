@@ -43,6 +43,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -114,6 +115,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.toArgb
 import coil3.size.Size as CoilSize
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -155,6 +157,8 @@ import com.music.vivi.LocalDownloadUtil
 import com.music.vivi.LocalListenTogetherManager
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
+import com.music.vivi.constants.AudioQuality
+import com.music.vivi.constants.AudioQualityKey
 import com.music.vivi.constants.CropAlbumArtKey
 import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.HidePlayerThumbnailKey
@@ -312,6 +316,10 @@ fun BottomSheetPlayer(
     val isMuted by playerConnection.isMuted.collectAsState()
     val playerVolume by playerConnection.service.playerVolume.collectAsState()
 
+    val (audioQuality) = rememberEnumPreference(
+        AudioQualityKey,
+        defaultValue = AudioQuality.AUTO
+    )
     val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.DEFAULT)
     val squigglySlider by rememberPreference(SquigglySliderKey, defaultValue = false)
     
@@ -1887,6 +1895,93 @@ fun BottomSheetPlayer(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
+
+                if (!useNewPlayerDesign) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(TextBackgroundColor.copy(alpha = 0.08f))
+                            .border(
+                                width = 0.5.dp,
+                                color = TextBackgroundColor.copy(alpha = 0.12f),
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                            .clickable {
+                                menuState.show {
+                                    OldPlayerMenu(
+                                        mediaMetadata = mediaMetadata,
+                                        navController = navController,
+                                        playerBottomSheetState = state,
+                                        onShowDetailsDialog = {
+                                            mediaMetadata.id.let {
+                                                bottomSheetPageState.show {
+                                                    ShowMediaInfo(it)
+                                                }
+                                            }
+                                        },
+                                        onDismiss = menuState::dismiss
+                                    )
+                                }
+                            }
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            val infiniteTransition = rememberInfiniteTransition(label = "QualityIconTransition")
+                            val animatedRotation by infiniteTransition.animateFloat(
+                                initialValue = 0f,
+                                targetValue = 360f,
+                                animationSpec = infiniteRepeatable(
+                                    animation = tween(2000, easing = LinearEasing),
+                                    repeatMode = RepeatMode.Restart
+                                ),
+                                label = "QualityIconRotation"
+                            )
+
+                            val iconBrush = Brush.sweepGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    TextBackgroundColor.copy(alpha = 1.0f),
+                                    Color.Transparent
+                                )
+                            )
+
+                            Icon(
+                                painter = painterResource(R.drawable.stream_old_player),
+                                contentDescription = null,
+                                tint = Color.Unspecified,
+                                modifier = Modifier
+                                    .size(12.dp)
+                                    .graphicsLayer(alpha = 0.99f)
+                                    .drawWithCache {
+                                        onDrawWithContent {
+                                            drawContent()
+                                            rotate(animatedRotation) {
+                                                drawRect(iconBrush, blendMode = BlendMode.SrcIn)
+                                            }
+                                        }
+                                    }
+                            )
+                            Text(
+                                text = when (audioQuality) {
+                                    AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto)
+                                    AudioQuality.HIGH -> stringResource(R.string.audio_quality_high)
+                                    AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
+                                }.uppercase(),
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 1.5.sp
+                                ),
+                                color = TextBackgroundColor.copy(alpha = 0.8f),
+                                maxLines = 1,
+                            )
+                        }
+                    }
+                }
 
                 Text(
                     text = if (duration != C.TIME_UNSET) makeTimeString(duration) else "",
