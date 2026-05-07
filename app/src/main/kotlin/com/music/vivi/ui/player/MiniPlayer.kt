@@ -8,12 +8,20 @@
 package com.music.vivi.ui.player
 
 import android.content.res.Configuration
+import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
@@ -27,6 +35,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -44,6 +53,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableLongState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
@@ -56,16 +66,28 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -76,14 +98,21 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
+import androidx.palette.graphics.Palette
 import coil3.compose.AsyncImage
+import coil3.imageLoader
+import coil3.request.ImageRequest
+import coil3.request.allowHardware
+import coil3.toBitmap
 import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalListenTogetherManager
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.CropAlbumArtKey
 import com.music.vivi.constants.DarkModeKey
+import com.music.vivi.constants.MiniPlayerBackgroundStyleKey
 import com.music.vivi.constants.MiniPlayerHeight
+import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PureBlackMiniPlayerKey
 import com.music.vivi.constants.SwipeSensitivityKey
 import com.music.vivi.constants.SwipeThumbnailKey
@@ -95,15 +124,21 @@ import com.music.vivi.models.MediaMetadata
 import com.music.vivi.playback.CastConnectionHandler
 import com.music.vivi.playback.PlayerConnection
 import com.music.vivi.ui.screens.settings.DarkMode
+import com.music.vivi.ui.theme.PlayerColorExtractor
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.vivimusic.AudioDeviceBottomSheet
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlin.math.roundToInt
 import com.music.vivi.vivimusic.isBluetoothHeadphoneConnected
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.Speaker
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -173,6 +208,8 @@ private fun NewMiniPlayer(
         if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
     }
     
+    val miniPlayerBackground by rememberEnumPreference(MiniPlayerBackgroundStyleKey, defaultValue = PlayerBackgroundStyle.DEFAULT)
+    
     // Player states - only collect what's needed at this level
     val playbackState by playerConnection.playbackState.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
@@ -223,12 +260,22 @@ private fun NewMiniPlayer(
     val autoSwipeThreshold = remember(swipeSensitivity) {
         (600 / (1f + kotlin.math.exp(-(-11.44748 * swipeSensitivity + 9.04945)))).roundToInt()
     }
+
+    val (gradientColors, onGradientColorsChange) = remember { mutableStateOf<List<Color>>(emptyList()) }
+
+    MiniPlayerColorExtractor(
+        mediaMetadata = mediaMetadata,
+        miniPlayerBackground = miniPlayerBackground,
+        onGradientColorsChange = onGradientColorsChange
+    )
     
     // Memoize colors
     val backgroundColor = if (pureBlack && useDarkTheme) Color.Black else MaterialTheme.colorScheme.surfaceContainer
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val outlineColor = MaterialTheme.colorScheme.outline
-    val onSurfaceColor = MaterialTheme.colorScheme.onSurface
+    val isDynamicBackground = miniPlayerBackground != PlayerBackgroundStyle.DEFAULT
+    
+    val primaryColor = if (isDynamicBackground) Color.White else MaterialTheme.colorScheme.primary
+    val outlineColor = if (isDynamicBackground) Color.White.copy(alpha = 0.5f) else MaterialTheme.colorScheme.outline
+    val onSurfaceColor = if (isDynamicBackground) Color.White else MaterialTheme.colorScheme.onSurface
     val errorColor = MaterialTheme.colorScheme.error
 
     Box(
@@ -306,6 +353,13 @@ private fun NewMiniPlayer(
                 .background(color = backgroundColor)
                 .border(1.dp, outlineColor.copy(alpha = 0.3f), RoundedCornerShape(32.dp))
         ) {
+            // Background Layers
+            MiniPlayerBackgroundLayer(
+                style = miniPlayerBackground,
+                mediaMetadata = mediaMetadata,
+                gradientColors = gradientColors
+            )
+
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 8.dp),
@@ -352,13 +406,13 @@ private fun NewMiniPlayer(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+                        .background(color = primaryColor.copy(alpha = 0.1f))
                         .clickable { showAudioDeviceBottomSheet = true }
                 ) {
                     Icon(
                         imageVector = if (isBluetoothConnected) Icons.Default.Headphones else Icons.Default.Speaker,
                         contentDescription = stringResource(R.string.audio_devices),
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = primaryColor,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -366,7 +420,14 @@ private fun NewMiniPlayer(
                 Spacer(modifier = Modifier.width(8.dp))
 
                 // Favorite button - isolated composable
-                mediaMetadata?.let { FavoriteButton(songId = it.id) }
+                mediaMetadata?.let { 
+                    FavoriteButton(
+                        songId = it.id,
+                        onSurfaceColor = onSurfaceColor,
+                        errorColor = errorColor,
+                        outlineColor = outlineColor
+                    ) 
+                }
             }
         }
     }
@@ -870,16 +931,17 @@ private fun LegacyMiniMediaInfo(
 
 
 @Composable
-private fun FavoriteButton(songId: String) {
+private fun FavoriteButton(
+    songId: String,
+    onSurfaceColor: Color,
+    errorColor: Color,
+    outlineColor: Color
+) {
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val librarySong by database.song(songId).collectAsState(initial = null)
     val isLiked = librarySong?.song?.liked == true
     
-    val errorColor = MaterialTheme.colorScheme.error
-    val outlineColor = MaterialTheme.colorScheme.outline
-    val onSurfaceColor = MaterialTheme.colorScheme.onSurface
-
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
@@ -902,5 +964,204 @@ private fun FavoriteButton(songId: String) {
             tint = if (isLiked) errorColor else onSurfaceColor.copy(alpha = 0.7f),
             modifier = Modifier.size(20.dp)
         )
+    }
+}
+@Composable
+private fun MiniPlayerColorExtractor(
+    mediaMetadata: MediaMetadata?,
+    miniPlayerBackground: PlayerBackgroundStyle,
+    onGradientColorsChange: (List<Color>) -> Unit
+) {
+    val context = LocalContext.current
+    val fallbackColor = MaterialTheme.colorScheme.surfaceContainer.toArgb()
+
+    LaunchedEffect(mediaMetadata?.id, miniPlayerBackground) {
+        if (miniPlayerBackground == PlayerBackgroundStyle.GRADIENT || miniPlayerBackground == PlayerBackgroundStyle.GLOW_ANIMATED) {
+            val currentMetadata = mediaMetadata
+            if (currentMetadata?.thumbnailUrl != null) {
+                withContext(Dispatchers.IO) {
+                    val request = ImageRequest.Builder(context)
+                        .data(currentMetadata.thumbnailUrl)
+                        .size(100, 100)
+                        .allowHardware(false)
+                        .build()
+
+                    val result = runCatching { context.imageLoader.execute(request) }.getOrNull()
+                    if (result != null) {
+                        val bitmap = result.image?.toBitmap()
+                        if (bitmap != null) {
+                            val palette = withContext(Dispatchers.Default) {
+                                Palette.from(bitmap)
+                                    .maximumColorCount(8)
+                                    .resizeBitmapArea(100 * 100)
+                                    .generate()
+                            }
+                            val extractedColors = if (miniPlayerBackground == PlayerBackgroundStyle.GLOW_ANIMATED) {
+                                listOfNotNull(
+                                    palette.getVibrantColor(fallbackColor).let { Color(it) },
+                                    palette.getLightVibrantColor(fallbackColor).let { Color(it) },
+                                    palette.getDarkVibrantColor(fallbackColor).let { Color(it) },
+                                    palette.getMutedColor(fallbackColor).let { Color(it) },
+                                    palette.getLightMutedColor(fallbackColor).let { Color(it) },
+                                    palette.getDarkMutedColor(fallbackColor).let { Color(it) }
+                                ).distinct()
+                            } else {
+                                PlayerColorExtractor.extractGradientColors(
+                                    palette = palette,
+                                    fallbackColor = fallbackColor
+                                )
+                            }
+                            withContext(Dispatchers.Main) { onGradientColorsChange(extractedColors) }
+                        }
+                    }
+                }
+            }
+        } else {
+            onGradientColorsChange(emptyList())
+        }
+    }
+}
+
+@Composable
+private fun MiniPlayerBackgroundLayer(
+    style: PlayerBackgroundStyle,
+    mediaMetadata: MediaMetadata?,
+    gradientColors: List<Color>
+) {
+    val context = LocalContext.current
+    
+    when (style) {
+        PlayerBackgroundStyle.BLUR -> {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                AsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .data(mediaMetadata?.thumbnailUrl)
+                        .size(128, 128)
+                        .allowHardware(false)
+                        .build(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .blur(30.dp)
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.45f))
+                )
+            }
+        }
+        PlayerBackgroundStyle.GRADIENT -> {
+            if (gradientColors.isNotEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Brush.verticalGradient(gradientColors))
+                        .background(Color.Black.copy(alpha = 0.2f))
+                )
+            }
+        }
+        PlayerBackgroundStyle.GLOW_ANIMATED -> {
+            if (gradientColors.isNotEmpty()) {
+                val infiniteTransition = rememberInfiniteTransition(label = "GlowAnimation")
+                val progress = infiniteTransition.animateFloat(
+                    initialValue = 0f,
+                    targetValue = 1f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(20000, easing = LinearEasing),
+                        repeatMode = RepeatMode.Restart
+                    ),
+                    label = "glowProgress"
+                )
+
+                val colors = gradientColors
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .drawBehind {
+                            val p = progress.value
+                            val width = size.width
+                            val height = size.height
+                            
+                            fun rotatedColorAt(index: Int): Color {
+                                val size = colors.size
+                                val idx = index.toFloat() + p * size
+                                val a = kotlin.math.floor(idx).toInt() % size
+                                val b = (a + 1) % size
+                                val frac = idx - kotlin.math.floor(idx)
+                                return lerp(colors[a], colors[b], frac)
+                            }
+
+                            fun oscillate(min: Float, max: Float, phase: Float): Float {
+                                val v = kotlin.math.sin(2f * kotlin.math.PI.toFloat() * (p + phase))
+                                return min + (max - min) * ((v + 1f) * 0.5f)
+                            }
+
+                            val c1 = rotatedColorAt(0)
+                            val c2 = rotatedColorAt(1)
+
+                            val o1x = oscillate(0.0f, 1.0f, 0.0f)
+                            val o1y = oscillate(0.0f, 0.5f, 0.1f)
+                            val o2x = oscillate(1.0f, 0.0f, 0.2f)
+                            val o2y = oscillate(0.5f, 1.0f, 0.3f)
+
+                            val b1 = Brush.radialGradient(
+                                colors = listOf(c1.copy(alpha = 0.8f), Color.Transparent),
+                                center = Offset(width * o1x, height * o1y),
+                                radius = width * 1.2f
+                            )
+                            val b2 = Brush.radialGradient(
+                                colors = listOf(c2.copy(alpha = 0.7f), Color.Transparent),
+                                center = Offset(width * o2x, height * o2y),
+                                radius = width * 1.0f
+                            )
+                            
+                            drawRect(Color(0xFF050505))
+                            drawRect(b1)
+                            drawRect(b2)
+                        }
+                )
+            }
+        }
+        PlayerBackgroundStyle.LIVE_MESH -> {
+            val infiniteTransition = rememberInfiniteTransition(label = "liveMesh")
+            val rotation = infiniteTransition.animateFloat(
+                initialValue = 0f,
+                targetValue = 360f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(60000, easing = LinearEasing),
+                    repeatMode = RepeatMode.Restart
+                ),
+                label = "rotation"
+            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        scaleX = 1.5f
+                        scaleY = 1.5f
+                    }
+            ) {
+                val matrix = remember { ColorMatrix().apply { setToSaturation(1.6f) } }
+                AsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .data(mediaMetadata?.thumbnailUrl)
+                        .size(128, 128)
+                        .allowHardware(false)
+                        .build(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    colorFilter = ColorFilter.colorMatrix(matrix),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .blur(40.dp)
+                        .graphicsLayer { rotationZ = rotation.value }
+                )
+                Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f)))
+            }
+        }
+        else -> {}
     }
 }

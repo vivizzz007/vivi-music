@@ -387,6 +387,7 @@
     <string name="equalizer_desc">Adjust the audio equalizer</string>
     <string name="enable_dynamic_icon">Enable dynamic app icon</string>
     <string name="mini_player">Mini-player</string>
+    <string name="miniplayer_background_style">Mini-player background style</string>
     <string name="pure_black_mini_player">Pure black mini-player</string>
     <string name="mini_player_outline">Mini-player outline</string>
     <string name="cache_size_warning_title">Hold on!</string>
