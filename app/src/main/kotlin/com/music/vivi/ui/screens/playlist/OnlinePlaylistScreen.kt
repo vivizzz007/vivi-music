@@ -835,21 +835,32 @@ private fun OnlinePlaylistHeader(
             }
 
 
-            // Metadata Info
+            // Metadata Badge
             val totalDuration = songs.sumOf { it.duration ?: 0 }
-            Text(
-                text = buildString {
-                    append(pluralStringResource(R.plurals.n_song, songs.size, songs.size))
-                    if (totalDuration > 0) {
-                        append(" • ")
-                        append(makeTimeString(totalDuration * 1000L))
-                    }
-                },
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
+            Surface(
+                shape = RoundedCornerShape(6.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant,
                 modifier = Modifier.padding(horizontal = 32.dp)
-            )
+            ) {
+                Text(
+                    text = buildString {
+                        append(pluralStringResource(R.plurals.n_song, songs.size, songs.size))
+                        if (totalDuration > 0) {
+                            append(" • ")
+                            val hours = totalDuration / 3600
+                            val minutes = (totalDuration % 3600) / 60
+                            if (hours > 0) {
+                                append("${hours}h ${minutes}m")
+                            } else {
+                                append("${minutes}m")
+                            }
+                        }
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                )
+            }
 
             // Author Name
             playlist.author?.name?.let { authorName ->
