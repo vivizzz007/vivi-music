@@ -155,6 +155,7 @@ fun LibrarySongsScreen(
                             SongFilter.LIBRARY to stringResource(R.string.filter_library),
                             SongFilter.UPLOADED to stringResource(R.string.filter_uploaded),
                             SongFilter.DOWNLOADED to stringResource(R.string.filter_downloaded),
+                            SongFilter.EXPORTED to stringResource(R.string.filter_exported),
                         ),
                         currentValue = filter,
                         onValueUpdate = {
@@ -213,7 +214,7 @@ fun LibrarySongsScreen(
                     isActive = song.id == mediaMetadata?.id,
                     isPlaying = isPlaying,
                     showLikedIcon = true,
-                    showDownloadIcon = filter != SongFilter.DOWNLOADED,
+                    showDownloadIcon = filter != SongFilter.DOWNLOADED && filter != SongFilter.EXPORTED,
                     shape = listItemShape(index, filteredSongs.size),
                     trailingContent = {
                         IconButton(

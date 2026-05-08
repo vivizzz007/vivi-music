@@ -172,6 +172,16 @@ fun LibraryMixScreen(
             songThumbnails = emptyList(),
         )
 
+    val exportedPlaylist =
+        Playlist(
+            playlist = PlaylistEntity(
+                id = UUID.randomUUID().toString(),
+                name = stringResource(R.string.filter_exported)
+            ),
+            songCount = 0,
+            songThumbnails = emptyList(),
+        )
+
     val (showLiked) = rememberPreference(ShowLikedPlaylistKey, true)
     val (showDownloaded) = rememberPreference(ShowDownloadedPlaylistKey, true)
     val (showTop) = rememberPreference(ShowTopPlaylistKey, true)
@@ -426,6 +436,23 @@ fun LibraryMixScreen(
                                         .animateItem(),
                             )
                         }
+                    }
+
+                    item(
+                        key = "exportedPlaylist",
+                        contentType = { CONTENT_TYPE_PLAYLIST },
+                    ) {
+                        PlaylistListItem(
+                            playlist = exportedPlaylist,
+                            autoPlaylist = true,
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        navController.navigate("auto_playlist/exported")
+                                    }
+                                    .animateItem(),
+                        )
                     }
 
                     items(
@@ -701,6 +728,24 @@ fun LibraryMixScreen(
                                         .animateItem(),
                             )
                         }
+                    }
+
+                    item(
+                        key = "exportedPlaylist",
+                        contentType = { CONTENT_TYPE_PLAYLIST },
+                    ) {
+                        PlaylistGridItem(
+                            playlist = exportedPlaylist,
+                            fillMaxWidth = true,
+                            autoPlaylist = true,
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        navController.navigate("auto_playlist/exported")
+                                    }
+                                    .animateItem(),
+                        )
                     }
 
                     items(

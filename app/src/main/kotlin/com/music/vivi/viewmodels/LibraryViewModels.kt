@@ -27,6 +27,7 @@ import com.music.vivi.constants.ArtistSongSortTypeKey
 import com.music.vivi.constants.ArtistSortDescendingKey
 import com.music.vivi.constants.ArtistSortType
 import com.music.vivi.constants.ArtistSortTypeKey
+import com.music.vivi.constants.ExportedSongIdsKey
 import com.music.vivi.constants.HideExplicitKey
 import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.constants.HideYoutubeShortsKey
@@ -59,6 +60,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -78,23 +80,40 @@ constructor(
     val allSongs =
         context.dataStore.data
             .map {
-                Triple(
+                Pair(
                     Triple(
                         it[SongFilterKey].toEnum(SongFilter.LIKED),
                         it[SongSortTypeKey].toEnum(SongSortType.CREATE_DATE),
                         (it[SongSortDescendingKey] ?: true),
                     ),
-                    it[HideExplicitKey] ?: false,
-                    it[HideVideoSongsKey] ?: false
+                    Triple(
+                        it[HideExplicitKey] ?: false,
+                        it[HideVideoSongsKey] ?: false,
+                        it[ExportedSongIdsKey].orEmpty(),
+                    ),
                 )
             }.distinctUntilChanged()
-            .flatMapLatest { (filterSort, hideExplicit, hideVideoSongs) ->
+            .flatMapLatest { (filterSort, options) ->
                 val (filter, sortType, descending) = filterSort
+                val (hideExplicit, hideVideoSongs, exportedSongIdsRaw) = options
                 when (filter) {
                     SongFilter.LIBRARY -> database.songs(sortType, descending).map { it.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs) }
                     SongFilter.LIKED -> database.likedSongs(sortType, descending).map { it.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs) }
                     SongFilter.DOWNLOADED -> database.downloadedSongs(sortType, descending).map { it.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs) }
                     SongFilter.UPLOADED -> database.uploadedSongs(sortType, descending).map { it.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs) }
+                    SongFilter.EXPORTED -> flow {
+                        val exportedIds = exportedSongIdsRaw
+                            .split(',')
+                            .map { id -> id.trim() }
+                            .filter { id -> id.isNotBlank() }
+                        val songsById = if (exportedIds.isEmpty()) {
+                            emptyMap()
+                        } else {
+                            database.getSongsByIds(exportedIds).associateBy { song -> song.id }
+                        }
+                        val ordered = exportedIds.mapNotNull { id -> songsById[id] }
+                        emit(ordered.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs))
+                    }
                 }
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
