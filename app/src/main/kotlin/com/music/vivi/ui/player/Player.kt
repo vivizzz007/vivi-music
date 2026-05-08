@@ -1015,9 +1015,10 @@ fun BottomSheetPlayer(
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
+                                        .clipToBounds()
                                         .alpha(backgroundAlpha)
                                 ) {
-                                    // Layer 1: Full-Screen Blurred Background
+                                    // Layer 1: Full-Screen Blurred Background (Scaled up to avoid edge bleeding)
                                     AsyncImage(
                                         model = ImageRequest.Builder(context)
                                             .data(thumbnailUrl)
@@ -1028,52 +1029,23 @@ fun BottomSheetPlayer(
                                         contentScale = ContentScale.Crop,
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .blur(150.dp)
-                                    )
-
-                                    // Layer 2: Clear Artwork (Limited to top 60% of screen)
-                                    // Fades out when lyrics are shown to provide a full-screen blur
-                                    val clearArtworkAlpha by animateFloatAsState(
-                                        targetValue = if (showInlineLyrics) 0f else 1f,
-                                        animationSpec = tween(500),
-                                        label = "clearArtworkAlpha"
-                                    )
-                                    
-                                    AsyncImage(
-                                        model = ImageRequest.Builder(context)
-                                            .data(thumbnailUrl)
-                                            .size(CoilSize.ORIGINAL)
-                                            .build(),
-                                        contentDescription = null,
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .fillMaxHeight(0.65f) // Occupies top 65%
-                                            .alpha(clearArtworkAlpha)
-                                            .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
-                                            .drawWithContent {
-                                                drawContent()
-                                                // Fade the bottom edge of the clear box for a cloudy blend
-                                                drawRect(
-                                                    brush = Brush.verticalGradient(
-                                                        0f to Color.Black,
-                                                        0.7f to Color.Black,
-                                                        1.0f to Color.Transparent
-                                                    ),
-                                                    blendMode = BlendMode.DstIn
-                                                )
+                                            .graphicsLayer {
+                                                scaleX = 1.3f
+                                                scaleY = 1.3f
                                             }
+                                            .blur(100.dp)
                                     )
                                     
-                                    // Layer 3: Dynamic overlay for depth
+                                    // Layer 2: Subtle gradient overlay for better contrast and Apple feel
                                     Box(
                                         modifier = Modifier
                                             .fillMaxSize()
                                             .background(
                                                 Brush.verticalGradient(
                                                     listOf(
-                                                        Color.Black.copy(alpha = 0.05f),
-                                                        Color.Black.copy(alpha = 0.4f)
+                                                        Color.Black.copy(alpha = 0.15f),
+                                                        Color.Transparent,
+                                                        Color.Black.copy(alpha = 0.45f)
                                                     )
                                                 )
                                             )
