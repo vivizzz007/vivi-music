@@ -124,6 +124,7 @@ import com.music.vivi.constants.LyricsGlowEffectKey
 import com.music.vivi.constants.LyricsLineSpacingKey
 import com.music.vivi.constants.LyricsScrollKey
 import com.music.vivi.constants.MiniPlayerBackgroundStyleKey
+import com.music.vivi.constants.ShowAudioQualityBadgeKey
 import com.music.vivi.constants.ShowCommentButtonKey
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -144,6 +145,10 @@ fun AppearanceSettings(
     )
     val (enableHighRefreshRate, onEnableHighRefreshRateChange) = rememberPreference(
         EnableHighRefreshRateKey,
+        defaultValue = true
+    )
+    val (showAudioQualityBadge, onShowAudioQualityBadgeChange) = rememberPreference(
+        ShowAudioQualityBadgeKey,
         defaultValue = true
     )
     val (selectedThemeColorInt) = rememberPreference(
@@ -1126,7 +1131,7 @@ fun AppearanceSettings(
 
         Material3SettingsGroup(
             title = stringResource(R.string.player),
-            items = listOf(
+            items = listOfNotNull(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.palette),
                     title = { Text(stringResource(R.string.new_player_design)) },
@@ -1147,6 +1152,28 @@ fun AppearanceSettings(
                     },
                     onClick = { onUseNewPlayerDesignChange(!useNewPlayerDesign) }
                 ),
+                if (!useNewPlayerDesign) {
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.tune),
+                        title = { Text(stringResource(R.string.show_audio_quality_badge)) },
+                        trailingContent = {
+                            Switch(
+                                checked = showAudioQualityBadge,
+                                onCheckedChange = onShowAudioQualityBadgeChange,
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (showAudioQualityBadge) R.drawable.check else R.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { onShowAudioQualityBadgeChange(!showAudioQualityBadge) }
+                    )
+                } else null,
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.gradient),
                     title = { Text(stringResource(R.string.player_background_style)) },

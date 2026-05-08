@@ -176,6 +176,7 @@ import com.music.vivi.constants.SquigglySliderKey
 import com.music.vivi.constants.SwipeLyricsKey
 import com.music.vivi.constants.ThumbnailCornerRadius
 import com.music.vivi.constants.UseNewPlayerDesignKey
+import com.music.vivi.constants.ShowAudioQualityBadgeKey
 import com.music.vivi.db.entities.LyricsEntity
 import com.music.vivi.extensions.SwipeGesture
 import com.music.vivi.extensions.togglePlayPause
@@ -235,6 +236,10 @@ fun BottomSheetPlayer(
 
     val (useNewPlayerDesign, onUseNewPlayerDesignChange) = rememberPreference(
         UseNewPlayerDesignKey,
+        defaultValue = true
+    )
+    val (showAudioQualityBadge) = rememberPreference(
+        ShowAudioQualityBadgeKey,
         defaultValue = true
     )
     val (hidePlayerThumbnail, onHidePlayerThumbnailChange) = rememberPreference(HidePlayerThumbnailKey, false)
@@ -1896,7 +1901,7 @@ fun BottomSheetPlayer(
                     overflow = TextOverflow.Ellipsis,
                 )
 
-                if (!useNewPlayerDesign) {
+                if (!useNewPlayerDesign && (showAudioQualityBadge || sleepTimerEnabled)) {
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
