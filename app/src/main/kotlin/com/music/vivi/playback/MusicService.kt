@@ -25,6 +25,7 @@ import android.media.audiofx.AudioEffect
 import android.media.audiofx.LoudnessEnhancer
 import android.net.ConnectivityManager
 import android.os.Binder
+import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
@@ -252,6 +253,8 @@ class MusicService :
     private var reentrantFocusGain = false
     private var wasPlayingBeforeVolumeMute = false
     private var isPausedByVolumeMute = false
+    var preferredDeviceId: Int? = null //added for audio device switching
+        private set//improvement
 
     private var crossfadeEnabled = false
     private var crossfadeDuration = 5000f
@@ -315,6 +318,15 @@ class MusicService :
         player.volume = if (muted) 0f else playerVolume.value
     }
 
+    fun setPreferredAudioDevice(deviceId: Int?) { // this helps us to change between devices
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+            val deviceInfo = devices.find { it.id == deviceId }
+            player.setPreferredAudioDevice(deviceInfo)
+            preferredDeviceId = deviceId
+        }
+    }
+//
 
     lateinit var sleepTimer: SleepTimer
 
