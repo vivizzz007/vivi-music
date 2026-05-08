@@ -29,6 +29,8 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -676,7 +678,10 @@ fun VolumeControlRow(
             // Smoothly animate the fill width for a high-end feel
             val animatedVolumeFraction by animateFloatAsState(
                 targetValue = currentValue / maxVolume.toFloat(),
-                animationSpec = tween(durationMillis = 100, easing = LinearOutSlowInEasing),
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioNoBouncy,
+                    stiffness = Spring.StiffnessMediumLow
+                ),
                 label = "VolumeFillAnimation"
             )
 
