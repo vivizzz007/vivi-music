@@ -142,6 +142,7 @@
     <string name="follow_theme">Follow theme</string>
     <string name="gradient">Gradient</string>
     <string name="glow_animated">Glow animated</string>
+    <string name="live_mesh">Live Mesh</string>
     <string name="new_player_design">New player design</string>
     <string name="new_mini_player_design">New mini player design</string>
     <string name="player_background_blur">Blur</string>
@@ -248,6 +249,10 @@
     <string name="clear_song_cache_dialog">  Are you sure you want to clear all cached songs?</string>
     <string name="clear_image_cache_dialog">  Are you sure you want to clear all cached image?</string>
     <string name="clear_downloads_dialog">  Are you sure you want to clear all downloads?</string>
+    <string name="logout_dialog_title">Logout</string>
+    <string name="logout_dialog_message">Do you wish to keep every library and other thing?</string>
+    <string name="logout_keep_data">Keep Data</string>
+    <string name="logout_clear_data">Clear Data</string>
 
     <string name="disable">Disable</string>
 
@@ -386,6 +391,7 @@
     <string name="equalizer_desc">Adjust the audio equalizer</string>
     <string name="enable_dynamic_icon">Enable dynamic app icon</string>
     <string name="mini_player">Mini-player</string>
+    <string name="miniplayer_background_style">Mini-player background style</string>
     <string name="pure_black_mini_player">Pure black mini-player</string>
     <string name="mini_player_outline">Mini-player outline</string>
     <string name="cache_size_warning_title">Hold on!</string>
@@ -909,4 +915,8 @@
     <string name="playback_logs_desc">View real-time stream resolution and bot mitigation events</string>
     <string name="playback_logs_title">Playback logs</string>
     <string name="no_playback_logs">No playback events recorded yet</string>
+    <string name="show_comment_button">Show comment button</string>
+    <string name="show_comment_button_description">Show a button to view comments in the player queue</string>
+    <string name="build_stable">STABLE</string>
+    <string name="build_nightly">NIGHTLY</string>
 </resources>

@@ -123,6 +123,10 @@ import com.music.vivi.constants.AppleMusicLyricsBlurKey
 import com.music.vivi.constants.LyricsGlowEffectKey
 import com.music.vivi.constants.LyricsLineSpacingKey
 import com.music.vivi.constants.LyricsScrollKey
+import com.music.vivi.constants.MiniPlayerBackgroundStyleKey
+import com.music.vivi.constants.ShowAudioQualityBadgeKey
+import com.music.vivi.constants.ShowCommentButtonKey
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppearanceSettings(
@@ -141,6 +145,10 @@ fun AppearanceSettings(
     )
     val (enableHighRefreshRate, onEnableHighRefreshRateChange) = rememberPreference(
         EnableHighRefreshRateKey,
+        defaultValue = true
+    )
+    val (showAudioQualityBadge, onShowAudioQualityBadgeChange) = rememberPreference(
+        ShowAudioQualityBadgeKey,
         defaultValue = true
     )
     val (selectedThemeColorInt) = rememberPreference(
@@ -191,6 +199,11 @@ fun AppearanceSettings(
         rememberEnumPreference(
             PlayerBackgroundStyleKey,
             defaultValue = PlayerBackgroundStyle.GRADIENT,
+        )
+    val (miniPlayerBackground, onMiniPlayerBackgroundChange) =
+        rememberEnumPreference(
+            MiniPlayerBackgroundStyleKey,
+            defaultValue = PlayerBackgroundStyle.DEFAULT,
         )
 
     val (defaultOpenTab, onDefaultOpenTabChange) = rememberEnumPreference(
@@ -310,9 +323,17 @@ fun AppearanceSettings(
         ShowUploadedPlaylistKey,
         defaultValue = true
     )
+    val (showCommentButton, onShowCommentButtonChange) = rememberPreference(
+        ShowCommentButtonKey,
+        defaultValue = true
+    )
 
     val availableBackgroundStyles = PlayerBackgroundStyle.entries.filter {
         it != PlayerBackgroundStyle.BLUR || Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    }
+
+    val availableMiniPlayerBackgroundStyles = availableBackgroundStyles.filter { 
+        it != PlayerBackgroundStyle.APPLE_MUSIC 
     }
 
 
@@ -329,6 +350,10 @@ fun AppearanceSettings(
 
 
     var showPlayerBackgroundDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var showMiniPlayerBackgroundDialog by rememberSaveable {
         mutableStateOf(false)
     }
 
@@ -563,6 +588,31 @@ fun AppearanceSettings(
                     PlayerBackgroundStyle.GRADIENT -> stringResource(R.string.gradient)
                     PlayerBackgroundStyle.BLUR -> stringResource(R.string.player_background_blur)
                     PlayerBackgroundStyle.GLOW_ANIMATED -> stringResource(R.string.glow_animated)
+                    PlayerBackgroundStyle.APPLE_MUSIC -> stringResource(R.string.apple_music)
+                    PlayerBackgroundStyle.LIVE_MESH -> stringResource(R.string.live_mesh)
+                }
+            }
+        )
+    }
+
+    if (showMiniPlayerBackgroundDialog) {
+        EnumDialog(
+            onDismiss = { showMiniPlayerBackgroundDialog = false },
+            onSelect = {
+                onMiniPlayerBackgroundChange(it)
+                showMiniPlayerBackgroundDialog = false
+            },
+            title = stringResource(R.string.miniplayer_background_style),
+            current = miniPlayerBackground,
+            values = availableMiniPlayerBackgroundStyles,
+            valueText = {
+                when (it) {
+                    PlayerBackgroundStyle.DEFAULT -> stringResource(R.string.follow_theme)
+                    PlayerBackgroundStyle.GRADIENT -> stringResource(R.string.gradient)
+                    PlayerBackgroundStyle.BLUR -> stringResource(R.string.player_background_blur)
+                    PlayerBackgroundStyle.GLOW_ANIMATED -> stringResource(R.string.glow_animated)
+                    PlayerBackgroundStyle.LIVE_MESH -> stringResource(R.string.live_mesh)
+                    else -> ""
                 }
             }
         )
@@ -1047,6 +1097,25 @@ fun AppearanceSettings(
                         onClick = { onPureBlackMiniPlayerChange(!pureBlackMiniPlayer) }
                     )
                 )
+                add(
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.palette),
+                        title = { Text(stringResource(R.string.miniplayer_background_style)) },
+                        description = {
+                            Text(
+                                when (miniPlayerBackground) {
+                                    PlayerBackgroundStyle.DEFAULT -> stringResource(R.string.follow_theme)
+                                    PlayerBackgroundStyle.GRADIENT -> stringResource(R.string.gradient)
+                                    PlayerBackgroundStyle.BLUR -> stringResource(R.string.player_background_blur)
+                                    PlayerBackgroundStyle.GLOW_ANIMATED -> stringResource(R.string.glow_animated)
+                                    PlayerBackgroundStyle.LIVE_MESH -> stringResource(R.string.live_mesh)
+                                    else -> stringResource(R.string.follow_theme)
+                                }
+                            )
+                        },
+                        onClick = { showMiniPlayerBackgroundDialog = true }
+                    )
+                )
             }
         )
 
@@ -1062,7 +1131,7 @@ fun AppearanceSettings(
 
         Material3SettingsGroup(
             title = stringResource(R.string.player),
-            items = listOf(
+            items = listOfNotNull(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.palette),
                     title = { Text(stringResource(R.string.new_player_design)) },
@@ -1083,6 +1152,28 @@ fun AppearanceSettings(
                     },
                     onClick = { onUseNewPlayerDesignChange(!useNewPlayerDesign) }
                 ),
+                if (!useNewPlayerDesign) {
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.tune),
+                        title = { Text(stringResource(R.string.show_audio_quality_badge)) },
+                        trailingContent = {
+                            Switch(
+                                checked = showAudioQualityBadge,
+                                onCheckedChange = onShowAudioQualityBadgeChange,
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (showAudioQualityBadge) R.drawable.check else R.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { onShowAudioQualityBadgeChange(!showAudioQualityBadge) }
+                    )
+                } else null,
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.gradient),
                     title = { Text(stringResource(R.string.player_background_style)) },
@@ -1093,6 +1184,8 @@ fun AppearanceSettings(
                                 PlayerBackgroundStyle.GRADIENT -> stringResource(R.string.gradient)
                                 PlayerBackgroundStyle.BLUR -> stringResource(R.string.player_background_blur)
                                 PlayerBackgroundStyle.GLOW_ANIMATED -> stringResource(R.string.glow_animated)
+                                PlayerBackgroundStyle.APPLE_MUSIC -> stringResource(R.string.apple_music)
+                                PlayerBackgroundStyle.LIVE_MESH -> stringResource(R.string.live_mesh)
                             }
                         )
                     },
@@ -1244,6 +1337,27 @@ fun AppearanceSettings(
                         )
                     },
                     onClick = { onRotatingThumbnailChange(!rotatingThumbnail) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.chat_msg),
+                    title = { Text(stringResource(R.string.show_comment_button)) },
+                    description = { Text(stringResource(R.string.show_comment_button_description)) },
+                    trailingContent = {
+                        Switch(
+                            checked = showCommentButton,
+                            onCheckedChange = onShowCommentButtonChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (showCommentButton) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onShowCommentButtonChange(!showCommentButton) }
                 )
             ) + if (swipeThumbnail) listOf(
                 Material3SettingsItem(

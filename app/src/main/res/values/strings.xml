@@ -277,6 +277,7 @@
     <string name="right">Right</string>
     <string name="player_slider_style">Player slider style</string>
     <string name="default_">Default</string>
+    <string name="apple_music">Apple Music</string>
     <string name="squiggly">Squiggly</string>
     <string name="misc">Misc</string>
     <string name="default_open_tab">Default open tab</string>
@@ -288,6 +289,7 @@
     <string name="action_logout">Log out</string>
     <string name="action_login">Log in</string>
     <string name="login">Login</string>
+    <string name="show_audio_quality_badge">Show audio quality badge</string>
     <string name="not_logged_in">Not logged in</string>
     <string name="login_failed">Login failed</string>
 

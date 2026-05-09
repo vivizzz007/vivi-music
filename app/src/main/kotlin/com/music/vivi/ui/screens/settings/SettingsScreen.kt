@@ -92,12 +92,18 @@ fun SettingsScreen(
                         onClick = { navController.navigate("settings/update") }
                     )
                 )
-
                 add(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.palette),
                         title = { Text(stringResource(R.string.appearance)) },
                         onClick = { navController.navigate("settings/appearance") }
+                    )
+                )
+                add(
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.play),
+                        title = { Text(stringResource(R.string.player_and_audio)) },
+                        onClick = { navController.navigate("settings/player") }
                     )
                 )
                 add(
@@ -112,13 +118,6 @@ fun SettingsScreen(
                         icon = painterResource(R.drawable.group),
                         title = { Text(stringResource(R.string.listen_together)) },
                         onClick = { navController.navigate(Screens.ListenTogether.route) }
-                    )
-                )
-                add(
-                    Material3SettingsItem(
-                        icon = painterResource(R.drawable.play),
-                        title = { Text(stringResource(R.string.player_and_audio)) },
-                        onClick = { navController.navigate("settings/player") }
                     )
                 )
                 add(

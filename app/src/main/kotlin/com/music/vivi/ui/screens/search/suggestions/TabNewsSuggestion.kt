@@ -40,9 +40,24 @@ import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.compose.SubcomposeAsyncImage
 import com.music.vivi.R
-import com.music.vivi.constants.BillboardRegionKey
+import com.music.vivi.constants.SuggestionRegionKey
+import com.music.vivi.constants.SuggestionRegionSlugToName
 import com.music.vivi.utils.rememberPreference
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
+import androidx.compose.material3.carousel.rememberCarouselState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.boundsInRoot
+import kotlin.math.abs
 import java.net.URLEncoder
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -52,26 +67,47 @@ fun SuggestionsTabContent(
     viewModel: SuggestionsViewModel = hiltViewModel(),
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
-    val billboardTracks by viewModel.billboardTracks.collectAsState()
-    val billboardArtists by viewModel.billboardArtists.collectAsState()
+    val suggestionTracks by viewModel.suggestionTracks.collectAsState()
+    val suggestionArtists by viewModel.suggestionArtists.collectAsState()
+    val suggestionAlbums by viewModel.suggestionAlbums.collectAsState()
+    val suggestionVideos by viewModel.suggestionVideos.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val isManualLoading by viewModel.isManualLoading.collectAsState()
     val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
     val playerConnection = com.music.vivi.LocalPlayerConnection.current
     val context = LocalContext.current
-    val (billboardRegion, _) = rememberPreference(
-        key = BillboardRegionKey,
+    val (regionCode, _) = rememberPreference(
+        key = SuggestionRegionKey,
         defaultValue = "system"
     )
 
-    androidx.compose.runtime.LaunchedEffect(billboardRegion) {
-        viewModel.refresh(billboardRegion)
+    androidx.compose.runtime.LaunchedEffect(regionCode) {
+        viewModel.refresh(regionCode)
     }
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = contentPadding
+    val pullToRefreshState = rememberPullToRefreshState()
+    val scope = rememberCoroutineScope()
+
+    PullToRefreshBox(
+        isRefreshing = isManualLoading,
+        onRefresh = {
+            viewModel.refresh(regionCode, force = true)
+        },
+        state = pullToRefreshState,
+        indicator = {
+            PullToRefreshDefaults.LoadingIndicator(
+                state = pullToRefreshState,
+                isRefreshing = isManualLoading,
+                modifier = Modifier.align(Alignment.TopCenter),
+            )
+        },
+        modifier = Modifier.fillMaxSize()
     ) {
-        if (isLoading && billboardTracks == null && billboardArtists == null) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = contentPadding
+        ) {
+        if (isLoading && !isManualLoading && suggestionTracks == null && suggestionArtists == null && suggestionAlbums == null && suggestionVideos == null) {
             item {
                 Box(
                     modifier = Modifier
@@ -84,57 +120,68 @@ fun SuggestionsTabContent(
             }
         }
 
-        billboardTracks?.let { tracks ->
+        suggestionTracks?.let { tracks ->
                 item {
-                    TrendingBillboardSection(
-                        tracks = billboardTracks!!,
-                        regionSlug = billboardRegion,
+                    TrendingAppleMusicSection(
+                        tracks = suggestionTracks!!,
+                        countryCode = regionCode,
                         onTrackClick = { track ->
                             android.widget.Toast.makeText(context, "Loading ${track.title}...", android.widget.Toast.LENGTH_SHORT).show()
                             viewModel.playTrack(track, playerConnection)
                         },
                         onMoreClick = {
-                            uriHandler.openUri("https://www.billboard.com/charts/$billboardRegion/")
+                            val code = if (regionCode == "system") java.util.Locale.getDefault().country.lowercase() else regionCode.lowercase()
+                            uriHandler.openUri("https://music.apple.com/$code/charts")
                         }
                     )
                 }
             }
 
-            billboardArtists?.let { artists ->
+            suggestionArtists?.let { artists ->
                 item {
                     TopArtistsSection(
                         artists = artists,
                         onArtistClick = { artist ->
                             android.widget.Toast.makeText(context, "Loading ${artist.name}...", android.widget.Toast.LENGTH_SHORT).show()
                             viewModel.navigateToArtist(artist, navController)
-                        },
-                        onMoreClick = {
-                            uriHandler.openUri("https://www.billboard.com/charts/artist-100/")
                         }
                     )
                 }
+            }
 
+            suggestionAlbums?.let { albums ->
                 item {
-                    Column(
-                        modifier = Modifier.fillMaxWidth().padding(top = 48.dp, bottom = 32.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "Data from www.billboard.com",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                        )
-                        Text(
-                            text = "vivi-music",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
+                    TrendingAlbumsSection(
+                        albums = albums,
+                        onAlbumClick = { album ->
+                            android.widget.Toast.makeText(context, "Loading ${album.title}...", android.widget.Toast.LENGTH_SHORT).show()
+                            viewModel.navigateToAlbum(album, navController)
+                        },
+                        onMoreClick = {
+                            val code = if (regionCode == "system") java.util.Locale.getDefault().country.lowercase() else regionCode.lowercase()
+                            uriHandler.openUri("https://music.apple.com/$code/charts/albums")
+                        }
+                    )
                 }
             }
 
-            if (billboardTracks == null && billboardArtists == null && !isLoading) {
+            suggestionVideos?.let { videos ->
+                item {
+                    TrendingVideosSection(
+                        videos = videos,
+                        onVideoClick = { video ->
+                            android.widget.Toast.makeText(context, "Loading video ${video.title}...", android.widget.Toast.LENGTH_SHORT).show()
+                            viewModel.playVideo(video, playerConnection)
+                        },
+                        onMoreClick = {
+                            val code = if (regionCode == "system") java.util.Locale.getDefault().country.lowercase() else regionCode.lowercase()
+                            uriHandler.openUri("https://music.apple.com/$code/charts/videos")
+                        }
+                    )
+                }
+            }
+
+            if (suggestionTracks == null && suggestionArtists == null && suggestionAlbums == null && suggestionVideos == null && !isLoading) {
                 item {
                     Box(
                         modifier = Modifier.fillMaxWidth().padding(top = 100.dp),
@@ -147,21 +194,44 @@ fun SuggestionsTabContent(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(modifier = Modifier.height(16.dp))
-                            OutlinedButton(onClick = { viewModel.refresh() }) {
+                            OutlinedButton(onClick = { viewModel.refresh(regionCode, force = true) }) {
                                 Text("Refresh")
                             }
                         }
                     }
                 }
             }
+
+            // Footer at the very bottom
+            if (suggestionTracks != null || suggestionArtists != null || suggestionAlbums != null || suggestionVideos != null) {
+                item {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(top = 48.dp, bottom = 32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Data from Apple Music",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        )
+                        Text(
+                            text = "vivi-music",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
         }
     }
+}
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun TrendingBillboardSection(
-    tracks: List<BillboardTrack>,
-    regionSlug: String,
-    onTrackClick: (BillboardTrack) -> Unit,
+fun TrendingAppleMusicSection(
+    tracks: List<SuggestionTrack>,
+    countryCode: String,
+    onTrackClick: (SuggestionTrack) -> Unit,
     onMoreClick: () -> Unit
 ) {
     if (tracks.isEmpty()) return
@@ -172,12 +242,12 @@ fun TrendingBillboardSection(
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = stringResource(R.string.trending_billboard),
+            text = "Apple Music Top 100",
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(horizontal = 16.dp).padding(top = 32.dp)
         )
         Text(
-            text = com.music.vivi.constants.BillboardRegionSlugToName[regionSlug] ?: "Billboard Hot 100",
+            text = SuggestionRegionSlugToName[countryCode] ?: "Global Charts",
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(horizontal = 16.dp)
         )
@@ -210,7 +280,7 @@ fun TrendingBillboardSection(
                         ) {
                             Icon(painterResource(R.drawable.globe_search), null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
                             Spacer(Modifier.width(12.dp))
-                            Text("View more on Billboard", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                            Text("View more on Apple Music", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                         }
                     } else if (i < displayTracks.size) {
                         val track = displayTracks[i]
@@ -265,14 +335,13 @@ fun TrendingBillboardSection(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TopArtistsSection(
-    artists: List<BillboardArtist>,
-    onArtistClick: (BillboardArtist) -> Unit,
-    onMoreClick: () -> Unit
+    artists: List<SuggestionArtist>,
+    onArtistClick: (SuggestionArtist) -> Unit
 ) {
     if (artists.isEmpty()) return
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = stringResource(R.string.top_artists),
+            text = "Trending Artists",
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(horizontal = 16.dp).padding(top = 16.dp)
         )
@@ -311,20 +380,67 @@ fun TopArtistsSection(
                     Text(playCount, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f), textAlign = TextAlign.Center)
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun TrendingAlbumsSection(
+    albums: List<SuggestionAlbum>,
+    onAlbumClick: (SuggestionAlbum) -> Unit,
+    onMoreClick: () -> Unit
+) {
+    if (albums.isEmpty()) return
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = "Trending Albums",
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(horizontal = 16.dp).padding(top = 16.dp)
+        )
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 16.dp)
+        ) {
+            items(albums) { album ->
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(120.dp).clickable { onAlbumClick(album) }) {
+                    Box(contentAlignment = Alignment.BottomEnd) {
+                        SubcomposeAsyncImage(
+                            model = album.thumbnailUrl,
+                            contentDescription = album.title,
+                            contentScale = ContentScale.Crop,
+                            loading = {
+                                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    LoadingIndicator()
+                                }
+                            },
+                            modifier = Modifier.size(120.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surfaceVariant)
+                        )
+                        Surface(modifier = Modifier.size(28.dp).offset((-4).dp, (-4).dp), shape = CircleShape, color = MaterialTheme.colorScheme.primary, tonalElevation = 4.dp) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(album.rank.toString(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    Text(album.title, style = MaterialTheme.typography.titleSmall, textAlign = TextAlign.Center, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.fillMaxWidth())
+                    Text(album.artist, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.fillMaxWidth())
+                }
+            }
 
             item {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .width(100.dp)
-                        .padding(bottom = 20.dp) // align with text baseline
+                        .padding(bottom = 20.dp)
                         .clickable { onMoreClick() }
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
-                            .size(100.dp)
-                            .clip(CircleShape)
+                            .size(120.dp)
+                            .clip(RoundedCornerShape(12.dp))
                             .background(MaterialTheme.colorScheme.primaryContainer)
                     ) {
                         Icon(
@@ -341,6 +457,117 @@ fun TopArtistsSection(
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TrendingVideosSection(
+    videos: List<SuggestionTrack>,
+    onVideoClick: (SuggestionTrack) -> Unit,
+    onMoreClick: () -> Unit
+) {
+    if (videos.isEmpty()) return
+    
+    val carouselState = rememberCarouselState(itemCount = { videos.size })
+    val context = LocalContext.current
+
+    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Trending Music Videos",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+            
+            Text(
+                text = "More",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.clickable { onMoreClick() }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        HorizontalMultiBrowseCarousel(
+            state = carouselState,
+            preferredItemWidth = 320.dp,
+            itemSpacing = 12.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp)
+        ) { i ->
+            val video = videos[i]
+            var isCardFocused by remember { mutableStateOf(false) }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(16.dp))
+                    .onGloballyPositioned { coordinates ->
+                        val cardCenter = coordinates.boundsInRoot().center.x
+                        val screenWidth = context.resources.displayMetrics.widthPixels
+                        val screenCenter = screenWidth / 2f
+                        isCardFocused = abs(cardCenter - screenCenter) < 150
+                    }
+                    .clickable { onVideoClick(video) }
+            ) {
+                // Background Image (Thumbnail)
+                AsyncImage(
+                    model = video.thumbnailUrl,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+
+
+                // Gradient Overlay
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    Color.Black.copy(alpha = 0.7f)
+                                ),
+                                startY = 300f
+                            )
+                        )
+                )
+
+                // Content
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(12.dp)
+                ) {
+                    Text(
+                        text = video.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = video.artist,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = 0.7f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }

@@ -128,8 +128,27 @@ fun AxionEqScreen(
                 },
                 label = "eqMode",
             ) { currentMode ->
+                val isDirty by viewModel.isDirty.collectAsState()
+                var showSaveDialog by remember { mutableStateOf(false) }
+
+                if (showSaveDialog) {
+                    SavePresetDialog(
+                        onDismiss = { showSaveDialog = false },
+                        onSave = { name ->
+                            viewModel.saveCustomProfile(name)
+                            showSaveDialog = false
+                        }
+                    )
+                }
+
                 when (currentMode) {
-                    0 -> SimpleEqMode(bandGains, enabled, viewModel)
+                    0 -> SimpleEqMode(
+                        bandGains = bandGains,
+                        enabled = enabled,
+                        viewModel = viewModel,
+                        isDirty = isDirty,
+                        onSaveClick = { showSaveDialog = true }
+                    )
                     else -> AdvancedEqMode(
                         bandGains = bandGains,
                         enabled = enabled,
@@ -138,7 +157,7 @@ fun AxionEqScreen(
                         },
                         onReset = {
                             viewModel.reset()
-                        },
+                        }
                     )
                 }
             }
@@ -153,6 +172,8 @@ private fun SimpleEqMode(
     bandGains: FloatArray,
     enabled: Boolean,
     viewModel: AxionEqViewModel,
+    isDirty: Boolean,
+    onSaveClick: () -> Unit
 ) {
     // Ported logic from AxionFx SimpleEqMode
     var bass by remember { mutableFloatStateOf(0f) }
@@ -160,9 +181,10 @@ private fun SimpleEqMode(
     var treble by remember { mutableFloatStateOf(0f) }
 
     fun syncFromBands() {
-        bass = (bandGains[0] + bandGains[1] + bandGains[2]) / 3f / 50f
-        mid = (bandGains[3] + bandGains[4] + bandGains[5] + bandGains[6]) / 4f / 50f
-        treble = (bandGains[7] + bandGains[8] + bandGains[9]) / 3f / 50f
+        // Use more stable inverse mapping to avoid cross-talk drift
+        bass = bandGains[1] / 50f
+        mid = (bandGains[4] + bandGains[5]) / 2f / 50f
+        treble = bandGains[8] / 50f
     }
 
     fun applyTriangle() {
@@ -215,19 +237,7 @@ private fun SimpleEqMode(
     )
 
     val customProfiles by viewModel.customProfiles.collectAsState()
-    val isDirty by viewModel.isDirty.collectAsState()
-    var showSaveDialog by remember { mutableStateOf(false) }
     var showManageDialog by remember { mutableStateOf(false) }
-
-    if (showSaveDialog) {
-        SavePresetDialog(
-            onDismiss = { showSaveDialog = false },
-            onSave = { name ->
-                viewModel.saveCustomProfile(name)
-                showSaveDialog = false
-            }
-        )
-    }
 
     if (showManageDialog) {
         ManagePresetsDialog(
@@ -263,7 +273,7 @@ private fun SimpleEqMode(
             exit = shrinkVertically() + fadeOut()
         ) {
             OutlinedButton(
-                onClick = { showSaveDialog = true },
+                onClick = onSaveClick,
                 modifier = Modifier.padding(bottom = 8.dp),
                 shape = MaterialTheme.shapes.medium,
                 contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp)

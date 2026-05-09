@@ -57,15 +57,16 @@ import com.music.vivi.R
 import com.music.vivi.constants.AppLanguageKey
 import com.music.vivi.constants.ContentCountryKey
 import com.music.vivi.constants.ContentLanguageKey
-import com.music.vivi.constants.BillboardRegionKey
-import com.music.vivi.constants.BillboardRegionSlugToName
-import com.music.vivi.ui.screens.search.suggestions.BillboardSheet
+import com.music.vivi.constants.SuggestionRegionKey
+import com.music.vivi.constants.SuggestionRegionSlugToName
+import com.music.vivi.ui.screens.search.suggestions.SuggestionRegionSheet
 import com.music.vivi.constants.CountryCodeToName
 import com.music.vivi.constants.EnableBetterLyricsKey
 import com.music.vivi.constants.EnableKugouKey
 import com.music.vivi.constants.EnableLrcLibKey
 import com.music.vivi.constants.EnableSimpMusicKey
 import com.music.vivi.constants.EnableYouLyPlusKey
+import com.music.vivi.constants.EnablePaxsenixKey
 import com.music.vivi.constants.HideExplicitKey
 import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.constants.HideYoutubeShortsKey
@@ -98,6 +99,7 @@ import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.innertube.models.IpVersion
 import com.music.vivi.constants.IpVersionKey
+
 import com.music.vivi.utils.PlaybackLogManager
 import com.music.vivi.ui.component.PlaybackLogsDialog
 import androidx.compose.runtime.collectAsState
@@ -117,9 +119,10 @@ fun ContentSettings(
 
     val (contentLanguage, onContentLanguageChange) = rememberPreference(key = ContentLanguageKey, defaultValue = "system")
     val (contentCountry, onContentCountryChange) = rememberPreference(key = ContentCountryKey, defaultValue = "system")
-    val (billboardRegion, onBillboardRegionChange) = rememberPreference(key = BillboardRegionKey, defaultValue = "system")
+    val (suggestionRegion, onSuggestionRegionChange) = rememberPreference(key = SuggestionRegionKey, defaultValue = "system")
     val (hideExplicit, onHideExplicitChange) = rememberPreference(key = HideExplicitKey, defaultValue = false)
     val (hideVideoSongs, onHideVideoSongsChange) = rememberPreference(key = HideVideoSongsKey, defaultValue = false)
+
     val (hideYoutubeShorts, onHideYoutubeShortsChange) = rememberPreference(key = HideYoutubeShortsKey, defaultValue = false)
     val (showArtistDescription, onShowArtistDescriptionChange) = rememberPreference(key = ShowArtistDescriptionKey, defaultValue = true)
     val (showArtistSubscriberCount, onShowArtistSubscriberCountChange) = rememberPreference(key = ShowArtistSubscriberCountKey, defaultValue = true)
@@ -136,6 +139,7 @@ fun ContentSettings(
     val (enableBetterLyrics, onEnableBetterLyricsChange) = rememberPreference(key = EnableBetterLyricsKey, defaultValue = true)
     val (enableSimpMusic, onEnableSimpMusicChange) = rememberPreference(key = EnableSimpMusicKey, defaultValue = true)
     val (enableYouLyPlus, onEnableYouLyPlusChange) = rememberPreference(key = EnableYouLyPlusKey, defaultValue = true)
+    val (enablePaxsenix, onEnablePaxsenixChange) = rememberPreference(key = EnablePaxsenixKey, defaultValue = true)
     val (preferredProvider, onPreferredProviderChange) =
         rememberEnumPreference(
             key = PreferredLyricsProviderKey,
@@ -155,17 +159,18 @@ fun ContentSettings(
     val (albumCanvasEnabled, onAlbumCanvasEnabledChange) = rememberPreference(key = AlbumCanvasEnabledKey, defaultValue = false)
 
     var showPlaybackLogsDialog by rememberSaveable { mutableStateOf(false) }
-    var showBillboardSheet by rememberSaveable { mutableStateOf(false) }
+    var showSuggestionSheet by rememberSaveable { mutableStateOf(false) }
     val playbackLogs by PlaybackLogManager.logs.collectAsState()
 
     // Auto-switch preferred provider if current one is disabled
-    LaunchedEffect(enableLrclib, enableKugou, enableBetterLyrics, enableSimpMusic, enableYouLyPlus, preferredProvider) {
+    LaunchedEffect(enableLrclib, enableKugou, enableBetterLyrics, enableSimpMusic, enableYouLyPlus, enablePaxsenix, preferredProvider) {
         val isPreferredProviderEnabled = when (preferredProvider) {
             PreferredLyricsProvider.LRCLIB -> enableLrclib
             PreferredLyricsProvider.KUGOU -> enableKugou
             PreferredLyricsProvider.BETTER_LYRICS -> enableBetterLyrics
             PreferredLyricsProvider.SIMPMUSIC -> enableSimpMusic
             PreferredLyricsProvider.YOULYPLUS -> enableYouLyPlus
+            PreferredLyricsProvider.PAXSENIX -> enablePaxsenix
         }
         
         if (!isPreferredProviderEnabled) {
@@ -176,6 +181,7 @@ fun ContentSettings(
                     PreferredLyricsProvider.BETTER_LYRICS -> enableBetterLyrics
                     PreferredLyricsProvider.SIMPMUSIC -> enableSimpMusic
                     PreferredLyricsProvider.YOULYPLUS -> enableYouLyPlus
+                    PreferredLyricsProvider.PAXSENIX -> enablePaxsenix
                 }
             }
             firstEnabledProvider?.let { onPreferredProviderChange(it) }
@@ -183,7 +189,7 @@ fun ContentSettings(
     }
 
     // Calculate enabled providers count for UI logic
-    val enabledProvidersCount = listOf(enableLrclib, enableKugou, enableBetterLyrics, enableSimpMusic, enableYouLyPlus).count { it }
+    val enabledProvidersCount = listOf(enableLrclib, enableKugou, enableBetterLyrics, enableSimpMusic, enableYouLyPlus, enablePaxsenix).count { it }
 
     var showProxyConfigurationDialog by rememberSaveable {
         mutableStateOf(false)
@@ -388,6 +394,7 @@ fun ContentSettings(
                     PreferredLyricsProvider.BETTER_LYRICS -> enableBetterLyrics
                     PreferredLyricsProvider.SIMPMUSIC -> enableSimpMusic
                     PreferredLyricsProvider.YOULYPLUS -> enableYouLyPlus
+                    PreferredLyricsProvider.PAXSENIX -> enablePaxsenix
                 }
             },
             valueText = {
@@ -397,6 +404,7 @@ fun ContentSettings(
                     PreferredLyricsProvider.BETTER_LYRICS -> "Better Lyrics"
                     PreferredLyricsProvider.SIMPMUSIC -> "SimpMusic"
                     PreferredLyricsProvider.YOULYPLUS -> "YouLyPlus"
+                    PreferredLyricsProvider.PAXSENIX -> "PaxSenix"
                 }
             }
         )
@@ -495,11 +503,11 @@ fun ContentSettings(
         )
     }
 
-    if (showBillboardSheet) {
-        BillboardSheet(
-            currentRegionSlug = billboardRegion,
-            onRegionSelected = { onBillboardRegionChange(it) },
-            onDismiss = { showBillboardSheet = false }
+    if (showSuggestionSheet) {
+        SuggestionRegionSheet(
+            currentRegionSlug = suggestionRegion,
+            onRegionSelected = { onSuggestionRegionChange(it) },
+            onDismiss = { showSuggestionSheet = false }
         )
     }
 
@@ -534,13 +542,13 @@ fun ContentSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.globe_location_pin),
-                    title = { Text("Billboard Region") },
+                    title = { Text("Suggestions Region") },
                     description = {
                         Text(
-                            BillboardRegionSlugToName.getOrElse(billboardRegion) { "Global 200" }
+                            SuggestionRegionSlugToName.getOrElse(suggestionRegion) { "Global Charts" }
                         )
                     },
-                    onClick = { showBillboardSheet = true }
+                    onClick = { showSuggestionSheet = true }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.explicit),
@@ -582,6 +590,7 @@ fun ContentSettings(
                     },
                     onClick = { onHideVideoSongsChange(!hideVideoSongs) }
                 ),
+
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.hide_image),
                     title = { Text(stringResource(R.string.hide_youtube_shorts)) },
@@ -938,6 +947,27 @@ fun ContentSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
+                    title = { Text("PaxSenix") },
+                    description = { Text("Apple Music quality synced lyrics with syllable-level timing") },
+                    trailingContent = {
+                        Switch(
+                            checked = enablePaxsenix,
+                            onCheckedChange = onEnablePaxsenixChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (enablePaxsenix) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onEnablePaxsenixChange(!enablePaxsenix) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.lyrics),
                     title = { Text(stringResource(R.string.set_first_lyrics_provider)) },
                     description = {
                         Text(
@@ -947,6 +977,7 @@ fun ContentSettings(
                                 PreferredLyricsProvider.BETTER_LYRICS -> "Better Lyrics"
                                 PreferredLyricsProvider.SIMPMUSIC -> "SimpMusic"
                                 PreferredLyricsProvider.YOULYPLUS -> "YouLyPlus"
+                                PreferredLyricsProvider.PAXSENIX -> "PaxSenix"
                             }
                         )
                     },

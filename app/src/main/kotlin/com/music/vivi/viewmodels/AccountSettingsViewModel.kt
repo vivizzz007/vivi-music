@@ -46,17 +46,17 @@ class AccountSettingsViewModel @Inject constructor(
         }
     }
 
-//    /**
-//     * Just logout without clearing library data
-//     */
-//    fun logoutKeepData(context: Context, onCookieChange: (String) -> Unit) {
-//        viewModelScope.launch(Dispatchers.IO) {
-//            App.forgetAccount(context)
-//            withContext(Dispatchers.Main) {
-//                onCookieChange("")
-//            }
-//        }
-//    }
+    /**
+     * Just logout without clearing library data
+     */
+    fun logoutKeepData(context: Context, onCookieChange: (String) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            App.forgetAccount(context)
+            withContext(Dispatchers.Main) {
+                onCookieChange("")
+            }
+        }
+    }
 
     /**
      * Save token credentials atomically to DataStore, then restart the app.

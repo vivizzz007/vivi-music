@@ -67,12 +67,13 @@ const val SYSTEM_DEFAULT = "SYSTEM_DEFAULT"
 val AppLanguageKey = stringPreferencesKey("appLanguage")
 val ContentLanguageKey = stringPreferencesKey("contentLanguage")
 val ContentCountryKey = stringPreferencesKey("contentCountry")
-val BillboardRegionKey = stringPreferencesKey("billboardRegion")
+val SuggestionRegionKey = stringPreferencesKey("suggestionRegion")
 val EnableKugouKey = booleanPreferencesKey("enableKugou")
 val EnableLrcLibKey = booleanPreferencesKey("enableLrclib")
 val EnableBetterLyricsKey = booleanPreferencesKey("enableBetterLyrics")
 val EnableSimpMusicKey = booleanPreferencesKey("enableSimpMusic")
 val EnableYouLyPlusKey = booleanPreferencesKey("enableYouLyPlus")
+val EnablePaxsenixKey = booleanPreferencesKey("enablePaxsenix")
 val HideExplicitKey = booleanPreferencesKey("hideExplicit")
 val HideVideoSongsKey = booleanPreferencesKey("hideVideoSongs")
 val HideYoutubeShortsKey = booleanPreferencesKey("hideYoutubeShorts")
@@ -224,6 +225,8 @@ val ShowDownloadedPlaylistKey = booleanPreferencesKey("show_downloaded_playlist"
 val ShowTopPlaylistKey = booleanPreferencesKey("show_top_playlist")
 val ShowCachedPlaylistKey = booleanPreferencesKey("show_cached_playlist")
 val ShowUploadedPlaylistKey = booleanPreferencesKey("show_uploaded_playlist")
+val ShowAudioQualityBadgeKey = booleanPreferencesKey("show_audio_quality_badge")
+val ShowCommentButtonKey = booleanPreferencesKey("show_comment_button")
 
 enum class LibraryViewType {
     LIST,
@@ -371,6 +374,7 @@ enum class PreferredLyricsProvider {
     BETTER_LYRICS,
     SIMPMUSIC,
     YOULYPLUS,
+    PAXSENIX,
 }
 
 enum class PlayerButtonsStyle {
@@ -384,6 +388,8 @@ enum class PlayerBackgroundStyle {
     GRADIENT,
     BLUR,
     GLOW_ANIMATED,
+    APPLE_MUSIC,
+    LIVE_MESH,
 }
 
 val TopSize = stringPreferencesKey("topSize")
@@ -391,6 +397,7 @@ val HistoryDuration = floatPreferencesKey("historyDuration")
 
 val PlayerButtonsStyleKey = stringPreferencesKey("player_buttons_style")
 val PlayerBackgroundStyleKey = stringPreferencesKey("playerBackgroundStyle")
+val MiniPlayerBackgroundStyleKey = stringPreferencesKey("miniPlayerBackgroundStyle")
 val ShowLyricsKey = booleanPreferencesKey("showLyrics")
 val SwipeLyricsKey = booleanPreferencesKey("swipeLyrics")
 val EnableLyricsThumbnailPlayPauseKey = booleanPreferencesKey("enableLyricsThumbnailPlayPause")
@@ -664,32 +671,46 @@ val CountryCodeToName =
         "ZW" to "Zimbabwe",
     )
 
-val BillboardRegionSlugToName =
+val SuggestionRegionSlugToName =
     mapOf(
         "system" to "System Default",
-        "billboard-global-200" to "Global 200",
-        "billboard-global-excl-us" to "Global Excl. US",
-        "hot-100" to "USA (Hot 100)",
-        "canadian-hot-100" to "Canada",
-        "brazil-songs-hotw" to "Brazil",
-        "mexico-songs-hotw" to "Mexico",
-        "argentina-songs-hotw" to "Argentina",
-        "chile-songs-hotw" to "Chile",
-        "colombia-songs-hotw" to "Colombia",
-        "peru-songs-hotw" to "Peru",
-        "india-songs-hotw" to "India",
-        "japan-hot-100" to "Japan",
-        "south-korea-songs-hotw" to "South Korea",
-        "australia-songs-hotw" to "Australia",
-        "indonesia-songs-hotw" to "Indonesia",
-        "malaysia-songs-hotw" to "Malaysia",
-        "philippines-songs-hotw" to "Philippines",
-        "vietnam-hot-100" to "Vietnam",
-        "u-k-songs-hotw" to "United Kingdom",
-        "germany-songs-hotw" to "Germany",
-        "france-songs-hotw" to "France",
-        "italy-songs-hotw" to "Italy",
-        "spain-songs-hotw" to "Spain",
-        "sweden-songs-hotw" to "Sweden",
-        "south-africa-songs-hotw" to "South Africa"
+        "us" to "Global (USA)",
+        "in" to "India",
+        "gb" to "United Kingdom",
+        "ca" to "Canada",
+        "au" to "Australia",
+        "jp" to "Japan",
+        "kr" to "South Korea",
+        "de" to "Germany",
+        "fr" to "France",
+        "br" to "Brazil",
+        "mx" to "Mexico",
+        "ru" to "Russia",
+        "it" to "Italy",
+        "es" to "Spain",
+        "nl" to "Netherlands",
+        "se" to "Sweden",
+        "no" to "Norway",
+        "dk" to "Denmark",
+        "fi" to "Finland",
+        "pl" to "Poland",
+        "tr" to "Turkey",
+        "za" to "South Africa",
+        "ng" to "Nigeria",
+        "id" to "Indonesia",
+        "my" to "Malaysia",
+        "ph" to "Philippines",
+        "th" to "Thailand",
+        "vn" to "Vietnam",
+        "tw" to "Taiwan",
+        "hk" to "Hong Kong",
+        "sg" to "Singapore",
+        "ar" to "Argentina",
+        "co" to "Colombia",
+        "cl" to "Chile",
+        "pe" to "Peru",
+        "eg" to "Egypt",
+        "sa" to "Saudi Arabia",
+        "ae" to "United Arab Emirates",
+        "il" to "Israel"
     )

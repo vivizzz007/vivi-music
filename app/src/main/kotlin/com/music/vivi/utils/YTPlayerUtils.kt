@@ -133,10 +133,12 @@ object YTPlayerUtils {
         val firstAttempt = resolvePlaybackData(videoId, playlistId, audioQuality, connectivityManager)
         
         if (firstAttempt.isFailure && YouTube.cookie == null) {
-            Timber.tag(TAG).w("Playback failed for guest. Attempting bot detection mitigation...")
+            Timber.tag(TAG).w("Playback failed for guest. Rotating session and retrying...")
             PlaybackLogManager.log(PlaybackLogLevel.BOT, "Playback failed for guest", "Triggering bot detection mitigation (rotating guest session)")
             BotDetectionMitigator.rotateGuestSession()
-            return resolvePlaybackData(videoId, playlistId, audioQuality, connectivityManager)
+            val retryResult = resolvePlaybackData(videoId, playlistId, audioQuality, connectivityManager)
+            retryResult.onSuccess { BotDetectionMitigator.notifyPlaybackSuccess() }
+            return retryResult
         }
         
         firstAttempt.onSuccess { BotDetectionMitigator.notifyPlaybackSuccess() }
@@ -223,9 +225,17 @@ object YTPlayerUtils {
         var usedAgeRestrictedClient: YouTubeClient? = null
         val wasOriginallyAgeRestricted: Boolean
 
-        // Check if MAIN_CLIENT response indicates age-restricted
+        // Check if MAIN_CLIENT response indicates age-restricted.
+        // NOTE: Do NOT include LOGIN_REQUIRED here — ANDROID_VR returns LOGIN_REQUIRED as a
+        // bot-detection / client-not-supported signal, NOT a content age gate. Treating it as
+        // age-restricted incorrectly reroutes every bot-flagged request through WEB_CREATOR
+        // and causes streaming failures for logged-in users.
         val mainStatus = mainPlayerResponse.playabilityStatus.status
-        val isAgeRestrictedFromResponse = mainStatus in listOf("AGE_CHECK_REQUIRED", "AGE_VERIFICATION_REQUIRED", "LOGIN_REQUIRED", "CONTENT_CHECK_REQUIRED")
+        val isAgeRestrictedFromResponse = mainStatus in listOf(
+            "AGE_CHECK_REQUIRED",
+            "AGE_VERIFICATION_REQUIRED",
+            "CONTENT_CHECK_REQUIRED"
+        )
         wasOriginallyAgeRestricted = isAgeRestrictedFromResponse
 
         if (isAgeRestrictedFromResponse && isLoggedIn) {
@@ -258,7 +268,11 @@ object YTPlayerUtils {
 
         // Check current status
         val currentStatus = mainPlayerResponse.playabilityStatus.status
-        var isAgeRestricted = currentStatus in listOf("AGE_CHECK_REQUIRED", "AGE_VERIFICATION_REQUIRED", "LOGIN_REQUIRED", "CONTENT_CHECK_REQUIRED")
+        var isAgeRestricted = currentStatus in listOf(
+            "AGE_CHECK_REQUIRED",
+            "AGE_VERIFICATION_REQUIRED",
+            "CONTENT_CHECK_REQUIRED"
+        )
 
         if (isAgeRestricted) {
             Timber.tag(logTag).d("Content is still age-restricted (status: $currentStatus), will try fallback clients")
