@@ -4,11 +4,18 @@ import com.music.youlyplus.models.LyricsResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.selects.select
 import kotlinx.serialization.json.Json
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * YouLyPlus / LyricsPlus KPoe API client.
@@ -22,8 +29,7 @@ import kotlinx.serialization.json.Json
 object YouLyPlus {
 
     /** Mirror of YouLyPlus extension's KPOE_SERVERS constant. */
-    
-    private val SERVERS = listOf(
+    private val BASE_SERVERS = listOf(
         "https://lyricsplus.prjktla.my.id",       // youly's server
         "https://lyricsplus.atomix.one",          // meow's mirror
         "https://lyricsplus.binimum.org",         // binimum's server
@@ -32,8 +38,25 @@ object YouLyPlus {
         "https://lyrics-plus-backend.vercel.app", // ibra's vercel
     )
 
+    /**
+     * Remembers the last server that returned a valid result so it is tried
+     * first on the next call, giving a fast path on repeated fetches.
+     */
+    private val lastWorkingServer = AtomicReference<String?>(null)
+
+    /** Returns the server list with the last-working server promoted to front. */
+    private val servers: List<String>
+        get() {
+            val lws = lastWorkingServer.get() ?: return BASE_SERVERS
+            return listOf(lws) + BASE_SERVERS.filter { it != lws }
+        }
+
     private val client by lazy {
         HttpClient(OkHttp) {
+            install(HttpTimeout) {
+                connectTimeoutMillis = 3_000
+                requestTimeoutMillis = 8_000
+            }
             install(ContentNegotiation) {
                 json(
                     Json {
@@ -47,9 +70,9 @@ object YouLyPlus {
     }
 
     /**
-     * Fetch lyrics from the first responding server.
-     * Prefers synced lyrics; falls back to plain text if available.
-     * Converts structured KPoe line-arrays to LRC string format.
+     * Fetch lyrics by racing all servers in parallel.
+     * Returns the first non-blank result; records the winning server so future
+     * calls skip the slow ones.
      */
     suspend fun getLyrics(
         title: String,
@@ -59,26 +82,44 @@ object YouLyPlus {
         id: String? = null,
         isrc: String? = null,
     ): Result<String> = runCatching {
-        for (server in SERVERS) {
-            val response = fetchFromServer(server, title, artist, duration, album, id, isrc)
-            if (response != null) {
-                // 1. Check for pre-formatted synced lyrics (LRC)
-                if (!response.syncedLyrics.isNullOrBlank()) return@runCatching response.syncedLyrics
-                
-                // 2. Check for structured lyrics array and convert to LRC
-                val converted = response.lyrics?.convertToLrc()
-                if (!converted.isNullOrBlank()) return@runCatching converted
-                
-                // 3. Fallback to plain lyrics
-                if (!response.plainLyrics.isNullOrBlank()) return@runCatching response.plainLyrics
+        val scope = CoroutineScope(Dispatchers.IO)
+        val jobs = servers.map { server ->
+            server to scope.async {
+                fetchFromServer(server, title, artist, duration, album, id, isrc)
             }
         }
-        throw IllegalStateException("No lyrics found from any YouLyPlus server")
+
+        try {
+            // Poll until one server returns a usable result
+            val remaining = jobs.toMutableList()
+            while (remaining.isNotEmpty()) {
+                val (winServer, winLyrics) = select {
+                    remaining.forEach { (srv, deferred) ->
+                        deferred.onAwait { response -> srv to response }
+                    }
+                }
+                remaining.removeAll { it.first == winServer }
+
+                val lrc = winLyrics?.let { resp ->
+                    resp.syncedLyrics?.takeIf { it.isNotBlank() }
+                        ?: resp.lyrics?.convertToLrc()?.takeIf { it.isNotBlank() }
+                        ?: resp.plainLyrics?.takeIf { it.isNotBlank() }
+                }
+                if (!lrc.isNullOrBlank()) {
+                    lastWorkingServer.set(winServer)
+                    return@runCatching lrc
+                }
+            }
+            throw IllegalStateException("No lyrics found from any YouLyPlus server")
+        } finally {
+            scope.coroutineContext.cancelChildren()
+        }
     }
 
     /**
      * Collect all lyrics options across servers; invokes [callback] for each
-     * distinct non-blank result.
+     * distinct non-blank result. Each server is queried in parallel; callbacks
+     * are delivered as results arrive.
      */
     suspend fun getAllLyrics(
         title: String,
@@ -89,17 +130,30 @@ object YouLyPlus {
         isrc: String? = null,
         callback: (String) -> Unit,
     ) {
-        for (server in SERVERS) {
-            runCatching {
-                val response = fetchFromServer(server, title, artist, duration, album, id, isrc)
-                if (response != null) {
-                    val lrc = response.syncedLyrics?.takeIf { it.isNotBlank() }
-                        ?: response.lyrics?.convertToLrc()?.takeIf { it.isNotBlank() }
-                        ?: response.plainLyrics?.takeIf { it.isNotBlank() }
-                    
-                    lrc?.let(callback)
-                }
+        val scope = CoroutineScope(Dispatchers.IO)
+        val jobs = servers.map { server ->
+            scope.async {
+                runCatching {
+                    val response = fetchFromServer(server, title, artist, duration, album, id, isrc)
+                    if (response != null) {
+                        response.syncedLyrics?.takeIf { it.isNotBlank() }
+                            ?: response.lyrics?.convertToLrc()?.takeIf { it.isNotBlank() }
+                            ?: response.plainLyrics?.takeIf { it.isNotBlank() }
+                    } else null
+                }.getOrNull()
             }
+        }
+        try {
+            val remaining = jobs.toMutableList()
+            while (remaining.isNotEmpty()) {
+                val lrc = select {
+                    remaining.forEach { deferred -> deferred.onAwait { it } }
+                }
+                remaining.removeAll { it.isCompleted }
+                if (!lrc.isNullOrBlank()) callback(lrc)
+            }
+        } finally {
+            scope.coroutineContext.cancelChildren()
         }
     }
 

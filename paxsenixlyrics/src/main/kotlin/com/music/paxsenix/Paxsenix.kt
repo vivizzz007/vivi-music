@@ -15,6 +15,11 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.selects.select
 import kotlinx.serialization.json.Json
 import timber.log.Timber
 import java.util.Locale
@@ -43,8 +48,8 @@ object Paxsenix {
 
             client = HttpClient(CIO) {
                 install(HttpTimeout) {
-                    requestTimeoutMillis = 15000
-                    connectTimeoutMillis = 10000
+                    requestTimeoutMillis = 5_000
+                    connectTimeoutMillis = 4_000
                 }
                 install(ContentNegotiation) {
                     json(
@@ -152,19 +157,39 @@ object Paxsenix {
             throw IllegalStateException("No tracks found on Paxsenix")
         }
 
-        var plainOrLineSyncFallback: String? = null
-        for ((result, score) in allResults.take(10)) {
-            Timber.d("Trying: ${result.displayName} (ID: ${result.id}, score: $score)")
-            val (lrc, hasWordTimings) = fetchLyricsForTrackWithType(result.id)
-            if (lrc.isEmpty()) continue
-            if (hasWordTimings) {
-                return Result.success(lrc)
-            }
-            if (plainOrLineSyncFallback == null) {
-                plainOrLineSyncFallback = lrc
+        // Fetch top candidates in parallel; return the first word-timed result,
+        // or the best plain/line-synced result if none have word timings.
+        val candidates = allResults.take(5)
+        val scope = CoroutineScope(Dispatchers.IO)
+        val jobs = candidates.map { (result, score) ->
+            scope.async {
+                Timber.d("Fetching (parallel): ${result.displayName} (ID: ${result.id}, score: $score)")
+                result to runCatching { fetchLyricsForTrackWithType(result.id) }.getOrDefault("" to false)
             }
         }
-        plainOrLineSyncFallback?.let {
+
+        var plainFallback: String? = null
+        try {
+            val remaining = jobs.toMutableList()
+            while (remaining.isNotEmpty()) {
+                val (_, lrcPair) = select {
+                    remaining.forEach { deferred -> deferred.onAwait { it } }
+                }
+                remaining.removeAll { it.isCompleted }
+                val (lrc, hasWordTimings) = lrcPair
+                if (lrc.isNotEmpty()) {
+                    if (hasWordTimings) {
+                        return Result.success(lrc)
+                    } else if (plainFallback == null) {
+                        plainFallback = lrc
+                    }
+                }
+            }
+        } finally {
+            scope.coroutineContext.cancelChildren()
+        }
+
+        plainFallback?.let {
             Timber.d("Using Paxsenix lyrics without word-level sync")
             return Result.success(it)
         }
@@ -334,17 +359,33 @@ object Paxsenix {
             }
         }
 
-        for ((result, _) in scoredResults.take(3)) {
-            Timber.d("Trying lyrics for: ${result.displayName}")
-            val (lrc, hasWordTimings) = fetchLyricsForTrackWithType(result.id)
-            if (lrc.isNotEmpty()) {
-                if (hasWordTimings) {
-                    callback(lrc)
-                    return
-                } else if (plainFallback == null) {
-                    plainFallback = lrc
+        // Fetch top 3 candidates in parallel; deliver word-timed result first.
+        val candidates = scoredResults.take(3)
+        val scope = CoroutineScope(Dispatchers.IO)
+        val jobs = candidates.map { (result, _) ->
+            scope.async {
+                Timber.d("Fetching (parallel/all): ${result.displayName}")
+                runCatching { fetchLyricsForTrackWithType(result.id) }.getOrDefault("" to false)
+            }
+        }
+        try {
+            val remaining = jobs.toMutableList()
+            while (remaining.isNotEmpty()) {
+                val (lrc, hasWordTimings) = select {
+                    remaining.forEach { deferred -> deferred.onAwait { it } }
+                }
+                remaining.removeAll { it.isCompleted }
+                if (lrc.isNotEmpty()) {
+                    if (hasWordTimings) {
+                        callback(lrc)
+                        return
+                    } else if (plainFallback == null) {
+                        plainFallback = lrc
+                    }
                 }
             }
+        } finally {
+            scope.coroutineContext.cancelChildren()
         }
 
         plainFallback?.let {
