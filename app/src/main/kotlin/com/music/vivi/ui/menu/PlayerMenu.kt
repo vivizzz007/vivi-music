@@ -80,11 +80,14 @@ import com.music.vivi.LocalDownloadUtil
 import com.music.vivi.LocalListenTogetherManager
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
+import com.music.vivi.constants.ExportDirectoryUriKey
+import com.music.vivi.constants.ExportingSongIdsKey
 import com.music.vivi.constants.ListItemHeight
 import com.music.vivi.listentogether.ConnectionState
 import com.music.vivi.listentogether.ListenTogetherEvent
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.playback.ExoDownloadService
+import com.music.vivi.playback.AudioExportService
 import com.music.vivi.ui.component.BottomSheetState
 import com.music.vivi.ui.component.ListDialog
 import com.music.vivi.ui.component.Material3MenuGroup
@@ -131,6 +134,29 @@ fun PlayerMenu(
 
     val download by LocalDownloadUtil.current.getDownload(mediaMetadata.id)
         .collectAsState(initial = null)
+    val (exportDirectoryUri, _) = rememberPreference(
+        key = ExportDirectoryUriKey,
+        defaultValue = "",
+    )
+    val (exportingSongIdsRaw, _) = rememberPreference(
+        key = ExportingSongIdsKey,
+        defaultValue = "",
+    )
+    val isExporting = remember(exportingSongIdsRaw, mediaMetadata.id) {
+        exportingSongIdsRaw
+            .split(',')
+            .any { it.trim() == mediaMetadata.id }
+    }
+    var exportState by remember {
+        mutableStateOf(if (isExporting) "exporting" else "idle")
+    }
+    LaunchedEffect(isExporting) {
+        if (isExporting) {
+            exportState = "exporting"
+        } else if (exportState == "exporting") {
+            exportState = "exported"
+        }
+    }
 
     val artists =
         remember(mediaMetadata.artists) {
@@ -514,6 +540,62 @@ fun PlayerMenu(
                                 }
                             )
                         }
+                    },
+                    if (exportState == "exporting") {
+                        Material3MenuItemData(
+                            title = { Text(text = stringResource(R.string.exporting)) },
+                            icon = {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    strokeWidth = 2.dp
+                                )
+                            },
+                            onClick = {}
+                        )
+                    } else if (exportState == "exported") {
+                        Material3MenuItemData(
+                            title = { Text(text = stringResource(R.string.action_exported)) },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.file_export),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            },
+                            onClick = {}
+                        )
+                    } else {
+                        Material3MenuItemData(
+                            title = { Text(text = stringResource(R.string.action_export)) },
+                            description = { Text(text = stringResource(R.string.export_desc)) },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.file_export),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            },
+                            onClick = {
+                                if (exportDirectoryUri.isBlank()) {
+                                    onDismiss()
+                                    navController.navigate("settings/storage?autoOpenExportPicker=true")
+                                    return@Material3MenuItemData
+                                }
+                                exportState = "exporting"
+                                AudioExportService.start(
+                                    context = context,
+                                    songId = mediaMetadata.id,
+                                    songTitle = mediaMetadata.title,
+                                    songArtist = mediaMetadata.artists.joinToString(", ") { it.name },
+                                    songAlbum = mediaMetadata.album?.title.orEmpty(),
+                                    artworkUrl = mediaMetadata.thumbnailUrl.orEmpty(),
+                                    targetDirectoryUri = exportDirectoryUri,
+                                )
+                                database.transaction {
+                                    insert(mediaMetadata)
+                                }
+                            }
+                        )
                     }
                 )
             )

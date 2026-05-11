@@ -9,6 +9,7 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.music.vivi.constants.ExportedSongIdsKey
 import com.music.vivi.constants.HideExplicitKey
 import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.constants.SongSortDescendingKey
@@ -28,6 +29,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -52,16 +54,20 @@ constructor(
     val likedSongs =
         context.dataStore.data
             .map {
-                Triple(
+                Pair(
                     it[SongSortTypeKey].toEnum(SongSortType.CREATE_DATE) to (it[SongSortDescendingKey]
                         ?: true),
-                    it[HideExplicitKey] ?: false,
-                    it[HideVideoSongsKey] ?: false
+                    Triple(
+                        it[HideExplicitKey] ?: false,
+                        it[HideVideoSongsKey] ?: false,
+                        it[ExportedSongIdsKey].orEmpty(),
+                    ),
                 )
             }
             .distinctUntilChanged()
-            .flatMapLatest { (sortDesc, hideExplicit, hideVideoSongs) ->
+            .flatMapLatest { (sortDesc, options) ->
                 val (sortType, descending) = sortDesc
+                val (hideExplicit, hideVideoSongs, exportedSongIdsRaw) = options
                 when (playlist) {
                     "liked" -> database.likedSongs(sortType, descending)
                         .map { it.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs) }
@@ -71,6 +77,20 @@ constructor(
 
                     "uploaded" -> database.uploadedSongs(sortType, descending)
                         .map { it.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs) }
+
+                    "exported" -> flow {
+                        val exportedIds = exportedSongIdsRaw
+                            .split(',')
+                            .map { id -> id.trim() }
+                            .filter { id -> id.isNotBlank() }
+                        val songsById = if (exportedIds.isEmpty()) {
+                            emptyMap()
+                        } else {
+                            database.getSongsByIds(exportedIds).associateBy { song -> song.id }
+                        }
+                        val ordered = exportedIds.mapNotNull { id -> songsById[id] }
+                        emit(ordered.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs))
+                    }
 
                     else -> kotlinx.coroutines.flow.flowOf(emptyList())
                 }

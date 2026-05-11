@@ -352,8 +352,22 @@ fun NavGraphBuilder.navigationBuilder(
         PlayerSettings(navController, scrollBehavior)
     }
 
-    composable("settings/storage") {
-        StorageSettings(navController, scrollBehavior)
+    composable(
+        route = "settings/storage?autoOpenExportPicker={autoOpenExportPicker}",
+        arguments = listOf(
+            navArgument("autoOpenExportPicker") {
+                type = NavType.BoolType
+                defaultValue = false
+            }
+        )
+    ) { backStackEntry ->
+        val autoOpenExportPicker =
+            backStackEntry.arguments?.getBoolean("autoOpenExportPicker") ?: false
+        StorageSettings(
+            navController = navController,
+            scrollBehavior = scrollBehavior,
+            autoOpenExportPicker = autoOpenExportPicker,
+        )
     }
 
     composable("settings/equalizer") {

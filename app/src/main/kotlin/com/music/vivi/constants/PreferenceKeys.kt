@@ -122,6 +122,9 @@ val CrossfadeGaplessKey = booleanPreferencesKey("crossfadeGapless")
 
 val MaxImageCacheSizeKey = intPreferencesKey("maxImageCacheSize")
 val MaxSongCacheSizeKey = intPreferencesKey("maxSongCacheSize")
+val ExportDirectoryUriKey = stringPreferencesKey("exportDirectoryUri")
+val ExportingSongIdsKey = stringPreferencesKey("exportingSongIds")
+val ExportedSongIdsKey = stringPreferencesKey("exportedSongIds")
 
 val PauseListenHistoryKey = booleanPreferencesKey("pauseListenHistory")
 val PauseSearchHistoryKey = booleanPreferencesKey("pauseSearchHistory")
@@ -244,7 +247,8 @@ enum class SongFilter {
     LIBRARY,
     LIKED,
     DOWNLOADED,
-    UPLOADED
+    UPLOADED,
+    EXPORTED,
 }
 
 enum class ArtistFilter {

@@ -301,5 +301,6 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation(libs.work.runtime.ktx)
     implementation(libs.androidx.core.splashscreen)
+    implementation(libs.ffmpeg.kit.full)
 }
 

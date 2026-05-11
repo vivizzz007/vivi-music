@@ -41,6 +41,7 @@ smoothCorner = "v1.0.0"
 lottie = "6.6.2"
 work = "2.10.0"
 coreSplashscreen = "1.2.0"
+ffmpegKit = "6.0-2"
 
 
 [libraries]
@@ -132,6 +133,7 @@ smoothCorner = { module = "com.github.racra:smooth-corner-rect-android-compose",
 lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottie" }
 work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
+ffmpeg-kit-full = { module = "com.arthenica:ffmpeg-kit-full", version.ref = "ffmpegKit" }
 
 
 [plugins]

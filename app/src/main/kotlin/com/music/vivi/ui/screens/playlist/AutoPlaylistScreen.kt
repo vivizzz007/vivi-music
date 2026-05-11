@@ -29,6 +29,8 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Archive
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -134,6 +136,7 @@ fun AutoPlaylistScreen(
     val playlist = when (viewModel.playlist) {
         "liked" -> stringResource(R.string.liked)
         "uploaded" -> stringResource(R.string.uploaded_playlist)
+        "exported" -> stringResource(R.string.filter_exported)
         else -> stringResource(R.string.offline)
     }
 
@@ -167,6 +170,7 @@ fun AutoPlaylistScreen(
         "liked" -> PlaylistType.LIKE
         "downloaded" -> PlaylistType.DOWNLOAD
         "uploaded" -> PlaylistType.UPLOADED
+        "exported" -> PlaylistType.EXPORTED
         else -> PlaylistType.OTHER
     }
 
@@ -337,6 +341,7 @@ fun AutoPlaylistScreen(
                         item(key = "playlist_header") {
                             AutoPlaylistHeader(
                                 name = playlist,
+                                playlistType = playlistType,
                                 songs = songs!!,
                                 likeLength = likeLength,
                                 downloadState = downloadState,
@@ -594,6 +599,7 @@ fun AutoPlaylistScreen(
 @Composable
 private fun AutoPlaylistHeader(
     name: String,
+    playlistType: PlaylistType,
     songs: List<Song>,
     likeLength: Int,
     downloadState: Int,
@@ -636,12 +642,28 @@ private fun AutoPlaylistHeader(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(horizontal = 32.dp)
         ) {
-            Icon(
-                painter = painterResource(R.drawable.favorite_border),
-                contentDescription = null,
-                modifier = Modifier.size(30.dp),
-                tint = MaterialTheme.colorScheme.onSurface
-            )
+            if (playlistType == PlaylistType.EXPORTED) {
+                Icon(
+                    imageVector = Icons.Rounded.Archive,
+                    contentDescription = null,
+                    modifier = Modifier.size(30.dp),
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            } else {
+                val headerIcon = when (playlistType) {
+                    PlaylistType.LIKE -> R.drawable.favorite_border
+                    PlaylistType.DOWNLOAD -> R.drawable.offline
+                    PlaylistType.UPLOADED -> R.drawable.backup
+                    PlaylistType.OTHER -> R.drawable.queue_music
+                    PlaylistType.EXPORTED -> R.drawable.queue_music
+                }
+                Icon(
+                    painter = painterResource(headerIcon),
+                    contentDescription = null,
+                    modifier = Modifier.size(30.dp),
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
             Spacer(Modifier.width(8.dp))
             Text(
                 text = name,
@@ -853,5 +875,5 @@ private fun AutoPlaylistHeader(
 
 
 enum class PlaylistType {
-    LIKE, DOWNLOAD, UPLOADED, OTHER
+    LIKE, DOWNLOAD, UPLOADED, EXPORTED, OTHER
 }

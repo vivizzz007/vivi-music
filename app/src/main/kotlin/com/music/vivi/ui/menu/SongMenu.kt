@@ -33,6 +33,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -74,6 +75,8 @@ import com.music.vivi.LocalSyncUtils
 import com.music.vivi.R
 import com.music.vivi.constants.ListItemHeight
 import com.music.vivi.constants.ListThumbnailSize
+import com.music.vivi.constants.ExportDirectoryUriKey
+import com.music.vivi.constants.ExportingSongIdsKey
 import com.music.vivi.db.entities.ArtistEntity
 import com.music.vivi.db.entities.Event
 import com.music.vivi.db.entities.SpeedDialItem
@@ -82,6 +85,7 @@ import com.music.vivi.db.entities.Song
 import com.music.vivi.extensions.toMediaItem
 import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.playback.ExoDownloadService
+import com.music.vivi.playback.AudioExportService
 import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.ui.component.ListDialog
 import com.music.vivi.ui.component.LocalBottomSheetPageState
@@ -92,6 +96,7 @@ import com.music.vivi.ui.component.NewActionGrid
 import com.music.vivi.ui.component.SongListItem
 import com.music.vivi.ui.component.TextFieldDialog
 import com.music.vivi.utils.listItemShape
+import com.music.vivi.utils.rememberPreference
 import com.music.vivi.ui.utils.ShowMediaInfo
 import com.music.vivi.viewmodels.CachePlaylistViewModel
 import kotlinx.coroutines.Dispatchers
@@ -130,6 +135,29 @@ fun SongMenu(
     )
 
     val isPinned by database.speedDialDao.isPinned(song.id).collectAsState(initial = false)
+    val (exportDirectoryUri, _) = rememberPreference(
+        key = ExportDirectoryUriKey,
+        defaultValue = "",
+    )
+    val (exportingSongIdsRaw, _) = rememberPreference(
+        key = ExportingSongIdsKey,
+        defaultValue = "",
+    )
+    val isExporting = remember(exportingSongIdsRaw, song.id) {
+        exportingSongIdsRaw
+            .split(',')
+            .any { it.trim() == song.id }
+    }
+    var exportState by remember {
+        mutableStateOf(if (isExporting) "exporting" else "idle")
+    }
+    LaunchedEffect(isExporting) {
+        if (isExporting) {
+            exportState = "exporting"
+        } else if (exportState == "exporting") {
+            exportState = "exported"
+        }
+    }
 
     val orderedArtists by produceState(initialValue = emptyList<ArtistEntity>(), song) {
         withContext(Dispatchers.IO) {
@@ -696,6 +724,60 @@ fun SongMenu(
                                 }
                             )
                         }
+                    },
+                    if (exportState == "exporting") {
+                        Material3MenuItemData(
+                            title = { Text(text = stringResource(R.string.exporting)) },
+                            icon = {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    strokeWidth = 2.dp,
+                                )
+                            },
+                            onClick = {},
+                        )
+                    } else if (exportState == "exported") {
+                        Material3MenuItemData(
+                            title = { Text(text = stringResource(R.string.action_exported)) },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.file_export),
+                                    contentDescription = null,
+                                )
+                            },
+                            onClick = {},
+                        )
+                    } else {
+                        Material3MenuItemData(
+                            title = { Text(text = stringResource(R.string.action_export)) },
+                            description = { Text(text = stringResource(R.string.export_desc)) },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.file_export),
+                                    contentDescription = null,
+                                )
+                            },
+                            onClick = {
+                                if (exportDirectoryUri.isBlank()) {
+                                    onDismiss()
+                                    navController.navigate("settings/storage?autoOpenExportPicker=true")
+                                    return@Material3MenuItemData
+                                }
+                                exportState = "exporting"
+                                AudioExportService.start(
+                                    context = context,
+                                    songId = song.id,
+                                    songTitle = song.song.title,
+                                    songArtist = song.artists.joinToString(", ") { it.name },
+                                    songAlbum = song.song.albumName.orEmpty(),
+                                    artworkUrl = song.thumbnailUrl ?: song.song.thumbnailUrl.orEmpty(),
+                                    targetDirectoryUri = exportDirectoryUri,
+                                )
+                                database.transaction {
+                                    insert(song.toMediaMetadata())
+                                }
+                            }
+                        )
                     }
                 )
             )

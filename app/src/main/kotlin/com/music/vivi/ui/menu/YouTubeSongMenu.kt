@@ -33,6 +33,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -68,12 +69,15 @@ import com.music.vivi.R
 import com.music.vivi.constants.ListItemHeight
 import com.music.vivi.constants.ListThumbnailSize
 import com.music.vivi.constants.ThumbnailCornerRadius
+import com.music.vivi.constants.ExportDirectoryUriKey
+import com.music.vivi.constants.ExportingSongIdsKey
 import com.music.vivi.db.entities.SpeedDialItem
 import com.music.vivi.db.entities.SongEntity
 import com.music.vivi.extensions.toMediaItem
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.playback.ExoDownloadService
+import com.music.vivi.playback.AudioExportService
 import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.ui.component.ListDialog
 import com.music.vivi.ui.component.LocalBottomSheetPageState
@@ -85,9 +89,11 @@ import com.music.vivi.ui.utils.ShowMediaInfo
 import com.music.vivi.ui.utils.resize
 import com.music.vivi.utils.joinByBullet
 import com.music.vivi.utils.makeTimeString
+import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 
 @SuppressLint("MutableCollectionMutableState")
@@ -107,8 +113,40 @@ fun YouTubeSongMenu(
     val syncUtils = LocalSyncUtils.current
     val listenTogetherManager = LocalListenTogetherManager.current
     val isPinned by database.speedDialDao.isPinned(song.id).collectAsState(initial = false)
-    val artists = remember {
-        song.artists.mapNotNull {
+    val (exportDirectoryUri, _) = rememberPreference(
+        key = ExportDirectoryUriKey,
+        defaultValue = "",
+    )
+    val (exportingSongIdsRaw, _) = rememberPreference(
+        key = ExportingSongIdsKey,
+        defaultValue = "",
+    )
+    val isExporting = remember(exportingSongIdsRaw, song.id) {
+        exportingSongIdsRaw
+            .split(',')
+            .any { it.trim() == song.id }
+    }
+    var exportState by remember {
+        mutableStateOf(if (isExporting) "exporting" else "idle")
+    }
+    LaunchedEffect(isExporting) {
+        if (isExporting) {
+            exportState = "exporting"
+        } else if (exportState == "exporting") {
+            exportState = "exported"
+        }
+    }
+    var enrichedSong by remember(song.id) { mutableStateOf<SongItem?>(null) }
+    val menuSong = enrichedSong ?: song
+    LaunchedEffect(song.id) {
+        if (song.album == null) {
+            enrichedSong = withContext(Dispatchers.IO) {
+                YouTube.queue(listOf(song.id)).getOrNull()?.firstOrNull()
+            }
+        }
+    }
+    val artists = remember(menuSong) {
+        menuSong.artists.mapNotNull {
             it.id?.let { artistId ->
                 MediaMetadata.Artist(id = artistId, name = it.name)
             }
@@ -552,6 +590,60 @@ fun YouTubeSongMenu(
                                 }
                             )
                         }
+                    },
+                    if (exportState == "exporting") {
+                        Material3MenuItemData(
+                            title = { Text(text = stringResource(R.string.exporting)) },
+                            icon = {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    strokeWidth = 2.dp
+                                )
+                            },
+                            onClick = {}
+                        )
+                    } else if (exportState == "exported") {
+                        Material3MenuItemData(
+                            title = { Text(text = stringResource(R.string.action_exported)) },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.file_export),
+                                    contentDescription = null,
+                                )
+                            },
+                            onClick = {}
+                        )
+                    } else {
+                        Material3MenuItemData(
+                            title = { Text(text = stringResource(R.string.action_export)) },
+                            description = { Text(text = stringResource(R.string.export_desc)) },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.file_export),
+                                    contentDescription = null,
+                                )
+                            },
+                            onClick = {
+                                if (exportDirectoryUri.isBlank()) {
+                                    onDismiss()
+                                    navController.navigate("settings/storage?autoOpenExportPicker=true")
+                                    return@Material3MenuItemData
+                                }
+                                exportState = "exporting"
+                                AudioExportService.start(
+                                    context = context,
+                                    songId = menuSong.id,
+                                    songTitle = menuSong.title,
+                                    songArtist = menuSong.artists.joinToString(", ") { it.name },
+                                    songAlbum = menuSong.album?.name.orEmpty(),
+                                    artworkUrl = menuSong.thumbnail,
+                                    targetDirectoryUri = exportDirectoryUri,
+                                )
+                                database.transaction {
+                                    insert(menuSong.toMediaMetadata())
+                                }
+                            }
+                        )
                     }
                 )
             )
@@ -566,7 +658,7 @@ fun YouTubeSongMenu(
                         add(
                             Material3MenuItemData(
                                 title = { Text(text = stringResource(R.string.view_artist)) },
-                                description = { Text(text = song.artists.joinToString { it.name }) },
+                                description = { Text(text = menuSong.artists.joinToString { it.name }) },
                                 icon = {
                                     Icon(
                                         painter = painterResource(R.drawable.artist),
@@ -584,7 +676,7 @@ fun YouTubeSongMenu(
                             )
                         )
                     }
-                    song.album?.let { album ->
+                    menuSong.album?.let { album ->
                         add(
                             Material3MenuItemData(
                                 title = { Text(text = stringResource(R.string.view_album)) },

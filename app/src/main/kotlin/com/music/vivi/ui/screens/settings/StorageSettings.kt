@@ -5,6 +5,9 @@
 
 package com.music.vivi.ui.screens.settings
 
+import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -50,6 +53,7 @@ import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.MaxImageCacheSizeKey
 import com.music.vivi.constants.MaxSongCacheSizeKey
+import com.music.vivi.constants.ExportDirectoryUriKey
 import com.music.vivi.extensions.tryOrNull
 import com.music.vivi.ui.component.ActionPromptDialog
 import com.music.vivi.ui.component.IconButton
@@ -71,6 +75,7 @@ import kotlin.math.roundToInt
 fun StorageSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    autoOpenExportPicker: Boolean = false,
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current
@@ -89,6 +94,27 @@ fun StorageSettings(
         key = MaxSongCacheSizeKey,
         defaultValue = 1024
     )
+    val (exportDirectoryUri, onExportDirectoryUriChange) = rememberPreference(
+        key = ExportDirectoryUriKey,
+        defaultValue = "",
+    )
+    val exportDirectoryLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+            if (uri != null) {
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
+                )
+                onExportDirectoryUriChange(uri.toString())
+            }
+        }
+    var exportPickerAutoOpened by remember { mutableStateOf(false) }
+    LaunchedEffect(autoOpenExportPicker) {
+        if (autoOpenExportPicker && !exportPickerAutoOpened) {
+            exportPickerAutoOpened = true
+            exportDirectoryLauncher.launch(null)
+        }
+    }
 
     var clearDownloads by remember { mutableStateOf(false) }
     var clearCacheDialog by remember { mutableStateOf(false) }
@@ -303,6 +329,21 @@ fun StorageSettings(
                     onClick = {
                         clearDownloads = true
                     }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.folder_managed),
+                    title = { Text(stringResource(R.string.export_directory)) },
+                    description = {
+                        Text(
+                            text =
+                                if (exportDirectoryUri.isBlank()) {
+                                    stringResource(R.string.not_set)
+                                } else {
+                                    exportDirectoryUri
+                                }
+                        )
+                    },
+                    onClick = { exportDirectoryLauncher.launch(null) }
                 )
             )
         )
