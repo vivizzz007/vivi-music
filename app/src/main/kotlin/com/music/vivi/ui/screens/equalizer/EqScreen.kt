@@ -46,6 +46,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.music.vivi.LocalPlayerConnection
@@ -59,6 +60,7 @@ import timber.log.Timber
 @SuppressLint("LocalContextGetResourceValueCall")
 @Composable
 fun EqScreen(
+    navController: NavController? = null,
     viewModel: EQViewModel = hiltViewModel(),
     playbackState: PlaybackState? = null
 ) {
@@ -146,6 +148,9 @@ fun EqScreen(
                 }
             }
         },
+        onNavigateToAxion = {
+            navController?.navigate("settings/equalizer")
+        },
         onDeleteProfile = { viewModel.deleteProfile(it) }
     )
 
@@ -194,6 +199,7 @@ private fun EqScreenContent(
     onProfileSelected: (String?) -> Unit,
     onImportCustomEQ: () -> Unit,
     onOpenSystemEqualizer: () -> Unit,
+    onNavigateToAxion: () -> Unit,
     onDeleteProfile: (String) -> Unit
 ) {
     Surface(
@@ -230,6 +236,12 @@ private fun EqScreenContent(
                     )
                 }
                 Row {
+                    IconButton(onClick = onNavigateToAxion) {
+                        Icon(
+                            painter = painterResource(R.drawable.tune),
+                            contentDescription = stringResource(R.string.vivi_equalizer)
+                        )
+                    }
                     IconButton(onClick = onImportCustomEQ) {
                         Icon(
                             painter = painterResource(R.drawable.add),

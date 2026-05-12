@@ -405,7 +405,7 @@ fun NavGraphBuilder.navigationBuilder(
     }
 
     dialog("equalizer") {
-        EqScreen()
+        EqScreen(navController = navController)
     }
 
     composable("recognition") {
