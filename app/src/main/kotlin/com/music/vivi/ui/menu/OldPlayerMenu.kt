@@ -3,8 +3,11 @@ package com.music.vivi.ui.menu
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -13,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
@@ -23,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -60,6 +65,7 @@ import com.music.vivi.ui.component.Material3MenuGroup
 import com.music.vivi.ui.component.Material3MenuItemData
 import com.music.vivi.ui.component.NewAction
 import com.music.vivi.ui.component.NewActionGrid
+import com.music.vivi.ui.component.VolumeSlider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -76,6 +82,19 @@ fun OldPlayerMenu(
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val coroutineScope = rememberCoroutineScope()
+    val playerVolume = playerConnection.service.playerVolume.collectAsState()
+
+    // Cast state for volume control
+    val castHandler = remember(playerConnection) {
+        try {
+            playerConnection.service.castConnectionHandler
+        } catch (e: Exception) {
+            null
+        }
+    }
+    val isCasting by castHandler?.isCasting?.collectAsState() ?: remember { mutableStateOf(false) }
+    val castVolume by castHandler?.castVolume?.collectAsState() ?: remember { mutableFloatStateOf(1f) }
+    val castDeviceName by castHandler?.castDeviceName?.collectAsState() ?: remember { mutableStateOf<String?>(null) }
 
     val download by LocalDownloadUtil.current.getDownload(mediaMetadata.id).collectAsState(initial = null)
 
@@ -148,10 +167,60 @@ fun OldPlayerMenu(
         TempoPitchDialog(onDismiss = { showPitchTempoDialog = false })
     }
 
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .padding(top = 24.dp, bottom = 6.dp),
+    ) {
+        // Show Cast indicator when casting
+        if (isCasting && castDeviceName != null) {
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.cast),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = stringResource(R.string.casting_to, castDeviceName ?: ""),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+
+        VolumeSlider(
+            value = if (isCasting) castVolume else playerVolume.value,
+            onValueChange = { volume ->
+                if (isCasting) {
+                    castHandler?.setVolume(volume)
+                } else {
+                    playerConnection.service.playerVolume.value = volume
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            accentColor = MaterialTheme.colorScheme.primary
+        )
+    }
+
+    Spacer(modifier = Modifier.height(20.dp))
+
+    HorizontalDivider()
+
+    Spacer(modifier = Modifier.height(12.dp))
+
     LazyColumn(
         contentPadding = PaddingValues(
             start = 0.dp,
-            top = 16.dp, 
+            top = 0.dp,
             end = 0.dp,
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding(),
         ),
