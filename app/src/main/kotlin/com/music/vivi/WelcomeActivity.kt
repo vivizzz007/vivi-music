@@ -66,6 +66,7 @@ import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.HighQuality
 import androidx.compose.material.icons.rounded.Lyrics
 import androidx.compose.material.icons.rounded.Gavel
+import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.Terminal
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -96,8 +97,11 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.ExperimentalTextApi
@@ -119,6 +123,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import com.music.vivi.constants.IsFirstRunKey
 import com.music.vivi.ui.theme.vivimusicTheme
+import com.music.vivi.ui.utils.safeOpenUri
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.get
 import kotlinx.coroutines.flow.first
@@ -188,6 +193,7 @@ val GoogleSansFlex = FontFamily(
 @Composable
 fun WelcomePagerScreen(onFinished: () -> Unit) {
     val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
     val scope = rememberCoroutineScope()
     val commonAnimSpec = tween<Float>(durationMillis = 200, easing = FastOutSlowInEasing)
 
@@ -294,13 +300,32 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                     )
                     
                     val flavorSuffix = if (BuildConfig.FLAVOR.contains("gms", ignoreCase = true)) "Gms Edition" else "Foss Edition"
-                    Text(
-                        text = flavorSuffix,
-                        fontFamily = GoogleSansFlex,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.secondary,
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(start = 2.dp)
-                    )
+                    ) {
+                        Text(
+                            text = flavorSuffix,
+                            fontFamily = GoogleSansFlex,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
+                        ) {
+                            Text(
+                                text = "v${BuildConfig.VERSION_NAME}",
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        }
+                    }
 
                     Spacer(modifier = Modifier.weight(1f))
 
@@ -366,7 +391,7 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                             .verticalScroll(rememberScrollState())
                     ) {
                         PermissionCard(
-                            icon = Icons.Rounded.Notifications,
+                            icon = rememberVectorPainter(Icons.Rounded.Notifications),
                             iconColor = Color(0xFFffaee4),
                             iconTint = Color(0xFF8d0053),
                             title = stringResource(com.music.vivi.R.string.perm_notif_title),
@@ -422,7 +447,7 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                             Spacer(modifier = Modifier.height(2.dp))
 
                             PermissionCard(
-                                icon = Icons.Rounded.SystemUpdate,
+                                icon = rememberVectorPainter(Icons.Rounded.SystemUpdate),
                                 iconColor = Color(0xFFffb683),
                                 iconTint = Color(0xFF753403),
                                 title = stringResource(com.music.vivi.R.string.perm_install_title),
@@ -446,6 +471,132 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                                 }
                             )
                         }
+
+                        Spacer(modifier = Modifier.height(100.dp))
+                    }
+                }
+            }
+        ),
+        OnboardingPageInfo(
+            content = { _ ->
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Spacer(modifier = Modifier.height(80.dp))
+
+                    Text(
+                        text = "Join our",
+                        style = thinHeaderStyle,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Text(
+                        text = "Community",
+                        fontFamily = GoogleSansFlex,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 48.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                        lineHeight = 56.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text = "ViviMusic is open-source and depends on community support to grow. Your help makes a difference!",
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            fontFamily = GoogleSansFlex
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        PermissionCard(
+                            icon = rememberVectorPainter(Icons.Rounded.Star),
+                            iconColor = Color(0xFFfff1a8),
+                            iconTint = Color(0xFF8d6e00),
+                            title = "Star on GitHub",
+                            description = "Help us reach more people by starring our repository.",
+                            shape = topCardShape,
+                            control = {
+                                Icon(
+                                    imageVector = Icons.Rounded.ChevronRight,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
+                            onClick = {
+                                uriHandler.safeOpenUri(context, "https://github.com/vivizzz007/vivi-music")
+                            }
+                        )
+
+                        Spacer(modifier = Modifier.height(2.dp))
+
+                        PermissionCard(
+                            icon = painterResource(com.music.vivi.R.drawable.telegram),
+                            iconColor = Color(0xFF67d4ff),
+                            iconTint = Color(0xFF004e5d),
+                            title = "Join Telegram",
+                            description = "Get the latest updates and chat with the community.",
+                            shape = middleCardShape,
+                            control = {
+                                Icon(
+                                    imageVector = Icons.Rounded.ChevronRight,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
+                            onClick = {
+                                uriHandler.safeOpenUri(context, "https://t.me/vivimusicapp")
+                            }
+                        )
+
+                        Spacer(modifier = Modifier.height(2.dp))
+
+                        PermissionCard(
+                            icon = painterResource(com.music.vivi.R.drawable.currency_rupee_upi),
+                            iconColor = Color(0xFFffb4ab),
+                            iconTint = Color(0xFF690005),
+                            title = "Support via UPI",
+                            description = "Directly support development via UPI.",
+                            shape = middleCardShape,
+                            control = {
+                                Icon(
+                                    imageVector = Icons.Rounded.ChevronRight,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
+                            onClick = {
+                                uriHandler.safeOpenUri(context, "upi://pay?pa=vividhpashokan@axl&pn=Vividh P Ashokan")
+                            }
+                        )
+
+                        Spacer(modifier = Modifier.height(2.dp))
+
+                        PermissionCard(
+                            icon = painterResource(com.music.vivi.R.drawable.buymeacoffee),
+                            iconColor = Color(0xFFffb4ab),
+                            iconTint = Color(0xFF690005),
+                            title = "Buy Me a Coffee",
+                            description = "Support the project through Ko-fi.",
+                            shape = bottomCardShape,
+                            control = {
+                                Icon(
+                                    imageVector = Icons.Rounded.ChevronRight,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
+                            onClick = {
+                                uriHandler.safeOpenUri(context, "https://ko-fi.com/vividhpashokan")
+                            }
+                        )
 
                         Spacer(modifier = Modifier.height(100.dp))
                     }
@@ -506,7 +657,7 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                                 .verticalScroll(scrollState)
                         ) {
                             FeatureCard(
-                                icon = Icons.Rounded.Lyrics,
+                                icon = rememberVectorPainter(Icons.Rounded.Lyrics),
                                 iconColor = Color(0xFFffaee4),
                                 iconTint = Color(0xFF8d0053),
                                 title = stringResource(com.music.vivi.R.string.feat_lyrics_title),
@@ -517,7 +668,7 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                             Spacer(modifier = Modifier.height(2.dp))
 
                             FeatureCard(
-                                icon = Icons.Rounded.CloudDownload,
+                                icon = rememberVectorPainter(Icons.Rounded.CloudDownload),
                                 iconColor = Color(0xFF80da88),
                                 iconTint = Color(0xFF00522c),
                                 shape = middleCardShape,
@@ -528,7 +679,7 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                             Spacer(modifier = Modifier.height(2.dp))
 
                             FeatureCard(
-                                icon = Icons.Rounded.HighQuality,
+                                icon = rememberVectorPainter(Icons.Rounded.HighQuality),
                                 iconColor = Color(0xFFffb683),
                                 iconTint = Color(0xFF753403),
                                 title = stringResource(com.music.vivi.R.string.feat_quality_title),
@@ -540,7 +691,7 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                                 Spacer(modifier = Modifier.height(2.dp))
 
                                 FeatureCard(
-                                    icon = Icons.Rounded.SystemUpdate,
+                                    icon = rememberVectorPainter(Icons.Rounded.SystemUpdate),
                                     iconColor = Color(0xFF67d4ff),
                                     iconTint = Color(0xFF004e5d),
                                     title = stringResource(com.music.vivi.R.string.feat_update_title),
@@ -552,7 +703,7 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                             Spacer(modifier = Modifier.height(2.dp))
 
                             FeatureCard(
-                                icon = Icons.Rounded.Gavel,
+                                icon = rememberVectorPainter(Icons.Rounded.Gavel),
                                 iconColor = Color(0xFFb6c6ed),
                                 iconTint = Color(0xFF001b3f),
                                 title = stringResource(com.music.vivi.R.string.feat_license_title),
@@ -563,7 +714,7 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                             Spacer(modifier = Modifier.height(2.dp))
 
                             FeatureCard(
-                                icon = Icons.Rounded.Terminal,
+                                icon = rememberVectorPainter(Icons.Rounded.Terminal),
                                 iconColor = Color(0xFFcabeff),
                                 iconTint = Color(0xFF1c0062),
                                 title = stringResource(com.music.vivi.R.string.feat_github_title),
@@ -572,33 +723,6 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                             )
 
                             Spacer(modifier = Modifier.height(100.dp))
-                        }
-
-                        this@Column.AnimatedVisibility(
-                            visible = scrollState.canScrollForward,
-                            modifier = Modifier
-                                .align(Alignment.BottomCenter)
-                                .padding(bottom = 8.dp),
-                            enter = fadeIn() + scaleIn(),
-                            exit = fadeOut() + scaleOut()
-                        ) {
-                            LargeFloatingActionButton(
-                                onClick = {
-                                    scope.launch {
-                                        scrollState.animateScrollTo(scrollState.maxValue)
-                                    }
-                                },
-                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                shape = RoundedCornerShape(16.dp),
-                                modifier = Modifier.size(56.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Rounded.KeyboardArrowDown,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(28.dp)
-                                )
-                            }
                         }
                     }
                 }
@@ -775,7 +899,7 @@ fun RotatingShapeContainer(modifier: Modifier = Modifier) {
 
 @Composable
 fun PermissionCard(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: Painter,
     iconColor: Color,
     iconTint: Color,
     title: String,
@@ -864,7 +988,7 @@ fun PermissionCard(
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
-                            imageVector = icon,
+                            painter = icon,
                             contentDescription = null,
                             tint = iconTint,
                             modifier = Modifier.size(24.dp)
@@ -880,7 +1004,7 @@ fun PermissionCard(
 
 @Composable
 fun FeatureCard(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: Painter,
     iconColor: Color,
     iconTint: Color,
     title: String,
@@ -918,7 +1042,7 @@ fun FeatureCard(
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
-                            imageVector = icon,
+                            painter = icon,
                             contentDescription = null,
                             tint = iconTint,
                             modifier = Modifier.size(24.dp)
@@ -951,12 +1075,12 @@ fun WelcomeExpressiveButton(
     Surface(
         onClick = onClick,
         modifier = modifier
-            .clip(RoundedCornerShape(20.dp))
+            .clip(CircleShape)
             .then(if (isPressed) Modifier.rotate(0f) else Modifier), // placeholder for scale
         color = containerColor,
         contentColor = contentColor,
         border = if (isOutlined) androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)) else null,
-        shape = RoundedCornerShape(20.dp),
+        shape = CircleShape,
         interactionSource = interactionSource
     ) {
         Box(
