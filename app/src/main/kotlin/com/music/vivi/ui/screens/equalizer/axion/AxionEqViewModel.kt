@@ -154,7 +154,7 @@ class AxionEqViewModel @Inject constructor(
                 deviceModel = "ViviEqualizer",
                 bands = bands,
                 preamp = 0.0,
-                isCustom = true,
+                isCustom = false,
                 isActive = true
             )
             
