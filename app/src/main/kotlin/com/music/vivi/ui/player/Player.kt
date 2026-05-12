@@ -218,7 +218,28 @@ import kotlinx.coroutines.withContext
 import kotlin.math.max
 import kotlin.math.roundToInt
 import com.music.vivi.ui.component.Icon as MIcon
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
+import androidx.media3.exoplayer.DefaultLoadControl
+import android.view.TextureView
+import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.AspectRatioFrameLayout
+import androidx.media3.ui.PlayerView
+import com.music.vivi.applecanvas.AppleMusicCanvasProvider
+import com.music.vivi.canvas.CanvasArtwork
+import com.music.vivi.canvas.MonochromeApiCanvas
+import com.music.vivi.constants.CanvasThumbnailAnimationKey
+import com.music.vivi.extensions.metadata
+import com.music.vivi.ui.player.CanvasArtworkPlaybackCache
+import com.music.vivi.ui.player.normalizeCanvasArtistName
+import com.music.vivi.ui.player.normalizeCanvasSongTitle
+import com.music.vivi.vivimusiccanvas.ViviMusicCanvasProvider
+import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun BottomSheetPlayer(
@@ -258,6 +279,8 @@ fun BottomSheetPlayer(
     val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
         if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
     }
+
+    val enableCanvas by rememberPreference(CanvasThumbnailAnimationKey, true)
 
     val shouldUseDarkButtonColors = remember(playerBackground, useDarkTheme) {
         when (playerBackground) {
@@ -521,6 +544,61 @@ fun BottomSheetPlayer(
         },
         label = "icBackgroundColor"
     )
+
+    var canvasArtwork by remember(mediaMetadata?.id) { mutableStateOf<CanvasArtwork?>(null) }
+    var canvasFetchInFlight by remember(mediaMetadata?.id) { mutableStateOf(false) }
+
+    LaunchedEffect(mediaMetadata?.id, playerBackground) {
+        if (playerBackground != PlayerBackgroundStyle.APPLE_MUSIC || !enableCanvas) {
+            canvasArtwork = null
+            return@LaunchedEffect
+        }
+        val item = mediaMetadata ?: return@LaunchedEffect
+        
+        // Use cached artwork if available
+        CanvasArtworkPlaybackCache.get(item.id)?.let { cached ->
+            canvasArtwork = cached
+            return@LaunchedEffect
+        }
+
+        if (canvasFetchInFlight) return@LaunchedEffect
+        canvasFetchInFlight = true
+        
+        withContext(Dispatchers.IO) {
+            val storefront = Locale.getDefault().country.lowercase(Locale.ROOT).takeIf { it.length == 2 } ?: "us"
+            val requestedTitle = item.title
+            val requestedArtist = item.artists.joinToString { it.name }
+            val requestedAlbum = item.album?.title ?: ""
+            
+            val s = normalizeCanvasSongTitle(requestedTitle)
+            val a = normalizeCanvasArtistName(requestedArtist)
+            
+            val fetched = ViviMusicCanvasProvider.getBySongArtist(s, a)
+                ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                ?: MonochromeApiCanvas.getBySongArtist(s, a, requestedAlbum)
+                ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                ?: AppleMusicCanvasProvider.getBySongArtist(s, a, requestedAlbum, storefront)
+                ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+
+            val validated = fetched?.let { artwork ->
+                val resultArtist = artwork.artist
+                val artistMatches = if (resultArtist != null && requestedArtist.isNotBlank()) {
+                    resultArtist.contains(requestedArtist, ignoreCase = true) ||
+                    requestedArtist.contains(resultArtist, ignoreCase = true)
+                } else true
+                
+                if (artistMatches) artwork else null
+            }
+
+            withContext(Dispatchers.Main) {
+                canvasArtwork = validated
+                if (validated != null) {
+                    CanvasArtworkPlaybackCache.put(item.id, validated)
+                }
+                canvasFetchInFlight = false
+            }
+        }
+    }
 
     val (textButtonColor, iconButtonColor) = when {
         playerBackground == PlayerBackgroundStyle.BLUR || 
@@ -1039,13 +1117,7 @@ fun BottomSheetPlayer(
                                         label = "clearArtworkAlpha"
                                     )
                                     
-                                    AsyncImage(
-                                        model = ImageRequest.Builder(context)
-                                            .data(thumbnailUrl)
-                                            .size(CoilSize.ORIGINAL)
-                                            .build(),
-                                        contentDescription = null,
-                                        contentScale = ContentScale.Crop,
+                                    Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .fillMaxHeight(0.65f) // Occupies top 65%
@@ -1056,14 +1128,35 @@ fun BottomSheetPlayer(
                                                 // Fade the bottom edge of the clear box for a cloudy blend
                                                 drawRect(
                                                     brush = Brush.verticalGradient(
-                                                        0f to Color.Black,
-                                                        0.7f to Color.Black,
-                                                        1.0f to Color.Transparent
+                                                        colorStops = arrayOf(
+                                                            0.00f to Color.Black,
+                                                            0.75f to Color.Black,
+                                                            0.92f to Color.Black.copy(alpha = 0.4f),
+                                                            1.00f to Color.Transparent,
+                                                        )
                                                     ),
                                                     blendMode = BlendMode.DstIn
                                                 )
                                             }
-                                    )
+                                    ) {
+                                        AsyncImage(
+                                            model = ImageRequest.Builder(context)
+                                                .data(thumbnailUrl)
+                                                .size(CoilSize.ORIGINAL)
+                                                .build(),
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+
+                                        if (enableCanvas && canvasArtwork != null && backgroundAlpha > 0.01f) {
+                                            BackgroundVideoView(
+                                                videoUrl = canvasArtwork?.animated ?: canvasArtwork?.videoUrl ?: "",
+                                                isPlaying = isPlaying,
+                                                modifier = Modifier.fillMaxSize()
+                                            )
+                                        }
+                                    }
                                     
                                     // Layer 3: Dynamic overlay for depth
                                     Box(
@@ -2784,4 +2877,108 @@ private fun PlayerMoreMenuButton(
             colorFilter = ColorFilter.tint(iconButtonColor),
         )
     }
+}
+
+@Composable
+private fun BackgroundVideoView(
+    videoUrl: String,
+    isPlaying: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    var isVideoReady by remember(videoUrl) { mutableStateOf(false) }
+    
+    val trackSelector = remember {
+        DefaultTrackSelector(context).apply {
+            parameters = buildUponParameters()
+                .setMaxVideoSize(4096, 4096)
+                .setForceHighestSupportedBitrate(true)
+                .build()
+        }
+    }
+
+    val exoPlayer = remember {
+        ExoPlayer.Builder(context)
+            .setTrackSelector(trackSelector)
+            .setLoadControl(
+                DefaultLoadControl.Builder()
+                    .setTargetBufferBytes(20 * 1024 * 1024) // 20MB buffer for 4K
+                    .build()
+            )
+            .build().apply {
+                repeatMode = Player.REPEAT_MODE_ONE
+                volume = 0f
+                videoScalingMode = C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING
+                playWhenReady = isPlaying
+            }
+    }
+
+    val aspectRatioFrameLayout = remember {
+        AspectRatioFrameLayout(context).apply {
+            resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+            setBackgroundColor(android.graphics.Color.TRANSPARENT)
+        }
+    }
+
+    DisposableEffect(exoPlayer) {
+        val listener = object : Player.Listener {
+            override fun onVideoSizeChanged(videoSize: androidx.media3.common.VideoSize) {
+                if (videoSize.width > 0 && videoSize.height > 0) {
+                    aspectRatioFrameLayout.setAspectRatio(videoSize.width.toFloat() / videoSize.height)
+                }
+            }
+            override fun onRenderedFirstFrame() {
+                isVideoReady = true
+            }
+        }
+        exoPlayer.addListener(listener)
+        onDispose { exoPlayer.removeListener(listener) }
+    }
+
+    LaunchedEffect(videoUrl) {
+        isVideoReady = false
+        val mediaItem = MediaItem.Builder()
+            .setUri(videoUrl)
+            .setMimeType(if (videoUrl.contains("m3u8")) MimeTypes.APPLICATION_M3U8 else MimeTypes.VIDEO_MP4)
+            .build()
+        exoPlayer.setMediaItem(mediaItem)
+        exoPlayer.prepare()
+    }
+
+    LaunchedEffect(isPlaying) {
+        exoPlayer.playWhenReady = isPlaying
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            exoPlayer.release()
+        }
+    }
+
+    val alpha by animateFloatAsState(
+        targetValue = if (isVideoReady) 1f else 0f,
+        animationSpec = tween(800),
+        label = "videoAlpha"
+    )
+
+    AndroidView(
+        factory = { _ ->
+            aspectRatioFrameLayout.apply {
+                // Ensure the view doesn't capture touches intended for other sections
+                isEnabled = false
+                isClickable = false
+                isFocusable = false
+
+                // Ensure TextureView is added only once
+                if (childCount == 0) {
+                    val textureView = TextureView(context).apply {
+                        layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+                    }
+                    addView(textureView)
+                    exoPlayer.setVideoTextureView(textureView)
+                }
+            }
+        },
+        modifier = modifier.alpha(alpha)
+    )
 }

@@ -931,7 +931,7 @@ private fun SeekEffectOverlay(
     )
 }
 
-private fun normalizeCanvasSongTitle(raw: String): String {
+internal fun normalizeCanvasSongTitle(raw: String): String {
     val stripped =
         raw
             .replace(Regex("\\s*\\[[^]]*]"), "")
@@ -965,7 +965,7 @@ private fun normalizeCanvasSongTitle(raw: String): String {
         .trim()
 }
 
-private fun normalizeCanvasArtistName(raw: String): String {
+internal fun normalizeCanvasArtistName(raw: String): String {
     val first =
         raw
             .split(
