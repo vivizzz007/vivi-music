@@ -919,10 +919,4 @@
     <string name="show_comment_button_description">Show a button to view comments in the player queue</string>
     <string name="build_stable">STABLE</string>
     <string name="build_nightly">NIGHTLY</string>
-
-    <!-- Canvas Cache (StorageSettings) -->
-    <string name="canvas_cache">Canvas Cache</string>
-    <string name="max_canvas_cache_size">Max canvas cache size</string>
-    <string name="clear_canvas_cache">Clear canvas cache</string>
-    <string name="clear_canvas_cache_dialog">Are you sure you want to clear all cached canvas animations?</string>
 </resources>

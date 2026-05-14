@@ -18,16 +18,14 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
-import androidx.media3.datasource.cache.CacheDataSource
+import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.ui.AspectRatioFrameLayout
 import com.music.innertube.YouTube
 import com.music.innertube.models.YouTubeClient
-import com.music.vivi.playback.CanvasVideoCache
-import com.music.vivi.constants.MaxCanvasCacheSizeKey
-import com.music.vivi.utils.rememberPreference
 import okhttp3.OkHttpClient
 import java.util.Locale
 import android.view.ViewGroup
@@ -95,20 +93,13 @@ fun CanvasArtworkPlayer(
                 }
                 .build()
         }
-    val (maxCanvasCacheSize) = rememberPreference(
-        key = MaxCanvasCacheSizeKey,
-        defaultValue = CanvasVideoCache.DEFAULT_MAX_MB
-    )
-    val canvasCache = remember(maxCanvasCacheSize) { CanvasVideoCache.get(context) }
     val mediaSourceFactory =
-        remember(okHttpClient, canvasCache) {
+        remember(okHttpClient) {
             DefaultMediaSourceFactory(
-                CacheDataSource.Factory()
-                    .setCache(canvasCache)
-                    .setUpstreamDataSourceFactory(
-                        OkHttpDataSource.Factory(okHttpClient)
-                    )
-                    .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR),
+                DefaultDataSource.Factory(
+                    context,
+                    OkHttpDataSource.Factory(okHttpClient),
+                ),
             )
         }
     val exoPlayer =

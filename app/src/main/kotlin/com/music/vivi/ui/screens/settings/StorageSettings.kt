@@ -48,11 +48,9 @@ import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
-import com.music.vivi.constants.MaxCanvasCacheSizeKey
 import com.music.vivi.constants.MaxImageCacheSizeKey
 import com.music.vivi.constants.MaxSongCacheSizeKey
 import com.music.vivi.extensions.tryOrNull
-import com.music.vivi.playback.CanvasVideoCache
 import com.music.vivi.ui.component.ActionPromptDialog
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.Material3SettingsGroup
@@ -91,15 +89,10 @@ fun StorageSettings(
         key = MaxSongCacheSizeKey,
         defaultValue = 1024
     )
-    val (maxCanvasCacheSize, onMaxCanvasCacheSizeChange) = rememberPreference(
-        key = MaxCanvasCacheSizeKey,
-        defaultValue = CanvasVideoCache.DEFAULT_MAX_MB
-    )
 
     var clearDownloads by remember { mutableStateOf(false) }
     var clearCacheDialog by remember { mutableStateOf(false) }
     var clearImageCacheDialog by remember { mutableStateOf(false) }
-    var clearCanvasCacheDialog by remember { mutableStateOf(false) }
 
     // State for the confirmation dialog
     var showCacheWarningDialog by remember { mutableStateOf(false) }
@@ -117,9 +110,6 @@ fun StorageSettings(
     var downloadCacheSize by remember {
         mutableLongStateOf(tryOrNull { downloadCache.cacheSpace } ?: 0)
     }
-    var canvasCacheSize by remember {
-        mutableLongStateOf(tryOrNull { CanvasVideoCache.get(context).cacheSpace } ?: 0)
-    }
     val imageCacheProgress by animateFloatAsState(
         targetValue = (imageCacheSize.toFloat() / (maxImageCacheSize * 1024 * 1024L)).coerceIn(
             0f,
@@ -133,11 +123,6 @@ fun StorageSettings(
             1f
         ),
         label = "playerCacheProgress",
-    )
-    val canvasCacheProgress by animateFloatAsState(
-        targetValue = if (maxCanvasCacheSize <= 0) 0f
-        else (canvasCacheSize.toFloat() / (maxCanvasCacheSize * 1024 * 1024L)).coerceIn(0f, 1f),
-        label = "canvasCacheProgress",
     )
 
     LaunchedEffect(maxImageCacheSize) {
@@ -157,11 +142,6 @@ fun StorageSettings(
             }
         }
     }
-    LaunchedEffect(maxCanvasCacheSize) {
-        coroutineScope.launch(Dispatchers.IO) {
-            CanvasVideoCache.reinitialize(context, maxCanvasCacheSize)
-        }
-    }
 
     LaunchedEffect(imageDiskCache) {
         while (isActive) {
@@ -179,12 +159,6 @@ fun StorageSettings(
         while (isActive) {
             delay(500)
             downloadCacheSize = tryOrNull { downloadCache.cacheSpace } ?: 0
-        }
-    }
-    LaunchedEffect(Unit) {
-        while (isActive) {
-            delay(500)
-            canvasCacheSize = tryOrNull { CanvasVideoCache.get(context).cacheSpace } ?: 0
         }
     }
 
@@ -257,26 +231,6 @@ fun StorageSettings(
             onCancel = { clearImageCacheDialog = false },
             content = {
                 Text(text = stringResource(R.string.clear_image_cache_dialog))
-            }
-        )
-    }
-
-    if (clearCanvasCacheDialog) {
-        ActionPromptDialog(
-            title = stringResource(R.string.clear_canvas_cache),
-            onDismiss = { clearCanvasCacheDialog = false },
-            onConfirm = {
-                coroutineScope.launch(Dispatchers.IO) {
-                    val cache = CanvasVideoCache.get(context)
-                    cache.keys.forEach { key ->
-                        cache.removeResource(key)
-                    }
-                }
-                clearCanvasCacheDialog = false
-            },
-            onCancel = { clearCanvasCacheDialog = false },
-            content = {
-                Text(text = stringResource(R.string.clear_canvas_cache_dialog))
             }
         )
     }
@@ -480,53 +434,6 @@ fun StorageSettings(
                     onClick = {
                         clearImageCacheDialog = true
                     }
-                )
-            )
-        )
-        Material3SettingsGroup(
-            title = stringResource(R.string.canvas_cache),
-            items = listOf(
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.slow_motion_video),
-                    title = { Text(stringResource(R.string.max_canvas_cache_size)) },
-                    description = {
-                        val canvasCacheValues = remember { listOf(0, 64, 128, 256, 512, 1024) }
-                        Column {
-                            Text(
-                                text = when (maxCanvasCacheSize) {
-                                    0    -> stringResource(R.string.disable)
-                                    else -> formatFileSize(maxCanvasCacheSize * 1024 * 1024L)
-                                }
-                            )
-                            Slider(
-                                value = canvasCacheValues.indexOf(maxCanvasCacheSize).toFloat(),
-                                onValueChange = {
-                                    onMaxCanvasCacheSizeChange(canvasCacheValues[it.roundToInt()])
-                                },
-                                steps = canvasCacheValues.size - 2,
-                                valueRange = 0f..(canvasCacheValues.size - 1).toFloat()
-                            )
-                            LinearProgressIndicator(
-                                progress = { canvasCacheProgress },
-                                modifier = Modifier.fillMaxWidth(),
-                                strokeCap = StrokeCap.Round
-                            )
-                            Spacer(modifier = Modifier.padding(2.dp))
-                            Text(
-                                text = if (maxCanvasCacheSize == 0) {
-                                    stringResource(R.string.disable)
-                                } else {
-                                    "${formatFileSize(canvasCacheSize)} / ${formatFileSize(maxCanvasCacheSize * 1024 * 1024L)}"
-                                },
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
-                        }
-                    }
-                ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.clear_all),
-                    title = { Text(stringResource(R.string.clear_canvas_cache)) },
-                    onClick = { clearCanvasCacheDialog = true }
                 )
             )
         )
