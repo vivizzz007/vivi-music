@@ -239,6 +239,12 @@ import com.music.vivi.ui.player.CanvasArtworkPlaybackCache
 import com.music.vivi.ui.player.normalizeCanvasArtistName
 import com.music.vivi.ui.player.normalizeCanvasSongTitle
 import com.music.vivi.vivimusiccanvas.ViviMusicCanvasProvider
+import com.music.vivi.playback.CanvasVideoCache
+import com.music.vivi.constants.MaxCanvasCacheSizeKey
+import androidx.media3.datasource.cache.CacheDataSource
+import androidx.media3.datasource.okhttp.OkHttpDataSource
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import okhttp3.OkHttpClient
 import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -2897,8 +2903,32 @@ private fun BackgroundVideoView(
         }
     }
 
+    val (maxCanvasCacheSize) = rememberPreference(
+        key = MaxCanvasCacheSizeKey,
+        defaultValue = CanvasVideoCache.DEFAULT_MAX_MB
+    )
+    val canvasCache = remember(maxCanvasCacheSize) { CanvasVideoCache.get(context) }
+    
+    val okHttpClient = remember {
+        OkHttpClient.Builder()
+            .proxy(com.music.innertube.YouTube.proxy)
+            .build()
+    }
+    
+    val mediaSourceFactory = remember(canvasCache, okHttpClient) {
+        DefaultMediaSourceFactory(
+            CacheDataSource.Factory()
+                .setCache(canvasCache)
+                .setUpstreamDataSourceFactory(
+                    OkHttpDataSource.Factory(okHttpClient)
+                )
+                .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
+        )
+    }
+
     val exoPlayer = remember {
         ExoPlayer.Builder(context)
+            .setMediaSourceFactory(mediaSourceFactory)
             .setTrackSelector(trackSelector)
             .setLoadControl(
                 DefaultLoadControl.Builder()
