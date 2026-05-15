@@ -229,4 +229,11 @@
     <string name="library_album_empty">ਲਾਇਬ੍ਰੇਰੀ ਟੇਪਾਂ ਇੱਥੇ ਦਿਖਣ ਗੀਆਂ</string>
     <string name="library_playlist_empty">ਤੁਹਾਡੀਆਂ ਚਾਲ ਸੂਚੀਆਂ ਇੱਥੇ ਦਿਖਣ ਗਿਆਂ</string>
     <string name="other_versions">ਟੇਪ ਦ੍ਰਿਸ਼</string>
+
+    <string name="create_playlist_or_spotify_hint">ਪਲੇਲਿਸਟ ਨਾਮ ਜਾਂ Spotify ਪਲੇਲਿਸਟ ਲਿੰਕ</string>
+    <string name="spotify_importing_playlist">Spotify ਤੋਂ ਆਯਾਤ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ...</string>
+    <string name="spotify_import_result">%1$d ਟਰੈਕ ਆਯਾਤ ਕੀਤੇ ਗਏ। %2$d ਦਾ ਮੇਲ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਿਆ।</string>
+    <string name="spotify_import_failed">ਇਸ Spotify ਪਲੇਲਿਸਟ ਨੂੰ ਆਯਾਤ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਿਆ।</string>
+    <string name="spotify_import_timeout">ਆਯਾਤ ਵਿੱਚ ਬਹੁਤ ਸਮਾਂ ਲੱਗਾ। ਆਪਣੇ ਨੈੱਟਵਰਕ ਦੀ ਜਾਂਚ ਕਰੋ ਅਤੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
+    <string name="music">ਸੰਗੀਤ</string>
 </resources>
