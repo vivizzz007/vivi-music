@@ -223,6 +223,20 @@
 
 <hr>
 
+<h2>🛡️ Privacy & Data Collection</h2>
+
+<p>At <strong>VIVI Music</strong>, your privacy is our top priority. We believe that your music and data belong exclusively to you.</p>
+
+<ul>
+  <li><strong>Zero Data Collection:</strong> We do <strong>not</strong> collect, store, or share any of your personal information, usage habits, or listening history.</li>
+  <li><strong>100% Local:</strong> All your settings, downloaded tracks, and offline caches are stored securely on your device.</li>
+  <li><strong>No Tracking:</strong> There are no hidden trackers, analytics, or background services monitoring your activity.</li>
+</ul>
+
+<p>Enjoy your music with complete peace of mind, knowing that your privacy is fully protected.</p>
+
+<hr>
+
 <h2>📜 Disclaimer</h2>
 
 <p>This project and its contents are <strong>not affiliated with, funded, authorized, endorsed by, or in any way associated with</strong> YouTube, Google LLC, or any of their affiliates and subsidiaries.</p>
@@ -260,7 +274,6 @@
 ## Special Thanks 🙏
 
   <p>A heartfelt thank you to <strong><a href="https://github.com/mostafaalagamy">Mostafa Alagamy</a></strong> for their inspiration and contributions to the open source community.</p>
-  <p><strong><a href="https://github.com/koiverse/ArchiveTune">ArchiveTune</a></strong> – For canvas functionality.</p>
   <p><strong><a href="https://github.com/ibratabian17/YouLyPlus">YouLyPlus</a></strong> – For lyrics functionality.</p>
   <p><strong><a href="https://github.com/monochrome-music/monochrome">Monochrome</a></strong> – For canvas functionality.</p>
 <hr width="60%">
