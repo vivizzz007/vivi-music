@@ -59,68 +59,39 @@
 
 <h2>✨ Features</h2>
 
-<h3>🎨 Modern Design</h3>
+<h3>🎨 Expressive Design</h3>
 <ul>
-  <li><strong>Material You</strong> inspired UI with dynamic theming</li>
-  <li>Smooth animations and transitions</li>
-  <li>Adaptive color schemes based on album art</li>
-  <li>Clean, intuitive interface</li>
+  <li><strong>Latest Android Design</strong> with expressive, dynamic UI elements</li>
+  <li>Smooth micro-animations and premium transitions</li>
+  <li>Adaptive color schemes that match your album art</li>
+  <li>Clean, modern, and highly intuitive interface</li>
 </ul>
 
 <h3>🎵 Streaming & Playback</h3>
 <ul>
   <li><strong>YouTube & YT Music</strong> integration with ad-free playback</li>
-  <li>Background playback support</li>
-  <li>High-quality audio streaming</li>
+  <li>High-quality audio streaming with background playback</li>
+  <li>Stunning Apple Music style <strong>Canvas</strong> animations</li>
   <li>Seamless playback controls</li>
+</ul>
+
+
+<h3>📝 Enhanced Listening</h3>
+<ul>
+  <li><strong>Synced Lyrics</strong> with beautiful word-by-word highlighting</li>
+  <li>Built-in Equalizer and audio effects</li>
 </ul>
 
 <h3>📥 Offline Experience</h3>
 <ul>
   <li>Download and cache music for offline listening</li>
   <li>Smart storage management</li>
-  <li>Queue downloads for batch processing</li>
-  <li>Listen anytime, anywhere without internet</li>
-</ul>
-
-<h3>📝 Enhanced Listening</h3>
-<ul>
-  <li><strong>Synced Lyrics</strong> with karaoke-style highlighting</li>
-  <li>Skip silence automatically for uninterrupted flow</li>
-  <li>Audio normalization for consistent volume</li>
-  <li>Equalizer and audio effects</li>
-</ul>
-
-<h3>🔗 Smart Sharing</h3>
-<ul>
-  <li><strong>QR Code Sharing</strong> for instant song/playlist transfers</li>
-  <li>Share to social media platforms</li>
-  <li>Generate shareable links</li>
-  <li>Cross-device music sync</li>
-</ul>
-
-<h3>🚗 Android Auto Support</h3>
-<ul>
-  <li>Fully optimized car-friendly interface</li>
-  <li>Voice command integration</li>
-  <li>Safe, hands-free music control</li>
-  <li>Seamless driving experience</li>
-</ul>
-
-<h3>🌐 Global & Accessible</h3>
-<ul>
-  <li>Multi-language localization</li>
-  <li>Accessibility features</li>
-  <li>Customizable controls</li>
-  <li>Theme customization</li>
 </ul>
 
 <h3>🔄 Built-in Updater</h3>
 <ul>
-  <li>OTA (Over-The-Air) updates</li>
-  <li>No need to manually check for updates</li>
-  <li>Seamless update installation</li>
-  <li>Always stay up-to-date</li>
+  <li>OTA (Over-The-Air) updates directly within the app</li>
+  <li>Always stay up-to-date with the latest features</li>
 </ul>
 
 <hr>
