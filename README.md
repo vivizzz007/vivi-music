@@ -13,6 +13,9 @@
    <a href="LICENSE">
      <img src="https://img.shields.io/github/license/vivizzz007/vivi-music?style=for-the-badge" alt="License">
    </a>
+   <a href="https://ko-fi.com/vividhpashokan">
+     <img src="https://img.shields.io/badge/Support-Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Support on Ko-fi">
+   </a>
  </p>
 
 </div>
