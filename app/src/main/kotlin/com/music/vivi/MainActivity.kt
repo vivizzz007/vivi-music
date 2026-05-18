@@ -4,8 +4,6 @@
  */
 
 package com.music.vivi
- 
-import com.music.vivi.BuildConfig
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -161,8 +159,6 @@ import com.music.vivi.constants.SelectedThemeColorKey
 import com.music.vivi.constants.SlimNavBarHeight
 import com.music.vivi.constants.SlimNavBarKey
 import com.music.vivi.constants.StopMusicOnTaskClearKey
-import com.music.vivi.constants.SupportSheetLastVersionKey
-import com.music.vivi.constants.SupportSheetShownKey
 import com.music.vivi.constants.UseNewMiniPlayerDesignKey
 import com.music.vivi.db.MusicDatabase
 import com.music.vivi.db.entities.SearchHistory
@@ -182,7 +178,6 @@ import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.rememberBottomSheetState
 import com.music.vivi.ui.component.shimmer.ShimmerTheme
 import com.music.vivi.ui.menu.YouTubeSongMenu
-import com.music.vivi.ui.component.SupportSheet
 import com.music.vivi.ui.player.BottomSheetPlayer
 import com.music.vivi.ui.screens.Screens
 import com.music.vivi.ui.screens.navigationBuilder
@@ -376,25 +371,6 @@ class MainActivity : ComponentActivity() {
         val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)
         val enableHighRefreshRate by rememberPreference(EnableHighRefreshRateKey, defaultValue = true)
         val context = LocalContext.current
-
-        val (lastVersionShown, setLastVersionShown) = rememberPreference(SupportSheetLastVersionKey, defaultValue = 0)
-        val currentVersion = BuildConfig.VERSION_CODE
-        val bottomSheetPageState = LocalBottomSheetPageState.current
-
-        LaunchedEffect(lastVersionShown) {
-            if (currentVersion > lastVersionShown) {
-                // Small delay to let the app settle
-                delay(3000)
-                bottomSheetPageState.show {
-                    SupportSheet(
-                        onDismiss = {
-                            setLastVersionShown(currentVersion)
-                            bottomSheetPageState.dismiss()
-                        }
-                    )
-                }
-            }
-        }
 
         LaunchedEffect(Unit) {
             if (getAutoUpdateCheckSetting(context)) {
