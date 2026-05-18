@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -35,11 +36,12 @@ fun ConclusionPage(onClose: () -> Unit) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_launcher_foreground),
+            androidx.compose.foundation.Image(
+                painter = painterResource(id = R.drawable.icon),
                 contentDescription = stringResource(R.string.wrapped_logo_content_description),
-                modifier = Modifier.size(96.dp),
-                tint = Color.White
+                modifier = Modifier
+                    .size(96.dp)
+                    .clip(CircleShape)
             )
             Spacer(modifier = Modifier.height(24.dp))
             Text(

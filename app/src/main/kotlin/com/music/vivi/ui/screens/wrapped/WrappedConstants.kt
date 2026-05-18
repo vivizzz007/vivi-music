@@ -4,9 +4,9 @@
  */
 
 package com.music.vivi.ui.screens.wrapped
+import java.util.Calendar
 
 object WrappedConstants {
-    // This is intentionally hardcoded to 2025 and should not be changed.
-    const val YEAR = 2025
-    const val PLAYLIST_NAME = "vivimusic 2025"
+    val YEAR = Calendar.getInstance().get(Calendar.YEAR)
+    val PLAYLIST_NAME = "vivimusic $YEAR"
 }

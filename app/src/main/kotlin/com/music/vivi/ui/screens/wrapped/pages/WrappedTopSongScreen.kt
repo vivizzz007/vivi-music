@@ -52,19 +52,27 @@ fun WrappedTopSongScreen(topSong: SongWithStats?, isVisible: Boolean) {
         }
     }
 
+    // Cache and remember all random offsets and sizes once so they remain stable during recompositions
+    val topStartElements = remember {
+        List(3) { Pair(Random.nextInt(0, 100).dp to Random.nextInt(0, 100).dp, Random.nextInt(20, 80).dp) }
+    }
+    val bottomEndElements = remember {
+        List(4) { Pair(Random.nextInt(0, 120).dp to Random.nextInt(0, 120).dp, Random.nextInt(20, 90).dp) }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Box(modifier = Modifier.align(Alignment.TopStart)) {
-            repeat(3) {
+            topStartElements.forEach { (padding, size) ->
                 AnimatedDecorativeElement(
-                    Modifier.padding(start = (Random.nextInt(0, 100)).dp, top = (Random.nextInt(0, 100)).dp).size((Random.nextInt(20, 80)).dp),
+                    Modifier.padding(start = padding.first, top = padding.second).size(size),
                     isVisible
                 )
             }
         }
         Box(modifier = Modifier.align(Alignment.BottomEnd)) {
-            repeat(4) {
+            bottomEndElements.forEach { (padding, size) ->
                 AnimatedDecorativeElement(
-                    Modifier.padding(end = (Random.nextInt(0, 120)).dp, bottom = (Random.nextInt(0, 120)).dp).size((Random.nextInt(20, 90)).dp),
+                    Modifier.padding(end = padding.first, bottom = padding.second).size(size),
                     isVisible
                 )
             }

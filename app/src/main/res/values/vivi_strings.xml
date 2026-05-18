@@ -419,14 +419,14 @@
     <string name="wrapped_total_albums_subtitle">unique albums</string>
     <string name="wrapped_top_album_title">Your top album is</string>
     <string name="wrapped_playlist_ready">Your personal playlist is ready</string>
-    <string name="wrapped_top_5_albums_title">Your top 5 albums</string>
+    <string name="wrapped_top_5_albums_title">Your top 5 album</string>
     <string name="wrapped_album_listening_time">You\'ve listened to this album for %d minutes</string>
     <string name="wrapped_album_listening_time_minutes">%d minutes</string>
     <string name="wrapped_no_data">No data</string>
-    <string name="wrapped_top_5_artists_title">Your top artists of the year</string>
+    <string name="wrapped_top_5_artists_title">Your top artist\nof the year</string>
     <string name="wrapped_artist_image_content_description">Artist image</string>
     <string name="wrapped_artist_listening_time">%d minutes</string>
-    <string name="wrapped_top_5_songs_title">Your top songs of the year</string>
+    <string name="wrapped_top_5_songs_title">Your top songs\nof the year</string>
     <string name="wrapped_top_song_album_art_content_description">Album art</string>
     <string name="wrapped_top_artist_title">Your top artist of the year is</string>
     <string name="wrapped_top_artist_image_content_description">Top artist image</string>
@@ -449,7 +449,7 @@
     <string name="wrapped_ready_title">YOUR WRAPPED IS READY!</string>
     <string name="wrapped_ready_subtitle">Time to see what you loved this year.</string>
     <string name="wrapped_thank_you">Thank you for listening</string>
-    <string name="wrapped_special_thanks">Special thanks to MO Agamy for creating vivimusic</string>
+    <string name="wrapped_special_thanks">Special thanks to Vividh for creating vivimusic</string>
     <string name="wrapped_close">Close wrapped</string>
     <string name="wrapped_playlist_title">Your %s Wrapped</string>
     <string name="wrapped_create_playlist">Create playlist</string>
