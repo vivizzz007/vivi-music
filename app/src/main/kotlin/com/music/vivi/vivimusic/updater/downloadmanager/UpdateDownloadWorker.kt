@@ -12,6 +12,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.zip.ZipInputStream
 
 class UpdateDownloadWorker(private val context: Context, workerParams: WorkerParameters) :
     CoroutineWorker(context, workerParams) {
@@ -50,8 +51,9 @@ class UpdateDownloadWorker(private val context: Context, workerParams: WorkerPar
                 downloadDir.mkdirs()
             }
 
-            val outputFile = File(downloadDir, "vivi.apk")
-            val outputStream = FileOutputStream(outputFile)
+            val isZip = apkUrl.contains("nightly.link") || apkUrl.endsWith(".zip")
+            val downloadFile = if (isZip) File(downloadDir, "vivi_temp.zip") else File(downloadDir, "vivi.apk")
+            val outputStream = FileOutputStream(downloadFile)
 
             val buffer = ByteArray(8192)
             var bytesRead: Int
@@ -62,6 +64,9 @@ class UpdateDownloadWorker(private val context: Context, workerParams: WorkerPar
                     outputStream.close()
                     inputStream.close()
                     connection.disconnect()
+                    if (downloadFile.exists()) {
+                        downloadFile.delete()
+                    }
                     return@withContext Result.retry()
                 }
 
@@ -82,9 +87,59 @@ class UpdateDownloadWorker(private val context: Context, workerParams: WorkerPar
             inputStream.close()
             connection.disconnect()
 
-            DownloadNotificationManager.showDownloadComplete(version, outputFile.absolutePath)
+            val finalFile = if (isZip) {
+                val targetApkFile = File(downloadDir, "vivi.apk")
+                var extracted = false
+                try {
+                    ZipInputStream(downloadFile.inputStream()).use { zis ->
+                        var entry = zis.nextEntry
+                        while (entry != null) {
+                            if (!entry.isDirectory && entry.name.endsWith(".apk")) {
+                                FileOutputStream(targetApkFile).use { fos ->
+                                    zis.copyTo(fos)
+                                }
+                                extracted = true
+                                break
+                            }
+                            entry = zis.nextEntry
+                        }
+                    }
+                } catch (e: Exception) {
+                    if (downloadFile.exists()) downloadFile.delete()
+                    DownloadNotificationManager.showDownloadFailed(
+                        version,
+                        e.message ?: "Failed to extract zip file"
+                    )
+                    return@withContext Result.failure()
+                } finally {
+                    if (downloadFile.exists()) {
+                        downloadFile.delete()
+                    }
+                }
+                if (!extracted) {
+                    DownloadNotificationManager.showDownloadFailed(
+                        version,
+                        "Could not find APK in zip"
+                    )
+                    return@withContext Result.failure()
+                }
+                targetApkFile
+            } else {
+                downloadFile
+            }
 
-            Result.success(workDataOf("file_path" to outputFile.absolutePath))
+            if (version.startsWith("nightly-r")) {
+                val runNumberString = version.removePrefix("nightly-r")
+                val runNumber = runNumberString.toIntOrNull()
+                if (runNumber != null) {
+                    val sharedPreferences = context.getSharedPreferences("update_settings", Context.MODE_PRIVATE)
+                    sharedPreferences.edit().putInt("last_installed_nightly_run", runNumber).apply()
+                }
+            }
+
+            DownloadNotificationManager.showDownloadComplete(version, finalFile.absolutePath)
+
+            Result.success(workDataOf("file_path" to finalFile.absolutePath))
         } catch (e: Exception) {
             DownloadNotificationManager.showDownloadFailed(
                 version,

@@ -494,6 +494,29 @@ fun UpdateScreen(navController: NavHostController) {
                                             modifier = Modifier.padding(bottom = 24.dp)
                                         )
                                     }
+                                    if (isDownloading) {
+                                        if (downloadProgress > 0f) {
+                                            androidx.compose.material3.LinearProgressIndicator(
+                                                progress = downloadProgress,
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(8.dp)
+                                                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(4.dp)),
+                                                color = MaterialTheme.colorScheme.primary,
+                                                trackColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                                            )
+                                        } else {
+                                            androidx.compose.material3.LinearProgressIndicator(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(8.dp)
+                                                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(4.dp)),
+                                                color = MaterialTheme.colorScheme.primary,
+                                                trackColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.height(24.dp))
+                                    }
                                     currentStatus.changelog.forEach { section ->
                                         if (section.title.isNotBlank()) {
                                             Text(
@@ -641,6 +664,69 @@ suspend fun checkForUpdate(
             
             val currentVersion = BuildConfig.VERSION_NAME
             val betaEnabled = getBetaUpdatesSetting(context)
+
+            var isNightlyUpdate = false
+            var nightlyRunObject: JSONObject? = null
+
+            if (betaEnabled) {
+                try {
+                    val nightlyUrl = URL("https://api.github.com/repos/vivizzz007/vivi-music/actions/workflows/nightly.yml/runs?status=success&per_page=1")
+                    val nightlyJson = nightlyUrl.openStream().bufferedReader().use { it.readText() }
+                    val nightlyData = JSONObject(nightlyJson)
+                    val runs = nightlyData.optJSONArray("workflow_runs")
+                    if (runs != null && runs.length() > 0) {
+                        val firstRun = runs.getJSONObject(0)
+                        val runUpdatedAt = firstRun.getString("updated_at")
+                        val githubFormatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
+                        val runTime = java.time.LocalDateTime.parse(runUpdatedAt, githubFormatter)
+                        val runTimeEpoch = runTime.toInstant(java.time.ZoneOffset.UTC).toEpochMilli()
+
+                        val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+                        val currentAppInstallTime = packageInfo.lastUpdateTime
+
+                        val sharedPreferences = context.getSharedPreferences("update_settings", Context.MODE_PRIVATE)
+                        if (!BuildConfig.IS_NIGHTLY) {
+                            sharedPreferences.edit().remove("last_installed_nightly_run").apply()
+                        }
+                        val lastInstalledRun = sharedPreferences.getInt("last_installed_nightly_run", -1)
+                        val runNumber = firstRun.getInt("run_number")
+
+                        val isNewer = if (lastInstalledRun != -1) {
+                            runNumber > lastInstalledRun
+                        } else if (!BuildConfig.IS_NIGHTLY) {
+                            true
+                        } else {
+                            runTimeEpoch > (currentAppInstallTime + 300_000)
+                        }
+
+                        if (isNewer) {
+                            isNightlyUpdate = true
+                            nightlyRunObject = firstRun
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("UpdateCheck", "Error checking nightly updates: ${e.message}", e)
+                }
+            }
+
+            if (isNightlyUpdate && nightlyRunObject != null) {
+                val runNumber = nightlyRunObject.getInt("run_number")
+                val runUpdatedAt = nightlyRunObject.getString("updated_at")
+                val displayTag = "nightly-r$runNumber"
+                
+                val changelogList = mutableListOf<ChangelogSection>()
+                val headCommit = nightlyRunObject.optJSONObject("head_commit")
+                val commitMessage = headCommit?.optString("message") ?: "New features and bug fixes"
+                changelogList.add(ChangelogSection(context.getString(R.string.changelog), commitMessage.split("\n").filter { it.isNotBlank() }))
+                
+                val formattedReleaseDate = formatGitHubDate(runUpdatedAt)
+                val apkDownloadUrl = "https://nightly.link/vivizzz007/vivi-music/workflows/nightly.yml/main/vivi-music-gms-nightly.zip"
+                
+                withContext(Dispatchers.Main) {
+                    onSuccess(displayTag, true, changelogList, "~30", formattedReleaseDate, "Bleeding-edge nightly build from main branch.", null, apkDownloadUrl)
+                }
+                return@withContext
+            }
 
             var bestStableRelease: JSONObject? = null
             var bestOverallRelease: JSONObject? = null
