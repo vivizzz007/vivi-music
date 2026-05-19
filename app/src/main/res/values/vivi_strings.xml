@@ -488,6 +488,9 @@
     <string name="eq_label_mid">Mids</string>
     <string name="eq_label_treble">Treble</string>
     <string name="eq_preset_flat">Flat</string>
+    <string name="eq_preset_vivi_signature">Vivi Signature</string>
+    <string name="eq_preset_acoustic">Acoustic</string>
+    <string name="eq_preset_spatial">3D Stage</string>
     <string name="eq_preset_bass_boost">Bass Boost</string>
     <string name="eq_preset_pure_clarity">Pure Clarity</string>
     <string name="eq_preset_soft_bass">Soft Bass</string>

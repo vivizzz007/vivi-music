@@ -213,7 +213,10 @@ private fun SimpleEqMode(
     }
 
     val viviPresets = listOf(
-        R.string.eq_preset_flat to floatArrayOf(150f, 100f, 50f, 0f, -20f, 0f, 80f, 150f, 200f, 150f), // Vivi Signature (Balanced)
+        R.string.eq_preset_flat to floatArrayOf(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f),
+        R.string.eq_preset_vivi_signature to floatArrayOf(150f, 100f, 50f, 0f, -20f, 0f, 80f, 150f, 200f, 150f),
+        R.string.eq_preset_acoustic to floatArrayOf(150f, 150f, 50f, 75f, 100f, 75f, 125f, 175f, 150f, 75f),
+        R.string.eq_preset_spatial to floatArrayOf(75f, 50f, 25f, -50f, -25f, 0f, 50f, 75f, 100f, 75f),
         R.string.eq_preset_bass_boost to floatArrayOf(500f, 400f, 250f, 100f, 0f, -50f, 0f, 100f, 200f, 300f),
         R.string.eq_preset_pure_clarity to floatArrayOf(-100f, -50f, 0f, 50f, 150f, 250f, 300f, 250f, 150f, 100f),
         R.string.eq_preset_soft_bass to floatArrayOf(200f, 180f, 140f, 80f, 30f, 20f, 60f, 90f, 110f, 130f),
@@ -369,8 +372,7 @@ private fun PresetSection(
                 val name = presetNames?.getOrNull(index) ?: stringResource(nameRes)
                 val isSelected = remember(bandGains) {
                     bandGains.size == bands.size && 
-                    abs((bandGains[0] + bandGains[1]) - (bands[0] + bands[1])) < 10f &&
-                    abs((bandGains[9] + bandGains[8]) - (bands[9] + bands[8])) < 10f
+                    bandGains.zip(bands).all { (g, b) -> abs(g - b) < 10f }
                 }
 
                 ToggleButton(
