@@ -66,8 +66,8 @@
     <string name="about_artist">About</string>
     <string name="about_album">About</string>
     <string name="about_playlist">About</string>
-    <string name="show_more">Show more</string>
-    <string name="show_less">Show less</string>
+    <string name="show_more">More</string>
+    <string name="show_less">Less</string>
     <string name="artist_page_settings">Artist page</string>
     <string name="show_artist_description">Show artist description</string>
     <string name="show_artist_subscriber_count">Show subscriber count</string>
