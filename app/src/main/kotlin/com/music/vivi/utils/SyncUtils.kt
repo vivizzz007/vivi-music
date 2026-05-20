@@ -297,6 +297,12 @@ class SyncUtils @Inject constructor(
         }
     }
 
+    fun syncPlaylist(browseId: String, playlistId: String) {
+        syncScope.launch {
+            executeSyncPlaylist(browseId, playlistId)
+        }
+    }
+
     fun syncAllAlbums() {
         syncScope.launch {
             syncChannel.send(SyncOperation.LikedAlbums)
@@ -943,7 +949,10 @@ class SyncUtils @Inject constructor(
                     Timber.d("syncPlaylist: Fetched ${songs.size} songs from remote")
 
                     if (songs.isEmpty()) {
-                        Timber.w("syncPlaylist: Remote playlist is empty, skipping sync")
+                        Timber.w("syncPlaylist: Remote playlist is empty, clearing local playlist")
+                        database.withTransaction {
+                            database.clearPlaylist(playlistId)
+                        }
                         return@onSuccess
                     }
 

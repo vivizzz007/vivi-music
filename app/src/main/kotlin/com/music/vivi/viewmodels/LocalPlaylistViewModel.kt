@@ -17,6 +17,7 @@ import com.music.vivi.db.MusicDatabase
 import com.music.vivi.db.entities.PlaylistSong
 import com.music.vivi.extensions.reversed
 import com.music.vivi.extensions.toEnum
+import com.music.vivi.utils.SyncUtils
 import com.music.vivi.utils.dataStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -38,6 +39,7 @@ class LocalPlaylistViewModel
 constructor(
     @ApplicationContext context: Context,
     database: MusicDatabase,
+    private val syncUtils: SyncUtils,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     val playlistId = savedStateHandle.get<String>("playlistId")!!
@@ -90,6 +92,13 @@ constructor(
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     init {
+        viewModelScope.launch {
+            // Trigger sync in background if it's a YouTube synced playlist
+            playlist.first { it != null }?.playlist?.browseId?.let { browseId ->
+                syncUtils.syncPlaylist(browseId, playlistId)
+            }
+        }
+
         viewModelScope.launch {
             val sortedSongs =
                 playlistSongs.first().sortedWith(compareBy({ it.map.position }, { it.map.id }))
