@@ -1704,15 +1704,16 @@ fun HomeScreen(
                                                 .height(ListItemHeight * 4)
                                                 .animateItem()
                                         ) {
-                                            items(
+                                            itemsIndexed(
                                                 items = sectionSongs.distinctBy { it.id },
-                                                key = { it.id }
-                                            ) { song ->
+                                                key = { _, it -> it.id }
+                                            ) { index, song ->
                                                 YouTubeListItem(
                                                     item = song,
                                                     isActive = song.id == mediaMetadata?.id,
                                                     isPlaying = isPlaying,
                                                     isSwipeable = false,
+                                                    shape = listItemShape(index = index % 4, count = 4),
                                                     trailingContent = {
                                                         IconButton(
                                                             onClick = {
