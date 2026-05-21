@@ -717,7 +717,11 @@ suspend fun checkForUpdate(
                 val changelogList = mutableListOf<ChangelogSection>()
                 val headCommit = nightlyRunObject.optJSONObject("head_commit")
                 val commitMessage = headCommit?.optString("message") ?: "New features and bug fixes"
-                changelogList.add(ChangelogSection(context.getString(R.string.changelog), commitMessage.split("\n").filter { it.isNotBlank() }))
+                // Only use the subject line (first line) of the commit message.
+                // Git commit bodies (lines after the blank separator) are implementation
+                // details and should not appear as separate changelog bullet points.
+                val subjectLine = commitMessage.lineSequence().firstOrNull { it.isNotBlank() } ?: commitMessage
+                changelogList.add(ChangelogSection(context.getString(R.string.changelog), listOf(subjectLine)))
                 
                 val formattedReleaseDate = formatGitHubDate(runUpdatedAt)
                 val apkDownloadUrl = "https://nightly.link/vivizzz007/vivi-music/workflows/nightly.yml/main/vivi-music-gms-nightly.zip"
