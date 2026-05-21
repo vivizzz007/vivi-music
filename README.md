@@ -82,7 +82,7 @@
   <tr valign="top">
     <td align="center">
       <b>Canvas Preview</b><br><br>
-      <a href="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/9.webm">
+      <a href="https://github.com/vivizzz007/vivi-music/raw/main/NEW-UI/9.webm">
         <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/3.png?raw=true" width="220" alt="Play Canvas Preview" />
         <br><br>
         ▶️ <b>Play Video</b>
@@ -90,7 +90,7 @@
     </td>
     <td align="center">
       <b>Player Preview</b><br><br>
-      <a href="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/10.webm">
+      <a href="https://github.com/vivizzz007/vivi-music/raw/main/NEW-UI/10.webm">
         <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/1.png?raw=true" width="220" alt="Play Player Preview" />
         <br><br>
         ▶️ <b>Play Video</b>
