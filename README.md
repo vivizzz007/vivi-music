@@ -37,39 +37,39 @@
 <table align="center">
   <tr valign="top">
     <td align="center">
-      <b>Player (1)</b><br><br>
+      <b>Player</b><br><br>
       <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/1.png?raw=true" width="220" alt="Player Screen 1" />
     </td>
     <td align="center">
-      <b>Player (2)</b><br><br>
+      <b>Player</b><br><br>
       <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/2.png?raw=true" width="220" alt="Player Screen 2" />
     </td>
     <td align="center">
-      <b>Artist Screen (3)</b><br><br>
+      <b>Artist Screen</b><br><br>
       <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/3.png?raw=true" width="220" alt="Artist Screen" />
     </td>
   </tr>
   <tr valign="top">
     <td align="center">
-      <b>Album Page (4)</b><br><br>
+      <b>Album Page</b><br><br>
       <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/4.png?raw=true" width="220" alt="Album Page" />
     </td>
     <td align="center">
-      <b>Search Section (5)</b><br><br>
+      <b>Search Section</b><br><br>
       <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/5.png?raw=true" width="220" alt="Search Section" />
     </td>
     <td align="center">
-      <b>Home Page (6)</b><br><br>
+      <b>Home Page</b><br><br>
       <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/6.png?raw=true" width="220" alt="Home Page" />
     </td>
   </tr>
   <tr valign="top">
     <td align="center">
-      <b>Built-in Updater (7)</b><br><br>
+      <b>Built-in Updater</b><br><br>
       <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/7.png?raw=true" width="220" alt="Built-in Updater" />
     </td>
     <td align="center">
-      <b>Audio Control Section (8)</b><br><br>
+      <b>Audio Control Section</b><br><br>
       <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/8.png?raw=true" width="220" alt="Audio Control Section" />
     </td>
     <td></td>
@@ -81,20 +81,20 @@
 <table align="center">
   <tr valign="top">
     <td align="center">
-      <b>Canvas Preview (9)</b><br><br>
-      <video width="260" controls autoplay loop muted>
-        <source src="https://github.com/vivizzz007/vivi-music/raw/main/NEW-UI/9.webm" type="video/webm">
-        <source src="NEW-UI/9.webm" type="video/webm">
-        Your browser does not support the video tag.
-      </video>
+      <b>Canvas Preview</b><br><br>
+      <a href="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/9.webm">
+        <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/3.png?raw=true" width="220" alt="Play Canvas Preview" />
+        <br><br>
+        ▶️ <b>Play Video</b>
+      </a>
     </td>
     <td align="center">
-      <b>Player Preview (10)</b><br><br>
-      <video width="260" controls autoplay loop muted>
-        <source src="https://github.com/vivizzz007/vivi-music/raw/main/NEW-UI/10.webm" type="video/webm">
-        <source src="NEW-UI/10.webm" type="video/webm">
-        Your browser does not support the video tag.
-      </video>
+      <b>Player Preview</b><br><br>
+      <a href="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/10.webm">
+        <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/1.png?raw=true" width="220" alt="Play Player Preview" />
+        <br><br>
+        ▶️ <b>Play Video</b>
+      </a>
     </td>
   </tr>
 </table>
