@@ -76,27 +76,28 @@
   </tr>
 </table>
 
-<hr>
+<h2>🎬 Video Previews</h2>
 
-<h2>🎬 Canvas</h2>
-
-<p align="center">
-  <video width="250" controls autoplay loop muted>
-    <source src="NEW-UI/9.webm" type="video/webm">
-    Your browser does not support the video tag.
-  </video>
-</p>
-
-<hr>
-
-<h2>🎵 Player Preview</h2>
-
-<p align="center">
-  <video width="250" controls autoplay loop muted>
-    <source src="NEW-UI/10.webm" type="video/webm">
-    Your browser does not support the video tag.
-  </video>
-</p>
+<table align="center">
+  <tr valign="top">
+    <td align="center">
+      <b>Canvas Preview (9)</b><br><br>
+      <video width="260" controls autoplay loop muted>
+        <source src="https://github.com/vivizzz007/vivi-music/raw/main/NEW-UI/9.webm" type="video/webm">
+        <source src="NEW-UI/9.webm" type="video/webm">
+        Your browser does not support the video tag.
+      </video>
+    </td>
+    <td align="center">
+      <b>Player Preview (10)</b><br><br>
+      <video width="260" controls autoplay loop muted>
+        <source src="https://github.com/vivizzz007/vivi-music/raw/main/NEW-UI/10.webm" type="video/webm">
+        <source src="NEW-UI/10.webm" type="video/webm">
+        Your browser does not support the video tag.
+      </video>
+    </td>
+  </tr>
+</table>
 
 <hr>
 
