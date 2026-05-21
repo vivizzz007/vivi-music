@@ -81,7 +81,7 @@
 <h2>🎬 Canvas</h2>
 
 <p align="center">
-  <video src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/9.webm?raw=true" width="250" controls autoplay loop muted></video>
+  <video src="NEW-UI/9.webm" width="250" controls autoplay loop muted></video>
 </p>
 
 <hr>
@@ -89,7 +89,7 @@
 <h2>🎵 Player Preview</h2>
 
 <p align="center">
-  <video src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/10.webm?raw=true" width="250" controls autoplay loop muted></video>
+  <video src="NEW-UI/10.webm" width="250" controls autoplay loop muted></video>
 </p>
 
 <hr>
