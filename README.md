@@ -81,7 +81,10 @@
 <h2>🎬 Canvas</h2>
 
 <p align="center">
-  <video src="NEW-UI/9.webm" width="250" controls autoplay loop muted></video>
+  <video width="250" controls autoplay loop muted>
+    <source src="NEW-UI/9.webm" type="video/webm">
+    Your browser does not support the video tag.
+  </video>
 </p>
 
 <hr>
@@ -89,7 +92,10 @@
 <h2>🎵 Player Preview</h2>
 
 <p align="center">
-  <video src="NEW-UI/10.webm" width="250" controls autoplay loop muted></video>
+  <video width="250" controls autoplay loop muted>
+    <source src="NEW-UI/10.webm" type="video/webm">
+    Your browser does not support the video tag.
+  </video>
 </p>
 
 <hr>
