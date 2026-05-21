@@ -1,22 +1,22 @@
 <div align="center">
- <img src="https://github.com/vivizzz007/vivi-music/blob/main/assets/ic_launcher-playstore.png?raw=true" width="160" height="160" style="display: block; margin: 0 auto"/>
- <h1>VIVI Music</h1>
- <h3>More Than Just Music — Your Ultimate Audio Experience</h3>
+  <img src="https://github.com/vivizzz007/vivi-music/blob/main/assets/ic_launcher-playstore.png?raw=true" width="160" height="160" style="display: block; margin: 0 auto"/>
+  <h1>VIVI Music</h1>
+  <h3>More Than Just Music — Your Ultimate Audio Experience</h3>
 
- <p>
-   <a href="https://github.com/vivizzz007/vivi-music/releases">
-     <img src="https://img.shields.io/github/v/release/vivizzz007/vivi-music?label=Download&style=for-the-badge&color=4CAF50" alt="Download Latest">
-   </a>
-   <a href="https://github.com/vivizzz007/vivi-music/releases">
-     <img src="https://img.shields.io/github/downloads/vivizzz007/vivi-music/total?style=for-the-badge&color=blue" alt="Downloads">
-   </a>
-   <a href="LICENSE">
-     <img src="https://img.shields.io/github/license/vivizzz007/vivi-music?style=for-the-badge" alt="License">
-   </a>
-   <a href="https://ko-fi.com/vividhpashokan">
-     <img src="https://img.shields.io/badge/Support-Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Support on Ko-fi">
-   </a>
- </p>
+  <p>
+    <a href="https://github.com/vivizzz007/vivi-music/releases">
+      <img src="https://img.shields.io/github/v/release/vivizzz007/vivi-music?label=Download&style=for-the-badge&color=4CAF50" alt="Download Latest">
+    </a>
+    <a href="https://github.com/vivizzz007/vivi-music/releases">
+      <img src="https://img.shields.io/github/downloads/vivizzz007/vivi-music/total?style=for-the-badge&color=blue" alt="Downloads">
+    </a>
+    <a href="LICENSE">
+      <img src="https://img.shields.io/github/license/vivizzz007/vivi-music?style=for-the-badge" alt="License">
+    </a>
+    <a href="https://ko-fi.com/vividhpashokan">
+      <img src="https://img.shields.io/badge/Support-Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Support on Ko-fi">
+    </a>
+  </p>
 
 </div>
 
@@ -89,7 +89,7 @@
   </tr>
 </table>
 
-
+<hr>
 
 <h2>✨ Features</h2>
 
@@ -148,18 +148,26 @@
 
 <br>
 
-
-
-<h2 align="center">💖 Support the Project</h2>
+<hr>
 
 <div align="center">
-  <p>If you enjoy VIVI Music and want to support its maintenance and development, you can buy me a coffee!</p>
-  <a href="https://ko-fi.com/vividhpashokan">
-    <img src="https://img.shields.io/badge/Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Ko-fi">
-  </a>
+  <table border="0" cellpadding="15" cellspacing="0" width="85%">
+    <tr>
+      <td align="center">
+        <h3>💖 Support the Project</h3>
+        <p>If you love VIVI Music and want to support its maintenance and active development, please consider buying me a coffee! Your support helps keep this premium audio experience completely active, clean, and ad-free.</p>
+        <br>
+        <a href="https://ko-fi.com/vividhpashokan">
+          <img src="https://img.shields.io/badge/Support-Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Support on Ko-fi">
+        </a>
+      </td>
+    </tr>
+  </table>
 </div>
 
+<br>
 
+<hr>
 
 <h2>🚗 Android Auto Setup</h2>
 
@@ -175,6 +183,7 @@
   <li>Restart Android Auto and connect to your car</li>
 </ol>
 
+<hr>
 
 <h2>🤝 Contributing</h2>
 
@@ -219,35 +228,57 @@
 
 <hr>
 
-<h2>💬 Support & Community</h2>
-
 <div align="center">
-  <a href="https://t.me/+Nen-QpiY0tk1OTE9">
-    <img src="https://img.shields.io/badge/Telegram-Join%20Community-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" alt="Join Telegram">
-  </a>
-  <p>Connect with other music lovers, get support, share feedback, and stay updated with the latest news!</p>
+  <table border="0" cellpadding="15" cellspacing="0" width="85%">
+    <tr>
+      <td align="center">
+        <h3>💬 Community & Support</h3>
+        <p>Connect with other music lovers, suggest new features, report bugs, and stay updated with the latest releases!</p>
+        <br>
+        <a href="https://t.me/+Nen-QpiY0tk1OTE9">
+          <img src="https://img.shields.io/badge/Telegram-Join%20Community-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" alt="Join Telegram">
+        </a>
+        <br><br>
+        <sub>
+          <a href="https://github.com/vivizzz007/vivi-music/issues">🐞 Report Bugs</a> &nbsp;•&nbsp;
+          <a href="https://github.com/vivizzz007/vivi-music/discussions">💬 Discussions</a> &nbsp;•&nbsp;
+          <a href="https://github.com/vivizzz007/vivi-music/releases">🚀 Releases</a>
+        </sub>
+      </td>
+    </tr>
+  </table>
 </div>
-
-<ul>
-  <li><strong>Issues:</strong> Report bugs or request features in <a href="https://github.com/vivizzz007/vivi-music/issues">GitHub Issues</a></li>
-  <li><strong>Discussions:</strong> Join conversations in <a href="https://github.com/vivizzz007/vivi-music/discussions">GitHub Discussions</a></li>
-  <li><strong>Releases:</strong> Stay updated with <a href="https://github.com/vivizzz007/vivi-music/releases">latest releases</a></li>
-</ul>
 
 <hr>
 
 <div align="center">
 
-## Special Thanks 🙏
+  <h2>🙏 Special Thanks & Credits</h2>
 
-  <p>A heartfelt thank you to <strong><a href="https://github.com/mostafaalagamy">Mostafa Alagamy</a></strong> for their inspiration and contributions to the open source community.</p>
-<hr width="60%">
-## 🎖️ Credits
-  <p>VIVI Music is built upon the foundation of amazing open-source projects:</p>
-  <p><strong><a href="https://github.com/better-lyrics/better-lyrics">Better Lyrics</a></strong> – For beautiful time-synced lyrics with word-by-word highlighting, and seamless YouTube Music integration.</p>
-  <p><strong><a href="https://github.com/maxrave-dev/SimpMusic">SimpMusic</a></strong> – For lyrics functionality and integration.</p>
-  <p><strong><a href="https://github.com/ibratabian17/YouLyPlus">YouLyPlus</a></strong> – For lyrics functionality.</p>
-  <p><strong><a href="https://github.com/monochrome-music/monochrome">Monochrome</a></strong> – For canvas functionality.</p>
+  <p>VIVI Music is built upon the foundation of amazing open-source projects and developers:</p>
+  <br>
+
+  <table border="0" cellpadding="10" cellspacing="0" width="90%">
+    <tr valign="top">
+      <td width="40%" align="left">
+        <b>💡 Special Thanks</b>
+        <ul>
+          <li><strong><a href="https://github.com/mostafaalagamy">Mostafa Alagamy</a></strong> – For their inspiration and contributions to the open source community.</li>
+        </ul>
+      </td>
+      <td width="60%" align="left">
+        <b>🎖️ Foundational Projects</b>
+        <ul>
+          <li><strong><a href="https://github.com/better-lyrics/better-lyrics">Better Lyrics</a></strong> – For beautiful synced lyrics and YouTube Music integration.</li>
+          <li><strong><a href="https://github.com/maxrave-dev/SimpMusic">SimpMusic</a></strong> – For lyrics functionality and integration logic.</li>
+          <li><strong><a href="https://github.com/ibratabian17/YouLyPlus">YouLyPlus</a></strong> – For smooth in-app lyrics styling.</li>
+          <li><strong><a href="https://github.com/monochrome-music/monochrome">Monochrome</a></strong> – For the premium Apple Music-style visualizer canvas.</li>
+        </ul>
+      </td>
+    </tr>
+  </table>
+
+  <br>
   <p align="center">The open-source community for tools, libraries, and APIs that make this project possible.</p>
   <p align="center"><strong>Thank you to all the amazing developers who made this project possible!</strong></p>
   <hr width="60%">
