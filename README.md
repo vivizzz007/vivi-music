@@ -76,67 +76,64 @@
   </tr>
 </table>
 
-<h2>🎬 Video Previews</h2>
 
-<table align="center">
+
+<h2>✨ Features</h2>
+
+<table align="center" width="100%">
   <tr valign="top">
-    <td align="center">
-      <b>Canvas Preview</b><br><br>
-      <a href="https://github.com/vivizzz007/vivi-music/raw/main/NEW-UI/9.webm">
-        <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/3.png?raw=true" width="220" alt="Play Canvas Preview" />
-        <br><br>
-        ▶️ <b>Play Video</b>
-      </a>
+    <td width="50%">
+      <h3>🎨 Expressive UI & Design</h3>
+      <ul>
+        <li><b>Dynamic Material You:</b> Beautiful adaptive colors that shift to match your playing album art.</li>
+        <li><b>Premium Animations:</b> Silky-smooth micro-animations and seamless screen transitions.</li>
+        <li><b>Modern Architecture:</b> Sleek, modern layouts engineered with Android's latest Material 3 guidelines.</li>
+      </ul>
     </td>
-    <td align="center">
-      <b>Player Preview</b><br><br>
-      <a href="https://github.com/vivizzz007/vivi-music/raw/main/NEW-UI/10.webm">
-        <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/1.png?raw=true" width="220" alt="Play Player Preview" />
-        <br><br>
-        ▶️ <b>Play Video</b>
-      </a>
+    <td width="50%">
+      <h3>🎵 Advanced Streaming</h3>
+      <ul>
+        <li><b>Full Catalog Integration:</b> Stream any song from YouTube and YT Music, completely ad-free.</li>
+        <li><b>Animated Canvas:</b> Stunning Apple Music-style animated backdrops that bring music to life.</li>
+        <li><b>Background Playback:</b> High-quality continuous playback with full notification drawer controls.</li>
+      </ul>
+    </td>
+  </tr>
+  <tr valign="top">
+    <td width="50%">
+      <h3>📝 Synced Lyrics & Audio</h3>
+      <ul>
+        <li><b>Karaoke Syncing:</b> Beautiful, precise word-by-word highlighted lyrics.</li>
+        <li><b>Integrated EQ:</b> High-fidelity audio customization with an in-app Equalizer.</li>
+      </ul>
+    </td>
+    <td width="50%">
+      <h3>📥 Offline Experience</h3>
+      <ul>
+        <li><b>Local Downloads:</b> Download and cache tracks onto your device for offline enjoyment.</li>
+        <li><b>Smart Storage:</b> Intelligent cache management that optimizes space automatically.</li>
+      </ul>
+    </td>
+  </tr>
+  <tr valign="top">
+    <td width="50%">
+      <h3>🔄 OTA Updater</h3>
+      <ul>
+        <li><b>Seamless Updates:</b> Instant Over-the-Air updates directly inside the app.</li>
+        <li><b>Direct Delivery:</b> Always stay ahead with instant feature upgrades and patch fixes.</li>
+      </ul>
+    </td>
+    <td width="50%">
+      <h3>🛡️ 100% Privacy</h3>
+      <ul>
+        <li><b>Zero Data Collection:</b> No trackers, no telemetry, and no telemetry analytics.</li>
+        <li><b>Local Security:</b> All user libraries, preferences, and downloaded tracks are stored locally.</li>
+      </ul>
     </td>
   </tr>
 </table>
 
-<hr>
-
-<h2>✨ Features</h2>
-
-<h3>🎨 Expressive Design</h3>
-<ul>
-  <li><strong>Latest Android Design</strong> with expressive, dynamic UI elements</li>
-  <li>Smooth micro-animations and premium transitions</li>
-  <li>Adaptive color schemes that match your album art</li>
-  <li>Clean, modern, and highly intuitive interface</li>
-</ul>
-
-<h3>🎵 Streaming & Playback</h3>
-<ul>
-  <li><strong>YouTube & YT Music</strong> integration with ad-free playback</li>
-  <li>High-quality audio streaming with background playback</li>
-  <li>Stunning Apple Music style <strong>Canvas</strong> animations</li>
-  <li>Seamless playback controls</li>
-</ul>
-
-
-<h3>📝 Enhanced Listening</h3>
-<ul>
-  <li><strong>Synced Lyrics</strong> with beautiful word-by-word highlighting</li>
-  <li>Built-in Equalizer and audio effects</li>
-</ul>
-
-<h3>📥 Offline Experience</h3>
-<ul>
-  <li>Download and cache music for offline listening</li>
-  <li>Smart storage management</li>
-</ul>
-
-<h3>🔄 Built-in Updater</h3>
-<ul>
-  <li>OTA (Over-The-Air) updates directly within the app</li>
-  <li>Always stay up-to-date with the latest features</li>
-</ul>
+<br>
 
 <hr>
 
