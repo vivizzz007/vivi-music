@@ -24,11 +24,24 @@
 
 <h2>🎵 About VIVI</h2>
 
-<p><strong>VIVI</strong> isn't just another music player — it's a complete audio experience designed for music lovers who demand more. With a sleek Material You-inspired design, intelligent features, and deep personalization, VIVI redefines how you connect with your music.</p>
-
-<p>From stunning visual effects to smooth, intuitive controls, every element is crafted to match your vibe and elevate every beat. Stream from YouTube, enjoy synced lyrics, share songs via QR codes, and experience your music library like never before.</p>
-
-<p><strong>This is your music, your way — only with VIVI.</strong></p>
+<table align="center" width="100%">
+  <tr valign="middle">
+    <td width="60%" align="left">
+      <p>✨ <b>VIVI</b> isn't just another music player — it's a premium, modern audio ecosystem engineered for listeners who demand more. Powered by a responsive design engine that dynamically matches your album art's color palette, VIVI completely shifts to match your aesthetic on every single beat.</p>
+      <p>From stunning animated canvas visualizers to fluid physics-based micro-animations, every interaction is crafted to elevate your listening. Stream ad-free, sync karaoke lyrics, share your sound instantly, and enjoy an elegant interface designed with modern Material 3 guidelines.</p>
+      <blockquote>
+        <b>🎵 Your music, your aesthetic — only with VIVI.</b>
+      </blockquote>
+    </td>
+    <td width="40%" align="center">
+      <p>🛡️ <b>100% Privacy-First</b><br><small>Completely local database. Absolutely zero trackers, analytics, or background telemetry.</small></p>
+      <hr width="80%">
+      <p>🎨 <b>Material You Engine</b><br><small>Stunning adaptive interface that dynamically morphs colors based on what's playing.</small></p>
+      <hr width="80%">
+      <p>🚀 <b>Ad-Free Streaming</b><br><small>Seamless background playback with high-fidelity streams from YouTube Music.</small></p>
+    </td>
+  </tr>
+</table>
 
 <hr>
 
@@ -135,18 +148,7 @@
 
 <br>
 
-<hr>
 
-<h2 align="center">📥 Download</h2>
-
-<div align="center">
-  <h3><a href="https://github.com/vivizzz007/vivi-music/releases">🚀 Download Latest Release</a></h3>
-  <p><strong>Current Version:</strong> Check the <a href="https://github.com/vivizzz007/vivi-music/releases">releases page</a> for the latest stable version.</p>
-</div>
-
-<p><strong>Recommendation:</strong> Always download releases tagged with <code>v*.*.*</code> (e.g., <code>v3.2.1</code>) to receive automatic updates through the app.</p>
-
-<hr>
 
 <h2 align="center">💖 Support the Project</h2>
 
@@ -194,32 +196,6 @@
   <li>Restart Android Auto and connect to your car</li>
 </ol>
 
-<hr>
-
-<h2>🛠️ Technical Details</h2>
-
-<ul>
-  <li><strong>Platform:</strong> Android 5.0+</li>
-  <li><strong>Architecture:</strong> Native Android with Kotlin/Java</li>
-  <li><strong>Streaming:</strong> YouTube Data API integration</li>
-  <li><strong>Audio:</strong> ExoPlayer for high-quality playback</li>
-  <li><strong>UI Framework:</strong> Material Design 3 (Material You)</li>
-  <li><strong>Updates:</strong> Custom OTA implementation</li>
-</ul>
-
-<hr>
-
-<h2>👥 Contributors</h2>
-
-<p>We appreciate everyone who has contributed to making VIVI Music better!</p>
-
-<p>To see all our amazing contributors and learn how you can join them, visit:</p>
-
-<div align="center">
-  <h3><a href="https://vivimusic.vercel.app/contributor.html">🌟 View All Contributors</a></h3>
-</div>
-
-<hr>
 
 <h2>🤝 Contributing</h2>
 
