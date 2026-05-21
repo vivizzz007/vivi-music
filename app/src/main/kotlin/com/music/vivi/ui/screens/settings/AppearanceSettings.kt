@@ -149,7 +149,7 @@ fun AppearanceSettings(
     )
     val (showAudioQualityBadge, onShowAudioQualityBadgeChange) = rememberPreference(
         ShowAudioQualityBadgeKey,
-        defaultValue = true
+        defaultValue = false
     )
     val (selectedThemeColorInt) = rememberPreference(
         SelectedThemeColorKey,

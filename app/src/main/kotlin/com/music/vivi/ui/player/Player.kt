@@ -261,7 +261,7 @@ fun BottomSheetPlayer(
     )
     val (showAudioQualityBadge) = rememberPreference(
         ShowAudioQualityBadgeKey,
-        defaultValue = true
+        defaultValue = false
     )
     val (hidePlayerThumbnail, onHidePlayerThumbnailChange) = rememberPreference(HidePlayerThumbnailKey, false)
     val cropAlbumArt by rememberPreference(CropAlbumArtKey, false)
