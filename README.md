@@ -159,28 +159,7 @@
   </a>
 </div>
 
-<hr>
 
-<h2>🔄 Setting Up OTA Updates</h2>
-
-<p>To receive automatic updates within VIVI Music, you need to grant the app permission to install updates:</p>
-
-<h3>Step-by-Step Guide:</h3>
-
-<ol>
-  <li>Open your device's <strong>Settings</strong></li>
-  <li>Navigate to <strong>Apps & notifications</strong> (or <strong>Apps</strong>)</li>
-  <li>Find and select <strong>VIVI Music</strong></li>
-  <li>Scroll down and tap <strong>Install unknown apps</strong></li>
-  <li>Toggle <strong>ON</strong> the option "Allow from this source"</li>
-  <li>Done! You'll now receive automatic OTA updates</li>
-</ol>
-
-<blockquote>
-  <p>💡 <strong>Note:</strong> This permission is only used for app updates and follows Android's security guidelines.</p>
-</blockquote>
-
-<hr>
 
 <h2>🚗 Android Auto Setup</h2>
 
@@ -262,13 +241,13 @@
 ## Special Thanks 🙏
 
   <p>A heartfelt thank you to <strong><a href="https://github.com/mostafaalagamy">Mostafa Alagamy</a></strong> for their inspiration and contributions to the open source community.</p>
-  <p><strong><a href="https://github.com/ibratabian17/YouLyPlus">YouLyPlus</a></strong> – For lyrics functionality.</p>
-  <p><strong><a href="https://github.com/monochrome-music/monochrome">Monochrome</a></strong> – For canvas functionality.</p>
 <hr width="60%">
 ## 🎖️ Credits
   <p>VIVI Music is built upon the foundation of amazing open-source projects:</p>
   <p><strong><a href="https://github.com/better-lyrics/better-lyrics">Better Lyrics</a></strong> – For beautiful time-synced lyrics with word-by-word highlighting, and seamless YouTube Music integration.</p>
   <p><strong><a href="https://github.com/maxrave-dev/SimpMusic">SimpMusic</a></strong> – For lyrics functionality and integration.</p>
+  <p><strong><a href="https://github.com/ibratabian17/YouLyPlus">YouLyPlus</a></strong> – For lyrics functionality.</p>
+  <p><strong><a href="https://github.com/monochrome-music/monochrome">Monochrome</a></strong> – For canvas functionality.</p>
   <p align="center">The open-source community for tools, libraries, and APIs that make this project possible.</p>
   <p align="center"><strong>Thank you to all the amazing developers who made this project possible!</strong></p>
   <hr width="60%">
