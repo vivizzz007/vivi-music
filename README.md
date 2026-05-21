@@ -78,6 +78,22 @@
 
 <hr>
 
+<h2>🎬 Canvas</h2>
+
+<p align="center">
+  <video src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/9.webm?raw=true" width="250" controls autoplay loop muted></video>
+</p>
+
+<hr>
+
+<h2>🎵 Player Preview</h2>
+
+<p align="center">
+  <video src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/10.webm?raw=true" width="250" controls autoplay loop muted></video>
+</p>
+
+<hr>
+
 <h2>✨ Features</h2>
 
 <h3>🎨 Expressive Design</h3>
