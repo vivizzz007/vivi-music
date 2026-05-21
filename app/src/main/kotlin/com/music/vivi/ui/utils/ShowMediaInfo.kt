@@ -126,7 +126,7 @@ fun ShowMediaInfo(videoId: String) {
                     .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 val imageUrl = song?.thumbnailUrl
-                    ?: "https://i.ytimg.com/vi/$videoId/mqdefault.jpg"
+                    ?: "https://i.ytimg.com/vi/$videoId/maxresdefault.jpg"
 
                 AsyncImage(
                     model = imageUrl,

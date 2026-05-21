@@ -10,7 +10,17 @@ fun String.resize(
     height: Int? = null,
 ): String {
     if (width == null && height == null) return this
-    
+
+    // i.ytimg.com handling (YouTube video thumbnails)
+    // These URLs use a filename-based quality system:
+    // We always upgrade to maxresdefault for the best quality.
+    if (this.contains("i.ytimg.com")) {
+        return this.replace(
+            Regex("(default|mqdefault|hqdefault|sddefault|maxresdefault)\\.jpg"),
+            "maxresdefault.jpg"
+        )
+    }
+
     // googleusercontent.com handling (includes lh3-lh6, yt3, etc.)
     if (this.contains("googleusercontent.com") && this.contains("=w")) {
         val baseUrl = this.split("=w")[0]
