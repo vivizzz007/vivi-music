@@ -34,31 +34,47 @@
 
 <h2>📸 Screenshots</h2>
 
-<p align="center">
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/1.png?raw=true" width="30%" alt="Player Screen 1" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/2.png?raw=true" width="30%" alt="Player Screen 2" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/3.png?raw=true" width="30%" alt="Artist Screen" />
-</p>
-<p align="center">
-  <sub><b>1 & 2: Player</b> | <b>3: Artist Screen (showing image)</b></sub>
-</p>
-
-<p align="center">
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/4.png?raw=true" width="30%" alt="Album Page" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/5.png?raw=true" width="30%" alt="Search Section" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/6.png?raw=true" width="30%" alt="Home Page" />
-</p>
-<p align="center">
-  <sub><b>4: Album Page</b> | <b>5: Search Section</b> | <b>6: Home Page</b></sub>
-</p>
-
-<p align="center">
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/7.png?raw=true" width="30%" alt="Built-in Updater" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/8.png?raw=true" width="30%" alt="Audio Control Section" />
-</p>
-<p align="center">
-  <sub><b>7: Built-in Updater</b> | <b>8: Audio Control Section</b></sub>
-</p>
+<table align="center">
+  <tr valign="top">
+    <td align="center">
+      <b>Player (1)</b><br><br>
+      <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/1.png?raw=true" width="220" alt="Player Screen 1" />
+    </td>
+    <td align="center">
+      <b>Player (2)</b><br><br>
+      <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/2.png?raw=true" width="220" alt="Player Screen 2" />
+    </td>
+    <td align="center">
+      <b>Artist Screen (3)</b><br><br>
+      <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/3.png?raw=true" width="220" alt="Artist Screen" />
+    </td>
+  </tr>
+  <tr valign="top">
+    <td align="center">
+      <b>Album Page (4)</b><br><br>
+      <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/4.png?raw=true" width="220" alt="Album Page" />
+    </td>
+    <td align="center">
+      <b>Search Section (5)</b><br><br>
+      <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/5.png?raw=true" width="220" alt="Search Section" />
+    </td>
+    <td align="center">
+      <b>Home Page (6)</b><br><br>
+      <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/6.png?raw=true" width="220" alt="Home Page" />
+    </td>
+  </tr>
+  <tr valign="top">
+    <td align="center">
+      <b>Built-in Updater (7)</b><br><br>
+      <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/7.png?raw=true" width="220" alt="Built-in Updater" />
+    </td>
+    <td align="center">
+      <b>Audio Control Section (8)</b><br><br>
+      <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/8.png?raw=true" width="220" alt="Audio Control Section" />
+    </td>
+    <td></td>
+  </tr>
+</table>
 
 <hr>
 
