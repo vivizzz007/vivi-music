@@ -897,13 +897,22 @@ private fun ThumbnailImage(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surfaceVariant)
     ) {
+        var currentUrl by remember(artworkUri) {
+            mutableStateOf(artworkUri)
+        }
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(artworkUri)
+                .data(currentUrl)
                 .memoryCachePolicy(CachePolicy.ENABLED)
                 .diskCachePolicy(CachePolicy.ENABLED)
                 .networkCachePolicy(CachePolicy.ENABLED)
                 .build(),
+            onError = {
+                val url = currentUrl
+                if (url != null && url.contains("maxresdefault.jpg")) {
+                    currentUrl = url.replace("maxresdefault.jpg", "hqdefault.jpg")
+                }
+            },
             contentDescription = null,
             contentScale = if (cropArtwork) ContentScale.Crop else ContentScale.Fit,
             modifier = Modifier.fillMaxSize()
