@@ -650,6 +650,10 @@ fun HomeScreen(
             }
     }
 
+    NetworkReload(
+        onReload = viewModel::refresh
+    )
+
     if (selectedChip != null) {
         BackHandler {
             // if a chip is selected, go back to the normal homepage first
