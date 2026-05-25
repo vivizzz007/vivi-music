@@ -240,7 +240,7 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
         )
     }
 
-    var isLastPageScrolledToEnd by remember { mutableStateOf(false) }
+    var isLastPageScrolledToEnd by remember { mutableStateOf(true) }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -762,7 +762,7 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
             ) { index ->
                 pages[index].content { scrolledToEnd ->
                     if (index == pages.size - 1) {
-                        isLastPageScrolledToEnd = scrolledToEnd
+                        isLastPageScrolledToEnd = true
                     }
                 }
             }
