@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
@@ -46,6 +47,7 @@ fun SettingDialoge(
     onNavigate: (String) -> Unit,
     homeViewModel: HomeViewModel
 ) {
+    val uriHandler = LocalUriHandler.current
     val (innerTubeCookie, _) = rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn = remember(innerTubeCookie) {
         innerTubeCookie.isNotEmpty() && "SAPISID" in parseCookieString(innerTubeCookie)
@@ -311,7 +313,7 @@ fun SettingDialoge(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterHorizontally)
                 ) {
-                    TextButton(onClick = { /* No-op */ }) {
+                    TextButton(onClick = { uriHandler.openUri("https://vivimusicapp.netlify.app/privacy") }) {
                         Text(
                             text = "Privacy Policy",
                             fontWeight = FontWeight.Light,
@@ -322,7 +324,7 @@ fun SettingDialoge(
                         )
                     }
                     Text(text = "•", color = onPrimaryColor)
-                    TextButton(onClick = { /* No-op */ }) {
+                    TextButton(onClick = { uriHandler.openUri("https://vivimusicapp.netlify.app/terms") }) {
                         Text(
                             text = "Terms of Service",
                             fontWeight = FontWeight.Light,
