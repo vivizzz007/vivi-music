@@ -323,7 +323,7 @@ fun SettingDialoge(
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-                    
+                
                     Text(text = "•", color = onPrimaryColor)
                     TextButton(onClick = { uriHandler.openUri("https://vivimusicapp.netlify.app/terms") }) {
                         Text(
