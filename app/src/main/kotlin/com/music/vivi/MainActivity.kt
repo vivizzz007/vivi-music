@@ -180,6 +180,7 @@ import com.music.vivi.ui.component.shimmer.ShimmerTheme
 import com.music.vivi.ui.menu.YouTubeSongMenu
 import com.music.vivi.ui.player.BottomSheetPlayer
 import com.music.vivi.ui.screens.Screens
+import com.music.vivi.ui.screens.SettingDialoge
 import com.music.vivi.ui.screens.navigationBuilder
 import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.screens.settings.NavigationTab
@@ -716,6 +717,7 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf(null)
                 }
                 val snackbarHostState = remember { SnackbarHostState() }
+                var showSettingDialoge by remember { mutableStateOf(false) }
 
                 LaunchedEffect(Unit) {
                     if (pendingIntent != null) {
@@ -820,7 +822,7 @@ class MainActivity : ComponentActivity() {
                                                     )
                                                 }
                                             }
-                                            IconButton(onClick = { navController.navigate("settings") }) {
+                                             IconButton(onClick = { showSettingDialoge = true }) {
                                                 BadgedBox(badge = {}) {
                                                     if (accountImageUrl != null) {
                                                         AsyncImage(
@@ -1137,6 +1139,17 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                         }
+                    }
+
+                    if (showSettingDialoge) {
+                        SettingDialoge(
+                            onDismissRequest = { showSettingDialoge = false },
+                            onNavigate = { route ->
+                                showSettingDialoge = false
+                                navController.navigate(route)
+                            },
+                            homeViewModel = homeViewModel
+                        )
                     }
                 }
             }
