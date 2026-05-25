@@ -314,51 +314,46 @@ class HomeViewModel @Inject constructor(
         dailyDiscover.value = items.toList().distinctBy { it.recommendation.id }.shuffled()
     }
 
-    /**
-     * Loads Quick Picks from local DB only — no network calls.
-     * Runs in Phase 1 so the UI can render immediately with real data.
-     */
-    private suspend fun loadQuickPicksFromDb() {
+    private suspend fun getQuickPicks() {
         val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
         when (quickPicksEnum.first()) {
             QuickPicks.QUICK_PICKS -> {
                 val relatedSongs = database.quickPicks().first().filterVideoSongs(hideVideoSongs)
                 val forgotten = database.forgottenFavorites().first().filterVideoSongs(hideVideoSongs).take(8)
-                val combined = (relatedSongs + forgotten).distinctBy { it.id }.shuffled().take(20)
+
+                // Get similar songs from YouTube based on recent listening
+                val recentSong = database.events().first().firstOrNull()?.song
+                val ytSimilarSongs = mutableListOf<Song>()
+
+                if (recentSong != null) {
+                    val endpoint = YouTube.next(WatchEndpoint(videoId = recentSong.id)).getOrNull()?.relatedEndpoint
+                    if (endpoint != null) {
+                        YouTube.related(endpoint).onSuccess { page ->
+                            // Convert YouTube songs to local Song format if they exist in database
+                            page.songs.take(10).forEach { ytSong ->
+                                database.song(ytSong.id).first()?.let { localSong ->
+                                    if (!hideVideoSongs || !localSong.song.isVideo) {
+                                        ytSimilarSongs.add(localSong)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Combine all sources and remove duplicates
+                val combined = (relatedSongs + forgotten + ytSimilarSongs)
+                    .distinctBy { it.id }
+                    .shuffled()
+                    .take(20)
+
                 quickPicks.value = combined.ifEmpty { relatedSongs.shuffled().take(20) }
             }
             QuickPicks.LAST_LISTEN -> {
                 val song = database.events().first().firstOrNull()?.song
                 if (song != null && database.hasRelatedSongs(song.id)) {
-                    quickPicks.value = database.getRelatedSongs(song.id).first()
-                        .filterVideoSongs(hideVideoSongs).shuffled().take(20)
+                    quickPicks.value = database.getRelatedSongs(song.id).first().filterVideoSongs(hideVideoSongs).shuffled().take(20)
                 }
-            }
-        }
-    }
-
-    /**
-     * Enriches Quick Picks with YouTube recommendations.
-     * Deferred to Phase 2 (background) so it never blocks the initial render.
-     * Only applies when the QUICK_PICKS mode is active.
-     */
-    private suspend fun enrichQuickPicksFromYouTube() {
-        if (quickPicksEnum.first() != QuickPicks.QUICK_PICKS) return
-        val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
-        val recentSong = database.events().first().firstOrNull()?.song ?: return
-        val endpoint = YouTube.next(WatchEndpoint(videoId = recentSong.id)).getOrNull()?.relatedEndpoint ?: return
-        YouTube.related(endpoint).onSuccess { page ->
-            val ytSimilarSongs = mutableListOf<Song>()
-            page.songs.take(10).forEach { ytSong ->
-                database.song(ytSong.id).first()?.let { localSong ->
-                    if (!hideVideoSongs || !localSong.song.isVideo) {
-                        ytSimilarSongs.add(localSong)
-                    }
-                }
-            }
-            if (ytSimilarSongs.isNotEmpty()) {
-                quickPicks.value = (quickPicks.value.orEmpty() + ytSimilarSongs)
-                    .distinctBy { it.id }.shuffled().take(20)
             }
         }
     }
@@ -445,7 +440,7 @@ class HomeViewModel @Inject constructor(
     private suspend fun loadLocalDataPhase() {
         val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
 
-        loadQuickPicksFromDb()
+        getQuickPicks()
 
         forgottenFavorites.value = database.forgottenFavorites().first()
             .filterVideoSongs(hideVideoSongs).shuffled().take(20)
@@ -587,7 +582,6 @@ class HomeViewModel @Inject constructor(
             if (YouTube.cookie != null) {
                 launch(Dispatchers.IO) { loadAccountPlaylists() }
             }
-            launch(Dispatchers.IO) { enrichQuickPicksFromYouTube() }
         }
 
         // Update combined YT items once all network data has settled
@@ -687,6 +681,7 @@ class HomeViewModel @Inject constructor(
     }
 
     init {
+
         // Load home data
         viewModelScope.launch(Dispatchers.IO) {
             context.dataStore.data
