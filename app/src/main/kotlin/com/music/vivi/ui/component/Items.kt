@@ -769,7 +769,8 @@ fun PlaylistListItem(
 
         Icon.Download(downloadState)
     },
-    trailingContent: @Composable RowScope.() -> Unit = {}
+    trailingContent: @Composable RowScope.() -> Unit = {},
+    shape: Shape = androidx.compose.ui.graphics.RectangleShape,
 ) = ListItem(
     title = playlist.playlist.name,
     subtitle = if (autoPlaylist) {
@@ -814,7 +815,8 @@ fun PlaylistListItem(
         )
     },
     trailingContent = trailingContent,
-    modifier = modifier
+    modifier = modifier,
+    shape = shape
 )
 
 @Composable
