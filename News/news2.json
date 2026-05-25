@@ -2,7 +2,11 @@
   "id": "2",
   "title": "Vivi Music Design Language",
   "summary": "An inside look into the design principles behind Vivi Music's smooth glassmorphism and animations.",
-  "content": "Designing a music player is all about creating an immersive atmosphere. In Vivi Music, we prioritize rich visual excellence, smooth gradients, and interactive feedback.\n\nEvery element, from the rounded corners (20.dp shapes) to the subtle micro-animations when you tap a card, has been designed to feel premium and state of the art.\n\nWe avoid browser-default aesthetics and generic primary colors, relying instead on tailored HSL colors, beautiful blur backgrounds, and responsive typography that feels alive under your fingertips.",
+  "content": [
+    "Designing a music player is all about creating an immersive atmosphere. In Vivi Music, we prioritize rich visual excellence, smooth gradients, and interactive feedback.",
+    "Every element, from the rounded corners (20.dp shapes) to the subtle micro-animations when you tap a card, has been designed to feel premium and state of the art.",
+    "We avoid browser-default aesthetics and generic primary colors, relying instead on tailored HSL colors, beautiful blur backgrounds, and responsive typography that feels alive under your fingertips."
+  ],
   "imageUrl": "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=800",
   "author": "Vivi Team",
   "publishedAt": "2026-05-24T15:30:00Z",

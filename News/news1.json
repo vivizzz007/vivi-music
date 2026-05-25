@@ -1,11 +1,29 @@
 {
   "id": "1",
   "title": "Vivi Music v6.0.1 Released!",
-  "summary": "We've shipped a major update with new equalizer presets and speed dial improvements.",
-  "content": "We are extremely excited to announce the release of Vivi Music v6.0.1! This update is packed with new features, performance enhancements, and customizer improvements.\n\n### What's New:\n- **Equalizer Presets**: Added 5 new high-fidelity equalizer presets tailored for various genres including Jazz, Classical, and Bass Boost.\n- **Speed Dial**: Improved speed dial menu accessibility and response times.\n- **UI Polish**: Refined dark mode contrast and corner styling across all main panels.\n\nThank you to all our open-source contributors who helped test and refine this build! Stay tuned for more amazing features coming next month.",
+  "summary": "We've shipped a major update with new equalizer presets, inline news integration, and dynamic layout improvements.",
+  "content": [
+    "We are extremely excited to announce the release of Vivi Music v6.0.1! This update is packed with new features, visual improvements, and audio enhancements.",
+    "Our open-source team has been working tirelessly to deliver a state-of-the-art native audio experience that respects your privacy and feels alive in your hands. Let's dive into the major changes included in this build.",
+    "## 🎛️ Dynamic Audio Equalization",
+    "We have completely revamped our acoustic tuning layer. Vivi Music now features 5 new high-fidelity equalizer presets tailored for various genres, including Jazz, Classical, Dirac Stage, and Bass Boost.",
+    "[image: https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800]",
+    "These presets leverage advanced acoustic processing to enrich vocals, broaden the soundstage, and deliver deep, punchy bass without introducing digital distortion. Whether you are using high-end studio monitors or standard earbuds, you will notice an immediate difference in depth and clarity.",
+    "## 📰 Native In-App News Feed",
+    "You are looking at it right now! We wanted to create a direct way to keep our amazing community updated with our latest releases, developer insights, and tips.",
+    "[image: https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=800]",
+    "This feature fetches dynamic updates directly from our hosted index feed, showing you elegant horizontal card previews on your settings page. Tapping any card loads this rich native reader view instantly, bringing you inline illustrations and bold stylized headings natively rendered in Compose.",
+    "### Under the Hood Tech:",
+    "- **Ktor Raw Engine**: Bypasses strict content-type filtering to ensure 100% immune loading from raw GitHub content.",
+    "- **Hilt SavedStateHandle**: Enables robust state restorations when switching apps or resuming background processes.",
+    "- **Coil Image Loading**: Leverages aggressive disk caching to load rich article illustrations dynamically.",
+    "## 🎨 Premium Visual Elements",
+    "Consistent with our visual guidelines, we have polished the user interface across all main screens. The news feed utilizes sleek horizontal row cards with square thumbnails on the left and beautifully weighted category badges, aligning perfectly with the track list aesthetics of Vivi Music.",
+    "Thank you to all our open-source contributors who helped test and refine this build! Stay tuned for more amazing features coming next month."
+  ],
   "imageUrl": "https://images.unsplash.com/photo-1616356607338-fd87169ecf1a?w=800",
   "author": "Vividh",
   "publishedAt": "2026-05-25T12:00:00Z",
   "category": "Release",
-  "tags": ["release", "update"]
+  "tags": ["release", "update", "equalizer", "news"]
 }
