@@ -1,0 +1,11 @@
+{
+  "id": "1",
+  "title": "Vivi Music v6.0.1 Released!",
+  "summary": "We've shipped a major update with new equalizer presets and speed dial improvements.",
+  "content": "We are extremely excited to announce the release of Vivi Music v6.0.1! This update is packed with new features, performance enhancements, and customizer improvements.\n\n### What's New:\n- **Equalizer Presets**: Added 5 new high-fidelity equalizer presets tailored for various genres including Jazz, Classical, and Bass Boost.\n- **Speed Dial**: Improved speed dial menu accessibility and response times.\n- **UI Polish**: Refined dark mode contrast and corner styling across all main panels.\n\nThank you to all our open-source contributors who helped test and refine this build! Stay tuned for more amazing features coming next month.",
+  "imageUrl": "https://images.unsplash.com/photo-1616356607338-fd87169ecf1a?w=800",
+  "author": "Vividh",
+  "publishedAt": "2026-05-25T12:00:00Z",
+  "category": "Release",
+  "tags": ["release", "update"]
+}
