@@ -543,7 +543,7 @@ fun AlbumScreen(
                             ),
                             contentPadding = androidx.compose.foundation.layout.PaddingValues(
                                 vertical = 12.dp,
-                                horizontal = 24.dp
+                                horizontal = 16.dp
                             ),
                             modifier = Modifier
                                 .height(48.dp)
@@ -569,7 +569,9 @@ fun AlbumScreen(
                                     text = if (isPlaying && mediaMetadata?.album?.id == albumWithSongs.album.id)
                                         stringResource(R.string.pause) else stringResource(R.string.play),
                                     style = MaterialTheme.typography.labelLarge,
-                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
