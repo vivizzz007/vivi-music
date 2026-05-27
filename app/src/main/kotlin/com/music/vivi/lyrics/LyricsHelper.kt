@@ -7,6 +7,7 @@ package com.music.vivi.lyrics
 
 import android.content.Context
 import android.util.LruCache
+import com.music.vivi.constants.LyricsProviderOrderKey
 import com.music.vivi.constants.PreferredLyricsProvider
 import com.music.vivi.constants.PreferredLyricsProviderKey
 import com.music.vivi.db.entities.LyricsEntity.Companion.LYRICS_NOT_FOUND
@@ -16,18 +17,12 @@ import com.music.vivi.utils.NetworkConnectivityObserver
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.reportException
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -37,114 +32,34 @@ constructor(
     @ApplicationContext private val context: Context,
     private val networkConnectivity: NetworkConnectivityObserver,
 ) {
-    private var lyricsProviders =
-        listOf(
-            YouLyPlusLyricsProvider,
-            PaxSenixLyricsProvider,
-            BetterLyricsProvider,
-            SimpMusicLyricsProvider,
-            LrcLibLyricsProvider,
-            KuGouLyricsProvider,
-            YouTubeSubtitleLyricsProvider,
-            YouTubeLyricsProvider
-        )
+    /**
+     * Resolves the ordered list of lyrics providers from the user's saved priority order.
+     * Falls back to migrating the legacy [PreferredLyricsProvider] enum if the new order
+     * preference has not been written yet, ensuring a smooth upgrade for existing users.
+     */
+    private suspend fun resolveLyricsProviders(): List<LyricsProvider> {
+        val preferences = context.dataStore.data.first()
+        val orderString = preferences[LyricsProviderOrderKey].orEmpty()
 
-    val preferred =
-        context.dataStore.data
-            .map {
-                it[PreferredLyricsProviderKey].toEnum(PreferredLyricsProvider.YOULYPLUS)
-            }.distinctUntilChanged()
-            .map { enum ->
-                when (enum) {
-                    PreferredLyricsProvider.LRCLIB -> listOf(
-                        LrcLibLyricsProvider,
-                        YouLyPlusLyricsProvider,
-                        PaxSenixLyricsProvider,
-                        BetterLyricsProvider,
-                        SimpMusicLyricsProvider,
-                        KuGouLyricsProvider,
-                        YouTubeSubtitleLyricsProvider,
-                        YouTubeLyricsProvider
-                    )
+        if (orderString.isNotBlank()) {
+            return LyricsProviderRegistry.getOrderedProviders(orderString)
+        }
 
-                    PreferredLyricsProvider.KUGOU -> listOf(
-                        KuGouLyricsProvider,
-                        YouLyPlusLyricsProvider,
-                        PaxSenixLyricsProvider,
-                        BetterLyricsProvider,
-                        SimpMusicLyricsProvider,
-                        LrcLibLyricsProvider,
-                        YouTubeSubtitleLyricsProvider,
-                        YouTubeLyricsProvider
-                    )
-
-                    PreferredLyricsProvider.BETTER_LYRICS -> listOf(
-                        BetterLyricsProvider,
-                        YouLyPlusLyricsProvider,
-                        PaxSenixLyricsProvider,
-                        SimpMusicLyricsProvider,
-                        LrcLibLyricsProvider,
-                        KuGouLyricsProvider,
-                        YouTubeSubtitleLyricsProvider,
-                        YouTubeLyricsProvider
-                    )
-
-                    PreferredLyricsProvider.SIMPMUSIC -> listOf(
-                        SimpMusicLyricsProvider,
-                        YouLyPlusLyricsProvider,
-                        PaxSenixLyricsProvider,
-                        BetterLyricsProvider,
-                        LrcLibLyricsProvider,
-                        KuGouLyricsProvider,
-                        YouTubeSubtitleLyricsProvider,
-                        YouTubeLyricsProvider
-                    )
-
-                    PreferredLyricsProvider.YOULYPLUS -> listOf(
-                        YouLyPlusLyricsProvider,
-                        PaxSenixLyricsProvider,
-                        BetterLyricsProvider,
-                        SimpMusicLyricsProvider,
-                        LrcLibLyricsProvider,
-                        KuGouLyricsProvider,
-                        YouTubeSubtitleLyricsProvider,
-                        YouTubeLyricsProvider
-                    )
-
-                    PreferredLyricsProvider.PAXSENIX -> listOf(
-                        PaxSenixLyricsProvider,
-                        YouLyPlusLyricsProvider,
-                        BetterLyricsProvider,
-                        SimpMusicLyricsProvider,
-                        LrcLibLyricsProvider,
-                        KuGouLyricsProvider,
-                        YouTubeSubtitleLyricsProvider,
-                        YouTubeLyricsProvider
-                    )
-                }
-            }
-
-    // Persistent scope to keep collecting the preference flow for the lifetime of the helper
-    private val helperScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-
-    // Ensures we wait for the first preference load before fetching lyrics
-    private val initialized = CompletableDeferred<Unit>()
-
-    init {
-        // Actively collect the preferred provider preference so lyricsProviders
-        // is updated immediately whenever the user changes the setting
-        preferred.onEach {
-            lyricsProviders = it
-            initialized.complete(Unit)
-        }.launchIn(helperScope)
+        // Migration path: place the old preferred provider first in the default order
+        val preferredEnum = preferences[PreferredLyricsProviderKey]
+            .toEnum(PreferredLyricsProvider.YOULYPLUS)
+        val preferredName = LyricsProviderRegistry.getProviderNameForEnum(preferredEnum)
+        val defaultOrder = LyricsProviderRegistry.getDefaultProviderOrder()
+        val migratedOrder = listOf(preferredName) + defaultOrder.filter { it != preferredName }
+        return migratedOrder.mapNotNull { LyricsProviderRegistry.getProviderByName(it) }
     }
+
 
 
     private val cache = LruCache<String, List<LyricsResult>>(MAX_CACHE_SIZE)
     private var currentLyricsJob: Job? = null
 
     suspend fun getLyrics(mediaMetadata: MediaMetadata): LyricsWithProvider {
-        initialized.await()
         currentLyricsJob?.cancel()
 
         val cached = cache.get(mediaMetadata.id)?.firstOrNull()
@@ -166,9 +81,10 @@ constructor(
             return LyricsWithProvider(LYRICS_NOT_FOUND, "Unknown")
         }
 
+        val providers = resolveLyricsProviders()
         val scope = CoroutineScope(SupervisorJob())
         val deferred = scope.async {
-            for (provider in lyricsProviders) {
+            for (provider in providers) {
                 if (provider.isEnabled(context)) {
                     try {
                         val result = provider.getLyrics(
@@ -205,7 +121,6 @@ constructor(
         album: String? = null,
         callback: (LyricsResult) -> Unit,
     ) {
-        initialized.await()
         currentLyricsJob?.cancel()
 
         val cacheKey = "$songArtists-$songTitle".replace(" ", "")
@@ -231,8 +146,9 @@ constructor(
         }
 
         val allResult = mutableListOf<LyricsResult>()
+        val providers = resolveLyricsProviders()
         currentLyricsJob = CoroutineScope(SupervisorJob()).launch {
-            lyricsProviders.forEach { provider ->
+            providers.forEach { provider ->
                 if (provider.isEnabled(context)) {
                     try {
                         provider.getAllLyrics(mediaId, songTitle, songArtists, duration, album) { lyrics ->
