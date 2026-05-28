@@ -1282,21 +1282,48 @@ object YouTube {
         val albums = mutableListOf<AlbumItem>()
         val artists = mutableListOf<ArtistItem>()
         val playlists = mutableListOf<PlaylistItem>()
-        response.contents?.sectionListRenderer?.contents?.forEach { sectionContent ->
-            sectionContent.musicCarouselShelfRenderer?.contents?.forEach { content ->
-                when (val item = content.musicResponsiveListItemRenderer?.let(RelatedPage.Companion::fromMusicResponsiveListItemRenderer)
-                    ?: content.musicTwoRowItemRenderer?.let(RelatedPage.Companion::fromMusicTwoRowItemRenderer)) {
-                    is SongItem -> if (content.musicResponsiveListItemRenderer?.overlay
-                            ?.musicItemThumbnailOverlayRenderer?.content
-                            ?.musicPlayButtonRenderer?.playNavigationEndpoint
-                            ?.watchEndpoint?.watchEndpointMusicSupportedConfigs
-                            ?.watchEndpointMusicConfig?.musicVideoType == MUSIC_VIDEO_TYPE_ATV
-                    ) songs.add(item)
 
-                    is AlbumItem -> albums.add(item)
-                    is ArtistItem -> artists.add(item)
-                    is PlaylistItem -> playlists.add(item)
-                    null -> {}
+        fun addItem(item: YTItem, renderer: MusicResponsiveListItemRenderer?) {
+            when (item) {
+                is SongItem -> {
+                    val isAudioTrack = renderer?.overlay
+                        ?.musicItemThumbnailOverlayRenderer?.content
+                        ?.musicPlayButtonRenderer?.playNavigationEndpoint
+                        ?.watchEndpoint?.watchEndpointMusicSupportedConfigs
+                        ?.watchEndpointMusicConfig?.musicVideoType == MUSIC_VIDEO_TYPE_ATV
+                    if (isAudioTrack) {
+                        songs.add(item)
+                    }
+                }
+                is AlbumItem -> albums.add(item)
+                is ArtistItem -> artists.add(item)
+                is PlaylistItem -> playlists.add(item)
+            }
+        }
+
+        response.contents?.sectionListRenderer?.contents?.forEach { sectionContent ->
+            // Music Carousel
+            sectionContent.musicCarouselShelfRenderer?.contents?.forEach { content ->
+                val item = content.musicResponsiveListItemRenderer?.let(RelatedPage.Companion::fromMusicResponsiveListItemRenderer)
+                    ?: content.musicTwoRowItemRenderer?.let(RelatedPage.Companion::fromMusicTwoRowItemRenderer)
+                if (item != null) {
+                    addItem(item, content.musicResponsiveListItemRenderer)
+                }
+            }
+
+            // Music Shelf
+            sectionContent.musicShelfRenderer?.contents?.forEach { content ->
+                val item = content.musicResponsiveListItemRenderer?.let(RelatedPage.Companion::fromMusicResponsiveListItemRenderer)
+                if (item != null) {
+                    addItem(item, content.musicResponsiveListItemRenderer)
+                }
+            }
+
+            // Item Section
+            sectionContent.itemSectionRenderer?.contents?.forEach { content ->
+                val item = content.musicResponsiveListItemRenderer?.let(RelatedPage.Companion::fromMusicResponsiveListItemRenderer)
+                if (item != null) {
+                    addItem(item, content.musicResponsiveListItemRenderer)
                 }
             }
         }
