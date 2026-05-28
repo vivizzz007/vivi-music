@@ -18,7 +18,7 @@ plugins {
 
 android {
     namespace = "com.music.vivi"
-    compileSdk = 36
+    compileSdk = 37
     ndkVersion = "27.0.12077973"
 
     defaultConfig {
