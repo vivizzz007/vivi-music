@@ -153,7 +153,7 @@ Output MUST be a JSON array with EXACTLY $lineCount strings."""
                             .build()
 
                     val response = client.newCall(request).execute()
-                    val responseBody = response.body?.string()
+                    val responseBody = response.body.string()
 
                     if (!response.isSuccessful) {
                         if (response.code >= 500) {
@@ -164,17 +164,12 @@ Output MUST be a JSON array with EXACTLY $lineCount strings."""
 
                         val errorMsg =
                             try {
-                                JSONObject(responseBody ?: "").optJSONObject("error")?.optString("message")
+                                JSONObject(responseBody).optJSONObject("error")?.optString("message")
                                     ?: "HTTP ${response.code}: ${response.message}"
                             } catch (e: Exception) {
                                 "HTTP ${response.code}: ${response.message}"
                             }
                         return@withContext Result.failure(Exception("Translation failed: $errorMsg"))
-                    }
-
-                    if (responseBody == null) {
-                        currentAttempt++
-                        continue
                     }
 
                     val jsonResponse = JSONObject(responseBody)

@@ -524,7 +524,7 @@ fun OldPlayerMenu(
                                     )
                                 },
                                 onClick = {
-                                    listenTogetherManager?.requestSync()
+                                    listenTogetherManager.requestSync()
                                     onDismiss()
                                 }
                             )

@@ -76,8 +76,8 @@ import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Speaker
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material.icons.filled.Usb
-import androidx.compose.material.icons.filled.VolumeOff
-import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.automirrored.filled.VolumeOff
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonGroupDefaults
@@ -96,7 +96,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.CircularWavyProgressIndicator
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -129,6 +128,7 @@ import com.music.vivi.R
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.constants.AudioQuality
 import com.music.vivi.constants.AudioQualityKey
+import com.music.vivi.ui.component.rememberHiddenBottomSheetState
 import com.music.vivi.utils.rememberEnumPreference
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -158,7 +158,7 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
     var audioDevices by remember { mutableStateOf<List<AudioDevice>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val bottomSheetState = rememberHiddenBottomSheetState(skipPartiallyExpanded = true)
     val audioManager = remember { context.getSystemService(Context.AUDIO_SERVICE) as AudioManager }
 
     var currentVolume by remember {
@@ -522,7 +522,7 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                                                     )
                                                     if (isSelected) {
                                                         Icon(
-                                                            imageVector = Icons.Filled.VolumeUp,
+                                                            imageVector = Icons.AutoMirrored.Filled.VolumeUp,
                                                             contentDescription = null,
                                                             modifier = Modifier.size(16.dp),
                                                             tint = MaterialTheme.colorScheme.secondary
@@ -734,7 +734,7 @@ fun VolumeControlRow(
                     modifier = Modifier.padding(start = 24.dp)
                 ) {
                     Icon(
-                        imageVector = if (currentValue > 0) Icons.Filled.VolumeUp else Icons.Filled.VolumeOff,
+                        imageVector = if (currentValue > 0) Icons.AutoMirrored.Filled.VolumeUp else Icons.AutoMirrored.Filled.VolumeOff,
                         contentDescription = null,
                         tint = if (currentValue / maxVolume > 0.2f) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(24.dp)
@@ -791,7 +791,6 @@ fun AudioQualitySelector(context: Context) {
             AudioQuality.AUTO -> 0
             AudioQuality.HIGH -> 1
             AudioQuality.LOW -> 2
-            else -> 0
         }
 
         androidx.compose.foundation.layout.FlowRow(
@@ -1131,7 +1130,7 @@ private fun AudioDeviceRow(
                     modifier = Modifier.padding(end = 4.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.VolumeUp,
+                        imageVector = Icons.AutoMirrored.Filled.VolumeUp,
                         contentDescription = "Volume level",
                         tint = onContainer,
                         modifier = Modifier.size(14.dp)
